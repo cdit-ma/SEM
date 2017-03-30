@@ -22,7 +22,6 @@ public:
     ViewController();
     ~ViewController();
 
-    QStringList getNodeKinds();
     SelectionController* getSelectionController();
     ActionController* getActionController();
     ToolbarController* getToolbarController();

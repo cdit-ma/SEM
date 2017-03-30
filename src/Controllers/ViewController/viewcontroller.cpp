@@ -64,49 +64,6 @@ ViewController::~ViewController()
     delete rootItem;
 }
 
-QStringList ViewController::getNodeKinds()
-{
-    QStringList nodeKinds;
-    nodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
-    nodeKinds << "Member" << "Aggregate";
-    nodeKinds << "InEventPort"  << "OutEventPort";
-    nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
-    nodeKinds << "AggregateInstance";
-    nodeKinds << "ComponentImpl";
-    //nodeKinds << "Vector" << "VectorInstance";
-    nodeKinds << "HardwareCluster";
-    nodeKinds << "WorkerDefinitions";
-
-    nodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
-    nodeKinds << "Member" << "Aggregate";
-    nodeKinds << "InEventPort"  << "OutEventPort";
-    nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
-    nodeKinds << "AggregateInstance";
-    nodeKinds << "ComponentImpl";
-    nodeKinds << "Vector";
-    nodeKinds << "VariadicParameter";
-    nodeKinds << "VariableParameter";
-
-    nodeKinds << "Code" << "Header";
-    nodeKinds << "ForCondition" << "VectorItterator" << "Setter";
-
-    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "OutEventPortImpl";
-    nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "WorkerProcess";
-
-    //Append Kinds which can't be constructed by the GUI.
-    nodeKinds << "MemberInstance" << "AttributeImpl";
-    nodeKinds << "OutEventPortInstance" << "MemberInstance" << "AggregateInstance";
-    nodeKinds << "AttributeInstance" << "AttributeImpl";
-    nodeKinds << "InEventPortInstance" << "InEventPortImpl";
-    nodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
-
-    nodeKinds << "ComponentImpl" << "InterfaceDefinitions";
-    nodeKinds << "OutEventPortImpl" << "InEventPortImpl";
-    nodeKinds.removeDuplicates();
-
-    nodeKinds.sort();
-    return nodeKinds;
-}
 
 SelectionController *ViewController::getSelectionController()
 {
@@ -307,46 +264,45 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem){
         bool isNode = viewItem->isNode();
-        int ID = viewItem->getID();
+        bool isEdge = viewItem->isEdge();
 
         NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
-
-        QString kind = viewItem->getData("kind").toString();
-        QString label = viewItem->getData("label").toString();
-        QString icon = viewItem->getData("icon").toString();
-        QString icon_prefix = viewItem->getData("icon_prefix").toString();
+        EdgeViewItem* edgeViewItem = (EdgeViewItem*)viewItem;
 
         QString alias = "EntityIcons";
-        QString image = kind;
+        QString image = viewItem->getData("kind").toString();
 
         if(isNode){
-            switch(nodeViewItem->getNodeKind()){
-                case Node::NK_HARDWARE_NODE:{
-                    bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+            auto node_kind = nodeViewItem->getNodeKind();
 
-                    if(localhost){
-                        image = "Localhost";
-                    }else{
-                        QString os = viewItem->getData("os").toString();
-                        QString arch = viewItem->getData("architecture").toString();
-                        image = os % "_" % arch;
-                        image = image.remove(" ");
-                    }
-                    break;
+            auto icon = viewItem->getData("icon").toString();
+            auto icon_prefix = viewItem->getData("icon_prefix").toString();
+
+
+            switch(node_kind){
+            case Node::NK_HARDWARE_NODE:{
+                bool server_node = viewItem->hasData("os") && viewItem->hasData("architecture") && !viewItem->hasData("localhost");
+
+                if(server_node){
+                    QString os = viewItem->getData("os").toString();
+                    QString arch = viewItem->getData("architecture").toString();
+                    image = (os % "_" % arch);
                 }
-                case Node::NK_WORKLOAD:{
-                    if(!nodeViewItem->isInModel()){
-                        //Workload from a Workload Definition.
-                        alias = icon_prefix;
-                        image = icon;
-                    }
-                    break;
+                break;
+            }
+            case Node::NK_WORKLOAD:{
+                if(nodeViewItem->getViewAspect() == VA_WORKERS){
+                    //If we are
+                    alias = icon_prefix;
+                    image = icon;
                 }
-                case Node::NK_VARIADIC_PARAMETER:{
-                    alias = "Icons";
-                    image = "label";
-                    break;
-                }
+                break;
+            }
+            case Node::NK_VARIADIC_PARAMETER:{
+                alias = "Icons";
+                image = "label";
+                break;
+            }
             case Node::NK_VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";
@@ -362,7 +318,13 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 image = "Condition";
                 break;
             }
-
+            case Node::NK_WORKER_DEFINITIONS:{
+                alias = "Icons";
+                image = "medeaLogo";
+                //alias = "Icons";
+                //image = "spanner";
+                break;
+            }
             case Node::NK_WORKER_PROCESS:
             case Node::NK_INPUT_PARAMETER:
             case Node::NK_RETURN_PARAMETER:{
@@ -372,30 +334,47 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
-                case Node::NK_VECTOR:
-                case Node::NK_VECTOR_INSTANCE:
-                    foreach(ViewItem* child, viewItem->getDirectChildren()){
-                        QString childNodeKind = child->getData("kind").toString();
-                        if(childNodeKind == "MemberInstance"){
-                            childNodeKind = "Member";
+            case Node::NK_VECTOR:
+            case Node::NK_VECTOR_INSTANCE:{
+                //Check children
+                foreach(ViewItem* child, viewItem->getDirectChildren()){
+                    auto* node = (NodeViewItem*) child;
+                    if(child->isNode()){
+                        auto child_kind = node->getNodeKind();
+
+                        if(child_kind == Node::NK_MEMBER || child_kind == Node::NK_MEMBER_INSTANCE){
+                            image += "_Member";
+                        }else if(child_kind == Node::NK_AGGREGATE_INSTANCE){
+                            image += "_AggregateInstance";
                         }
-                        image = kind % "_" % childNodeKind;
-                        break;
                     }
                     break;
-                case Node::NK_MODEL:
-                    alias = "Icons";
-                    image = "medeaLogo";
-                    break;
-                default:
-                    break;
-
                 }
+                break;
+            }
+            case Node::NK_MODEL:
+                alias = "Icons";
+                image = "medeaLogo";
+                break;
+            default:
+                break;
+
+            }
+        }else if(isEdge){
+            switch(edgeViewItem->getEdgeKind()){
+                case Edge::EC_DEFINITION:{
+                    alias = "Icons";
+                    image = "gears";
+                }
+                break;
+            default:
+                break;
+            }
         }
 
-        //Load image
-        Theme::theme()->getImage(alias, image);
-        viewItem->setDefaultIcon(alias, image);
+        //Try and get the image
+        auto i = Theme::theme()->getIcon(alias, image);
+        viewItem->setIcon(alias, image);
     }
 }
 
@@ -612,7 +591,6 @@ void ViewController::setupEntityKindItems()
 {
     //Prune out the kinds we don't need.
     auto constructableNodes = NodeFactory::getNodeKinds();
-    constructableNodes.removeAll(Node::NK_AGGREGATE_INSTANCE);
     constructableNodes.removeAll(Node::NK_ATTRIBUTE_IMPL);
     constructableNodes.removeAll(Node::NK_ASSEMBLY_DEFINITIONS);
     constructableNodes.removeAll(Node::NK_DEPLOYMENT_DEFINITIONS);
@@ -634,6 +612,7 @@ void ViewController::setupEntityKindItems()
     for(auto kind : constructableNodes){
         QString label = NodeFactory::getNodeKindString(kind);
         auto item = new NodeViewItem(this, kind, label);
+        //qCritical() << label;
         setDefaultIcon(item);
         nodeKindItems.append(item);
     }
@@ -1196,11 +1175,6 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
-
-            //Update the icons for certain types.
-            if(parentItem->isNode() && (parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE)){
-                setDefaultIcon(parentItem);
-            }
         }else{
             rootItem->addChild(nodeItem);
             topLevelItems.append(ID);
@@ -1235,6 +1209,11 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
     if(viewItem){
         viewItems[ID] = viewItem;
         setDefaultIcon(viewItem);
+
+        //auto parent = viewItem->getParentItem();
+        //if(parent){
+        //    setDefaultIcon(parent);
+        //}
 
         connect(viewItem->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
 

@@ -1,17 +1,17 @@
 #include "rootaction.h"
-
+//#include "theme.h"
 RootAction::RootAction(QString category, QString text, QObject *parent) : QAction(text, parent)
 {
     this->category = category;
-    iconPath = "Actions";
-    iconAlias = "Help";
     connect(this, SIGNAL(changed()), this, SLOT(actionChanged()));
+    //setIconPath("Icon", "circleQuestion");
 }
 
 void RootAction::setIconPath(QString path, QString alias)
 {
     iconPath = path;
     iconAlias = alias;
+    //setIcon(Theme::theme()->getIcon(iconPath, iconAlias));
 }
 
 QPair<QString, QString> RootAction::getIconPair() const
@@ -81,7 +81,7 @@ void RootAction::copyActionState(QAction *action, bool stealth)
         action->setCheckable(isCheckable());
         action->setChecked(isChecked());
 
-        if(!icon().isNull()){
+        if(!(icon().isNull())){
             action->setIcon(icon());
         }
         if(iconText() != ""){

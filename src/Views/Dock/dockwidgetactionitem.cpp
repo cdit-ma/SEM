@@ -139,12 +139,14 @@ bool DockWidgetActionItem::isHighlighted()
 void DockWidgetActionItem::actionChanged()
 {
     if (dockAction) {
+
+
         QPixmap iconPixmap = dockAction->icon().pixmap(ICON_SIZE);
         if (!iconPixmap.isNull()) {
             iconLabel->setPixmap(iconPixmap);
-        } else {
-            iconLabel->setPixmap(theme->getImage("Icons", "circleQuestion", QSize(ICON_SIZE, ICON_SIZE)));
-        }
+        }// else {
+         //   iconLabel->setPixmap(theme->getImage("Icons", "circleQuestion", QSize(ICON_SIZE, ICON_SIZE)));
+        //}
         QString actionText = dockAction->text();
         if (actionText != getText()) {
             setText(actionText);

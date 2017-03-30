@@ -47,7 +47,7 @@ void DataTableWidget::activeItem_IconChanged()
 {
     if(activeItem){
         QPair<QString, QString> iconPath = activeItem->getIcon();
-        QPixmap icon = Theme::theme()->getImage(iconPath.first, iconPath.second, QSize(32,32));
+        QPixmap icon = Theme::theme()->getIcon(iconPath).pixmap(32,32);
         iconLabel->setPixmap(icon);
     }else{
         iconLabel->clear();
@@ -73,6 +73,7 @@ void DataTableWidget::themeChanged()
                   "}");
     label->setStyleSheet("QLabel{color: " % theme->getTextColorHex() % ";font-weight:bold;}");
     toolbar->setStyleSheet("QToolBar{ border: 1px solid " % theme->getDisabledBackgroundColorHex() % "; border-bottom: 0px; }");
+    activeItem_IconChanged();
 }
 
 void DataTableWidget::setupLayout()

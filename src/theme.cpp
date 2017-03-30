@@ -9,23 +9,30 @@
 
 Theme* Theme::themeSingleton = 0;
 
-Theme::Theme():QObject(0)
+Theme::Theme() : QObject(0)
+  //,lock(QReadWriteLock::Recursive)
 {
     terminating = false;
     preloadedImages = false;
     themeChanged = false;
-    slash = QString("/");
+    slash = "/";
+    underscore = "_";
 
     //Cadet Blue
     deployColor = QColor(95, 158, 160);
     setDefaultImageTintColor(QColor(70,70,70));
 
-
-
     selectedItemBorderColor = Qt::blue;
+
+    //Get the original settings from the settings.
 
     setupToggledIcons();
     updateValid();
+
+
+    connect(this, &Theme::_preload, this, &Theme::preloadFinished, Qt::QueuedConnection);
+    connect(this, &Theme::preloadFinished, this, &Theme::clearIconMap, Qt::QueuedConnection);
+
 
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }
@@ -156,12 +163,9 @@ QSize Theme::roundQSize(QSize size)
     return size;
 }
 
-QPair<QString, QString> Theme::getIconPair(QString prefix, QString alias)
+IconPair Theme::getIconPair(QString prefix, QString alias)
 {
-    QPair<QString, QString> pair;
-    pair.first = prefix;
-    pair.second = alias;
-    return pair;
+    return IconPair(prefix, alias);
 }
 
 void Theme::setBackgroundColor(QColor color)
@@ -265,11 +269,12 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
 }
 
 void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias){
-    QString name = prefix % slash % alias;
+    QString name = getResourceName(prefix, alias);
+    //Construct pairs
+    auto toggled_on = getIconPair(toggledOnPrefix, toggledOnAlias);
+    auto toggled_off = getIconPair(toggledOffPrefix, toggleOffAlias);
 
-    QString toggled_on = toggledOnPrefix  % slash %  toggledOnAlias;
-    QString toggled_off = toggledOffPrefix  % slash %  toggleOffAlias;
-    iconToggledLookup[name] = QPair<QString, QString>(toggled_on, toggled_off);
+    iconToggledLookup[name] = QPair<IconPair, IconPair>(toggled_on, toggled_off);
 }
 
 QColor Theme::getDefaultImageTintColor()
@@ -290,12 +295,12 @@ QColor Theme::getMainImageColor(QString prefix, QString alias)
     }else if(pixmapMainColorLookup.contains(key)){
         return pixmapMainColorLookup[key];
     }else{
-        qCritical() << key << " Doesn't have pixel data?!";
+        //qCritical() << key << " Doesn't have pixel data?!";
         return QColor();
     }
 }
 
-QColor Theme::getMainImageColor(QPair<QString, QString> path)
+QColor Theme::getMainImageColor(IconPair path)
 {
     return getMainImageColor(path.first, path.second);
 }
@@ -310,19 +315,20 @@ void Theme::setDefaultImageTintColor(QColor color)
 
 void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color)
 {
-
-    QString longName = prefix % slash % alias;
+    QString longName = getResourceName(prefix, alias);
     pixmapTintLookup[longName] = color;
 }
 
 void Theme::applyTheme()
 {
-    if(themeChanged && valid){
-        //PRINT OUT MEMORY USAGE.
-        iconLookup.clear();
-        emit theme_Changed();
-    }
+    clearIconMap();
     themeChanged = false;
+    emit theme_Changed();
+}
+
+void Theme::forceIconReload()
+{
+    emit refresh_Icons();
 }
 
 bool Theme::isValid()
@@ -330,7 +336,7 @@ bool Theme::isValid()
     return valid;
 }
 
-bool Theme::gotImage(QPair<QString, QString> icon) const
+bool Theme::gotImage(IconPair icon) const
 {
     return gotImage(icon.first, icon.second);
 }
@@ -356,7 +362,7 @@ QString Theme::getSharpCornerRadius()
     return "2px";
 }
 
-QIcon Theme::getIcon(QPair<QString, QString> icon)
+QIcon Theme::getIcon(IconPair icon)
 {
     return getIcon(icon.first, icon.second);
 }
@@ -364,37 +370,30 @@ QIcon Theme::getIcon(QPair<QString, QString> icon)
 QIcon Theme::getIcon(QString prefix, QString alias)
 {
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    QString lookupName = prefix  % slash %  alias;
+    QString lookupName = getResourceName(prefix, alias);
 
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
-        QPair<QString, QString> toggledPaths;
+        QIcon icon;
+        QPair<IconPair, IconPair> toggledPaths;
         bool gotToggle = false;
+
         //Check if we have a toggled Icon
         if(iconToggledLookup.contains(lookupName)){
             toggledPaths = iconToggledLookup[lookupName];
-            qCritical() << toggledPaths;
             gotToggle = true;
         }
 
-        //Try get the Icon
-        if(!imageLookup.contains(lookupName)){
-            //If we haven't loaded the original image we can't tell if it needs tinting!
-            getImage(prefix, alias);
-        }
-
-        if(gotToggle && !gotImage(prefix, alias)){
+        if(gotToggle){
             //Load in the first path.
-            QPair<QString, QString> toggledOnIcon = splitImagePath(toggledPaths.first);
-            prefix = toggledOnIcon.first;
-            alias = toggledOnIcon.second;
+            prefix = toggledPaths.first.first;
+            alias = toggledPaths.first.second;
         }
 
+        //getImage(prefix, alias);
 
         bool isTinted = tintIcon(prefix, alias);
-
-        QIcon icon;
 
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
@@ -405,12 +404,10 @@ QIcon Theme::getIcon(QString prefix, QString alias)
         }
 
         if(gotToggle){
-            QPair<QString, QString> toggledOffIcon = splitImagePath(toggledPaths.second);
-            QString toggledPrefixName = toggledOffIcon.first;
-            QString toggledAliasName = toggledOffIcon.second;
+            QString toggledPrefixName = toggledPaths.second.first;
+            QString toggledAliasName = toggledPaths.second.second;
 
             bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
-
             //Set the toggled states.
             icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
             if(isToggledTinted){
@@ -424,127 +421,75 @@ QIcon Theme::getIcon(QString prefix, QString alias)
     }
 }
 
-QPixmap Theme::_getImage(QString resourceName, QSize size, QColor tintColor)
+QPixmap Theme::_getPixmap(QString resourceName, QSize size, QColor tintColor)
 {
-    QString lookupName = resourceName;
+    QPixmap pixmap;
+    //Get the name of the pixmap url
+    QString pixmap_url = getPixmapResourceName(resourceName, size, tintColor);
 
-    //If we have a tint color check for it.
-    if(tintColor.isValid()){
-        lookupName = lookupName % slash % QColorToHex(tintColor);
-    }
-
-    //If the size we have been provided isn't set, check for the original image size.
-    if(!size.isValid()){
-        if(pixmapSizeLookup.contains(resourceName)){
-            size = pixmapSizeLookup[resourceName];
-        }
-    }
-
-    //If we have a valid size
-    if(size.isValid()){
-        size = roundQSize(size);
-        //Update the lookupName to include this new size information.
-        lookupName = lookupName % slash % QString::number(size.width()) % slash % QString::number(size.height());
-    }
-
-
-    if(pixmapLookup.contains(lookupName)){
-        return pixmapLookup[lookupName];
+    if(pixmapLookup.contains(pixmap_url)){
+        //Get the pixmap from the lookup
+        pixmap = pixmapLookup.value(pixmap_url);
     }else{
-        QSize originalSize;
+        //Get the Image (Load it if it isn't loaded)
+        QImage image = getImage(resourceName);
+        //Get the size of the original Image
+        QSize original_size = image.size();
 
-        //Try and get original Size of the resource.
-        if(pixmapSizeLookup.contains(resourceName)){
-            originalSize = pixmapSizeLookup[resourceName];
-        }
+        if(!image.isNull()){
 
-
-        if(originalSize.isValid()){
-            //If the size we want is bigger than the original size, return the exact original image.
-            if(size.width() > originalSize.width()){
-                //Request the image at max size.
-                return _getImage(resourceName, originalSize, tintColor);
+            //If we haven't got a tint color, get a default tint color (If Any)
+            if(!tintColor.isValid()){
+                tintColor = getTintColor(resourceName);
             }
-        }
 
-
-
-        QImage image;
-
-        if(imageLookup.contains(resourceName)){
-            image = imageLookup[resourceName];
-        }else{
-            //Load the original Image
-            image =  QImage(":/" % resourceName);
-            //Store it
-            imageLookup[resourceName] = image;
-
-            calculateImageColor(resourceName);
-        }
-
-        if(image.isNull()){
-            qCritical() << "Cannot find image: " << resourceName;
-            pixmapLookup[lookupName] = QPixmap();
-            return pixmapLookup[lookupName];
-        }
-
-        //If we haven't seen this Image before, we should store the original size of the Image
-        if(!pixmapSizeLookup.contains(resourceName)){
-            originalSize = image.size();
-            pixmapSizeLookup[resourceName] = originalSize;
-
-            //Update the lookupName to include the original size.
-            lookupName = lookupName % slash % QString::number(size.width()) % slash % QString::number(size.height());
-        }
-
-        //Handle the tint color.
-        if(!tintColor.isValid()){
-            //Check for a non-default color.
-            if(pixmapTintLookup.contains(resourceName)){
-                tintColor = pixmapTintLookup[resourceName];
-            }else{
-                //Return the default color tint.
-                tintColor = iconColor;
-            }
-        }
-
-        //If the size we want is bigger than the original.
-        if(size.width() > originalSize.width()){
-            //Request the image at the original size.
-            return _getImage(resourceName, originalSize, tintColor);
-        }else{
-            if(size.isValid() && originalSize.isValid()){
-                //Scale the image to the required size.
+            //If we have been given a size, which is different to the original size, round it
+            if(size.isValid() && size != original_size){
+                size = roundQSize(size);
+                //Scale the image
                 image = image.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             }
-        }
 
+            //Tint the icon if we have to
+            if(tintColor.isValid() && tintIcon(original_size)){
+                //Replace the image with it's alphaChannel
+                image = image.alphaChannel();
 
-        //Tint the pixmap If it's a multiple of 96
-        if(tintIcon(originalSize)){
-            //qCritical() << originalSize;
-            //Replace the image with it's alphaChannel
-            image = image.alphaChannel();
-
-
-            //Replace the colors with the tinted color.
-            for(int i = 0; i < image.colorCount(); ++i) {
-                tintColor.setAlpha(qGray(image.color(i)));
-                image.setColor(i, tintColor.rgba());
+                //Replace the colors with the tinted color.
+                for(int i = 0; i < image.colorCount(); ++i) {
+                    tintColor.setAlpha(qGray(image.color(i)));
+                    image.setColor(i, tintColor.rgba());
+                }
             }
+
+            //Construct a Pixmap from the image.
+            pixmap = QPixmap::fromImage(image);
+
+            //Store it in the pixmap map
+            pixmapLookup[pixmap_url] = pixmap;
         }
-        //Construct a Pixmap from the image.
-        QPixmap pixmap = QPixmap::fromImage(image);
-
-        pixmapLookup[lookupName] = pixmap;
-        return pixmap;
     }
-
+    return pixmap;
 }
 
 QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
 {
-    return _getImage(getResourceName(prefix, alias), size, tintColor);
+    return _getPixmap(getResourceName(prefix, alias), size, tintColor);
+}
+
+QString Theme::getPixmapResourceName(QString resource_name, QSize size, QColor tintColor)
+{
+    QSize original_size = pixmapSizeLookup.value(resource_name);
+
+    if(size.isValid() && size != original_size){
+        size = roundQSize(size);
+        resource_name = resource_name % underscore % QString::number(size.width()) % underscore % QString::number(size.height());
+    }
+
+    if(tintColor.isValid()){
+        resource_name = resource_name % underscore % QColorToHex(tintColor);
+    }
+    return resource_name;
 }
 
 QColor Theme::getAltTextColor()
@@ -1093,39 +1038,37 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
 void Theme::preloadImages()
 {
     if(!preloadedImages){
-        connect(this, &Theme::_preload, Theme::theme(), &Theme::preloadFinished, Qt::QueuedConnection);
         preloadedImages = true;
-        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        QStringList dirs;
-        dirs << "Icons" << "EntityIcons";
-        int count = 0;
-        QStringList imageList;
-        foreach(QString dir, dirs){
-            QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
-            while (it.hasNext() && !terminating) {
-                it.next();
 
-                QString resourceName = getResourceName(dir, it.fileName());
-                imageExistsHash.insert(resourceName, true);
-                imageList.append(resourceName);
+        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+        int load_count = 0;
+
+        //Recurse through all images!
+        QDirIterator it(":/Images/", QDirIterator::Subdirectories);
+        while (it.hasNext() && !terminating){
+            it.next();
+            if(it.fileInfo().isFile()){
+                //Trim the :/ from the path1
+                QString path = it.filePath().mid(2);
+
+
+                if(getImage(path).isNull()){
+                    qCritical() << "Image: " << path << " Is an null image";
+                }else{
+                    load_count ++;
+                }
             }
         }
 
-
-        foreach(QString resource, imageList){
-            _getImage(resource);
-            count ++;
-        }
-
-        //Only Allow once.
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
         if(!terminating){
-            qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+            qCritical() << "Preloaded #" << load_count << " Images in: " <<  timeFinish - timeStart << "MS";
             emit _preload();
-        }else{
-            qCritical() << "Preloading Cancelled #" << count << "images in: " <<  timeFinish-timeStart << "MS";
         }
+
+
     }
 }
 
@@ -1222,6 +1165,14 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
     }
 }
 
+void Theme::clearIconMap()
+{
+    if(themeChanged && valid){
+        iconLookup.clear();
+        emit refresh_Icons();
+    }
+}
+
 void Theme::calculateImageColor(QString resourceName)
 {
     if(imageLookup.contains(resourceName) && !pixmapMainColorLookup.contains(resourceName)){
@@ -1275,14 +1226,12 @@ void Theme::calculateImageColor(QString resourceName)
 
 QString Theme::getResourceName(QString prefix, QString alias) const
 {
-    //Uncomment for Lols
-    //return "Actions/Cage";
     //Uncomment for bounding rects
-    //return "Actions/Square";
-    return prefix % slash % alias;
+    //return "Images/Icons/square";
+    return "Images/" % prefix % slash % alias;
 }
 
-QString Theme::getResourceName(QPair<QString, QString> icon) const
+QString Theme::getResourceName(IconPair icon) const
 {
     return getResourceName(icon.first, icon.second);
 }
@@ -1297,6 +1246,9 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "maximizeToggle", "Icons", "maximize", "Icons", "minimize");
     setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
+
+
+
 }
 
 
@@ -1387,11 +1339,60 @@ void Theme::updateValid()
     themeChanged = true;
 }
 
-QPair<QString, QString> Theme::splitImagePath(QString path)
+QImage Theme::getImage(QString resource_name)
 {
-    int midSlash = path.lastIndexOf("/");
+    QImage image;
+    lock.lockForRead();
+    if(imageLookup.contains(resource_name)){
+        image = imageLookup[resource_name];
+        lock.unlock();
+    }else{
+        lock.unlock();
+        //Lock the Mutex
+        lock.lockForWrite();
+        //Load the original Image
+        image.load(":/" % resource_name);
 
-    QPair<QString, QString> pair;
+        //Store the original Image
+        imageLookup[resource_name] = image;
+        //Store the Size
+        pixmapSizeLookup[resource_name] = image.size();
+        calculateImageColor(resource_name);
+        lock.unlock();
+    }
+    return image;
+}
+
+QPixmap Theme::setPixmap(QString resource_name, QPixmap pixmap)
+{
+    //Lock the Mutex
+    //lock.lockForWrite();
+    pixmapLookup.insert(resource_name, pixmap);
+    //lock.unlock();
+    return pixmap;
+}
+
+QColor Theme::getTintColor(QString resource_name)
+{
+    //lock.lockForRead();
+    QColor tint_color = pixmapTintLookup.value(resource_name, iconColor);
+    //lock.unlock();
+    return tint_color;
+}
+
+QSize Theme::getOriginalSize(QString resource_name)
+{
+    //lock.lockForRead();
+    QSize size = pixmapSizeLookup.value(resource_name);
+    //lock.unlock();
+    return size;
+}
+
+IconPair Theme::splitImagePath(QString path)
+{
+    int midSlash = path.lastIndexOf(slash);
+
+    IconPair pair;
     if(midSlash > 0){
         pair.first = path.mid(0, midSlash);
         pair.second = path.mid(midSlash + 1);
@@ -1401,7 +1402,7 @@ QPair<QString, QString> Theme::splitImagePath(QString path)
 
 bool Theme::tintIcon(QString prefix, QString alias)
 {
-    QString key = prefix % slash % alias;
+    QString key = getResourceName(prefix, alias);
     if(pixmapSizeLookup.contains(key)){
         return tintIcon(pixmapSizeLookup[key]);
     }

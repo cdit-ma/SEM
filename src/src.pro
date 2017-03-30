@@ -374,7 +374,8 @@ SOURCES += \
     Model/root.cpp
 
 RESOURCES += \
-	resources.qrc
+    workers.qrc \
+    images.qrc
 
 
 

@@ -40,8 +40,7 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     setupEdgeActions();
 
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(Theme::theme(), SIGNAL(preloadFinished()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), SIGNAL(refresh_Icons()), this, SLOT(themeChanged()));
 
     connect(selectionController, &SelectionController::selectionChanged, this, &ToolbarController::selectionChanged);
 
@@ -49,6 +48,9 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     connect(viewController, &ViewController::vc_actionFinished, this, &ToolbarController::actionFinished);
     connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolbarController::viewItem_Constructed);
     connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolbarController::viewItem_Destructed);
+
+
+    themeChanged();
 }
 
 QList<NodeViewItemAction *> ToolbarController::getDefinitionNodeActions(QString kind)
@@ -91,6 +93,8 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
 
         if(!actions.contains(ID)){
             NodeViewItemAction* action = new NodeViewItemAction(node);
+            viewController->getActionController()->updateIcon(action, Theme::theme());
+
 
             if(node->getParentItem() && node->getParentItem()->isNode()){
 
@@ -350,7 +354,6 @@ void ToolbarController::themeChanged()
     foreach (RootAction* action, disconnectEdgeKindActions.values()) {
         viewController->getActionController()->updateIcon(action, theme);
     }
-
 }
 
 QStringList ToolbarController::getKindsRequiringSubActions()
@@ -364,9 +367,14 @@ QStringList ToolbarController::getKindsRequiringSubActions()
  */
 void ToolbarController::setupNodeActions()
 {
+    auto theme = Theme::theme();
     foreach(auto node, viewController->getNodeKindItems()){
         auto nodeKind = node->getNodeKind();
+
         NodeViewItemAction* action = new NodeViewItemAction(node);
+        viewController->getActionController()->updateIcon(action, theme);
+
+
         nodeKindActions[nodeKind]= action;
         adoptableKindsGroup->addAction(action);
     }

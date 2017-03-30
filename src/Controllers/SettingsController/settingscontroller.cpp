@@ -30,7 +30,6 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
     emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
 
-
     loadSettingsFromFile();
 }
 

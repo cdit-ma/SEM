@@ -1,9 +1,9 @@
 <RCC>
-	<qresource prefix="/">
+        <qresource prefix="/Images/">
 		<file alias="graphml">Resources/graphml.ico</file>
 		<file alias="medea">Resources/medea.ico</file>
 	</qresource>
-	<qresource prefix="/EntityIcons">
+        <qresource prefix="/Images/EntityIcons">
 		<file alias="Aggregate">Resources/EntityIcons/Aggregate.png</file>
 		<file alias="AggregateInstance">Resources/EntityIcons/AggregateInstance.png</file>
 		<file alias="AssemblyDefinitions">Resources/EntityIcons/AssemblyDefinitions.png</file>
@@ -69,14 +69,8 @@
 		<file alias="WorkerProcess">Resources/EntityIcons/WorkerProcess.png</file>
 		<file alias="Workload">Resources/EntityIcons/Workload.png</file>
 	</qresource>
-	<qresource prefix="/WorkerDefinitions">
-		<file alias="cpu.worker">Resources/WorkerDefinitions/cpu.worker.graphml</file>
-		<file alias="gpu.worker">Resources/WorkerDefinitions/gpu.worker.graphml</file>
-		<file alias="memory.worker">Resources/WorkerDefinitions/memory.worker.graphml</file>
-		<file alias="utility.worker">Resources/WorkerDefinitions/utility.worker.graphml</file>
-		<file alias="vector.worker">Resources/WorkerDefinitions/vector.worker.graphml</file>
-	</qresource>
-	<qresource prefix="/Icons">
+
+        <qresource prefix="/Images/Icons">
 		<file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
 		<file alias="alignVertical">Resources/Icons/alignVertical.png</file>
 		<file alias="arrowCombo">Resources/Icons/arrowCombo.png</file>

@@ -22,8 +22,8 @@ public:
 
 
 private slots:
-    void iconChanged();
-    void labelChanged(QString label);
+    void _labelChanged(QString label);
+    void _iconChanged();
 private:
     NodeViewItem* nodeViewItem;
     NodeViewItemAction* parentViewItemAction;

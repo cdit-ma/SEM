@@ -34,7 +34,7 @@ win32{
 PRE_TARGETDEPS += $$REL_LIB_PATH
 
 RESOURCES += \
-    resources.qrc
+    #workers.qrc
 
 DISTFILES += \
     Resources/Models/HelloWorld (copy).graphml \

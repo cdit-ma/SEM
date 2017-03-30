@@ -29,6 +29,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), SIGNAL(refresh_Icons()), this, SLOT(themeChanged()));
 
     themeChanged();
     connectViewController(vc);
@@ -543,8 +544,13 @@ void ActionController::recentProjectsChanged()
 void ActionController::updateIcon(RootAction *action, Theme *theme)
 {
     if(theme && action){
-
-        action->setIcon(theme->getIcon(action->getIconPair()));
+        auto pair = action->getIconPair();
+        auto icon = theme->getIcon(pair);
+        if(!icon.isNull()){
+            action->setIcon(icon);
+        }else{
+            qCritical() << pair;
+        }
     }
 }
 

@@ -14,6 +14,7 @@
 #include "Controllers/ViewController/viewcontroller.h"
 #include "Controllers/WindowManager/windowmanager.h"
 #include "Widgets/Windows/mainwindow.h"
+#include "Controllers/SettingsController/settingscontroller.h"
 
 
 // taskkill
@@ -22,9 +23,12 @@
 int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);
-    Q_INIT_RESOURCE(resources);
+    Q_INIT_RESOURCE(images);
+    Q_INIT_RESOURCE(workers);
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
+    SettingsController::settings();
 
     ViewController* vc = new ViewController();
 //    asdasd
