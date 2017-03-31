@@ -15,7 +15,7 @@
 
 Gpu_Worker::Gpu_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Gpu_Worker_Impl();
-	impl_->Initialise(false);
+	Initialise(false);
 }
 
 Gpu_Worker::~Gpu_Worker(void){
@@ -35,13 +35,20 @@ void Gpu_Worker::Initialise(bool forceGPU){
     Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 
 	impl_->Initialise(forceGPU);
-
+	auto platform_vector = impl_->GetPlatformInfo();
 	std::string gpu_details = std::string("Initialised gpu worker on platform: ") + PlatformName() +
 							  std::string(" with # ") + std::to_string(NumDevices()) + std::string(" devices");
-
 	Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, gpu_details);
-	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 
+	for(auto a : platform_vector){
+		std::string temp = std::string("Platform(") + std::to_string(a.platform_number) + std::string(", '") + 
+						std::string(a.platform_name) + std::string("') ") +
+						std::string("Device(") + std::to_string(a.device_number) + std::string(", '") + 
+						std::string(a.device_name) + std::string("')");
+		Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id,temp);
+	}
+
+	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 }
 
 std::string Gpu_Worker::PlatformName() {
@@ -115,5 +122,4 @@ bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector
 	  							matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
 	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 	return res;
-
 }

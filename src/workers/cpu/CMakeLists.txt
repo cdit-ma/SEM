@@ -32,7 +32,7 @@ include_directories("${RE_PATH}/src")
 
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} main.cpp)
+add_executable(${TESTER_NAME} cpu_worker_test.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode

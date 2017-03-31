@@ -22,8 +22,6 @@ find_library(CLFFT_LIB clFFT ${CLFFT_ROOT}/lib64)
 
 link_directories(${CLFFT_ROOT}/lib64)
 
-message(${CLFFT_LIB})
-
 if(NOT OPENCL_LIB)
     message(" ------ OPENCL_LIB NOT FOUND - NOT BUILDING GPU WORKER ------ ")
     return()

@@ -25,8 +25,6 @@ int main(){
     std::cout << worker->GetAllocatedCount() << std::endl;
     std::cin >> in;
 
-
-
     delete worker;
 
     return 0;
