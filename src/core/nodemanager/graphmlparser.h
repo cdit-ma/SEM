@@ -17,6 +17,9 @@ class GraphmlParser{
         std::string GetAttribute(std::string id, std::string attribute_name);
         std::string GetDataValue(std::string id, std::string key_name);
 
+        std::string GetParentNode(std::string id);
+        
+
     private:
         std::map<std::string, std::string> attribute_map_;
 
