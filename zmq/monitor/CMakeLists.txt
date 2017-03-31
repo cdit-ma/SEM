@@ -5,9 +5,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-#Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
+#get the cmake module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}/cmake/modules")
 
 set(PROJ_NAME zmq_monitor)
 
