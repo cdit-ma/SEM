@@ -2,8 +2,8 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:cdit="http://whatever"
-    xmlns:o="http://whatever"
+    xmlns:cdit="http://github.com/cdit-ma"
+    xmlns:o="http://github.com/cdit-ma"
     >
 
     <xsl:import href="functions.xsl"/>

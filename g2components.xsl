@@ -5,8 +5,8 @@
     xmlns:exsl="http://exslt.org/common"
     xmlns:xalan="http://xml.apache.org/xslt"	
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:cdit="http://whatever"
-    xmlns:o="http://whatever"
+    xmlns:cdit="http://github.com/cdit-ma"
+    xmlns:o="http://github.com/cdit-ma"
     exclude-result-prefixes="gml exsl xalan">
 
     <!-- Load in Functions -->
