@@ -69,7 +69,7 @@
         <xsl:variable name="components_cmake" select="concat($component_path, 'CMakeLists.txt')" />
         <!-- Write File: components/CMakeLists.txt -->
         <xsl:result-document href="{o:xsl_wrap_file($components_cmake)}">
-            <xsl:value-of select="cdit:get_subfolder_cmake($components)" />
+            <xsl:value-of select="cdit:get_component_folder_cmake($components)" />
         </xsl:result-document>
     </xsl:template>
 </xsl:stylesheet>

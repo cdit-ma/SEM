@@ -1230,7 +1230,7 @@
             <xsl:value-of select="o:cpp_comment('Include the datatypes used by this Component')" />
             <xsl:for-each-group select="$required_datatypes" group-by=".">
                 <xsl:variable name="datatype" select="lower-case(.)" />
-                <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/', $datatype, '/', $datatype, '.h'))" />
+                <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/base/', $datatype, '/', $datatype, '.h'))" />
             </xsl:for-each-group>
             <xsl:value-of select="o:nl()" />
         </xsl:if>
@@ -1543,7 +1543,7 @@
         <xsl:value-of select="o:nl()" />
         
         <xsl:for-each-group select="$required_datatypes" group-by=".">
-            <xsl:variable name="datatype" select="concat('datatype_', lower-case(.))" />
+            <xsl:variable name="datatype" select="concat('base_', lower-case(.))" />
             <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
         </xsl:for-each-group>
 

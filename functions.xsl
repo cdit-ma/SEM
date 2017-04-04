@@ -310,8 +310,8 @@
         <!-- Include the base message type -->
         <xsl:value-of select="o:cpp_comment('Include the base type')" />
         <!-- path back to root -->
-        <xsl:variable name="rel_path" select="'../../../'" />
-        <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
+        <xsl:variable name="rel_path" select="'../../'" />
+        <xsl:value-of select="o:local_include(concat($rel_path, 'base/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
         <xsl:value-of select="o:nl()" />
 
         <!-- Forward declare the new type -->
@@ -472,6 +472,14 @@
         <xsl:if test="$package != ''">
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:cmake_find_package($package)" />
+            <xsl:value-of select="o:nl()" />
+
+            <!-- Add return for not found -->
+            <xsl:value-of select="concat('if(NOT ', $package, '_FOUND)', o:nl())" />
+
+            <xsl:value-of select="concat(o:t(1),'message(STATUS ', o:dblquote_wrap(concat('Cannot find ', $package, ' cannot build project ', o:cmake_var_wrap('PROJ_NAME'))), ')', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'return()', o:nl())" />
+            <xsl:value-of select="concat('endif()', o:nl())" />
             <xsl:value-of select="o:nl()" />
         </xsl:if>
     </xsl:function>
@@ -740,7 +748,7 @@
         
 
         <!-- Set PROJ_NAME -->
-        <xsl:variable name="proj_name" select="concat('datatype_', $aggregate_label_lc)" />
+        <xsl:variable name="proj_name" select="concat('base_', $aggregate_label_lc)" />
         <xsl:variable name="PROJ_NAME" select="o:cmake_var_wrap('PROJ_NAME')" />
         <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
 
@@ -767,7 +775,7 @@
 
 
         <xsl:for-each-group select="$required_datatypes" group-by=".">
-            <xsl:variable name="datatype" select="concat('datatype_', lower-case(.))" />
+            <xsl:variable name="datatype" select="concat('base_', lower-case(.))" />
             <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
         </xsl:for-each-group>
     </xsl:function>
@@ -923,7 +931,7 @@
             
             <!-- Link against base datatype libraries -->
             <xsl:value-of select="o:cmake_comment('Link the shared library against the base type library')" />
-            <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} datatype_', $aggregate_label_lc, ')', o:nl())" />
+            <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} base_', $aggregate_label_lc, ')', o:nl())" />
             <xsl:value-of select="o:nl()" />
 
             <!-- Link against other proto libraries which this message contains -->
@@ -954,7 +962,7 @@
 
             <!-- Link against base datatype libraries -->
             <xsl:value-of select="o:cmake_comment('Link the shared library against the base type library')" />
-            <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $aggregate_label_lc, ')', o:nl())" />
+            <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} base_', $aggregate_label_lc, ')', o:nl())" />
             <xsl:value-of select="o:nl()" />
 
             <xsl:choose>
@@ -1991,7 +1999,7 @@
         <xsl:value-of select="'Base'" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_subfolder_cmake">
+    <xsl:function name="cdit:get_component_folder_cmake">
         <xsl:param name="elements" />
 
         <xsl:for-each select="$elements">
@@ -2000,4 +2008,20 @@
             <xsl:value-of select="o:cmake_add_subdirectory($path)" />
         </xsl:for-each>
     </xsl:function>
+    
+    <xsl:function name="cdit:get_middleware_subfolder_cmake">
+        <xsl:param name="middlewares" />
+        <xsl:param name="aggregates" as="element()*"/>
+
+        <xsl:for-each select="$middlewares">
+            <xsl:variable name="middleware" select="." />
+            <xsl:value-of select="o:cmake_comment(concat('Middleware ', $middleware))" />
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'), '/', $middleware, '/', lower-case($label))" />
+                <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:function>
+
 </xsl:stylesheet>

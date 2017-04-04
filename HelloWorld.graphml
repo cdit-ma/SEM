@@ -776,7 +776,7 @@
 											<data key="3">ComponentAssembly</data>
 											<data key="2">ComponentAssembly</data>
 											<data key="11">60</data>
-											<data key="2392">30</data>
+											<data key="2392">60</data>
 											<data key="8">true</data>
 											<graph id ="g6480">
 																								<node id ="6731">
@@ -838,7 +838,7 @@
 											<data key="3">ComponentAssembly_0</data>
 											<data key="2">ComponentAssembly</data>
 											<data key="11">60</data>
-											<data key="2392">30</data>
+											<data key="2392">60</data>
 											<data key="8">true</data>
 											<graph id ="g20600">
 																								<node id ="20626">
@@ -1638,7 +1638,11 @@
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 		</edge>
-		<edge id="23717" source="23062" target ="5582">
+		<edge id="27503" source="23062" target ="5548">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="26757" source="20600" target ="5548">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 		</edge>

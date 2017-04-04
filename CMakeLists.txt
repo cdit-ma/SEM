@@ -23,15 +23,3 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 #Add all bits for Deployment
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/message")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/datavector")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/datavector")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/rti/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/ospl/message")
-
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/rti/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/ospl/vectormessage")
-
