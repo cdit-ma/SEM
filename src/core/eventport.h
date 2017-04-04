@@ -23,12 +23,15 @@ class EventPort: public Activatable{
         
         virtual bool Activate();
         virtual bool Passivate();
-        virtual bool Teardown() = 0;
+        virtual bool Teardown();
 
         bool IsOutEventPort() const;
         bool IsInEventPort() const;
         bool IsPeriodicEvent() const;
         EventPort::Kind get_kind() const;
+
+        void LogActivation();
+        void LogPassivation();
 
         Component* get_component();
     private:

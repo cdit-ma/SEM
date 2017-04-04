@@ -55,40 +55,46 @@ Component::~Component(){
 }
 
 bool Component::Activate(){
-    {
+    //Gain mutex lock
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(Activatable::Activate()){
+        //Get the ports
         auto ports = GetSortedPorts(true);
-        std::lock_guard<std::mutex> lock(mutex_);
         for(auto e : ports){
+            //std::cout << "Activating: " << e->get_name() << std::endl;
             e->Activate();
         }
-        Activatable::Activate();
+        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
+        return true;
     }
-    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
-    return true;
+    return false;
 }
 
 bool Component::Passivate(){
-    {
+    //Gain mutex lock
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(Activatable::Passivate()){
         auto ports = GetSortedPorts(false);
-        std::lock_guard<std::mutex> lock(mutex_);
         for(auto e : ports){
             e->Passivate();
         }
-        Activatable::Passivate();
+        //Log message
+        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+        return true;
     }
-    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
-
-    return true;
+    return false;
 }
 
 bool Component::Teardown(){
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
+    //Gain mutex lock
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(Activatable::Teardown()){
         for(auto e : eventports_){
             e.second->Teardown();
         }
+        return true;
     }
-    return true;
+    return false;
 }
 
 void Component::AddEventPort(EventPort* event_port){
@@ -125,8 +131,6 @@ Worker* Component::GetWorker(std::string name){
 std::vector<EventPort*> Component::GetSortedPorts(bool forward){
     std::vector<EventPort*> eventports;
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        
         for(auto e : eventports_){
             eventports.push_back(e.second);
         }

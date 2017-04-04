@@ -31,7 +31,7 @@ template <class T> class InEventPort: public EventPort{
         bool terminate_ = false;
         
         std::queue<T*> message_queue_;
-        std::mutex thread_mutex_;
+        std::mutex mutex_;
         std::mutex notify_mutex_;
         
         std::thread* queue_thread_ = 0;
@@ -39,7 +39,8 @@ template <class T> class InEventPort: public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function) : EventPort(component, name, EventPort::Kind::RX){
+InEventPort<T>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function)
+:EventPort(component, name, EventPort::Kind::RX){
     if(callback_function){
         callback_function_ = callback_function;
     }else{
@@ -54,36 +55,42 @@ InEventPort<T>::~InEventPort(){
 
 template <class T>
 bool InEventPort<T>::Activate(){
-    std::lock_guard<std::mutex> lock(thread_mutex_);
-    if(!queue_thread_){
-        queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(EventPort::Activate()){
+        if(!queue_thread_){
+            queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
+        }
+        return true;
     }
-    return EventPort::Activate();
+    return false;
 };
 
 template <class T>
 bool InEventPort<T>::Passivate(){
-    //Passivate first to ignore all messages
-    bool passivated = EventPort::Passivate();
-    std::unique_lock<std::mutex> lock(thread_mutex_);
-    
-    if(queue_thread_){
-        std::unique_lock<std::mutex> lock(notify_mutex_);
-        terminate_ = true;
-        notify_lock_condition_.notify_all();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(EventPort::Passivate()){
+        if(queue_thread_){
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            terminate_ = true;
+            notify_lock_condition_.notify_all();
+        }
+        return true;
     }
-    return passivated;
+    return false;
 };
 
 template <class T>
 bool InEventPort<T>::Teardown(){
-    std::unique_lock<std::mutex> lock(thread_mutex_);
-    if(queue_thread_){
-        queue_thread_->join();
-        delete queue_thread_;
-        queue_thread_ = 0;
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(EventPort::Teardown()){
+        if(queue_thread_){
+            queue_thread_->join();
+            delete queue_thread_;
+            queue_thread_ = 0;
+        }
+        return true;
     }
-    return true;
+    return false;
 };
 
 template <class T>

@@ -2,7 +2,7 @@
 #define ZMQ_OUTEVENTPORT_H
 
 #include "../../core/eventports/outeventport.hpp"
-#include "../../core/modellogger.h"
+#include "../../core/eventport.h"
 #include <vector>
 #include <iostream>
 #include <string>
@@ -21,8 +21,12 @@ namespace zmq{
             bool Activate();
             bool Passivate();
         private:
-            std::mutex control_mutex_;
+            void zmq_sleep();
 
+
+            std::mutex control_mutex_;
+            std::mutex ready_mutex_;
+            bool ready_ = false;
             bool configured_ = false;
             
             zmq::socket_t* socket_;
@@ -32,7 +36,8 @@ namespace zmq{
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::tx(T* message){
-    if(this->is_active() && socket_){
+    std::lock_guard<std::mutex> lock(ready_mutex_);
+    if(ready_ && this->is_active() && socket_){
         std::string str = proto::encode(message);
         zmq::message_t data(str.c_str(), str.size());
         socket_->send(data);
@@ -61,43 +66,62 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
 
 template <class T, class S>
 bool zmq::OutEventPort<T, S>::Teardown(){
-    Passivate();
-
     std::lock_guard<std::mutex> lock(control_mutex_);
-    configured_ = false;
-    return ::OutEventPort<T>::Teardown();
+    if(::OutEventPort<T>::Teardown()){
+        configured_ = false;
+        return true;
+    }
+    return false;
 };
 
 template <class T, class S>
 bool zmq::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    auto helper = ZmqHelper::get_zmq_helper();
-    this->socket_ = helper->get_publisher_socket();
-    if(!end_points_.empty()){
+    if(::OutEventPort<T>::Activate()){
+        auto helper = ZmqHelper::get_zmq_helper();
+        this->socket_ = helper->get_publisher_socket();
         for(auto e: end_points_){
-            std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
             try{
+                std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
                 //Bind the addresses provided
                 this->socket_->bind(e.c_str());
             }catch(zmq::error_t){
                 std::cout << "Couldn't Bind!" << std::endl;
             }
         }
+        //Do some threadage
+        auto t = std::thread(&zmq::OutEventPort<T, S>::zmq_sleep, this);
+        t.detach();
+
+        //std::this_thread::sleep_for(std::chrono::milliseconds());
+        EventPort::LogActivation();
+        return true;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    return ::OutEventPort<T>::Activate();
+    return false;
 };
 
 template <class T, class S>
 bool zmq::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(socket_){
-        delete socket_;
-        socket_ = 0;
+    if(::OutEventPort<T>::Passivate()){
+        if(socket_){
+            delete socket_;
+            socket_ = 0;
+            EventPort::LogPassivation();
+        }
+        return true;
     }
-    return ::OutEventPort<T>::Passivate();
+    return false;
+};
+
+
+template <class T, class S>
+void zmq::OutEventPort<T, S>::zmq_sleep(){
+    std::lock_guard<std::mutex> lock(ready_mutex_);
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    ready_ = true;
 };
 
 #endif //ZMQ_INEVENTPORT_H

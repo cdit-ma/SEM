@@ -25,6 +25,8 @@ zmq::context_t* zmq::ZmqHelper::get_context(){
     return context_;
 };
 
+int count = 0;
+
 zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     zmq::context_t* c = get_context();
 
@@ -33,6 +35,7 @@ zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     zmq::socket_t* s = 0;
     if(c){
         s = new zmq::socket_t(*c, ZMQ_PUB);
+        count ++;
     }
     return s;
 };

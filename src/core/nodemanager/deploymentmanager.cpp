@@ -25,7 +25,9 @@ DeploymentManager::DeploymentManager(std::string library_path){
 
 DeploymentManager::~DeploymentManager(){
     if(deployment_){
+        std::cout << "~1DeploymentManager" << std::endl;
         delete deployment_;
+        std::cout << "~2DeploymentManager" << std::endl;
     }
 }
 
@@ -71,14 +73,18 @@ void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
             break;
         case NodeManager::ControlMessage::PASSIVATE:
             if(deployment_){
+                std::cout << "Got PassivateAll Message" << std::endl;
                 deployment_->PassivateAll();
+                std::cout << "Finished PassivateAll Message" << std::endl;
             }
             break;
         case NodeManager::ControlMessage::TERMINATE:
             if(deployment_){
+                std::cout << "Got TERMINATE Message" << std::endl;
                 deployment_->Teardown();
-                delete deployment_;
-                deployment_ = 0;
+                std::cout << "Finished TERMINATE message" << std::endl;
+                //delete deployment_;
+                //deployment_ = 0;
             }
             break;
         case NodeManager::ControlMessage::SET_ATTRIBUTE:

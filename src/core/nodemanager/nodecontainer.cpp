@@ -54,7 +54,7 @@ bool NodeContainer::Activate(std::string component_name){
 }
 bool NodeContainer::Passivate(std::string component_name){
     Component* component = GetComponent(component_name);
-    if(component){
+    if(component && component->is_active()){
         return component->Passivate();
     }
     return false;
@@ -85,7 +85,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                 auto a_info = a.mutable_info();
                 auto attribute = component->GetAttribute(a_info->name());
                 if(attribute){
-                    std::cout << "Component: '" << a_info->name() << "' Setting Attribute: '" << a_info->name() << "'" <<  std::endl;
+                    //std::cout << "Component: '" << a_info->name() << "' Setting Attribute: '" << a_info->name() << "'" <<  std::endl;
                     SetAttributeFromPb(&a, attribute);
                 }
             }
@@ -148,12 +148,10 @@ bool NodeContainer::PassivateAll(){
     for(auto c : components_){
         c.second->Passivate();
     }
-
     //Clean up 
     for(auto c : components_){
         c.second->Teardown();
     }
-
     return true;
 }
 void NodeContainer::Teardown(){
@@ -302,7 +300,6 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
 
 EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     auto p = to_lower(middleware + "_" + datatype);
-    std::cout << p << std::endl;
     if(!tx_constructors_.count(p)){
         //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();

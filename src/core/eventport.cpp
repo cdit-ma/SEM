@@ -33,14 +33,23 @@ EventPort::Kind EventPort::get_kind() const{
     return kind_;
 }
 
-bool EventPort::Activate(){
-    Activatable::Activate();
+
+void EventPort::LogActivation(){
     logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
-    return true;
+};
+
+void EventPort::LogPassivation(){
+    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+};
+
+bool EventPort::Activate(){
+    return Activatable::Activate();
 };
 
 bool EventPort::Passivate(){
-    Activatable::Passivate();
-    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
-    return true;
+    return Activatable::Passivate();
+};
+
+bool EventPort::Teardown(){
+    return Activatable::Teardown();
 };

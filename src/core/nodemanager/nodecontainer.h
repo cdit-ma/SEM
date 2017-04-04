@@ -72,6 +72,8 @@ class NodeContainer{
         
         //Map for quick insertion and stuffs.
         std::map<std::string, Component*> components_;
+
+        
 };
       
 

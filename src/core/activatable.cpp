@@ -26,21 +26,36 @@ void Activatable::set_type(std::string type){
 }
 
 bool Activatable::Activate(){
-    active_ = true;
-    return true;
+    if(state_ == STATE::PASSIVE){
+        state_ = STATE::ACTIVE;
+        return true;
+    }
+    return false;
 }
 
 bool Activatable::Passivate(){
-    active_ = false;
-    return true;
+     if(state_ == STATE::ACTIVE){
+        state_ = STATE::PASSIVE;
+        return true;
+    }
+    return false;
 }
 
 bool Activatable::Teardown(){
-    return true;
+    if(state_ == STATE::PASSIVE){
+        state_ = STATE::DEAD;
+        return true;
+    }
+    return false;
+}
+
+const Activatable::STATE Activatable::get_state(){
+    return state_;
+
 }
 
 const bool Activatable::is_active(){
-    return active_;
+    return state_ == STATE::ACTIVE;
 }
 
 ModelLogger* Activatable::logger(){

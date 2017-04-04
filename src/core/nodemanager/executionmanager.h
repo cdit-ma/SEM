@@ -72,6 +72,7 @@ class ExecutionManager{
 
         std::string definition_id;
         std::string implementation_id;
+        std::string deployed_node_id;
         
         std::string original_id;
         std::string id;
@@ -97,16 +98,7 @@ class ExecutionManager{
     };
 
 
-    struct ComponentImpl{
-        std::string id;
-        std::string name;
-
-        std::string definition_id;
-
-        std::vector<std::string> periodic_eventports_ids;
-        std::vector<std::string> instance_ids;
-    };
-
+   
     struct EventPort{
         std::string component_id;
         std::string id;
@@ -121,11 +113,15 @@ class ExecutionManager{
         int port_number = -1;
         std::string port_address;
         std::string topic_name;
+
+        std::vector<std::string> connected_port_ids;
     };
 
     struct Attribute{
         std::string component_id;
         std::string id;
+        std::string type;
+        std::string value;
         std::string name;
     };
 
@@ -161,7 +157,6 @@ class ExecutionManager{
         ExecutionManager::HardwareCluster* GetHardwareCluster(std::string id);
 
         ExecutionManager::ComponentInstance* GetComponentInst(std::string id);
-        ExecutionManager::ComponentImpl* GetComponentImpl(std::string id);
         ExecutionManager::Component* GetComponent(std::string id);
 
         ExecutionManager::ComponentAssembly* GetComponentAssembly(std::string id);
@@ -197,7 +192,6 @@ class ExecutionManager{
         std::map<std::string, HardwareCluster*> hardware_clusters_;
         std::map<std::string, Component*> components_;
         std::map<std::string, ComponentInstance*> component_instances_;
-        std::map<std::string, ComponentImpl*> component_impl_;
         std::map<std::string, EventPort*> event_ports_;
         std::map<std::string, Attribute*> attributes_;
         std::map<std::string, ComponentAssembly*> component_assemblies_;
@@ -207,7 +201,6 @@ class ExecutionManager{
         std::map<std::string, std::vector<AssemblyConnection *> > assembly_map_;
         
         
-        std::map<std::string, ComponentImpl*> component_impls_;
 
         
 
