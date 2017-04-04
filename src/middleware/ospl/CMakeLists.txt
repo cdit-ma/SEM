@@ -13,7 +13,7 @@ set(PROJ_NAME ospl_helper)
 project (${PROJ_NAME})
 
 if(NOT OSPL_FOUND)
-    message(" ------ OSPL NOT FOUND - NOT BUILDING OSPL MIDDLEWARE LIBRARY ------ ")
+    message(STATUS "Not Found OSPL - Not building OSPL Middleware library")
     return()
 endif()
 
