@@ -32,7 +32,7 @@ public slots:
 
 private:
     void setupResetButton();
-    void addToToolbar(QAbstractButton* button);
+    void addToGroupBox(QAbstractButton* button);
 
     void clearFilters();
     void updateFilterCheckedCount();

@@ -14,11 +14,12 @@
  */
 FilterGroup::FilterGroup(QString group, QObject* parent) : QObject(parent)
 {
-    resetAction = 0;
     filterGroupBox = 0;
     filterToolbar = 0;
     filterGroup = group;
     exclusive = false;
+
+    resetAction = 0;
     showResetButton = true;
 
     // construct and add reset ("All") button - this is visible by default
@@ -49,26 +50,18 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
 
     filterGroupBox = new QGroupBox(filterGroup);
     filterGroupBox->setCheckable(true);
-    filterGroupBox->setChecked(false);
+    connect(filterGroupBox, SIGNAL(toggled(bool)), this, SLOT(updateResetButtonVisibility()));
 
     filterToolbar = new QToolBar();
     filterToolbar->setOrientation(orientation);
     filterToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
     foreach (QAbstractButton* button, filters.values()) {
-        addToToolbar(button);
-        /*
-        QToolButton* tb = qobject_cast<QToolButton*>(button);
-        if (tb) {
-            QAction* action = addToToolbar(tb);
-            if (action) {
-                action->setVisible(initialCheckedState);
-                connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
-            }
-        }
-        */
+        addToGroupBox(button);
     }
 
+    // intially uncheck the groupbox - hide all the filter buttons in this group
+    filterGroupBox->setChecked(false);
     filterGroupBox->toggled(false);
 
     QLayout* layout = new QVBoxLayout(filterGroupBox);
@@ -131,7 +124,7 @@ void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton)
             checkedKeys.append(key);
         }
 
-        addToToolbar(filterButton);
+        addToGroupBox(filterButton);
     }
 }
 
@@ -246,17 +239,15 @@ void FilterGroup::setupResetButton()
 
 
 /**
- * @brief FilterGroup::addToToolbar
- * This adds/inserts the provided filter button to the toolbar.
+ * @brief FilterGroup::addToGroupBox
+ * This adds/inserts the provided filter button to the toolbar in the filter group box.
  * It makes sure that the reset filter button is at the top of the toolbar.
  * @param button
  */
-void FilterGroup::addToToolbar(QAbstractButton* button)
+void FilterGroup::addToGroupBox(QAbstractButton* button)
 {
-    if (filterToolbar && button) {
-
+    if (filterGroupBox && filterToolbar && button) {
         QAction* action = 0;
-
         if (button == resetFilterButton) {
             QAction* topAction = filterToolbar->actions().at(0);
             if (topAction) {
@@ -268,21 +259,8 @@ void FilterGroup::addToToolbar(QAbstractButton* button)
             resetAction->setVisible(showResetButton);
         } else {
             action = filterToolbar->addWidget(button);
-        }
-
-        if (filterGroupBox) {
             connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
         }
-
-        /*
-        if (button == resetFilterButton) {
-            QAction* topAction = filterToolbar->actions().at(0);
-            if (topAction) {
-                return filterToolbar->insertWidget(topAction, button);
-            }
-        }
-        action = filterToolbar->addWidget(button);
-        */
     }
 }
 
