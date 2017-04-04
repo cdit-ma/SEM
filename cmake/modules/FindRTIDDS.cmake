@@ -100,7 +100,6 @@ else(WIN32)
     
     #set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
     if(NOT APPLE)
-        Message("NOT APPLE")
         set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
     endif(NOT APPLE)
     
