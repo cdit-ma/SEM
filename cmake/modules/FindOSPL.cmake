@@ -68,16 +68,6 @@ endfunction()
 
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 SET(SPLICE_TARGET x86_64.linux)
-FIND_PATH(OSPL_INCLUDE_DIR
-NAMES
-ccpp_dds_dcps.h
-#dds_dcps.idl
-PATHS
-$ENV{OSPL_HOME}/include/dcps/C++/isocpp
-#$ENV{OSPL_HOME}/etc/idl/
-)
-
-message(${OSPL_INCLUDE_DIR})
 
 SET(OSPL_INCLUDE_DIRS
 $ENV{OSPL_HOME}/include/sys
@@ -90,14 +80,14 @@ FIND_LIBRARY(DCPSISOCPP
 NAMES
 dcpsisocpp
 PATHS
-$ENV{OSPL_HOME}/lib/${SPLICE_TARGET}
+$ENV{OSPL_HOME}/lib/
 )
 
 FIND_LIBRARY(DDSKERNEL
 NAMES
 ddskernel
 PATHS
-$ENV{OSPL_HOME}/lib/${SPLICE_TARGET}
+$ENV{OSPL_HOME}/lib/
 )
 
 SET(OSPL_LIBRARIES
@@ -105,6 +95,7 @@ ${DCPSISOCPP}
 ${DDSKERNEL}
 )
 
+message(${OSPL_INCLUDE_DIRS})
 message(${DCPSISOCPP})
 message(${DDSKERNEL})
 
