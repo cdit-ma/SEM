@@ -706,7 +706,7 @@
         <xsl:variable name="value" select="cdit:get_key_value($root, 'value')" />
 
         <!-- Check for Edge_Data's into this -->
-        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_SettableElement: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" />
+        <!-- <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_SettableElement: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" /> -->
 
         <!-- Construct the setter functions -->        
         <xsl:variable name="set_function" select="concat($parent_var_name, '.set_', $label)" />
