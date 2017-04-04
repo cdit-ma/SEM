@@ -77,6 +77,8 @@ $ENV{OSPL_HOME}/include/dcps/C++/isocpp
 #$ENV{OSPL_HOME}/etc/idl/
 )
 
+message(${OSPL_INCLUDE_DIR})
+
 SET(OSPL_INCLUDE_DIRS
 $ENV{OSPL_HOME}/include/sys
 $ENV{OSPL_HOME}/include/dcps/C++/isocpp
@@ -103,6 +105,9 @@ ${DCPSISOCPP}
 ${DDSKERNEL}
 )
 
+message(${DCPSISOCPP})
+message(${DDSKERNEL})
+
 
 find_program(OSPL_GEN_EXECUTABLE
         NAMES idlpp
@@ -112,9 +117,6 @@ find_program(OSPL_GEN_EXECUTABLE
 
 # Binary for the IDL compiler
 # SET (OSPL_IDLGEN_BINARY $ENV{OSPL_HOME}/exec/${SPLICE_TARGET}/idlpp -I $ENV{OSPL_HOME}/etc/idl/)
-
-message(OSPL_INCLUDE_DIRS)
-message(OSPL_LIBRARIES)
 
 IF (OSPL_INCLUDE_DIRS AND OSPL_LIBRARIES)
 SET(OSPL_FOUND TRUE)
