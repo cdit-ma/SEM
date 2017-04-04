@@ -16,7 +16,7 @@ set(PROJ_NAME zmq_helper)
 project (${PROJ_NAME})
 
 if(NOT ZMQ_FOUND)
-    message(" ------ ZMQ NOT FOUND - NOT BUILDING ZMQ MIDDLEWARE LIBRARY ------ ")
+    message(STATUS "Not Found ZMQ - Not building ZMQ Middleware library")
     return()
 endif()
 
