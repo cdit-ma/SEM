@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QAbstractButton>
+#include <QToolButton>
+#include <QToolBar>
 #include <QGroupBox>
 #include <QLayout>
 
@@ -16,7 +18,8 @@ public:
     QGroupBox* constructFilterGroupBox(Qt::Orientation orientation = Qt::Vertical);
 
     void setExclusive(bool exclusive);
-    void addToFilterGroup(QString key, QAbstractButton* filterButton, bool resetFilterButton = false);
+    void setResetButtonVisible(bool visible);
+    void addToFilterGroup(QString key, QAbstractButton* filterButton);
 
 signals:
     void filtersChanged(QStringList keys);
@@ -25,14 +28,22 @@ signals:
 public slots:
     void themeChanged();
     void filterTriggered();
+    void updateResetButtonVisibility();
 
 private:
+    void setupResetButton();
+    void addToToolbar(QAbstractButton* button);
+
     void clearFilters();
-    void updateFilterCheckedCount(QString key);
+    void updateFilterCheckedCount();
 
     QHash<QString, QAbstractButton*> filters;
-    QAbstractButton* resetFilterButton;
     QGroupBox* filterGroupBox;
+    QToolBar* filterToolbar;
+
+    QToolButton* resetFilterButton;
+    QAction* resetAction;
+    bool showResetButton;
 
     QStringList checkedKeys;
     QString filterGroup;

@@ -711,11 +711,13 @@ void NotificationDialog::test()
 {
     FilterGroup* fg = new FilterGroup("TEST GROUP", this);
     fg->setExclusive(false);
+    fg->setResetButtonVisible(false);
 
     foreach (QToolButton* button, filterButtonHash.values()) {
         QString buttonText = button->text();
         if (buttonText.toLower() == "all") {
-            fg->addToFilterGroup(buttonText, button, true);
+            //fg->addToFilterGroup(buttonText, button, true);
+            continue;
         } else {
             fg->addToFilterGroup(buttonText, button);
         }

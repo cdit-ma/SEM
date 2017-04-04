@@ -2,8 +2,6 @@
 #include "theme.h"
 
 #include <QDebug>
-#include <QToolBar>
-#include <QToolButton>
 
 #define FILTER_KEY "filterKey"
 #define FILTER_GROUP "filterGroup"
@@ -16,10 +14,15 @@
  */
 FilterGroup::FilterGroup(QString group, QObject* parent) : QObject(parent)
 {
-    resetFilterButton = 0;
+    resetAction = 0;
     filterGroupBox = 0;
+    filterToolbar = 0;
     filterGroup = group;
     exclusive = false;
+    showResetButton = true;
+
+    // construct and add reset ("All") button - this is visible by default
+    setupResetButton();
 }
 
 
@@ -44,44 +47,32 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
         return filterGroupBox;
     }
 
-    bool initialCheckedState = false;
     filterGroupBox = new QGroupBox(filterGroup);
     filterGroupBox->setCheckable(true);
-    filterGroupBox->setChecked(initialCheckedState);
+    filterGroupBox->setChecked(false);
 
-    QToolBar* toolbar = new QToolBar();
-    toolbar->setOrientation(orientation);
-    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-    //toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    filterToolbar = new QToolBar();
+    filterToolbar->setOrientation(orientation);
+    filterToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
     foreach (QAbstractButton* button, filters.values()) {
+        addToToolbar(button);
+        /*
         QToolButton* tb = qobject_cast<QToolButton*>(button);
         if (tb) {
-            QAction* action = toolbar->addWidget(tb);
-            action->setVisible(initialCheckedState);
-            connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
+            QAction* action = addToToolbar(tb);
+            if (action) {
+                action->setVisible(initialCheckedState);
+                connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
+            }
         }
+        */
     }
+
+    filterGroupBox->toggled(false);
 
     QLayout* layout = new QVBoxLayout(filterGroupBox);
-    layout->addWidget(toolbar);
-
-    /*
-    QLayout* layout = 0;
-    if (orientation == Qt::Vertical) {
-        layout = new QVBoxLayout(filterGroupBox);
-    } else {
-        layout = new QHBoxLayout(filterGroupBox);
-    }
-
-    if (layout) {
-        foreach (QAbstractButton* button, filters.values()) {
-            button->setVisible(initialCheckedState);
-            connect(filterGroupBox, SIGNAL(toggled(bool)), button, SLOT(setVisible(bool)));
-            layout->addWidget(button);
-        }
-    }
-    */
+    layout->addWidget(filterToolbar);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &FilterGroup::themeChanged);
     themeChanged();
@@ -103,45 +94,44 @@ void FilterGroup::setExclusive(bool exclusive)
 
 
 /**
+ * @brief FilterGroup::setResetButtonVisible
+ * @param visible
+ */
+void FilterGroup::setResetButtonVisible(bool visible)
+{
+    showResetButton = visible;
+    updateResetButtonVisibility();
+}
+
+
+/**
  * @brief FilterGroup::addToFilterGroup
  * @param key
  * @param filterButton
  */
-void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton, bool resetButton)
+void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton)
 {
     if (filters.contains(key)) {
         qWarning() << "FilterGroup::addToFilterGroup - A filter with key [" << key << "] already exists.";
         return;
     }
-    if (filterButton) {
 
-        if (resetButton) {
-            if (resetFilterButton) {
-                qWarning() << "FilterGroup::addToFilterGroup - There is already a reset filter button.";
-                return;
-            }
-            // this forces the reset filter button to have the correct key
-            key = FILTER_RESET_KEY;
-            resetFilterButton = filterButton;
-        }
+    if (filterButton) {
 
         filters[key] = filterButton;
         filterButton->setProperty(FILTER_KEY, key);
         filterButton->setProperty(FILTER_GROUP, filterGroup);
         filterButton->setCheckable(true);
+        filterButton->setChecked(false);
         connect(filterButton, SIGNAL(clicked(bool)), this, SLOT(filterTriggered()));
 
-        // initially have either the "ALL" button or if there is no "ALL" button, the very first added button checked
-        if (resetButton || (!resetButton && filters.size() == 1)) {
-            clearFilters();
+        // initially have the reset ("All") button checked
+        if (filterButton == resetFilterButton) {
             filterButton->setChecked(true);
             checkedKeys.append(key);
         }
 
-        if (filterGroupBox && filterGroupBox->layout()) {
-            filterGroupBox->layout()->addWidget(filterButton);
-            connect(filterGroupBox, SIGNAL(toggled(bool)), filterButton, SLOT(setVisible(bool)));
-        }
+        addToToolbar(filterButton);
     }
 }
 
@@ -152,6 +142,7 @@ void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton, b
 void FilterGroup::themeChanged()
 {
     Theme* theme = Theme::theme();
+
     if (filterGroupBox) {
         filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 6px; border: none; border-top: 2px solid" + theme->getAltBackgroundColorHex() + ";}"
                                       "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0px 3px 0px 3px; }"
@@ -162,6 +153,10 @@ void FilterGroup::themeChanged()
                                       //*/
                                       "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
     }
+
+    QString iconPath = resetFilterButton->property("iconPath").toString();
+    QString iconName = resetFilterButton->property("iconName").toString();
+    resetFilterButton->setIcon(theme->getIcon(iconPath, iconName));
 }
 
 
@@ -175,11 +170,10 @@ void FilterGroup::filterTriggered()
 
         QStringList prevCheckedKeys = checkedKeys;
         QString key = button->property(FILTER_KEY).toString();
-        bool sendUpdateSignal = false;
 
         if (button->isChecked()) {
-            // if this group is exclusive or the reset button is checked, clear all the previously checked filter buttons
             if (exclusive || (key == FILTER_RESET_KEY)) {
+                // if this group is exclusive or the reset button is checked, clear all the previously checked filter buttons
                 clearFilters();
                 button->setChecked(true);
             } else {
@@ -189,33 +183,30 @@ void FilterGroup::filterTriggered()
                     checkedKeys.removeAll(FILTER_RESET_KEY);
                 }
             }
-            sendUpdateSignal = true;
             checkedKeys.append(key);
         } else {
-            // if this group is exclusive, there has to be one filter button selected at all times
+            // if un-checking the last checked button, check the reset ("All") button
+            // there has to be one filter button checked at all times
             if (checkedKeys.size() == 1) {
-                if (exclusive) {
+                if (button == resetFilterButton) {
                     button->setChecked(true);
                     return;
                 }
-                if (resetFilterButton) {
-                    if (button == resetFilterButton) {
-                        button->setChecked(true);
-                        return;
-                    } else {
-                        checkedKeys.removeAll(key);
-                        checkedKeys.append(FILTER_RESET_KEY);
-                        resetFilterButton->setChecked(true);
-                        key = FILTER_RESET_KEY;
-                    }
-                }
+                checkedKeys.removeAll(key);
+                checkedKeys.append(FILTER_RESET_KEY);
+                resetFilterButton->setChecked(true);
             } else {
+                // this case should never happen - the case above should catch it
+                if (exclusive) {
+                    qWarning() << "FilterGroup::filterTriggered - Exclusive filter group has more than one checked button.";
+                    return;
+                }
                 checkedKeys.removeAll(key);
             }
         }
 
         if (prevCheckedKeys != checkedKeys) {
-            updateFilterCheckedCount(key);
+            updateFilterCheckedCount();
             emit filtersChanged(checkedKeys);
         }
     }
@@ -223,8 +214,81 @@ void FilterGroup::filterTriggered()
 
 
 /**
+ * @brief FilterGroup::updateResetButtonVisibility
+ */
+void FilterGroup::updateResetButtonVisibility()
+{
+    bool visible = showResetButton;
+    if (filterGroupBox) {
+        visible = visible && filterGroupBox->isChecked();
+    }
+    if (resetAction) {
+        resetAction->setVisible(visible);
+    } else if (resetFilterButton) {
+        resetFilterButton->setVisible(visible);
+    }
+}
+
+
+/**
+ * @brief FilterGroup::setupResetButton
+ */
+void FilterGroup::setupResetButton()
+{
+    resetFilterButton = new QToolButton();
+    resetFilterButton->setText("All");
+    resetFilterButton->setProperty("iconName", "Menu");
+    resetFilterButton->setProperty("iconPath", "Actions");
+    resetFilterButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    resetFilterButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    addToFilterGroup(FILTER_RESET_KEY, resetFilterButton);
+}
+
+
+/**
+ * @brief FilterGroup::addToToolbar
+ * This adds/inserts the provided filter button to the toolbar.
+ * It makes sure that the reset filter button is at the top of the toolbar.
+ * @param button
+ */
+void FilterGroup::addToToolbar(QAbstractButton* button)
+{
+    if (filterToolbar && button) {
+
+        QAction* action = 0;
+
+        if (button == resetFilterButton) {
+            QAction* topAction = filterToolbar->actions().at(0);
+            if (topAction) {
+                action = filterToolbar->insertWidget(topAction, button);
+            } else {
+                action = filterToolbar->addWidget(button);
+            }
+            resetAction = action;
+            resetAction->setVisible(showResetButton);
+        } else {
+            action = filterToolbar->addWidget(button);
+        }
+
+        if (filterGroupBox) {
+            connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
+        }
+
+        /*
+        if (button == resetFilterButton) {
+            QAction* topAction = filterToolbar->actions().at(0);
+            if (topAction) {
+                return filterToolbar->insertWidget(topAction, button);
+            }
+        }
+        action = filterToolbar->addWidget(button);
+        */
+    }
+}
+
+
+/**
  * @brief FilterGroup::clearFilters
- * @param exceptButton
  */
 void FilterGroup::clearFilters()
 {
@@ -246,18 +310,10 @@ void FilterGroup::clearFilters()
 void FilterGroup::updateFilterCheckedCount()
 {
     if (filterGroupBox) {
-        int checkedKeysCount = checkedKeys.count();
-        if (checkedKeysCount == 0) {
-            filterGroupBox->setTitle(filterGroup);
-        } else {
-            filterGroupBox->setTitle(filterGroup + " (" + QString::number(checkedKeysCount) + ")");
-        }
-        /*
-        if (key == FILTER_RESET_KEY) {
+        if (resetFilterButton->isChecked()) {
             filterGroupBox->setTitle(filterGroup);
         } else {
             filterGroupBox->setTitle(filterGroup + " (" + QString::number(checkedKeys.count()) + ")");
         }
-        */
     }
 }
