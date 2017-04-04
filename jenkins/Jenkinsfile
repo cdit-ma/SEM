@@ -20,15 +20,18 @@ def nodeNames() {
 */
 
 node('swiss11'){
-    stage 'Checkout'
     print "GIT_CREDENTIAL_ID = ${GIT_CREDENTIAL_ID}"
     dir("${LOGAN_PATH}") {
-        checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/logan.git']]])
+        stage 'Checkout'{
+            checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/logan.git']]])
+        }
         dir('build'){
-            stage 'Cmake'
-            sh 'cmake ..'
-            stage 'Make'
-            sh 'make -j6'
+            stage 'Cmake'{
+                sh 'cmake ..'
+            }
+            stage 'Make'{
+                sh 'make -j6'
+            }
         }
     }
 }
