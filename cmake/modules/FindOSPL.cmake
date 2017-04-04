@@ -95,11 +95,6 @@ ${DCPSISOCPP}
 ${DDSKERNEL}
 )
 
-message(${OSPL_INCLUDE_DIRS})
-message(${DCPSISOCPP})
-message(${DDSKERNEL})
-
-
 find_program(OSPL_GEN_EXECUTABLE
         NAMES idlpp
         DOC "The ospl idl compiler"
