@@ -43,6 +43,9 @@
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="type" select="cdit:get_key_value($root, 'type')" />
+        <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+        
+
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
         <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
 
@@ -50,7 +53,7 @@
 
         <!-- Construct Object -->
         
-        <xsl:value-of select="concat(o:t($tab), $type, ' ', $var_name, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), $cpp_type, ' ', $var_name, ';', o:nl())" />
         
         <!-- Get the Source ID's which data link to this element -->
         <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
@@ -977,7 +980,6 @@
         <xsl:variable name="component_label_uc" select="upper-case($component_label)" />
 
         <!-- Get the required datatypes used by this ComponentImpl-->
-        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_root)" />
         <xsl:variable name="rel_path" select="'../../'" />
         <xsl:variable name="class_name" select="concat($component_label_cc, 'Impl')" />
         <xsl:variable name="interface_name" select="concat($component_label_cc, 'Int')" />
@@ -1039,8 +1041,7 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
             <xsl:value-of select="concat(o:t(2), 'void In_', $label, '(', $cpp_type, ' m);', o:nl())" />
@@ -1098,7 +1099,7 @@
         <xsl:variable name="component_label_uc" select="upper-case($component_label)" />
 
         <!-- Get the required datatypes used by this ComponentImpl-->
-        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_root)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatype_aggregates($component_root)" />
         <xsl:variable name="rel_path" select="'../../'" />
         <xsl:variable name="class_name" select="concat($component_label_cc, 'Impl')" />
         <xsl:variable name="interface_name" select="concat($component_label_cc, 'Int')" />
@@ -1165,8 +1166,7 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1206,7 +1206,7 @@
         <xsl:variable name="component_label_uc" select="upper-case($component_label)" />
 
         <!-- Get the required datatypes used by this ComponentImpl-->
-        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_root)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatype_aggregates($component_root)" />
         <xsl:variable name="rel_path" select="'../../'" />
         <xsl:variable name="class_name" select="concat($component_label_cc, 'Int')" />
 
@@ -1229,8 +1229,9 @@
         <xsl:if test="count($required_datatypes) > 0">
             <xsl:value-of select="o:cpp_comment('Include the datatypes used by this Component')" />
             <xsl:for-each-group select="$required_datatypes" group-by=".">
-                <xsl:variable name="datatype" select="lower-case(.)" />
-                <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/base/', $datatype, '/', $datatype, '.h'))" />
+                <xsl:variable name="agg_name" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+                <xsl:variable name="agg_label" select="lower-case(cdit:get_key_value(., 'label'))" />
+                <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/base/', $agg_name, '/', $agg_label , '/', $agg_label, '.h'))" />
             </xsl:for-each-group>
             <xsl:value-of select="o:nl()" />
         </xsl:if>
@@ -1260,8 +1261,7 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1274,8 +1274,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_outeventport_name(.)" />
 
 
@@ -1314,7 +1314,7 @@
         <xsl:variable name="component_label_uc" select="upper-case($component_label)" />
 
         <!-- Get the required datatypes used by this ComponentImpl-->
-        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_root)" />
+        
         <xsl:variable name="rel_path" select="'../../'" />
         <xsl:variable name="class_name" select="concat($component_label_cc, 'Int')" />
         <xsl:variable name="header_path" select="concat(lower-case($class_name), '.h')" />
@@ -1368,8 +1368,7 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 1)" />
@@ -1382,8 +1381,7 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
-            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 0)" />
@@ -1431,13 +1429,14 @@
         <xsl:param name="aggregate_root" />
 
         <xsl:variable name="id" select="cdit:get_node_id($aggregate_root)" />
-        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($aggregate_root, 'Edge_Definition', $id)" />
+        <xsl:variable name="source_ids" select="cdit:get_edge_target_ids($aggregate_root, 'Edge_Definition', $id)" />
 
         
         <xsl:for-each select="$source_ids">
             <xsl:variable name="source_id" select="." />
             <xsl:variable name="source" select="cdit:get_node_by_id($aggregate_root, $source_id)" />
-            <xsl:sequence select="cdit:get_aggregate_definition($source)" />
+            <xsl:variable name="def" select="cdit:get_aggregate_definition($source)" />
+            <xsl:sequence select="cdit:get_aggregate_definition($def)" />
         </xsl:for-each>
         <xsl:if test="count($source_ids) = 0">
             <xsl:sequence select="$aggregate_root" />
@@ -1456,6 +1455,20 @@
             <xsl:variable name="definition" select="cdit:get_aggregate_definition(.)" />
             <xsl:variable name="type" select="lower-case(cdit:get_key_value($definition, 'label'))" />
             <xsl:value-of select="$type" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_required_datatype_aggregates">
+        <xsl:param name="component_impl_root" />
+
+        <xsl:variable name="component_def" select="cdit:get_components_definition($component_impl_root)" />
+
+        <xsl:variable name="def_aggregates" as="element()*" select="cdit:get_entities_of_kind($component_def, 'AggregateInstance')" />
+        <xsl:variable name="impl_instances" as="element()*" select="cdit:get_entities_of_kind($component_impl_root, 'AggregateInstance')" />
+
+        <xsl:for-each select="$def_aggregates, $impl_instances">
+            <!--<xsl:variable name="definition" select="cdit:get_aggregate_definition(.)" />-->
+            <xsl:sequence select="cdit:get_aggregate_definition(.)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -1489,7 +1502,7 @@
         <xsl:variable name="class_name" select ="o:camel_case($label)" />
         <xsl:variable name="class_name_lc" select ="lower-case($class_name)" />
 
-        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_impl_root)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatype_aggregates($component_impl_root)" />
         <xsl:variable name="workers_libs" select="distinct-values(cdit:get_required_workers($component_impl_root))" />
         <xsl:variable name="worker_directories" select ="distinct-values(cdit:get_required_worker_include_dirs($component_impl_root))" />
 
@@ -1543,8 +1556,8 @@
         <xsl:value-of select="o:nl()" />
         
         <xsl:for-each-group select="$required_datatypes" group-by=".">
-            <xsl:variable name="datatype" select="concat('base_', lower-case(.))" />
-            <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
+            <xsl:variable name="req_lib" select="o:get_aggregate_lib_name(., 'base')" />
+            <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $req_lib)" />
         </xsl:for-each-group>
 
         <xsl:for-each select="$workers_libs">

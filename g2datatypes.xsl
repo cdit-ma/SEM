@@ -39,38 +39,38 @@
             <xsl:variable name="aggregate_inst" as="element()*" select="cdit:get_child_entities_of_kind(., 'AggregateInstance')" />
 
             <!-- Get the label of the Aggregate -->
-            <xsl:variable name="aggregate_label" select="cdit:get_key_value(.,'label')" />
-            <xsl:variable name="aggregate_namespace" select="cdit:get_key_value(.,'namespace')" />
-            <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
-            <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
+            <xsl:variable name="aggregate_label" select="lower-case(cdit:get_key_value(., 'label'))" />
+            <xsl:variable name="aggregate_namespace" select="cdit:get_key_value(., 'namespace')" />
+            <xsl:variable name="aggregate_namespace_lc" select="lower-case($aggregate_namespace)" />
+            <xsl:variable name="aggregate_type" select="cdit:get_key_value(.,'type')" />
 
             <!-- Set the Middleware for this XSL -->
             <xsl:variable name="base_mw" select="'base'" />
 
             <!-- Setup the base type and middleware type-->            
-            <xsl:variable name="base_type" select="concat($base_namespace, '::', $aggregate_label_cc)" />
+            <!-- The middleware specific class is specified from the Model -->
+            <xsl:variable name="mw_type" select="$aggregate_type" />
+            <!-- The Base class is the mw_type with Base:: prepended-->
+            <xsl:variable name="base_type" select="concat( 'Base::', $mw_type)" />
 
             <!-- Parse each Middleware -->
             <xsl:for-each select="tokenize(normalize-space($middlewares), ',')"> 
                 <xsl:variable name="mw" select="." />
                 <xsl:message>Parsing Middleware: <xsl:value-of select="$mw" /> </xsl:message>
 
-
                 <xsl:variable name="middleware_namespace" select="$aggregate_namespace" />
 
-
-                <xsl:variable name="mw_type" select="concat($middleware_namespace, '::', $aggregate_label_cc)" />
                 <xsl:variable name="current_mw_path" select="concat($middleware_path, $mw, '/')" />
 
                 <!--Check whether this middleware builds a module/shared library-->
                 <xsl:variable name="builds_module" select="o:cmake_mw_builds_module($mw) = true()" />
                 <xsl:variable name="builds_library" select="o:cmake_mw_builds_shared_library($mw) = true()" />
                 
-                <xsl:variable name="current_aggregate_path" select="concat($current_mw_path, $aggregate_label_lc, '/')" />
+                <xsl:variable name="current_aggregate_path" select="concat($current_mw_path, $aggregate_namespace_lc, '/', $aggregate_label, '/')" />
                 
                 <!-- Define output files -->
-                <xsl:variable name="port_proto" select="concat($current_aggregate_path, $aggregate_label_lc, '.proto')" />
-                <xsl:variable name="port_idl" select="concat($current_aggregate_path, $aggregate_label_lc, '.idl')" />
+                <xsl:variable name="port_proto" select="concat($current_aggregate_path, $aggregate_label, '.proto')" />
+                <xsl:variable name="port_idl" select="concat($current_aggregate_path, $aggregate_label, '.idl')" />
                 <xsl:variable name="port_convert_h" select="concat($current_aggregate_path, 'convert.h')" />
                 <xsl:variable name="port_convert_cpp" select="concat($current_aggregate_path, 'convert.cpp')" />
                 <xsl:variable name="port_libexport_cpp" select="concat($current_aggregate_path, 'libportexports.cpp')" />
@@ -117,12 +117,12 @@
             </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
-        <xsl:variable name="base_aggregate_path" select="concat($base_path, $aggregate_label_lc, '/')" />
+        <xsl:variable name="base_aggregate_path" select="concat($base_path, $aggregate_namespace, '/', $aggregate_label, '/')" />
 
         <xsl:variable name="ports_cmake" select="concat($middleware_path, 'CMakeLists.txt')" />
         
-        <xsl:variable name="base_type_cpp" select="concat($base_aggregate_path, $aggregate_label_lc, '.cpp')" />
-        <xsl:variable name="base_type_h" select="concat($base_aggregate_path, $aggregate_label_lc, '.h')" />
+        <xsl:variable name="base_type_cpp" select="concat($base_aggregate_path, $aggregate_label, '.cpp')" />
+        <xsl:variable name="base_type_h" select="concat($base_aggregate_path, $aggregate_label, '.h')" />
         <xsl:variable name="base_type_cmake" select="concat($base_aggregate_path, 'CMakeLists.txt')" />
 
         <!-- Write base type class -->
