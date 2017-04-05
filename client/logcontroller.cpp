@@ -256,17 +256,17 @@ re_common::SystemStatus* LogController::GetSystemStatus(){
     for(auto it = pid_updated_times_.begin(); it != pid_updated_times_.end();){
         bool delete_flag = true;
 
+
         for(auto pid : pids){
             if(pid == it->first){
                 delete_flag = false;
             }
         }
         if(delete_flag){
+            std::cout << "Erasing" << std::endl;
             pid_updated_times_.erase(it);
         }
-        else{
-            ++it;
-        }
+        ++it;
     }
 
     for(size_t i = 0; i < pids.size(); i++){
