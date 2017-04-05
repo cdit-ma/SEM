@@ -128,9 +128,10 @@
 
     <xsl:function name="o:cmake_find_package">
         <xsl:param name="lib" as="xs:string"  />
+        <xsl:param name="args" as="xs:string"  />
 
         <xsl:value-of select="o:cmake_comment(concat('Find package ', $lib))" />
-        <xsl:value-of select="concat('find_package(', $lib, ' REQUIRED)', o:nl())" />
+        <xsl:value-of select="concat('find_package(', $lib, if($args != '') then ' ' else '', $args, ')', o:nl())" />
     </xsl:function>
 
     <xsl:function name="o:cmake_set_env">
@@ -471,7 +472,7 @@
         
         <xsl:if test="$package != ''">
             <xsl:value-of select="o:nl()" />
-            <xsl:value-of select="o:cmake_find_package($package)" />
+            <xsl:value-of select="o:cmake_find_package($package, '')" />
             <xsl:value-of select="o:nl()" />
 
             <!-- Add return for not found -->
