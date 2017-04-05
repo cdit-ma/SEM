@@ -329,19 +329,20 @@ void HardwareProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml
         database_->QueueSqlStatement(fsstatement.get_statement());
     }
 
-    /*for(int i = 0; i < info->process_info_size(); i++){
-        ProcessInfo proc_info = info->process_info(i);
-
-        auto proc_insert = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
-        proc_insert.BindString(LOGAN_HOSTNAME, hostname);
-        proc_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
-        proc_insert.BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        proc_insert.BindInt("pid", proc_info.pid());
-        proc_insert.BindString(LOGAN_NAME, proc_info.name());
-        proc_insert.BindString("args", proc_info.args());
-        proc_insert.BindDouble("start_time", proc_info.start_time());
-        database_->QueueSqlStatement(proc_insert.get_statement());
-    }*/
+    for(int i = 0; i < status->process_info_size(); i++){
+        re_common::ProcessInfo proc_info = status->process_info(i);
+        if(proc_info.pid() != 0){
+            auto proc_insert = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
+            proc_insert.BindString(LOGAN_HOSTNAME, hostname);
+            proc_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
+            proc_insert.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+            proc_insert.BindInt("pid", proc_info.pid());
+            proc_insert.BindString(LOGAN_NAME, proc_info.name());
+            proc_insert.BindString("args", proc_info.args());
+            proc_insert.BindDouble("start_time", proc_info.start_time());
+            database_->QueueSqlStatement(proc_insert.get_statement());
+        }
+    }
 }
 
 void HardwareProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* message){

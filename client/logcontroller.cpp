@@ -263,7 +263,6 @@ re_common::SystemStatus* LogController::GetSystemStatus(){
             }
         }
         if(delete_flag){
-            std::cout << "Erasing" << std::endl;
             pid_updated_times_.erase(it);
         }
         ++it;
