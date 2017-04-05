@@ -117,7 +117,7 @@
             </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
-        <xsl:variable name="base_aggregate_path" select="concat($base_path, $aggregate_namespace, '/', $aggregate_label, '/')" />
+        <xsl:variable name="base_aggregate_path" select="concat($base_path, $aggregate_namespace_lc, '/', $aggregate_label, '/')" />
 
         <xsl:variable name="ports_cmake" select="concat($middleware_path, 'CMakeLists.txt')" />
         
