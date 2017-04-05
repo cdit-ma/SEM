@@ -326,7 +326,7 @@
         <xsl:value-of select="o:forward_declare_class($namespace, $aggregate_label_cc)" />
 
         <xsl:value-of select="o:nl()" />
-        <xsl:value-of select="o:namespace($namespace)" />
+        <xsl:value-of select="o:namespace($mw)" />
 
         <!-- translate functions -->
         <xsl:value-of select="o:tabbed_cpp_comment('Translate Functions', 1)" />
@@ -482,7 +482,7 @@
             <xsl:value-of select="o:nl()" />
 
             <!-- Add return for not found -->
-            <xsl:value-of select="concat('if(NOT ', $package, '_FOUND)', o:nl())" />
+            <xsl:value-of select="concat('if(NOT ', upper-case($package), '_FOUND)', o:nl())" />
 
             <xsl:value-of select="concat(o:t(1),'message(STATUS ', o:dblquote_wrap(concat('Cannot find ', $package, ' cannot build project ', o:cmake_var_wrap('PROJ_NAME'))), ')', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'return()', o:nl())" />
@@ -490,6 +490,8 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
     </xsl:function>
+
+    
 
      <xsl:function name="o:cmake_var_wrap">
         <xsl:param name="var" as="xs:string" />
@@ -1008,7 +1010,7 @@
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
-        <xsl:variable name="idl_name" select="cdit:get_key_value($aggregate_root/../..,'label')" />
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
         <!-- Import other IDLs -->
         <xsl:for-each-group select="$required_datatypes" group-by=".">
@@ -1018,7 +1020,7 @@
         </xsl:for-each-group>
 
         <!-- Module Name -->
-        <xsl:value-of select="concat('module ', $idl_name, '{', o:nl())" />
+        <xsl:value-of select="concat('module ', $aggregate_namespace, '{', o:nl())" />
             
         <!-- Struct Name -->
         <xsl:value-of select="concat(o:t(1), 'struct ', $aggregate_label_cc, ' {', o:nl())" />
@@ -1105,10 +1107,10 @@
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
-        <xsl:variable name="namespace" select="'proto'" />
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
         <xsl:value-of select="concat('syntax = ', o:dblquote_wrap('proto3'), ';', o:nl())" />
-        <xsl:value-of select="concat('package ', $namespace, ';', o:nl())" />
+        <xsl:value-of select="concat('package ', $aggregate_namespace, ';', o:nl())" />
         <xsl:value-of select="o:nl()" />
 
         <xsl:for-each-group select="$required_datatypes" group-by=".">
@@ -2000,6 +2002,13 @@
 
 
     <xsl:function name="cdit:get_namespace">
+        <xsl:param name="node" as="element()*"/>
+
+        <!-- Follow Definition Edges -->
+        <xsl:value-of select="'Base'" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_middleware_aggregate_namespace">
         <xsl:param name="node" as="element()*"/>
 
         <!-- Follow Definition Edges -->

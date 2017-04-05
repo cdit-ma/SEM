@@ -40,6 +40,7 @@
 
             <!-- Get the label of the Aggregate -->
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(.,'label')" />
+            <xsl:variable name="aggregate_namespace" select="cdit:get_key_value(.,'namespace')" />
             <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
             <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
@@ -54,7 +55,10 @@
                 <xsl:variable name="mw" select="." />
                 <xsl:message>Parsing Middleware: <xsl:value-of select="$mw" /> </xsl:message>
 
-                <xsl:variable name="middleware_namespace" select="if(cdit:middleware_uses_protobuf($mw) = true()) then 'proto' else $mw" />
+
+                <xsl:variable name="middleware_namespace" select="$aggregate_namespace" />
+
+
                 <xsl:variable name="mw_type" select="concat($middleware_namespace, '::', $aggregate_label_cc)" />
                 <xsl:variable name="current_mw_path" select="concat($middleware_path, $mw, '/')" />
 
@@ -90,11 +94,11 @@
                 <!-- If building a shared library, we required a convert class to translate between the middleware specific class and the base class-->
                 <xsl:if test="$builds_library">
                     <xsl:result-document href="{o:xsl_wrap_file($port_convert_h)}">
-                        <xsl:value-of select="o:get_convert_h($aggregate, $mw_type, $base_type, $mw, $mw)" />
+                        <xsl:value-of select="o:get_convert_h($aggregate, $mw_type, $base_type, $mw, $middleware_namespace)" />
                     </xsl:result-document>
 
                     <xsl:result-document href="{o:xsl_wrap_file($port_convert_cpp)}">
-                        <xsl:value-of select="o:get_convert_cpp($aggregate, $members, $vectors, $aggregate_inst, $mw_type, $base_type, $mw, $base_mw, $mw)" />
+                        <xsl:value-of select="o:get_convert_cpp($aggregate, $members, $vectors, $aggregate_inst, $mw_type, $base_type, $mw, $base_mw, $middleware_namespace)" />
                     </xsl:result-document>
                 </xsl:if>
 
