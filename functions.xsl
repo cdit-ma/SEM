@@ -34,6 +34,12 @@
     <xsl:function name="o:and">
         <xsl:text>&amp;</xsl:text>
     </xsl:function>
+
+    <xsl:function name="o:at">
+        <xsl:text>@</xsl:text>
+    </xsl:function>
+
+    
     
     <xsl:function name="o:quote">
         <xsl:text>'</xsl:text>
@@ -2008,6 +2014,30 @@
             <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
             <xsl:value-of select="o:cmake_add_subdirectory($path)" />
         </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_top_level_cmake_cmake">
+        <xsl:value-of select="concat('cmake_minimum_required (VERSION 3.1)', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="concat('set(CMAKE_CXX_STANDARD 11)', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_CXX_STANDARD_REQUIRED ON)', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_CXX_EXTENSIONS OFF)', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="concat('set(CMAKE_POSITION_INDEPENDENT_CODE ON)', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="concat('set(CMAKE_MACOSX_RPATH ON)', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_INSTALL_RPATH ', o:dblquote_wrap(concat(o:at(), 'loader_path;', o:and(), 'ORIGIN')), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:variable name="lib_dir" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'), '/lib')" />
+
+        <xsl:value-of select="concat('set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat('set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/components'))" />
+        <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/datatypes'))" />
     </xsl:function>
     
     <xsl:function name="cdit:get_middleware_subfolder_cmake">

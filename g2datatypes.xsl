@@ -145,5 +145,12 @@
 
 
         </xsl:for-each>
+
+        <xsl:variable name="top_cmake" select="'CMakeLists.txt'" />
+
+        <xsl:result-document href="{o:xsl_wrap_file($top_cmake)}">
+            <xsl:value-of select="cdit:get_top_level_cmake_cmake()" />
+        </xsl:result-document>
+
     </xsl:template>
 </xsl:stylesheet>

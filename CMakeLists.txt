@@ -1,38 +1,17 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.1)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-#Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#Set the projects RPATH to look in the executable directory
+set(CMAKE_MACOSX_RPATH ON)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+set(CMAKE_INSTALL_RPATH "@loader_path;&ORIGIN")
 
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN")
-
-set(RE_PATH "$ENV{RE_PATH}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-
-#Add all bits for Deployment
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/datavector")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/datavector")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/rti/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/ospl/message")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/qpid/message")
-
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/proto/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/zmq/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/rti/vectormessage")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware/ospl/vectormessage")
-
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
