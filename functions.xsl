@@ -810,8 +810,7 @@
         <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="ns" select="if($aggregate_namespace != '') then concat($aggregate_namespace, '_') else ''" />
-        <xsl:variable name="prefix" select="if($middleware = 'base' or $middleware = 'proto') then '_lib' else ''" />
-        <xsl:value-of select="lower-case(concat($middleware, '_', $ns, $aggregate_label, $prefix))" />
+        <xsl:value-of select="lower-case(concat($middleware, '_', $ns, $aggregate_label))" />
 
     </xsl:function>
 
@@ -834,7 +833,7 @@
         <xsl:value-of select="o:cmake_set_re_path()" />
 
         <xsl:variable name="proj_name" select="o:get_aggregate_lib_name($aggregate_root, $mw)" />
-        <xsl:variable name="lib_name" select="$proj_name" />
+        <xsl:variable name="lib_name" select="concat($proj_name, '_lib')" />
 
         <xsl:variable name="mw_srcs" select="concat(upper-case($mw), '_SRCS')" />
         <xsl:variable name="mw_hdrs" select="concat(upper-case($mw), '_HDRS')" />
@@ -970,7 +969,7 @@
 
                     
                     <xsl:variable name="datatype" select="." />
-                    <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $proto_lib, ')', o:nl())" />
+                    <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $proto_lib, '_lib)', o:nl())" />
                 </xsl:for-each-group>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
@@ -1006,7 +1005,7 @@
                 </xsl:when>
                 <xsl:when test="o:middleware_uses_protobuf($mw)">
                     <xsl:variable name="lib" select="o:get_aggregate_lib_name($aggregate_root, 'proto')" />
-                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ', $lib ,')', o:nl())" />
+                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ', $lib ,'_lib)', o:nl())" />
                 </xsl:when>
             </xsl:choose>
         </xsl:if>
