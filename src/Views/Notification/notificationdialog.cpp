@@ -51,48 +51,6 @@ NotificationDialog::NotificationDialog(QWidget *parent)
 
 
 /**
- * @brief NotificationDialog::filterMenuTriggered
- * This is called when an action in the filter menu is triggered.
- * It adds/removes filters from the filter panel.
- * @param action
- */
-void NotificationDialog::filterMenuTriggered(QAction* action)
-{
-    ITEM_ROLES role = (ITEM_ROLES) action->property(ROLE).toInt();
-    int index = indexMap.value(role, -1);
-    if (index == -1) {
-        return;
-    }
-
-    ActionGroup* group = actionGroups.value(index, 0);
-    QAction* separator = groupSeparators.value(index, 0);
-    QList<QAction*> groupActions;
-
-    // show/hide filter group
-    bool show = action->isChecked();
-    if (group) {
-        group->setVisible(show);
-        groupActions = group->actions();
-    }
-    if (separator) {
-        separator->setVisible(show);
-    }
-
-    // if a filter button/action is hidden, un-check it
-    if (!show) {
-        foreach (QAction* action, groupActions) {
-            if (checkedFilterActions.contains(action)) {
-                QToolButton* button = filterButtonHash.value(action, 0);
-                if (button) {
-                    button->click();
-                }
-            }
-        }
-    }
-}
-
-
-/**
  * @brief NotificationDialog::filterToggled
  * This slot is called when any of the filter buttons has been clicked/triggered.
  * @param checked

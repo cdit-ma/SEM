@@ -149,6 +149,7 @@ void NotificationItem::themeChanged()
 
 /**
  * @brief NotificationItem::showItem
+ * This forces this item to be visible.
  */
 void NotificationItem::showItem()
 {
@@ -161,6 +162,8 @@ void NotificationItem::showItem()
 
 /**
  * @brief NotificationItem::filterCleared
+ * This is called when a filter group has been cleared.
+ * This means that none of the filters in that group is checked; hence, set that filter to visible.
  * @param filter
  */
 void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
@@ -171,6 +174,8 @@ void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
 
 /**
  * @brief NotificationItem::severityFilterToggled
+ * This is called when the checked filter(s) from the SEVERITY filter group has changed.
+ * It updates this item's visibility based on that change.
  * @param checkedStates
  */
 void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
@@ -182,6 +187,8 @@ void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> 
 
 /**
  * @brief NotificationItem::typeFilterToggled
+ * This is called when the checked filter(s) from the TYPE filter group has changed.
+ * It updates this item's visibility based on that change.
  * @param checkedStates
  */
 void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates)
@@ -193,6 +200,8 @@ void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checked
 
 /**
  * @brief NotificationItem::categoryFilterToggled
+ * This is called when the checked filter(s) from the CATEGORY filter group has changed.
+ * It updates this item's visibility based on that change.
  * @param checkedStates
  */
 void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
@@ -204,6 +213,7 @@ void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> 
 
 /**
  * @brief NotificationItem::mouseReleaseEvent
+ * This sends a signal to the notification dialog notifying it of this item's current selected state and whether the CONTROL key is down.
  * @param event
  */
 void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
@@ -251,6 +261,8 @@ void NotificationItem::updateStyleSheet()
 
 /**
  * @brief NotificationItem::updateVisibility
+ * This is called when a filter has been triggered.
+ * It updates the visibily of this item based on whether all of its filters match the currently checked filters.
  * @param filter
  * @param visible
  */
