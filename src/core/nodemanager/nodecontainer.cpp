@@ -99,11 +99,11 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                 if(!port){
                     switch(p.kind()){
                         case NodeManager::EventPort::IN_PORT:{
-                            port = ConstructRx(middleware, p_info->type(), component, p_info->name());
+                            port = ConstructRx(middleware, p_info->type(), component, p_info->name(), p.namespace_name());
                             break;
                         }
                         case NodeManager::EventPort::OUT_PORT:{
-                            port = ConstructTx(middleware,p_info->type(), component, p_info->name());
+                            port = ConstructTx(middleware,p_info->type(), component, p_info->name(), p.namespace_name());
                             break;
                         }
                         case NodeManager::EventPort::PERIODIC_PORT:{
@@ -298,8 +298,9 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
 
 
 
-EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name){
-    auto p = to_lower(middleware + "_" + datatype);
+EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, 
+                                      std::string port_name, std::string namespace_name){
+    auto p = to_lower(middleware + "_" + namespace_name + "_" + datatype);
     if(!tx_constructors_.count(p)){
         //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
@@ -320,8 +321,9 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
     return 0;
 }
 
-EventPort* NodeContainer::ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name){
-    auto p = to_lower(middleware + "_" + datatype);
+EventPort* NodeContainer::ConstructRx(std::string middleware, std::string datatype, Component* component,
+                                      std::string port_name, std::string namespace_name){
+    auto p = to_lower(middleware + "_" + namespace_name + "_" + datatype);
     
     if(!rx_constructors_.count(p)){
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();

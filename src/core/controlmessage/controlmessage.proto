@@ -59,6 +59,7 @@ message EventPort{
     Kind kind = 2;
     Middleware middleware = 3;
     repeated Attribute attributes = 4;
+    string namespace_name = 5;
 }
 
 message Attribute{

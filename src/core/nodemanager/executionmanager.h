@@ -106,6 +106,8 @@ class ExecutionManager{
         std::string kind;
         std::string middleware;
 
+        std::string namespace_name;
+
         std::string message_type;
 
         std::string frequency;
@@ -144,6 +146,7 @@ class ExecutionManager{
         std::string GetDataValue(std::string id, std::string key_name);
         std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
         std::string GetDefinitionId(std::string id);
+        std::string GetAggregateID(std::string id);
 
         std::string GetImplId(std::string id);
 
@@ -200,18 +203,14 @@ class ExecutionManager{
 
         std::map<std::string, std::vector<AssemblyConnection *> > assembly_map_;
         
-        
-
-        
-
         std::vector<std::string> deployment_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;
         std::vector<std::string> definition_edge_ids_;
-        
+        std::vector<std::string> aggregate_edge_ids_;
 
         std::map<std::string, std::string> deployed_entities_map_;
-
         std::map<std::string, std::string> definition_ids_;
+        std::map<std::string, std::string> aggregate_ids_;
         
 };
 

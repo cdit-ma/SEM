@@ -52,8 +52,8 @@ class NodeContainer{
     public:
         //Constructor functions
         EventPort* ConstructPeriodicEvent(Component* component, std::string port_name);
-        EventPort* ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name);
-        EventPort* ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name);
+        EventPort* ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name, std::string namespace_name);
+        EventPort* ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name, std::string namespace_name);
 
         Component* ConstructComponent(std::string component_type, std::string component_name);
 

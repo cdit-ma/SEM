@@ -208,6 +208,29 @@ std::string ExecutionManager::GetDefinitionId(std::string id){
     return def_id;
 }
 
+std::string ExecutionManager::GetAggregateID(std::string id){
+    if(aggregate_ids_.count(id)){
+        return aggregate_ids_[id];
+    }
+
+    std::string agg_id;
+
+    for(auto e_id : aggregate_edge_ids_){
+        auto target = GetAttribute(e_id, "target");
+        auto source = GetAttribute(e_id, "source");
+
+        if(source == id){
+            agg_id = target;
+            break;
+        }
+    }
+
+    if(!agg_id.empty()){
+        aggregate_ids_[id] = agg_id;
+    }
+    return agg_id;
+}
+
 std::string ExecutionManager::GetImplId(std::string id){
     std::string impl_id;
     
@@ -272,6 +295,7 @@ bool ExecutionManager::ScrapeDocument(){
         deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
         assembly_edge_ids_ = graphml_parser_->FindEdges("Edge_Assembly");
         definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
+        aggregate_edge_ids_ = graphml_parser_->FindEdges("Edge_Aggregate");
 
         for(auto c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
             RecurseEdge(c_id, c_id);
@@ -489,6 +513,8 @@ bool ExecutionManager::ScrapeDocument(){
                             port->kind = GetDataValue(p_id, "kind");
                             port->middleware = GetDataValue(p_id, "middleware");
                             port->message_type = GetDataValue(p_id, "type");
+
+                            port->namespace_name = GetDataValue(GetAggregateID(GetDefinitionId(p_id)), "namespace");
 
                             //Register Only OutEventPortInstances
                             if(port->kind == "OutEventPortInstance" && deployed_node && port->middleware == "ZMQ"){
