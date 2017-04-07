@@ -41,9 +41,9 @@ dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant
     //Use the dds find functionality to look for the publisher on that domain
     auto pub = rti::pub::find_publisher(participant, publisher_name);
     if(pub == nullptr){
-        //No Publisher found, so create one.
         //Get Default QOS
         dds::pub::qos::PublisherQos qos;
+
         //Set the publisher name
         qos << rti::core::policy::EntityName(publisher_name);
         pub = dds::pub::Publisher(participant, qos);
@@ -59,9 +59,9 @@ dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipa
     //Use the dds find functionality to look for the subscriber on that domain
     auto sub = rti::sub::find_subscriber(participant, subscriber_name);
     if(sub == nullptr){
-        //No Subscriber found, so create one.
         //Get Default QOS
         dds::sub::qos::SubscriberQos qos;
+
         //Set the subscriber name
         qos << rti::core::policy::EntityName(subscriber_name);
         sub = dds::sub::Subscriber(participant,qos);

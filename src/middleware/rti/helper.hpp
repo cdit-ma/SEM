@@ -47,9 +47,12 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
 
     //If we have the publisher and the topic, construct the writer.
     if(publisher != nullptr && topic != nullptr){
-        writer = dds::pub::DataWriter<M>(publisher, topic);
+        dds::pub::qos::DataWriterQos qos;
+        //The next setting is used to force dynamic memory allocation for samples with a serialized size of larger than 32K
+        qos.policy<rti::core::policy::Property>().set({"dds.data_writer.history.memory_manager.fast_pool.pool_buffer_max_size", "32768"});
+        writer = dds::pub::DataWriter<M>(publisher, topic, qos);
         writer.retain();
-        std::cout << "rti::get_data_writer: Constructed DataWriter" << std::endl;
+        std::cout << "rti::get_data_writer: Constructed DataWriter QOS" << std::endl;
     }
     return writer;
 };
@@ -62,9 +65,13 @@ template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscri
     
     //If we have the subscriber and the topic, construct the writer.
     if(subscriber != nullptr && topic != nullptr){
-        reader = dds::sub::DataReader<M>(subscriber, topic);
+        dds::sub::qos::DataReaderQos qos;
+        //The next setting is used to force dynamic memory allocation for samples with a serialized size of larger than 32K
+        qos.policy<rti::core::policy::Property>().set({"dds.data_writer.history.memory_manager.fast_pool.pool_buffer_max_size", "32768"});
+
+        reader = dds::sub::DataReader<M>(subscriber, topic, qos);
         reader.retain();
-        std::cout << "rti::get_data_reader: Constructed DataReader" << std::endl;
+        std::cout << "rti::get_data_reader: Constructed DataReader QOS" << std::endl;
     }
     return reader;
 };
