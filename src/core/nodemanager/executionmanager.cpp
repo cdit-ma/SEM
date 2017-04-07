@@ -512,9 +512,14 @@ bool ExecutionManager::ScrapeDocument(){
                             port->topic_name = GetDataValue(p_id, "topicName");
                             port->kind = GetDataValue(p_id, "kind");
                             port->middleware = GetDataValue(p_id, "middleware");
-                            port->message_type = GetDataValue(p_id, "type");
 
-                            port->namespace_name = GetDataValue(GetAggregateID(GetDefinitionId(p_id)), "namespace");
+                            auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
+
+                            port->message_type = GetDataValue(aggregate_id, "label");
+                            port->namespace_name = GetDataValue(aggregate_id, "namespace");
+                            std::cout << port->namespace_name << std::endl;
+                            std::cout << port->message_type << std::endl;
+                            
 
                             //Register Only OutEventPortInstances
                             if(port->kind == "OutEventPortInstance" && deployed_node && port->middleware == "ZMQ"){
@@ -707,11 +712,12 @@ bool ExecutionManager::ScrapeDocument(){
                     auto port_pb = component_pb->add_ports();
                     auto port_info_pb = port_pb->mutable_info();
 
+                    port_pb->set_namespace_name(event_port->namespace_name);
+
                     //Get the Port Name
                     port_info_pb->set_id(p_id);
                     port_info_pb->set_name(event_port->name);
                     port_info_pb->set_type(event_port->message_type);
-
 
                     std::string kind = GetDataValue(p_id, "kind");
 
