@@ -4289,11 +4289,11 @@ bool ModelController::setupEventPortAggregateRelationship(EventPort *eventPort, 
 
     //Set Type
     Data* eventPortType = eventPort->getData("type");
-    Data* aggregateLabel = aggregate->getData("label");
+    Data* aggregateType = aggregate->getData("type");
 
-    if(eventPortType && aggregateLabel){
-        eventPortType->setParentData(aggregateLabel);
-        eventPortType->setValue(aggregateLabel->getValue());
+    if(eventPortType && aggregateType){
+        eventPortType->setParentData(aggregateType);
+        eventPortType->setValue(aggregateType->getValue());
     }
     return true;
 }
