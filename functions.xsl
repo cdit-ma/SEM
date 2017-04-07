@@ -2069,8 +2069,8 @@
         <xsl:value-of select="concat('set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
         <xsl:value-of select="concat('set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
         <xsl:value-of select="o:nl()" />
-        <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/components'))" />
         <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/datatypes'))" />
+        <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/components'))" />
     </xsl:function>
     
     <xsl:function name="cdit:get_middleware_subfolder_cmake">
