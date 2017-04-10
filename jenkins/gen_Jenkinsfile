@@ -71,12 +71,13 @@ for(n in names){
 stage('Compile C++ Code'){
     def builders = [:]
     for(n in filtered_names){
-        builders[n] = {
-            node(n){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
                     print(pwd())
-                    print("building on: " + n) 
+                    print("building on: " + node_name) 
                     //sh 'cmake ..'
                     //sh 'make'
                 }
