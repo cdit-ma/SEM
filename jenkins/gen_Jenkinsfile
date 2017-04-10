@@ -106,7 +106,6 @@ stage('Execute Model'){
                 def nodeIP = 'tcp://' + ip + ':' + port
                 def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " "  + otherArgs
 //                runScript(executionCommand)
-                }
             }
         }
     }
