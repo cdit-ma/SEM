@@ -15,6 +15,10 @@ def getLabels(String name){
     return ""
 }
 
+def runScript(String script){
+
+}
+
 def masterNode = "${MASTER_NODE}"
 def buildDir = "build" + env.BUILD_ID
 
@@ -57,6 +61,7 @@ node(masterNode){
     }
     dir(workspacePath){
         stage('stash'){
+            // Stash generated cpp files. Exclude built object and lib files.
             stash includes: buildDir + '/**', excludes: buildDir + '/build/**, ' + buildDir + '/lib/**', name: 'codeGen'
         }
     }
@@ -73,23 +78,23 @@ for(n in names){
 }
 
 //Go to all nodes and unstash generated code in parallel
-stage('unstash_all_nodes'){
     def builders = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                print(pwd())
-                print("Unstashing on: " + n)
-                unstash 'codeGen'
+                stage('unstash_all_nodes'){
+                    print(pwd())
+                    print("Unstashing on: " + n)
+                    unstash 'codeGen'
+                }
             }
         }
     }
     parallel builders
-}
 
 //go to all nodes and build generated code in parallel
 stage('build_all_nodes'){
-    def builders = [:]
+    builders = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
@@ -104,3 +109,4 @@ stage('build_all_nodes'){
     }
     parallel builders
 }
+
