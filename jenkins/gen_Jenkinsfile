@@ -1,4 +1,8 @@
 
+def testing = build job: "re_gen"
+println testing.getNumber()
+
+
 // This method collects a list of Node names from the current Jenkins instance
 @NonCPS
 def nodeNames() {
@@ -13,7 +17,6 @@ def getLabels(String name){
     }
     return ""
 }
-
 
 def masterNode = "${MASTER_NODE}"
 
