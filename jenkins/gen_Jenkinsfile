@@ -1,7 +1,5 @@
 
-def testing = build job: "re_gen"
-println testing.getNumber()
-
+print(env.BUILD_ID)
 
 // This method collects a list of Node names from the current Jenkins instance
 @NonCPS
