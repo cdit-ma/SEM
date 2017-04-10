@@ -16,7 +16,12 @@ def getLabels(String name){
 }
 
 def runScript(String script){
-
+    if(isUnix()){
+        sh script
+    }
+    else{
+        //TODO: do windows things here
+    }
 }
 
 def masterNode = "${MASTER_NODE}"
@@ -28,15 +33,14 @@ node(masterNode){
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    //TODO: Add rti + ospl back in
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
     def fileString = ' -s:' + reGenPath + '/' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
     dir(reGenPath){
         if("${checkout}" == 'true'){
-                stage('Checkout Transforms'){
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
+            stage('Checkout Transforms'){
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
             }
         }
     }
@@ -46,14 +50,14 @@ node(masterNode){
     dir(buildPath){
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            sh typeGenCommand
+            runScript(typeGenCommand)
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            sh componentGenCommand
+            runScript(componentGenCommand)
         }
     }
     dir(workspacePath){
-        // Stash generated cpp files. Exclude built object and lib files.
-        stash includes: buildDir + '/**', excludes: buildDir + '/build/**, ' + buildDir + '/lib/**', name: 'codeGen'
+        // Stash generated cpp files.
+        stash includes: buildDir + '/**', name: 'codeGen'
     }
 }
 
@@ -87,3 +91,24 @@ stage('Compile C++ Code'){
     parallel builders
 }
 
+
+
+def deployed_nodes = []
+def reNodeManager =  "${RE_PATH}" + '/bin/re_node_manager'
+
+stage('Execute Model'){
+    def builders = [:]
+    for(n in deployed_nodes){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                def nodeMode = "asdf"
+                def nodeIP = 'tcp://' + ip + ':' + port
+                def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " "  + otherArgs
+//                runScript(executionCommand)
+                }
+            }
+        }
+    }
+    parallel builders
+}
