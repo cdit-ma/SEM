@@ -1,0 +1,111 @@
+
+def branches = [:]
+def names = nodeNames()
+for (int i=0; i<names.size(); ++i) {
+  def nodeName = names[i];
+  // Into each branch we put the pipeline code we want to execute
+  branches["node_" + nodeName] = {
+    node(nodeName) {
+      echo "Triggering on " + nodeName
+    }
+  }
+}
+
+// This method collects a list of Node names from the current Jenkins instance
+@NonCPS
+def nodeNames() {
+  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
+}
+
+def getLabels(String name){
+    def computer = Jenkins.getInstance().getComputer(name)
+    def node = computer.getNode()
+    if(computer.isOnline()){
+        return node.getLabelString()
+    }
+    return ""
+}
+
+
+def masterNode = "${MASTER_NODE}"
+
+node(masterNode){
+    def file = "${model_graphml}"
+    def workspacePath = pwd()
+    def reGenPath = "${RE_GEN_PATH}"
+    def saxonPath = reGenPath
+
+    //TODO: Add rti + ospl back in
+    def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
+    def fileString = ' -s:' + reGenPath + '/' + file
+    def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
+    
+    dir(reGenPath){
+        stage('checkout'){
+            if("${checkout}" == 'true'){
+                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
+            }
+        }
+    }
+    
+    dir(workspacePath){
+        stage('datatype_gen'){
+            def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
+            sh typeGenCommand
+        }
+        stage('component_gen'){
+            def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
+            sh componentGenCommand
+        }
+        stage('stash'){
+            stash includes: 'CMakeLists.txt, components/**, datatypes/**', name: 'codeGen'
+        }
+        dir("build"){
+            sh 'cmake ..'
+            sh 'make'
+        }
+    }
+}
+
+def names = nodeNames()
+//filter nodes
+def filtered_names = []
+for(n in names){
+    if(getLabels(n).contains("gen")){
+        filtered_names << n
+        print("Got Node: " + n)
+    }
+}
+
+//Go to all nodes and unstash generated code in parallel
+stage('unstash_all_nodes'){
+    def builders = [:]
+    for(n in filtered_names){
+        builders[n] = {
+            node(n){
+                dir(workspacePath){
+                    print("Unstashing on: " n)
+                    unstash 'codeGen'
+                }
+            }
+        }
+    }
+    parallel builders
+}
+
+//go to all nodes and build generated code in parallel
+stage('build_all_nodes'){
+    def builders = [:]
+    for(n in filtered_names){
+        builders[n] = {
+            node(n){
+                dir(workspacePath){
+                    print("building on: " + n) 
+                    //sh 'cmake ..'
+                    //sh 'make'
+                }
+            }
+        }
+    }
+    parallel builders
+}
