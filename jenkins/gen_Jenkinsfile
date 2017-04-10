@@ -71,10 +71,9 @@ stage('unstash_all_nodes'){
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                dir(workspacePath){
-                    print("Unstashing on: " + n)
-                    unstash 'codeGen'
-                }
+                print(pwd())
+                print("Unstashing on: " + n)
+                unstash 'codeGen'
             }
         }
     }
@@ -87,11 +86,10 @@ stage('build_all_nodes'){
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                dir(workspacePath){
-                    print("building on: " + n) 
-                    //sh 'cmake ..'
-                    //sh 'make'
-                }
+                print(pwd())
+                print("building on: " + n) 
+                //sh 'cmake ..'
+                //sh 'make'
             }
         }
     }
