@@ -57,7 +57,7 @@ node(masterNode){
     }
     dir(workspacePath){
         stage('stash'){
-            stash includes: buildDir + '/**', excludes: buildDir + '/build/**', name: 'codeGen'
+            stash includes: buildDir + '/**', excludes: buildDir + '/build/**, ' + buildDir + '/lib/**', name: 'codeGen'
         }
     }
 }
