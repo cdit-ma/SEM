@@ -44,13 +44,15 @@ node(masterNode){
     def buildPath = workspacePath + "/" + buildDir
     
     dir(buildPath){
-        stage('datatype_gen'){
-            def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            sh typeGenCommand
-        }
-        stage('component_gen'){
-            def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            sh componentGenCommand
+        stage('code_gen'){
+            stage('datatype_gen'){
+                def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
+                sh typeGenCommand
+            }
+            stage('component_gen'){
+                def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
+                sh componentGenCommand
+            }
         }
     }
     dir(workspacePath){
@@ -88,7 +90,7 @@ stage('unstash_all_nodes'){
 
 //go to all nodes and build generated code in parallel
 stage('build_all_nodes'){
-    def build = [:]
+    def builders = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
