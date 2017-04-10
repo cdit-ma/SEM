@@ -34,8 +34,8 @@ node(masterNode){
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
     dir(reGenPath){
-        stage('checkout'){
-            if("${checkout}" == 'true'){
+        if("${checkout}" == 'true'){
+                stage('Checkout Transforms'){
                     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
             }
         }
@@ -44,22 +44,16 @@ node(masterNode){
     def buildPath = workspacePath + "/" + buildDir
     
     dir(buildPath){
-        stage('code_gen'){
-            stage('datatype_gen'){
-                def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-                sh typeGenCommand
-            }
-            stage('component_gen'){
-                def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-                sh componentGenCommand
-            }
+        stage('C++ Generation'){
+            def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
+            sh typeGenCommand
+            def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
+            sh componentGenCommand
         }
     }
     dir(workspacePath){
-        stage('stash'){
-            // Stash generated cpp files. Exclude built object and lib files.
-            stash includes: buildDir + '/**', excludes: buildDir + '/build/**, ' + buildDir + '/lib/**', name: 'codeGen'
-        }
+        // Stash generated cpp files. Exclude built object and lib files.
+        stash includes: buildDir + '/**', excludes: buildDir + '/build/**, ' + buildDir + '/lib/**', name: 'codeGen'
     }
 }
 
@@ -73,27 +67,13 @@ for(n in names){
     }
 }
 
-//Go to all nodes and unstash generated code in parallel
-stage('unstash_all_nodes'){
-    def builders = [:]
-    for(n in filtered_names){
-        builders[n] = {
-            node(n){
-                print(pwd())
-                print("Unstashing on: " + n)
-                unstash 'codeGen'
-            }
-        }
-    }
-    parallel builders
-}
-
 //go to all nodes and build generated code in parallel
-stage('build_all_nodes'){
+stage('Compile C++ Code'){
     def builders = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
+                unstash 'codeGen'
                 dir(buildDir + "/build"){
                     print(pwd())
                     print("building on: " + n) 
