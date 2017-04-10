@@ -1,39 +1,38 @@
-/*
-def branches = [:]
 def names = nodeNames()
-for (int i=0; i<names.size(); ++i) {
-  def nodeName = names[i];
-  // Into each branch we put the pipeline code we want to execute
-  branches["node_" + nodeName] = {
-    node(nodeName) {
-      echo "Triggering on " + nodeName
+//filter nodes
+def filtered_names = []
+for(n in names){
+    if(getLabels(n).contains("new_runtime")){
+        filtered_names << n
+        print("Got Node: " + n)
     }
-  }
 }
 
-// Now we trigger all branches
-parallel branches
-
-// This method collects a list of Node names from the current Jenkins instance
-@NonCPS
-def nodeNames() {
-  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
-}
-*/
-
-node('swiss11'){
-    print "GIT_CREDENTIAL_ID = ${GIT_CREDENTIAL_ID}"
-    dir("${RE_PATH}") {
-        stage ('Checkout'){
-            checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/re.git']]])
-        }
-        dir('build'){
-            stage ('Cmake'){
-                sh 'cmake ..'
-            }
-            stage ('Make'){
-                sh 'make -j6'
+stage('Checkout'){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/re.git']]])    
             }
         }
     }
+    parallel builders
+}
+
+stage('Build'){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                dir('build'){
+                    sh 'cmake ..'
+                    sh 'make -j6'
+                }
+            }
+        }
+    }
+    parallel builders
 }
