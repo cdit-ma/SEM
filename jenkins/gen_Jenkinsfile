@@ -1,5 +1,4 @@
 
-print(env.BUILD_ID)
 
 // This method collects a list of Node names from the current Jenkins instance
 @NonCPS
@@ -17,6 +16,7 @@ def getLabels(String name){
 }
 
 def masterNode = "${MASTER_NODE}"
+def buildDir = "build" + env.BUILD_ID
 
 node(masterNode){
     def file = "${model_graphml}"
@@ -36,8 +36,10 @@ node(masterNode){
             }
         }
     }
+
+    def buildPath = workspacePath + "/" + buildDir
     
-    dir(workspacePath){
+    dir(buildPath){
         stage('datatype_gen'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
             sh typeGenCommand
@@ -72,9 +74,11 @@ stage('unstash_all_nodes'){
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                print(pwd())
-                print("Unstashing on: " + n)
-                unstash 'codeGen'
+                dir(buildDir){
+                    print(pwd())
+                    print("Unstashing on: " + n)
+                    unstash 'codeGen'
+                }
             }
         }
     }
@@ -87,10 +91,12 @@ stage('build_all_nodes'){
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                print(pwd())
-                print("building on: " + n) 
-                //sh 'cmake ..'
-                //sh 'make'
+                dir(buildDir){
+                    print(pwd())
+                    print("building on: " + n) 
+                    //sh 'cmake ..'
+                    //sh 'make'
+                }
             }
         }
     }
