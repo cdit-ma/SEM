@@ -52,12 +52,6 @@ node(masterNode){
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
             sh componentGenCommand
         }
-        dir('build'){
-            stage('master build'){
-                sh 'cmake ..'
-                sh 'make'
-            }
-        }
     }
     dir(workspacePath){
         stage('stash'){
@@ -71,42 +65,42 @@ def names = nodeNames()
 //filter nodes
 def filtered_names = []
 for(n in names){
-    if(getLabels(n).contains("GEN") && n != masterNode){
+    if(getLabels(n).contains("GEN")){
         filtered_names << n
         print("Got Node: " + n)
     }
 }
 
 //Go to all nodes and unstash generated code in parallel
-    def builders = [:]
-    for(n in filtered_names){
-        builders[n] = {
-            node(n){
-                stage('unstash_all_nodes'){
-                    print(pwd())
-                    print("Unstashing on: " + n)
-                    unstash 'codeGen'
-                }
+def builders = [:]
+for(n in filtered_names){
+    builders[n] = {
+        node(n){
+            stage('unstash_all_nodes'){
+                print(pwd())
+                print("Unstashing on: " + n)
+                unstash 'codeGen'
             }
         }
     }
-    parallel builders
+}
+parallel builders
 
 //go to all nodes and build generated code in parallel
-stage('build_all_nodes'){
     builders = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                dir(buildDir + "/build"){
-                    print(pwd())
-                    print("building on: " + n) 
-                    //sh 'cmake ..'
-                    //sh 'make'
+                stage('build_all_nodes'){
+                    dir(buildDir + "/build"){
+                        print(pwd())
+                        print("building on: " + n) 
+                        //sh 'cmake ..'
+                        //sh 'make'
+                    }
                 }
             }
         }
     }
     parallel builders
-}
 
