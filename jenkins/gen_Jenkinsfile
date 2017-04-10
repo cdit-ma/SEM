@@ -72,35 +72,35 @@ for(n in names){
 }
 
 //Go to all nodes and unstash generated code in parallel
-def builders = [:]
-for(n in filtered_names){
-    builders[n] = {
-        node(n){
-            stage('unstash_all_nodes'){
+stage('unstash_all_nodes'){
+    def builders = [:]
+    for(n in filtered_names){
+        builders[n] = {
+            node(n){
                 print(pwd())
                 print("Unstashing on: " + n)
                 unstash 'codeGen'
             }
         }
     }
+    parallel builders
 }
-parallel builders
 
 //go to all nodes and build generated code in parallel
-    builders = [:]
+stage('build_all_nodes'){
+    def build = [:]
     for(n in filtered_names){
         builders[n] = {
             node(n){
-                stage('build_all_nodes'){
-                    dir(buildDir + "/build"){
-                        print(pwd())
-                        print("building on: " + n) 
-                        //sh 'cmake ..'
-                        //sh 'make'
-                    }
+                dir(buildDir + "/build"){
+                    print(pwd())
+                    print("building on: " + n) 
+                    //sh 'cmake ..'
+                    //sh 'make'
                 }
             }
         }
     }
     parallel builders
+}
 
