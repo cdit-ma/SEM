@@ -51,7 +51,7 @@ node(masterNode){
     }
     dir(workspacePath){
         stage('stash'){
-            stash includes: 'build' + env.BUILD_ID + '/**' name: 'codeGen'
+            stash includes: {'build' + env.BUILD_ID + '/**'} name: 'codeGen'
         }
     }
     dir(buildPath + "/build"){
