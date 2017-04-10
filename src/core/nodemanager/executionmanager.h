@@ -147,27 +147,25 @@ class ExecutionManager{
         std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
         std::string GetDefinitionId(std::string id);
         std::string GetAggregateID(std::string id);
-
+        std::string GetDeployedID(std::string id);
         std::string GetImplId(std::string id);
+        void RecurseEdge(std::string source_id, std::string current_id);
+        std::string GetUniquePrefix(int count);
 
         void HandleSlaveOnline(std::string endpoint);
 
-        void RecurseEdge(std::string source_id, std::string current_id);
-        std::string GetUniquePrefix(int count);
         
 
         ExecutionManager::HardwareNode* GetHardwareNode(std::string id);
         ExecutionManager::HardwareCluster* GetHardwareCluster(std::string id);
-
         ExecutionManager::ComponentInstance* GetComponentInst(std::string id);
         ExecutionManager::Component* GetComponent(std::string id);
-
         ExecutionManager::ComponentAssembly* GetComponentAssembly(std::string id);
         ExecutionManager::EventPort* GetEventPort(std::string id);
         ExecutionManager::Attribute* GetAttribute(std::string id);
         ExecutionManager::ComponentReplication* GetComponentReplication(std::string id);
 
-        std::string GetDeployedID(std::string id);
+        
 
         bool ScrapeDocument();
 
