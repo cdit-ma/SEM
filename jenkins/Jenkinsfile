@@ -1,3 +1,18 @@
+// This method collects a list of Node names from the current Jenkins instance
+@NonCPS
+def nodeNames() {
+  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
+}
+
+def getLabels(String name){
+    def computer = Jenkins.getInstance().getComputer(name)
+    def node = computer.getNode()
+    if(computer.isOnline()){
+        return node.getLabelString()
+    }
+    return ""
+}
+
 def names = nodeNames()
 //filter nodes
 def filtered_names = []
