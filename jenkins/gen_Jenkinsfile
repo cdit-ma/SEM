@@ -48,16 +48,16 @@ node(masterNode){
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
             sh componentGenCommand
         }
+        dir('build'){
+            stage('master build'){
+                sh 'cmake ..'
+                sh 'make'
+            }
+        }
     }
     dir(workspacePath){
         stage('stash'){
-            stash includes: buildDir + '/**', name: 'codeGen'
-        }
-    }
-    dir(buildPath + "/build"){
-        stage('master build'){
-            sh 'cmake ..'
-            sh 'make'
+            stash includes: buildDir + '/**', excludes: buildDir + '/build/**', name: 'codeGen'
         }
     }
 }
