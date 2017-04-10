@@ -59,7 +59,7 @@ def names = nodeNames()
 //filter nodes
 def filtered_names = []
 for(n in names){
-    if(getLabels(n).contains("gen")){
+    if(getLabels(n).contains("GEN") && n != masterNode){
         filtered_names << n
         print("Got Node: " + n)
     }
