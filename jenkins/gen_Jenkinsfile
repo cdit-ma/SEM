@@ -128,7 +128,8 @@ stage('Execute Model'){
                         executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
                     }
                     executionCommand +=  " " + otherArgs
-                    runScript(executionCommand)
+                    print(executionCommand)
+                    //runScript(executionCommand)
                 }
             }
         }
