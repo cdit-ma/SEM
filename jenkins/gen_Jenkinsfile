@@ -95,11 +95,13 @@ stage('Compile C++ Code'){
 
 def deployed_nodes = filtered_names
 
-def port = '7001'
+def masterPort = '7000'
+def slavePort = '7001'
 
 def libString = '-l .'
-
 def modelString = '-d ${model_graphml}'
+def slaveMode = "-s"
+def masterMode = "-m"
 
 stage('Execute Model'){
     def builders = [:]
@@ -107,15 +109,25 @@ stage('Execute Model'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                def reNodeManager = "${RE_PATH}"
-                reNodeManager += '/bin/re_node_manager'
+                //TODO: Extract deployment information here!
+                def ip = '192.168.111.161'
+                def masterIP = 'tcp://' + ip + ':' + masterPort
+                def slaveIP = 'tcp://' + ip + ':' + slavePort
+                def otherArgs = '-t 60'
+                def reNodeManager = "${RE_PATH}" += '/bin/re_node_manager'
+
+                def reMaster = false;
+                def reSlave = true;
+
                 dir(buildDir + "/lib"){
-                    def nodeMode = "-s"
-                    def ip = '192.168.111.161'
-                    def nodeIP = 'tcp://' + ip + ':' + port
-                    def otherArgs = '-t 60'
-                    def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " " + libString + " "  + otherArgs
-                    print(executionCommand)
+                    def executionCommand = reNodeManager
+                    if(reMaster){
+                        executionCommand += " " + masterMode + " " + masterIP + " " + modelString
+                    }
+                    if(reSlave){
+                        executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
+                    }
+                    executionCommand +=  " " + otherArgs
                     runScript(executionCommand)
                 }
             }
