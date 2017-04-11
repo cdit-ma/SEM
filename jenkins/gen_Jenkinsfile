@@ -114,7 +114,7 @@ stage('Execute Model'){
                 def masterIP = 'tcp://' + ip + ':' + masterPort
                 def slaveIP = 'tcp://' + ip + ':' + slavePort
                 def otherArgs = '-t 60'
-                def reNodeManager = "${RE_PATH}" += '/bin/re_node_manager'
+                def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
 
                 def reMaster = false;
                 def reSlave = true;
