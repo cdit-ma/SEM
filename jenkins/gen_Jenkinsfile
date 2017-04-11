@@ -25,7 +25,8 @@ def runScript(String script){
 }
 
 def masterNode = "${MASTER_NODE}"
-def buildDir = "build" + env.BUILD_ID
+def buildDir = "gen"
+def buildArchiveDir = "build" + env.BUILD_ID
 
 node(masterNode){
     def file = "${model_graphml}"
@@ -59,6 +60,9 @@ node(masterNode){
         // Stash generated cpp files.
         stash includes: buildDir + '/**', name: 'codeGen'
     }
+    dir(workspacePath + "/" + buildArchiveDir){
+        unstash 'codeGen'
+    }
 }
 
 def names = nodeNames()
@@ -78,12 +82,13 @@ stage('Compile C++ Code'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
+                dir(buildArchiveDir){
+                    unstash 'codeGen'
+                }
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
-                    print(pwd())
-                    print("building on: " + node_name) 
-                    //sh 'cmake ..'
-                    //sh 'make'
+                    sh 'cmake ..'
+                    sh 'make'
                 }
             }
         }
@@ -92,7 +97,7 @@ stage('Compile C++ Code'){
 }
 
 
-
+//TODO: filter based on deployment
 def deployed_nodes = filtered_names
 
 def masterPort = '7000'
@@ -109,7 +114,7 @@ stage('Execute Model'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                //TODO: Extract deployment information here!
+                //TODO: Extract deployment information here
                 def ip = '192.168.111.161'
                 def masterIP = 'tcp://' + ip + ':' + masterPort
                 def slaveIP = 'tcp://' + ip + ':' + slavePort
@@ -128,6 +133,8 @@ stage('Execute Model'){
                         executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
                     }
                     executionCommand +=  " " + otherArgs
+
+                    //TODO:Change this to actually run el commando
                     print(executionCommand)
                     //runScript(executionCommand)
                 }
