@@ -688,10 +688,10 @@ void NotificationDialog::test()
     QGroupBox* box = fg->constructFilterGroupBox();
     if (box) {
         layout->addWidget(box);
+        layout->addStretch();
     } else {
         qDebug() << "NULL groupbox!";
     }
-    layout->addStretch();
     d->exec();
 }
 
