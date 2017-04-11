@@ -93,7 +93,7 @@ stage('Compile C++ Code'){
 
 
 
-def deployed_nodes = []
+def deployed_nodes = filtered_names
 
 def port = '7001'
 
