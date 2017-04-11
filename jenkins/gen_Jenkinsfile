@@ -111,6 +111,7 @@ stage('Execute Model'){
                 reNodeManager += '/bin/re_node_manager'
                 dir(buildDir + "/lib"){
                     def nodeMode = "-s"
+                    def ip = '192.168.111.161'
                     def nodeIP = 'tcp://' + ip + ':' + port
                     def otherArgs = '-t 60'
                     def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " " + libString + " "  + otherArgs
