@@ -1,3 +1,10 @@
+
+import jenkins.model.Jenkins;
+import hudson.slaves.SlaveComputer;
+import hudson.slaves.DumbSlave;
+import hudson.plugins.sshslaves.SSHLauncher;
+
+
 def getJenkinsIP(){
         IP = "null";
         //Get the Interfaces from this machine.
@@ -24,6 +31,20 @@ def getJenkinsNodeIP(String nodename){
     }
     return IP;
 }
+
+def getHost(String name) {
+    def computer = Jenkins.getInstance().getComputer(name);
+    def node = computer.getNode();
+    def label_string = node.getLabelString();
+
+    def launcher = node.getLauncher();
+    if(computer.isOnline()){
+        return launcher.getHost();
+    }else{
+        return "";
+    }
+}
+
 
 
 //Get Jenkins Singleton
@@ -141,8 +162,8 @@ for(slave in SLAVES){
         online = "false";
     }
 
-    hostname = c.getHostName();
-    IP = getJenkinsNodeIP(hostname)
+    hostname = slave.getNodeName();
+    IP = getHost(hostname);
 
     OUTPUT <<= '\t\t\t\t\t<node id="' + (ID_COUNTER++) + '">\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';
@@ -156,14 +177,14 @@ for(slave in SLAVES){
     OUTPUT <<= '\t\t\t\t\t\t<data key="k5">' + SERVER_URL + "/" + c.getUrl() + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k15">' + online + '</data>\n';
 
-        if(!c.isOffline()){
-                //Can only get whilst online
-                OUTPUT <<= '\t\t\t\t\t\t<data key="k7">' + c.getSystemProperties().get("os.name", "") + '</data>\n';
-                OUTPUT <<= '\t\t\t\t\t\t<data key="k8">' + c.getSystemProperties().get("os.arch", "") + '</data>\n';
-                OUTPUT <<= '\t\t\t\t\t\t<data key="k9">' + c.getSystemProperties().get("os.version", "") + '</data>\n';
-                OUTPUT <<= '\t\t\t\t\t\t<data key="k10">' + c.getEnvironment().get("sharedir", "NOTDEFINED") + '</data>\n';
-                OUTPUT <<= '\t\t\t\t\t\t<data key="k13">' + slave.getRootPath() +'</data>\n';
-        }
+	if(!c.isOffline()){
+			//Can only get whilst online
+			OUTPUT <<= '\t\t\t\t\t\t<data key="k7">' + c.getSystemProperties().get("os.name", "") + '</data>\n';
+			OUTPUT <<= '\t\t\t\t\t\t<data key="k8">' + c.getSystemProperties().get("os.arch", "") + '</data>\n';
+			OUTPUT <<= '\t\t\t\t\t\t<data key="k9">' + c.getSystemProperties().get("os.version", "") + '</data>\n';
+			OUTPUT <<= '\t\t\t\t\t\t<data key="k10">' + c.getEnvironment().get("sharedir", "NOTDEFINED") + '</data>\n';
+			OUTPUT <<= '\t\t\t\t\t\t<data key="k13">' + slave.getRootPath() +'</data>\n';
+	}
 
     OUTPUT <<= '\t\t\t\t\t\t<data key="k11">true</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k12">' + sortOrder +'</data>\n';
