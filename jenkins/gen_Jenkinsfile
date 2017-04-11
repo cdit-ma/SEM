@@ -115,7 +115,7 @@ stage('Execute Model'){
                     def otherArgs = '-t 60'
                     def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " " + libString + " "  + otherArgs
                     print(executionCommand)
-                    //runScript(executionCommand)
+                    runScript(executionCommand)
                 }
             }
         }
