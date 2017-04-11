@@ -94,8 +94,6 @@ stage('Compile C++ Code'){
 
 
 def deployed_nodes = []
-def reNodeManager =  "${RE_PATH}"
-reNodeManager += '/bin/re_node_manager'
 
 def port = '7001'
 
@@ -109,6 +107,8 @@ stage('Execute Model'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
+                def reNodeManager = "${RE_PATH}"
+                reNodeManager += '/bin/re_node_manager'
                 dir(buildDir + "/lib"){
                     def nodeMode = "-s"
                     def nodeIP = 'tcp://' + ip + ':' + port
