@@ -96,16 +96,26 @@ stage('Compile C++ Code'){
 def deployed_nodes = []
 def reNodeManager =  "${RE_PATH}" + '/bin/re_node_manager'
 
+def port = '7001'
+
+def libString = '-l .'
+
+def modelString = '-d ${model_graphml}'
+
 stage('Execute Model'){
     def builders = [:]
     for(n in deployed_nodes){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                def nodeMode = "asdf"
-                def nodeIP = 'tcp://' + ip + ':' + port
-                def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " "  + otherArgs
-//                runScript(executionCommand)
+                dir(buildDir + "/lib"){
+                    def nodeMode = "-s"
+                    def nodeIP = 'tcp://' + ip + ':' + port
+                    def otherArgs = '-t 60'
+                    def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " " + libString + " "  + otherArgs
+                    print(executionCommand)
+                    //runScript(executionCommand)
+                }
             }
         }
     }
