@@ -84,6 +84,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         if(jNode["re_node_manager"]["master"]){
             //TODO: parse this
             args += " -t 60";
+            args += " -d " + file
         }
         if(jNode["re_node_manager"]["slave"]){
             args += " -l .";
@@ -92,6 +93,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for re_node_manager
         reManagers[nodeName] = {
             node(nodeName){
+                unstash 'model'
                 print(nodeName + " : " + "${RE_PATH}" + "/bin/re_node_manager" + args);
             }
         }
