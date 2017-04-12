@@ -81,11 +81,11 @@ for(n in deploymentJson){
 
     //Add execution commands to our deployment plan
     //reManagers[node_name] = {
-    /*node(node_name){
+    node(node_name){
         dir(buildDir + "/lib"){
-            print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
+            print("/bin/re_node_manager " + reArgs)
             //runScript(executionCommand)
         }
-    }*/
+    }
     //}
 }
