@@ -129,9 +129,12 @@ stage('Execute Model'){
 
                 def json =  readJSON file: 'test.json'
 
-                def slaveJson = json[n].slave
+                print(n)
+                def slaveJson = json[n].re_node_manager.slave
 
                 print(slaveJson)
+
+                print(json['swiss11'].re_node_manager.slave)
 
                 dir(buildDir + "/lib"){
                     def executionCommand = reNodeManager
