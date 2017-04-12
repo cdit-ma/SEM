@@ -13,9 +13,38 @@ namespace Graphml{
             std::string ip_address;
             std::string parent_id;
             int port_count = 6000;
-            int node_manager_port = 7001;
-            int logger_port_number = 6000;
+            int node_manager_master_port = 7000;
+            int node_manager_slave_port = 7001;
+            
+            int model_logger_port_number;
+            int logan_client_port_number;
+
+            bool is_re_master = false;
+
             std::vector<std::string> component_ids;
+            std::vector<std::string> logged_processes = {"re_node_manager"};
+            std::vector<std::string> logan_clients;
+
+            bool is_deployed(){
+                return !component_ids.empty();
+            }
+
+            std::string TCPify(std::string ip, int port_number){
+                return "tcp://" + ip + ":" + std::to_string(port_number);
+            }
+            std::string GetLoganClientAddress(){
+                return TCPify(ip_address, logan_client_port_number);
+            }
+            std::string GetModelLoggerAddress(){
+                return TCPify(ip_address, model_logger_port_number);
+            }
+            
+            std::string GetNodeManagerSlaveAddress(){
+                return TCPify(ip_address, node_manager_slave_port);
+            }
+            std::string GetNodeManagerMasterAddress(){
+                return TCPify(ip_address, node_manager_master_port);
+            }
     };
 
     class HardwareCluster{

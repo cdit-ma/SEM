@@ -21,14 +21,10 @@ find_package(ZMQ REQUIRED)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-
-#Find PUGIXML Library
-set(PUGIXML_ROOT $ENV{PUGIXML_ROOT})
-find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/lib)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
@@ -38,7 +34,6 @@ set(SOURCE
 	)
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
@@ -48,10 +43,8 @@ set(HEADERS
 	)
 
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${PUGIXML_ROOT}/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-
 
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
@@ -71,11 +64,12 @@ endif(MSVC)
 #Link executable against all libraries required
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
+target_link_libraries(${PROJ_NAME} re_execution_parser_lib)
+
 
 
 

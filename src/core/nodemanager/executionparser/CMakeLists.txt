@@ -7,8 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
+set(PROJ_NAME "re_execution_parser")
+set(LIB_NAME "re_execution_parser_lib")
+project(${PROJ_NAME})
 
-set(PROJ_NAME execution_parser)
+set(PROJ_NAME re_execution_parser)
+
 project(${PROJ_NAME})
 
 #Find PUGIXML Library
@@ -28,16 +32,8 @@ set(HEADERS
 
 include_directories(${PUGIXML_ROOT}/include)
 
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
-add_executable("test" "main.cpp")
+add_library(${LIB_NAME} ${SOURCE} ${HEADERS})
+add_executable(${PROJ_NAME} "main.cpp")
 
-if (MSVC)
-    #Do Nothing
-
-elseif(UNIX)
-	target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
-endif(MSVC)
-
-target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
-target_link_libraries("test" ${PROJ_NAME})
+target_link_libraries(${LIB_NAME} ${PUGIXML_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${LIB_NAME})

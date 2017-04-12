@@ -33,6 +33,10 @@ namespace Graphml{
             Graphml::ComponentAssembly* GetComponentAssembly(std::string id);
             Graphml::ComponentReplication* GetComponentReplication(std::string id);
             
+            std::string GetDeploymentJSON();
+
+            std::vector<HardwareNode*> GetHardwareNodes();
+            std::vector<ComponentInstance*> GetComponentInstances();
 
             Graphml::EventPort* GetEventPort(std::string id);
             Graphml::Attribute* GetAttribute(std::string id);
@@ -40,6 +44,9 @@ namespace Graphml{
             
             std::string GetAttribute(std::string id, std::string attr_name);
             std::string GetDataValue(std::string id, std::string key_name);
+            
+            std::string GetHostNameFromAddress(std::string address);
+            std::string GetLoggerAddressFromHostName(std::string host_name);
         private:
             bool Process();
             GraphmlParser* graphml_parser_;
@@ -54,10 +61,11 @@ namespace Graphml{
 
 
             std::vector<std::string> GetRequiredSlaveEndpoints();
-            std::string GetHostNameFromAddress(std::string address);
-            std::string GetLoggerAddressFromHostName(std::string host_name);
 
         private:
+            bool first_node_ = true;
+
+            bool success = false;
             //Lookup Maps
             std::map<std::string, Graphml::HardwareNode*> hardware_nodes_;
             std::map<std::string, Graphml::HardwareCluster*> hardware_clusters_;
