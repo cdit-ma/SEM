@@ -76,6 +76,8 @@ node(masterNode){
                 }
             }
 
+            print("TESTY1")
+
             //Add execution commands to our deployment plan
             reManagers[node_name] = {
                 node(node_name){
@@ -86,8 +88,8 @@ node(masterNode){
                 }
             }
         }
-        
     }
+    print("TESTY")
 
     //Checkout transforms
     dir(reGenPath){
