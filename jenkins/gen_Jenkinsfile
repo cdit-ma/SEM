@@ -44,13 +44,13 @@ node(masterNode){
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh(returnStdout: true, script: executionParser)
         print(json)
-
+/*
         //Parse json
         def deployment = readJSON text: json
 
         def deploymentPlan = [:]
 
-        
+
 
         //Iterate through deployed nodes and add to deployment plan
         for(node in deployedNodes){
@@ -73,6 +73,7 @@ node(masterNode){
                 }
             }
         }
+        */
     }
 
     //Checkout transforms
