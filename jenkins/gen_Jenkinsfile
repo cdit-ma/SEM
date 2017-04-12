@@ -75,7 +75,7 @@ node(masterNode){
 def node_keys = deploymentJson.keySet() as List
 
 for(def i = 0; i< node_keys.size(); i++){
-    string node_name = node_keys[i]
+    string node_name = node_keys[i] + ""
     def node = deploymentJson[node_name]
     
     string reArgs = ""
