@@ -99,9 +99,10 @@ for(n in deploymentJson){
 
 stage('Checkout'){
     def builders = [:]
-    for(n in args){
-        def node_name = n.key
-        def node_args = n.value
+    def keyList = args.keySet() as List
+    for(def i = 0; i<keyList.size(); i++){
+        def node_name = keyList[i]
+        def node_args = args[keyList[i]]
         builders[node_name] = {
             def node_name2 = node_name
             node(node_name2){
