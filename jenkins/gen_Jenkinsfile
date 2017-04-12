@@ -27,6 +27,9 @@ def runScript(String script){
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
+def loganServers = [:]
+def loganClients = [:]
+def reManagers = [:]
 
 node(masterNode){
     def workspacePath = pwd()
@@ -44,36 +47,41 @@ node(masterNode){
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh(returnStdout: true, script: executionParser)
         print(json)
-/*
-        //Parse json
-        def deployment = readJSON text: json
 
-        def deploymentPlan = [:]
+        //Parse json
+        def deploymentJson = readJSON text: json
+
 
 
 
         //Iterate through deployed nodes and add to deployment plan
-        for(node in deployedNodes){
+        for(node in deploymentJson){
             def node_name = node.key
-
+            def reArgs = ""
+            if(node.re_node_manager != null){
+                for(arg in node.re_node_manager){
+                    reArgs +=  " --" + arg.key + " " + arg.value
+                }
+                if(node.re_node_manager.master != null){
+                    //TODO: parse this
+                    reArgs += " -t 60"
+                }
+                if(node.re_node_manager.slave != null){
+                    reArgs += " -l ."
+                }
+            }
 
             //Add execution commands to our deployment plan
-            deploymentPlan[node_name] = {
+            reManagers[node_name] = {
                 node(node_name){
                     dir(buildDir + "/lib"){
-                        print("${RE_PATH}" + '/bin/re_node_manager ' + executionCommand)
+                        print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
                         //runScript(executionCommand)
-                    }
-                    dir("log" + env.BUILD_ID){
-                        print("${LOGAN_PATH}/bin/logan_client " + loganClientCommand)
-                        //runScript(loganClientCommand)
-                        print("${LOGAN_PATH}/bin/logan_server " + loganServerCommand)
-                        //runScript(loganServerCommand)
                     }
                 }
             }
         }
-        */
+        
     }
 
     //Checkout transforms
