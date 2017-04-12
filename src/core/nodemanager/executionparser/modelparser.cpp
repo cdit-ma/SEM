@@ -10,21 +10,12 @@ Graphml::ModelParser::ModelParser(const std::string filename){
     graphml_parser_ = new GraphmlParser(filename);
     
     auto start = std::chrono::steady_clock::now();
-    bool success = Process();
+    success = Process();
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+    //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
 }
 
-Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByName(std::string node_name){
-    for(auto n : hardware_nodes_){
-        auto hardware_node = n.second;
-        if(hardware_node->name == node_name){
-            return hardware_node;
-        }
-    } 
-    return 0;
-}
 
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
@@ -66,7 +57,8 @@ bool Graphml::ModelParser::Process(){
                 node->name = GetDataValue(n_id, "label");
                 node->ip_address = GetDataValue(n_id, "ip_address"); 
                 //Set Port Number for ZMQ Logger
-                node->logger_port_number = ++node->port_count;
+                node->logan_client_port_number = node->port_count++;
+                node->model_logger_port_number = node->port_count++;
 
                 //Get the parent
                 auto parent_id = graphml_parser_->GetParentNode(n_id);
@@ -257,8 +249,6 @@ bool Graphml::ModelParser::Process(){
 
                             port->message_type = GetDataValue(aggregate_id, "label");
                             port->namespace_name = GetDataValue(aggregate_id, "namespace");
-                            std::cout << port->namespace_name << std::endl;
-                            std::cout << port->message_type << std::endl;
                             
 
                             //Register Only OutEventPortInstances
@@ -298,6 +288,11 @@ bool Graphml::ModelParser::Process(){
 
                     if(deployed_node){
                         deployed_node->component_ids.push_back(c_uid);
+
+                        if(first_node_){
+                            first_node_ = false;
+                            deployed_node->is_re_master = true;
+                        }
                     }
                     component_instances_[c_uid] = component_inst;
 
@@ -443,28 +438,27 @@ Graphml::ComponentReplication* Graphml::ModelParser::GetComponentReplication(std
 Graphml::ComponentReplication* GetComponentReplication(std::string id);
 
 
-std::string Graphml::ModelParser::GetHostNameFromAddress(std::string address){
-    for(auto hardware : hardware_nodes_){
-        if(address.find(hardware.second->ip_address) != std::string::npos){
-            return hardware.second->name;
-        }
-    }
-    return "";
-}
-
-std::string Graphml::ModelParser::GetLoggerAddressFromHostName(std::string host_name){
-    std::string addr;
-    for(auto h : hardware_nodes_){
-        auto id = h.first;
-        auto hardware = h.second;
-        if(host_name == hardware->name){
-            addr = GetTCPAddress(hardware->ip_address, hardware->logger_port_number);       
+Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByName(std::string host_name){
+    Graphml::HardwareNode* node = 0;
+    for(auto n : hardware_nodes_){
+        if(n.second->name == host_name){
+            node = n.second;
             break;
         }
     }
-    return addr;
+    return node;
 }
 
+Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByIPAddress(std::string ip_address){
+    Graphml::HardwareNode* node = 0;
+    for(auto n : hardware_nodes_){
+        if(n.second->ip_address == ip_address){
+            node = n.second;
+            break;
+        }
+    }
+    return node;
+}
 
 std::string Graphml::ModelParser::GetDeployedID(std::string id){
     std::string d_id;
@@ -595,6 +589,22 @@ std::string Graphml::ModelParser::GetDataValue(std::string id, std::string key_n
     return "";
 }
 
+std::vector<Graphml::HardwareNode*> Graphml::ModelParser::GetHardwareNodes(){
+    std::vector<Graphml::HardwareNode*> v;
+    for(auto n : hardware_nodes_){
+        v.push_back(n.second);
+    }
+    return v;
+}
+
+std::vector<Graphml::ComponentInstance*> Graphml::ModelParser::GetComponentInstances(){
+    std::vector<Graphml::ComponentInstance*> v;
+    for(auto n : component_instances_){
+        v.push_back(n.second);
+    }
+    return v;
+}
+
 
 std::string Graphml::ModelParser::GetUniquePrefix(int count){
     std::string str;
@@ -602,5 +612,137 @@ std::string Graphml::ModelParser::GetUniquePrefix(int count){
 
         str += "_" + std::to_string(count);
     }
+    return str;
+}
+
+std::string dblquotewrap(std::string val){
+    std::string quote("\"");
+    return quote + val + quote;
+}
+std::string tab(int i = 1){
+    return std::string(i, '\t');
+}
+
+std::string json_pair(std::string key, std::string val){
+    return dblquotewrap(key) + ": " + dblquotewrap(val);
+}
+
+std::string json_bool_pair(std::string key, bool val){
+    return dblquotewrap(key) + ": " + (val ? "true" : "false");
+}
+
+std::string json_list_pair(std::string key, std::vector<std::string> vals){
+    std::string str = dblquotewrap(key) + ": [";
+    for(auto val : vals){
+        bool is_last = val == vals.back();
+        std::string comma = (is_last ? "" : ", ");
+        str += dblquotewrap(val) + comma;
+    }
+    str+= "]";
+    return str;
+}
+
+std::string Graphml::ModelParser::GetDeploymentJSON(){
+    std::string str;
+    if(!success){
+        return str;
+    }
+    //std::string tab("\t");
+    std::string newline("\n");
+    
+
+    str += "{" + newline;
+
+    std::vector<Graphml::HardwareNode*> nodes;
+
+    for(auto n : hardware_nodes_){
+        nodes.push_back(n.second);
+    }
+
+    for(auto node : nodes){
+        bool is_last = node == nodes.back();
+        std::string comma = (is_last ? "" : ",");
+        str += tab() + dblquotewrap(node->name) + ":{" + newline;
+        {
+            //Output ComponentInstances
+            str += tab(2) + dblquotewrap("component_instances") + ":[" + newline;
+            for(auto c_id : node->component_ids){
+                bool is_last = c_id == node->component_ids.back();
+                std::string comma = (is_last ? "" : ",");
+                auto component = GetComponentInstance(c_id);
+                if(component){
+                    str += tab(3) + "{" + newline;
+                    str += tab(4) + json_pair("id", component->id) + "," + newline; 
+                    str += tab(4) + json_pair("name", component->name) + "," + newline; 
+                    str += tab(4) + json_pair("type", component->type_name) + newline; 
+                    str += tab(3) + "}" + comma + newline;
+                }
+            }
+            str += tab(2) + "]," + newline;
+            
+            bool run_logan_client = node->component_ids.size() > 0;
+            bool run_logan_server = node->is_re_master;
+            bool run_re_node_manager = node->is_re_master;
+
+            //Output Logan Client
+            str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
+            str += tab(3) + json_bool_pair("execute", run_logan_client);
+            str += (run_logan_client ? "," : "") + newline;
+            if(run_logan_client){
+                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
+                str += tab(4) + json_pair("publisher", node->ip_address) + "," + newline;
+                str += tab(4) + json_pair("frequency", "1") + "," + newline;
+                str += tab(4) + json_list_pair("process", node->logged_processes) + "," + newline;
+                str += tab(4) + json_bool_pair("live_mode", true) + newline;
+                str += tab(3) + "}" + newline;
+            }
+            str += tab(2) + "}," + newline;
+
+            //Output Logan Server
+            str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
+            str += tab(3) + json_bool_pair("execute", run_logan_server);
+            str += (run_logan_server ? "," : "") + newline;
+            if(run_logan_server){
+                std::vector<std::string> clients;
+
+                for(auto n : nodes){
+                    if(n && n->component_ids.size() > 0){
+                        clients.push_back(n->GetLoganClientAddress());
+                        clients.push_back(n->GetModelLoggerAddress());
+                    }
+                }
+
+                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
+
+
+                str += tab(4) + json_list_pair("clients", clients) + "," + newline;
+                str += tab(4) + json_pair("database", "output.sql") + newline;
+                str += tab(3) + "}" + newline;
+            }
+            str += tab(2) + "}," + newline;
+
+            //Re_Node_Manager
+            str += tab(2) + dblquotewrap("re_node_manager") + ":{" + newline;
+            str += tab(3) + json_bool_pair("execute", run_re_node_manager);
+            str += (run_re_node_manager ? "," : "") + newline;
+            if(run_re_node_manager){
+                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
+                bool run_master = true;
+                bool run_slave = true;
+                if(run_master){
+                    str += tab(4) + json_pair("master", node->GetNodeManagerMasterAddress());
+                    str += (run_slave ? "," : "") + newline;
+                }
+                if(run_slave){
+                    str += tab(4) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
+                }
+                str += tab(3) + "}" + newline;
+            }
+            str += tab(2) + "}" + newline;
+        }
+        str += tab() + "}" + comma + newline;
+    }
+    str += "}";
+
     return str;
 }

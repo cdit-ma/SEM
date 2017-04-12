@@ -14,7 +14,7 @@ zmq::Registrar::Registrar(ExecutionManager* manager, std::string publisher_endpo
     execution_manager_ = manager;
 
     //Construct a new thread for each slave
-    for(auto s : execution_manager_->GetRequiredSlaveEndpoints()){
+    for(auto s : execution_manager_->GetNodeManagerSlaveAddresses()){
         auto t = new std::thread(&zmq::Registrar::RegistrationLoop, this, s);
     }
 }
@@ -63,8 +63,8 @@ void zmq::Registrar::RegistrationLoop(std::string endpoint){
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
             
             //Get the matching hostname from the execution manager
-            std::string host_name = execution_manager_->GetHostNameFromAddress(slave_addr_str);
-            std::string slave_logger_pub_addr_str = execution_manager_->GetLoggerAddressFromHostName(host_name);
+            std::string host_name = execution_manager_->GetNodeNameFromNodeManagerAddress(slave_addr_str);
+            std::string slave_logger_pub_addr_str = execution_manager_->GetModelLoggerAddressFromNodeName(host_name);
 
             //Construct our reply messages
             zmq::message_t master_control_pub_addr(publisher_endpoint_.c_str(), publisher_endpoint_.size());
