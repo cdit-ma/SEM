@@ -34,7 +34,7 @@ def loganServers = [:]
 def loganClients = [:]
 def reManagers = [:]
 
-def deploymentJson = "";
+def jDeployment = "";
 
 def file = "model.graphml"
 node(){
@@ -64,41 +64,33 @@ node(masterNode){
         print(json)
 
         //Parse json
-        deploymentJson = readJSON text: json
+        jDeployment = readJSON text: json
     }
 }
 
-//def args = [:]
-
-//Iterate through deployed nodes and add to deployment plan
-
-def node_keys = deploymentJson.keySet() as List
-
-for(def i = 0; i< node_keys.size(); i++){
-    string node_name = node_keys[i] + ""
-    def json_node = deploymentJson[node_name]
+//Itterate through all nodes
+def node_keys = jDeployment.keySet()// as List
+for(def i = 0; i < node_keys.size(); i++){
+    def nodeName = node_keys[i];
+    def jNode = jDeployment[nodeName];
     
-    string reArgs = ""
-    if(json_node["re_node_manager"]){
-        print("re_node_manager")
-        for(arg in json_node["re_node_manager"]){
-            print("arg")
-            reArgs +=  " --" + arg.key + " " + arg.value
+    def reArgs = "";
+    if(jNode["re_node_manager"]){
+        for(arg in jNode["re_node_manager"]){
+            reArgs +=  " --" + arg.key + " " + arg.value;
         }
-        if(json_node["re_node_manager"]["master"]){
+        if(jNode["re_node_manager"]["master"]){
             //TODO: parse this
-            reArgs += " -t 60"
+            reArgs += " -t 60";
         }
-        if(json_node["re_node_manager"]["slave"]){
-            reArgs += " -l ."
+        if(jNode["re_node_manager"]["slave"]){
+            reArgs += " -l .";
         }
     }
 
-    print("RE_ARGS" + reArgs)
-
     reManagers[node_name] = {
         node(node_name){
-            print(reArgs)
+            print(nodeName + " : " + "${RE_PATH}" + reArgs);
         }
     }
 }
@@ -106,19 +98,3 @@ for(def i = 0; i< node_keys.size(); i++){
 stage("Execute"){
      parallel reManagers
 }
-
-/*stage('Checkout'){
-    def builders = [:]
-    def keyList = args.keySet() as List
-    for(def i = 0; i<keyList.size(); i++){
-        def node_name = keyList[i]
-        def node_args = args[keyList[i]]
-        builders[node_name] = {
-            def node_name2 = node_name
-            node(node_name2){
-                print("TEST")
-            }
-        }
-    }
-    parallel builders
-}*/
