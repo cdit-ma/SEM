@@ -76,20 +76,20 @@ def node_keys = deploymentJson.keySet() as List
 
 for(def i = 0; i< node_keys.size(); i++){
     string node_name = node_keys[i] + ""
-    def node = deploymentJson[node_name]
+    def json_node = deploymentJson[node_name]
     
     string reArgs = ""
-    if(node["re_node_manager"]){
+    if(json_node["re_node_manager"]){
         print("re_node_manager")
-        for(arg in node["re_node_manager"]){
+        for(arg in json_node["re_node_manager"]){
             print("arg")
             reArgs +=  " --" + arg.key + " " + arg.value
         }
-        if(node["re_node_manager"]["master"]){
+        if(json_node["re_node_manager"]["master"]){
             //TODO: parse this
             reArgs += " -t 60"
         }
-        if(node["re_node_manager"]["slave"]){
+        if(json_node["re_node_manager"]["slave"]){
             reArgs += " -l ."
         }
     }
