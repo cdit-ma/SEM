@@ -38,6 +38,12 @@ node(masterNode){
     def fileString = ' -s:' + reGenPath + '/' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
+    stage('Build Deployment Plan'){
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file)
+        def json = sh returnStdout: true, executionParser
+        print(json)
+    }
+
     dir(reGenPath){
         if("${checkout}" == 'true'){
             stage('Checkout Transforms'){
@@ -66,6 +72,8 @@ node(masterNode){
             unstash 'codeGen'
         }
     }
+
+
 }
 
 def names = nodeNames()
@@ -85,9 +93,6 @@ stage('Compile C++ Code'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                dir(buildArchiveDir){
-                    unstash 'codeGen'
-                }
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
                     sh 'cmake ..'
@@ -96,6 +101,7 @@ stage('Compile C++ Code'){
             }
         }
     }
+    //TODO:uncomment this
     //parallel builders
 }
 
@@ -111,7 +117,7 @@ def masterMode = "-m"
 def builders = [:]
 
 def json = [:]
-
+/*
 //TODO actually generate json based on graphml
 node("swiss11"){
     json = readJSON file: 'test.json'
@@ -157,3 +163,4 @@ stage('Build Deployment Plan'){
 stage('Execute Model'){
     parallel builders
 }
+*/
