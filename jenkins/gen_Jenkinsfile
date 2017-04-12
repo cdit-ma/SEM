@@ -92,7 +92,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for re_node_manager
         reManagers[nodeName] = {
             node(nodeName){
-                print(nodeName + " : " + "${RE_PATH}" + args);
+                print(nodeName + " : " + "${RE_PATH}" + "/bin/re_node_manager" + args);
             }
         }
     }
@@ -107,7 +107,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
             node(nodeName){
-                print(nodeName + " : " + "${RE_PATH}" + reArgs);
+                print(nodeName + " : " + "${LOGAN_PATH}" + "/bin/logan_server" + args);
             }
         }
     }
@@ -122,7 +122,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_client
         loganClients[nodeName] = {
             node(nodeName){
-                print(nodeName + " : " + "${RE_PATH}" + reArgs);
+                print(nodeName + " : " + "${RE_PATH}" + "/bin/logan_client" + args);
             }
         }
     }
