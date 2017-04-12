@@ -16,15 +16,6 @@ Graphml::ModelParser::ModelParser(const std::string filename){
     //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
 }
 
-Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByName(std::string node_name){
-    for(auto n : hardware_nodes_){
-        auto hardware_node = n.second;
-        if(hardware_node->name == node_name){
-            return hardware_node;
-        }
-    } 
-    return 0;
-}
 
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
@@ -447,28 +438,27 @@ Graphml::ComponentReplication* Graphml::ModelParser::GetComponentReplication(std
 Graphml::ComponentReplication* GetComponentReplication(std::string id);
 
 
-std::string Graphml::ModelParser::GetHostNameFromAddress(std::string address){
-    for(auto hardware : hardware_nodes_){
-        if(address.find(hardware.second->ip_address) != std::string::npos){
-            return hardware.second->name;
-        }
-    }
-    return "";
-}
-
-std::string Graphml::ModelParser::GetLoggerAddressFromHostName(std::string host_name){
-    std::string addr;
-    for(auto h : hardware_nodes_){
-        auto id = h.first;
-        auto hardware = h.second;
-        if(host_name == hardware->name){
-            addr = GetTCPAddress(hardware->ip_address, hardware->model_logger_port_number);       
+Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByName(std::string host_name){
+    Graphml::HardwareNode* node = 0;
+    for(auto n : hardware_nodes_){
+        if(n.second->name == host_name){
+            node = n.second;
             break;
         }
     }
-    return addr;
+    return node;
 }
 
+Graphml::HardwareNode* Graphml::ModelParser::GetHardwareNodeByIPAddress(std::string ip_address){
+    Graphml::HardwareNode* node = 0;
+    for(auto n : hardware_nodes_){
+        if(n.second->ip_address == ip_address){
+            node = n.second;
+            break;
+        }
+    }
+    return node;
+}
 
 std::string Graphml::ModelParser::GetDeployedID(std::string id){
     std::string d_id;

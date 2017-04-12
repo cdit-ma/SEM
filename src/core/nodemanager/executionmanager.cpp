@@ -35,8 +35,8 @@ void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageL
     proto_writer_->PushMessage(topic, message);
 }
 
-std::vector<std::string> ExecutionManager::GetRequiredSlaveEndpoints(){
-    return required_slaves_;
+std::vector<std::string> ExecutionManager::GetNodeManagerSlaveAddresses(){
+    return required_slave_addresses_;
 }
 
 void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
@@ -69,30 +69,50 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
 
 void ExecutionManager::HandleSlaveOnline(std::string endpoint){
     //Get the initial size
-    int initial_size = inactive_slaves_.size();
+    int initial_size = inactive_slave_addresses_.size();
     //Find the itterator position of the element
-    inactive_slaves_.erase(std::remove(inactive_slaves_.begin(), inactive_slaves_.end(), endpoint), inactive_slaves_.end());
+    inactive_slave_addresses_.erase(std::remove(inactive_slave_addresses_.begin(), inactive_slave_addresses_.end(), endpoint), inactive_slave_addresses_.end());
     
-    if(initial_size > 0 && inactive_slaves_.empty()){
+    if(initial_size > 0 && inactive_slave_addresses_.empty()){
         ActivateExecution();
     }
 }
 
-std::string ExecutionManager::GetHostNameFromAddress(std::string address){
-    return model_parser_->GetHostNameFromAddress(address);
+std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(std::string tcp_address){
+    //Trim off the tcp:// and port
+    auto first = tcp_address.find_last_of("/");
+    auto last = tcp_address.find_last_of(":");
+    if(first == std::string::npos || last == std::string::npos){
+        std::cerr << "* Cannot Parse TCP: " << tcp_address << std::endl;
+    }
+    first += 1;
+
+    auto address = tcp_address.substr(first, last - first);
+    auto node = model_parser_->GetHardwareNodeByIPAddress(address);
+    
+    std::string str;
+    if(node){
+        str = node->name;
+    }
+    return str;
 }
 
-std::string ExecutionManager::GetLoggerAddressFromHostName(std::string host_name){
-    return model_parser_->GetLoggerAddressFromHostName(host_name);
+std::string ExecutionManager::GetModelLoggerAddressFromNodeName(std::string host_name){
+    auto node = model_parser_->GetHardwareNodeByName(host_name);
+    std::string str;
+    if(node){
+        str = node->GetModelLoggerAddress();
+    }
+    return str;
 }
 
 bool ExecutionManager::ConstructControlMessages(){
     std::unique_lock<std::mutex>(mutex_);
 
     //Construct the Protobuf messages
-
+    auto nodes = model_parser_->GetHardwareNodes();
     //Get the Deployed Hardware nodes. Construct STARTUP messages
-    for(auto node : model_parser_->GetHardwareNodes()){
+    for(auto node : nodes){
         if(node->is_deployed()){
             auto cm = new NodeManager::ControlMessage();
 
@@ -289,11 +309,11 @@ bool ExecutionManager::ConstructControlMessages(){
 
     std::cout << "------------[Deployment]------------";
     bool okay = false;
-    for(auto node : model_parser_->GetHardwareNodes()){
+    for(auto node : nodes){
         if(node->is_deployed()){
             std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
             //Push this node onto the required slaves list
-            required_slaves_.push_back(node->GetNodeManagerSlaveAddress());
+            required_slave_addresses_.push_back(node->GetNodeManagerSlaveAddress());
 
             for(auto c_id: node->component_ids){
                 auto component = model_parser_->GetComponentInstance(c_id);
@@ -305,7 +325,7 @@ bool ExecutionManager::ConstructControlMessages(){
         }
     }
 
-    inactive_slaves_ = required_slaves_;
+    inactive_slave_addresses_ = required_slave_addresses_;
     
     //TODO: Add fail cases
     return okay;

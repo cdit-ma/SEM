@@ -26,9 +26,10 @@ class ExecutionManager{
     public:
         ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration);
 
-        std::vector<std::string> GetRequiredSlaveEndpoints();
-        std::string GetHostNameFromAddress(std::string address);
-        std::string GetLoggerAddressFromHostName(std::string host_name);
+        std::vector<std::string> GetNodeManagerSlaveAddresses();
+        
+        std::string GetNodeNameFromNodeManagerAddress(std::string address);
+        std::string GetModelLoggerAddressFromNodeName(std::string host_name);
 
         void ExecutionLoop(double duration_sec);
 
@@ -56,8 +57,8 @@ class ExecutionManager{
         zmq::ProtoWriter* proto_writer_;
         Graphml::ModelParser* model_parser_;
 
-        std::vector<std::string> required_slaves_;
-        std::vector<std::string> inactive_slaves_;
+        std::vector<std::string> required_slave_addresses_;
+        std::vector<std::string> inactive_slave_addresses_;
 };
 
 #endif //EXECUTIONMANAGER_H
