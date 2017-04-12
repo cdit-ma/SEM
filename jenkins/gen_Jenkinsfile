@@ -110,16 +110,13 @@ def masterMode = "-m"
 
 def builders = [:]
 stage('Build Deployment Plan'){
-    def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
-    def loganClient = "${LOGAN_PATH}" + '/bin/logan_client'
-    def loganServer = "${LOGAN_PATH}" + '/bin/logan_server'
     def json = readJSON file: 'test.json'
 
 
     for(node in json){
         def node_name = node.key
 
-        def executionCommand = reNodeManager
+        def executionCommand = ""
         def masterIP = json[n].re_node_manager.arguments.master
         def slaveIP = json[n].re_node_manager.arguments.slave
         def otherArgs = '-t 60'
@@ -137,7 +134,7 @@ stage('Build Deployment Plan'){
         builders[node_name] = {
             node(node_name){
                 dir(buildDir + "/lib"){
-                    print(executionCommand)
+                    print("${RE_PATH}" + '/bin/re_node_manager ' + executionCommand)
                     //runScript(executionCommand)
                 }
                 dir("log" + env.BUILD_ID){
