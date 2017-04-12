@@ -56,12 +56,14 @@ node(masterNode){
 
         //Iterate through deployed nodes and add to deployment plan
         for(n in deploymentJson){
+            
             def node_name = n.key
+            print(node_name)
             def node = deploymentJson[node_name]
             
             def reArgs = ""
             print(node_name)
-            if(node["re_node_manager"] != null){
+            if(node["re_node_manager"]){
                 print("re_node_manager")
                 for(arg in node["re_node_manager"]){
                     print("arg")
@@ -88,8 +90,8 @@ node(masterNode){
                 }
             }
         }
+        print("Finished Stage")
     }
-    print("TESTY")
 
     //Checkout transforms
     dir(reGenPath){
