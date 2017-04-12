@@ -81,14 +81,14 @@ node(masterNode){
             print("RE_ARGS" + reArgs)
 
             //Add execution commands to our deployment plan
-            reManagers[node_name] = {
-                node(node_name){
-                    dir(buildDir + "/lib"){
-                        print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
-                        //runScript(executionCommand)
-                    }
+            //reManagers[node_name] = {
+            node(node_name){
+                dir(buildDir + "/lib"){
+                    print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
+                    //runScript(executionCommand)
                 }
             }
+            //}
         }
         print("Finished Stage")
     }
