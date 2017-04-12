@@ -69,32 +69,71 @@ node(masterNode){
 }
 
 //Itterate through all nodes
-def node_keys = jDeployment.keySet()// as List
-for(def i = 0; i < node_keys.size(); i++){
-    def nodeName = node_keys[i];
+def nodeKeys = jDeployment.keySet() as List;
+for(def i = 0; i < nodeKeys.size(); i++){
+    def nodeName = nodeKeys[i];
     def jNode = jDeployment[nodeName];
     
-    def reArgs = "";
+    
     if(jNode["re_node_manager"]){
+        def args = "";
+
         for(arg in jNode["re_node_manager"]){
-            reArgs +=  " --" + arg.key + " " + arg.value;
+            args +=  " --" + arg.key + " " + arg.value;
         }
         if(jNode["re_node_manager"]["master"]){
             //TODO: parse this
-            reArgs += " -t 60";
+            args += " -t 60";
         }
         if(jNode["re_node_manager"]["slave"]){
-            reArgs += " -l .";
+            args += " -l .";
+        }
+
+        //Update the map to include the launch instructions for re_node_manager
+        reManagers[node_name] = {
+            node(node_name){
+                print(nodeName + " : " + "${RE_PATH}" + args);
+            }
         }
     }
 
-    reManagers[node_name] = {
-        node(node_name){
-            print(nodeName + " : " + "${RE_PATH}" + reArgs);
+    if(jNode["logan_server"]){
+        def args = "";
+
+        for(arg in jNode["logan_server"]){
+            args +=  " --" + arg.key + " " + arg.value;
+        }
+
+        //Update the map to include the launch instructions for logan_server
+        loganServers[node_name] = {
+            node(node_name){
+                print(nodeName + " : " + "${RE_PATH}" + reArgs);
+            }
         }
     }
+
+    if(jNode["logan_client"]){
+        def args = "";
+
+        for(arg in jNode["logan_client"]){
+            args +=  " --" + arg.key + " " + arg.value;
+        }
+
+        //Update the map to include the launch instructions for logan_client
+        loganClients[node_name] = {
+            node(node_name){
+                print(nodeName + " : " + "${RE_PATH}" + reArgs);
+            }
+        }
+    }
+
+    
 }
 
-stage("Execute"){
-     parallel reManagers
+stage("Start logan"){
+    parallel loganServers
+    parallel loganClients
+}
+stage("Start re_node_manager"){
+    parallel reManagers
 }
