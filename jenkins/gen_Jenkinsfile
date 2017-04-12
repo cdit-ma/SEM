@@ -103,55 +103,55 @@ stage('Compile C++ Code'){
 //TODO: filter based on deployment
 def deployed_nodes = filtered_names
 
-def masterPort = '7000'
-def slavePort = '7001'
-
 def libString = '-l .'
 def modelString = '-d ${model_graphml}'
 def slaveMode = "-s"
 def masterMode = "-m"
 
-stage('Execute Model'){
-    def builders = [:]
-    for(n in deployed_nodes){
-        def node_name = n
+def builders = [:]
+stage('Build Deployment Plan'){
+    def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
+    def loganClient = "${LOGAN_PATH}" + '/bin/logan_client'
+    def loganServer = "${LOGAN_PATH}" + '/bin/logan_server'
+    def json = readJSON file: 'test.json'
+
+
+    for(node in json){
+        def node_name = node.key
+
+        def executionCommand = reNodeManager
+        def masterIP = json[n].re_node_manager.arguments.master
+        def slaveIP = json[n].re_node_manager.arguments.slave
+        def otherArgs = '-t 60'
+        if(masterIP){
+            executionCommand += " " + masterMode + " " + masterIP + " " + modelString
+        }
+        if(slaveIP){
+            executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
+        }
+
+
+        def loganClientCommand = "blank"
+        def loganServerCommand = "blank"
+
         builders[node_name] = {
             node(node_name){
-                //TODO: Extract deployment information here
-                def ip = '192.168.111.161'
-                def masterIP = 'tcp://' + ip + ':' + masterPort
-                def slaveIP = 'tcp://' + ip + ':' + slavePort
-                def otherArgs = '-t 60'
-                def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
-
-                def reMaster = false;
-                def reSlave = true;
-
-                def json =  readJSON file: 'test.json'
-
-                print(n)
-                def slaveJson = json[n].re_node_manager.slave
-
-                print(slaveJson)
-
-                print(json['swiss11'].re_node_manager.slave)
-
                 dir(buildDir + "/lib"){
-                    def executionCommand = reNodeManager
-                    if(reMaster){
-                        executionCommand += " " + masterMode + " " + masterIP + " " + modelString
-                    }
-                    if(reSlave){
-                        executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
-                    }
-                    executionCommand +=  " " + otherArgs
-
-                    //TODO:Change this to actually run el commando
                     print(executionCommand)
                     //runScript(executionCommand)
+                }
+                dir("log" + env.BUILD_ID){
+                    print(loganClientCommand)
+                    //runScript(loganClientCommand)
+                    print(loganServerCommand)
+                    //runScript(loganServerCommand)
                 }
             }
         }
     }
+
+}
+
+stage('Execute Model'){
     parallel builders
 }
