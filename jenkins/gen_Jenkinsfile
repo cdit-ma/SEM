@@ -75,10 +75,10 @@ node(masterNode){
 def node_keys = deploymentJson.keySet() as List
 
 for(def i = 0; i< node_keys.size(); i++){
-    def node_name = node_keys[i]
+    string node_name = node_keys[i]
     def node = deploymentJson[node_name]
     
-    def reArgs = ""
+    string reArgs = ""
     if(node["re_node_manager"]){
         print("re_node_manager")
         for(arg in node["re_node_manager"]){
@@ -97,10 +97,8 @@ for(def i = 0; i< node_keys.size(); i++){
     print("RE_ARGS" + reArgs)
 
     reManagers[node_name] = {
-        def node_name2 = node_name
-        def args = reArgs
-        node(node_name2){
-            print(args)
+        node(node_name){
+            print(reArgs)
         }
     }
 }
