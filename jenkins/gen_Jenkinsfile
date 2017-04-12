@@ -68,6 +68,7 @@ node(masterNode){
     }
 }
 
+def args = [:]
 
 //Iterate through deployed nodes and add to deployment plan
 for(n in deploymentJson){
@@ -93,14 +94,10 @@ for(n in deploymentJson){
 
     print("RE_ARGS" + reArgs)
 
-    //Add execution commands to our deployment plan
-    //reManagers[node_name] = {
-    //stage("test"){
-    //node("swiss11"){
-    //    print("hello")
-    //    //dir(buildDir + "/lib"){
-        //print("/bin/re_node_manager " + reArgs)
-            //runScript(executionCommand)
-    //    }
-   // }
+    args[node_name] = reArgs
+}
+stage("New Test"){
+    node("swiss11"){
+        print(args["swiss11"])
+    }
 }
