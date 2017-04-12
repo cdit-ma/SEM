@@ -67,16 +67,16 @@ node(masterNode){
                     print("arg")
                     reArgs +=  " --" + arg.key + " " + arg.value
                 }
-                if(node["re_node_manager"]["master"] != null){
+                if(node["re_node_manager"]["master"]){
                     //TODO: parse this
                     reArgs += " -t 60"
                 }
-                if(node["re_node_manager"]["slave"] != null){
+                if(node["re_node_manager"]["slave"]){
                     reArgs += " -l ."
                 }
             }
 
-            print("TESTY1")
+            print("RE_ARGS" + reArgs)
 
             //Add execution commands to our deployment plan
             reManagers[node_name] = {
@@ -87,7 +87,6 @@ node(masterNode){
                     }
                 }
             }
-            print("TESTY2")
         }
     }
     print("TESTY")
