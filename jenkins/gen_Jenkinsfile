@@ -96,7 +96,7 @@ stage('Compile C++ Code'){
             }
         }
     }
-    parallel builders
+    //parallel builders
 }
 
 
@@ -122,8 +122,8 @@ stage('Build Deployment Plan'){
         def node_name = node.key
 
         def executionCommand = ""
-        def masterIP = json[n].re_node_manager.arguments.master
-        def slaveIP = json[n].re_node_manager.arguments.slave
+        def masterIP = json[node_name].re_node_manager.arguments.master
+        def slaveIP = json[node_name].re_node_manager.arguments.slave
         def otherArgs = '-t 60'
         if(masterIP){
             executionCommand += " " + masterMode + " " + masterIP + " " + modelString
