@@ -76,7 +76,7 @@ node(masterNode){
             }
         }
     }
-
+     
     def buildPath = workspacePath + "/" + buildDir
     
     //Generate C++ code
@@ -138,10 +138,14 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for re_node_manager
         reManagers[nodeName] = {
             node(nodeName){
-                unstash 'model'
-                def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                print(nodeName + " : " + command);
-                sh command;
+                def workspacePath = pwd()
+                def buildPath = workspacePath + "/" + buildDir
+                dir(buildPath){
+                    unstash 'model'
+                    def command = "${RE_PATH}" + "/bin/re_node_manager" + args
+                    print(nodeName + " : " + command);
+                    sh command;
+                }
             }
         }
     }
