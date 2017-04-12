@@ -97,8 +97,9 @@ for(n in deploymentJson){
     //reManagers[node_name] = {
     stage("test"){
     node("swiss11"){
+        print("hello")
         //dir(buildDir + "/lib"){
-        print("/bin/re_node_manager " + reArgs)
+        //print("/bin/re_node_manager " + reArgs)
             //runScript(executionCommand)
         //}
     }
