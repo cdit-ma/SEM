@@ -24,6 +24,13 @@ def runScript(String script){
     }
 }
 
+stage('file input') {
+  node('master') {
+    def inputFile = input message: 'Upload file', parameters: [file(name: 'data.zip')]
+    unzip dir: '', glob: '', zipFile: inputFile.remote
+  }
+}
+
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
