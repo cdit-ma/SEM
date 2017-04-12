@@ -31,6 +31,7 @@ def loganServers = [:]
 def loganClients = [:]
 def reManagers = [:]
 
+def deploymentJson = "";
 node(masterNode){
     def workspacePath = pwd()
     def reGenPath = "${RE_GEN_PATH}"
@@ -49,47 +50,44 @@ node(masterNode){
         print(json)
 
         //Parse json
-        def deploymentJson = readJSON text: json
-
-
-
-
-        //Iterate through deployed nodes and add to deployment plan
-        for(n in deploymentJson){
-            
-            def node_name = n.key
-            print(node_name)
-            def node = deploymentJson[node_name]
-            
-            def reArgs = ""
-            print(node_name)
-            if(node["re_node_manager"]){
-                print("re_node_manager")
-                for(arg in node["re_node_manager"]){
-                    print("arg")
-                    reArgs +=  " --" + arg.key + " " + arg.value
-                }
-                if(node["re_node_manager"]["master"]){
-                    //TODO: parse this
-                    reArgs += " -t 60"
-                }
-                if(node["re_node_manager"]["slave"]){
-                    reArgs += " -l ."
-                }
-            }
-
-            print("RE_ARGS" + reArgs)
-
-            //Add execution commands to our deployment plan
-            //reManagers[node_name] = {
-            node(node_name){
-                dir(buildDir + "/lib"){
-                    print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
-                    //runScript(executionCommand)
-                }
-            }
-            //}
-        }
-        print("Finished Stage")
+        deploymentJson = readJSON text: json
     }
+}
+
+
+//Iterate through deployed nodes and add to deployment plan
+for(n in deploymentJson){
+    
+    def node_name = n.key
+    print(node_name)
+    def node = deploymentJson[node_name]
+    
+    def reArgs = ""
+    print(node_name)
+    if(node["re_node_manager"]){
+        print("re_node_manager")
+        for(arg in node["re_node_manager"]){
+            print("arg")
+            reArgs +=  " --" + arg.key + " " + arg.value
+        }
+        if(node["re_node_manager"]["master"]){
+            //TODO: parse this
+            reArgs += " -t 60"
+        }
+        if(node["re_node_manager"]["slave"]){
+            reArgs += " -l ."
+        }
+    }
+
+    print("RE_ARGS" + reArgs)
+
+    //Add execution commands to our deployment plan
+    //reManagers[node_name] = {
+    node(node_name){
+        dir(buildDir + "/lib"){
+            print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
+            //runScript(executionCommand)
+        }
+    }
+    //}
 }
