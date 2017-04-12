@@ -97,8 +97,10 @@ for(def i = 0; i< node_keys.size(); i++){
     print("RE_ARGS" + reArgs)
 
     reManagers[node_name] = {
-        node(node_name){
-            print(reArgs)
+        def node_name2 = node_name
+        def args = reArgs
+        node(node_name2){
+            print(args)
         }
     }
 }
