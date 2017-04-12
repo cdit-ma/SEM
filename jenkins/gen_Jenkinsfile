@@ -101,8 +101,6 @@ for(n in deploymentJson){
         //dir(buildDir + "/lib"){
         //print("/bin/re_node_manager " + reArgs)
             //runScript(executionCommand)
-        //}
+        }
     }
-}
-    //}
 }
