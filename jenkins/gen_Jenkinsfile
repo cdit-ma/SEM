@@ -68,15 +68,17 @@ node(masterNode){
     }
 }
 
-def args = [:]
+//def args = [:]
 
 //Iterate through deployed nodes and add to deployment plan
-for(n in deploymentJson){
-    def node_name = n.key
+
+def node_keys = deploymentJson.keySet() as List
+
+for(def i = 0; i< node_keys.size(); i++){
+    def node_name = node_keys[i]
     def node = deploymentJson[node_name]
     
     def reArgs = ""
-    print(node_name)
     if(node["re_node_manager"]){
         print("re_node_manager")
         for(arg in node["re_node_manager"]){
@@ -94,10 +96,18 @@ for(n in deploymentJson){
 
     print("RE_ARGS" + reArgs)
 
-    args[node_name] = reArgs
+    reManagers[node_name] = {
+        node(node_name){
+            print(reArgs)
+        }
+    }
 }
 
-stage('Checkout'){
+stage("Execute"){
+     parallel reManagers
+}
+
+/*stage('Checkout'){
     def builders = [:]
     def keyList = args.keySet() as List
     for(def i = 0; i<keyList.size(); i++){
@@ -111,4 +121,4 @@ stage('Checkout'){
         }
     }
     parallel builders
-}
+}*/
