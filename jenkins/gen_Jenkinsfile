@@ -121,7 +121,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
             args += " -d " + file
         }
         if(jNode["re_node_manager"]["slave"]){
-            args += " -l lib";
+            args += " -l .";
         }
 
         //Update the map to include the compile
@@ -139,9 +139,9 @@ for(def i = 0; i < nodeKeys.size(); i++){
         reManagers[nodeName] = {
             node(nodeName){
                 def workspacePath = pwd()
-                def buildPath = workspacePath + "/" + buildDir
+                def buildPath = workspacePath + "/" + buildDir + "/lib"
                 dir(buildPath){
-                    print(pwd())
+                    print("Current Directory: " + pwd())
                     unstash 'model'
                     def command = "${RE_PATH}" + "/bin/re_node_manager" + args
                     print(nodeName + " : " + command);
