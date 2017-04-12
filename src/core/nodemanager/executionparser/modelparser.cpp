@@ -631,6 +631,16 @@ std::string json_bool_pair(std::string key, bool val){
     return dblquotewrap(key) + ": " + (val ? "true" : "false");
 }
 
+std::string json_export_list(std::vector<std::string> vals){
+    std::string str;
+    for(auto val : vals){
+        bool is_last = val == vals.back();
+        std::string comma = (is_last ? "" : ",\n");
+        str += val + comma;
+    }
+    return str;
+}
+
 std::string json_list_pair(std::string key, std::vector<std::string> vals){
     std::string str = dblquotewrap(key) + ": [";
     for(auto val : vals){
@@ -643,15 +653,7 @@ std::string json_list_pair(std::string key, std::vector<std::string> vals){
 }
 
 std::string Graphml::ModelParser::GetDeploymentJSON(){
-    std::string str;
-    if(!success){
-        return str;
-    }
-    //std::string tab("\t");
     std::string newline("\n");
-    
-
-    str += "{" + newline;
 
     std::vector<Graphml::HardwareNode*> nodes;
 
@@ -659,90 +661,85 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
         nodes.push_back(n.second);
     }
 
+    std::vector<std::string> node_strs;
+
     for(auto node : nodes){
-        bool is_last = node == nodes.back();
-        std::string comma = (is_last ? "" : ",");
-        str += tab() + dblquotewrap(node->name) + ":{" + newline;
-        {
-            //Output ComponentInstances
-            str += tab(2) + dblquotewrap("component_instances") + ":[" + newline;
-            for(auto c_id : node->component_ids){
-                bool is_last = c_id == node->component_ids.back();
-                std::string comma = (is_last ? "" : ",");
-                auto component = GetComponentInstance(c_id);
-                if(component){
-                    str += tab(3) + "{" + newline;
-                    str += tab(4) + json_pair("id", component->id) + "," + newline; 
-                    str += tab(4) + json_pair("name", component->name) + "," + newline; 
-                    str += tab(4) + json_pair("type", component->type_name) + newline; 
-                    str += tab(3) + "}" + comma + newline;
-                }
-            }
-            str += tab(2) + "]," + newline;
+
+        bool is_deployed = node->is_deployed();
+        bool run_logan_client = is_deployed;
+        bool run_logan_server = node->is_re_master;
+        bool is_master = node->is_re_master; 
+
+        if(is_deployed || is_master){
+            std::vector<std::string> node_strings;
+            //node_str += tab() + dblquotewrap(node->name) + ":{" + newline;
             
-            bool run_logan_client = node->component_ids.size() > 0;
-            bool run_logan_server = node->is_re_master;
-            bool run_re_node_manager = node->is_re_master;
+            //Output ComponentInstances
+            if(is_deployed){
+                std::vector<std::string> component_strings;
+                
+                for(auto c_id : node->component_ids){
+                    auto component = GetComponentInstance(c_id);
+                    if(component){
+                        std::string c_str;
+                        c_str += tab(3) + "{" + newline;
+                        c_str += tab(4) + json_pair("id", component->id) + "," + newline; 
+                        c_str += tab(4) + json_pair("name", component->name) + "," + newline; 
+                        c_str += tab(4) + json_pair("type", component->type_name) + newline; 
+                        c_str += tab(3) + "}";
 
-            //Output Logan Client
-            str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
-            str += tab(3) + json_bool_pair("execute", run_logan_client);
-            str += (run_logan_client ? "," : "") + newline;
-            if(run_logan_client){
-                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
-                str += tab(4) + json_pair("publisher", node->ip_address) + "," + newline;
-                str += tab(4) + json_pair("frequency", "1") + "," + newline;
-                str += tab(4) + json_list_pair("process", node->logged_processes) + "," + newline;
-                str += tab(4) + json_bool_pair("live_mode", true) + newline;
-                str += tab(3) + "}" + newline;
+                        component_strings.push_back(c_str);
+                    }
+                }
+                std::string comp_string = tab(2) + dblquotewrap("component_instances") + ":[" + newline + json_export_list(component_strings) + newline + "]";
+                node_strings.push_back(comp_string);
             }
-            str += tab(2) + "}," + newline;
 
-            //Output Logan Server
-            str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
-            str += tab(3) + json_bool_pair("execute", run_logan_server);
-            str += (run_logan_server ? "," : "") + newline;
+            if(run_logan_client){
+                std::string logcl_str;
+                //Output Logan Client
+                logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
+                logcl_str += tab(3) + json_pair("publisher", node->ip_address) + "," + newline;
+                logcl_str += tab(3) + json_pair("frequency", "1") + "," + newline;
+                logcl_str += tab(3) + json_list_pair("process", node->logged_processes) + "," + newline;
+                logcl_str += tab(3) + json_bool_pair("live_mode", true) + newline;
+                logcl_str += tab(2) + "}";
+                node_strings.push_back(logcl_str);
+            }
+
             if(run_logan_server){
+                //Get the list of clients
                 std::vector<std::string> clients;
-
                 for(auto n : nodes){
-                    if(n && n->component_ids.size() > 0){
+                    if(n && n->is_deployed()){
                         clients.push_back(n->GetLoganClientAddress());
                         clients.push_back(n->GetModelLoggerAddress());
                     }
                 }
 
-                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
-
-
-                str += tab(4) + json_list_pair("clients", clients) + "," + newline;
-                str += tab(4) + json_pair("database", "output.sql") + newline;
-                str += tab(3) + "}" + newline;
+                std::string logsv_str;
+                //Output Logan Client
+                logsv_str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
+                logsv_str += tab(3) + json_list_pair("clients", clients) + "," + newline;
+                logsv_str += tab(3) + json_pair("database", "output.sql") + newline;
+                logsv_str += tab(2) + "}";
+                node_strings.push_back(logsv_str);
             }
-            str += tab(2) + "}," + newline;
-
-            //Re_Node_Manager
-            str += tab(2) + dblquotewrap("re_node_manager") + ":{" + newline;
-            str += tab(3) + json_bool_pair("execute", run_re_node_manager);
-            str += (run_re_node_manager ? "," : "") + newline;
-            if(run_re_node_manager){
-                str += tab(3) + dblquotewrap("arguments") + ":{" + newline;
-                bool run_master = true;
-                bool run_slave = true;
-                if(run_master){
-                    str += tab(4) + json_pair("master", node->GetNodeManagerMasterAddress());
-                    str += (run_slave ? "," : "") + newline;
+            if(is_deployed){
+                std::string renm_str;
+                renm_str += tab(2) + dblquotewrap("re_node_manager") + ":{" + newline;
+                if(is_master){
+                    renm_str += tab(3) + json_pair("master", node->GetNodeManagerMasterAddress()) + "," + newline;
                 }
-                if(run_slave){
-                    str += tab(4) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
-                }
-                str += tab(3) + "}" + newline;
+                renm_str += tab(3) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
+                renm_str += tab(2) + "}";
+                node_strings.push_back(renm_str);
             }
-            str += tab(2) + "}" + newline;
+
+            std::string node_str = tab() + dblquotewrap(node->name) + ":{" + newline + json_export_list(node_strings) + newline + tab() + "}";
+            node_strs.push_back(node_str);
         }
-        str += tab() + "}" + comma + newline;
     }
-    str += "}";
-
+    std::string str = "{" + newline + json_export_list(node_strs) + newline + "}";
     return str;
 }
