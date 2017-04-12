@@ -57,9 +57,7 @@ node(masterNode){
 
 //Iterate through deployed nodes and add to deployment plan
 for(n in deploymentJson){
-    
     def node_name = n.key
-    print(node_name)
     def node = deploymentJson[node_name]
     
     def reArgs = ""
@@ -83,11 +81,11 @@ for(n in deploymentJson){
 
     //Add execution commands to our deployment plan
     //reManagers[node_name] = {
-    node(node_name){
+    /*node(node_name){
         dir(buildDir + "/lib"){
             print("${RE_PATH}" + '/bin/re_node_manager ' + reArgs)
             //runScript(executionCommand)
         }
-    }
+    }*/
     //}
 }
