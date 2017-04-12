@@ -103,8 +103,9 @@ stage('Checkout'){
         def node_name = n.key
         def node_args = n.value
         builders[node_name] = {
-            node(node_name){
-                print(node_args)
+            def node_name2 = node_name
+            node(node_name2){
+                print("TEST")
             }
         }
     }
