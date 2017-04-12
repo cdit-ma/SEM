@@ -55,19 +55,20 @@ node(masterNode){
 
 
         //Iterate through deployed nodes and add to deployment plan
-        for(node in deploymentJson){
-            def node_name = node.key
+        for(n in deploymentJson){
+            def node_name = n.key
+            def node = deploymentJson[node_name]
+            
             def reArgs = ""
-            print(node_name)
-            if(deploymentJson[node].re_node_manager != null){
-                for(arg in node.re_node_manager){
+            if(node["re_node_manager"] != null){
+                for(arg in node["re_node_manager"]){
                     reArgs +=  " --" + arg.key + " " + arg.value
                 }
-                if(node.re_node_manager.master != null){
+                if(node["re_node_manager"]["master"] != null){
                     //TODO: parse this
                     reArgs += " -t 60"
                 }
-                if(node.re_node_manager.slave != null){
+                if(node["re_node_manager"]["slave"] != null){
                     reArgs += " -l ."
                 }
             }
