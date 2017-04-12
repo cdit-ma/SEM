@@ -29,7 +29,9 @@ stage('Checkout'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/re.git']]])    
+                dir("${RE_PATH}"){
+                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/re.git']]])    
+                }
             }
         }
     }
@@ -38,11 +40,11 @@ stage('Checkout'){
 
 stage('Build'){
     def builders = [:]
-    for(n in filtered_names){
+    for(n in filtered_names){ 
         def node_name = n
-        builders[node_name] = {
+        builders[node_name] = {  
             node(node_name){
-                dir('build'){
+                dir("${RE_PATH}" + '/build'){
                     sh 'cmake ..'
                     sh 'make -j6'
                 }
