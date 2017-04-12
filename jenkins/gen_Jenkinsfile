@@ -109,9 +109,14 @@ def slaveMode = "-s"
 def masterMode = "-m"
 
 def builders = [:]
-stage('Build Deployment Plan'){
-    def json = readJSON file: 'test.json'
 
+def json = [:]
+
+//TODO actually generate json based on graphml
+node("swiss11"){
+    json = readJSON file: 'test.json'
+}
+stage('Build Deployment Plan'){
 
     for(node in json){
         def node_name = node.key
@@ -138,9 +143,9 @@ stage('Build Deployment Plan'){
                     //runScript(executionCommand)
                 }
                 dir("log" + env.BUILD_ID){
-                    print(loganClientCommand)
+                    print("${LOGAN_PATH}/bin/logan_client " + loganClientCommand)
                     //runScript(loganClientCommand)
-                    print(loganServerCommand)
+                    print("${LOGAN_PATH}/bin/logan_server " + loganServerCommand)
                     //runScript(loganServerCommand)
                 }
             }
