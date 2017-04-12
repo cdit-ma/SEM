@@ -24,12 +24,8 @@ def runScript(String script){
     }
 }
 
-stage('file input') {
-  node('master') {
-    def inputFile = input message: 'Upload file', parameters: [file(name: 'data.zip')]
-    unzip dir: '', glob: '', zipFile: inputFile.remote
-  }
-}
+
+
 
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
@@ -40,10 +36,11 @@ def reManagers = [:]
 
 def deploymentJson = "";
 
-def file = "${model_graphml}"
+def file = "model.graphml"
 node(){
+    writeFile file: file, text: "${model}"
     print(pwd())
-    stash includes: "${model_graphml}", name: 'model'
+    stash includes: file, name: 'model'
 }
 
 
