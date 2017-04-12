@@ -33,6 +33,7 @@ def buildArchiveDir = "build" + env.BUILD_ID
 def loganServers = [:]
 def loganClients = [:]
 def reManagers = [:]
+def compileCode = [:]
 
 def jDeployment = "";
 
@@ -90,6 +91,17 @@ for(def i = 0; i < nodeKeys.size(); i++){
             args += " -l .";
         }
 
+        //Update the map to include the compile
+        compileCode[nodeName] = {
+            node(nodeName){
+                unstash 'codeGen'
+                dir(buildDir + "/build"){
+                    sh 'cmake ..'
+                    sh 'make'
+                }
+            }
+        }
+
         //Update the map to include the launch instructions for re_node_manager
         reManagers[nodeName] = {
             node(nodeName){
@@ -138,6 +150,11 @@ stage("Start logan"){
     parallel loganServers
     parallel loganClients
 }
+
+stage("Compiling C++"){
+    parallel compileCode
+}
+
 stage("Start re_node_manager"){
     parallel reManagers
 }
