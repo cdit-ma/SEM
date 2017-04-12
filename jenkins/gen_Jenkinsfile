@@ -87,6 +87,7 @@ node(masterNode){
                     }
                 }
             }
+            print("TESTY2")
         }
     }
     print("TESTY")
