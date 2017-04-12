@@ -39,7 +39,7 @@ node(masterNode){
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
     stage('Build Deployment Plan'){
-        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file)
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh returnStdout: true, executionParser
         print(json)
     }
