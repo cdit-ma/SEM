@@ -37,11 +37,11 @@ node(masterNode){
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    def file =  reGenPath + '/' + "${model_graphml}"
+    def file =  "${model_graphml}"
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
     def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
-    
+    print(file)
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
         //Generate deployment json
