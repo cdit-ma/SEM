@@ -34,7 +34,10 @@ def reManagers = [:]
 def deploymentJson = "";
 
 def file = "${model_graphml}"
-stash includes: "${model_graphml}", name: 'model'
+node(){
+    stash includes: "${model_graphml}", name: 'model'
+}
+
 
 
 node(masterNode){
