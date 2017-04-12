@@ -96,8 +96,17 @@ for(n in deploymentJson){
 
     args[node_name] = reArgs
 }
-stage("New Test"){
-    node("swiss11"){
-        print(args["swiss11"])
+
+stage('Checkout'){
+    def builders = [:]
+    for(n in args){
+        def node_name = n.key
+        def node_args = n.value
+        builders[node_name] = {
+            node(node_name){
+                print(node_args)
+            }
+        }
     }
+    parallel builders
 }
