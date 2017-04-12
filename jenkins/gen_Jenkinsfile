@@ -58,7 +58,8 @@ node(masterNode){
         for(node in deploymentJson){
             def node_name = node.key
             def reArgs = ""
-            if(node.re_node_manager != null){
+            print(node_name)
+            if(deploymentJson[node].re_node_manager != null){
                 for(arg in node.re_node_manager){
                     reArgs +=  " --" + arg.key + " " + arg.value
                 }
