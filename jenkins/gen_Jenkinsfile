@@ -56,12 +56,15 @@ node(masterNode){
             runScript(componentGenCommand)
         }
     }
-    dir(workspacePath){
-        // Stash generated cpp files.
-        stash includes: buildDir + '/**', name: 'codeGen'
-    }
-    dir(workspacePath + "/" + buildArchiveDir){
-        unstash 'codeGen'
+
+    stage('Archive'){
+        dir(workspacePath){
+            // Stash generated cpp files.
+            stash includes: buildDir + '/**', name: 'codeGen'
+        }
+        dir(workspacePath + "/" + buildArchiveDir){
+            unstash 'codeGen'
+        }
     }
 }
 
@@ -123,6 +126,12 @@ stage('Execute Model'){
 
                 def reMaster = false;
                 def reSlave = true;
+
+                def json =  readJSON file: 'test.json'
+
+                def slaveJson = json[n].slave
+
+                print(slaveJson)
 
                 dir(buildDir + "/lib"){
                     def executionCommand = reNodeManager

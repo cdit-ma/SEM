@@ -23,6 +23,8 @@ namespace NodeManager{
 
 namespace zmq{class ProtoWriter;};
 
+class Execution;
+
 class ExecutionManager{
     public:
     struct AssemblyConnection{
@@ -128,7 +130,7 @@ class ExecutionManager{
     };
 
     public:
-        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration);
+        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution);
 
         std::vector<std::string> GetRequiredSlaveEndpoints();
         std::string GetHostNameFromAddress(std::string address);
@@ -141,6 +143,8 @@ class ExecutionManager{
 
         void PushMessage(std::string topic, google::protobuf::MessageLite* message);
         void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
+
+        bool Finished();
     private:
         std::string GetAttribute(std::string id, std::string attr_name);
         std::string GetDataValue(std::string id, std::string key_name);
@@ -182,7 +186,10 @@ class ExecutionManager{
 
         std::mutex terminate_mutex_;
         std::condition_variable terminate_lock_condition_;
-        
+        bool terminate_flag_ = false;
+        bool finished_ = false;
+
+        Execution* execution_;
         
 
         zmq::ProtoWriter* proto_writer_;
