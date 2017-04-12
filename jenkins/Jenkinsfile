@@ -42,7 +42,7 @@ stage('Build'){
     def builders = [:]
     for(n in filtered_names){ 
         def node_name = n
-        builders[node_name] = { 
+        builders[node_name] = {  
             node(node_name){
                 dir("${RE_PATH}" + '/build'){
                     sh 'cmake ..'
