@@ -29,13 +29,13 @@ def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
 
 node(masterNode){
-    def file = "${model_graphml}"
+    def file =  reGenPath + '/' + "${model_graphml}"
     def workspacePath = pwd()
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
-    def fileString = ' -s:' + reGenPath + '/' + file
+    def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
     stage('Build Deployment Plan'){
