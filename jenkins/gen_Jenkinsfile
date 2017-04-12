@@ -81,6 +81,7 @@ node(masterNode){
     
     //Generate C++ code
     dir(buildPath){
+        unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
             runScript(typeGenCommand)
