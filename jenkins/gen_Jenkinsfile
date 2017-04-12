@@ -95,6 +95,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
             node(nodeName){
                 unstash 'model'
                 print(nodeName + " : " + "${RE_PATH}" + "/bin/re_node_manager" + args);
+                sh "/bin/re_node_manager" + args;
             }
         }
     }
