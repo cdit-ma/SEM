@@ -38,12 +38,44 @@ node(masterNode){
     def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
+    //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
+        //Generate deployment json
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh(returnStdout: true, script: executionParser)
         print(json)
+
+        //Parse json
+        def deployment = readJSON text: json
+
+        def deploymentPlan = [:]
+
+        
+
+        //Iterate through deployed nodes and add to deployment plan
+        for(node in deployedNodes){
+            def node_name = node.key
+
+
+            //Add execution commands to our deployment plan
+            deploymentPlan[node_name] = {
+                node(node_name){
+                    dir(buildDir + "/lib"){
+                        print("${RE_PATH}" + '/bin/re_node_manager ' + executionCommand)
+                        //runScript(executionCommand)
+                    }
+                    dir("log" + env.BUILD_ID){
+                        print("${LOGAN_PATH}/bin/logan_client " + loganClientCommand)
+                        //runScript(loganClientCommand)
+                        print("${LOGAN_PATH}/bin/logan_server " + loganServerCommand)
+                        //runScript(loganServerCommand)
+                    }
+                }
+            }
+        }
     }
 
+    //Checkout transforms
     dir(reGenPath){
         if("${checkout}" == 'true'){
             stage('Checkout Transforms'){
@@ -54,6 +86,7 @@ node(masterNode){
 
     def buildPath = workspacePath + "/" + buildDir
     
+    //Generate C++ code
     dir(buildPath){
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
@@ -63,6 +96,7 @@ node(masterNode){
         }
     }
 
+    //Store an archive of generated C++ files
     stage('Archive'){
         dir(workspacePath){
             // Stash generated cpp files.
@@ -72,8 +106,6 @@ node(masterNode){
             unstash 'codeGen'
         }
     }
-
-
 }
 
 def names = nodeNames()
@@ -106,61 +138,6 @@ stage('Compile C++ Code'){
 }
 
 
-//TODO: filter based on deployment
-def deployed_nodes = filtered_names
-
-def libString = '-l .'
-def modelString = '-d ${model_graphml}'
-def slaveMode = "-s"
-def masterMode = "-m"
-
-def builders = [:]
-
-def json = [:]
-/*
-//TODO actually generate json based on graphml
-node("swiss11"){
-    json = readJSON file: 'test.json'
-}
-stage('Build Deployment Plan'){
-
-    for(node in json){
-        def node_name = node.key
-
-        def executionCommand = ""
-        def masterIP = json[node_name].re_node_manager.arguments.master
-        def slaveIP = json[node_name].re_node_manager.arguments.slave
-        def otherArgs = '-t 60'
-        if(masterIP){
-            executionCommand += " " + masterMode + " " + masterIP + " " + modelString
-        }
-        if(slaveIP){
-            executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
-        }
-
-
-        def loganClientCommand = "blank"
-        def loganServerCommand = "blank"
-
-        builders[node_name] = {
-            node(node_name){
-                dir(buildDir + "/lib"){
-                    print("${RE_PATH}" + '/bin/re_node_manager ' + executionCommand)
-                    //runScript(executionCommand)
-                }
-                dir("log" + env.BUILD_ID){
-                    print("${LOGAN_PATH}/bin/logan_client " + loganClientCommand)
-                    //runScript(loganClientCommand)
-                    print("${LOGAN_PATH}/bin/logan_server " + loganServerCommand)
-                    //runScript(loganServerCommand)
-                }
-            }
-        }
-    }
-
-}
-
 stage('Execute Model'){
     parallel builders
 }
-*/
