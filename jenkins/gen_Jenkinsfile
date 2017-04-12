@@ -60,8 +60,11 @@ node(masterNode){
             def node = deploymentJson[node_name]
             
             def reArgs = ""
+            print(node_name)
             if(node["re_node_manager"] != null){
+                print("re_node_manager")
                 for(arg in node["re_node_manager"]){
+                    print("arg")
                     reArgs +=  " --" + arg.key + " " + arg.value
                 }
                 if(node["re_node_manager"]["master"] != null){
