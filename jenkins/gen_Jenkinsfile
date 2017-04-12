@@ -35,6 +35,7 @@ def deploymentJson = "";
 
 def file = "${model_graphml}"
 node(){
+    print(pwd())
     stash includes: "${model_graphml}", name: 'model'
 }
 
