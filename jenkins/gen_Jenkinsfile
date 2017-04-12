@@ -25,7 +25,8 @@ def runScript(String script){
 }
 
 def masterNode = "${MASTER_NODE}"
-def buildDir = "build" + env.BUILD_ID
+def buildDir = "gen"
+def buildArchiveDir = "build" + env.BUILD_ID
 
 node(masterNode){
     def file = "${model_graphml}"
@@ -59,6 +60,9 @@ node(masterNode){
         // Stash generated cpp files.
         stash includes: buildDir + '/**', name: 'codeGen'
     }
+    dir(workspacePath + "/" + buildArchiveDir){
+        unstash 'codeGen'
+    }
 }
 
 def names = nodeNames()
@@ -78,12 +82,13 @@ stage('Compile C++ Code'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
+                dir(buildArchiveDir){
+                    unstash 'codeGen'
+                }
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
-                    print(pwd())
-                    print("building on: " + node_name) 
-                    //sh 'cmake ..'
-                    //sh 'make'
+                    sh 'cmake ..'
+                    sh 'make'
                 }
             }
         }
@@ -92,9 +97,16 @@ stage('Compile C++ Code'){
 }
 
 
+//TODO: filter based on deployment
+def deployed_nodes = filtered_names
 
-def deployed_nodes = []
-def reNodeManager =  "${RE_PATH}" + '/bin/re_node_manager'
+def masterPort = '7000'
+def slavePort = '7001'
+
+def libString = '-l .'
+def modelString = '-d ${model_graphml}'
+def slaveMode = "-s"
+def masterMode = "-m"
 
 stage('Execute Model'){
     def builders = [:]
@@ -102,10 +114,30 @@ stage('Execute Model'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                def nodeMode = "asdf"
-                def nodeIP = 'tcp://' + ip + ':' + port
-                def executionCommand = reNodeManager + " " + nodeMode + " " + nodeIP + " "  + otherArgs
-//                runScript(executionCommand)
+                //TODO: Extract deployment information here
+                def ip = '192.168.111.161'
+                def masterIP = 'tcp://' + ip + ':' + masterPort
+                def slaveIP = 'tcp://' + ip + ':' + slavePort
+                def otherArgs = '-t 60'
+                def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
+
+                def reMaster = false;
+                def reSlave = true;
+
+                dir(buildDir + "/lib"){
+                    def executionCommand = reNodeManager
+                    if(reMaster){
+                        executionCommand += " " + masterMode + " " + masterIP + " " + modelString
+                    }
+                    if(reSlave){
+                        executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
+                    }
+                    executionCommand +=  " " + otherArgs
+
+                    //TODO:Change this to actually run el commando
+                    print(executionCommand)
+                    //runScript(executionCommand)
+                }
             }
         }
     }
