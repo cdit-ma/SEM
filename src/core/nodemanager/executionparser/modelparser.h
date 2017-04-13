@@ -18,6 +18,10 @@ namespace Graphml{
     class ComponentReplication;
     class Edge;
     class AssemblyConnection;
+    class Model;
+
+    class LoggingProfile;
+    class LoggingServer;
     
     class ModelParser{
         public:
@@ -33,6 +37,8 @@ namespace Graphml{
             //Getter Functions from ID
             Graphml::HardwareNode* GetHardwareNode(std::string id);
             Graphml::HardwareCluster* GetHardwareCluster(std::string id);
+            Graphml::LoggingProfile* GetLoggingProfile(std::string id);
+            Graphml::LoggingServer* GetLoggingServer(std::string id);
             Graphml::Component* GetComponentDefinition(std::string id);
             Graphml::ComponentInstance* GetComponentInstance(std::string id);
             Graphml::ComponentAssembly* GetComponentAssembly(std::string id);
@@ -64,8 +70,13 @@ namespace Graphml{
 
             bool success = false;
             //Lookup Maps
+
+            Graphml::Model* model_;
             std::map<std::string, Graphml::HardwareNode*> hardware_nodes_;
             std::map<std::string, Graphml::HardwareCluster*> hardware_clusters_;
+
+            std::map<std::string, Graphml::LoggingProfile*> logging_profiles_;
+            std::map<std::string, Graphml::LoggingServer*> logging_servers_;
 
             std::map<std::string, Graphml::Component*> components_;
             std::map<std::string, Graphml::ComponentInstance*> component_instances_;

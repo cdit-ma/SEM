@@ -6,12 +6,32 @@
 
 namespace Graphml{
     //Forward Declare
+
+    class LoggingProfile{
+        public:
+        std::string id;
+        std::string live_mode;
+        std::string processes;
+        std::string frequency;
+    };
+
+    class LoggingServer{
+        public:
+        std::string id;
+        std::string database_name;
+        std::vector<std::string> connected_hardware_ids;
+
+    };
+
     class HardwareNode{
         public:
             std::string id;
             std::string name;
             std::string ip_address;
             std::string parent_id;
+
+            std::string logging_profile_id;
+            std::string logging_server_id;
             int port_count = 6000;
             int node_manager_master_port = 7000;
             int node_manager_slave_port = 7001;
@@ -149,6 +169,12 @@ namespace Graphml{
             std::string source_id;
             std::string target_id;
             bool inter_assembly = false;
+    };
+
+    class Model{
+        public:
+        std::string id;
+            std::string name;
     };
 };
 
