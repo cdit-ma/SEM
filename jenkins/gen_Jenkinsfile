@@ -21,7 +21,6 @@ def runScript(String script, boolean background){
         if(background){
             def command = script + " > /dev/null 2>&1 & echo \$!"
             out = sh(returnStdout: true, script: command)
-            print("PID:" + out +"%%%%%%")
             return out.trim()
         }
         else{
@@ -161,11 +160,15 @@ for(def i = 0; i < nodeKeys.size(); i++){
         def args = ""
         def databaseFile = ""
 
-        for(arg in jNode["logan_server"]){
-            if(arg.key == "database"){
-                databaseFile = arg.value
+        if(jNode["logan_server"]["database"]){
+            databaseFile = jNode["logan_server"]["database"]
+            args += " --database " + databaseFile
+        }
+        if(jNode["logan_server"]["clients"]){
+            args += " --clients"    
+            for(arg in jNode["logan_server"]["database"]){
+                args += " " + arg.value
             }
-            args +=  " --" + arg.key + " " + arg.value
         }
 
         //Update the map to include the launch instructions for logan_server
@@ -218,7 +221,7 @@ stage("Compiling C++"){
     parallel compileCode
 }
 
-stage("Start re_node_manager"){
+stage("Execute Model"){
     parallel reManagers
 }
 
