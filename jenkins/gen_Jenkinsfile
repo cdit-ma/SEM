@@ -171,12 +171,12 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
                 def out = runScript(serverRun, true)
 
-                // loganServers_shutdown[nodeName] = {
-                //     node(nodeName){
-                //         runScript("kill " + out, false)
-                //         //TODO: artifact database
-                //     }
-                // }
+                loganServers_shutdown[nodeName] = {
+                    node(nodeName){
+                        runScript("kill " + out, false)
+                        //TODO: artifact database
+                    }
+                }
             }
         }
     }
