@@ -52,6 +52,7 @@ node(){
 }
 
 node(masterNode){
+    deleteDir()
     unstash 'model'
     def workspacePath = pwd()
     def reGenPath = "${RE_GEN_PATH}"
@@ -94,6 +95,8 @@ node(masterNode){
             runScript(componentGenCommand, false)
         }
     }
+
+    zip(zipFile: archive.zip, archive: true)
 
     //Store an archive of generated C++ files
     stage('Archive'){
@@ -186,6 +189,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                     node(nodeName){
                         runScript("kill " + out, false)
                         archiveArtifacts databaseFile
+
                     }
                 }
             }
