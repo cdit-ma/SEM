@@ -164,7 +164,15 @@ for(def i = 0; i < nodeKeys.size(); i++){
             if(arg.key == "database"){
                 databaseFile = arg.value
             }
-            args +=" --" + arg.key + " " + arg.value;
+            args +=" --" + arg.key 
+            if(arg.value instanceof Collection){
+                for(v in arg.value){
+                    args += " " + v
+                }
+            }else{
+                args += " " + arg.value;
+            }
+            
         }
 
         //Update the map to include the launch instructions for logan_server
