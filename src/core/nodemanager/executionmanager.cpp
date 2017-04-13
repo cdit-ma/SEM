@@ -10,14 +10,19 @@
 #include "executionparser/modelparser.h"
 #include "executionparser/datatypes.h"
 
+#include "execution.hpp"
+
 void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
 
-ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration){
+ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution){
     //Setup writer
     proto_writer_ = new zmq::ProtoWriter();
     proto_writer_->BindPublisherSocket(endpoint);
+
+    execution_ = execution;
+    execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
 
     //Setup the parser
     auto start = std::chrono::steady_clock::now();
@@ -338,10 +343,16 @@ void ExecutionManager::ActivateExecution(){
     activate_lock_condition_.notify_all();
 }
 void ExecutionManager::TerminateExecution(){
+    //Set termination flag
+    terminate_flag_ = true;
     //Obtain lock
     std::unique_lock<std::mutex> lock(terminate_mutex_);
     //Notify
     terminate_lock_condition_.notify_all();
+}
+
+bool ExecutionManager::Finished(){
+    return finished_;
 }
 
 void ExecutionManager::ExecutionLoop(double duration_sec){
@@ -361,7 +372,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     activate->set_type(NodeManager::ControlMessage::ACTIVATE);
     PushMessage("*", activate);
 
-    {
+    if(!terminate_flag_){
         //Obtain lock
         std::unique_lock<std::mutex> lock(terminate_mutex_);
         //Wait for notify
@@ -382,4 +393,6 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    finished_ = true;
+    execution_->Interrupt();
 }

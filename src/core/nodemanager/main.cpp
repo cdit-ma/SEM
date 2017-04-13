@@ -8,13 +8,26 @@
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
+#include "execution.hpp"
+
 #include "zmq/registrant.h"
 #include "zmq/registrar.h"
 
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
 
+Execution* exe = new Execution();
+
+void signal_handler(int sig)
+{
+    exe->Interrupt();
+}
+
 int main(int argc, char **argv){
+
+    //Connect the SIGINT/SIGTERM signals to our handler.
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
     //Get the library path from the argument variables
     std::string dll_path;
@@ -99,7 +112,6 @@ int main(int argc, char **argv){
         std::cout << "** Library Path: " << dll_path << std::endl;    
         
     }
-    
 
     zmq::Registrar* master = 0;
     zmq::Registrant* slave = 0;
@@ -109,95 +121,19 @@ int main(int argc, char **argv){
 
     if(is_slave){
         //Construct a Deployment Manager to handle the Deployment
-        deployment_manager = new DeploymentManager(dll_path);
+        deployment_manager = new DeploymentManager(dll_path, exe);
         //Get the NodeContainer from the DLL
         node_container = deployment_manager->get_deployment();
         slave = new zmq::Registrant(deployment_manager, slave_endpoint);
     }
 
     if(is_master){
-        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration);
+        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration, exe);
         master = new zmq::Registrar(execution_manager, master_endpoint);
     }
 
-
-    bool running = true;
-
-    while(running){
-        //std::cout << "Enter Instruction: ";
-        std::string command;
-        std::getline(std::cin, command);
-        
-        if(command == "ACTIVATE"){
-            execution_manager->ActivateExecution();
-        }else if(command == "TERMINATE"){
-            execution_manager->TerminateExecution();
-        }else if(command == "activate"){
-            std::string name;
-            std::cout << "Enter Component Name or *: ";
-            std::getline(std::cin, name);
-            if(name == "*"){
-                node_container->ActivateAll();
-            }else{
-                node_container->Activate(name);
-            }
-        }else if(command == "passivate"){
-            std::string name;
-            std::cout << "Enter Component Name or *: ";
-            std::getline(std::cin, name);
-            if(name == "*"){
-                node_container->PassivateAll();
-            }else{
-                node_container->Passivate(name);
-            }
-        }else if(command == "quit" || command == "terminate"){
-            running = false;
-        }else if(command == "send" && master){
-            std::string host;
-            std::string action;
-            std::cout << "Enter Node Name or *: ";
-            std::getline(std::cin, host);
-
-            std::cout << "Enter Action: ";
-            std::getline(std::cin, action);
-            
-            NodeManager::ControlMessage::Type t;
-            bool success = NodeManager::ControlMessage::Type_Parse(action, &t);
-
-            if(success){
-                NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
-                auto node = cm->mutable_node();
-                auto node_info = cm->mutable_node()->mutable_info();
-                node_info->set_name(host);
-                cm->set_type(t);
-
-                if(t == NodeManager::ControlMessage::SET_ATTRIBUTE){
-                    std::string attribute_component;
-                    std::string attribute_name;
-                    std::string attribute_value;
-                    
-                    std::cout << "Set Component Name: ";
-                    std::getline(std::cin, attribute_component);
-                    std::cout << "Set Attribute Name: ";
-                    std::getline(std::cin, attribute_name);
-                    std::cout << "Set Attribute Value: ";
-                    std::getline(std::cin, attribute_value);
-
-                    auto component = node->add_components();
-                    auto component_info = component->mutable_info();
-                    component_info->set_name(attribute_component);
-                    auto attr = component->add_attributes();
-                    auto attr_info = attr->mutable_info();
-                    attr_info->set_name(attribute_name);
-                    attr->set_kind(NodeManager::Attribute::STRING);
-                    attr->add_s(attribute_value);
-                }
-
-                execution_manager->PushMessage(host, cm);
-            }
-        }
-        std::cout << "\nEnter Instruction: ";
-    }
+    //Use execution class to wait for interrupt
+    exe->Start();
 
     if(is_slave){
         delete slave;
@@ -206,6 +142,8 @@ int main(int argc, char **argv){
     if(is_master){
         delete master;
     }
+
+    delete exe;
    
     return 0;
 }

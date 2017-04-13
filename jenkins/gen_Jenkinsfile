@@ -15,9 +15,17 @@ def getLabels(String name){
     return ""
 }
 
-def runScript(String script){
+def runScript(String script, boolean background){
+    def out = ""
     if(isUnix()){
-        sh script
+        if(background){
+            def command = script + " > /dev/null 2>&1 & echo \$!"
+            out = sh(returnStdout: true, script: command)
+            return out.trim()
+        }
+        else{
+            sh script
+        }
     }
     else{
         //TODO: do windows things here
@@ -27,17 +35,45 @@ def runScript(String script){
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
+def loganServers = [:]
+def loganClients = [:]
+def loganServers_shutdown = [:]
+def loganClients_shutdown = [:]
+def reManagers = [:]
+def compileCode = [:]
+
+def jDeployment = "";
+
+def file = "model.graphml"
+node(){
+    writeFile file: file, text: "${model}"
+    print(pwd())
+    stash includes: file, name: 'model'
+}
 
 node(masterNode){
-    def file = "${model_graphml}"
+    unstash 'model'
     def workspacePath = pwd()
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
-    def fileString = ' -s:' + reGenPath + '/' + file
-    def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     
+    def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
+    def fileString = ' -s:' + file
+    def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
+    print(file)
+    //Parse graphml model and generate deployment plan
+    stage('Build Deployment Plan'){
+        //Generate deployment json
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
+        def json = sh(returnStdout: true, script: executionParser)
+        print(json)
+
+        //Parse json
+        jDeployment = readJSON text: json
+    }
+    
+    //Checkout transforms
     dir(reGenPath){
         if("${checkout}" == 'true'){
             stage('Checkout Transforms'){
@@ -45,46 +81,57 @@ node(masterNode){
             }
         }
     }
-
+     
     def buildPath = workspacePath + "/" + buildDir
     
+    //Generate C++ code
     dir(buildPath){
+        unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            runScript(typeGenCommand)
+            runScript(typeGenCommand, false)
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            runScript(componentGenCommand)
+            runScript(componentGenCommand, false)
         }
     }
-    dir(workspacePath){
-        // Stash generated cpp files.
-        stash includes: buildDir + '/**', name: 'codeGen'
-    }
-    dir(workspacePath + "/" + buildArchiveDir){
-        unstash 'codeGen'
+
+    //Store an archive of generated C++ files
+    stage('Archive'){
+        dir(workspacePath){
+            // Stash generated cpp files.
+            stash includes: buildDir + '/**', name: 'codeGen'
+        }
+        dir(workspacePath + "/" + buildArchiveDir){
+            unstash 'codeGen'
+        }
     }
 }
 
-def names = nodeNames()
-//filter nodes
-def filtered_names = []
-for(n in names){
-    if(getLabels(n).contains("GEN")){
-        filtered_names << n
-        print("Got Node: " + n)
-    }
-}
+//Itterate through all nodes
+def nodeKeys = jDeployment.keySet() as List;
+for(def i = 0; i < nodeKeys.size(); i++){
+    def nodeName = nodeKeys[i];
+    def jNode = jDeployment[nodeName];
+    
+    
+    if(jNode["re_node_manager"]){
+        def args = "";
 
-//go to all nodes and build generated code in parallel
-stage('Compile C++ Code'){
-    def builders = [:]
-    for(n in filtered_names){
-        def node_name = n
-        builders[node_name] = {
-            node(node_name){
-                dir(buildArchiveDir){
-                    unstash 'codeGen'
-                }
+        for(arg in jNode["re_node_manager"]){
+            args +=  " --" + arg.key + " " + arg.value;
+        }
+        if(jNode["re_node_manager"]["master"]){
+            //TODO: parse this
+            args += " -t 15";
+            args += " -d " + file
+        }
+        if(jNode["re_node_manager"]["slave"]){
+            args += " -l .";
+        }
+
+        //Update the map to include the compile
+        compileCode[nodeName] = {
+            node(nodeName){
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
                     sh 'cmake ..'
@@ -92,54 +139,98 @@ stage('Compile C++ Code'){
                 }
             }
         }
-    }
-    parallel builders
-}
 
-
-//TODO: filter based on deployment
-def deployed_nodes = filtered_names
-
-def masterPort = '7000'
-def slavePort = '7001'
-
-def libString = '-l .'
-def modelString = '-d ${model_graphml}'
-def slaveMode = "-s"
-def masterMode = "-m"
-
-stage('Execute Model'){
-    def builders = [:]
-    for(n in deployed_nodes){
-        def node_name = n
-        builders[node_name] = {
-            node(node_name){
-                //TODO: Extract deployment information here
-                def ip = '192.168.111.161'
-                def masterIP = 'tcp://' + ip + ':' + masterPort
-                def slaveIP = 'tcp://' + ip + ':' + slavePort
-                def otherArgs = '-t 60'
-                def reNodeManager = "${RE_PATH}" + '/bin/re_node_manager'
-
-                def reMaster = false;
-                def reSlave = true;
-
-                dir(buildDir + "/lib"){
-                    def executionCommand = reNodeManager
-                    if(reMaster){
-                        executionCommand += " " + masterMode + " " + masterIP + " " + modelString
-                    }
-                    if(reSlave){
-                        executionCommand += " " + slaveMode + " " + slaveIP + " " + libString
-                    }
-                    executionCommand +=  " " + otherArgs
-
-                    //TODO:Change this to actually run el commando
-                    print(executionCommand)
-                    //runScript(executionCommand)
+        //Update the map to include the launch instructions for re_node_manager
+        reManagers[nodeName] = {
+            node(nodeName){
+                def workspacePath = pwd()
+                def buildPath = workspacePath + "/" + buildDir + "/lib"
+                dir(buildPath){
+                    print("Current Directory: " + pwd())
+                    unstash 'model'
+                    def command = "${RE_PATH}" + "/bin/re_node_manager" + args
+                    print(nodeName + " : " + command);
+                    sh command;
                 }
             }
         }
     }
-    parallel builders
+
+    if(jNode["logan_server"]){
+        def args = ""
+        def databaseFile = ""
+
+        for(arg in jNode["logan_server"]){
+            if(arg.key == "database"){
+                databaseFile = arg.value
+            }
+            args +=" --" + arg.key 
+            if(arg.value instanceof Collection){
+                for(v in arg.value){
+                    args += " " + v
+                }
+            }else{
+                args += " " + arg.value;
+            }
+            
+        }
+
+        //Update the map to include the launch instructions for logan_server
+        loganServers[nodeName] = {
+            node(nodeName){
+                def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
+                print("THIS IS THE NEW FILE" + serverRun)
+                def out = runScript(serverRun, true)
+
+                loganServers_shutdown[nodeName] = {
+                    node(nodeName){
+                        runScript("kill " + out, false)
+                        archiveArtifacts databaseFile
+                    }
+                }
+            }
+        }
+    }
+
+    if(jNode["logan_client"]){
+        def args = "";
+
+        for(arg in jNode["logan_client"]){
+            args +=  " --" + arg.key + " " + arg.value;
+        }
+
+        //Update the map to include the launch instructions for logan_client
+        loganClients[nodeName] = {
+            node(nodeName){
+                def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
+                def out = runScript(clientRun, true)
+
+                loganClients_shutdown[nodeName] = {
+                    node(nodeName){
+                        runScript("kill " + out, false)
+                    }
+                }
+            }
+        }
+    }
+
+    
+}
+
+stage("Start logan"){
+    parallel loganServers
+    parallel loganClients
+}
+
+stage("Compiling C++"){
+    parallel compileCode
+}
+
+stage("Execute Model"){
+    parallel reManagers
+}
+
+stage("Teardown"){
+    parallel loganClients_shutdown
+    parallel loganServers_shutdown
 }
