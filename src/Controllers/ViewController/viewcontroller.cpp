@@ -321,8 +321,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case Node::NK_WORKER_DEFINITIONS:{
                 alias = "Icons";
                 image = "medeaLogo";
-                //alias = "Icons";
-                //image = "spanner";
                 break;
             }
             case Node::NK_WORKER_PROCESS:
@@ -332,6 +330,11 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     alias = icon_prefix;
                     image = icon;
                 }
+                break;
+            }
+            case Node::NK_LOGGINGPROFILE:{
+                alias = "EntityIcons";
+                image = "ManagementComponent";
                 break;
             }
             case Node::NK_VECTOR:

@@ -189,7 +189,8 @@ HEADERS += \
     Model/BehaviourDefinitions/forcondition.h \
     Model/BehaviourDefinitions/setter.h \
     Model/BehaviourDefinitions/variableparameter.h \
-    Model/root.h
+    Model/root.h \
+    Model/DeploymentDefinitions/loggingprofile.h
 
 
 SOURCES += \
@@ -371,7 +372,8 @@ SOURCES += \
     Model/BehaviourDefinitions/forcondition.cpp \
     Model/BehaviourDefinitions/setter.cpp \
     Model/BehaviourDefinitions/variableparameter.cpp \
-    Model/root.cpp
+    Model/root.cpp \
+    Model/DeploymentDefinitions/loggingprofile.cpp
 
 RESOURCES += \
     workers.qrc \

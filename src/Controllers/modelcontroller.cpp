@@ -2686,6 +2686,13 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         typeData->setProtected(true);
         data.append(typeData);
     }
+    if(nodeKind == "LoggingProfile"){
+        auto node = NodeFactory::createNode(nodeKind);
+        if(node){
+            data.append(node->getDefaultData());
+            delete node;
+        }
+    }
 
     if(nodeKind == "Model"){
         Key* middlewareKey = constructKey("middleware", QVariant::String);
@@ -3779,42 +3786,35 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
         if(model){
             return model;
         }
-        return new Model();
     }else if(nodeKind == "BehaviourDefinitions"){
         if(behaviourDefinitions){
             return behaviourDefinitions;
         }
-        return new BehaviourDefinitions();
     }else if(nodeKind == "InterfaceDefinitions"){
         if(interfaceDefinitions){
             return interfaceDefinitions;
         }
-        return new InterfaceDefinitions();
     }else if(nodeKind == "AssemblyDefinitions"){
         if(assemblyDefinitions){
             return assemblyDefinitions;
         }
-        return new AssemblyDefinitions();
     }else if(nodeKind == "HardwareDefinitions"){
         if(hardwareDefinitions){
             return hardwareDefinitions;
         }
-        return new HardwareDefinitions();
     }else if(nodeKind == "DeploymentDefinitions"){
         if(deploymentDefinitions){
             return deploymentDefinitions;
         }
-        return  new DeploymentDefinitions();
     }else if(nodeKind == "WorkerDefinitions"){
         if(workerDefinitions){
             return workerDefinitions;
         }
-        return  new WorkerDefinitions();
     }else if(nodeKind == "HardwareNode"){
         if(hardwareEntities.contains(nodeLabel)){
             return hardwareEntities[nodeLabel];
         }else{
-            HardwareNode* hN = new HardwareNode();
+            HardwareNode* hN = (HardwareNode*) NodeFactory::createNode(nodeKind);
             if(storeNode && nodeLabel != ""){
                 hardwareEntities[nodeLabel] = hN;
             }
@@ -3824,7 +3824,7 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
         if(hardwareEntities.contains(nodeLabel)){
             return hardwareEntities[nodeLabel];
         }else{
-            HardwareCluster* hC = new HardwareCluster();
+            HardwareCluster* hC = (HardwareCluster*) NodeFactory::createNode(nodeKind);
             if(storeNode && nodeLabel != ""){
                 hardwareEntities[nodeLabel] = hC;
             }
@@ -3834,146 +3834,15 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
         if(managementComponents.contains(nodeType)){
             return managementComponents[nodeType];
         }else{
-            ManagementComponent* mC = new ManagementComponent();
+            ManagementComponent* mC = (ManagementComponent*) NodeFactory::createNode(nodeKind);
             if(storeNode && nodeType != ""){
                 managementComponents[nodeType] = mC;
             }
             return mC;
         }
         return new ManagementComponent();
-    }else if(nodeKind == "ComponentAssembly"){
-        return new ComponentAssembly();
-    }else if(nodeKind == "Component"){
-        return new Component();
-    }else if(nodeKind == "ComponentInstance"){
-        return new ComponentInstance();
-    }else if(nodeKind == "ComponentImpl"){
-        return new ComponentImpl();
-    }else if(nodeKind == "OutEventPort"){
-        return new OutEventPort();
-    }else if(nodeKind == "OutEventPortInstance"){
-        return new OutEventPortInstance();
-    }else if(nodeKind == "OutEventPortImpl"){
-        return new OutEventPortImpl();
-    }else if(nodeKind == "OutEventPortDelegate"){
-        return new OutEventPortDelegate();
-    }else if(nodeKind == "InEventPort"){
-        return new InEventPort();
-    }else if(nodeKind == "InEventPortInstance"){
-        return new InEventPortInstance();
-    }else if(nodeKind == "InEventPortImpl"){
-        return new InEventPortImpl();
-    }else if(nodeKind == "InEventPortDelegate"){
-        return new InEventPortDelegate();
-    }else if(nodeKind == "Attribute"){
-        return new Attribute();
-    }else if(nodeKind == "AttributeInstance"){
-        return new AttributeInstance();
-    }else if(nodeKind == "AttributeImpl"){
-        return new AttributeImpl();
-    }else if(nodeKind == "IDL"){
-        return new IDL();
-    }else if(nodeKind == "Member"){
-        return new Member();
-    }else if(nodeKind == "Aggregate"){
-        return new Aggregate();
-    }else if(nodeKind == "AggregateInstance"){
-        return new AggregateInstance();
-    }else if(nodeKind == "MemberInstance"){
-        return new MemberInstance();
-    }else if(nodeKind == "BranchState"){
-        return new BranchState();
-    }else if(nodeKind == "Condition"){
-        return new Condition();
-    }else if(nodeKind == "PeriodicEvent"){
-        return new PeriodicEvent();
-    }else if(nodeKind == "Workload"){
-        return new Workload();
-    }else if(nodeKind == "Process"){
-        return new Process();
-    }else if(nodeKind == "WorkerProcess"){
-        return new WorkerProcess();
-    }else if(nodeKind == "WhileLoop"){
-        return new WhileLoop();
-    }else if(nodeKind == "Termination"){
-        return new Termination();
-    }else if(nodeKind == "Variable"){
-        return new Variable();
-    }else if(nodeKind == "BlackBox"){
-        return new BlackBox();
-    }else if(nodeKind == "BlackBoxInstance"){
-        return new BlackBoxInstance();
-    }else if(nodeKind == "Vector"){
-        return new Vector();
-    }else if(nodeKind == "VectorInstance"){
-        return new VectorInstance();
-    }else if(nodeKind == "InputParameter"){
-        return new InputParameter();
-    }else if(nodeKind == "VariadicParameter"){
-        return new VariadicParameter();
-    }else if(nodeKind == "ReturnParameter"){
-        return new ReturnParameter();
-    }else if(nodeKind == "VariableParameter"){
-        return new VariableParameter();
-    }else if(nodeKind == "Code"){
-        return new Code();
-    }else if(nodeKind == "Header"){
-        return new Header();
-    }else if(nodeKind =="ForCondition"){
-        return new ForCondition();
-    }else if(nodeKind =="Setter"){
-        return new Setter();
-    }else if(nodeKind == "DDS_QOSProfile"){
-        return new DDS_QOSProfile();
-    }else if(nodeKind == "DDS_DeadlineQosPolicy"){
-        return new DDS_DeadlineQosPolicy();
-    }else if(nodeKind == "DDS_DestinationOrderQosPolicy"){
-        return new DDS_DestinationOrderQosPolicy();
-    }else if(nodeKind == "DDS_DurabilityQosPolicy"){
-        return new DDS_DurabilityQosPolicy();
-    }else if(nodeKind == "DDS_DurabilityServiceQosPolicy"){
-        return new DDS_DurabilityServiceQosPolicy();
-    }else if(nodeKind == "DDS_EntityFactoryQosPolicy"){
-        return new DDS_EntityFactoryQosPolicy();
-    }else if(nodeKind == "DDS_GroupDataQosPolicy"){
-        return new DDS_GroupDataQosPolicy();
-    }else if(nodeKind == "DDS_HistoryQosPolicy"){
-        return new DDS_HistoryQosPolicy();
-    }else if(nodeKind == "DDS_LatencyBudgetQosPolicy"){
-        return new DDS_LatencyBudgetQosPolicy();
-    }else if(nodeKind == "DDS_LifespanQosPolicy"){
-        return new DDS_LifespanQosPolicy();
-    }else if(nodeKind == "DDS_LivelinessQosPolicy"){
-        return new DDS_LivelinessQosPolicy();
-    }else if(nodeKind == "DDS_OwnershipQosPolicy"){
-        return new DDS_OwnershipQosPolicy();
-    }else if(nodeKind == "DDS_OwnershipStrengthQosPolicy"){
-        return new DDS_OwnershipStrengthQosPolicy();
-    }else if(nodeKind == "DDS_PartitionQosPolicy"){
-        return new DDS_PartitionQosPolicy();
-    }else if(nodeKind == "DDS_PresentationQosPolicy"){
-        return new DDS_PresentationQosPolicy();
-    }else if(nodeKind == "DDS_ReaderDataLifecycleQosPolicy"){
-        return new DDS_ReaderDataLifecycleQosPolicy();
-    }else if(nodeKind == "DDS_ReliabilityQosPolicy"){
-        return new DDS_ReliabilityQosPolicy();
-    }else if(nodeKind == "DDS_ResourceLimitsQosPolicy"){
-        return new DDS_ResourceLimitsQosPolicy();
-    }else if(nodeKind == "DDS_TimeBasedFilterQosPolicy"){
-        return new DDS_TimeBasedFilterQosPolicy();
-    }else if(nodeKind == "DDS_TopicDataQosPolicy"){
-        return new DDS_TopicDataQosPolicy();
-    }else if(nodeKind == "DDS_TransportPriorityQosPolicy"){
-        return new DDS_TransportPriorityQosPolicy();
-    }else if(nodeKind == "DDS_UserDataQosPolicy"){
-        return new DDS_UserDataQosPolicy();
-    }else if(nodeKind == "DDS_WriterDataLifecycleQosPolicy"){
-        return new DDS_WriterDataLifecycleQosPolicy();
-    }else{
-        //qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
     }
-
-    return 0;
+    return NodeFactory::createNode(nodeKind);
 }
 
 void ModelController::constructNodeGUI(Node *node)

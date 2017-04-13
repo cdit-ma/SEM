@@ -54,6 +54,7 @@
 #include "DeploymentDefinitions/managementcomponent.h"
 #include "DeploymentDefinitions/ineventportdelegate.h"
 #include "DeploymentDefinitions/outeventportdelegate.h"
+#include "DeploymentDefinitions/loggingprofile.h"
 
 //Definition Elements
 #include "InterfaceDefinitions/aggregate.h"
@@ -181,6 +182,8 @@ NodeFactory::NodeFactory()
     addKind(Node::NK_MANAGEMENT_COMPONENT, "ManagementComponent", [](){return new ManagementComponent();});
     addKind(Node::NK_INEVENTPORT_DELEGATE, "InEventPortDelegate", [](){return new InEventPortDelegate();});
     addKind(Node::NK_OUTEVENTPORT_DELEGATE, "OutEventPortDelegate", [](){return new OutEventPortDelegate();});
+    addKind(Node::NK_LOGGINGPROFILE, "LoggingProfile", [](){return new LoggingProfile();});
+
 
     //Definition Elements
     addKind(Node::NK_AGGREGATE, "Aggregate", [](){return new Aggregate();});

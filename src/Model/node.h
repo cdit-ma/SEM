@@ -72,6 +72,7 @@ public:
         NK_FOR_CONDITION,
         NK_VECTOR_ITTERATOR_CONDITION,
         NK_SETTER,
+        NK_LOGGINGPROFILE,
 
         NK_QOS_DDS_PROFILE,
         NK_QOS_DDS_POLICY_DEADLINE,
@@ -124,6 +125,8 @@ public:
     QString toGraphMLNoVisualData(int indentDepth);
 
     virtual VIEW_ASPECT getViewAspect() const;
+    virtual QList<Data*> getDefaultData();
+
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();
 

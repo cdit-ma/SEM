@@ -709,6 +709,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
+            case Node::NK_LOGGINGPROFILE:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                break;
             case Node::NK_IDL:
                 break;
             case Node::NK_COMPONENT:

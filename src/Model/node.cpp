@@ -300,6 +300,17 @@ VIEW_ASPECT Node::getViewAspect() const
     return aspect;
 }
 
+QList<Data *> Node::getDefaultData()
+{
+    QList<Data*> data;
+    {
+        //Need Kind
+        auto key = Key::GetKey("kind", QVariant::String);
+        data.append(new Data(key, getNodeKindStr()));
+    }
+    return data;
+}
+
 Node *Node::getParentNode(int depth)
 {
 
