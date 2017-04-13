@@ -194,7 +194,14 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_client
         loganClients[nodeName] = {
             node(nodeName){
-                print(nodeName + " : " + "${RE_PATH}" + "/bin/logan_client" + args);
+                def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
+                def out = runScript(clientRun, true)
+
+                loganClients_shutdown[nodeName] = {
+                    node(nodeName){
+                        runScript("kill " + out, false)
+                    }
+                }
             }
         }
     }
@@ -216,6 +223,6 @@ stage("Start re_node_manager"){
 }
 
 stage("Teardown"){
-    //parallel loganClients_shutdown
+    parallel loganClients_shutdown
     parallel loganServers_shutdown
 }
