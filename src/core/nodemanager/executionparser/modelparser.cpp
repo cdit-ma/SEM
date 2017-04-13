@@ -699,7 +699,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 std::string logcl_str;
                 //Output Logan Client
                 logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
-                logcl_str += tab(3) + json_pair("publisher", node->ip_address) + "," + newline;
+                logcl_str += tab(3) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
                 logcl_str += tab(3) + json_pair("frequency", "1") + "," + newline;
                 for(auto p : node->logged_processes){
                     logcl_str += tab(3) + json_pair("process", p) + "," + newline;

@@ -72,7 +72,7 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
     }
 }
 
-void ExecutionManager::HandleSlaveOnline(std::string endpoint){
+void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
     //Get the initial size
     int initial_size = inactive_slave_addresses_.size();
     //Find the itterator position of the element
