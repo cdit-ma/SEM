@@ -96,7 +96,7 @@ node(masterNode){
         }
     }
 
-    zip(zipFile: "archive.zip", archive: true, dir: )
+    zip(zipFile: "archive.zip", archive: true, dir: buildPath)
 
     //Store an archive of generated C++ files
     stage('Archive'){
