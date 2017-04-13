@@ -19,9 +19,8 @@ def runScript(String script, boolean background){
     def out = ""
     if(isUnix()){
         if(background){
-            def command = script + " > output.txt & echo \$!"
+            def command = script + " &> /dev/null & echo \$!"
             out = sh(returnStdout: true, script: command)
-            print("PID:" + out + "AAA")
             return out.trim()
         }
         else{
