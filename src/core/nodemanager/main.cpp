@@ -20,7 +20,7 @@ Execution* exe = new Execution();
 
 void signal_handler(int sig)
 {
-    exe->HardInterrupt();
+    exe->Interrupt();
 }
 
 int main(int argc, char **argv){
@@ -133,7 +133,7 @@ int main(int argc, char **argv){
     }
 
     //Use execution class to wait for interrupt
-    exe->Start(deployment_manager, execution_manager);
+    exe->Start();
 
     if(is_slave){
         delete slave;

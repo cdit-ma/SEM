@@ -1,5 +1,7 @@
 #include <mutex>
 #include <condition_variable>
+#include <functional>
+#include <vector>
 
 #include "executionmanager.h"
 #include "deploymentmanager.h"
@@ -9,27 +11,24 @@ class Execution{
         std::mutex mutex_;
         std::condition_variable lock_condition_;
 
-        ExecutionManager* em_;
-        DeploymentManager* dm_;
+        std::vector<std::function<void()> > terminate_functions_;
 
     public:
-        void Start(DeploymentManager* dm, ExecutionManager* em){
-            em_ = em;
-            dm_ = dm;
+        void Start(){
             //Wait for the signal_handler to notify for exit
 	        std::unique_lock<std::mutex> lock(mutex_);
 	        lock_condition_.wait(lock);
-        };
-
-        void Interrupt(){
-            std::unique_lock<std::mutex> lock(mutex_);
-            //Check that both execution manager and deployment manager have finished (or weren't ever running on this node)
-            if((em_ == 0 || em_->Finished()) && (dm_ == 0 || dm_->get_deployment() == 0)){
-	            lock_condition_.notify_all();
+            for(auto func : terminate_functions_){
+                func();
             }
         };
 
-        void HardInterrupt(){
+        void AddTerminateCallback(std::function<void()> callback_func){
+            std::unique_lock<std::mutex> lock(mutex_);
+            terminate_functions_.push_back(callback_func);
+        }
+
+        void Interrupt(){
             std::unique_lock<std::mutex> lock(mutex_);
             lock_condition_.notify_all();
         };

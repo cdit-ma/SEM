@@ -22,6 +22,7 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     proto_writer_->BindPublisherSocket(endpoint);
 
     execution_ = execution;
+    execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
 
     //Setup the parser
     auto start = std::chrono::steady_clock::now();
