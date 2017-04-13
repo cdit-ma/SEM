@@ -212,6 +212,7 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
     //Construct and setup the process
     QProcess* process = new QProcess();
     process->setReadChannel(QProcess::StandardOutput);
+    qCritical() << "In :" << manager->getCLIPath();
     process->setWorkingDirectory(manager->getCLIPath());
     process->start(command);
 
@@ -774,6 +775,7 @@ void JenkinsRequest::_unexpectedTermination()
 QString JenkinsRequest::validate()
 {
     //Get the the data from the URL using wget.
+    qCritical() << manager->getURL();
     QPair<int, QByteArray> jenkinsRequest = wget(manager->getURL() + "api/json", false);
     QNetworkReply::NetworkError error = (QNetworkReply::NetworkError) jenkinsRequest.first;
     QJsonDocument jenkinsJSON = QJsonDocument::fromJson(jenkinsRequest.second);
@@ -809,7 +811,7 @@ QString JenkinsRequest::validate()
             return "Unknown Network Error";
         }
     }
-
+    qCritical() << "Trying to Auth";
     //Try Auth
     QPair<int, QByteArray> authJenkinsRequest = wget(manager->getURL() + "api/json");
     error = (QNetworkReply::NetworkError) authJenkinsRequest.first;
@@ -817,11 +819,8 @@ QString JenkinsRequest::validate()
     if(error == QNetworkReply::AuthenticationRequiredError){
         return "API User/Token Authentication Failed";
     }
-
-
-
-
-
+    qCritical() << "Trying CLI";
+    qCritical() << manager->getCLICommand("login");
     //Try CLI stuff.
     QPair<int, QByteArray> response = runProcess(manager->getCLICommand("login"));
 
@@ -830,6 +829,7 @@ QString JenkinsRequest::validate()
     }else if(response.first >= 1){
         return "Cannot Reach Server Address";
     }
+
 
     return "";
 }

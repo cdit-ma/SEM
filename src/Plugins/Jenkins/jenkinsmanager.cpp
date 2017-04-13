@@ -26,8 +26,8 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
 
 
     //Set instance variables.
-    cliBinaryPath = QApplication::applicationDirPath() % "/resources/lib/Jenkins/";
-    scriptPath = QApplication::applicationDirPath() % "/resources/scripts/";
+    cliBinaryPath = QApplication::applicationDirPath() % "/Resources/lib/Jenkins/";
+    scriptPath = QApplication::applicationDirPath() % "/Resources/scripts/";
     urlChanged = false;
     _jenkinsBusy = false;
     settingsValidated = false;
