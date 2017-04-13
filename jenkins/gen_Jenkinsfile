@@ -88,9 +88,9 @@ node(masterNode){
         unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            runScript(typeGenCommand)
+            runScript(typeGenCommand, false)
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            runScript(componentGenCommand)
+            runScript(componentGenCommand, false)
         }
     }
 
