@@ -15,17 +15,21 @@ def getLabels(String name){
     return ""
 }
 
-def runScript(String script){
+def runScript(String script, bool background){
+    def out = ""
     if(isUnix()){
-        sh script
+        if(background){
+            def command = script + " & echo $!"
+            out = sh(returnStdout: true, script: command) 
+        }
+        else{
+            sh script
+        }
     }
     else{
         //TODO: do windows things here
     }
 }
-
-
-
 
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
@@ -162,6 +166,12 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganServers[nodeName] = {
             node(nodeName){
                 print(nodeName + " : " + "${LOGAN_PATH}" + "/bin/logan_server" + args);
+                def out = runScript("top", true)
+
+                print (out)
+                //Run in background, Get PID
+                //Insert into a builder map a shutdown function
+                //Then artifiact the .sql
             }
         }
     }
@@ -195,4 +205,9 @@ stage("Compiling C++"){
 
 stage("Start re_node_manager"){
     parallel reManagers
+}
+
+stage("Teardown"){
+    //parallel loganClients_shutdown
+    //parallel loganServers_shutdown
 }
