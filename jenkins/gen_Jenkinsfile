@@ -37,6 +37,8 @@ def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
 def loganServers = [:]
 def loganClients = [:]
+def loganServers_shutdown = [:]
+def loganClients_shutdown = [:]
 def reManagers = [:]
 def compileCode = [:]
 
