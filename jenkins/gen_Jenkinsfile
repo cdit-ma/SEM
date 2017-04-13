@@ -169,7 +169,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 print(nodeName + " : " + "${LOGAN_PATH}" + "/bin/logan_server" + args);
                 def out = runScript("sleep 20", true)
 
-                print (out)
+                print("PID:" + out + "AAAAAA")
                 //Run in background, Get PID
                 //Insert into a builder map a shutdown function
                 //Then artifiact the .sql
@@ -201,11 +201,11 @@ stage("Start logan"){
 }
 
 stage("Compiling C++"){
-    parallel compileCode
+//    parallel compileCode
 }
 
 stage("Start re_node_manager"){
-    parallel reManagers
+//    parallel reManagers
 }
 
 stage("Teardown"){
