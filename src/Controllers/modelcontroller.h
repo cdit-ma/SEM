@@ -536,7 +536,6 @@ private:
     bool isGraphMLValid(QString inputGraphML);
 
 
-    void setupManagementComponents();
     void setupLocalNode();
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
@@ -666,9 +665,6 @@ private:
 
     QList<Node*> getAllNodes();
     QList<Node*> getNodes(QList<int> IDs);
-
-
-    QHash<QString, ManagementComponent*> managementComponents;
 
     QHash<QString, Node*> hardwareEntities;
     QHash<QString, Process*> workerProcesses;

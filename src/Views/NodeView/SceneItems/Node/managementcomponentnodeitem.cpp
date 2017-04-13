@@ -82,6 +82,10 @@ QRectF ManagementComponentNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect
        return subIconRect();
    case ER_DEPLOYED:
        return secondSubIconRect();
+   case ER_EDGE_KIND_ICON:
+       return connectRect();
+   case ER_CONNECT_ICON:
+       return fourthSubIconRect();
    case ER_LOCKED_STATE:
        return thirdSubIconRect();
    case ER_PRIMARY_TEXT:
@@ -127,6 +131,26 @@ QRectF ManagementComponentNodeItem::thirdSubIconRect() const
     QRectF returnRect(secondSubIconRect());
     returnRect.translate(0, secondSubIconRect().height());
 
+    return returnRect;
+}
+
+QRectF ManagementComponentNodeItem::fourthSubIconRect() const
+{
+    QRectF returnRect(secondSubIconRect());
+    returnRect.moveTopLeft(secondSubIconRect().topRight());
+    return returnRect;
+}
+
+QRectF ManagementComponentNodeItem::connectRect() const
+{
+    QRectF returnRect(secondSubIconRect());
+    returnRect.setHeight(returnRect.height() * 1.5);
+    returnRect.setWidth(returnRect.height());
+    returnRect.moveTopLeft(secondSubIconRect().topRight());
+
+    QPointF newCenter = returnRect.center();
+    newCenter.setY(rightRect().center().y());
+    returnRect.moveCenter(newCenter);
     return returnRect;
 }
 

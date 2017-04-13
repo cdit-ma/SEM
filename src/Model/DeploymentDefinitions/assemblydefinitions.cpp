@@ -14,8 +14,7 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
     switch(node->getNodeKind()){
     case NK_COMPONENT_ASSEMBLY:
-    case NK_LOGGINGPROFILE:
-        break;
+
     case NK_MANAGEMENT_COMPONENT:
         foreach(Node* child, getChildrenOfKind(NK_MANAGEMENT_COMPONENT, 0)){
             if(node->compareData(child, "type")){

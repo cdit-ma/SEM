@@ -72,6 +72,7 @@ public:
         NK_FOR_CONDITION,
         NK_VECTOR_ITTERATOR_CONDITION,
         NK_SETTER,
+        NK_LOGGINGSERVER,
         NK_LOGGINGPROFILE,
 
         NK_QOS_DDS_PROFILE,
@@ -115,6 +116,7 @@ public:
         NT_BRANCH               = 1 << 12,  //bin. 0000 0000 0000 0000 0001 0000 0000 0000
         NT_PARAMETER            = 1 << 13,  //bin. 0000 0000 0000 0000 0010 0000 0000 0000
         NT_CONDITION            = 1 << 14,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
+        NT_LOGGING              = 1 << 15,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
     };
 
     //Constuctor

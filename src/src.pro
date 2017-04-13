@@ -190,7 +190,8 @@ HEADERS += \
     Model/BehaviourDefinitions/setter.h \
     Model/BehaviourDefinitions/variableparameter.h \
     Model/root.h \
-    Model/DeploymentDefinitions/loggingprofile.h
+    Model/DeploymentDefinitions/loggingprofile.h \
+    Model/DeploymentDefinitions/loggingserver.h
 
 
 SOURCES += \
@@ -373,7 +374,8 @@ SOURCES += \
     Model/BehaviourDefinitions/setter.cpp \
     Model/BehaviourDefinitions/variableparameter.cpp \
     Model/root.cpp \
-    Model/DeploymentDefinitions/loggingprofile.cpp
+    Model/DeploymentDefinitions/loggingprofile.cpp \
+    Model/DeploymentDefinitions/loggingserver.cpp
 
 RESOURCES += \
     workers.qrc \

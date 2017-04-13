@@ -992,22 +992,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
     }
 
-    if(state > RS_BLOCK){
-        if(hoveredConnect){
-            painter->save();
 
-            QColor resizeColor(255, 255, 255, 130);
-
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(resizeColor);
-            painter->drawRect(getElementRect(ER_CONNECT));
-
-            if(gotVisualButton()){
-                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "EntityIcons", visualEntityIcon);
-            }
-            painter->restore();
-        }
-    }
 
     if(state > RS_BLOCK){
         painter->save();
@@ -1056,6 +1041,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(gotSecondaryTextKey()){
         renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
+    }
+
+    if(state > RS_BLOCK){
+        if(hoveredConnect){
+            painter->save();
+
+            QColor resizeColor(255, 255, 255, 130);
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(resizeColor);
+            painter->drawRect(getElementRect(ER_CONNECT));
+
+            if(gotVisualButton()){
+                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "EntityIcons", visualEntityIcon);
+            }
+            painter->restore();
+        }
     }
 }
 

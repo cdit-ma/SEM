@@ -2342,8 +2342,6 @@ void ModelController::removeGraphMLFromHash(int ID)
                         url = nodeLabel;
                     }
                     hardwareEntities.remove(url);
-                }else if(kind == "ManagementComponent"){
-                    managementComponents.remove(nodeLabel);
                 }else if(kind == "Process"){
                     if(_isInWorkerDefinitions(node)){
                         //If we are removing a Process contained in the WorkerDefinitions section.
@@ -2686,7 +2684,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         typeData->setProtected(true);
         data.append(typeData);
     }
-    if(nodeKind == "LoggingProfile"){
+    if(nodeKind == "LoggingProfile" || nodeKind == "LoggingServer"){
         auto node = NodeFactory::createNode(nodeKind);
         if(node){
             data.append(node->getDefaultData());
@@ -3830,17 +3828,6 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
             }
             return hC;
         }
-    }else if(nodeKind == "ManagementComponent"){
-        if(managementComponents.contains(nodeType)){
-            return managementComponents[nodeType];
-        }else{
-            ManagementComponent* mC = (ManagementComponent*) NodeFactory::createNode(nodeKind);
-            if(storeNode && nodeType != ""){
-                managementComponents[nodeType] = mC;
-            }
-            return mC;
-        }
-        return new ManagementComponent();
     }
     return NodeFactory::createNode(nodeKind);
 }
@@ -3914,7 +3901,6 @@ void ModelController::setupModel()
     protectedNodes << workerDefinitions;
 
 
-    setupManagementComponents();
     setupLocalNode();
 }
 
@@ -4485,20 +4471,6 @@ void ModelController::constructEdgeGUI(Edge *edge)
 }
 
 
-void ModelController::setupManagementComponents()
-{
-    //EXECUTION MANAGER
-    QList<Data*> executionManagerData = constructDataVector("ManagementComponent", QPointF(0, 0), DANCE_EXECUTION_MANAGER, "Execution Manager");
-    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent", QPointF(90, 0), DANCE_PLAN_LAUNCHER, "Plan Launcher");
-    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent", QPointF(0, 40), DDS_LOGGING_SERVER, "DDS Logging Server");
-    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent", QPointF(90, 40), QPID_BROKER, "QPID Broker");
-
-
-    protectedNodes << constructChildNode(assemblyDefinitions, executionManagerData);
-    protectedNodes << constructChildNode(assemblyDefinitions, dancePlanLauncherData);
-    protectedNodes << constructChildNode(assemblyDefinitions, ddsLoggingServerData);
-    protectedNodes << constructChildNode(assemblyDefinitions, qpidBrokerData);
-}
 
 void ModelController::setupLocalNode()
 {

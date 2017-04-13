@@ -26,6 +26,9 @@ private:
 
     QRectF thirdSubIconRect() const;
 
+    QRectF fourthSubIconRect() const;
+    QRectF connectRect() const;
+
     QRectF rightRect() const;
 
     QRectF labelRect() const;

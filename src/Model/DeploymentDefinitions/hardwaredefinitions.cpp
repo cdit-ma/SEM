@@ -14,6 +14,8 @@ bool HardwareDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
     case NK_HARDWARE_CLUSTER:
+    case NK_LOGGINGPROFILE:
+    case NK_LOGGINGSERVER:
     case NK_HARDWARE_NODE:
         break;
     default:

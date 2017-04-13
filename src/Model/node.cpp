@@ -180,8 +180,9 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
         case Edge::EC_WORKFLOW:
             //Handled by BehaviourNode
             return true;
-        case Edge::EC_AGGREGATE:
         case Edge::EC_DEPLOYMENT:
+            return true;
+        case Edge::EC_AGGREGATE:
         case Edge::EC_QOS:{
             foreach(Edge* edge, edges.values(edgeKind)){
                 if(edge->getSource() == this){

@@ -709,8 +709,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
+            case Node::NK_LOGGINGSERVER:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("database");
+                break;
             case Node::NK_LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
                 break;
             case Node::NK_IDL:
                 break;
@@ -737,7 +742,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_HARDWARE_CLUSTER:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
                 break;
             case Node::NK_INEVENTPORT_INSTANCE:
@@ -908,6 +913,7 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
         case Edge::EC_ASSEMBLY:
         case Edge::EC_DATA:
         case Edge::EC_WORKFLOW:
+        case Edge::EC_DEPLOYMENT:
             break;
         default:
             return;

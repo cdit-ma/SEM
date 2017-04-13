@@ -1,8 +1,8 @@
 #include "header.h"
 
 Header::Header():BehaviourNode(NK_HEADER){
-    setWorkflowReciever(true);
-    setWorkflowProducer(true);
+    setWorkflowReciever(false);
+    setWorkflowProducer(false);
 }
 
 bool Header::canAdoptChild(Node *child)

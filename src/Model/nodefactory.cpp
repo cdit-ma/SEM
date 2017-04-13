@@ -55,6 +55,7 @@
 #include "DeploymentDefinitions/ineventportdelegate.h"
 #include "DeploymentDefinitions/outeventportdelegate.h"
 #include "DeploymentDefinitions/loggingprofile.h"
+#include "DeploymentDefinitions/loggingserver.h"
 
 //Definition Elements
 #include "InterfaceDefinitions/aggregate.h"
@@ -183,6 +184,7 @@ NodeFactory::NodeFactory()
     addKind(Node::NK_INEVENTPORT_DELEGATE, "InEventPortDelegate", [](){return new InEventPortDelegate();});
     addKind(Node::NK_OUTEVENTPORT_DELEGATE, "OutEventPortDelegate", [](){return new OutEventPortDelegate();});
     addKind(Node::NK_LOGGINGPROFILE, "LoggingProfile", [](){return new LoggingProfile();});
+    addKind(Node::NK_LOGGINGSERVER, "LoggingServer", [](){return new LoggingServer();});
 
 
     //Definition Elements

@@ -333,8 +333,13 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             case Node::NK_LOGGINGPROFILE:{
-                alias = "EntityIcons";
-                image = "ManagementComponent";
+                alias = "Icons";
+                image = "person";
+                break;
+            }
+            case Node::NK_LOGGINGSERVER:{
+                alias = "Icons";
+                image = "servers";
                 break;
             }
             case Node::NK_VECTOR:
@@ -376,7 +381,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         }
 
         //Try and get the image
-        auto i = Theme::theme()->getIcon(alias, image);
+        //auto i = Theme::theme()->getIcon(alias, image);
         viewItem->setIcon(alias, image);
     }
 }
