@@ -701,7 +701,9 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
                 logcl_str += tab(3) + json_pair("publisher", node->ip_address) + "," + newline;
                 logcl_str += tab(3) + json_pair("frequency", "1") + "," + newline;
-                logcl_str += tab(3) + json_list_pair("process", node->logged_processes) + "," + newline;
+                for(auto p : node->logged_processes){
+                    logcl_str += tab(3) + json_pair("process", p) + "," + newline;
+                }
                 logcl_str += tab(3) + json_bool_pair("live_mode", true) + newline;
                 logcl_str += tab(2) + "}";
                 node_strings.push_back(logcl_str);
@@ -710,17 +712,19 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
             if(run_logan_server){
                 //Get the list of clients
                 std::vector<std::string> clients;
-                for(auto n : nodes){
-                    if(n && n->is_deployed()){
-                        clients.push_back(n->GetLoganClientAddress());
-                        clients.push_back(n->GetModelLoggerAddress());
-                    }
+                
                 }
 
                 std::string logsv_str;
                 //Output Logan Client
                 logsv_str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
-                logsv_str += tab(3) + json_list_pair("clients", clients) + "," + newline;
+
+                for(auto n : nodes){
+                    if(n && n->is_deployed()){
+                        logsv_str += tab(3) + json_pair("clients", n->GetLoganClientAddress()) + "," + newline;
+                        logsv_str += tab(3) + json_pair("clients", n->GetModelLoggerAddress()) + "," + newline;
+                    }
+                }
                 logsv_str += tab(3) + json_pair("database", "output.sql") + newline;
                 logsv_str += tab(2) + "}";
                 node_strings.push_back(logsv_str);
