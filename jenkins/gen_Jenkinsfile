@@ -166,7 +166,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganServers[nodeName] = {
             node(nodeName){
                 print(nodeName + " : " + "${LOGAN_PATH}" + "/bin/logan_server" + args);
-                def out = runScript("top", true)
+                def out = runScript("sleep 20", true)
 
                 print (out)
                 //Run in background, Get PID
