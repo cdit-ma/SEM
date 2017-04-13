@@ -21,7 +21,7 @@ def runScript(String script, boolean background){
         if(background){
             def command = script + " & echo \$!"
             out = sh(returnStdout: true, script: command) 
-            return out
+            return out.trim()
         }
         else{
             sh script
