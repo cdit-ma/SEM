@@ -19,7 +19,7 @@ def runScript(String script, bool background){
     def out = ""
     if(isUnix()){
         if(background){
-            def command = script + " & echo $!"
+            def command = script + " & echo \$!"
             out = sh(returnStdout: true, script: command) 
         }
         else{
