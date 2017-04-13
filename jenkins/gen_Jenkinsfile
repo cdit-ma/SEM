@@ -19,7 +19,7 @@ def runScript(String script, boolean background){
     def out = ""
     if(isUnix()){
         if(background){
-            def command = script + " 2> /dev/null & echo \$!"
+            def command = script + " &> /dev/null & echo \$!"
             out = sh(returnStdout: true, script: command)
             print("PID:" + out +"%%%%%%")
             return out.trim()
