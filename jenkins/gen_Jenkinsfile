@@ -52,8 +52,6 @@ node(){
     stash includes: file, name: 'model'
 }
 
-
-
 node(masterNode){
     unstash 'model'
     def workspacePath = pwd()
@@ -160,10 +158,14 @@ for(def i = 0; i < nodeKeys.size(); i++){
     }
 
     if(jNode["logan_server"]){
-        def args = "";
+        def args = ""
+        def databaseFile = ""
 
         for(arg in jNode["logan_server"]){
-            args +=  " --" + arg.key + " " + arg.value;
+            if(arg.key == "database"){
+                databaseFile = arg.value
+            }
+            args +=  " --" + arg.key + " " + arg.value
         }
 
         //Update the map to include the launch instructions for logan_server
@@ -175,7 +177,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
                         runScript("kill " + out, false)
-                        //TODO: artifact database
+                        archiveArtifacts databaseFile
                     }
                 }
             }
