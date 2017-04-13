@@ -49,6 +49,9 @@ linux-g++ | win32{
 macx{
     RESOURCE_DIR = $${OUT_PWD}/$${DESTDIR}/$${TARGET}.app/Contents/MacOS/Resources
 }
+
+
+
 message("LIB: $${ROOT_DIR}/lib")
 message("RESOURCE: $${RESOURCE_DIR}")
 #Copy Libs, Transforms and Scripts
