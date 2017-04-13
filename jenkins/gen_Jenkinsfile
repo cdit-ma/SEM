@@ -215,11 +215,11 @@ stage("Start logan"){
 }
 
 stage("Compiling C++"){
-//    parallel compileCode
+    parallel compileCode
 }
 
 stage("Start re_node_manager"){
-//    parallel reManagers
+    parallel reManagers
 }
 
 stage("Teardown"){
