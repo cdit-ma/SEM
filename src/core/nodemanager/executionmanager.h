@@ -22,9 +22,11 @@ namespace NodeManager{
 namespace zmq{class ProtoWriter;};
 namespace Graphml{class ModelParser;};
 
+class Execution;
+
 class ExecutionManager{
     public:
-        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration);
+        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution);
 
         std::vector<std::string> GetNodeManagerSlaveAddresses();
         
@@ -38,6 +40,8 @@ class ExecutionManager{
 
         void PushMessage(std::string topic, google::protobuf::MessageLite* message);
         void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
+
+        bool Finished();
     private:
         void HandleSlaveOnline(std::string endpoint);
         bool ConstructControlMessages();
@@ -53,7 +57,11 @@ class ExecutionManager{
 
         std::mutex terminate_mutex_;
         std::condition_variable terminate_lock_condition_;
+        bool terminate_flag_ = false;
+        bool finished_ = false;
 
+        Execution* execution_;
+        
         zmq::ProtoWriter* proto_writer_;
         Graphml::ModelParser* model_parser_;
 

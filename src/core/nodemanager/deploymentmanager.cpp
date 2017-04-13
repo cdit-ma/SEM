@@ -1,15 +1,17 @@
 #include "deploymentmanager.h"
 
-
 #include <iostream>
+
+#include "execution.hpp"
 
 #include "../../re_common/zmq/protoreceiver/protoreceiver.h"
 #include "../controlmessage/controlmessage.pb.h"
 #include "../controlmessage/translate.h"
 #include "../modellogger.h"
 
-DeploymentManager::DeploymentManager(std::string library_path){
+DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
     library_path_ = library_path;
+    execution_ = execution;
 
     //Construct a live receiever
     subscriber_ = new zmq::ProtoReceiver();
@@ -27,6 +29,7 @@ DeploymentManager::~DeploymentManager(){
     if(deployment_){
         std::cout << "~1DeploymentManager" << std::endl;
         delete deployment_;
+        deployment_ = 0;
         std::cout << "~2DeploymentManager" << std::endl;
     }
 }
@@ -81,7 +84,7 @@ void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
         case NodeManager::ControlMessage::TERMINATE:
             if(deployment_){
                 std::cout << "Got TERMINATE Message" << std::endl;
-                deployment_->Teardown();
+                Terminate();
                 std::cout << "Finished TERMINATE message" << std::endl;
                 //delete deployment_;
                 //deployment_ = 0;
@@ -99,4 +102,9 @@ void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
 
 NodeContainer* DeploymentManager::get_deployment(){
     return deployment_;
+}
+
+void DeploymentManager::Terminate(){
+    deployment_->Teardown();
+    execution_->Interrupt();
 }
