@@ -711,10 +711,6 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
 
             if(run_logan_server){
                 //Get the list of clients
-                std::vector<std::string> clients;
-                
-                }
-
                 std::string logsv_str;
                 //Output Logan Client
                 logsv_str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
