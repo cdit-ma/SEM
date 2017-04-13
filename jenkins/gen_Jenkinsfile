@@ -49,6 +49,7 @@ node(){
     writeFile file: file, text: "${model}"
     print(pwd())
     stash includes: file, name: 'model'
+    archiveArtifacts file
 }
 
 node(masterNode){
