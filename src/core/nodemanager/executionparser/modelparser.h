@@ -23,23 +23,27 @@ namespace Graphml{
         public:
             ModelParser(const std::string filename);
         public:
-            Graphml::HardwareNode* GetHardwareNodeByName(std::string node_name);
-            
+            Graphml::HardwareNode* GetHardwareNodeByName(std::string host_name);
+            Graphml::HardwareNode* GetHardwareNodeByIPAddress(std::string ip_address);
+
+            //Get List functions        
+            std::vector<HardwareNode*> GetHardwareNodes();
+            std::vector<ComponentInstance*> GetComponentInstances();
+
+            //Getter Functions from ID
             Graphml::HardwareNode* GetHardwareNode(std::string id);
             Graphml::HardwareCluster* GetHardwareCluster(std::string id);
-
             Graphml::Component* GetComponentDefinition(std::string id);
             Graphml::ComponentInstance* GetComponentInstance(std::string id);
             Graphml::ComponentAssembly* GetComponentAssembly(std::string id);
             Graphml::ComponentReplication* GetComponentReplication(std::string id);
-            
-
             Graphml::EventPort* GetEventPort(std::string id);
             Graphml::Attribute* GetAttribute(std::string id);
             Graphml::Edge* GetEdge(std::string id);
-            
             std::string GetAttribute(std::string id, std::string attr_name);
             std::string GetDataValue(std::string id, std::string key_name);
+            
+            std::string GetDeploymentJSON();
         private:
             bool Process();
             GraphmlParser* graphml_parser_;
@@ -54,10 +58,11 @@ namespace Graphml{
 
 
             std::vector<std::string> GetRequiredSlaveEndpoints();
-            std::string GetHostNameFromAddress(std::string address);
-            std::string GetLoggerAddressFromHostName(std::string host_name);
 
         private:
+            bool first_node_ = true;
+
+            bool success = false;
             //Lookup Maps
             std::map<std::string, Graphml::HardwareNode*> hardware_nodes_;
             std::map<std::string, Graphml::HardwareCluster*> hardware_clusters_;

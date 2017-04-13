@@ -5,8 +5,6 @@
 #include <thread>
 #include <condition_variable>
 #include <string>
-#include "graphmlparser.h"
-
 #include <iostream>
 #include <map>
 #include <vector>
@@ -22,11 +20,13 @@ namespace NodeManager{
 };
 
 namespace zmq{class ProtoWriter;};
+namespace Graphml{class ModelParser;};
 
 class Execution;
 
 class ExecutionManager{
     public:
+<<<<<<< HEAD
     struct AssemblyConnection{
         std::string source_id;
         std::string target_id;
@@ -131,10 +131,14 @@ class ExecutionManager{
 
     public:
         ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution);
+=======
+        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration);
+>>>>>>> master
 
-        std::vector<std::string> GetRequiredSlaveEndpoints();
-        std::string GetHostNameFromAddress(std::string address);
-        std::string GetLoggerAddressFromHostName(std::string host_name);
+        std::vector<std::string> GetNodeManagerSlaveAddresses();
+        
+        std::string GetNodeNameFromNodeManagerAddress(std::string address);
+        std::string GetModelLoggerAddressFromNodeName(std::string host_name);
 
         void ExecutionLoop(double duration_sec);
 
@@ -146,40 +150,14 @@ class ExecutionManager{
 
         bool Finished();
     private:
-        std::string GetAttribute(std::string id, std::string attr_name);
-        std::string GetDataValue(std::string id, std::string key_name);
-        std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
-        std::string GetDefinitionId(std::string id);
-        std::string GetAggregateID(std::string id);
-        std::string GetDeployedID(std::string id);
-        std::string GetImplId(std::string id);
-        void RecurseEdge(std::string source_id, std::string current_id);
-        std::string GetUniquePrefix(int count);
-
         void HandleSlaveOnline(std::string endpoint);
-
-        
-
-        ExecutionManager::HardwareNode* GetHardwareNode(std::string id);
-        ExecutionManager::HardwareCluster* GetHardwareCluster(std::string id);
-        ExecutionManager::ComponentInstance* GetComponentInst(std::string id);
-        ExecutionManager::Component* GetComponent(std::string id);
-        ExecutionManager::ComponentAssembly* GetComponentAssembly(std::string id);
-        ExecutionManager::EventPort* GetEventPort(std::string id);
-        ExecutionManager::Attribute* GetAttribute(std::string id);
-        ExecutionManager::ComponentReplication* GetComponentReplication(std::string id);
-
-        
-
-        bool ScrapeDocument();
+        bool ConstructControlMessages();
 
         std::mutex mutex_;
-        std::map<std::string, NodeManager::ControlMessage*> deployment_map_;
 
-        std::vector<std::string> required_slaves_;
-        std::vector<std::string> inactive_slaves_;
         std::thread* execution_thread_ = 0;
 
+        std::map<std::string, NodeManager::ControlMessage*> deployment_map_;
 
         std::mutex activate_mutex_;
         std::condition_variable activate_lock_condition_;
@@ -191,32 +169,11 @@ class ExecutionManager{
 
         Execution* execution_;
         
-
         zmq::ProtoWriter* proto_writer_;
-        GraphmlParser* graphml_parser_;
+        Graphml::ModelParser* model_parser_;
 
-        //IDs to Entities
-        std::map<std::string, HardwareNode*> hardware_nodes_;
-        std::map<std::string, HardwareCluster*> hardware_clusters_;
-        std::map<std::string, Component*> components_;
-        std::map<std::string, ComponentInstance*> component_instances_;
-        std::map<std::string, EventPort*> event_ports_;
-        std::map<std::string, Attribute*> attributes_;
-        std::map<std::string, ComponentAssembly*> component_assemblies_;
-
-        std::map<std::string, ComponentReplication*> component_replications_;
-
-        std::map<std::string, std::vector<AssemblyConnection *> > assembly_map_;
-        
-        std::vector<std::string> deployment_edge_ids_;
-        std::vector<std::string> assembly_edge_ids_;
-        std::vector<std::string> definition_edge_ids_;
-        std::vector<std::string> aggregate_edge_ids_;
-
-        std::map<std::string, std::string> deployed_entities_map_;
-        std::map<std::string, std::string> definition_ids_;
-        std::map<std::string, std::string> aggregate_ids_;
-        
+        std::vector<std::string> required_slave_addresses_;
+        std::vector<std::string> inactive_slave_addresses_;
 };
 
 #endif //EXECUTIONMANAGER_H
