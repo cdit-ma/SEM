@@ -93,8 +93,8 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
             ModelLogger::Mode logger_mode;
 
             if(slave_name_str == "LIVE") logger_mode = ModelLogger::Mode::LIVE;
-            else if(slave_name_str == "CACHED") logger_mode = ModelLogger::Mode::CACHED;
-            else logger_mode = ModelLogger::Mode::OFF;
+            else if(slave_name_str == "OFF") logger_mode = ModelLogger::Mode::OFF;
+            else logger_mode = ModelLogger::Mode::CACHED;
 
             bool s2 = deployment_manager_->SetupModelLogger(slave_logging_pub_addr_str, slave_name_str, logger_mode);
 
