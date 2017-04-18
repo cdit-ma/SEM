@@ -11,7 +11,7 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QMovie>
-
+#include <QStringBuilder>
 #include "../../../theme.h"
 
 #define CONSOLE_SUFFIX "_CONSOLE"
@@ -24,41 +24,14 @@
  * @param jobName The Name of the job started.
  */
 
-JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager *jenkins, QString jobName):QDialog(parent)
+JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager *jenkins):QDialog(parent)
 {
     this->jenkins = jenkins;
-    this->jobName = jobName;
-    this->buildNumber = -1;
-    loadingWidget = 0;
-    spinning = 0;
-    requestedConsoleOutput = false;
-
-    setWindowTitle("Jenkins Job Monitor");
-    setWindowIcon(Theme::theme()->getIcon("Icons", "jobBuild"));
-
-
-    setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
+    this->job_build = -1;
+    this->movie_spinning = 0;
 
     setupLayout();
-
-    if(jenkins->hasValidatedSettings()){
-        loadingWidget->setWaiting(true);
-    }else{
-        connect(jenkins, SIGNAL(settingsValidationComplete(bool, QString)), this, SLOT(authenticationFinished(bool, QString)));
-    }
-
-    //Request the JenkinsData
-    getJenkinsData();
-
-
-    for(int i =0; i < 255;i++){
-        buildingTabs[i] = false;
-    }
-
-    //Turn off the Other Buttons.
-    setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-
-    connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
+    themeChanged();
 }
 
 /**
@@ -70,24 +43,6 @@ JenkinsJobMonitorWidget::~JenkinsJobMonitorWidget()
 }
 
 /**
- * @brief JenkinsJobMonitorWidget::getJenkinsData Gets the Jenkins Data needed to fill this GUI
- */
-void JenkinsJobMonitorWidget::getJenkinsData()
-{
-    //Construct a new JenkinsRequest Object.
-    JenkinsRequest* jenkinsRX = jenkins->getJenkinsRequest(this);
-
-    //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-    connect(this, SIGNAL(getJobActiveConfigurations(QString)), jenkinsRX, SLOT(getJobActiveConfigurations(QString)));
-
-    //Connect the gotJobActiveConfigurations SIGNAL to this so we can update the new GUI as the job changes.
-    connect(jenkinsRX, SIGNAL(gotJobActiveConfigurations(QString,QStringList)), this, SLOT(gotJobActiveConfigurations(QString,QStringList)));
-
-    //Request the Active Configurations for this job.
-    getJobActiveConfigurations(jobName);
-}
-
-/**
  * @brief JenkinsJobMonitorWidget::setupLayout Sets up the Layout for the Widget.
  */
 void JenkinsJobMonitorWidget::setupLayout()
@@ -95,51 +50,38 @@ void JenkinsJobMonitorWidget::setupLayout()
     //Construct a Vertical Layout.
     QVBoxLayout* verticalLayout = new QVBoxLayout(this);
 
-    //Add A loading widget.
-    loadingWidget = new JenkinsLoadingWidget();
-    verticalLayout->addWidget(loadingWidget);
-
-
     //Setup Title.
-    titleWidget = new QWidget();
-    QHBoxLayout* titleLayout = new QHBoxLayout();
-    titleWidget->setLayout(titleLayout);
+    QHBoxLayout* title_layout = new QHBoxLayout();
+    verticalLayout->addLayout(title_layout);
 
-    //Set up a QLabel for the Building Icon
+    //Set up a QLabel for the name of the Jenkins Job
+    job_label = new QLabel("Jenkins Job", this);
+    job_icon = new QLabel(this);
+    job_icon->setFixedSize(32,32);
 
-    jobIcon = new QLabel();
-    jobIcon->setPixmap(Theme::theme()->getImage("Actions", "jobBuild"));
-    jobIcon->setFixedSize(48,48);
-
-    //Setup a QPushButton to stop the job.
-    stopButton = new QPushButton("");
-    stopButton->setIcon(Theme::theme()->getImage("Actions", "jenkinsStop"));
-    stopButton->setStyleSheet("border: 0px solid black;");
-    stopButton->setFixedSize(QSize(24,24));
-    stopButton->setToolTip("Stop the Job.");
-    connect(stopButton, SIGNAL(pressed()), this, SLOT(stopPressed()));
-
-    //Setup a QLabel for the Job Name
-    jobLabel = new QLabel(jobName);
-    jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
-
-
-    titleLayout->addWidget(jobIcon);
-    titleLayout->addWidget(jobLabel,1);
-    titleLayout->addWidget(stopButton);
-    //titleLayout->addStretch();
-
-    verticalLayout->addWidget(titleWidget);
+    title_layout->addWidget(job_icon);
+    title_layout->addWidget(job_label);
+    title_layout->addStretch();
 
     //Setup the Title
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget,1);
+
+    action_toolbar = new QToolBar(this);
+    action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    build_action = action_toolbar->addAction("Build Job");
+    stop_action = action_toolbar->addAction("Stop Job");
+
+    //connect(build_action, &QAction::triggered, jenkins, &JenkinsManager::executeJenkinsJob);
+    connect(stop_action, &QAction::triggered, this, &JenkinsJobMonitorWidget::stopPressed);
+
+    verticalLayout->addWidget(action_toolbar, 0, Qt::AlignRight);
+
     tabWidget->setTabsClosable(true);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
-    //Hide the Title Widget and Tab Widget.
-    titleWidget->hide();
-    tabWidget->hide();
+    build_action->setVisible(true);
+    stop_action->setVisible(false);
 }
 
 /**
@@ -147,49 +89,60 @@ void JenkinsJobMonitorWidget::setupLayout()
  * @param activeConfiguration The name of the ActiveConfiguration the job state is for
  * @param state
  */
-void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE state)
+void JenkinsJobMonitorWidget::setJobState(QString jobName, int buildNumber, QString config, JOB_STATE state)
 {
-
+    QString prefixName = "Icons";
     QString resourceName = "";
-    QString prefixName = "Actions";
 
-    int index = configurations.indexOf(activeConfiguration);
+    //Get the name of the tab
+    auto tab_name = getTabName(config, buildNumber);
+    auto monitor = consoleMonitors.value(tab_name, 0);
+    bool is_master = config == "";
+    if(monitor){
+        monitor->state = state;
 
-    if(state == BUILDING){
-        if(activeConfiguration == ""){
-            QMovie* movie = new QMovie(this);
-            movie->setFileName(":/Actions/Job_Building.gif");
-            movie->start();
+        switch(state){
+            case BUILDING:{
+                if(is_master && !movie_spinning){
+                    qCritical() << "Loading movie!";
+                    movie_spinning = new QMovie(this);
+                    movie_spinning->setFileName(":/Images/Icons/loading");
+                    movie_spinning->setScaledSize(QSize(32,32));
+                    movie_spinning->start();
+                    connect(movie_spinning, &QMovie::frameChanged, this, &JenkinsJobMonitorWidget::frameChanged);
+                }
+                job_icon->setMovie(movie_spinning);
+                job_label->setText(job_name + " #" + QString::number(job_build));
 
-            jobIcon->setMovie(movie);
-            jobLabel->setText(jobName + " Build #" + QString::number(buildNumber));
-
-            if(!spinning){
-                spinning = new QMovie(this);
-                spinning->setFileName(":/Actions/Waiting.gif");
-                spinning->start();
-                connect(spinning, SIGNAL(frameChanged(int)), this, SLOT(frameChanged(int)));
+                break;
+            }
+            case BUILT:{
+                resourceName = "sphereBlue";
+                break;
+            }
+            case FAILED:{
+                resourceName = "sphereRed";
+                break;
+            }
+            case ABORTED:{
+                resourceName = "sphereGray";
+                break;
             }
         }
-        buildingTabs[index] = true;
-    }else if(state == BUILT){
-        resourceName = "Job_Built";
-        buildingTabs[index] = false;
-    }else if(state == FAILED){
-        resourceName = "Job_Failed";
-        buildingTabs[index] = false;
-    }else if(state == ABORTED){
-        resourceName = "Job_Aborted";
-        buildingTabs[index] = false;
-    }
 
-    if(index >=0 && resourceName != ""){
-        if(activeConfiguration == ""){
-            jobIcon->setPixmap(Theme::theme()->getImage(prefixName, resourceName));
-            //Hide the Stop Button.
-            stopButton->setVisible(false);
+        //Update and hide stop button
+        if(is_master){
+            stop_action->setVisible(state == BUILDING);
+            build_action->setVisible(state != BUILDING);
         }
-        tabWidget->setTabIcon(index, Theme::theme()->getImage(prefixName, resourceName));
+
+        int tab_index = getTabIndex(tab_name);
+        if(tab_index >= 0 && resourceName != ""){
+            tabWidget->setTabIcon(tab_index, Theme::theme()->getImage(prefixName, resourceName));
+            if(config == "" && job_icon){
+                job_icon->setPixmap(Theme::theme()->getImage(prefixName, resourceName, QSize(32,32)));
+            }
+        }
     }
 }
 
@@ -202,66 +155,38 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
  * @param activeConfiguration The active configuration
  * @param jobState The current State of the job.
  */
-void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, QString activeConfiguration, JOB_STATE jobState)
+void JenkinsJobMonitorWidget::gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, JOB_STATE jobState)
 {
-    if(activeConfiguration == ""){
-        this->jobName = jobName;
-        this->buildNumber = buildNumber;
+    //We should request
+    if(activeConfiguration == "" && jobState == BUILDING){
+        auto configs = jenkins->getActiveConfigurations(job_name);
+        setupTabs(job_name, job_build, configs);
     }
 
-
+    qCritical() << job_name << " "<< job_build << " S" << jobState << " " << activeConfiguration << " ";
 
     //Update the Job State GUI
-    setJobState(activeConfiguration, jobState);
-
-    //If we have got the configurations loaded we should request the console output of all of the ActiveConfigurations of this Job.
-    if(configurations.size() > 0 && !requestedConsoleOutput){
-        requestedConsoleOutput = true;
-        //Setup visiblities
-        loadingWidget->hideLoadingBar();
-        titleWidget->setVisible(true);
-        tabWidget->setVisible(true);
+    setJobState(job_name, job_build, activeConfiguration, jobState);
+}
 
 
-        //Get each ActiveConfigurations console output
-        foreach(QString configuration, configurations){
-            QObject *threadParent = this;
-            QTextBrowser* textBrowser = configurationBrowsers[configuration];
-            if(textBrowser){
-                threadParent = textBrowser;
-            }
-
-            //Construct a JenkinsRequest Object to get the Console Output of this Configuration
-            JenkinsRequest* jenkinsCO = jenkins->getJenkinsRequest(threadParent);
-            JenkinsRequest* jenkinsJS = jenkins->getJenkinsRequest(threadParent);
-
-             //Connect the emit signals from this to the JenkinsRequest Thread.
-            connect(this, SIGNAL(getJobConsoleOutput(QString,int, QString)), jenkinsCO, SLOT(getJobConsoleOutput(QString,int,QString)));
-            connect(this, SIGNAL(getJobState(QString,int,QString)), jenkinsJS, SLOT(getJobState(QString,int,QString)));
-
-            //Connect the gotLiveCLIOutput SIGNAL to this so we can update the new GUI as the console output is written for this configuration.
-            connect(jenkinsCO, SIGNAL(gotLiveCLIOutput(QString,int,QString,QString)), this, SLOT(gotJobConsoleOutput(QString,int,QString,QString)));
-
-            //Connect the gotJobStateChange SIGNAL to this so we can update the GUI as the job state changes for this configuration.
-            connect(jenkinsJS, SIGNAL(gotJobStateChange(QString,int,QString,JOB_STATE)), this, SLOT(jobStateChanged(QString,int,QString,JOB_STATE)));
-
-            //Request the console output
-
-
-
-
-            getJobConsoleOutput(this->jobName, this->buildNumber, configuration);
-
-            if(configuration != ""){
-                //Request the Job State
-                getJobState(this->jobName, this->buildNumber, configuration);
-            }
-
-            //Disconnect the SIGNALs
-            disconnect(this, SIGNAL(getJobConsoleOutput(QString,int, QString)), jenkinsCO, SLOT(getJobConsoleOutput(QString,int,QString)));
-            disconnect(this, SIGNAL(getJobState(QString,int,QString)), jenkinsJS, SLOT(getJobState(QString,int,QString)));
+QString JenkinsJobMonitorWidget::getTabName(QString configuration, int build_number){
+    //Get the Human Readable name of this Configuration
+    QString tabName = configuration;
+    if(configuration != ""){
+        int seperator = tabName.indexOf("=") + 1;
+        tabName = tabName.mid(seperator);
+    }
+    if(build_number > 0){
+        if(configuration != ""){
+            tabName += "[";
+        }
+        tabName += "#" + QString::number(build_number);
+        if(configuration != ""){
+            tabName += "]";
         }
     }
+    return tabName;
 }
 
 /**
@@ -269,32 +194,56 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
  * @param jobName The name of the Job
  * @param activeConfigurations The list of ActiveConfigurations.
  */
-void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStringList activeConfigurations)
+void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QStringList configurations)
 {
-    Q_UNUSED(jobName);
-    configurations = activeConfigurations;
+    //Set the current job name/build
+    this->job_name = job_name;
+    this->job_build = job_build;
 
     //Construct a TextBrowser for each Active Configuration.
-    foreach(QString configuration, configurations){
-        QTextBrowser* newBrowser = new QTextBrowser();
-        newBrowser->setEnabled(true);
-        newBrowser->setOpenExternalLinks(true);
-
-        if(!configurationBrowsers.contains(configuration)){
-            configurationBrowsers[configuration] = newBrowser;
-        }
-
+    foreach(QString config, configurations){
         //Get the Human Readable name of this Configuration
-        QString tabName = configuration;
-        if(configuration == ""){
-            tabName = "Master";
-        }else{
-            int seperator = tabName.indexOf("=") + 1;
-            tabName = tabName.mid(seperator);
-        }
+        QString tab_name = getTabName(config, job_build);
 
-        //Add it to the Tabbed Widget.
-        tabWidget->addTab(newBrowser, tabName);
+        if(!consoleMonitors.contains(tab_name)){
+            qCritical() <<   "Constructing Tab!";
+            auto monitor = new ConsoleMonitor();
+            monitor->browser = new QTextBrowser(this);
+            auto browser = monitor->browser;
+
+            monitor->state = NO_JOB;
+
+            browser->setEnabled(true);
+            browser->setOpenExternalLinks(true);
+            consoleMonitors[tab_name] = monitor;
+            tabWidget->addTab(browser, tab_name);
+
+            //Construct a JenkinsRequest Object to get the Console Output of this Configuration
+            JenkinsRequest* console_request = jenkins->getJenkinsRequest(browser);
+            JenkinsRequest* state_request = jenkins->getJenkinsRequest(browser);
+
+            //Connect the emit signals from this to the JenkinsRequest Thread.
+            connect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
+            connect(this, &JenkinsJobMonitorWidget::getJobState, state_request, &JenkinsRequest::getJobState);
+
+            //Connect the return signals
+            connect(state_request, &JenkinsRequest::gotJobStateChange, this, &JenkinsJobMonitorWidget::gotJobStateChange);
+            connect(console_request, &JenkinsRequest::gotLiveCLIOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
+
+            //Get the job info
+            qCritical() << "getJobConsoleOutput(" << job_name << ", " << job_build << ", " << config << ")";
+            emit getJobConsoleOutput(job_name, job_build, config);
+
+            if(config != ""){
+                qCritical() << "getJobState(" << job_name << ", " << job_build << ", " << config << ")";
+                //Request the Job State
+                emit getJobState(job_name, job_build, config);
+            }
+
+            //Disconnect the request signals
+            disconnect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
+            disconnect(this, &JenkinsJobMonitorWidget::getJobState, state_request, &JenkinsRequest::getJobState);
+        }
     }
 }
 
@@ -307,38 +256,57 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
  */
 void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration, QString consoleOutput)
 {
-    //Check if the jobName and buildNumber match.
-    if(this->jobName == jobName && this->buildNumber == buildNumber){
-        //Append the consoleOutput to the end of the QTextBrowser which matches the activeConfiguration.
-        if(configurationBrowsers.contains(activeConfiguration)){
-            QTextBrowser* output = configurationBrowsers[activeConfiguration];
-
-            output->moveCursor (QTextCursor::End);
-            output->insertHtml(htmlize(consoleOutput));
-            output->moveCursor (QTextCursor::End);
-        }
+    //Get the name of the tab
+    QString tab_name = getTabName(activeConfiguration, buildNumber);
+    auto monitor = consoleMonitors.value(tab_name, 0);
+    if(monitor){
+        auto browser = monitor->browser;
+        //Append the HTML
+        browser->moveCursor (QTextCursor::End);
+        browser->insertHtml(htmlize(consoleOutput));
+        browser->moveCursor (QTextCursor::End);
     }
+}
+
+void JenkinsJobMonitorWidget::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWidgetStyleSheet("JenkinsJobMonitorWidget") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() % theme->getLabelStyleSheet() % theme->getWidgetStyleSheet("QTextBrowser"));
+    action_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    job_label->setStyleSheet(theme->getTitleLabelStyleSheet());
+
+    build_action->setIcon(theme->getIcon("Icons", "jobBuild"));
+    stop_action->setIcon(theme->getIcon("Icons", "jenkinsStop"));
+
+    tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() +
+                             "QTabBar::tab:selected{ background:" % theme->getPressedColorHex() % "; color:" % theme->getTextColorHex(Theme::CR_SELECTED) % ";}"
+                             "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
 }
 
 void JenkinsJobMonitorWidget::stopPressed()
 {
-    if(this->jobName != ""  && buildNumber > 0){
+    if(job_name != "" && job_build > 0){
         //Construct a new JenkinsRequest Object.
         JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
-        //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-        connect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
-        emit stopJob(jobName, buildNumber, "");
-        disconnect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
+
+        connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
+
+        emit stopJob(job_name, job_build, "");
+
+        disconnect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
     }
 }
 
 void JenkinsJobMonitorWidget::frameChanged(int frame)
 {
     Q_UNUSED(frame);
-    if(spinning){
-        QPixmap pixmap = spinning->currentPixmap();
-        for(int i = 0; i < tabWidget->count(); i++){
-            if(buildingTabs[i]){
+    if(movie_spinning){
+        QPixmap pixmap = movie_spinning->currentPixmap();
+
+        foreach(QString key, consoleMonitors.keys()){
+            auto monitor = consoleMonitors[key];
+            if(monitor && monitor->state == BUILDING){
+                int i = getTabIndex(key);
                 tabWidget->setTabIcon(i, QIcon(pixmap));
             }
         }
@@ -347,26 +315,27 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
 
 void JenkinsJobMonitorWidget::closeTab(int tabID)
 {
-
     QString tabName = tabWidget->tabText(tabID);
-    if(tabName != "Master"){
-        QString configName = "master=" + tabName;
-        QTextBrowser* textBrowser = configurationBrowsers[configName];
-        configurationBrowsers.remove(configName);
+    auto config_browser = consoleMonitors.value(tabName, 0);
+    if(config_browser){
+        consoleMonitors.remove(tabName);
         tabWidget->removeTab(tabID);
-        if(textBrowser){
-            delete textBrowser;
-        }
+        //Clean memory
+        delete config_browser->browser;
+        delete config_browser;
     }
 }
 
-void JenkinsJobMonitorWidget::authenticationFinished(bool success, QString message)
+int JenkinsJobMonitorWidget::getTabIndex(QString tab_name)
 {
-    Q_UNUSED(message)
-    loadingWidget->authenticationFinished();
-    if(!success){
-        reject();
+    int tab_index = -1;
+    for(int i=0; i < tabWidget->count(); i++){
+        if(tabWidget->tabText(i) == tab_name){
+            tab_index = i;
+            break;
+        }
     }
+    return tab_index;
 }
 
 QString JenkinsJobMonitorWidget::htmlize(QString consoleOutput)

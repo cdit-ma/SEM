@@ -1007,7 +1007,12 @@ QString Theme::getProgressBarStyleSheet()
 QString Theme::getLabelStyleSheet()
 {
     return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}"
-           "QLabel:hover{ background:" % getHighlightColorHex() + "; color:" + getTextColorHex(CR_SELECTED) + ";}";
+            /*"QLabel:hover{ background:" % getHighlightColorHex() + "; color:" + getTextColorHex(CR_SELECTED) + ";}"*/;
+}
+
+QString Theme::getTitleLabelStyleSheet()
+{
+    return "font-size:16pt;color: " % getTextColorHex() % ";";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)

@@ -204,7 +204,7 @@ QPair<int, QByteArray> JenkinsRequest::waitForReply(QNetworkReply *reply)
  * @param command The complete command to execute.
  * @return The returncode of the action and the entire output of the process's execution.
  */
-QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
+QPair<int, QByteArray> JenkinsRequest::runProcess(QString command, QProcessEnvironment environment)
 {
     //The returnable byteArray.
     QByteArray byteArray;
@@ -213,8 +213,10 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
     QProcess* process = new QProcess();
     process->setReadChannel(QProcess::StandardOutput);
     qCritical() << "In :" << manager->getCLIPath();
+    process->setProcessEnvironment(environment);
     process->setWorkingDirectory(manager->getCLIPath());
     process->start(command);
+
 
 
 
@@ -275,6 +277,80 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
     delete process;
     //Return the byte Array.
     return QPair<int, QByteArray>(returnCode, byteArray);
+}
+
+QPair<int, QByteArray> JenkinsRequest::runProcess2(QString command, QStringList parameters)
+{
+    //The returnable byteArray.
+    QByteArray byteArray;
+
+    //Construct and setup the process
+    QProcess* process = new QProcess();
+    process->setReadChannel(QProcess::StandardOutput);
+    qCritical() << "In :" << manager->getCLIPath();
+    process->setWorkingDirectory(manager->getCLIPath());
+    process->start(command, parameters);
+
+
+    bool processing = true;
+    while(processing){
+        qint64 bytesAvailable = process->bytesAvailable();
+
+        //If the process is running or starting but we have no bytesLeft in our Buffer, wait for more data!
+        if(process->state() != QProcess::NotRunning && bytesAvailable == 0){
+            //qCritical() << "Process is Running, waiting for new data";
+
+            //Construct a EventLoop which waits for the QNetworkReply to be finished, or more data to become available.
+            QEventLoop waitLoop;
+            connect(process, SIGNAL(readyRead()), &waitLoop, SLOT(quit()));
+            connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+            connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
+
+            //Wait for something to quit the EventLoop
+            waitLoop.exec();
+
+            //After the readyRead signal, or timeout, update the bytesAvailable
+            bytesAvailable = process->bytesAvailable();
+
+            //Check for termination.
+            if(terminated){
+                //qCritical() << "Terminating the Jenkins Request!";
+                //Terminate the process.
+                process->terminate();
+                bytesAvailable = 0;
+            }
+        }
+
+        //If we have bytes, read them, and output them!
+        if(bytesAvailable > 0){
+            QByteArray newData = process->read(bytesAvailable);
+
+            QString stringData(newData);
+            if(stringData.length() > 0){
+                //Send a signal with the live output.
+                gotLiveCLIOutput(this->jobName, this->buildNumber, this->activeConfiguration, stringData);
+            }
+
+            //Add them to the returnable data.
+            byteArray += newData;
+        }
+
+        //If the process is at the end of the buffer and the Process is no longer Running. Break the loop.
+        if(process->atEnd() && process->state() == QProcess::NotRunning){
+            //qCritical() << "Process is finished!";
+            processing = false;
+        }
+    }
+
+    int returnCode = -1;
+    if(process->error() == QProcess::UnknownError && process->exitStatus() == QProcess::NormalExit){
+        returnCode = process->exitCode();
+    }
+    qCritical() << process->errorString();
+    delete process;
+    //Return the byte Array.
+    return QPair<int, QByteArray>(returnCode, byteArray);
+
 }
 
 /**
@@ -416,9 +492,36 @@ void JenkinsRequest::getJobParameters(QString jobName)
 
         if(!configuration.isNull()){
             QJsonObject configData = configuration.object();
+            QString job_type = configData["_class"].toString();
 
-            //Get the parameterDefinitions Array from the actions Array.
-            QJsonArray parameters = configData["actions"].toArray()[0].toObject()["parameterDefinitions"].toArray();
+            QJsonArray parameters;
+
+            if(job_type == "hudson.matrix.MatrixProject"){
+                //Get the parameterDefinitions Array from the actions Array.
+                auto actions_array = configData["actions"].toArray();
+
+                for(QJsonValue action: actions_array){
+                    auto action_class = action.toObject()["_class"];
+                    if(action_class.toString() == "hudson.model.ParametersDefinitionProperty"){
+                        parameters = action.toObject()["parameterDefinitions"].toArray();
+                        break;
+                    }
+                }
+            }else if(job_type == "org.jenkinsci.plugins.workflow.job.WorkflowJob"){
+                //Get the parameterDefinitions Array from the actions Array.
+                auto property_array = configData["property"].toArray();
+
+                for(QJsonValue property: property_array){
+                    auto action_class = property.toObject()["_class"];
+                    if(action_class.toString() == "hudson.model.ParametersDefinitionProperty"){
+                        parameters = property.toObject()["parameterDefinitions"].toArray();
+                        break;
+                    }
+                }
+            }else{
+                qCritical() << "Can't handle Job of Type: " << job_type;
+            }
+
 
             //For each parameter in the parameters Array, add it to the returnable list.
             foreach(QJsonValue parameter, parameters){
@@ -535,30 +638,27 @@ void JenkinsRequest::waitForJobNumber(QString jobName, int buildNumber, QString 
 
     if(waitingOnNumber){
         //Parse the returned data as a String
-
         currentOutput += outputChunk;
-
-        bool isMatrix = _isJobAMatrixProject(jobName);
-
         int buildNumber = -1;
 
-        //If Job is MultiConfiguration. Output tells us which job Number.
-        if(isMatrix){
-            //Started [jobName] #[buildNumber]
-            //Construct a Regex Expression to match and get the Number.
-            QRegularExpression regex("Started " + jobName + " #([0-9]+)");
+        //Started [jobName] #[buildNumber]
 
-            QRegularExpressionMatch resultMatch = regex.match(currentOutput);
-            if(resultMatch.hasMatch()){
-                QString match = resultMatch.captured(1);
-                //If toInt fails, buildNumber will be 0
-                buildNumber = match.toInt();
-                if(buildNumber == 0){
-                    buildNumber = -1;
-                }
+        //Construct a Regex Expression to match and get the Number.
+        QRegularExpression regex("Started " + jobName + " #([0-9]+)");
+
+        QRegularExpressionMatch resultMatch = regex.match(currentOutput);
+        if(resultMatch.hasMatch()){
+            QString match = resultMatch.captured(1);
+
+            bool isNumber = false;
+            int number = match.toInt(&isNumber);
+            if(isNumber){
+                buildNumber = number;
             }
         }
+
         if(buildNumber > 0){
+            qCritical() << "Got Build: " << buildNumber;
             //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
             getJobState(jobName, buildNumber, "");
             waitingOnNumber = false;
@@ -714,24 +814,60 @@ void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParamete
     if(waitForValidSettings()){
         QString command = "build " + jobName + " ";
 
+
         //Serialize arguments.
         foreach(Jenkins_Job_Parameter parameter, jobParameters){
-            command += "-p " + parameter.name + "=" + parameter.value + " ";
+            QString arg = "-p " + parameter.name + "=\"" + parameter.value + "\" ";
+            command += arg;
         }
 
         storeRequestParameters(jobName);
 
 
         //Add options to pipe the output of the root job.
-        command += "-s -v ";
+        command += " -s -v ";
 
         waitingOnNumber = true;
         currentOutput = "";
 
         connect(this, SIGNAL(gotLiveCLIOutput(QString,int,QString,QString)), this, SLOT(waitForJobNumber(QString, int, QString, QString)));
-
+        //qCritical() << "Jenkins Command: "<< manager->getCLICommand(command);
         //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-        QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
+
+        command = manager->getCLICommand(command);
+        //QString test = "echo "${model_data}"";
+        //qCritical() << "ECHO: " << runProcess(test, env).second;
+        //qCritical() << "Command: " << command;
+        //QPair<int, QByteArray> response = runProcess(command, env);
+
+        QStringList args;
+        QString program = "java";// -jar jenkins-cli.jar -s http://192.168.111.182:8080/";
+        args << "-jar";
+        args << "jenkins-cli.jar";
+        args << "-s";
+        args << "http://192.168.111.182:8080/";
+         //build re_gen
+
+        args << "build";
+        args << "re_gen";
+
+        foreach(Jenkins_Job_Parameter parameter, jobParameters){
+            args << "-p";
+            args << parameter.name + "=" + parameter.value;
+        }
+
+        args << "--username";
+        args << "jenkins";
+        args << "--password";
+        args << "secret123";
+        args << "-s";
+        args << "-v";
+
+        //qCritical() << program;
+        //qCritical()  << args;
+
+        QPair<int, QByteArray> response2 = runProcess2(program, args);
+        //qCritical() << "ECHO: " << response2.second;
     }else{
          emit requestFailed();
          emit requestFinished();

@@ -13,36 +13,34 @@
 #include <QAction>
 #include <QMenu>
 #include <QProgressDialog>
-
 #include "../../../theme.h"
+#include <QStringBuilder>
+
 /**
  * @brief JenkinsStartJobWidget::JenkinsStartJobWidget Constructor for the Jenkins Start Job Widget.
  * @param parent The parent QWidget
  * @param jenkins The JenkinsManager used to construct JenkinsRequest objects.
  */
-JenkinsStartJobWidget::JenkinsStartJobWidget(QWidget *parent, JenkinsManager *jenkins):QDialog(parent)
+JenkinsStartJobWidget::JenkinsStartJobWidget(QString job_name, JenkinsManager *jenkins):QDialog()
 {
     //Set the Jenkins Manager
     this->jenkins = jenkins;
+    this->job_name = job_name;
 
-    loadingWidget = 0;
-
-    setWindowTitle("Launch Jenkins Job");
-    setWindowIcon(Theme::theme()->getImage("Icons", "jobBuild"));
-
-    setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
-
-
-    //Turn off the Other Buttons.
+    setWindowTitle("Jenkins Job:: " + job_name);
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
-    connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
+    setupLayout();
+
     setModal(true);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &JenkinsStartJobWidget::themeChanged);
+    themeChanged();
+
+    connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
 }
 
 JenkinsStartJobWidget::~JenkinsStartJobWidget()
 {
-   //No need to do anything.
 }
 
 /**
@@ -72,12 +70,9 @@ void JenkinsStartJobWidget::getJenkinsData(QString jobName)
 void JenkinsStartJobWidget::requestJob(QString jobName, QString graphmlFile)
 {
     tempGraphMLFile = graphmlFile;
-    this->jobName = jobName;
-
-    setupLayout(jobName);
 
     if(jenkins->hasValidatedSettings()){
-        loadingWidget->setWaiting(true);
+        //loadingWidget->setWaiting(true);
     }else{
         connect(jenkins, SIGNAL(settingsValidationComplete(bool,QString)), this, SLOT(authenticationFinished(bool, QString)));
     }
@@ -88,6 +83,17 @@ void JenkinsStartJobWidget::requestJob(QString jobName, QString graphmlFile)
     getJenkinsData(jobName);
 }
 
+void JenkinsStartJobWidget::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWidgetStyleSheet("JenkinsStartJobWidget") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() % theme->getLabelStyleSheet());
+    action_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    title_label->setStyleSheet(theme->getTitleLabelStyleSheet());
+
+    build_action->setIcon(theme->getIcon("Icons", "jobBuild"));
+    setWindowIcon(theme->getIcon("Icons", "jenkins"));
+}
+
 /**
  * @brief JenkinsStartJobWidget::build Run when the Build button is pressed. Requests a Job to be built with the selected parameters. Shows a JenkinsJobMonitorWidget.
  */
@@ -96,7 +102,7 @@ void JenkinsStartJobWidget::build()
     Jenkins_JobParameters buildParameters;
 
     //Get the values from each of the Parameter Widgets.
-    foreach(KeyEditWidget* parameterWidget, parameterWidgets){
+    foreach(DataEditWidget* parameterWidget, parameterWidgets){
         Jenkins_Job_Parameter parameter;
         if(parameterWidget){
             parameter.name = parameterWidget->getKeyName();
@@ -104,24 +110,20 @@ void JenkinsStartJobWidget::build()
             buildParameters.append(parameter);
         }
     }
-
-
-
-    //Construct a new JenkinsJobMonitorWidget to show the resulting Job build status. Connect it to the parent of this.
-    JenkinsJobMonitorWidget* jjmw = new JenkinsJobMonitorWidget(this->parentWidget(), jenkins, jobName);
-
     //Get a new Jenkins Request Object. Tied to the new Jenkins Widget
-    JenkinsRequest* jenkinsB = jenkins->getJenkinsRequest(jjmw);
+    auto jjmw = jenkins->getJobMonitorWidget();
+    JenkinsRequest* jenkins_build = jenkins->getJenkinsRequest(jjmw);
 
-    //Connect the buildJob SIGNAL to the Jenkins Request
-    connect(this, SIGNAL(buildJob(QString,Jenkins_JobParameters)), jenkinsB, SLOT(buildJob(QString,Jenkins_JobParameters)));
-    //Connect the gotJobStateChange SIGNAL to the JenkinsJobMonitorWidget so we can update the new GUI as the job changes.
-    connect(jenkinsB, SIGNAL(gotJobStateChange(QString,int,QString,JOB_STATE)), jjmw, SLOT(jobStateChanged(QString,int,QString,JOB_STATE)));
+    connect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::buildJob);
+    connect(jenkins_build, &JenkinsRequest::gotJobStateChange, jjmw, &JenkinsJobMonitorWidget::gotJobStateChange);
+
     //Show the new Widget.
     jjmw->show();
 
     //Start the build
-    buildJob(jobName, buildParameters);
+    emit buildJob(job_name, buildParameters);
+
+    disconnect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::buildJob);
 
     //Request a delete.
     deleteLater();
@@ -135,27 +137,28 @@ void JenkinsStartJobWidget::build()
 void JenkinsStartJobWidget::gotJobParameters(QString, Jenkins_JobParameters params)
 {
     //Hide the Loading Bar.
-    loadingWidget->hideLoadingBar();
+    //loadingWidget->hideLoadingBar();
 
     //Set the visibility of the container widgets.
-    titleWidget->setVisible(true);
-    parameterWidget->setVisible(true);
-    buttonWidget->setVisible(true);
+    //titleWidget->setVisible(true);
+    //parameter_box->setVisible(true);
+    //build_button->setVisible(true);
 
     //Construct a group layout for the parameter widget.
-    QVBoxLayout* groupVLayout = new QVBoxLayout();
-    parameterWidget->setLayout(groupVLayout);
+    QVBoxLayout* parameter_layout = new QVBoxLayout();
+    parameter_box->setLayout(parameter_layout);
 
     //Construct a QWidget(KeyEditWidget) for each parameter.
     foreach(Jenkins_Job_Parameter parameter, params){
-        KeyEditWidget* parameterEdit = getParameterWidget(parameter);
+        auto parameterEdit = getParameterWidget(parameter);
 
         //If we have got a non-null KeyEditWidget, we should add it to the Layout and list of Widgets.
         if(parameterEdit){
-            groupVLayout->addWidget(parameterEdit);
+            parameter_layout->addWidget(parameterEdit);
             parameterWidgets.append(parameterEdit);
         }
     }
+    parameter_layout->addStretch();
 }
 
 void JenkinsStartJobWidget::authenticationFinished(bool success, QString)
@@ -163,9 +166,9 @@ void JenkinsStartJobWidget::authenticationFinished(bool success, QString)
     if(!success){
         reject();
     }
-    if(loadingWidget){
-        loadingWidget->authenticationFinished();
-    }
+    //if(loadingWidget){
+    //    loadingWidget->authenticationFinished();
+    //}
 }
 
 
@@ -173,65 +176,42 @@ void JenkinsStartJobWidget::authenticationFinished(bool success, QString)
  * @brief JenkinsStartJobWidget::setupLayout Sets up the Layout for the Widget.
  * @param jobName The Name of the Job.
  */
-void JenkinsStartJobWidget::setupLayout(QString jobName)
+void JenkinsStartJobWidget::setupLayout()
 {
     //Construct a Vertical Layout.
     QVBoxLayout* verticalLayout = new QVBoxLayout(this);
 
     //Add a loading widget.
-    loadingWidget = new JenkinsLoadingWidget();
-    verticalLayout->addWidget(loadingWidget);
+    //loadingWidget = new JenkinsLoadingWidget();
+    //verticalLayout->addWidget(loadingWidget);
 
     //Setup Title.
-    titleWidget = new QWidget();
-    QHBoxLayout* titleLayout = new QHBoxLayout(titleWidget);
-    verticalLayout->addWidget(titleWidget);
+    QHBoxLayout* title_layout = new QHBoxLayout();
+    verticalLayout->addLayout(title_layout);
 
     //Set up a QLabel for the name of the Jenkins Job
-    QLabel* jobLabel = new QLabel(jobName);
-    QLabel* iconLabel = new QLabel();
-    iconLabel->setPixmap(Theme::theme()->getImage("Icons", "jobBuild"));
+    title_label = new QLabel(job_name, this);
+    QLabel* job_icon_label = new QLabel(this);
+    job_icon_label->setPixmap(Theme::theme()->getImage("Icons", "jenkins", QSize(32,32)));
 
-    jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
-
-    titleLayout->addWidget(iconLabel);
-    titleLayout->addWidget(jobLabel);
-    titleLayout->addStretch();
-    //titleLayout->addWidget(jobLabel,0,Qt::AlignCenter);
+    title_layout->addWidget(job_icon_label);
+    title_layout->addWidget(title_label);
+    title_layout->addStretch();
 
 
     //Setup a QGroupBox for storing the Parameters
-    parameterWidget = new QGroupBox();
-    parameterWidget->setTitle("Job Parameters");
-    verticalLayout->addWidget(parameterWidget, 1);
-
-    //Construct a Button Widget.
-    buttonWidget = new QWidget();
+    parameter_box = new QGroupBox(this);
+    parameter_box->setTitle("Job Parameters");
+    verticalLayout->addWidget(parameter_box, 1);
 
 
-    QHBoxLayout * buttonLayout = new QHBoxLayout(buttonWidget);
-
-    buttonLayout->setSpacing(0);
-    buttonLayout->setMargin(0);
-
-    //Add a Build Job Button
-    QPushButton* buildButton = new QPushButton("Build");
-    buttonLayout->addWidget(buildButton);
-
+    action_toolbar = new QToolBar(this);
+    action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    build_action = action_toolbar->addAction("Build Job");
+    verticalLayout->addWidget(action_toolbar, 0, Qt::AlignRight);
 
     //Connect the button to the build signal.
-    connect(buildButton, SIGNAL(clicked()), this, SLOT(build()));
-
-    //Set the Style to match the CSS from Jenkins
-    buildButton->setStyleSheet("background-color: #4b758b; color: #eee; border: 1px solid #5788a1;font-weight: bold;  font-size: 12px;  font-family: Helvetica, Arial, sans-serif;   padding: 3px 20px;");
-
-    //Add the Button widget to the layout.
-    verticalLayout->addWidget(buttonWidget);
-
-    //Setup the visiblity.
-    titleWidget->setVisible(false);
-    parameterWidget->setVisible(false);
-    buttonWidget->setVisible(false);
+    connect(build_action, &QAction::triggered, this, &JenkinsStartJobWidget::build);
 }
 
 
@@ -241,22 +221,20 @@ void JenkinsStartJobWidget::setupLayout(QString jobName)
  * @param parameter The Jenkins Job Parameter
  * @return A KeyEditWidget
  */
-KeyEditWidget* JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter parameter)
+DataEditWidget *JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter parameter)
 {
-    //Stores the type of the KeyEditWidget if it is custom.
-    QString customType = "";
-    //A Variable to store the type of Value
-    QVariant valueType;
+    SETTING_TYPE type= ST_STRING;
 
     if(parameter.type == "String"){
         //Set the Type to be String.
-        valueType = QVariant(QVariant::String);
-        valueType.setValue(parameter.defaultValue);
+        type = ST_STRING;
     }else if(parameter.type == "Boolean"){
         //Set the Type to be Boolean
-        valueType = QVariant(QVariant::Bool);
-        valueType.setValue(parameter.defaultValue=="true");
+        type = ST_BOOL;
     }else if(parameter.type == "File"){
+        type = ST_FILE;
+    }
+    /*
         //Set the Type/CustomType to be String/File
         customType = "File";
         valueType = QVariant(QVariant::String);
@@ -267,9 +245,10 @@ KeyEditWidget* JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter p
         }else{
             valueType.setValue(parameter.defaultValue);
         }
-    }
+    }*/
 
-    //Construct a new KeyEdit Widget with the provided parameters
-    KeyEditWidget* keyEdit = new KeyEditWidget("",parameter.name, parameter.name, valueType, parameter.description, customType);
-    return keyEdit;
+    DataEditWidget* dataEdit = new DataEditWidget(parameter.name, parameter.name, type, parameter.defaultValue);
+    ////Construct a new KeyEdit Widget with the provided parameters
+    //KeyEditWidget* keyEdit = new KeyEditWidget("",parameter.name, parameter.name, valueType, parameter.description, customType);
+    return dataEdit;
 }

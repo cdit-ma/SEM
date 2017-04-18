@@ -14,6 +14,11 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
+
+
+
+class JenkinsJobMonitorWidget;
+
 #include "../../Controllers/SettingsController/settingscontroller.h"
 
 class JenkinsManager: public QObject
@@ -26,11 +31,18 @@ public:
     JenkinsManager(QObject *parent);
     QString getUsername();
 
+
+    JenkinsJobMonitorWidget* getJobMonitorWidget();
     void setURL(QString url);
     void setUsername(QString username);
     void setPassword(QString password);
     void setToken(QString token);
     void setJobName(QString jobname);
+
+    bool gotJobConfiguration(QString jobName);
+
+    QJsonDocument getJobConfiguration(QString jobName);
+    QStringList getActiveConfigurations(QString jobName);
 
     bool hasSettings();
     bool hasValidatedSettings();
@@ -42,6 +54,8 @@ public slots:
 signals:
     void gotJenkinsNodeGraphml(QString data);
     void jenkinsReady(bool ready);
+
+
 
     void tryValidateSettings();
     void checkForJava();
@@ -61,7 +75,7 @@ private:
     void storeJobConfiguration(QString jobName, QJsonDocument json);
     void clearJobConfigurations();
     QNetworkRequest getAuthenticatedRequest(QString url, bool auth =true);
-    QJsonDocument getJobConfiguration(QString jobName);
+
 
     void jenkinsRequestFinished(JenkinsRequest* request);
 
@@ -91,6 +105,8 @@ private:
     QHash<QString, QJsonDocument> jobsJSON;
     //Vector of all Active JenkinsRequest objects created from this.
     QList<JenkinsRequest*> requests;
+
+    JenkinsJobMonitorWidget* jenkinsJobGUI;
 };
 
 #endif // JENKINSMANAGER_H

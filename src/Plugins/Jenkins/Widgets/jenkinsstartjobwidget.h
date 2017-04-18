@@ -1,19 +1,18 @@
 #ifndef JENKINSSTARTJOBWIDGET_H
 #define JENKINSSTARTJOBWIDGET_H
 #include "../jenkinsmanager.h"
-
-#include "jenkinsloadingwidget.h"
-#include "../../../Widgets/keyeditwidget.h"
+#include "../../../Widgets/dataeditwidget.h"
 
 #include <QDialog>
 #include <QGroupBox>
+#include <QToolBar>
 
 
 class JenkinsStartJobWidget: public QDialog
 {
     Q_OBJECT
 public:
-    JenkinsStartJobWidget(QWidget *parent = 0, JenkinsManager* jenkins=0);
+    JenkinsStartJobWidget(QString job_name, JenkinsManager* jenkins=0);
     ~JenkinsStartJobWidget();
 
     void getJenkinsData(QString jobName);
@@ -26,31 +25,26 @@ signals:
     void buildJob(QString jobName, Jenkins_JobParameters parameters);
 
 public slots:
+    void themeChanged();
     //Connected to from JenkinsRequest SIGNALS
     void gotJobParameters(QString jobName, Jenkins_JobParameters parameters);
     void authenticationFinished(bool success, QString message);
     //Connected to the build button in the GUI
     void build();
 private:
-    void setupLayout(QString jobName);
+    void setupLayout();
 
-    KeyEditWidget* getParameterWidget(Jenkins_Job_Parameter parameter);
+    DataEditWidget* getParameterWidget(Jenkins_Job_Parameter parameter);
 
-    //Represents the icon/title/loading Jenkins Bar
-    JenkinsLoadingWidget* loadingWidget;
-
-    //Top Section is contained in a titleWidget.
-    QWidget* titleWidget;
-    QGroupBox* parameterWidget;
-    QWidget* buttonWidget;
-
-
-    //The list of Parameter Widgets.
-    QList<KeyEditWidget*> parameterWidgets;
+    QGroupBox* parameter_box;
+    QList<DataEditWidget*> parameterWidgets;
+    QToolBar* action_toolbar;
+    QAction* build_action;
+    QLabel* title_label;
 
     QString tempGraphMLFile;
 
-    QString jobName;
+    QString job_name;
     JenkinsManager* jenkins;
 };
 

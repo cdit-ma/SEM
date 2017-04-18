@@ -20,6 +20,7 @@ public:
     int getMinimumLabelWidth();
     void setLabelWidth(int width);
     void setValue(QVariant data);
+    QVariant getValue();
 
 private slots:
 

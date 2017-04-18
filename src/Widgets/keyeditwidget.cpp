@@ -194,13 +194,14 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         }
     }else{
 
-        QLineEdit* lineEdit = new QLineEdit(stringVal);
+        QTextEdit* lineEdit = new QTextEdit(stringVal);
         lineEdit->setFixedHeight(SMALL_SQUARE);
         hLayout->addWidget(lineEdit, 1);
 
-        connect(lineEdit, &QLineEdit::textEdited, this, &KeyEditWidget::_valueChanged);
+        connect(lineEdit, &QTextEdit::textChanged, this, [lineEdit, this](){qCritical() << "VALIUE CHANGED: ";_valueChanged(lineEdit->toPlainText());_editingFinished();});
 
-        connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
+
+        //connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
 
         if(isPath || isFilePath){
             QPushButton* pickerButton = new QPushButton();
@@ -280,7 +281,7 @@ void KeyEditWidget::setValue(QVariant value)
     }else if(keyType == KEY_STRING || keyType == KEY_FILE){
         if(value.canConvert(QVariant::String)){
             QString valueStr = value.toString();
-            QLineEdit* stringEdit = dynamic_cast<QLineEdit*>(valueBox);
+            QTextEdit* stringEdit = dynamic_cast<QTextEdit*>(valueBox);
             if(stringEdit){
                 stringEdit->setText(valueStr);
             }

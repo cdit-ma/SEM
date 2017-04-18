@@ -3,8 +3,13 @@
 #include <QProcess>
 #include <QStringBuilder>
 #include <QApplication>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include "../../Controllers/SettingsController/settingscontroller.h"
+
+#include "Widgets/jenkinsjobmonitorwidget.h"
 #include "Widgets/jenkinsstartjobwidget.h"
 
 
@@ -32,6 +37,7 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
     _jenkinsBusy = false;
     settingsValidated = false;
     _gotJava = false;
+    jenkinsJobGUI = 0;
 
 
     //Load Jenkins settings
@@ -49,6 +55,14 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
 QString JenkinsManager::getUsername()
 {
     return username;
+}
+
+JenkinsJobMonitorWidget *JenkinsManager::getJobMonitorWidget()
+{
+    if(!jenkinsJobGUI){
+         jenkinsJobGUI = new JenkinsJobMonitorWidget(0, this);
+    }
+    return jenkinsJobGUI;
 }
 
 /**
@@ -116,6 +130,11 @@ void JenkinsManager::setJobName(QString jobName)
         //Devalidate the settings.
         settingsValidated = false;
     }
+}
+
+bool JenkinsManager::gotJobConfiguration(QString jobName)
+{
+    return jobsJSON.contains(jobName);
 }
 
 /**
@@ -207,7 +226,7 @@ void JenkinsManager::executeJenkinsJob(QString modelFilePath)
 {
     if(hasValidatedSettings()){
         qCritical() << modelFilePath;
-        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(0, this);
+        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(jobName, this);
         jenkinsSJ->requestJob(jobName, modelFilePath);
     }
 }
@@ -371,6 +390,29 @@ QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url, bool auth)
 QJsonDocument JenkinsManager::getJobConfiguration(QString jobName)
 {    
     return jobsJSON[jobName];
+}
+
+QStringList JenkinsManager::getActiveConfigurations(QString jobName)
+{
+    QStringList configs;
+    if(jobsJSON.contains(jobName)){
+        auto json = jobsJSON[jobName];
+        if(!json.isNull()){
+            //Blank for Master
+            configs += "";
+
+            QJsonObject configData = json.object();
+
+            //Get the array which contains the activeConfigurations.
+            QJsonArray activeConfigurations = configData["activeConfigurations"].toArray();
+
+            //Append The name of the Active Configurations to the configurationList
+            foreach(QJsonValue activeConfiguration, activeConfigurations){
+                configs.append(activeConfiguration.toObject()["name"].toString());
+            }
+        }
+    }
+    return configs;
 }
 
 /**

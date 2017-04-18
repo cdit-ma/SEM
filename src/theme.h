@@ -137,6 +137,7 @@ public:
     QString getPopupWidgetStyleSheet();
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+    QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
 signals:

@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QColorDialog>
-
+#include <QPlainTextEdit>
 #include "../theme.h"
 
 #define SMALL_SQUARE 24
@@ -93,9 +93,9 @@ void DataEditWidget::setValue(QVariant data)
         break;
     }
     case ST_STRING:{
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        if(lineEdit){
-            lineEdit->setText(newData.toString());
+        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
+        if(textEdit){
+            textEdit->setPlainText(newData.toString());
         }
         break;
     }
@@ -115,6 +115,11 @@ void DataEditWidget::setValue(QVariant data)
 
     currentData = newData;
     emit valueChanged(dataKey, newData);
+}
+
+QVariant DataEditWidget::getValue()
+{
+    return currentData;
 }
 
 void DataEditWidget::themeChanged()
@@ -224,8 +229,8 @@ void DataEditWidget::editFinished()
         break;
     }
     case ST_STRING:{
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        dataChanged(lineEdit->text());
+        QPlainTextEdit* lineEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
+        dataChanged(lineEdit->toPlainText());
         break;
     }
     case ST_FILE:
@@ -298,15 +303,14 @@ void DataEditWidget::setupLayout()
 
     switch(type){
         case ST_STRING:{
-        QLineEdit* lineEdit = new QLineEdit(this);
-        lineEdit->setText(currentData.toString());
-        lineEdit->setFixedHeight(SMALL_SQUARE);
+        QPlainTextEdit* textEdit = new QPlainTextEdit(this);
+        textEdit->setPlainText(currentData.toString());
+        textEdit->setFixedHeight(SMALL_SQUARE);
 
+        //Any CChange should change
+        connect(textEdit, &QPlainTextEdit::textChanged, this, [textEdit, this](){dataChanged(textEdit->toPlainText()); editFinished();});
 
-        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
-
-        editWidget_1 = lineEdit;
+        editWidget_1 = textEdit;
         editLayout->addWidget(editWidget_1, 1);
         break;
     }
@@ -333,7 +337,8 @@ void DataEditWidget::setupLayout()
 
         editWidget_1 = spinBox;
 
-        connect(spinBox, &QSpinBox::editingFinished, this, &DataEditWidget::editFinished);
+        connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [spinBox, this](int value){editFinished();});
+        //connect(spinBox, &QSpinBox::editingFinished, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         break;
@@ -373,7 +378,7 @@ void DataEditWidget::setupLayout()
 
         connect(button, &QPushButton::pressed, this, &DataEditWidget::pickColor);
         connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
+        connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QProcessEnvironment>
 
 enum JOB_STATE{
     NO_JOB = 0,
@@ -59,7 +60,7 @@ signals:
     //Emitted, if the JenkinsManager is destroyed.
     void unexpectedTermination();
 
-private slots:
+public slots:
     //Slots are listed as private so they cannot be called directly, only connected too. All of these Slots have a matching return signal.
     void getJobActiveConfigurations(QString jobName);
     void getJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration="");
@@ -83,7 +84,8 @@ private:
     QPair<int, QByteArray> wget(QString url, bool auth = true);
     QPair<int, QByteArray> post(QString url, QByteArray data = QByteArray());
     QPair<int, QByteArray> waitForReply(QNetworkReply* reply);
-    QPair<int, QByteArray> runProcess(QString command);
+    QPair<int, QByteArray> runProcess(QString command, QProcessEnvironment environment=QProcessEnvironment());
+    QPair<int, QByteArray> runProcess2(QString command, QStringList parameters);
 
     QNetworkAccessManager* getNetworkManager();
 

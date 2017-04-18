@@ -8,6 +8,7 @@
 #include "../../Controllers/SettingsController/settingscontroller.h"
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
+#include "../../Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.h"
 
 #include "../../theme.h"
 
@@ -633,6 +634,7 @@ void MainWindow::setupInnerWindow()
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
+    innerWindow->setDockWidgetVisibility(dwWorkers,  false);
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
@@ -934,7 +936,7 @@ void MainWindow::setupMenuCornerWidget()
  */
 void MainWindow::setupDockablePanels()
 {
-    dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
+    auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
     //dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
@@ -958,17 +960,27 @@ void MainWindow::setupDockablePanels()
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
 
+    jenkinsDockWidget = WindowManager::constructViewDockWidget("Jenkins");
+    jenkinsDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    jenkinsDockWidget->setIcon("Icons", "jenkins");
+    jenkinsDockWidget->setIconVisible(true);
+    jenkinsDockWidget->setProtected(true);
+
+
+
     dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
 
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, jenkinsDockWidget);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
+    innerWindow->setDockWidgetVisibility(jenkinsDockWidget, true);
     innerWindow->tabifyDockWidget(searchDockWidget, notificationDockWidget);
 
     /**
@@ -996,6 +1008,8 @@ void MainWindow::setupDockablePanels()
 
     bw->show();
     */
+
+
 
     if (viewController) {
         connect(viewController, &ViewController::vc_setupModel, searchPanel, &SearchDialog::resetPanel);
@@ -1041,6 +1055,11 @@ void MainWindow::setupJenkinsManager()
 {
     if(!jenkinsManager){
         jenkinsManager = new JenkinsManager(this);
+
+        //JenkinsJobMonitorWidget* j = new JenkinsJobMonitorWidget(0, jenkinsManager, "");
+        jenkinsDockWidget->setWidget(jenkinsManager->getJobMonitorWidget());
+
+
         connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
         connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
 
