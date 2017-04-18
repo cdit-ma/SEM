@@ -35,6 +35,7 @@ int main(int argc, char **argv){
     std::string slave_endpoint;
     std::string master_endpoint;
     double execution_duration = 60.0;
+    bool live_logging = false;
 
     boost::program_options::options_description options("Node manager options");
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Library path");
@@ -42,6 +43,7 @@ int main(int argc, char **argv){
     options.add_options()("time,t", boost::program_options::value<double>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
     options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
     options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
+    options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Master endpoint, including port");
     options.add_options()("help,h", "Display help");
 
 

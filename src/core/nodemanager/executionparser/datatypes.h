@@ -10,7 +10,7 @@ namespace Graphml{
     class LoggingProfile{
         public:
         std::string id;
-        std::string live_mode;
+        std::string mode;
         std::string processes;
         std::string frequency;
     };

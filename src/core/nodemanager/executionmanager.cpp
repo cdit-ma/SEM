@@ -111,6 +111,16 @@ std::string ExecutionManager::GetModelLoggerAddressFromNodeName(std::string host
     return str;
 }
 
+std::string ExecutionManager::GetModelLoggerModeFromNodeName(std::string host_name){
+    auto node = model_parser_->GetHardwareNodeByName(host_name);
+    std::string str = "OFF";
+    if(node && node->logging_profile_id != ""){
+        auto profile = model_parser_->GetLoggingProfile(node->logging_profile_id);
+        str = profile->mode;
+    }
+    return str;
+}
+
 bool ExecutionManager::ConstructControlMessages(){
     std::unique_lock<std::mutex>(mutex_);
 

@@ -99,7 +99,7 @@ bool Graphml::ModelParser::Process(){
             if(!GetLoggingProfile(l_id)){
                 auto profile = new LoggingProfile();
                 profile->id = l_id;
-                profile->live_mode = GetDataValue(l_id, "live_mode");
+                profile->mode = GetDataValue(l_id, "mode");
                 profile->frequency = GetDataValue(l_id, "frequency");
 
                 std::string processes = GetDataValue(l_id, "processes_to_log");
@@ -788,7 +788,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 logcl_str += tab(3) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
                 logcl_str += tab(3) + json_pair("frequency", logging_profile->frequency) + "," + newline;
                 logcl_str += tab(3) + json_pair("process", logging_profile->processes) + "," + newline;
-                logcl_str += tab(3) + json_pair("live_mode", logging_profile->live_mode) + newline;
+                logcl_str += tab(3) + json_pair("mode", logging_profile->mode) + newline;
                 logcl_str += tab(2) + "}";
                 node_strings.push_back(logcl_str);
             }

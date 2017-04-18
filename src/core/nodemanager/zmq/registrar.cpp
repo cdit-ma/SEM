@@ -65,12 +65,16 @@ void zmq::Registrar::RegistrationLoop(std::string endpoint){
             //Get the matching hostname from the execution manager
             std::string host_name = execution_manager_->GetNodeNameFromNodeManagerAddress(slave_addr_str);
             std::string slave_logger_pub_addr_str = execution_manager_->GetModelLoggerAddressFromNodeName(host_name);
+            std::string slave_logger_mode_str = execution_manager_->GetModelLoggerModeFromNodeName(host_name);
 
             //Construct our reply messages
+            zmq::message_t slave_mode(slave_logger_mode_str.c_str(), slave_logger_mode_str.size());
             zmq::message_t master_control_pub_addr(publisher_endpoint_.c_str(), publisher_endpoint_.size());
             zmq::message_t slave_name(host_name.c_str(), host_name.size());
             zmq::message_t slave_logging_pub_addr(slave_logger_pub_addr_str.c_str(), slave_logger_pub_addr_str.size());
             
+            //Send the server address for the publisher
+            socket.send(slave_mode, ZMQ_SNDMORE);
             //Send the server address for the publisher
             socket.send(master_control_pub_addr, ZMQ_SNDMORE);
             //Send the slave hostname

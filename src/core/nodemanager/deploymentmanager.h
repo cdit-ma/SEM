@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "nodecontainer.h"
+#include "../modellogger.h"
 
 namespace zmq{class ProtoReceiver;};
 namespace google{namespace protobuf{class MessageLite;}};
@@ -18,7 +19,7 @@ class DeploymentManager{
         ~DeploymentManager();
 
         bool SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name);
-        bool SetupModelLogger(std::string pub_endpoint, std::string host_name);
+        bool SetupModelLogger(std::string pub_endpoint, std::string host_name, ModelLogger::Mode mode);
         bool TeardownModelLogger();
 
         void GotControlMessage(google::protobuf::MessageLite* ml);

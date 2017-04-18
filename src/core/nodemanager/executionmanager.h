@@ -32,6 +32,7 @@ class ExecutionManager{
         
         std::string GetNodeNameFromNodeManagerAddress(std::string address);
         std::string GetModelLoggerAddressFromNodeName(std::string host_name);
+        std::string GetModelLoggerModeFromNodeName(std::string host_name);
 
         void ExecutionLoop(double duration_sec);
 

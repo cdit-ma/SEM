@@ -14,6 +14,7 @@ namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
+    enum class Mode {LIVE, CACHED, OFF};
         enum class LifeCycleEvent{
             STARTED = 0,
             ACTIVATED = 1,
@@ -35,14 +36,14 @@ class ModelLogger{
             IGNORED = 4,
         };
         //Static getter functions
-        static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached, bool active = true);
+        static bool setup_model_logger(std::string host_name, std::string endpoint, Mode mode);
         static ModelLogger* get_model_logger();
         static bool shutdown_logger();
         
     protected:
         ModelLogger();
         
-        bool setup_logger(bool cached, std::string endpoint, bool active = true);
+        bool setup_logger(std::string endpoint, Mode mode);
         bool is_setup();
         void set_hostname(std::string host_name);
         
@@ -63,7 +64,7 @@ class ModelLogger{
     private:
         void PushMessage(google::protobuf::MessageLite* message);
 
-        bool active_;
+        bool active_ = true;
 
         std::string host_name_;
         

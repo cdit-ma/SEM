@@ -11,13 +11,13 @@ ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
 
-bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached, bool active){
+bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, Mode mode){
     auto s = get_model_logger();
     bool success = false;
     {
         std::lock_guard<std::mutex> lock(global_mutex_);
         if(!s->is_setup()){
-            success = s->setup_logger(cached, endpoint, active);
+            success = s->setup_logger(endpoint, mode);
             s->set_hostname(host_name);
         }
     }
@@ -57,13 +57,15 @@ void ModelLogger::set_hostname(std::string host_name){
     this->host_name_ = host_name;
 }
 
-bool ModelLogger::setup_logger(bool cached, std::string endpoint, bool active){
-    active_ = active;
+bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
+    if(mode == Mode::OFF){
+        active_ = false;
+    }
     if(!writer_){
-        if(cached){
-            writer_ = new zmq::CachedProtoWriter();
-        }else{
+        if(mode == Mode::LIVE){
             writer_ = new zmq::ProtoWriter();
+        }else{
+            writer_ = new zmq::CachedProtoWriter();
         }
         return writer_->BindPublisherSocket(endpoint);
     }
