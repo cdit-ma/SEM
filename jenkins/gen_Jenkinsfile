@@ -115,6 +115,8 @@ node(masterNode){
 //Itterate through all nodes
 def nodeKeys = jDeployment["nodes"].keySet() as List;
 def modelName = jDeployment["model"].name
+currentBuild.description = modelName
+
 for(def i = 0; i < nodeKeys.size(); i++){
     def nodeName = nodeKeys[i];
     def jNode = jDeployment["nodes"][nodeName];
@@ -239,5 +241,3 @@ stage("Teardown"){
     parallel loganClients_shutdown
     parallel loganServers_shutdown
 }
-
-currentBuild.description = modelName
