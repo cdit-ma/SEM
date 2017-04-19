@@ -58,7 +58,6 @@ void ModelLogger::set_hostname(std::string host_name){
 }
 
 bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
-    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%LOGGER%"  + std::to_string((int)mode) + "%" << std::endl;
     if(mode == Mode::OFF){
         active_ = false;
     }
