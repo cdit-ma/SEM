@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include "../../../theme.h"
+#include "../../../Utils/filehandler.h"
 #include <QStringBuilder>
 
 /**
@@ -110,6 +111,7 @@ void JenkinsStartJobWidget::build()
             buildParameters.append(parameter);
         }
     }
+
     //Get a new Jenkins Request Object. Tied to the new Jenkins Widget
     auto jjmw = jenkins->getJobMonitorWidget();
     JenkinsRequest* jenkins_build = jenkins->getJenkinsRequest(jjmw);
@@ -136,21 +138,27 @@ void JenkinsStartJobWidget::build()
  */
 void JenkinsStartJobWidget::gotJobParameters(QString, Jenkins_JobParameters params)
 {
-    //Hide the Loading Bar.
-    //loadingWidget->hideLoadingBar();
-
-    //Set the visibility of the container widgets.
-    //titleWidget->setVisible(true);
-    //parameter_box->setVisible(true);
-    //build_button->setVisible(true);
-
     //Construct a group layout for the parameter widget.
     QVBoxLayout* parameter_layout = new QVBoxLayout();
     parameter_box->setLayout(parameter_layout);
 
+    //If model
+
+
     //Construct a QWidget(KeyEditWidget) for each parameter.
     foreach(Jenkins_Job_Parameter parameter, params){
         auto parameterEdit = getParameterWidget(parameter);
+        if(parameter.name == "model"){
+            //RE_GEN takes the stringd contents
+            auto fileContents = FileHandler::readTextFile(tempGraphMLFile);
+            parameterEdit->setValue(fileContents);
+            parameterEdit->setEnabled(false);
+        }else if(parameter.name == "model.graphml"){
+            //MEDEA SEM takes a file pointer
+            QString model_path = tempGraphMLFile;
+            parameterEdit->setValue(model_path);
+            parameterEdit->setEnabled(false);
+        }
 
         //If we have got a non-null KeyEditWidget, we should add it to the Layout and list of Widgets.
         if(parameterEdit){
@@ -160,17 +168,6 @@ void JenkinsStartJobWidget::gotJobParameters(QString, Jenkins_JobParameters para
     }
     parameter_layout->addStretch();
 }
-
-void JenkinsStartJobWidget::authenticationFinished(bool success, QString)
-{
-    if(!success){
-        reject();
-    }
-    //if(loadingWidget){
-    //    loadingWidget->authenticationFinished();
-    //}
-}
-
 
 /**
  * @brief JenkinsStartJobWidget::setupLayout Sets up the Layout for the Widget.
@@ -223,7 +220,7 @@ void JenkinsStartJobWidget::setupLayout()
  */
 DataEditWidget *JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter parameter)
 {
-    SETTING_TYPE type= ST_STRING;
+    SETTING_TYPE type = ST_STRING;
 
     if(parameter.type == "String"){
         //Set the Type to be String.
@@ -234,18 +231,6 @@ DataEditWidget *JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter 
     }else if(parameter.type == "File"){
         type = ST_FILE;
     }
-    /*
-        //Set the Type/CustomType to be String/File
-        customType = "File";
-        valueType = QVariant(QVariant::String);
-        //If we have been provided a tempGraphMLFile when this was constructed, use this.
-
-        if(tempGraphMLFile != ""){
-            valueType.setValue("\"" + tempGraphMLFile + "\"");
-        }else{
-            valueType.setValue(parameter.defaultValue);
-        }
-    }*/
 
     DataEditWidget* dataEdit = new DataEditWidget(parameter.name, parameter.name, type, parameter.defaultValue);
     ////Construct a new KeyEdit Widget with the provided parameters

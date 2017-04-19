@@ -212,7 +212,6 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command, QProcessEnvir
     //Construct and setup the process
     QProcess* process = new QProcess();
     process->setReadChannel(QProcess::StandardOutput);
-    qCritical() << "In :" << manager->getCLIPath();
     process->setProcessEnvironment(environment);
     process->setWorkingDirectory(manager->getCLIPath());
     process->start(command);
@@ -287,7 +286,6 @@ QPair<int, QByteArray> JenkinsRequest::runProcess2(QString command, QStringList 
     //Construct and setup the process
     QProcess* process = new QProcess();
     process->setReadChannel(QProcess::StandardOutput);
-    qCritical() << "In :" << manager->getCLIPath();
     process->setWorkingDirectory(manager->getCLIPath());
     process->start(command, parameters);
 
@@ -346,7 +344,6 @@ QPair<int, QByteArray> JenkinsRequest::runProcess2(QString command, QStringList 
     if(process->error() == QProcess::UnknownError && process->exitStatus() == QProcess::NormalExit){
         returnCode = process->exitCode();
     }
-    qCritical() << process->errorString();
     delete process;
     //Return the byte Array.
     return QPair<int, QByteArray>(returnCode, byteArray);
@@ -812,62 +809,33 @@ void JenkinsRequest::getJobActiveConfigurations(QString jobName)
 void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParameters)
 {
     if(waitForValidSettings()){
-        QString command = "build " + jobName + " ";
-
-
-        //Serialize arguments.
-        foreach(Jenkins_Job_Parameter parameter, jobParameters){
-            QString arg = "-p " + parameter.name + "=\"" + parameter.value + "\" ";
-            command += arg;
-        }
-
+        //store the job parameters
         storeRequestParameters(jobName);
-
-
-        //Add options to pipe the output of the root job.
-        command += " -s -v ";
 
         waitingOnNumber = true;
         currentOutput = "";
 
-        connect(this, SIGNAL(gotLiveCLIOutput(QString,int,QString,QString)), this, SLOT(waitForJobNumber(QString, int, QString, QString)));
-        //qCritical() << "Jenkins Command: "<< manager->getCLICommand(command);
-        //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-
-        command = manager->getCLICommand(command);
-        //QString test = "echo "${model_data}"";
-        //qCritical() << "ECHO: " << runProcess(test, env).second;
-        //qCritical() << "Command: " << command;
-        //QPair<int, QByteArray> response = runProcess(command, env);
+        //Connect the live CLI output to get the job number
+        connect(this, &JenkinsRequest::gotLiveCLIOutput, this, &JenkinsRequest::waitForJobNumber);
 
         QStringList args;
-        QString program = "java";// -jar jenkins-cli.jar -s http://192.168.111.182:8080/";
-        args << "-jar";
-        args << "jenkins-cli.jar";
-        args << "-s";
-        args << "http://192.168.111.182:8080/";
-         //build re_gen
-
         args << "build";
-        args << "re_gen";
+        args << jobName;
 
         foreach(Jenkins_Job_Parameter parameter, jobParameters){
             args << "-p";
             args << parameter.name + "=" + parameter.value;
         }
 
-        args << "--username";
-        args << "jenkins";
-        args << "--password";
-        args << "secret123";
-        args << "-s";
-        args << "-v";
+        //Get the authenticated args
+        args = manager->getCLIArguments(args);
 
-        //qCritical() << program;
-        //qCritical()  << args;
+        //Get the process name
+        QString program = args.takeFirst();
 
-        QPair<int, QByteArray> response2 = runProcess2(program, args);
-        //qCritical() << "ECHO: " << response2.second;
+        program;
+        qCritical() << args;
+        auto response = runProcess2(program, args);
     }else{
          emit requestFailed();
          emit requestFinished();
@@ -947,7 +915,6 @@ QString JenkinsRequest::validate()
             return "Unknown Network Error";
         }
     }
-    qCritical() << "Trying to Auth";
     //Try Auth
     QPair<int, QByteArray> authJenkinsRequest = wget(manager->getURL() + "api/json");
     error = (QNetworkReply::NetworkError) authJenkinsRequest.first;
@@ -955,8 +922,6 @@ QString JenkinsRequest::validate()
     if(error == QNetworkReply::AuthenticationRequiredError){
         return "API User/Token Authentication Failed";
     }
-    qCritical() << "Trying CLI";
-    qCritical() << manager->getCLICommand("login");
     //Try CLI stuff.
     QPair<int, QByteArray> response = runProcess(manager->getCLICommand("login"));
 

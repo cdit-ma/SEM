@@ -1055,7 +1055,7 @@ void MainWindow::setupJenkinsManager()
 {
     if(!jenkinsManager){
         jenkinsManager = new JenkinsManager(this);
-
+        jenkinsManager->setActionController(viewController->getActionController());
         //JenkinsJobMonitorWidget* j = new JenkinsJobMonitorWidget(0, jenkinsManager, "");
         jenkinsDockWidget->setWidget(jenkinsManager->getJobMonitorWidget());
 
@@ -1070,6 +1070,8 @@ void MainWindow::setupJenkinsManager()
         connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
 
         connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
+        connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString val){jenkinsDockWidget->setVisible(true);});
+
 
         jenkinsManager->validateSettings();
     }

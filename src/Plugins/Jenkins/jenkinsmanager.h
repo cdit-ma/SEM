@@ -14,8 +14,7 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
-
-
+#include "../../Controllers/ActionController/actioncontroller.h"
 
 class JenkinsJobMonitorWidget;
 
@@ -29,6 +28,8 @@ class JenkinsManager: public QObject
     Q_OBJECT
 public:
     JenkinsManager(QObject *parent);
+    void setActionController(ActionController* actionController);
+    ActionController* getActionController();
     QString getUsername();
 
 
@@ -79,13 +80,14 @@ private:
 
     void jenkinsRequestFinished(JenkinsRequest* request);
 
-
+    ActionController* actionController;
     //CLI getter helper functions.
     QString getURL();
     QString getCLIPrefix();
     QString getCLILoginSuffix();
     QString getCLIPath();
     QString getCLICommand(QString cliCommand);
+    QStringList getCLIArguments(QStringList args);
     QString getJobName();
 
     //Instance Variables

@@ -13,7 +13,10 @@
 #include <QMovie>
 #include <QStringBuilder>
 #include "../../../theme.h"
-
+#include "../../../Controllers/ActionController/actioncontroller.h"
+#include "../../../Utils/rootaction.h"
+#include <QAction>
+#include <QWidget>
 #define CONSOLE_SUFFIX "_CONSOLE"
 #define STATE_SUFFIX "_STATE"
 
@@ -69,7 +72,9 @@ void JenkinsJobMonitorWidget::setupLayout()
 
     action_toolbar = new QToolBar(this);
     action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    build_action = action_toolbar->addAction("Build Job");
+
+    build_action = jenkins->getActionController()->jenkins_executeJob->constructSubAction();
+    action_toolbar->addAction(build_action);
     stop_action = action_toolbar->addAction("Stop Job");
 
     //connect(build_action, &QAction::triggered, jenkins, &JenkinsManager::executeJenkinsJob);
@@ -80,7 +85,7 @@ void JenkinsJobMonitorWidget::setupLayout()
     tabWidget->setTabsClosable(true);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
-    build_action->setVisible(true);
+    //build_action->setVisible(true);
     stop_action->setVisible(false);
 }
 
@@ -104,7 +109,6 @@ void JenkinsJobMonitorWidget::setJobState(QString jobName, int buildNumber, QStr
         switch(state){
             case BUILDING:{
                 if(is_master && !movie_spinning){
-                    qCritical() << "Loading movie!";
                     movie_spinning = new QMovie(this);
                     movie_spinning->setFileName(":/Images/Icons/loading");
                     movie_spinning->setScaledSize(QSize(32,32));
@@ -133,7 +137,6 @@ void JenkinsJobMonitorWidget::setJobState(QString jobName, int buildNumber, QStr
         //Update and hide stop button
         if(is_master){
             stop_action->setVisible(state == BUILDING);
-            build_action->setVisible(state != BUILDING);
         }
 
         int tab_index = getTabIndex(tab_name);
@@ -162,8 +165,6 @@ void JenkinsJobMonitorWidget::gotJobStateChange(QString job_name, int job_build,
         auto configs = jenkins->getActiveConfigurations(job_name);
         setupTabs(job_name, job_build, configs);
     }
-
-    qCritical() << job_name << " "<< job_build << " S" << jobState << " " << activeConfiguration << " ";
 
     //Update the Job State GUI
     setJobState(job_name, job_build, activeConfiguration, jobState);
@@ -206,7 +207,6 @@ void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QString
         QString tab_name = getTabName(config, job_build);
 
         if(!consoleMonitors.contains(tab_name)){
-            qCritical() <<   "Constructing Tab!";
             auto monitor = new ConsoleMonitor();
             monitor->browser = new QTextBrowser(this);
             auto browser = monitor->browser;
@@ -231,11 +231,9 @@ void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QString
             connect(console_request, &JenkinsRequest::gotLiveCLIOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
 
             //Get the job info
-            qCritical() << "getJobConsoleOutput(" << job_name << ", " << job_build << ", " << config << ")";
             emit getJobConsoleOutput(job_name, job_build, config);
 
             if(config != ""){
-                qCritical() << "getJobState(" << job_name << ", " << job_build << ", " << config << ")";
                 //Request the Job State
                 emit getJobState(job_name, job_build, config);
             }
@@ -288,11 +286,8 @@ void JenkinsJobMonitorWidget::stopPressed()
     if(job_name != "" && job_build > 0){
         //Construct a new JenkinsRequest Object.
         JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
-
         connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
-
         emit stopJob(job_name, job_build, "");
-
         disconnect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
     }
 }
@@ -303,6 +298,7 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
     if(movie_spinning){
         QPixmap pixmap = movie_spinning->currentPixmap();
 
+        //Update the icons for all console tabs which are currently building
         foreach(QString key, consoleMonitors.keys()){
             auto monitor = consoleMonitors[key];
             if(monitor && monitor->state == BUILDING){

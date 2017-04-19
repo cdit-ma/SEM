@@ -152,8 +152,6 @@ public:
     RootAction* jenkins_executeJob;
 
 
-
-
     RootAction* toolbar_contextToolbar;
 
     RootAction* toolbar_addChild;

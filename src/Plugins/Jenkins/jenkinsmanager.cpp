@@ -38,6 +38,7 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
     settingsValidated = false;
     _gotJava = false;
     jenkinsJobGUI = 0;
+    actionController = 0;
 
 
     //Load Jenkins settings
@@ -50,6 +51,16 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
         settingChanged(key, settings->getSetting(key));
     }
 
+}
+
+void JenkinsManager::setActionController(ActionController *actionController)
+{
+    this->actionController = actionController;
+}
+
+ActionController *JenkinsManager::getActionController()
+{
+    return actionController;
 }
 
 QString JenkinsManager::getUsername()
@@ -225,9 +236,10 @@ void JenkinsManager::getJenkinsNodes()
 void JenkinsManager::executeJenkinsJob(QString modelFilePath)
 {
     if(hasValidatedSettings()){
-        qCritical() << modelFilePath;
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(jobName, this);
         jenkinsSJ->requestJob(jobName, modelFilePath);
+
+        //Show the Jenkins View
     }
 }
 
@@ -451,6 +463,24 @@ QString JenkinsManager::getCLIPath()
 QString JenkinsManager::getCLICommand(QString cliCommand)
 {
     return getCLIPrefix() + cliCommand + getCLILoginSuffix();
+}
+
+QStringList JenkinsManager::getCLIArguments(QStringList args)
+{
+    QStringList command;
+    command << "java";
+    command << "-jar";
+    command << "jenkins-cli.jar";
+    command << "-s";
+    command << url;
+    command << args;
+    command << "--username";
+    command << username;
+    command << "--password";
+    command << password;
+    command << "-f";
+    command << "-v";
+    return command;
 }
 
 QString JenkinsManager::getJobName()
