@@ -802,7 +802,9 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                     logcl_str += tab(3) + dblquotewrap("logan_client") + ":{" + newline;
                     logcl_str += tab(4) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
                     logcl_str += tab(4) + json_pair("frequency", logging_profile->frequency) + "," + newline;
-                    logcl_str += tab(4) + json_pair("process", logging_profile->processes) + "," + newline;
+                    if(!logging_profile->processes.empty()){
+                        logcl_str += tab(4) + json_pair("process", logging_profile->processes) + "," + newline;
+                    }
                     logcl_str += tab(4) + json_bool_pair("live_mode", logging_profile->mode == "LIVE") + newline;
                     logcl_str += tab(3) + "}";
                     node_strings.push_back(logcl_str);
