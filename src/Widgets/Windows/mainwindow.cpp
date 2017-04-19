@@ -1072,7 +1072,6 @@ void MainWindow::setupJenkinsManager()
         connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
         connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString val){jenkinsDockWidget->setVisible(true);});
 
-
         jenkinsManager->validateSettings();
     }
 }

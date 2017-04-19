@@ -2201,20 +2201,12 @@ bool ModelController::destructKey(QString name)
 
 Key *ModelController::getKeyFromName(QString name)
 {
-    if(keys.contains(name)){
-        return keys[name];
-    }
-    return 0;
+    return Key::GetKey(name);
 }
 
 Key *ModelController::getKeyFromID(int ID)
 {
-    foreach(Key* key, keys){
-        if(key->getID() == ID){
-            return key;
-        }
-    }
-    return 0;
+    return Key::GetKey(ID);
 }
 
 

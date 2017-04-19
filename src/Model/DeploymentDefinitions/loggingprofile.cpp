@@ -1,6 +1,7 @@
 #include "loggingprofile.h"
 #include "../key.h"
 #include "../data.h"
+#include <QDebug>
 LoggingProfile::LoggingProfile():Node(NK_LOGGINGPROFILE)
 {
     setNodeType(NT_LOGGING);
@@ -10,6 +11,8 @@ LoggingProfile::LoggingProfile():Node(NK_LOGGINGPROFILE)
 
 QList<Data *> LoggingProfile::getDefaultData()
 {
+    QString kind_str = getNodeKindStr();
+
     auto data_list = Node::getDefaultData();
     {
         //Process
@@ -23,8 +26,17 @@ QList<Data *> LoggingProfile::getDefaultData()
     }
     {
         //Live Mode
-        auto key = Key::GetKey("live_mode", QVariant::Bool);
-        data_list.append(new Data(key, false));
+        auto key = Key::GetKey("mode", QVariant::String);
+        //Setting Mode
+        qCritical() << "Mode!";
+        if(!key->gotValidValues(kind_str)){
+            qCritical() << "Adding Keys!";
+            QStringList keysValues = QStringList() << kind_str;
+            QStringList validValues = QStringList() << "CACHED" << "OFF" << "LIVE";
+            key->addValidValues(validValues, keysValues);
+        }
+
+        data_list.append(new Data(key, "CACHED"));
     }
     return data_list;
 }

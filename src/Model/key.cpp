@@ -8,6 +8,21 @@
 
 QHash<QString, Key*> Key::keyLookup_;
 
+Key *Key::GetKey(QString key_name)
+{
+    return keyLookup_.value(key_name, 0);
+}
+
+Key *Key::GetKey(int key_id)
+{
+    foreach(Key* key, keyLookup_.values()){
+        if(key->getID() == key_id){
+            return key;
+        }
+    }
+    return 0;
+}
+
 Key *Key::GetKey(QString key_name, QVariant::Type type)
 {
     if(keyLookup_.contains(key_name)){

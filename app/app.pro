@@ -21,6 +21,7 @@ win32{
 linux-g++ | macx{
     #On Unix lib*.a
     LIB_PATH = $${LIB_DIR}/lib$${LIB_NAME}.a
+
 }
 
 #Setting this forces a relink as part of compilation

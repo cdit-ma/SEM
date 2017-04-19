@@ -9,6 +9,8 @@ class Key : public GraphML
     Q_OBJECT
 public:
     static QHash<QString, Key*> keyLookup_;
+    static Key* GetKey(QString key_name);
+    static Key* GetKey(int key_id);
     static Key* GetKey(QString key_name, QVariant::Type type);
 
     static QString getGraphMLTypeName(const QVariant::Type type);

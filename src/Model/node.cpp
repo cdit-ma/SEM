@@ -6,6 +6,7 @@
 #include <QStringBuilder>
 #include <QByteArray>
 #include <QStack>
+#include "nodefactory.h"
 
 Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
 {
@@ -421,7 +422,7 @@ bool Node::setAsRoot(int root_index)
 
 QString Node::getNodeKindStr()
 {
-    return getDataValue("kind").toString();
+    return NodeFactory::getNodeKindString(nodeKind);
 }
 
 bool Node::indirectlyConnectedTo(Node *node)
