@@ -23,10 +23,13 @@ bool Graphml::ModelParser::Process(){
         return false;
     }
 
-    //std::vector<std::string> modelIdVec = graphml_parser_->FindNodes("Model");
-    //model_->id = modelIdVec[0];
-    
-    //model_->name = graphml_parser_->GetAttribute(model_->id, "label");
+    model_ = new Model();
+    std::vector<std::string> modelIdVec = graphml_parser_->FindNodes("Model");
+    if(modelIdVec.size() > 0){
+        model_->id = modelIdVec[0];
+        model_->name = graphml_parser_->GetDataValue(model_->id, "label");
+        model_->uuid = graphml_parser_->GetDataValue(model_->id, "projectUUID");
+    }
 
     //Get the ID's of the edges
     deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
@@ -137,7 +140,7 @@ bool Graphml::ModelParser::Process(){
                         }
                     }
                 }
-                
+
                 logging_profiles_[l_id] = profile;
             }
         }
@@ -749,6 +752,15 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
         nodes.push_back(n.second);
     }
 
+    //Jsonify model metadata
+    std::string model_str;
+    model_str += tab() + dblquotewrap("model") + ":{" + newline + tab(2) + json_pair("name", model_->name) + "," + 
+                                                        newline + tab(2) + json_pair("id", model_->id) + "," + 
+                                                        newline + tab(2) + json_pair("projectUUID", model_->uuid) +
+                                                        newline + tab() + "},";
+
+
+    //Jsonify node information
     std::vector<std::string> node_strs;
 
     for(auto node : nodes){
@@ -770,16 +782,16 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                     auto component = GetComponentInstance(c_id);
                     if(component){
                         std::string c_str;
-                        c_str += tab(3) + "{" + newline;
-                        c_str += tab(4) + json_pair("id", component->id) + "," + newline; 
-                        c_str += tab(4) + json_pair("name", component->name) + "," + newline; 
-                        c_str += tab(4) + json_pair("type", component->type_name) + newline; 
-                        c_str += tab(3) + "}";
+                        c_str += tab(4) + "{" + newline;
+                        c_str += tab(5) + json_pair("id", component->id) + "," + newline; 
+                        c_str += tab(5) + json_pair("name", component->name) + "," + newline; 
+                        c_str += tab(5) + json_pair("type", component->type_name) + newline; 
+                        c_str += tab(4) + "}";
 
                         component_strings.push_back(c_str);
                     }
                 }
-                std::string comp_string = tab(2) + dblquotewrap("component_instances") + ":[" + newline + json_export_list(component_strings) + newline + "]";
+                std::string comp_string = tab(3) + dblquotewrap("component_instances") + ":[" + newline + json_export_list(component_strings) + newline + tab(3) +"]";
                 node_strings.push_back(comp_string);
             }
 
@@ -787,12 +799,12 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 if(logging_profile->mode != "OFF"){
                     std::string logcl_str;
                     //Output Logan Client
-                    logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
-                    logcl_str += tab(3) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
-                    logcl_str += tab(3) + json_pair("frequency", logging_profile->frequency) + "," + newline;
-                    logcl_str += tab(3) + json_pair("process", logging_profile->processes) + "," + newline;
-                    logcl_str += tab(3) + json_bool_pair("live_mode", logging_profile->mode == "LIVE") + newline;
-                    logcl_str += tab(2) + "}";
+                    logcl_str += tab(3) + dblquotewrap("logan_client") + ":{" + newline;
+                    logcl_str += tab(4) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
+                    logcl_str += tab(4) + json_pair("frequency", logging_profile->frequency) + "," + newline;
+                    logcl_str += tab(4) + json_pair("process", logging_profile->processes) + "," + newline;
+                    logcl_str += tab(4) + json_bool_pair("live_mode", logging_profile->mode == "LIVE") + newline;
+                    logcl_str += tab(3) + "}";
                     node_strings.push_back(logcl_str);
                 }
             }
@@ -801,35 +813,39 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 //Get the list of clients
                 std::string logsv_str;
                 //Output Logan Client
-                logsv_str += tab(2) + dblquotewrap("logan_server") + ":{" + newline;
+                logsv_str += tab(3) + dblquotewrap("logan_server") + ":{" + newline;
 
                 for(auto n_id : logging_server->connected_hardware_ids){
                     auto n = GetHardwareNode(n_id);
                     if(n){
-                        logsv_str += tab(3) + json_pair("clients", n->GetLoganClientAddress()) + "," + newline;
-                        logsv_str += tab(3) + json_pair("clients", n->GetModelLoggerAddress()) + "," + newline;
+                        logsv_str += tab(4) + json_pair("clients", n->GetLoganClientAddress()) + "," + newline;
+                        logsv_str += tab(4) + json_pair("clients", n->GetModelLoggerAddress()) + "," + newline;
                     }
                 }
 
-                logsv_str += tab(3) + json_pair("database", logging_server->database_name) + newline;
-                logsv_str += tab(2) + "}";
+                logsv_str += tab(4) + json_pair("database", logging_server->database_name) + newline;
+                logsv_str += tab(3) + "}";
                 node_strings.push_back(logsv_str);
             }
             if(is_deployed){
                 std::string renm_str;
-                renm_str += tab(2) + dblquotewrap("re_node_manager") + ":{" + newline;
+                renm_str += tab(3) + dblquotewrap("re_node_manager") + ":{" + newline;
                 if(is_master){
                     renm_str += tab(3) + json_pair("master", node->GetNodeManagerMasterAddress()) + "," + newline;
                 }
-                renm_str += tab(3) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
-                renm_str += tab(2) + "}";
+                renm_str += tab(4) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
+                renm_str += tab(3) + "}";
                 node_strings.push_back(renm_str);
             }
 
-            std::string node_str = tab() + dblquotewrap(node->name) + ":{" + newline + json_export_list(node_strings) + newline + tab() + "}";
+            std::string node_str = tab(2) + dblquotewrap(node->name) + ":{" + newline + json_export_list(node_strings) + newline + tab(2) + "}";
             node_strs.push_back(node_str);
         }
     }
-    std::string str = "{" + newline + json_export_list(node_strs) + newline + "}";
+
+    std::string node_list_str;
+    node_list_str += tab() + dblquotewrap("nodes") + ":{" + newline + json_export_list(node_strs) + newline + tab() + "}";
+
+    std::string str = "{" + newline + model_str + newline + node_list_str + newline + "}";
     return str;
 }

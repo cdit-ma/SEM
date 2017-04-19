@@ -113,10 +113,11 @@ node(masterNode){
 }
 
 //Itterate through all nodes
-def nodeKeys = jDeployment.keySet() as List;
+def nodeKeys = jDeployment["nodes"].keySet() as List;
+def modelName = jDeployment["model"].name
 for(def i = 0; i < nodeKeys.size(); i++){
     def nodeName = nodeKeys[i];
-    def jNode = jDeployment[nodeName];
+    def jNode = jDeployment["nodes"][nodeName];
     
     
     if(jNode["re_node_manager"]){
