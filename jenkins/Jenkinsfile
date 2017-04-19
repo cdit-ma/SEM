@@ -23,7 +23,6 @@ for(n in names){
     }
 }
 
-def loganPath = "${LOGAN_PATH}"
 
 stage('Checkout'){
     def builders = [:]
@@ -31,6 +30,7 @@ stage('Checkout'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
+            def loganPath = "${LOGAN_PATH}"
                 dir(loganPath){
                     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/logan.git']]])    
                 }
@@ -46,6 +46,7 @@ stage('Build'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
+                def loganPath = "${LOGAN_PATH}"            
                 dir(loganPath + '/build'){
                     sh 'cmake ..'
                     sh 'make -j6'
