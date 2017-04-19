@@ -28,9 +28,7 @@ QList<Data *> LoggingProfile::getDefaultData()
         //Live Mode
         auto key = Key::GetKey("mode", QVariant::String);
         //Setting Mode
-        qCritical() << "Mode!";
         if(!key->gotValidValues(kind_str)){
-            qCritical() << "Adding Keys!";
             QStringList keysValues = QStringList() << kind_str;
             QStringList validValues = QStringList() << "CACHED" << "OFF" << "LIVE";
             key->addValidValues(validValues, keysValues);
