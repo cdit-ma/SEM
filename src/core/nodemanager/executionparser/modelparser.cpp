@@ -106,7 +106,21 @@ bool Graphml::ModelParser::Process(){
                 std::replace(processes.begin(), processes.end(), ',', ' ');
                 profile->processes = processes;
 
-                HardwareNode* node = 0;
+                LoggingServer* loggingServer = 0;
+                
+                //Find the Server this profile is connected to
+                for(auto e_id : assembly_edge_ids_){
+                    auto src_id = graphml_parser_->GetAttribute(e_id, "source");
+                    if(src_id == l_id){
+                        //Get the nodes this is deployed on
+                        auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
+                        auto server = GetLoggingServer(dst_id);
+                        if(server){
+                            loggingServer = server;
+                            break;
+                        }
+                    }
+                }
                 
                 //Find the profile attached to this node
                 for(auto e_id : deployment_edge_ids_){
@@ -117,21 +131,9 @@ bool Graphml::ModelParser::Process(){
                         auto hardware = GetHardwareNode(dst_id);
                         if(hardware){
                             hardware->logging_profile_id = l_id;
-                            node = hardware;
-                            break;
-                        }
-                    }
-                }
-
-                //Find the Server this profile is connected to
-                for(auto e_id : assembly_edge_ids_){
-                    auto src_id = graphml_parser_->GetAttribute(e_id, "source");
-                    if(src_id == l_id){
-                        //Get the nodes this is deployed on
-                        auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
-                        auto server = GetLoggingServer(dst_id);
-                        if(server && node){
-                            server->connected_hardware_ids.push_back(node->id);
+                            if(loggingServer){
+                                loggingServer->connected_hardware_ids.push_back(dst_id);
+                            }
                         }
                     }
                 }
@@ -782,15 +784,17 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
             }
 
             if(logging_profile){
-                std::string logcl_str;
-                //Output Logan Client
-                logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
-                logcl_str += tab(3) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
-                logcl_str += tab(3) + json_pair("frequency", logging_profile->frequency) + "," + newline;
-                logcl_str += tab(3) + json_pair("process", logging_profile->processes) + "," + newline;
-                logcl_str += tab(3) + json_pair("mode", logging_profile->mode) + newline;
-                logcl_str += tab(2) + "}";
-                node_strings.push_back(logcl_str);
+                if(logging_profile->mode != "OFF"){
+                    std::string logcl_str;
+                    //Output Logan Client
+                    logcl_str += tab(2) + dblquotewrap("logan_client") + ":{" + newline;
+                    logcl_str += tab(3) + json_pair("publisher", node->GetLoganClientAddress()) + "," + newline;
+                    logcl_str += tab(3) + json_pair("frequency", logging_profile->frequency) + "," + newline;
+                    logcl_str += tab(3) + json_pair("process", logging_profile->processes) + "," + newline;
+                    logcl_str += tab(3) + json_bool_pair("live_mode", logging_profile->mode == "LIVE") + newline;
+                    logcl_str += tab(2) + "}";
+                    node_strings.push_back(logcl_str);
+                }
             }
 
             if(logging_server){

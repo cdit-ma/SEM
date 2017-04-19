@@ -1,4 +1,5 @@
-
+//This script requires the following Jenkins plugins:
+//-Pipeline: Utility Steps
 
 // This method collects a list of Node names from the current Jenkins instance
 @NonCPS
@@ -218,8 +219,6 @@ for(def i = 0; i < nodeKeys.size(); i++){
             }
         }
     }
-
-    
 }
 
 stage("Start logan"){
