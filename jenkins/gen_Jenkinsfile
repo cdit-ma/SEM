@@ -239,3 +239,5 @@ stage("Teardown"){
     parallel loganClients_shutdown
     parallel loganServers_shutdown
 }
+
+currentBuild.description = modelName
