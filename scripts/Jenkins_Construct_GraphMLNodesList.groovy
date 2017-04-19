@@ -1,4 +1,3 @@
-
 import jenkins.model.Jenkins;
 import hudson.slaves.SlaveComputer;
 import hudson.slaves.DumbSlave;
@@ -7,18 +6,23 @@ import hudson.plugins.sshslaves.SSHLauncher;
 //Get Jenkins Singleton
 jenkins.model.Jenkins jenkins = jenkins.model.Jenkins.getInstance();
 
-//Setup Defaults
-JOB_NAME = "MEDEA-SEM";
 SERVER_NAME = "";
 SERVER_URL = "";
 SERVER_IP = "";
 USER_NAME = "";
 LOAD_TIME = (int)(System.currentTimeMillis() / 1000);
 
-
-if(args.length >= 1){
-    //Get Jobname from args
-    JOB_NAME = args[0];
+def getHost(String name) {
+  def computer = Jenkins.getInstance().getComputer(name);
+  def node = computer.getNode();
+  def label_string = node.getLabelString();
+  
+  def launcher = node.getLauncher();
+  if(computer.isOnline()){
+    return launcher.getHost();
+  }else{
+    return "";
+  }
 }
 
 SERVER_NAME = ""
@@ -73,17 +77,13 @@ OUTPUT <<= '\t\t\t\t<data key="k22">true</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k11">true</data>\n';
 OUTPUT <<= '\t\t\t\t<graph edgedefault="directed" id="' + (ID_COUNTER++) + '">\n';
 
-//Calculate the MAX which works out the number of nodes in each row/col
-MAX = Math.ceil(Math.sqrt(SLAVES.size() + 1))
-
 i = 0
 //Deal with the nodes
 for(slave in jenkins.slaves){
     hudson.model.Computer c = slave.getComputer();
 
     sortOrder = i
-    x = INIT_X + (((int) (i % MAX)) * OFFSET);
-    y = INIT_Y + (((int) (i / MAX)) * OFFSET);
+   
     online = "true";
 
     if(c.isOffline()){
@@ -94,9 +94,7 @@ for(slave in jenkins.slaves){
     IP = getHost(hostname);
 
     OUTPUT <<= '\t\t\t\t\t<node id="' + (ID_COUNTER++) + '">\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k20">' + x + '</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k21">' + y + '</data>\n';
+    OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';  
     OUTPUT <<= '\t\t\t\t\t\t<data key="k22">true</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k3">' + slave.getNodeName() + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k4">' + slave.getLabelString() + '</data>\n';
