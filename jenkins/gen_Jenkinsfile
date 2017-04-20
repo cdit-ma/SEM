@@ -116,6 +116,7 @@ def nodeKeys = jDeployment["nodes"].keySet() as List;
 def modelName = jDeployment["model"].name
 currentBuild.description = modelName
 
+stage("Build deployment plan"){
 for(def i = 0; i < nodeKeys.size(); i++){
     def nodeName = nodeKeys[i];
     def jNode = jDeployment["nodes"][nodeName];
@@ -186,6 +187,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganServers[nodeName] = {
             node(nodeName){
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
+                runscript("export BUILD_ID=" + env.BUILD_ID)
                 def out = runScript(serverRun, true)
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
@@ -208,8 +210,8 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganClients[nodeName] = {
             node(nodeName){
                 def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
+                runscript("export BUILD_ID=" + env.BUILD_ID)                
                 def out = runScript(clientRun, true)
-
                 loganClients_shutdown[nodeName] = {
                     node(nodeName){
                         runScript("kill " + out, false)
@@ -219,9 +221,11 @@ for(def i = 0; i < nodeKeys.size(); i++){
         }
     }
 }
+}
 
-stage("Start logan servers")
-parallel loganServers
+stage("Start logan servers"){
+    parallel loganServers
+}
 
 
 stage("Start logan clients"){
@@ -239,5 +243,6 @@ stage("Execute Model"){
 stage("Stop logan clients"){
     parallel loganClients_shutdown
 }
-stage("Stop logan servers")
+stage("Stop logan servers"){
     parallel loganServers_shutdown
+}
