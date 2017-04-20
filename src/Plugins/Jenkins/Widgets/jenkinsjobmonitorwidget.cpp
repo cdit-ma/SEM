@@ -300,8 +300,8 @@ void JenkinsJobMonitorWidget::themeChanged()
                              "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
 
     foreach(auto monitor, consoleMonitors.values()){
-        monitor->stop_job->setIcon(theme->getIcon("Icons", "crossCircleDark"));
-        monitor->jenkins_action->setIcon(Theme::theme()->getIcon("Icons", "globe"));
+        monitor->stop_job->setIcon(theme->getIcon("Icons", "circleCrossDark"));
+        monitor->jenkins_action->setIcon(theme->getIcon("Icons", "globe"));
     }
 }
 
@@ -321,7 +321,7 @@ void JenkinsJobMonitorWidget::_stopJob(QString jobName, int buildNumber, QString
 void JenkinsJobMonitorWidget::_gotoJenkinsURL(QString jobName, int buildNumber, QString activeConfiguration)
 {
     if(activeConfiguration == ""){
-        auto url = jenkins->getURL() + "blue/organizations/jenkins/" + jobName + "/detail/ " + jobName + "/" + QString::number(buildNumber) + "/pipeline";
+        auto url = jenkins->getURL() + "blue/organizations/jenkins/" + jobName + "/detail/" + jobName + "/" + QString::number(buildNumber) + "/pipeline";
         emit gotoURL(url);
     }
 }
