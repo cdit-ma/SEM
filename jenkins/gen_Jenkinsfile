@@ -187,7 +187,6 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganServers[nodeName] = {
             node(nodeName){
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                runScript("export BUILD_ID=" + env.BUILD_ID, false)
                 def out = runScript(serverRun, true)
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
@@ -210,7 +209,6 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganClients[nodeName] = {
             node(nodeName){
                 def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
-                runScript("export BUILD_ID=" + env.BUILD_ID, false)                
                 def out = runScript(clientRun, true)
                 loganClients_shutdown[nodeName] = {
                     node(nodeName){
@@ -241,8 +239,8 @@ stage("Execute Model"){
 }
 
 stage("Stop logan clients"){
-    //parallel loganClients_shutdown
+    parallel loganClients_shutdown
 }
 stage("Stop logan servers"){
-    //parallel loganServers_shutdown
+    parallel loganServers_shutdown
 }
