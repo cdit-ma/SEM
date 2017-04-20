@@ -241,8 +241,8 @@ stage("Execute Model"){
 }
 
 stage("Stop logan clients"){
-    parallel loganClients_shutdown
+    //parallel loganClients_shutdown
 }
 stage("Stop logan servers"){
-    parallel loganServers_shutdown
+    //parallel loganServers_shutdown
 }
