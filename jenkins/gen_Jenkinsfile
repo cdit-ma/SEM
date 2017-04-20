@@ -185,7 +185,6 @@ for(def i = 0; i < nodeKeys.size(); i++){
 
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
-            stage("test"){
             node(nodeName){
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
                 def out = runScript(serverRun, true)
@@ -195,7 +194,6 @@ for(def i = 0; i < nodeKeys.size(); i++){
                         archiveArtifacts databaseFile
                     }
                 }
-            }
             }
         }
     }
