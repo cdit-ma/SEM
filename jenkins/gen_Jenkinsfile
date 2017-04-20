@@ -60,7 +60,6 @@ node(masterNode){
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
     def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
@@ -187,10 +186,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganServers[nodeName] = {
             node(nodeName){
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                print("THIS IS THE NEW FILE" + serverRun)
                 def out = runScript(serverRun, true)
-                print("THIS IS THE NEW FILE" + out + "%%%%")
-
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
                         runScript("kill " + out, false)
@@ -224,8 +220,11 @@ for(def i = 0; i < nodeKeys.size(); i++){
     }
 }
 
-stage("Start logan"){
-    parallel loganServers
+stage("Start logan servers")
+parallel loganServers
+
+
+stage("Start logan clients"){
     parallel loganClients
 }
 
@@ -237,7 +236,8 @@ stage("Execute Model"){
     parallel reManagers
 }
 
-stage("Teardown"){
+stage("Stop logan clients"){
     parallel loganClients_shutdown
-    parallel loganServers_shutdown
 }
+stage("Stop logan servers")
+    parallel loganServers_shutdown
