@@ -69,7 +69,7 @@ void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
     joptions.add_whitespace = true;
 
     std::cout << google::protobuf::util::MessageToJsonString(*cm, &json, joptions) << std::endl;
-    std::cout << json << std::endl;
+    std::cout <<"%%" << json  << "%%" << std::endl;
 
     switch(cm->type()){
         case NodeManager::ControlMessage::STARTUP:{
