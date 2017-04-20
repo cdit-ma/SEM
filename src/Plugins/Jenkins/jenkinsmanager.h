@@ -14,11 +14,13 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
+#include "../../Utils/processrunner.h"
 #include "../../Controllers/ActionController/actioncontroller.h"
 
 class JenkinsJobMonitorWidget;
 
 #include "../../Controllers/SettingsController/settingscontroller.h"
+
 
 class JenkinsManager: public QObject
 {
@@ -31,7 +33,9 @@ public:
     void setActionController(ActionController* actionController);
     ActionController* getActionController();
     QString getUsername();
-
+    QString getURL();
+    void RequestNodeList();
+    void RequestBuildJob(QString jobName, Jenkins_JobParameters jobParameters);
 
     JenkinsJobMonitorWidget* getJobMonitorWidget();
     void setURL(QString url);
@@ -53,6 +57,7 @@ public slots:
     void getJenkinsNodes();
     void executeJenkinsJob(QString modelFilePath);
 signals:
+    void terminate();
     void gotJenkinsNodeGraphml(QString data);
     void jenkinsReady(bool ready);
 
@@ -63,12 +68,13 @@ signals:
     void settingsValidationComplete(bool valid, QString message);
     void gotValidJava(bool valid, QString javaVersion);
 
-    void _runGroovyScript(QString, QString);
+    void _runGroovyScript(QString);
 private slots:
-    void _gotJenkinsNodes(QString data = "");
+    void gotJenkinsNodes(bool success, QString data);
     void settingChanged(SETTING_KEY key, QVariant value);
     void gotSettingsValidationResponse(bool valid, QString message);
 private:
+
 
     void setJenkinsBusy(bool busy);
     void validateJenkinsSettings();
@@ -82,7 +88,7 @@ private:
 
     ActionController* actionController;
     //CLI getter helper functions.
-    QString getURL();
+    //QString getURL();
     QString getCLIPrefix();
     QString getCLILoginSuffix();
     QString getCLIPath();

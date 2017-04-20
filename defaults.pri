@@ -12,10 +12,13 @@ INCLUDEPATH += $$PWD/src
 DEPENDPATH += $$PWD/src
 SRC_DIR = $$PWD
 
+#CONFIG += c++11
+
 QT	+= core
 QT	+= xml
 QT	+= gui
 QT	+= widgets
 QT	+= xmlpatterns
+
 
 CONFIG -= debug_and_release debug_and_release_target

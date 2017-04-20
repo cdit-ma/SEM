@@ -51,16 +51,15 @@ JenkinsStartJobWidget::~JenkinsStartJobWidget()
 void JenkinsStartJobWidget::getJenkinsData(QString jobName)
 {
     //Construct a new JenkinsRequest Object.
-    JenkinsRequest* jenkinsP = jenkins->getJenkinsRequest(this);
+    JenkinsRequest* jenkinsRequest = jenkins->getJenkinsRequest(this);
 
     //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-    connect(this, SIGNAL(getJobParameters(QString)), jenkinsP, SLOT(getJobParameters(QString)));
-    connect(jenkinsP, SIGNAL(gotJobParameters(QString,Jenkins_JobParameters)), this, SLOT(gotJobParameters(QString, Jenkins_JobParameters)));
+    auto r = connect(this, &JenkinsStartJobWidget::getJobParameters, jenkinsRequest, &JenkinsRequest::getJobParameters);
+    connect(jenkinsRequest, &JenkinsRequest::gotJobParameters, this, &JenkinsStartJobWidget::gotJobParameters);
 
     //Emit request SIGNAL
-    getJobParameters(jobName);
-    //Disconnect request SIGNAL.
-    disconnect(this, SIGNAL(getJobParameters(QString)), jenkinsP, SLOT(getJobParameters(QString)));
+    emit getJobParameters(jobName);
+    disconnect(r);
 }
 
 /**
@@ -118,6 +117,7 @@ void JenkinsStartJobWidget::build()
 
     connect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::buildJob);
     connect(jenkins_build, &JenkinsRequest::gotJobStateChange, jjmw, &JenkinsJobMonitorWidget::gotJobStateChange);
+    connect(jenkins_build, &JenkinsRequest::gotLiveJobConsoleOutput, jjmw, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
 
     //Show the new Widget.
     jjmw->show();

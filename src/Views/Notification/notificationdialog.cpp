@@ -989,19 +989,23 @@ void NotificationDialog::setupBackgroundProcessItems()
         case BP_IMPORT_JENKINS:
             description = "Importing Jenkins Nodes ...";
             break;
+        case BP_RUNNING_JOB:
+            description = "Running Jenkins Job...";
+            break;
         default:
             description = "Background Process In Progress ...";
             break;
         }
 
-        QMovie* loadingGif = new QMovie(this);
-        loadingGif->setFileName(":/Actions/Waiting");
-        loadingGif->start();
+        //QMovie* loadingGif = new QMovie(this);
+        //loadingGif->setFileName(":/Images/Icons/loading");
+        //loadingGif->setScaledSize(QSize(32,32));
+        //loadingGif->start();
 
         //QLabel* textLabel = new QLabel("<i>" + description + "</i>", this);
         QLabel* textLabel = new QLabel(description, this);
         QLabel* iconLabel = new QLabel(this);
-        iconLabel->setMovie(loadingGif);
+        //iconLabel->setMovie(loadingGif);
 
         QFrame* frame = new QFrame(this);
         frame->setStyleSheet("border: 1px 0px;");

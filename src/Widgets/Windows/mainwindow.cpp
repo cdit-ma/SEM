@@ -1057,7 +1057,10 @@ void MainWindow::setupJenkinsManager()
         jenkinsManager = new JenkinsManager(this);
         jenkinsManager->setActionController(viewController->getActionController());
         //JenkinsJobMonitorWidget* j = new JenkinsJobMonitorWidget(0, jenkinsManager, "");
-        jenkinsDockWidget->setWidget(jenkinsManager->getJobMonitorWidget());
+
+        auto jmw = jenkinsManager->getJobMonitorWidget();
+        jenkinsDockWidget->setWidget(jmw);
+        connect(jmw, &JenkinsJobMonitorWidget::gotoURL, viewController, &ViewController::openURL);
 
 
         connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
@@ -1070,7 +1073,7 @@ void MainWindow::setupJenkinsManager()
         connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
 
         connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
-        connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString val){jenkinsDockWidget->setVisible(true);});
+        connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
 
         jenkinsManager->validateSettings();
     }

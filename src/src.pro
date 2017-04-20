@@ -191,7 +191,8 @@ HEADERS += \
     Model/BehaviourDefinitions/variableparameter.h \
     Model/root.h \
     Model/DeploymentDefinitions/loggingprofile.h \
-    Model/DeploymentDefinitions/loggingserver.h
+    Model/DeploymentDefinitions/loggingserver.h \
+    Utils/processrunner.h
 
 
 SOURCES += \
@@ -375,7 +376,8 @@ SOURCES += \
     Model/BehaviourDefinitions/variableparameter.cpp \
     Model/root.cpp \
     Model/DeploymentDefinitions/loggingprofile.cpp \
-    Model/DeploymentDefinitions/loggingserver.cpp
+    Model/DeploymentDefinitions/loggingserver.cpp \
+    Utils/processrunner.cpp
 
 RESOURCES += \
     workers.qrc \

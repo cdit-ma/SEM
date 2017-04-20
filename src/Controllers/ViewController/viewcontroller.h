@@ -243,7 +243,7 @@ public slots:
 
     void setModelReady(bool okay);
     void setControllerReady(bool ready);
-
+    void openURL(QString url);
 
 private slots:
     void initializeController();

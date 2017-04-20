@@ -35,6 +35,8 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
 
     setupLayout();
     themeChanged();
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &JenkinsJobMonitorWidget::themeChanged);
 }
 
 /**
@@ -71,22 +73,16 @@ void JenkinsJobMonitorWidget::setupLayout()
     verticalLayout->addWidget(tabWidget,1);
 
     action_toolbar = new QToolBar(this);
+    action_toolbar->setIconSize(QSize(20,20));
     action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     build_action = jenkins->getActionController()->jenkins_executeJob->constructSubAction();
     action_toolbar->addAction(build_action);
-    stop_action = action_toolbar->addAction("Stop Job");
-
-    //connect(build_action, &QAction::triggered, jenkins, &JenkinsManager::executeJenkinsJob);
-    connect(stop_action, &QAction::triggered, this, &JenkinsJobMonitorWidget::stopPressed);
 
     verticalLayout->addWidget(action_toolbar, 0, Qt::AlignRight);
 
     tabWidget->setTabsClosable(true);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-
-    //build_action->setVisible(true);
-    stop_action->setVisible(false);
 }
 
 /**
@@ -135,9 +131,7 @@ void JenkinsJobMonitorWidget::setJobState(QString jobName, int buildNumber, QStr
         }
 
         //Update and hide stop button
-        if(is_master){
-            stop_action->setVisible(state == BUILDING);
-        }
+        monitor->stop_job->setEnabled(state == BUILDING);
 
         int tab_index = getTabIndex(tab_name);
         if(tab_index >= 0 && resourceName != ""){
@@ -208,39 +202,64 @@ void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QString
 
         if(!consoleMonitors.contains(tab_name)){
             auto monitor = new ConsoleMonitor();
+
             monitor->browser = new QTextBrowser(this);
             auto browser = monitor->browser;
+            monitor->job_name = job_name;
+            monitor->job_number = job_build;
+            monitor->configuration_name = config;
 
             monitor->state = NO_JOB;
 
             browser->setEnabled(true);
             browser->setOpenExternalLinks(true);
             consoleMonitors[tab_name] = monitor;
-            tabWidget->addTab(browser, tab_name);
+
+            auto widget = new QWidget(this);
+            QVBoxLayout* verticalLayout = new QVBoxLayout(widget);
+            verticalLayout->addWidget(browser, 1);
+            QToolBar* toolbar = new QToolBar(widget);
+            toolbar->setIconSize(QSize(20,20));
+            toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+            verticalLayout->addWidget(toolbar);
+
+            auto stop_action = toolbar->addAction("Stop Job");
+            auto jenkins_action = toolbar->addAction("Open Jenkins");
+            stop_action->setIcon(Theme::theme()->getIcon("Icons", "circleCrossDark"));
+            jenkins_action->setIcon(Theme::theme()->getIcon("Icons", "globe"));
+            monitor->stop_job = stop_action;
+            monitor->jenkins_action = jenkins_action;
+
+
+
+
+
+
+
+            connect(stop_action, &QAction::triggered, this, [this, monitor](){_stopJob(monitor->job_name, monitor->job_number, monitor->configuration_name);});
+            connect(jenkins_action, &QAction::triggered, this, [this, monitor](){_gotoJenkinsURL(monitor->job_name, monitor->job_number, monitor->configuration_name);});
+
+            tabWidget->addTab(widget, tab_name);
 
             //Construct a JenkinsRequest Object to get the Console Output of this Configuration
             JenkinsRequest* console_request = jenkins->getJenkinsRequest(browser);
-            JenkinsRequest* state_request = jenkins->getJenkinsRequest(browser);
 
             //Connect the emit signals from this to the JenkinsRequest Thread.
             connect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
-            connect(this, &JenkinsJobMonitorWidget::getJobState, state_request, &JenkinsRequest::getJobState);
 
             //Connect the return signals
-            connect(state_request, &JenkinsRequest::gotJobStateChange, this, &JenkinsJobMonitorWidget::gotJobStateChange);
-            connect(console_request, &JenkinsRequest::gotLiveCLIOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
+            connect(console_request, &JenkinsRequest::gotJobStateChange, this, &JenkinsJobMonitorWidget::gotJobStateChange);
+            connect(console_request, &JenkinsRequest::gotLiveJobConsoleOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
 
             //Get the job info
-            emit getJobConsoleOutput(job_name, job_build, config);
-
             if(config != ""){
-                //Request the Job State
-                emit getJobState(job_name, job_build, config);
+                emit getJobConsoleOutput(job_name, job_build, config);
             }
 
             //Disconnect the request signals
             disconnect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
-            disconnect(this, &JenkinsJobMonitorWidget::getJobState, state_request, &JenkinsRequest::getJobState);
+
         }
     }
 }
@@ -274,21 +293,36 @@ void JenkinsJobMonitorWidget::themeChanged()
     job_label->setStyleSheet(theme->getTitleLabelStyleSheet());
 
     build_action->setIcon(theme->getIcon("Icons", "jobBuild"));
-    stop_action->setIcon(theme->getIcon("Icons", "jenkinsStop"));
+
 
     tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() +
                              "QTabBar::tab:selected{ background:" % theme->getPressedColorHex() % "; color:" % theme->getTextColorHex(Theme::CR_SELECTED) % ";}"
                              "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
+
+    foreach(auto monitor, consoleMonitors.values()){
+        monitor->stop_job->setIcon(theme->getIcon("Icons", "crossCircleDark"));
+        monitor->jenkins_action->setIcon(Theme::theme()->getIcon("Icons", "globe"));
+    }
 }
 
-void JenkinsJobMonitorWidget::stopPressed()
+void JenkinsJobMonitorWidget::_stopJob(QString jobName, int buildNumber, QString activeConfiguration)
 {
-    if(job_name != "" && job_build > 0){
+    auto tab_name = getTabName(activeConfiguration, buildNumber);
+    auto monitor = consoleMonitors.value(tab_name, 0);
+    if(monitor && monitor->state == BUILDING){
         //Construct a new JenkinsRequest Object.
         JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
-        connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
-        emit stopJob(job_name, job_build, "");
-        disconnect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
+        auto r = connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
+        emit stopJob(jobName, buildNumber, activeConfiguration);
+        disconnect(r);
+    }
+}
+
+void JenkinsJobMonitorWidget::_gotoJenkinsURL(QString jobName, int buildNumber, QString activeConfiguration)
+{
+    if(activeConfiguration == ""){
+        auto url = jenkins->getURL() + "blue/organizations/jenkins/" + jobName + "/detail/ " + jobName + "/" + QString::number(buildNumber) + "/pipeline";
+        emit gotoURL(url);
     }
 }
 

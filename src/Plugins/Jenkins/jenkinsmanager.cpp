@@ -6,8 +6,16 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QThreadPool>
+#include <QFutureWatcher>
+//#include <QtWebEngineView>
+
+#include <QUrlQuery>
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include "../../Controllers/SettingsController/settingscontroller.h"
+#include "../../Utils/filehandler.h"
 
 #include "Widgets/jenkinsjobmonitorwidget.h"
 #include "Widgets/jenkinsstartjobwidget.h"
@@ -27,6 +35,8 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();
     qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
     qRegisterMetaType<JOB_STATE>("JOB_STATE");
+    qRegisterMetaType<CommandResult>("CommandResult");
+
 
 
 
@@ -67,6 +77,79 @@ QString JenkinsManager::getUsername()
 {
     return username;
 }
+
+void JenkinsManager::RequestNodeList(){
+
+
+
+
+
+    //}
+    //auto f = JR->post(getURL() + "job/re_gen/buildWithParameters", script.toString().toUtf8());
+
+
+    /*
+     * Get Jenkins Nodes!
+    auto test = QUrl::toPercentEncoding(FileHandler::readTextFile(scriptPath + "Jenkins_Construct_GraphMLNodesList.groovy"));
+    QUrlQuery script;
+    script.addQueryItem("script", test);
+
+    auto JR = getJenkinsRequest(this);
+    QTime myTimer;
+    myTimer.start();
+
+    auto f = JR->post(getURL() + "scriptText", script.toString().toUtf8());
+    // do something..
+    int nMilliseconds = myTimer.elapsed();
+    qCritical() << "API: " << nMilliseconds;
+    emit gotJenkinsNodeGraphml(f.second);*/
+    return;
+
+
+
+    //return;
+    /*
+    ProcessRunner* runner = new ProcessRunner();
+    connect(runner, &ProcessRunner::Finished, this, &JenkinsManager::gotNodeList);
+
+    //Construct our command
+    QStringList args;
+    args << "groovy";
+    args << scriptPath + "somescript.groovy";
+    args = getCLIArguments(args);
+
+    QString program = args.takeFirst();
+
+    //QFutureWatcher<CommandResult> watcher;
+    runner->RunProcess(program, args, getCLIPath());
+    emit NotificationManager::manager()->backgroundProcess(true, BP_IMPORT_JENKINS);
+    */
+}
+
+void JenkinsManager::RequestBuildJob(QString jobName, Jenkins_JobParameters jobParameters)
+{
+    //Self die
+    ProcessRunner* runner = new ProcessRunner();
+
+    QStringList args;
+    args << "build";
+    args << jobName;
+
+    //Attach arguments
+    foreach(Jenkins_Job_Parameter parameter, jobParameters){
+        args << "-p";
+        args << parameter.name + "=" + parameter.value;
+    }
+    args << "-f" << "-v";
+
+    args = getCLIArguments(args);
+
+    QString program = args.takeFirst();
+    //Start in background
+    QtConcurrent::run(QThreadPool::globalInstance(), runner, &ProcessRunner::RunProcess, program, args, getCLIPath());
+    //return runner;
+}
+
 
 JenkinsJobMonitorWidget *JenkinsManager::getJobMonitorWidget()
 {
@@ -221,16 +304,15 @@ void JenkinsManager::validateSettings()
 
 void JenkinsManager::getJenkinsNodes()
 {
-    if(!_jenkinsBusy){
-        setJenkinsBusy(true);
-        JenkinsRequest* jenkinsGS = getJenkinsRequest(this);
-        connect(this, &JenkinsManager::_runGroovyScript, jenkinsGS, &JenkinsRequest::runGroovyScript);
-        connect(jenkinsGS, &JenkinsRequest::gotGroovyScriptOutput, this, &JenkinsManager::_gotJenkinsNodes);
-        connect(jenkinsGS, &JenkinsRequest::requestFailed, this, &JenkinsManager::_gotJenkinsNodes);
-        emit _runGroovyScript(scriptPath % "Jenkins_Construct_GraphMLNodesList.groovy", getJobName());
+    setJenkinsBusy(true);
+    auto request = getJenkinsRequest();
+    connect(request, &JenkinsRequest::gotGroovyScriptOutput, this, &JenkinsManager::gotJenkinsNodes);
+    auto r = connect(this, &JenkinsManager::_runGroovyScript, request, &JenkinsRequest::runGroovyScript);
 
-        disconnect(this, &JenkinsManager::_runGroovyScript, jenkinsGS, &JenkinsRequest::runGroovyScript);
-    }
+    //Read in the contents of the script
+    auto script = FileHandler::readTextFile(scriptPath + "Jenkins_Construct_GraphMLNodesList.groovy");
+    emit _runGroovyScript(script);
+    disconnect(r);
 }
 
 void JenkinsManager::executeJenkinsJob(QString modelFilePath)
@@ -238,15 +320,20 @@ void JenkinsManager::executeJenkinsJob(QString modelFilePath)
     if(hasValidatedSettings()){
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(jobName, this);
         jenkinsSJ->requestJob(jobName, modelFilePath);
-
-        //Show the Jenkins View
     }
 }
 
-void JenkinsManager::_gotJenkinsNodes(QString data)
+void JenkinsManager::gotJenkinsNodes(bool success, QString data)
 {
-    emit gotJenkinsNodeGraphml(data);
     setJenkinsBusy(false);
+    emit NotificationManager::manager()->backgroundProcess(false, BP_IMPORT_JENKINS);
+
+    if(success){
+        emit gotJenkinsNodeGraphml(data);
+        NotificationManager::manager()->displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+    }else{
+        NotificationManager::manager()->displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NS_ERROR, NT_MODEL, NC_JENKINS);
+    }
 }
 
 void JenkinsManager::settingChanged(SETTING_KEY key, QVariant value)
@@ -292,6 +379,7 @@ void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
     setJenkinsBusy(false);
     emit settingsValidationComplete(valid, message);
 }
+
 
 void JenkinsManager::setJenkinsBusy(bool busy)
 {
@@ -478,8 +566,7 @@ QStringList JenkinsManager::getCLIArguments(QStringList args)
     command << username;
     command << "--password";
     command << password;
-    command << "-f";
-    command << "-v";
+
     return command;
 }
 

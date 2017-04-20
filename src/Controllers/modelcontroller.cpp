@@ -578,6 +578,13 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
         action.ID = parent->getID();
         action.Data.oldValue = parent->getDataValue(keyName);
 
+        if(keyName == "x" || keyName == "y"){
+            //Changing to -1?
+            if(dataValue == -1){
+                return;
+            }
+        }
+
         if(dataValue == action.Data.oldValue){
             //Don't update if we have got the same value in the model.
             return;
@@ -4847,6 +4854,7 @@ void ModelController::importProjects(QStringList xmlDataList)
     emit showProgress(true, "Importing Projects");
     IMPORTING_PROJECT = true;
     bool success = _importProjects(xmlDataList);
+    qCritical() << success;
     IMPORTING_PROJECT = false;
     emit showProgress(false);
     lock.unlock();

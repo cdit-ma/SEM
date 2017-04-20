@@ -17,6 +17,7 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 NotificationManager* NotificationManager::manager()
 {
     if (!managerSingleton) {
+        qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
         managerSingleton = new NotificationManager();
         projectRunTime->start();
     }
@@ -104,6 +105,7 @@ QList<BACKGROUND_PROCESS> NotificationManager::getBackgroundProcesses()
     processes.append(BP_UNKNOWN);
     processes.append(BP_VALIDATION);
     processes.append(BP_IMPORT_JENKINS);
+    processes.append(BP_RUNNING_JOB);
     return processes;
 }
 

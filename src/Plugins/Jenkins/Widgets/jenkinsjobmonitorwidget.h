@@ -18,6 +18,12 @@ class JenkinsJobMonitorWidget: public QDialog
     struct ConsoleMonitor{
         JOB_STATE state;
         QTextBrowser* browser;
+        QAction* stop_job;
+        QAction* jenkins_action;
+
+        int job_number;
+        QString job_name;
+        QString configuration_name;
     };
 
     Q_OBJECT
@@ -28,16 +34,18 @@ signals:
     void getJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration);
     void getJobState(QString jobName, int buildNumber, QString activeConfiguration);
     void stopJob(QString jobName, int buildNumber, QString activeConfiguration);
-
+    void gotoURL(QString url);
 public slots:
     void gotJobStateChange(QString jobName, int buildNumber, QString activeConfiguration, JOB_STATE jobState);
     void gotJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration, QString consoleOutput);
 private slots:
     void themeChanged();
-    void stopPressed();
     void frameChanged(int frame);
     void closeTab(int tabID);
 private:
+    void _stopJob(QString jobName, int buildNumber, QString activeConfiguration);
+    void _gotoJenkinsURL(QString jobName, int buildNumber, QString activeConfiguration);
+
     void setupLayout();
     void setJobState(QString jobName, int buildNumber, QString config, JOB_STATE state);
     void setupTabs(QString job_name, int job_build, QStringList configurations);
@@ -59,7 +67,6 @@ private:
     JenkinsManager* jenkins;
 
     QAction* build_action;
-    QAction* stop_action;
     QToolBar* action_toolbar;
 };
 

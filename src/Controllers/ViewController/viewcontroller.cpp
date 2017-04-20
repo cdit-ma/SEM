@@ -521,23 +521,12 @@ void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
-    bool hasData = !graphmlData.isEmpty();
-    NOTIFICATION_SEVERITY severity = hasData ? NS_INFO : NS_ERROR;
-    QString message = hasData ? "Imported Jenkins nodes successfully" : "Failed to import Jenkins nodes";
-
-    if(hasData){
+    if(!graphmlData.isEmpty()){
         emit vc_triggerAction("Loading Jenkins Nodes");
         QStringList fileData;
         fileData << graphmlData;
         emit vc_importProjects(fileData);
-    }else{
-        //Hanlde error!
     }
-
-    emit vc_backgroundProcess(false, BP_IMPORT_JENKINS);
-
-    // MODEL or APPLICATION type?
-    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NT_MODEL, NC_JENKINS);
 }
 
 void ViewController::getCodeForComponent()
@@ -954,6 +943,11 @@ void ViewController::setControllerReady(bool ready)
     emit vc_controllerReady(ready);
 }
 
+void ViewController::openURL(QString url)
+{
+    _showWebpage(url);
+}
+
 void ViewController::deleteSelection()
 {
     if(selectionController){
@@ -1368,6 +1362,7 @@ void ViewController::closeMEDEA()
 void ViewController::importJenkinsNodes()
 {
     emit vc_backgroundProcess(true, BP_IMPORT_JENKINS);
+
 }
 
 void ViewController::executeJenkinsJob()
