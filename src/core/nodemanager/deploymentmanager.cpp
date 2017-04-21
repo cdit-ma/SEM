@@ -63,14 +63,6 @@ void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
 void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
     std::lock_guard<std::mutex> lock(mutex_);
 
-    std::string json;
-
-    google::protobuf::util::JsonPrintOptions joptions;
-    joptions.add_whitespace = true;
-
-    std::cout << google::protobuf::util::MessageToJsonString(*cm, &json, joptions) << std::endl;
-    std::cout <<"%%" << json  << "%%" << std::endl;
-
     switch(cm->type()){
         case NodeManager::ControlMessage::STARTUP:{
             if(!deployment_){

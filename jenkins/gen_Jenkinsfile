@@ -79,7 +79,7 @@ node(masterNode){
     dir(reGenPath){
         if("${checkout}" == 'true'){
             stage('Checkout Transforms'){
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '1f1e1fcb-b84a-48a4-be37-0aac3118caa0', url: 'https://github.com/cdit-ma/re_gen.git']]])
             }
         }
     }
