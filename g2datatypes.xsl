@@ -138,13 +138,13 @@
             <xsl:value-of select="o:get_base_data_type_cmake($aggregate, $members, $vectors, $aggregate_inst)" />
         </xsl:result-document>
 
+
+        </xsl:for-each>
+
         <xsl:variable name="middleware_list" select="tokenize(normalize-space(concat($middlewares, ',base')), ',')" />
         <xsl:result-document href="{o:xsl_wrap_file($ports_cmake)}">
             <xsl:value-of select="cdit:get_middleware_subfolder_cmake($middleware_list, $aggregates)" />
         </xsl:result-document>
-        
-
-        </xsl:for-each>
 
         <xsl:variable name="top_cmake" select="'CMakeLists.txt'" />
 
