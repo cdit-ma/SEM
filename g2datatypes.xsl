@@ -108,12 +108,6 @@
                         <xsl:value-of select="o:get_libport_export($aggregate, $mw, $base_type, $mw_type)" />
                     </xsl:result-document>
                 </xsl:if>
-
-                <!-- Using CMake for make file construction-->
-                <!-- Write File: middleware/{MIDDLEWARE}/CMakeLists.txt
-                <xsl:result-document href="{o:xsl_wrap_file($port_cmake)}">
-                    <xsl:value-of select="o:get_mw_type_cmake($aggregate, $members, $vectors, $aggregate_inst, $mw)" />
-                </xsl:result-document> -->
             </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
@@ -141,8 +135,10 @@
 
         </xsl:for-each>
 
+        <xsl:variable name="datatype_cmake" select="'datatypes/CMakeLists.txt'" />
+        <!-- Write out a datatype cmake file -->
         <xsl:variable name="middleware_list" select="tokenize(normalize-space(concat($middlewares, ',base')), ',')" />
-        <xsl:result-document href="{o:xsl_wrap_file($ports_cmake)}">
+        <xsl:result-document href="{o:xsl_wrap_file($datatype_cmake)}">
             <xsl:value-of select="cdit:get_middleware_subfolder_cmake($middleware_list, $aggregates)" />
         </xsl:result-document>
 
