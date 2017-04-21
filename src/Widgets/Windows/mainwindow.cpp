@@ -34,17 +34,12 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-
     initializeApplication();
-
-    jenkinsManager = 0;
-    cutsManager = 0;
     viewController = vc;
 
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
-    setupCUTSManager();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
@@ -104,8 +99,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
  */
 MainWindow::~MainWindow()
 {
-    cutsManager->deleteLater();
-
     saveSettings();
 
     SettingsController::teardownSettings();
@@ -1053,59 +1046,12 @@ void MainWindow::setupViewManager()
  */
 void MainWindow::setupJenkinsManager()
 {
-    if(!jenkinsManager){
-        jenkinsManager = new JenkinsManager(this);
-        jenkinsManager->setActionController(viewController->getActionController());
-        //JenkinsJobMonitorWidget* j = new JenkinsJobMonitorWidget(0, jenkinsManager, "");
-
-        auto jmw = jenkinsManager->GetJobMonitorWidget();
-        jenkinsDockWidget->setWidget(jmw);
-        connect(jmw, &JenkinsJobMonitorWidget::gotoURL, viewController, &ViewController::openURL);
-
-
-        connect(jenkinsManager, &JenkinsManager::gotValidSettings, viewController, &ViewController::jenkinsManager_SettingsValidated);
-        //connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
-
-
-        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::GetNodes);
-
-        connect(jenkinsManager, &JenkinsManager::GotJenkinsNodes, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
-        connect(jenkinsManager, &JenkinsManager::JenkinsReady, viewController, &ViewController::vc_JenkinsReady);
-
-        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::BuildJob);
-        connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
-
-        jenkinsManager->ValidateSettings();
-    }
-
+    auto jenkinsManager = viewController->getJenkinsManager();
+    auto jmw = jenkinsManager->GetJobMonitorWidget();
+    jenkinsDockWidget->setWidget(jmw);
+    connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
 }
 
-
-/**
- * @brief MedeaMainWindow::setupCUTSManager
- */
-void MainWindow::setupCUTSManager()
-{
-    if(!cutsManager ){
-        cutsManager  = new CUTSManager();
-        xmiImporter = new XMIImporter(cutsManager, this);
-
-        //connect(cutsManager, &CUTSManager::localDeploymentOkay, viewController, &ViewController::cutsManager_DeploymentOkay);
-        connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
-        connect(viewController, &ViewController::vc_importXMEProject, cutsManager, &CUTSManager::executeXMETransform);
-
-        connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
-        connect(viewController, &ViewController::vc_launchLocalDeployment, cutsManager, &CUTSManager::showLocalDeploymentGUI, Qt::DirectConnection);
-
-        connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
-        connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
-        connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
-
-        connect(viewController, &ViewController::vc_importXMIProject, xmiImporter, &XMIImporter::importXMI);
-        connect(xmiImporter, &XMIImporter::loadingStatus, this, &MainWindow::showProgressBar);
-        connect(xmiImporter, &XMIImporter::gotXMIGraphML, viewController, &ViewController::importGraphMLExtract);
-    }
-}
 
 
 /**

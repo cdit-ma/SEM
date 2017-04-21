@@ -1,6 +1,7 @@
 #include "jenkinsmanager.h"
 #include "jenkinsrequest.h"
 
+#include "../ViewController/viewcontroller.h"
 #include "../ActionController/actioncontroller.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../../Utils/filehandler.h"
@@ -12,12 +13,13 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-JenkinsManager::JenkinsManager(QObject* parent) : QObject(parent)
+JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_controller)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
     qRegisterMetaType<JOB_STATE>("JOB_STATE");
 
+    view_controller_ = view_controller;
     //Set script directory
     scipts_path_ = QApplication::applicationDirPath() % "/Resources/scripts/";
 
@@ -31,18 +33,21 @@ JenkinsManager::JenkinsManager(QObject* parent) : QObject(parent)
         SettingChanged(key, settings->getSetting(key));
     }
 
+
+    connect(GetJobMonitorWidget(), &JenkinsJobMonitorWidget::gotoURL, view_controller, &ViewController::openURL);
+    connect(this, &JenkinsManager::gotValidSettings, view_controller, &ViewController::jenkinsManager_SettingsValidated);
+    connect(this, &JenkinsManager::GotJenkinsNodes, view_controller, &ViewController::jenkinsManager_GotJenkinsNodesList);
+    connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::vc_JenkinsReady);
+
+    connect(view_controller, &ViewController::vc_executeJenkinsJob, this, &JenkinsManager::BuildJob);
+
     //Validate
     ValidateSettings();
 }
 
-void JenkinsManager::setActionController(ActionController *actionController)
-{
-    this->action_controller_ = actionController;
-}
-
 ActionController *JenkinsManager::GetActionController()
 {
-    return action_controller_;
+    return view_controller_->getActionController();
 }
 
 QString JenkinsManager::GetUser()

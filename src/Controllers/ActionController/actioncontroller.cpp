@@ -18,6 +18,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
     _controllerReady = false;
     _modelReady = false;
     _jenkinsValidated = false;
+    _gotJava = false;
     setupActions();
 
     setupMainMenu();
@@ -46,6 +47,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
         connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
+        connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
+
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::updateRecentProjects);
 
@@ -105,11 +108,11 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
+        connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
 
-
-        connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
-        connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
-        connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
+        //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
+        //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
+        //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
         connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
         connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
 
@@ -242,6 +245,14 @@ void ActionController::jenkinsValidated(bool success)
     }
 }
 
+void ActionController::gotJava(bool java)
+{
+    if(_gotJava != java){
+        _gotJava = java;
+        updateJenkinsActions();
+    }
+}
+
 void ActionController::selectionChanged(int selectionSize)
 {
     if(selectionController){
@@ -291,7 +302,7 @@ void ActionController::selectionChanged(int selectionSize)
         file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
 
-        model_getCodeForComponent->setEnabled(hasCode);
+        model_getCodeForComponent->setEnabled(_gotJava && hasCode);
 
         view_centerOnDefn->setEnabled(hasDefn);
         view_viewDefnInNewWindow->setEnabled(hasDefn);
@@ -379,6 +390,9 @@ void ActionController::updateJenkinsActions()
 
     jenkins_importNodes->setEnabled(modelReady && _jenkinsValidated);
     jenkins_executeJob->setEnabled(modelReady && _jenkinsValidated);
+
+    model_generateModelWorkspace->setEnabled(modelReady && _gotJava);
+    model_validateModel->setEnabled(modelReady && _gotJava);
 }
 
 void ActionController::updateUndoRedo()
@@ -449,8 +463,8 @@ void ActionController::updateActions()
 
 
     file_importGraphML->setEnabled(modelActions);
-    file_importXME->setEnabled(modelActions);
-    file_importXMI->setEnabled(modelActions);
+    //file_importXME->setEnabled(modelActions);
+    //file_importXMI->setEnabled(modelActions);
     file_saveProject->setEnabled(modelActions);
     file_saveAsProject->setEnabled(modelActions);
     file_closeProject->setEnabled(modelActions);
@@ -460,15 +474,16 @@ void ActionController::updateActions()
 
     model_selectModel->setEnabled(modelActions);
     model_validateModel->setEnabled(modelActions);
-    model_executeLocalJob->setEnabled(modelActions);
+    model_generateModelWorkspace->setEnabled(modelActions);
+    //model_executeLocalJob->setEnabled(modelActions);
 
     edit_search->setEnabled(modelActions);
     view_fitView->setEnabled(modelActions);
     view_fitAllViews->setEnabled(modelActions);
 
 
-    jenkins_importNodes->setEnabled(modelActions);
-    jenkins_executeJob->setEnabled(modelActions);
+    //jenkins_importNodes->setEnabled(modelActions);
+    //jenkins_executeJob->setEnabled(modelActions);
     toolbar_contextToolbar->setEnabled(modelActions);
 
     toolbar_addDDSQOSProfile->setEnabled(modelActions);
@@ -621,10 +636,11 @@ void ActionController::setupActions()
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 
 
-    file_importXME = createRootAction("Project", "Import XME Project", "", "Icons", "gme");
-    file_importXME->setToolTip("Import XME Project into current project.");
-    file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
-    file_importXMI->setToolTip("Import XMI Project into current project.");
+    //file_importXME = createRootAction("Project", "Import XME Project", "", "Icons", "gme");
+    //file_importXME->setToolTip("Import XME Project into current project.");
+    //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
+    //file_importXMI->setToolTip("Import XMI Project into current project.");
+
     file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
     file_importSnippet->setToolTip("Import Snippet into selection.");
     file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
@@ -772,10 +788,14 @@ void ActionController::setupActions()
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
-    model_getCodeForComponent = createRootAction("Model", "Get Code for Component", "", "Icons", "getCPP");
+    model_getCodeForComponent = createRootAction("Model", "Generate Code for Component", "", "Icons", "bracketsAngled");
+    model_getCodeForComponent->setToolTip("Generate the C++ Impl code for the selected Component");
 
-    model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
-    model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
+    model_generateModelWorkspace = createRootAction("Model", "Generate Model Workspace", "", "Icons", "briefcase");
+    model_generateModelWorkspace->setToolTip("Generate all the C++ artifacts for the model");
+
+    //model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
+    //model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
 
 
     jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
@@ -865,8 +885,8 @@ void ActionController::setupMainMenu()
     menu_file->addAction(file_closeProject);
     menu_file->addSeparator();
     menu_file->addAction(file_importGraphML);
-    menu_file->addAction(file_importXME);
-    menu_file->addAction(file_importXMI);
+    //menu_file->addAction(file_importXME);
+    //menu_file->addAction(file_importXMI);
     menu_file->addSeparator();
     menu_file->addAction(file_importSnippet);
     menu_file->addAction(file_exportSnippet);
@@ -914,8 +934,9 @@ void ActionController::setupMainMenu()
 
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
+    menu_model->addAction(model_generateModelWorkspace);
 
-    menu_model->addAction(model_executeLocalJob);
+    //menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
 

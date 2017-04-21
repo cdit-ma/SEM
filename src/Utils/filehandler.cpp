@@ -47,6 +47,8 @@ QStringList FileHandler::selectFiles(QString windowTitle, QFileDialog::FileMode 
         fd->setAcceptMode(QFileDialog::AcceptOpen);
     }
 
+    fd->setOption(QFileDialog::ShowDirsOnly, fileMode == QFileDialog::Directory);
+
 
     if(fd->exec()){
         foreach(QString file, fd->selectedFiles()){
@@ -98,6 +100,7 @@ QString FileHandler::writeTempTextFile(QString fileData, QString extension)
     return path;
 }
 
+
 bool FileHandler::writeTextFile(QString filePath, QString fileData)
 {
     QFile file(filePath);
@@ -133,6 +136,17 @@ bool FileHandler::ensureDirectory(QString path)
         }
     }
     return true;
+}
+
+bool FileHandler::removeDirectory(QString path)
+{
+    QDir dir(path);
+    bool success = dir.removeRecursively();
+
+    if(success){
+        _notification(NS_INFO, "Dir: '" % dir.absolutePath() % "' removed!", "Icons", "folder");
+    }
+    return success;
 }
 
 QString FileHandler::getTempFileName(QString suffix)

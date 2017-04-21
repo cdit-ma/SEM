@@ -58,7 +58,7 @@ message("RESOURCE: $${RESOURCE_DIR}")
 #Copy Libs, Transforms and Scripts
 mk_resource.commands += $(MKDIR) $${RESOURCE_DIR}
 copy_libs.commands += $(COPY_DIR) $${ROOT_DIR}/lib $${RESOURCE_DIR}/lib
-copy_transforms.commands += $(COPY_DIR) $${ROOT_DIR}/transforms $${RESOURCE_DIR}/transforms
+copy_transforms.commands += $(COPY_DIR) $${ROOT_DIR}/re_gen $${RESOURCE_DIR}
 copy_scripts.commands += $(COPY_DIR) $${ROOT_DIR}/scripts $${RESOURCE_DIR}/scripts
 first.depends = $(first) mk_resource copy_libs copy_transforms copy_scripts
 QMAKE_EXTRA_TARGETS += first mk_resource copy_libs copy_transforms copy_scripts

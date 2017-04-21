@@ -9,6 +9,9 @@
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
 
+#include "../../Controllers/ExecutionManager/executionmanager.h"
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+
 #include "../modelcontroller.h"
 #include "../../Utils/filehandler.h"
 
@@ -56,12 +59,27 @@ ViewController::ViewController(){
     toolbarController = new ToolbarController(this);
     toolbar = new ContextToolbar(this);
 
+    jenkins_manager = new JenkinsManager(this);
+    execution_manager = new ExecutionManager(this);
+
+    connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
+
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
 }
 
 ViewController::~ViewController()
 {
     delete rootItem;
+}
+
+JenkinsManager *ViewController::getJenkinsManager()
+{
+    return jenkins_manager;
+}
+
+ExecutionManager *ViewController::getExecutionManager()
+{
+    return execution_manager;
 }
 
 
@@ -483,7 +501,7 @@ void ViewController::showCodeViewer(QString tabName, QString content)
         codeViewer->setCloseVisible(false);
         CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
         codeViewer->setWidget(codeBrowser);
-        codeViewer->setIcon("Icons", "cppCode");
+        codeViewer->setIcon("Icons", "bracketsAngled");
         codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         BaseWindow* window = WindowManager::manager()->getActiveWindow();
         if(window){
@@ -499,11 +517,6 @@ void ViewController::showCodeViewer(QString tabName, QString content)
     }
 }
 
-void ViewController::jenkinsManager_IsBusy(bool busy)
-{
-    emit vc_JenkinsReady(!busy);
-}
-
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
 {
     emit vc_JenkinsReady(success);
@@ -514,8 +527,9 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
+    emit vc_JavaReady(java);
     NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
-    QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
+    QString message = java ? "Found java: " + javaVersion: "Cannot find java";
     NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NT_APPLICATION);
 }
 
@@ -534,11 +548,13 @@ void ViewController::getCodeForComponent()
     ViewItem* item = getActiveSelectedItem();
     if(item && item->isNode()){
         NodeViewItem* node = (NodeViewItem*) item;
+
         if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
             QString componentName = node->getData("label").toString();
             QString filePath = getTempFileForModel();
             if(!componentName.isEmpty() && !filePath.isEmpty()){
-                emit vc_getCodeForComponent(filePath, componentName);
+                execution_manager->GenerateCodeForComponent(filePath, componentName);
+                //emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -546,6 +562,9 @@ void ViewController::getCodeForComponent()
 
 void ViewController::validateModel()
 {
+
+    //em->RunTransform();
+    return;
     if(controller){
         QString filePath = getTempFileForModel();
         QString reportPath = FileHandler::getTempFileName("-ValidateReport.xml");
@@ -1357,6 +1376,13 @@ void ViewController::closeMEDEA()
         //Destruct main window
         WindowManager::teardown();
     }
+}
+
+void ViewController::generateWorkspace()
+{
+    QString file_path = getTempFileForModel();
+    QString output_dir = FileHandler::selectFile("Select an folder to create workspace in.", QFileDialog::Directory, false);
+    execution_manager->GenerateWorkspace(file_path, output_dir);
 }
 
 

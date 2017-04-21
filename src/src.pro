@@ -111,11 +111,9 @@ HEADERS += \
 	Model/node.h \
 	Model/tempentity.h \
 	Model/workerdefinitions.h \
-	Plugins/CUTS/Widgets/cutsexecutionwidget.h \
-	Plugins/CUTS/cutsmanager.h \
-	Plugins/XMI/Widgets/XMITreeViewDialog.h \
-	Plugins/XMI/xmiimporter.h \
-	Plugins/XMI/xmitreemodel.h \
+        #Plugins/XMI/Widgets/XMITreeViewDialog.h \
+        #Plugins/XMI/xmiimporter.h \
+        #Plugins/XMI/xmitreemodel.h \
 	Utils/actiongroup.h \
 	Utils/filehandler.h \
 	Utils/qobjectregistrar.h \
@@ -190,8 +188,8 @@ HEADERS += \
     Controllers/JenkinsManager/jenkinsmanager.h \
     Controllers/JenkinsManager/jenkinsrequest.h \
     Widgets/Jenkins/jenkinsjobmonitorwidget.h \
-    Widgets/Jenkins/jenkinsloadingwidget.h \
-    Widgets/Jenkins/jenkinsstartjobwidget.h
+    Widgets/Jenkins/jenkinsstartjobwidget.h \
+    Controllers/ExecutionManager/executionmanager.h
 
 
 SOURCES += \
@@ -297,11 +295,9 @@ SOURCES += \
 	Model/node.cpp \
 	Model/tempentity.cpp \
 	Model/workerdefinitions.cpp \
-	Plugins/CUTS/Widgets/cutsexecutionwidget.cpp \
-	Plugins/CUTS/cutsmanager.cpp \
-	Plugins/XMI/Widgets/XMITreeViewDialog.cpp \
-	Plugins/XMI/xmiimporter.cpp \
-	Plugins/XMI/xmitreemodel.cpp \
+        #Plugins/XMI/Widgets/XMITreeViewDialog.cpp \
+        #Plugins/XMI/xmiimporter.cpp \
+        #Plugins/XMI/xmitreemodel.cpp \
 	Utils/actiongroup.cpp \
 	Utils/filehandler.cpp \
 	Utils/qobjectregistrar.cpp \
@@ -374,8 +370,8 @@ SOURCES += \
     Controllers/JenkinsManager/jenkinsmanager.cpp \
     Controllers/JenkinsManager/jenkinsrequest.cpp \
     Widgets/Jenkins/jenkinsjobmonitorwidget.cpp \
-    Widgets/Jenkins/jenkinsloadingwidget.cpp \
-    Widgets/Jenkins/jenkinsstartjobwidget.cpp
+    Widgets/Jenkins/jenkinsstartjobwidget.cpp \
+    Controllers/ExecutionManager/executionmanager.cpp
 
 RESOURCES += \
     workers.qrc \

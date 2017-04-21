@@ -41,6 +41,7 @@ private slots:
     void updateRecentProjects(QString filePath);
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
+    void gotJava(bool java);
     void selectionChanged(int selectionSize);
     void actionFinished();
 
@@ -93,8 +94,8 @@ public:
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
     RootAction* file_importGraphML;
-    RootAction* file_importXME;
-    RootAction* file_importXMI;
+    //RootAction* file_importXME;
+    //RootAction* file_importXMI;
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
@@ -138,7 +139,8 @@ public:
     RootAction* model_validateModel;
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
-    RootAction* model_executeLocalJob;
+    RootAction* model_generateModelWorkspace;
+    //RootAction* model_executeLocalJob;
 
     RootAction* options_settings;
 
@@ -172,6 +174,7 @@ public:
     bool _controllerReady;
     bool _modelReady;
     bool _jenkinsValidated;
+    bool _gotJava;
 
     QMenu* menu_file;
     QMenu* menu_file_recentProjects;

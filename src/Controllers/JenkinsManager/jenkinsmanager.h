@@ -15,6 +15,7 @@
 class JenkinsRequest;
 class ActionController;
 class JenkinsJobMonitorWidget;
+class ViewController;
 
 class JenkinsManager: public QObject
 {
@@ -23,9 +24,7 @@ class JenkinsManager: public QObject
 
     Q_OBJECT
 public:
-    JenkinsManager(QObject *parent);
-
-    void setActionController(ActionController* action_controller);
+    JenkinsManager(ViewController *viewController);
     void SetUrl(QString url);
     void SetUser(QString user);
     void SetApiToken(QString api_token);
@@ -93,7 +92,7 @@ private:
     //Vector of all Active JenkinsRequest objects created from this.
     QList<JenkinsRequest*> requests;
 
-    ActionController* action_controller_ = 0;
+    ViewController* view_controller_ = 0;
     JenkinsJobMonitorWidget* job_monitor_widget_ = 0;
 };
 

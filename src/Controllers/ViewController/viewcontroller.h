@@ -7,6 +7,7 @@
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+#include "../ExecutionManager/executionmanager.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
@@ -15,6 +16,7 @@
 class ModelController;
 class ContextToolbar;
 class NodeView;
+class JenkinsManager;
 class ViewController : public QObject
 {
     Q_OBJECT
@@ -22,6 +24,8 @@ public:
     ViewController();
     ~ViewController();
 
+    JenkinsManager* getJenkinsManager();
+    ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
     ToolbarController* getToolbarController();
@@ -65,6 +69,7 @@ signals:
 
     void vc_showWelcomeScreen(bool);
     void vc_JenkinsReady(bool);
+    void vc_JavaReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
@@ -159,7 +164,6 @@ public slots:
     void showCodeViewer(QString tabName, QString content);
 
 
-    void jenkinsManager_IsBusy(bool busy);
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
     void jenkinsManager_GotJava(bool java, QString javaVersion);
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
@@ -197,6 +201,8 @@ public slots:
     void saveAsProject();
     void closeProject();
     void closeMEDEA();
+
+    void generateWorkspace();
 
     void executeJenkinsJob();
 
@@ -314,6 +320,8 @@ private:
     SelectionController* selectionController;
     ActionController* actionController;
     ToolbarController* toolbarController;
+    ExecutionManager* execution_manager;
+    JenkinsManager* jenkins_manager;
 
     ContextToolbar* toolbar;
     ModelController* controller;

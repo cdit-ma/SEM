@@ -26,7 +26,8 @@ private:
     ViewManagerWidget* manager;
     BaseWindow* window;
     QWidget* dockContainer;
-    QVBoxLayout* dockContainerLayout;
+    QVBoxLayout* viewContainerLayout;
+    QVBoxLayout* toolContainerLayout;
     QToolBar* windowToolbar;
 };
 
