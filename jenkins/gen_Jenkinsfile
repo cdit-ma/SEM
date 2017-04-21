@@ -48,7 +48,6 @@ def jDeployment = "";
 def file = "model.graphml"
 node(){
     writeFile file: file, text: "${model}"
-    print(pwd())
     stash includes: file, name: 'model'
     archiveArtifacts file
 }
@@ -63,14 +62,11 @@ node(masterNode){
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
     def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
-    print(file)
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
         //Generate deployment json
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh(returnStdout: true, script: executionParser)
-        print(json)
-
         //Parse json
         jDeployment = readJSON text: json
     }
@@ -154,10 +150,8 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def workspacePath = pwd()
                 def buildPath = workspacePath + "/" + buildDir + "/lib"
                 dir(buildPath){
-                    print("Current Directory: " + pwd())
                     unstash 'model'
                     def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                    print(nodeName + " : " + command);
                     sh command;
                 }
             }
