@@ -24,7 +24,7 @@
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include "../../Plugins/CUTS/cutsmanager.h"
-#include "../../Plugins/Jenkins/jenkinsmanager.h"
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 #include "../../Plugins/XMI/xmiimporter.h"
 
 #include "../../Widgets/Dialogs/popupwidget.h"

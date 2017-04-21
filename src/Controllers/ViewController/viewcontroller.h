@@ -198,7 +198,6 @@ public slots:
     void closeProject();
     void closeMEDEA();
 
-    void importJenkinsNodes();
     void executeJenkinsJob();
 
     void fitView();

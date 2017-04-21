@@ -221,7 +221,6 @@ void JenkinsManager::ValidateSettings()
         auto r = connect(this, &JenkinsManager::ValidateSettings_, request, &JenkinsRequest::ValidateSettings);
         connect(request, &JenkinsRequest::GotValidatedSettings, this, &JenkinsManager::GotValidatedSettings_);
 
-        qCritical() << "Validating!";
         emit ValidateSettings_();
         disconnect(r);
     }

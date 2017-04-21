@@ -182,7 +182,6 @@ void SettingsController::intializeSettings()
 
     //Jenkins - User
     createSetting(SK_JENKINS_USER, ST_STRING, "Jenkins", "User", "Username");
-    createSetting(SK_JENKINS_PASSWORD, ST_STRING, "Jenkins", "User", "Password");
     createSetting(SK_JENKINS_API, ST_STRING, "Jenkins", "User", "API Token");
 
     createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");

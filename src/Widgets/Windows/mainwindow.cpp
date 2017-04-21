@@ -8,7 +8,7 @@
 #include "../../Controllers/SettingsController/settingscontroller.h"
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
-#include "../../Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.h"
+#include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 
 #include "../../theme.h"
 
@@ -1138,7 +1138,7 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         //Check
         if (!cw || !cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
-            qDebug() << "NOT A WINDOW - " << cw;
+            //qDebug() << "NOT A WINDOW - " << cw;
         }
     }
     if (cw == innerWindow) {

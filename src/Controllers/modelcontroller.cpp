@@ -4854,7 +4854,6 @@ void ModelController::importProjects(QStringList xmlDataList)
     emit showProgress(true, "Importing Projects");
     IMPORTING_PROJECT = true;
     bool success = _importProjects(xmlDataList);
-    qCritical() << success;
     IMPORTING_PROJECT = false;
     emit showProgress(false);
     lock.unlock();

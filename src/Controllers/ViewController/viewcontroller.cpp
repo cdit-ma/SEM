@@ -1359,11 +1359,6 @@ void ViewController::closeMEDEA()
     }
 }
 
-void ViewController::importJenkinsNodes()
-{
-    emit vc_backgroundProcess(true, BP_IMPORT_JENKINS);
-
-}
 
 void ViewController::executeJenkinsJob()
 {
