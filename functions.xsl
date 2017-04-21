@@ -2049,11 +2049,16 @@
 
     <xsl:function name="cdit:get_component_folder_cmake">
         <xsl:param name="elements" />
+        <xsl:param name="code_generated_labels" />
+
 
         <xsl:for-each select="$elements">
-            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
-            <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+            <xsl:variable name="label_lc" select="lower-case(cdit:get_key_value(., 'label'))" />
+
+            <xsl:if test="index-of($code_generated_labels, $label_lc) or count($code_generated_labels) = 0">
+                <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'), '/', $label_lc)" />
+                <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+            </xsl:if>
         </xsl:for-each>
     </xsl:function>
 
