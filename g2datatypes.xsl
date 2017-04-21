@@ -110,10 +110,10 @@
                 </xsl:if>
 
                 <!-- Using CMake for make file construction-->
-                <!-- Write File: middleware/{MIDDLEWARE}/CMakeLists.txt -->
+                <!-- Write File: middleware/{MIDDLEWARE}/CMakeLists.txt
                 <xsl:result-document href="{o:xsl_wrap_file($port_cmake)}">
                     <xsl:value-of select="o:get_mw_type_cmake($aggregate, $members, $vectors, $aggregate_inst, $mw)" />
-                </xsl:result-document>
+                </xsl:result-document> -->
             </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
@@ -137,16 +137,12 @@
         <xsl:result-document href="{o:xsl_wrap_file($base_type_cmake)}">
             <xsl:value-of select="o:get_base_data_type_cmake($aggregate, $members, $vectors, $aggregate_inst)" />
         </xsl:result-document>
-        
 
-       
         <xsl:variable name="middleware_list" select="tokenize(normalize-space(concat($middlewares, ',base')), ',')" />
-        
         <xsl:result-document href="{o:xsl_wrap_file($ports_cmake)}">
             <xsl:value-of select="cdit:get_middleware_subfolder_cmake($middleware_list, $aggregates)" />
         </xsl:result-document>
-
-
+        
 
         </xsl:for-each>
 
