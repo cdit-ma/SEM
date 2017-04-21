@@ -1,6 +1,13 @@
 #include "jenkinsstartjobwidget.h"
-#include "../jenkinsmanager.h"
 #include "jenkinsjobmonitorwidget.h"
+
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
+#include "../../Controllers/ActionController/actioncontroller.h"
+#include "../../Utils/filehandler.h"
+#include "../dataeditwidget.h"
+#include "../../theme.h"
+
 
 
 #include <QVBoxLayout>
@@ -13,8 +20,6 @@
 #include <QAction>
 #include <QMenu>
 #include <QProgressDialog>
-#include "../../../theme.h"
-#include "../../../Utils/filehandler.h"
 #include <QStringBuilder>
 
 /**
@@ -51,11 +56,11 @@ JenkinsStartJobWidget::~JenkinsStartJobWidget()
 void JenkinsStartJobWidget::getJenkinsData(QString jobName)
 {
     //Construct a new JenkinsRequest Object.
-    JenkinsRequest* jenkinsRequest = jenkins->getJenkinsRequest(this);
+    JenkinsRequest* jenkinsRequest = jenkins->GetJenkinsRequest(this);
 
     //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-    auto r = connect(this, &JenkinsStartJobWidget::getJobParameters, jenkinsRequest, &JenkinsRequest::getJobParameters);
-    connect(jenkinsRequest, &JenkinsRequest::gotJobParameters, this, &JenkinsStartJobWidget::gotJobParameters);
+    auto r = connect(this, &JenkinsStartJobWidget::getJobParameters, jenkinsRequest, &JenkinsRequest::GetJobParameters);
+    connect(jenkinsRequest, &JenkinsRequest::GotJobParameters, this, &JenkinsStartJobWidget::gotJobParameters);
 
     //Emit request SIGNAL
     emit getJobParameters(jobName);
@@ -71,7 +76,7 @@ void JenkinsStartJobWidget::requestJob(QString jobName, QString graphmlFile)
 {
     tempGraphMLFile = graphmlFile;
 
-    if(jenkins->hasValidatedSettings()){
+    if(jenkins->GotValidSettings()){
         //loadingWidget->setWaiting(true);
     }else{
         connect(jenkins, SIGNAL(settingsValidationComplete(bool,QString)), this, SLOT(authenticationFinished(bool, QString)));
@@ -112,12 +117,12 @@ void JenkinsStartJobWidget::build()
     }
 
     //Get a new Jenkins Request Object. Tied to the new Jenkins Widget
-    auto jjmw = jenkins->getJobMonitorWidget();
-    JenkinsRequest* jenkins_build = jenkins->getJenkinsRequest(jjmw);
+    auto jjmw = jenkins->GetJobMonitorWidget();
+    JenkinsRequest* jenkins_build = jenkins->GetJenkinsRequest(jjmw);
 
-    connect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::buildJob);
-    connect(jenkins_build, &JenkinsRequest::gotJobStateChange, jjmw, &JenkinsJobMonitorWidget::gotJobStateChange);
-    connect(jenkins_build, &JenkinsRequest::gotLiveJobConsoleOutput, jjmw, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
+    connect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::BuildJob);
+    connect(jenkins_build, &JenkinsRequest::GotJobStateChange, jjmw, &JenkinsJobMonitorWidget::gotJobStateChange);
+    connect(jenkins_build, &JenkinsRequest::GotLiveJobConsoleOutput, jjmw, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
 
     //Show the new Widget.
     jjmw->show();
@@ -125,7 +130,7 @@ void JenkinsStartJobWidget::build()
     //Start the build
     emit buildJob(job_name, buildParameters);
 
-    disconnect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::buildJob);
+    disconnect(this, &JenkinsStartJobWidget::buildJob, jenkins_build, &JenkinsRequest::BuildJob);
 
     //Request a delete.
     deleteLater();

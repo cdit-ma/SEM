@@ -113,11 +113,6 @@ HEADERS += \
 	Model/workerdefinitions.h \
 	Plugins/CUTS/Widgets/cutsexecutionwidget.h \
 	Plugins/CUTS/cutsmanager.h \
-	Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.h \
-	Plugins/Jenkins/Widgets/jenkinsloadingwidget.h \
-	Plugins/Jenkins/Widgets/jenkinsstartjobwidget.h \
-	Plugins/Jenkins/jenkinsmanager.h \
-	Plugins/Jenkins/jenkinsrequest.h \
 	Plugins/XMI/Widgets/XMITreeViewDialog.h \
 	Plugins/XMI/xmiimporter.h \
 	Plugins/XMI/xmitreemodel.h \
@@ -155,7 +150,6 @@ HEADERS += \
 	Widgets/ViewManager/viewmanagerwidget.h \
 	Widgets/Windows/welcomescreenwidget.h \
 	Widgets/dataeditwidget.h \
-	Widgets/keyeditwidget.h \
 	enumerations.h \
 	theme.h \
 	Widgets/Windows/centralwindow.h \
@@ -192,7 +186,12 @@ HEADERS += \
     Model/root.h \
     Model/DeploymentDefinitions/loggingprofile.h \
     Model/DeploymentDefinitions/loggingserver.h \
-    Utils/processrunner.h
+    Utils/processrunner.h \
+    Controllers/JenkinsManager/jenkinsmanager.h \
+    Controllers/JenkinsManager/jenkinsrequest.h \
+    Widgets/Jenkins/jenkinsjobmonitorwidget.h \
+    Widgets/Jenkins/jenkinsloadingwidget.h \
+    Widgets/Jenkins/jenkinsstartjobwidget.h
 
 
 SOURCES += \
@@ -300,11 +299,6 @@ SOURCES += \
 	Model/workerdefinitions.cpp \
 	Plugins/CUTS/Widgets/cutsexecutionwidget.cpp \
 	Plugins/CUTS/cutsmanager.cpp \
-	Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.cpp \
-	Plugins/Jenkins/Widgets/jenkinsloadingwidget.cpp \
-	Plugins/Jenkins/Widgets/jenkinsstartjobwidget.cpp \
-	Plugins/Jenkins/jenkinsmanager.cpp \
-	Plugins/Jenkins/jenkinsrequest.cpp \
 	Plugins/XMI/Widgets/XMITreeViewDialog.cpp \
 	Plugins/XMI/xmiimporter.cpp \
 	Plugins/XMI/xmitreemodel.cpp \
@@ -342,7 +336,6 @@ SOURCES += \
 	Widgets/ViewManager/viewmanagerwidget.cpp \
 	Widgets/Windows/welcomescreenwidget.cpp \
 	Widgets/dataeditwidget.cpp \
-	Widgets/keyeditwidget.cpp \
         enumerations.cpp \
 	theme.cpp \
 	Widgets/Windows/centralwindow.cpp \
@@ -377,7 +370,12 @@ SOURCES += \
     Model/root.cpp \
     Model/DeploymentDefinitions/loggingprofile.cpp \
     Model/DeploymentDefinitions/loggingserver.cpp \
-    Utils/processrunner.cpp
+    Utils/processrunner.cpp \
+    Controllers/JenkinsManager/jenkinsmanager.cpp \
+    Controllers/JenkinsManager/jenkinsrequest.cpp \
+    Widgets/Jenkins/jenkinsjobmonitorwidget.cpp \
+    Widgets/Jenkins/jenkinsloadingwidget.cpp \
+    Widgets/Jenkins/jenkinsstartjobwidget.cpp
 
 RESOURCES += \
     workers.qrc \

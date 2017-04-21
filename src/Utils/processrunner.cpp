@@ -2,102 +2,167 @@
 #include <QProcess>
 #include <QDebug>
 #include <QEventLoop>
-#include <QtConcurrent/QtConcurrentRun>
+#include <QThread>
 
-ProcessRunner::ProcessRunner(bool terminateOnFinished) : QObject()
+
+ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
 {
-    terminate = terminateOnFinished;
-
-    connect(this, &ProcessRunner::Terminate, this, &QObject::deleteLater);
-}
-
-ProcessRunner::~ProcessRunner()
-{
-    qCritical() << "DED!";
-}
-
-QFuture<void> ProcessRunner::RunProcess(QString program, QStringList args, QString directory)
-{
-    auto future = QtConcurrent::run(QThreadPool::globalInstance(), this, &ProcessRunner::RunProcess_, program, args, directory);
-
-    return future;
-}
-
-CommandResult ProcessRunner::RunProcess_(QString program, QStringList args, QString directory)
-{
-    //Reset
-    auto result = CommandResult();
-    //Register
+    network_access_manager_ = 0;
+    //Register Exit Status
     qRegisterMetaType<QProcess::ExitStatus>();
+    qRegisterMetaType<ProcessResult>("ProcessResult");
+    qRegisterMetaType<HTTPResult>("HTTPResult");
+}
+
+ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory)
+{
+    ProcessResult result;
 
     //Construct and setup the process
-    QProcess* process = new QProcess();
+    QProcess process;
 
+    //Set working directory if we have one
     if(!directory.isEmpty()){
-        process->setWorkingDirectory(directory);
+        process.setWorkingDirectory(directory);
     }
 
-    qCritical() << "RunProcess: " << program << args.join(" ");
-    qCritical() << "In Directory: " << directory;
-    process->start(program, args);
+    //Start the program
+    process.start(program, args);
 
     while(true){
-        bool finished = false;
-        bool read_ready = false;
-
-        if(process->state() != QProcess::NotRunning){
+        if(process.state() != QProcess::NotRunning){
+            bool cancelled = false;
             //Construct a wait loop
             QEventLoop waitLoop;
 
             //Connect to Standard output/error signals
-            connect(process, &QProcess::readyReadStandardError, this, [&waitLoop, &read_ready](){waitLoop.quit(); read_ready = true;});
-            connect(process, &QProcess::readyReadStandardOutput, this, [&waitLoop, &read_ready](){waitLoop.quit(); read_ready = true;});
+            connect(&process, &QProcess::readyReadStandardError, &waitLoop, &QEventLoop::quit);
+            connect(&process, &QProcess::readyReadStandardOutput, &waitLoop, &QEventLoop::quit);
 
-            //Connect to exit status
-            connect(process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [&waitLoop, &finished](int, QProcess::ExitStatus) {waitLoop.quit(); finished = true;});
+            //Connect to Process finish Signal (Use lambda to quit the waitloop
+            connect(&process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [&waitLoop](int, QProcess::ExitStatus) {waitLoop.quit();});
+
+            //Set a flag that we were cancelled
+            connect(this, &ProcessRunner::Cancel, this, [&waitLoop, &cancelled](){cancelled = true; waitLoop.quit();});
 
             //Block until a signal notifies
             waitLoop.exec();
+
+            if(cancelled){
+                //Break out
+                break;
+            }
         }
 
         //Read StandardOutput
-        process->setReadChannel(QProcess::StandardOutput);
-        while(process->canReadLine()){
-            QString line = process->readLine();
+        process.setReadChannel(QProcess::StandardOutput);
+        while(process.canReadLine()){
+            QString line = process.readLine();
             result.standard_output << line;
-            //qCritical() << line;
-            emit GotStandardOutLine(line);
+            emit GotProcessStdOutLine(line);
         }
 
         //Read StandardError
-        process->setReadChannel(QProcess::StandardError);
-        while(process->canReadLine()){
-            QString line = process->readLine();
+        process.setReadChannel(QProcess::StandardError);
+        while(process.canReadLine()){
+            QString line = process.readLine();
             result.standard_error << line;
-            //qCritical() << line;
-            emit GotStandardErrLine(line);
+            emit GotProcessStdErrtLine(line);
         }
 
         //Check if we are still running
-        if(process->state() == QProcess::NotRunning){
+        if(process.state() == QProcess::NotRunning){
             break;
         }
     }
 
-    result.error_code = process->exitCode();
-    result.success = process->exitStatus() == QProcess::NormalExit;
-    if(result.success){
-        result.error_code = 0;
-    }else{
-        result.error_code = 1;
-    }
-
-    delete process;
-    emit Finished(result);
-    if(terminate){
-        emit Terminate();
-    }
+    //Set the result
+    result.error_code = process.exitCode();
+    result.success = process.exitStatus() == QProcess::NormalExit;
 
     return result;
 }
 
+
+
+HTTPResult ProcessRunner::HTTPGet(QNetworkRequest request)
+{
+    HTTPResult result;
+
+    QNetworkAccessManager* network_access_manager = GetNetworkAccessManager();
+
+    if(network_access_manager && request.url().isValid()){
+        //Post to the URL from the networkManager.
+        QNetworkReply* reply =  network_access_manager->get(request);
+        result = WaitForNetworkReply(reply);
+        //Free up the memory of the Network Reply
+        delete reply;
+    }
+    return result;
+}
+
+QNetworkAccessManager *ProcessRunner::GetNetworkAccessManager()
+{
+    if(!network_access_manager_){
+        network_access_manager_ = new QNetworkAccessManager(this);
+    }
+    return network_access_manager_;
+}
+
+HTTPResult ProcessRunner::HTTPPost(QNetworkRequest request, QByteArray post_data)
+{
+    HTTPResult result;
+
+    QNetworkAccessManager* network_access_manager = GetNetworkAccessManager();
+
+    if(network_access_manager && request.url().isValid()){
+        //Post to the URL from the networkManager.
+        QNetworkReply* reply =  network_access_manager->post(request, post_data);
+        result = WaitForNetworkReply(reply);
+        //Free up the memory of the Network Reply
+        delete reply;
+    }
+    return result;
+}
+HTTPResult ProcessRunner::WaitForNetworkReply(QNetworkReply *reply)
+{
+    HTTPResult result;
+
+    while(true){
+        if(reply->isRunning()){
+            bool cancelled = false;
+            //Construct a wait loop
+            QEventLoop waitLoop;
+
+            //Connect to Standard output/error signals
+            connect(reply, &QNetworkReply::readyRead, &waitLoop, &QEventLoop::quit);
+            connect(reply, &QNetworkReply::finished, &waitLoop, &QEventLoop::quit);
+
+            //Set a flag that we were cancelled
+            connect(this, &ProcessRunner::Cancel, this, [&waitLoop, &cancelled](){cancelled = true; waitLoop.quit();});
+
+            //Block until a signal notifies
+            waitLoop.exec();
+
+            if(cancelled){
+                break;
+            }
+        }
+
+        qint64 bytes_available = reply->bytesAvailable();
+
+        if(bytes_available > 0){
+            //Attach Data.
+            result.standard_output.append(reply->read(bytes_available));
+        }
+
+        if(bytes_available == 0 && reply->isFinished()){
+            break;
+        }
+    }
+
+    result.error_code = reply->error();
+    result.success = reply->error() == QNetworkReply::NoError;
+    result.location_header = reply->header(QNetworkRequest::LocationHeader).toString();
+    return result;
+}

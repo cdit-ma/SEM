@@ -1,13 +1,15 @@
 #ifndef JENKINSSTARTJOBWIDGET_H
 #define JENKINSSTARTJOBWIDGET_H
-#include "../jenkinsmanager.h"
-#include "../../../Widgets/dataeditwidget.h"
+
+#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
 
 #include <QDialog>
 #include <QGroupBox>
 #include <QToolBar>
+#include <QLabel>
 
-
+class DataEditWidget;
+class JenkinsManager;
 class JenkinsStartJobWidget: public QDialog
 {
     Q_OBJECT

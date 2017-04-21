@@ -1,9 +1,6 @@
 #ifndef JENKINSJOBMONITORWIDGET_H
 #define JENKINSJOBMONITORWIDGET_H
-
-#include "../jenkinsmanager.h"
-#include "../jenkinsrequest.h"
-#include "jenkinsloadingwidget.h"
+#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
 #include <QTextBrowser>
 #include <QDialog>
 #include <QLabel>

@@ -1,5 +1,11 @@
 #include "jenkinsjobmonitorwidget.h"
 
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
+#include "../../Controllers/ActionController/actioncontroller.h"
+//#include "../../Utils/rootaction.h"
+#include "../../theme.h"
+
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QGroupBox>
@@ -12,13 +18,9 @@
 #include <QProgressDialog>
 #include <QMovie>
 #include <QStringBuilder>
-#include "../../../theme.h"
-#include "../../../Controllers/ActionController/actioncontroller.h"
-#include "../../../Utils/rootaction.h"
 #include <QAction>
 #include <QWidget>
-#define CONSOLE_SUFFIX "_CONSOLE"
-#define STATE_SUFFIX "_STATE"
+
 
 /**
  * @brief JenkinsJobMonitorWidget::JenkinsJobMonitorWidget A Widget which represents and displays the Output of a Jenkins Job which has just been invoked.
@@ -76,7 +78,7 @@ void JenkinsJobMonitorWidget::setupLayout()
     action_toolbar->setIconSize(QSize(20,20));
     action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-    build_action = jenkins->getActionController()->jenkins_executeJob->constructSubAction();
+    build_action = jenkins->GetActionController()->jenkins_executeJob->constructSubAction();
     action_toolbar->addAction(build_action);
 
     verticalLayout->addWidget(action_toolbar, 0, Qt::AlignRight);
@@ -128,6 +130,8 @@ void JenkinsJobMonitorWidget::setJobState(QString jobName, int buildNumber, QStr
                 resourceName = "sphereGray";
                 break;
             }
+            default:
+                break;
         }
 
         //Update and hide stop button
@@ -156,7 +160,7 @@ void JenkinsJobMonitorWidget::gotJobStateChange(QString job_name, int job_build,
 {
     //We should request
     if(activeConfiguration == "" && jobState == BUILDING){
-        auto configs = jenkins->getActiveConfigurations(job_name);
+        auto configs = jenkins->GetJobConfigurations(job_name);
         setupTabs(job_name, job_build, configs);
     }
 
@@ -243,14 +247,14 @@ void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QString
             tabWidget->addTab(widget, tab_name);
 
             //Construct a JenkinsRequest Object to get the Console Output of this Configuration
-            JenkinsRequest* console_request = jenkins->getJenkinsRequest(browser);
+            JenkinsRequest* console_request = jenkins->GetJenkinsRequest(browser);
 
             //Connect the emit signals from this to the JenkinsRequest Thread.
-            connect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
+            connect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::GetJobConsoleOutput);
 
             //Connect the return signals
-            connect(console_request, &JenkinsRequest::gotJobStateChange, this, &JenkinsJobMonitorWidget::gotJobStateChange);
-            connect(console_request, &JenkinsRequest::gotLiveJobConsoleOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
+            connect(console_request, &JenkinsRequest::GotJobStateChange, this, &JenkinsJobMonitorWidget::gotJobStateChange);
+            connect(console_request, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsJobMonitorWidget::gotJobConsoleOutput);
 
             //Get the job info
             if(config != ""){
@@ -258,7 +262,7 @@ void JenkinsJobMonitorWidget::setupTabs(QString job_name, int job_build, QString
             }
 
             //Disconnect the request signals
-            disconnect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::getJobConsoleOutput);
+            disconnect(this, &JenkinsJobMonitorWidget::getJobConsoleOutput, console_request, &JenkinsRequest::GetJobConsoleOutput);
 
         }
     }
@@ -311,8 +315,8 @@ void JenkinsJobMonitorWidget::_stopJob(QString jobName, int buildNumber, QString
     auto monitor = consoleMonitors.value(tab_name, 0);
     if(monitor && monitor->state == BUILDING){
         //Construct a new JenkinsRequest Object.
-        JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
-        auto r = connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::stopJob);
+        JenkinsRequest* jenkinsStop = jenkins->GetJenkinsRequest(this);
+        auto r = connect(this, &JenkinsJobMonitorWidget::stopJob, jenkinsStop, &JenkinsRequest::StopJob);
         emit stopJob(jobName, buildNumber, activeConfiguration);
         disconnect(r);
     }
@@ -321,7 +325,7 @@ void JenkinsJobMonitorWidget::_stopJob(QString jobName, int buildNumber, QString
 void JenkinsJobMonitorWidget::_gotoJenkinsURL(QString jobName, int buildNumber, QString activeConfiguration)
 {
     if(activeConfiguration == ""){
-        auto url = jenkins->getURL() + "blue/organizations/jenkins/" + jobName + "/detail/" + jobName + "/" + QString::number(buildNumber) + "/pipeline";
+        auto url = jenkins->GetUrl() + "blue/organizations/jenkins/" + jobName + "/detail/" + jobName + "/" + QString::number(buildNumber) + "/pipeline";
         emit gotoURL(url);
     }
 }

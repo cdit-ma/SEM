@@ -549,7 +549,7 @@ void ActionController::updateIcon(RootAction *action, Theme *theme)
         if(!icon.isNull()){
             action->setIcon(icon);
         }else{
-            qCritical() << pair;
+            //qCritical() << pair;
         }
     }
 }

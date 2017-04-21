@@ -1058,25 +1058,26 @@ void MainWindow::setupJenkinsManager()
         jenkinsManager->setActionController(viewController->getActionController());
         //JenkinsJobMonitorWidget* j = new JenkinsJobMonitorWidget(0, jenkinsManager, "");
 
-        auto jmw = jenkinsManager->getJobMonitorWidget();
+        auto jmw = jenkinsManager->GetJobMonitorWidget();
         jenkinsDockWidget->setWidget(jmw);
         connect(jmw, &JenkinsJobMonitorWidget::gotoURL, viewController, &ViewController::openURL);
 
 
-        connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
-        connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
+        connect(jenkinsManager, &JenkinsManager::gotValidSettings, viewController, &ViewController::jenkinsManager_SettingsValidated);
+        //connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
 
 
-        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
+        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::GetNodes);
 
-        connect(jenkinsManager, &JenkinsManager::gotJenkinsNodeGraphml, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
-        connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
+        connect(jenkinsManager, &JenkinsManager::GotJenkinsNodes, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
+        connect(jenkinsManager, &JenkinsManager::JenkinsReady, viewController, &ViewController::vc_JenkinsReady);
 
-        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
+        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::BuildJob);
         connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
 
-        jenkinsManager->validateSettings();
+        jenkinsManager->ValidateSettings();
     }
+
 }
 
 
