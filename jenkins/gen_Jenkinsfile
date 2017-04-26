@@ -33,6 +33,13 @@ def runScript(String script, boolean background){
     }
 }
 
+def blockingKill(String pid){
+    if(isUnix()){
+        sh("kill " + pid)
+        sh("wait " + pid)
+    }
+}
+
 def masterNode = "${MASTER_NODE}"
 def buildDir = "gen"
 def buildArchiveDir = "build" + env.BUILD_ID
@@ -185,7 +192,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def out = runScript(serverRun, true)
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
-                        runScript("kill " + out, false)
+                        blockingKill(out)
                         archiveArtifacts databaseFile
                     }
                 }
@@ -207,7 +214,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def out = runScript(clientRun, true)
                 loganClients_shutdown[nodeName] = {
                     node(nodeName){
-                        runScript("kill " + out, false)
+                        blockingKill(out)
                     }
                 }
             }
