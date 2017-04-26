@@ -21,6 +21,7 @@ namespace ospl{
 
             bool Activate();
             bool Passivate();
+
         private:
             std::mutex control_mutex_;
 
@@ -45,7 +46,7 @@ void ospl::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
+ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name, "ospl"):
 ::OutEventPort<T>(component, name)
 {};
 

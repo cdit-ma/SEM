@@ -22,6 +22,7 @@ namespace ospl{
 
             bool Activate();
             bool Passivate();
+
         private:
             void receive_loop();
             

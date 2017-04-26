@@ -8,7 +8,7 @@
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(Component* component, std::string name);
+        OutEventPort(Component* component, std::string name, std::string middleware);
         virtual ~OutEventPort();
         virtual bool Activate();
         virtual bool Passivate();
@@ -18,8 +18,8 @@ template <class T> class OutEventPort: public EventPort{
 };
 
 template <class T>
-OutEventPort<T>::OutEventPort(Component* component, std::string name)
-:EventPort(component, name, EventPort::Kind::TX){
+OutEventPort<T>::OutEventPort(Component* component, std::string name, std::string middleware)
+:EventPort(component, name, EventPort::Kind::TX, middleware){
 };
 
 template <class T>
