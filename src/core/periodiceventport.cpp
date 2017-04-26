@@ -4,7 +4,7 @@
 #include <iostream>
 
 PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
-EventPort(component, name, EventPort::Kind::PE){
+EventPort(component, name, EventPort::Kind::PE, "periodic"){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
 }

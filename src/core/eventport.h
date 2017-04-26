@@ -17,7 +17,7 @@ class EventPort: public Activatable{
             PE = 2
         };
 
-        EventPort(Component* component, std::string name, EventPort::Kind kind);
+        EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware);
         virtual ~EventPort(){};
         virtual void Startup(std::map<std::string, ::Attribute*> attributes) = 0;
         
@@ -29,6 +29,7 @@ class EventPort: public Activatable{
         bool IsInEventPort() const;
         bool IsPeriodicEvent() const;
         EventPort::Kind get_kind() const;
+        std::string get_middleware() const;
 
         void LogActivation();
         void LogPassivation();
@@ -38,6 +39,7 @@ class EventPort: public Activatable{
         
         EventPort::Kind kind_;
         Component* component_;
+        std::string middleware_;
 };
 
 #endif //EVENTPORT_H
