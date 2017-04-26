@@ -17,7 +17,7 @@ class EventPort: public Activatable{
             PE = 2
         };
 
-        EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware);
+        EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware = "");
         virtual ~EventPort(){};
         virtual void Startup(std::map<std::string, ::Attribute*> attributes) = 0;
         
