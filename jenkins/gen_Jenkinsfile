@@ -180,6 +180,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
             node(nodeName){
+                deleteDir()
                 def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
                 def out = runScript(serverRun, true)
                 loganServers_shutdown[nodeName] = {
