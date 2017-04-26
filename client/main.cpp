@@ -53,10 +53,11 @@ int main(int ac, char** av){
 	std::string publisher_endpoint;
 
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("publisher,p", boost::program_options::value<std::string>(&publisher_endpoint)->required(), "ZMQ Publisher endpoint (ie tcp://192.168.1.1:5555)");
+	desc.add_options()("publisher,p", boost::program_options::value<std::string>(&publisher_endpoint), "ZMQ Publisher endpoint (ie tcp://192.168.1.1:5555)");
 	desc.add_options()("frequency,f", boost::program_options::value<double>(&log_frequency)->default_value(log_frequency), "Logging frequency (Hz)");
 	desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Process names to log (ie logan_client)");
 	desc.add_options()("live_mode,l", boost::program_options::value<bool>(&live_mode)->default_value(live_mode), "Produce data live");
+	desc.add_options()("system_info_print,s", "Print system info then exit");
 	desc.add_options()("help,h", "Display help");
 
 	boost::program_options::variables_map vm;
@@ -70,37 +71,49 @@ int main(int ac, char** av){
         return 1;
     }
 
+
 	if(vm.count("help")){
 		std::cout << desc << std::endl;
 		return 0;
 	}
 
-	//Print output
-	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
-	std::cout << "* Publisher ZMQ endpoint: " << publisher_endpoint << std::endl;
-	std::cout << "* Frequency: " << log_frequency << std::endl;
-	std::cout << "* Live Logging: " << (live_mode ? "On" : "Off") << std::endl;
-	for(int i = 0; i < processes.size(); i++){
-		if(i == 0){
-			std::cout << "* Monitoring Processes:" << std::endl;
+	if(!vm.count("system_info_print")){
+		if(publisher_endpoint.empty()){
+			std::cout << "No publisher endpoint supplied, terminating." << std::endl;
+			return 0;
 		}
-		std::cout << "** " << processes[i] << std::endl;
+		//Print output
+		std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
+		std::cout << "* Publisher ZMQ endpoint: " << publisher_endpoint << std::endl;
+		std::cout << "* Frequency: " << log_frequency << std::endl;
+		std::cout << "* Live Logging: " << (live_mode ? "On" : "Off") << std::endl;
+		for(int i = 0; i < processes.size(); i++){
+			if(i == 0){
+				std::cout << "* Monitoring Processes:" << std::endl;
+			}
+			std::cout << "** " << processes[i] << std::endl;
+		}
+		std::cout << "---------------------------------" << std::endl;
+		//Initialise log controller
+		LogController* log_controller = new LogController(publisher_endpoint, log_frequency, processes, live_mode);
+		
+		std::cout << "# Starting Logging." << std::endl;
+		{
+			std::unique_lock<std::mutex> lock(mutex_);
+			//Wait for the signal_handler to notify for exit
+			lock_condition_.wait(lock);
+		}
+		//Blocking terminate call.
+		//Will wait for logging and writing threads to complete
+		log_controller->Terminate();
+    	delete log_controller;
 	}
-	std::cout << "---------------------------------" << std::endl;
-
-	//Initialise log controller
-    LogController* log_controller = new LogController(publisher_endpoint, log_frequency, processes, live_mode);
-	
-	std::cout << "# Starting Logging." << std::endl;
-	{
-		std::unique_lock<std::mutex> lock(mutex_);
-		//Wait for the signal_handler to notify for exit
-		lock_condition_.wait(lock);
+	else{
+		LogController* log_controller = new LogController();
+		log_controller->Print();
+		delete log_controller;
 	}
-    //Blocking terminate call.
-    //Will wait for logging and writing threads to complete
-    log_controller->Terminate();
 
-    delete log_controller;
+
     return 0;
 }

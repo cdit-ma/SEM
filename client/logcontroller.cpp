@@ -31,6 +31,8 @@
 #include "../re_common/zmq/monitor/monitor.h"
 #include <zmq.hpp>
 
+#include <google/protobuf/util/json_util.h>
+
 LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode){
     if(!live_mode){
         writer_ = new zmq::CachedProtoWriter();
@@ -48,9 +50,6 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
-    
-    writer_thread_ = new std::thread(&LogController::WriteThread, this);
-    logging_thread_ = new std::thread(&LogController::LogThread, this);
 
     //Zero check before division
     if(frequency <= 0){
@@ -60,10 +59,32 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
     //Convert frequency to period
     sleep_time_ = (int)((1 / frequency) * 1000);
     processes_ = processes;
+    
+    writer_thread_ = new std::thread(&LogController::WriteThread, this);
+    logging_thread_ = new std::thread(&LogController::LogThread, this);
+
 }
 
-void LogController::GotNewConnection(int, std::string){
-    QueueOneTimeInfo();
+//Constructor used for print only call
+LogController::LogController(){
+    //Construct our SystemInfo class
+    system_info_ = new SigarSystemInfo();
+}
+
+void LogController::Print(){
+    //Let sigar do its thing for 1 second
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    system_info_->update();
+
+    auto info = GetOneTimeInfo();
+    std::string output;
+    google::protobuf::util::JsonOptions options;
+    options.add_whitespace = true;
+
+    google::protobuf::util::MessageToJsonString(*info, &output, options);
+
+    std::cout << output;
+
 }
 
 void LogController::Terminate(){
@@ -96,6 +117,10 @@ LogController::~LogController(){
     delete writer_thread_;
     delete system_info_;
     delete writer_;
+}
+
+void LogController::GotNewConnection(int, std::string){
+    QueueOneTimeInfo();
 }
 
 void LogController::LogThread(){

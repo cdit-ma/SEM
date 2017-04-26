@@ -45,9 +45,11 @@ namespace zmq{
 class LogController{
     public:
         LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached = false);
+        LogController();
+        void Print();
         ~LogController();
+
         void Terminate();
-        void GotNewConnection(int event_type, std::string address);
     private:
 
         void LogThread();
@@ -58,15 +60,17 @@ class LogController{
         re_common::SystemStatus* GetSystemStatus();
         re_common::SystemInfo* GetOneTimeInfo();
         void QueueOneTimeInfo();
+        
+        void GotNewConnection(int event_type, std::string address);
 
-        SystemInfo* system_info_;
+        SystemInfo* system_info_ = 0;
         bool one_time_flag_ = false;
 
-        zmq::Monitor* monitor_;
-        zmq::ProtoWriter* writer_;
+        zmq::Monitor* monitor_ = 0;
+        zmq::ProtoWriter* writer_ = 0;
 
-        std::thread* logging_thread_;
-        std::thread* writer_thread_;
+        std::thread* logging_thread_ = 0;
+        std::thread* writer_thread_ = 0;
 
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
