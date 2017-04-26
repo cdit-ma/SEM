@@ -1991,6 +1991,7 @@ QString ModelController::getXMLAttribute(QXmlStreamReader &xml, QString attribut
 
 Key *ModelController::constructKey(QString name, QVariant::Type type)
 {
+    return Key::GetKey(name, type);
     Key* newKey = new Key(name, type, Entity::EK_ALL);
 
     //Search for a matching Key. If we find one, remove the newly created Key
@@ -2571,6 +2572,10 @@ Node *ModelController::cloneNode(Node *original, Node *parent, bool ignoreVisual
 
 QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF relativePosition, QString nodeType, QString nodeLabel)
 {
+    if(nodeKind.startsWith("DDS_")){
+        return NodeFactory::getDefaultData(nodeKind);
+    }
+
     Key* kindKey = constructKey("kind", QVariant::String);
     Key* labelKey = constructKey("label", QVariant::String);
     Key* typeKey = constructKey("type", QVariant::String);
@@ -2814,7 +2819,9 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         data.append(new Data(valueKey));
     }
 
-    if(nodeKind.startsWith("DDS_")){
+
+    if(false && nodeKind.startsWith("DDS_")){
+
         Key* duration_key = constructKey("qos_dds_duration", QVariant::Double);
         Key* kind_key = constructKey("qos_dds_kind", QVariant::String);
         Key* int_value_key = constructKey("qos_dds_int_value", QVariant::Int);
@@ -3459,6 +3466,12 @@ bool ModelController::_attachData(Entity *item, QList<Data *> dataList, bool add
     if(item){
         foreach(Data* new_data, dataList){
             Key* key = new_data->getKey();
+            QString key_name = key->getName();
+
+            if(!keys.contains(key_name)){
+                //qCritical() << "Adding Key!" << key_name;
+                keys[key_name] = key;
+            }
             Data* current_data = item->getData(key);
 
             if(current_data){

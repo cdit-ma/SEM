@@ -54,6 +54,8 @@ bool LoggingProfile::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         }
         break;
     }
+    default:
+        return false;
     }
 
     return Node::canAcceptEdge(edgeKind, dst);

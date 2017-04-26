@@ -75,9 +75,10 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _isProtected = false;
     _isVisual = false;
 
-    if(!keyLookup_.contains(_keyName)){
-        keyLookup_[_keyName] = this;
+    if(keyLookup_.contains(_keyName)){
+         qCritical() << "Got Key: " << _keyName;
     }
+    keyLookup_[_keyName] = this;
 }
 
 Key::~Key()

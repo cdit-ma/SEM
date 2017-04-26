@@ -304,13 +304,21 @@ VIEW_ASPECT Node::getViewAspect() const
 
 QList<Data *> Node::getDefaultData()
 {
-    QList<Data*> data;
+    QList<Data*> data_list;
     {
         //Need Kind
         auto key = Key::GetKey("kind", QVariant::String);
-        data.append(new Data(key, getNodeKindStr()));
+        auto data = new Data(key, getNodeKindStr());
+        data->setProtected(true);
+        data_list.append(data);
     }
-    return data;
+    {
+        //Need Sort_rder
+        auto key = Key::GetKey("sortOrder", QVariant::Int);
+        auto data = new Data(key, -1);
+        data_list.append(data);
+    }
+    return data_list;
 }
 
 Node *Node::getParentNode(int depth)

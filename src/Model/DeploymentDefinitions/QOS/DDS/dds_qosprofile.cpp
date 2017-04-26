@@ -1,4 +1,6 @@
 #include "dds_qosprofile.h"
+#include "../../../data.h"
+
 
 DDS_QOSProfile::DDS_QOSProfile():Node(NK_QOS_DDS_PROFILE)
 {
@@ -30,4 +32,14 @@ bool DDS_QOSProfile::canAdoptChild(Node *node)
 bool DDS_QOSProfile::canAcceptEdge(Edge::EDGE_KIND , Node *)
 {
     return false;
+}
+
+QList<Data *> DDS_QOSProfile::getDefaultData()
+{
+    auto data_list = Node::getDefaultData();
+    {
+        auto key = Key::GetKey("label", QVariant::String);
+        data_list.append(new Data(key, "qos_profile"));
+    }
+    return data_list;
 }

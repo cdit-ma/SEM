@@ -100,6 +100,16 @@ NodeFactory* NodeFactory::factory = 0;
 
 
 
+QList<Data *> NodeFactory::getDefaultData(QString nodeKind)
+{
+    return getDefaultData(getNodeKind(nodeKind));
+}
+
+QList<Data *> NodeFactory::getDefaultData(Node::NODE_KIND nodeKind)
+{
+    return getFactory()->_getDefaultData(nodeKind);
+}
+
 Node *NodeFactory::createNode(QString nodeKind)
 {
     return createNode(getNodeKind(nodeKind));
@@ -227,6 +237,11 @@ NodeFactory::NodeFactory()
     addKind(Node::NK_NONE, "NO KIND", [](){return (Node*)0;});
 }
 
+NodeFactory::~NodeFactory()
+{
+    //TODO: Teardown objects
+}
+
 NodeFactory *NodeFactory::getFactory()
 {
     if(factory == 0){
@@ -254,6 +269,26 @@ Node *NodeFactory::_createNode(Node::NODE_KIND kind)
     return node;
 }
 
+QList<Data *> NodeFactory::_getDefaultData(Node::NODE_KIND kind)
+{
+    QList<Data*> data;
+
+    auto nS = nodeLookup.value(kind, 0);
+
+    if(nS){
+        if(!nS->node){
+            //Construct a node
+            nS->node = nS->constructor();
+        }
+        if(nS->node){
+            data = nS->node->getDefaultData();
+        }
+    }else{
+        qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
+    }
+    return data;
+}
+
 void NodeFactory::addKind(Node::NODE_KIND kind, QString kind_str, std::function<Node *()> constructor)
 {
     if(!nodeLookup.contains(kind)){
@@ -261,6 +296,7 @@ void NodeFactory::addKind(Node::NODE_KIND kind, QString kind_str, std::function<
         nS->kind = kind;
         nS->kind_str = kind_str;
         nS->constructor = constructor;
+        nS->node = 0;
         nodeLookup.insert(kind, nS);
 
         if(!nodeKindLookup.contains(kind_str)){

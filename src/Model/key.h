@@ -33,6 +33,7 @@ public:
     Entity::ENTITY_KIND getEntityKind() const;
     QVariant::Type getType() const;
 
+
     void addValidValues(QStringList validValues, QStringList entityKinds = QStringList("ALL"));
     void addValidRange(QPair<qreal, qreal> range, QStringList entityKinds = QStringList("ALL"));
     void addInvalidCharacters(QStringList invalidCharacters, QStringList entityKinds = QStringList("ALL"));
