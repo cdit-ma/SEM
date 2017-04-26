@@ -16,31 +16,6 @@ std::string json_pair(std::string key, std::string val){
     return dblquotewrap(key) + ": " + dblquotewrap(val);
 }
 
-std::string json_bool_pair(std::string key, bool val){
-    return dblquotewrap(key) + ": " + (val ? "true" : "false");
-}
-
-std::string json_export_list(std::vector<std::string> vals){
-    std::string str;
-    for(auto val : vals){
-        bool is_last = val == vals.back();
-        std::string comma = (is_last ? "" : ",\n");
-        str += val + comma;
-    }
-    return str;
-}
-
-std::string json_list_pair(std::string key, std::vector<std::string> vals){
-    std::string str = dblquotewrap(key) + ": [";
-    for(auto val : vals){
-        bool is_last = val == vals.back();
-        std::string comma = (is_last ? "" : ", ");
-        str += dblquotewrap(val) + comma;
-    }
-    str+= "]";
-    return str;
-}
-
 int main(){
     Cpu_Worker worker(0, "cpu_worker");
 
