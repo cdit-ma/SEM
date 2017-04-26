@@ -36,7 +36,7 @@ def runScript(String script, boolean background){
 def blockingKill(String pid){
     if(isUnix()){
         sh("kill " + pid)
-        sh("wait " + pid)
+        sh("wait " + pid, returnStatus: true)
     }
 }
 
