@@ -57,8 +57,8 @@ void qpid::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string name, "qpid"):
-::OutEventPort<T>(component, name){};
+qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
+::OutEventPort<T>(component, name, "qpid"){};
 
 template <class T, class S>
 void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){

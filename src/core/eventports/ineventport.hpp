@@ -15,7 +15,7 @@
 //Interface for a standard templated InEventPort
 template <class T> class InEventPort: public EventPort{
     public:
-        InEventPort(Component* component, std::string name, std::string middleware, std::function<void (T*) > callback_function);
+        InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
         virtual ~InEventPort();
         virtual bool Activate();
         virtual bool Passivate();

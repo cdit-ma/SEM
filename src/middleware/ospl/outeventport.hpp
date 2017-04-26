@@ -46,8 +46,8 @@ void ospl::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name, "ospl"):
-::OutEventPort<T>(component, name)
+ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
+::OutEventPort<T>(component, name, "ospl")
 {};
 
 

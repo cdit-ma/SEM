@@ -50,8 +50,8 @@ namespace qpid{
 };
 
 template <class T, class S>
-qpid::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, "qpid")
-: ::InEventPort<T>(component, name, callback_function){
+qpid::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function)
+: ::InEventPort<T>(component, name, callback_function, "qpid"){
 };
 
 template <class T, class S>

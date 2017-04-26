@@ -122,7 +122,7 @@ bool ospl::InEventPort<T, S>::Teardown(){
 
 template <class T, class S>
 ospl::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
-::InEventPort<T>(component, name, callback_function){
+::InEventPort<T>(component, name, callback_function, "ospl"){
 };
 
 template <class T, class S>
