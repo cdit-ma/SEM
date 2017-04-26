@@ -39,7 +39,7 @@ template <class T> class InEventPort: public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(Component* component, std::string name, std::string middleware, std::function<void (T*) > callback_function)
+InEventPort<T>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, std::string middleware)
 :EventPort(component, name, EventPort::Kind::RX, middleware){
     if(callback_function){
         callback_function_ = callback_function;
