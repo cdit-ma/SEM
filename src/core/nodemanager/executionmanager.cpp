@@ -234,35 +234,76 @@ bool ExecutionManager::ConstructControlMessages(){
                             std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
                         }
 
-                        port_pb->set_middleware(mw);
+                        bool is_rti = mw == NodeManager::EventPort::RTI;
+                        bool is_ospl = mw == NodeManager::EventPort::OSPL;
+                        bool is_qpid = mw == NodeManager::EventPort::QPID;
+                        bool is_zmq = mw == NodeManager::EventPort::ZMQ;
+
+                        bool is_outport = k == NodeManager::EventPort::OUT_PORT;
+                        bool is_inport = k == NodeManager::EventPort::IN_PORT;
                         
-                        //Set the topic_name
-                        auto topic_pb = port_pb->add_attributes();
-                        auto topic_info_pb = topic_pb->mutable_info();
-                        topic_info_pb->set_name("topic_name");
-                        topic_pb->set_kind(NodeManager::Attribute::STRING);
-                        set_attr_string(topic_pb, event_port->topic_name); 
-                        
-                        //Set the domain_id
-                        //TODO: Need this in graphml
-                        auto domain_pb = port_pb->add_attributes();
-                        auto domain_info_pb = domain_pb->mutable_info();
-                        domain_info_pb->set_name("domain_id");
-                        domain_pb->set_kind(NodeManager::Attribute::INTEGER);
-                        domain_pb->set_i(0);
+                        if(is_rti || is_ospl || is_qpid){
+                             //Set the topic_name
+                            auto topic_pb = port_pb->add_attributes();
+                            auto topic_info_pb = topic_pb->mutable_info();
+                            topic_info_pb->set_name("topic_name");
+                            topic_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(topic_pb, event_port->topic_name); 
+                        }
 
-                        //Set the broker address
-                        //TODO: Need this in graphml
-                        auto broker_pb = port_pb->add_attributes();
-                        auto broker_info_pb = broker_pb->mutable_info();
-                        broker_info_pb->set_name("broker");
-                        broker_pb->set_kind(NodeManager::Attribute::STRING);
-                        set_attr_string(broker_pb, "localhost:5672"); 
+                        if(is_rti || is_ospl){
+                            //Set the domain_id
+                            auto domain_pb = port_pb->add_attributes();
+                            auto domain_info_pb = domain_pb->mutable_info();
+                            domain_info_pb->set_name("domain_id");
+                            domain_pb->set_kind(NodeManager::Attribute::INTEGER);
+                            domain_pb->set_i(0);
+                            
+                            //QOS Profile Path
+                            auto qos_path_pb = port_pb->add_attributes();
+                            auto qos_path_info_pb = qos_path_pb->mutable_info();
+                            qos_path_info_pb->set_name("qos_profile_path");
+                            qos_path_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(qos_path_pb, event_port->qos_profile_path);
 
+                            //QOS Profile Name
+                            auto qos_name_pb = port_pb->add_attributes();
+                            auto qos_name_info_pb = qos_path_pb->mutable_info();
+                            qos_name_info_pb->set_name("qos_profile_name");
+                            qos_name_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(qos_name_pb, event_port->qos_profile_name);
 
-                        if(k == NodeManager::EventPort::OUT_PORT){
-                            if(event_port->port_number > 0){
-                                //Set Publisher TCP Address (ZMQ Only)
+                            if(is_outport){
+                                //Set publisher name
+                                auto pub_name_pb = port_pb->add_attributes();
+                                auto pub_name_info_pb = pub_name_pb->mutable_info();
+                                pub_name_info_pb->set_name("publisher_name");
+                                pub_name_pb->set_kind(NodeManager::Attribute::STRING);
+                                set_attr_string(pub_name_pb, component->name + event_port->name);
+                            }
+                            if(is_inport){
+                                //Set subscriber name
+                                //TODO: Allow modelling of this
+                                auto sub_name_pb = port_pb->add_attributes();
+                                auto sub_name_info_pb = sub_name_pb->mutable_info();
+                                sub_name_info_pb->set_name("subscriber_name");
+                                sub_name_pb->set_kind(NodeManager::Attribute::STRING);
+                                set_attr_string(sub_name_pb, component->name + event_port->name);
+                            }    
+                        }
+
+                        if(is_qpid){
+                            //Set the broker address
+                            //TODO: Need this in graphml
+                            auto broker_pb = port_pb->add_attributes();
+                            auto broker_info_pb = broker_pb->mutable_info();
+                            broker_info_pb->set_name("broker");
+                            broker_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(broker_pb, "localhost:5672"); 
+                        }
+
+                        if(is_zmq){
+                            if(is_outport && event_port->port_number > 0){
                                 auto pub_addr_pb = port_pb->add_attributes();
                                 auto pub_addr_info_pb = pub_addr_pb->mutable_info();
                                 pub_addr_info_pb->set_name("publisher_address");
@@ -270,38 +311,21 @@ bool ExecutionManager::ConstructControlMessages(){
                                 set_attr_string(pub_addr_pb, event_port->port_address);
                             }
 
-                            //Set publisher name
-                            //TODO: Allow modelling of this
-                            auto pub_name_pb = port_pb->add_attributes();
-                            auto pub_name_info_pb = pub_name_pb->mutable_info();
-                            pub_name_info_pb->set_name("publisher_name");
-                            pub_name_pb->set_kind(NodeManager::Attribute::STRING);
-                            set_attr_string(pub_name_pb, component->name + event_port->name);
+                            if(is_inport){
+                                //Construct a publisher_address list
+                                auto pub_addr_pb = port_pb->add_attributes();
+                                auto pub_addr_info_pb = pub_addr_pb->mutable_info();
+                                pub_addr_info_pb->set_name("publisher_address");
+                                pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
 
-                        }else if(k == NodeManager::EventPort::IN_PORT){
-                            //Construct a publisher_address list
-                            auto pub_addr_pb = port_pb->add_attributes();
-                            auto pub_addr_info_pb = pub_addr_pb->mutable_info();
-                            pub_addr_info_pb->set_name("publisher_address");
-                            pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
-
-                            
-                            //Find the end points and push them back onto the publisher_address list
-                            auto ineventport = event_port;
-                            for(auto port_id : ineventport->connected_port_ids){
-                                auto outeventport = model_parser_->GetEventPort(port_id);
-                                if(ineventport && outeventport && outeventport->port_number > 0){
-                                    set_attr_string(pub_addr_pb, outeventport->port_address);
+                                //Find the end points and push them back onto the publisher_address list
+                                for(auto port_id : event_port->connected_port_ids){
+                                    auto outeventport = model_parser_->GetEventPort(port_id);
+                                    if(outeventport && outeventport->port_number > 0){
+                                        set_attr_string(pub_addr_pb, outeventport->port_address);
+                                    }
                                 }
                             }
-
-                            //Set subscriber name
-                            //TODO: Allow modelling of this
-                            auto sub_name_pb = port_pb->add_attributes();
-                            auto sub_name_info_pb = sub_name_pb->mutable_info();
-                            sub_name_info_pb->set_name("subscriber_name");
-                            sub_name_pb->set_kind(NodeManager::Attribute::STRING);
-                            set_attr_string(sub_name_pb, component->name + event_port->name);
                         }
                     }else{
                         //Periodic Events

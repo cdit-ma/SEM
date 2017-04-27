@@ -137,6 +137,9 @@ namespace Graphml{
             std::string port_address;
             std::string topic_name;
 
+            std::string qos_profile_name;
+            std::string qos_profile_path;
+
             std::vector<std::string> connected_port_ids;
     };
 

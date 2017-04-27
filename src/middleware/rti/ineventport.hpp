@@ -38,6 +38,8 @@ namespace rti{
             std::condition_variable notify_lock_condition_;
 
             std::string topic_name_;
+            std::string qos_profile_path_;
+            std::string qos_profile_name_;
             int domain_id_ = 0;
             std::string subscriber_name_;
 
@@ -64,21 +66,30 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
         domain_id_ = attributes["domain_id"]->get_Integer();
     }
 
+    if(attributes.count("qos_profile_path")){
+        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
+    }
+
+    if(attributes.count("qos_profile_name")){
+        qos_profile_name_ = attributes["qos_profile_name"]->get_String();
+    }
+
+    
+
     std::cout << "rti::InEventPort" << std::endl;
-    std::cout << "**domain_id_: "<< domain_id_ << std::endl;
-    std::cout << "**subscriber_name: "<< subscriber_name_ << std::endl;
-    std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
+    std::cout << "**domain_id_: " << domain_id_ << std::endl;
+    std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
+    std::cout << "**topic_name_: " << topic_name_ << std::endl << std::endl;
+    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl << std::endl;
+    std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
-        //auto helper = DdsHelperS::get_dds_helper();   
-        //auto participant = helper->get_participant(domain_id_);
-        //auto topic = get_topic<S>(participant, topic_name_);
         configured_ = true;
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
-    }//Activate();
+    }
 };
 
 
@@ -141,7 +152,7 @@ void rti::InEventPort<T, S>::receive_loop(){
     auto topic = get_topic<S>(participant, topic_name_);
 
     auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-    auto reader_ = get_data_reader<S>(subscriber, topic);
+    auto reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
     
     //Construct a DDS Listener, designed to call back into the receive thread
     auto listener_ = new rti::DataReaderListener<T, S>(this);
