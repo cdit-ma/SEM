@@ -56,11 +56,14 @@ bool Graphml::ModelParser::Process(){
         deployed_entities_map_[source_id] = target_id;
     }
 
-    //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
+    //Construct a Deployment Map which points EventPort - > QOSProfile
     for(auto e_id: qos_edge_ids_){
         auto source_id = GetAttribute(e_id, "source");
         auto target_id = GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
+        std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
+        std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
+        std::cout << std::endl;
     }
 
 
