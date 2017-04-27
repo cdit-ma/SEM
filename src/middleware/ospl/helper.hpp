@@ -42,14 +42,14 @@ template<class M> dds::pub::DataWriter<M> ospl::get_data_writer(dds::pub::Publis
     std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
 
     dds::pub::DataWriter<M> writer(dds::core::null);
-
+    
     //If we have the publisher and the topic, construct the writer.
     if(publisher != dds::core::null && topic != dds::core::null){
         dds::pub::qos::DataWriterQos qos;
         if(qos_uri != ""){
-            std::cout << "Setting QOS Profile from: " << qos_uri << " " << qos_profile << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri);
-            qos = qos_provider.datawriter_qos();
+            std::cout << "Setting QOS on OSPL not currently supported." << std::endl;
+            //dds::core::QosProvider qos_provider(qos_uri);
+            //qos = qos_provider.datawriter_qos();
         }
 
         writer = dds::pub::DataWriter<M>(publisher, topic, qos);
@@ -69,9 +69,9 @@ template<class M> dds::sub::DataReader<M> ospl::get_data_reader(dds::sub::Subscr
     if(subscriber != dds::core::null && topic != dds::core::null){
         dds::sub::qos::DataReaderQos qos;
         if(qos_uri != ""){
-            std::cout << "Setting QOS Profile from: " << qos_uri << " " << qos_profile << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri);
-            qos = qos_provider.datareader_qos();
+            std::cout << "Setting QOS on OSPL not currently supported." << std::endl;
+            //dds::core::QosProvider qos_provider(qos_uri);
+            //qos = qos_provider.datareader_qos();
         }
 
         reader = dds::sub::DataReader<M>(subscriber, topic, qos);
