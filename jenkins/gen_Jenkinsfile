@@ -16,21 +16,20 @@ def getLabels(String name){
     return ""
 }
 
-def runScript(String script, boolean background){
+def runScriptPid(String script){
     def out = ""
     if(isUnix()){
-        if(background){
-            def command = script + " > /dev/null 2>&1 & echo \$!"
-            out = sh(returnStdout: true, script: command)
-            return out.trim()
-        }
-        else{
-            sh script
-        }
+        def command = script + " > /dev/null 2>&1 & echo \$!"
+        out = sh(returnStdout: true, script: command)
+        return out.trim()
     }
     else{
         //TODO: do windows things here
     }
+}
+
+def runScript(String script){
+
 }
 
 def blockingKill(String pid){
@@ -61,6 +60,7 @@ def loganServers_shutdown = [:]
 def loganClients_shutdown = [:]
 def reManagers = [:]
 def compileCode = [:]
+
 
 def jDeployment = "";
 
@@ -106,9 +106,9 @@ node(masterNode){
         unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            runScript(typeGenCommand, false)
+            runScript(typeGenCommand)
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            runScript(componentGenCommand, false)
+            runScript(componentGenCommand)
         }
     }
 
