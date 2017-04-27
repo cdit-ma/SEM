@@ -21,8 +21,14 @@
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="result" as="xs:boolean"/>
         <xsl:param name="error_string" as="xs:string" />
+        <xsl:param name="warning" as="xs:boolean" />
         <xsl:param name="tab" />
-        <xsl:value-of select="o:xml_wrap('result',concat('id=', o:dblquote_wrap($id), ' success=', o:dblquote_wrap(string($result))), if($result = false()) then $error_string else '', $tab)" />
+
+        <xsl:variable name="warning_string" select="if($warning = true()) then concat(' warning=', o:dblquote_wrap(string($warning))) else ''" />
+        <xsl:variable name="success_string" select="concat(' success=', o:dblquote_wrap(string($result)))" />
+        <xsl:variable name="id_string" select="concat('id=', o:dblquote_wrap($id))" />
+
+        <xsl:value-of select="o:xml_wrap('result',concat($id_string, $success_string, $warning_string), if($result = false()) then $error_string else '', $tab)" />
     </xsl:function>
 
     <xsl:function name="cdit:test_aggregate_requires_key">
@@ -35,7 +41,7 @@
                 <xsl:variable name="key_id" select="cdit:get_key_id(., 'key')" />
                 <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node/gml:data[@key=$key_id and lower-case(text()) = 'true']) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, concat('Aggregate ', o:quote_wrap($type), ' has no child with data ', o:quote_wrap('key'), ' set to true.'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat('Aggregate ', o:quote_wrap($type), ' has no child with data ', o:quote_wrap('key'), ' set to true.'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -54,7 +60,7 @@
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="cdit:get_node_id(.)" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, concat($entity_kind, ' requires a child entity'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat($entity_kind, ' requires a child entity'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -75,7 +81,7 @@
                 <xsl:variable name="type" select="./gml:data[@key=$type_key_id]/text()" />
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="matched_types" select="count($all_types[text() = $type])" />        
-                <xsl:value-of select="cdit:output_result($id, $matched_types = 1, concat('Aggregate type ', o:quote_wrap($type), ' is not unique in model'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $matched_types = 1, concat('Aggregate type ', o:quote_wrap($type), ' is not unique in model'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -96,7 +102,7 @@
                 <xsl:variable name="label" select="./gml:data[@key=$label_key_id]/text()" />
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="matched_labels" select="count($all_labels[text() = $label])" />        
-                <xsl:value-of select="cdit:output_result($id, $matched_labels = 1, concat('Component label ', o:quote_wrap($label), ' not unique in model'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $matched_labels = 1, concat('Component label ', o:quote_wrap($label), ' not unique in model'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -104,15 +110,48 @@
     </xsl:function>
 
     
+    
+    
+    <xsl:function name="cdit:test_invalid_label">
+        <xsl:param name="root" />
+        <xsl:param name="entity_kind" />
+        <xsl:param name="test"/>
+
+        <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| '" />
+        <xsl:variable name="entities" as="element()*" select="cdit:get_entities_of_kind($root, $entity_kind)" />
+
+        <xsl:variable name="results">  
+            <xsl:for-each select="$entities">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" />        
+
+                <xsl:variable name="got_valid_label" select="$label = $label_replaced" />        
+                <xsl:value-of select="cdit:output_result($id, $got_valid_label, concat($kind, ' ', o:quote_wrap($label), ' has an invalid character ', o:bracket_wrap($invalid_characters), ' in label'), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test($test, $results, 1)" />
+    </xsl:function>
+
+
 
     <xsl:function name="cdit:aggregate_tests">
         <xsl:param name="root" />
 
         <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind($root, 'Aggregate')" />
 
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Aggregate', 'Aggregate valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Member', 'Member valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Vector', 'Vector valid names')" />
+        
         <xsl:value-of select="cdit:test_requires_children($root, 'Aggregate', 'Aggregate entities require at least one child')" />
+
         <xsl:value-of select="cdit:test_aggregate_requires_key($root, $aggregates)" />
         <xsl:value-of select="cdit:test_aggregate_unique_type($root, $aggregates)" />
+
+        
 
         <xsl:value-of select="cdit:test_requires_children($root, 'Vector', 'Vector entities require at least one child')" />
         
@@ -124,6 +163,8 @@
         <xsl:variable name="components" as="element()*" select="cdit:get_entities_of_kind($root, 'Component')" />
 
         <xsl:value-of select="cdit:test_components_unique_name($root, $components)" />
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Component', 'Component valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
     </xsl:function>
 
     
