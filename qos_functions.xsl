@@ -172,11 +172,11 @@
             <xsl:value-of select="o:xml_wrap('topic_qos', '', $topic_qos, 1)" />
         </xsl:variable>
 
-        <xsl:variable name="dds_xmlns" select="o:dblquote_wrap('http://www.omg.org/dds/')" />
+        
+
         <xsl:variable name="dds_xsi" select="o:dblquote_wrap('http://www.w3.org/2001/XMLSchema-instance')" />
-        <xsl:variable name="dds_schema" select="o:dblquote_wrap('file://DDS_QoSProfile.xsd')" />
         <xsl:variable name="profile" select="o:xml_wrap('qos_profile', concat('name=', o:dblquote_wrap($label)), $qos, 1)" />
-        <xsl:value-of select="o:xml_wrap('dds', concat('xmlns=', $dds_xmlns, ' xmlns:xsi=', $dds_xsi, ' xsi:schemaLocation=', $dds_schema),  $profile, 0)" />
+        <xsl:value-of select="o:xml_wrap('dds', concat('xmlns:xsi=', $dds_xsi),  $profile, 0)" />
     </xsl:function>
 
     <xsl:function name="cdit:generate_qos_element_generic_kind">
