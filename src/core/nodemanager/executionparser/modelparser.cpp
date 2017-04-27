@@ -6,6 +6,15 @@
 #include <chrono>
 #include <algorithm>
 
+
+//Converts std::string to lower
+std::string Graphml::ModelParser::to_lower(std::string s){
+    auto str = s;
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+
 Graphml::ModelParser::ModelParser(const std::string filename){
     //Setup the parser
     graphml_parser_ = new GraphmlParser(filename);
@@ -16,8 +25,6 @@ Graphml::ModelParser::ModelParser(const std::string filename){
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
 }
-
-
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
         return false;
@@ -49,11 +56,14 @@ bool Graphml::ModelParser::Process(){
         deployed_entities_map_[source_id] = target_id;
     }
 
-    //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
+    //Construct a Deployment Map which points EventPort - > QOSProfile
     for(auto e_id: qos_edge_ids_){
         auto source_id = GetAttribute(e_id, "source");
         auto target_id = GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
+        //std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
+        //std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
+        std::cout << std::endl;
     }
 
 
@@ -334,7 +344,8 @@ bool Graphml::ModelParser::Process(){
                             //Set QOS to port
                             auto qos_profile_id = entity_qos_map_[p_id];
                             port->qos_profile_name = GetDataValue(qos_profile_id, "label");
-                            port->qos_profile_path = port->middleware + "/" + port->qos_profile_name;
+                            //Relative to the library directory
+                            port->qos_profile_path = "file://qos/" + to_lower(port->middleware) + "/" + to_lower(port->qos_profile_name) + ".xml";
                         }
 
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));

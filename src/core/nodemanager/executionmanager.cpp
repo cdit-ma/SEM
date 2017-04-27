@@ -234,6 +234,9 @@ bool ExecutionManager::ConstructControlMessages(){
                             std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
                         }
 
+                        //Set the middleware
+                        port_pb->set_middleware(mw);
+
                         bool is_rti = mw == NodeManager::EventPort::RTI;
                         bool is_ospl = mw == NodeManager::EventPort::OSPL;
                         bool is_qpid = mw == NodeManager::EventPort::QPID;
@@ -259,19 +262,19 @@ bool ExecutionManager::ConstructControlMessages(){
                             domain_pb->set_kind(NodeManager::Attribute::INTEGER);
                             domain_pb->set_i(0);
                             
+                            //QOS Profile Name
+                            auto qos_name_pb = port_pb->add_attributes();
+                            auto qos_name_info_pb = qos_name_pb->mutable_info();
+                            qos_name_info_pb->set_name("qos_profile_name");
+                            qos_name_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(qos_name_pb, event_port->qos_profile_name);
+
                             //QOS Profile Path
                             auto qos_path_pb = port_pb->add_attributes();
                             auto qos_path_info_pb = qos_path_pb->mutable_info();
                             qos_path_info_pb->set_name("qos_profile_path");
                             qos_path_pb->set_kind(NodeManager::Attribute::STRING);
                             set_attr_string(qos_path_pb, event_port->qos_profile_path);
-
-                            //QOS Profile Name
-                            auto qos_name_pb = port_pb->add_attributes();
-                            auto qos_name_info_pb = qos_path_pb->mutable_info();
-                            qos_name_info_pb->set_name("qos_profile_name");
-                            qos_name_pb->set_kind(NodeManager::Attribute::STRING);
-                            set_attr_string(qos_name_pb, event_port->qos_profile_name);
 
                             if(is_outport){
                                 //Set publisher name

@@ -66,21 +66,18 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
         domain_id_ = attributes["domain_id"]->get_Integer();
     }
 
+    if(attributes.count("qos_profile_name")){
+        qos_profile_name_ = attributes["qos_profile_name"]->get_String();
+    }
     if(attributes.count("qos_profile_path")){
         qos_profile_path_ = attributes["qos_profile_path"]->get_String();
     }
 
-    if(attributes.count("qos_profile_name")){
-        qos_profile_name_ = attributes["qos_profile_name"]->get_String();
-    }
-
-    
-
     std::cout << "rti::InEventPort" << std::endl;
     std::cout << "**domain_id_: " << domain_id_ << std::endl;
     std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
-    std::cout << "**topic_name_: " << topic_name_ << std::endl << std::endl;
-    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl << std::endl;
+    std::cout << "**topic_name_: "<< topic_name_ << std::endl;
+    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
     std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
 

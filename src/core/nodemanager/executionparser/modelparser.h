@@ -51,6 +51,7 @@ namespace Graphml{
             
             std::string GetDeploymentJSON();
         private:
+            std::string to_lower(std::string str);
             bool Process();
             GraphmlParser* graphml_parser_;
 

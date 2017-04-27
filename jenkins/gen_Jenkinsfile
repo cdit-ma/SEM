@@ -29,7 +29,13 @@ def runScriptPid(String script){
 }
 
 def runScript(String script){
-
+    if(isUnix()){
+        out = sh(returnStatus: true, script: script)
+        return out
+    }
+    else{
+        //TODO: do windows things here
+    }
 }
 
 def blockingKill(String pid){
@@ -79,7 +85,7 @@ node(masterNode){
     def saxonPath = reGenPath
 
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
-    def fileString = ' -s:' + file
+    def fileString = ' -s:' + workspacePath + "/" + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
@@ -106,9 +112,16 @@ node(masterNode){
         unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            runScript(typeGenCommand)
+            if(runScript(typeGenCommand) != 0) fail_flag = true;
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            runScript(componentGenCommand)
+            if(runScript(componentGenCommand) !=0) fail_flag = true;
+
+            dir("lib"){
+                //Generate QOS into lib directory
+                def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
+                print(qosGenCommand)
+                if(runScript(qosGenCommand) != 0) fail_flag = true;
+            }
         }
     }
 
@@ -120,6 +133,10 @@ node(masterNode){
             stash includes: buildDir + '/**', name: 'codeGen'
         }
     }
+}
+
+if(fail_flag){
+    error("Fail flag set to true after code gen and archive stages.")
 }
 
 //Itterate through all nodes
@@ -141,7 +158,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         }
         if(jNode["re_node_manager"]["master"]){
             //TODO: parse this
-            args += " -t 15";
+            args += " -t 60";
             args += " -d " + file
         }
         if(jNode["re_node_manager"]["slave"]){
