@@ -48,7 +48,7 @@ template<class M> dds::pub::DataWriter<M> ospl::get_data_writer(dds::pub::Publis
         dds::pub::qos::DataWriterQos qos;
         if(qos_uri != ""){
             std::cout << "Setting QOS Profile from: " << qos_uri << " " << qos_profile << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri, qos_profile);
+            dds::core::QosProvider qos_provider(qos_uri);
             qos = qos_provider.datawriter_qos();
         }
 
@@ -70,7 +70,7 @@ template<class M> dds::sub::DataReader<M> ospl::get_data_reader(dds::sub::Subscr
         dds::sub::qos::DataReaderQos qos;
         if(qos_uri != ""){
             std::cout << "Setting QOS Profile from: " << qos_uri << " " << qos_profile << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri, qos_profile);
+            dds::core::QosProvider qos_provider(qos_uri);
             qos = qos_provider.datareader_qos();
         }
 
