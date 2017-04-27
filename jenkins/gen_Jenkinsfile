@@ -67,6 +67,8 @@ def loganClients_shutdown = [:]
 def reManagers = [:]
 def compileCode = [:]
 
+def fail_flag = false
+
 
 def jDeployment = "";
 
