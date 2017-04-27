@@ -145,38 +145,58 @@
 
     <xsl:function name="cdit:get_qos_profile">
         <xsl:param name="qos_profile" />
+        <xsl:param name="middleware" />
+
+        <xsl:variable name="has_library" select="$middleware = 'rti'" />
+
+        <xsl:variable name="tab" select="if($has_library) then 2 else 1" />
+
 
         <xsl:variable name="label" select="cdit:get_key_value($qos_profile, 'label')" />
 
         <xsl:variable name="datareader_qos">
             <xsl:for-each select="$qos_profile/gml:graph[1]/gml:node">
-                <xsl:value-of select="cdit:generate_qos_element(., 'datareader_qos', 2)" />
+                <xsl:value-of select="cdit:generate_qos_element(., 'datareader_qos', $tab + 2)" />
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:variable name="datawriter_qos">
             <xsl:for-each select="$qos_profile/gml:graph[1]/gml:node">
-                <xsl:value-of select="cdit:generate_qos_element(., 'datawriter_qos', 2)" />
+                <xsl:value-of select="cdit:generate_qos_element(., 'datawriter_qos', $tab + 2)" />
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:variable name="topic_qos">
             <xsl:for-each select="$qos_profile/gml:graph[1]/gml:node">
-                <xsl:value-of select="cdit:generate_qos_element(., 'topic_qos', 2)" />
+                <xsl:value-of select="cdit:generate_qos_element(., 'topic_qos', $tab + 2)" />
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:variable name="qos">
-            <xsl:value-of select="o:xml_wrap('datareader_qos', '', $datareader_qos, 1)" />
-            <xsl:value-of select="o:xml_wrap('datawriter_qos', '', $datawriter_qos, 1)" />
-            <xsl:value-of select="o:xml_wrap('topic_qos', '', $topic_qos, 1)" />
+            <xsl:value-of select="o:xml_wrap('datareader_qos', '', $datareader_qos, $tab + 1)" />
+            <xsl:value-of select="o:xml_wrap('datawriter_qos', '', $datawriter_qos, $tab + 1)" />
+            <xsl:value-of select="o:xml_wrap('topic_qos', '', $topic_qos, $tab + 1)" />
         </xsl:variable>
 
         
 
+        
+
         <xsl:variable name="dds_xsi" select="o:dblquote_wrap('http://www.w3.org/2001/XMLSchema-instance')" />
-        <xsl:variable name="profile" select="o:xml_wrap('qos_profile', concat('name=', o:dblquote_wrap($label)), $qos, 1)" />
-        <xsl:value-of select="o:xml_wrap('dds', concat('xmlns:xsi=', $dds_xsi),  $profile, 0)" />
+        <xsl:variable name="profile" select="o:xml_wrap('qos_profile', concat('name=', o:dblquote_wrap($label)), $qos, $tab)" />
+
+        <xsl:variable name="library">
+            <xsl:choose>
+                <xsl:when test="$has_library = true()">
+                    <xsl:value-of select="o:xml_wrap('qos_library', concat('name=', o:dblquote_wrap($label)), $profile, 1)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$profile" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+         
+        <xsl:value-of select="o:xml_wrap('dds', concat('xmlns:xsi=', $dds_xsi),  $library, 0)" />
     </xsl:function>
 
     <xsl:function name="cdit:generate_qos_element_generic_kind">

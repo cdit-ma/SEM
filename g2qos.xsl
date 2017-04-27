@@ -12,9 +12,15 @@
 		
     <!-- Load in Functions -->
     <xsl:import href="qos_functions.xsl"/>
+    
 
+    
+    
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 
+    <!-- Middleware Input Parameter-->
+    <xsl:param name="middlewares"></xsl:param>
+    
     <!-- Get all of the Aggregates -->
     <xsl:variable name="qos_profiles" as="element()*" select="cdit:get_entities_of_kind(., 'DDS_QOSProfile')" />
     <xsl:template match="/">
@@ -28,12 +34,20 @@
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="label_lc" select="lower-case($label)" />
 
-            <!-- Define output file -->
-            <xsl:variable name="qos_profile_xml" select="concat($qos_path, $label_lc, '.xml')" />
+            <!-- Parse each Middleware -->
+            <xsl:for-each select="tokenize(normalize-space($middlewares), ',')"> 
+                <xsl:variable name="mw" select="." />
+                <xsl:if test="$mw = 'rti' or $mw = 'ospl'">
+                    <xsl:message>Parsing Middleware: <xsl:value-of select="$mw" /> </xsl:message>
+                
+                    <!-- Define output files -->
+                    <xsl:variable name="mw_qos_profile_xml" select="concat($qos_path, $mw, '/', $label_lc, '.xml')" />
 
-            <xsl:result-document href="{o:xsl_wrap_file($qos_profile_xml)}">
-                <xsl:value-of select="cdit:get_qos_profile($qos_profile)" />
-            </xsl:result-document>
+                    <xsl:result-document href="{o:xsl_wrap_file($mw_qos_profile_xml)}">
+                        <xsl:value-of select="cdit:get_qos_profile($qos_profile, $mw)" />
+                    </xsl:result-document>
+                </xsl:if>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 </xsl:stylesheet>
