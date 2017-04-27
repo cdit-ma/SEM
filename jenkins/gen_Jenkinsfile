@@ -195,14 +195,17 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
             node(nodeName){
+                def out
                 dir(buildDir){
                     def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                    def out = runScript(serverRun, true)
+                    out = runScript(serverRun, true)
                 }
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
-                        blockingKill(out)
-                        archiveArtifacts buildDir + "/" + databaseFile
+                        dir(buildDir){
+                            blockingKill(out)
+                            archiveArtifacts databaseFile
+                        }
                     }
                 }
             }
