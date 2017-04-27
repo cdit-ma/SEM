@@ -217,7 +217,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def out
                 dir(buildDir){
                     def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                    out = runScript(serverRun, true)
+                    out = runScriptPid(serverRun, true)
                 }
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
@@ -242,7 +242,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         loganClients[nodeName] = {
             node(nodeName){
                 def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
-                def out = runScript(clientRun, true)
+                def out = runScriptPid(clientRun, true)
                 loganClients_shutdown[nodeName] = {
                     node(nodeName){
                         blockingKill(out)
