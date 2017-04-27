@@ -6,6 +6,15 @@
 #include <chrono>
 #include <algorithm>
 
+
+//Converts std::string to lower
+std::string Graphml::ModelParser::to_lower(std::string s){
+    auto str = s;
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+
 Graphml::ModelParser::ModelParser(const std::string filename){
     //Setup the parser
     graphml_parser_ = new GraphmlParser(filename);
