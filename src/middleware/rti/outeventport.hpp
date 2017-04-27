@@ -69,14 +69,9 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         domain_id_ = attributes["domain_id"]->get_Integer();
         configured_ = true && configured_;                
     }
-    if(attributes.count("qos_profile_path")){
-        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
-        configured_ = true && configured_;                
-    }
-
     if(attributes.count("qos_profile_name")){
         qos_profile_name_ = attributes["qos_profile_name"]->get_String();
-        configured_ = true && configured_;                
+        qos_profile_path_ = "file://qos/" + get_middleware() + "/" + qos_profile_name_ + ".xml";
     }
 
     
