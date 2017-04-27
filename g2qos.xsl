@@ -32,7 +32,7 @@
             <xsl:variable name="qos_profile_xml" select="concat($qos_path, $label_lc, '.xml')" />
 
             <xsl:result-document href="{o:xsl_wrap_file($qos_profile_xml)}">
-                <xsl:value-of select="cdit:get_qos_profile($qos_profile, $mw)" />
+                <xsl:value-of select="cdit:get_qos_profile($qos_profile)" />
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>

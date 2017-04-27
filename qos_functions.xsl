@@ -145,7 +145,6 @@
 
     <xsl:function name="cdit:get_qos_profile">
         <xsl:param name="qos_profile" />
-        <xsl:param name="middleware" />
 
         <xsl:variable name="label" select="cdit:get_key_value($qos_profile, 'label')" />
 
