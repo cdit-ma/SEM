@@ -102,7 +102,7 @@ bool ospl::OutEventPort<T, S>::Activate(){
     auto participant = helper->get_participant(domain_id_);
     auto publisher = helper->get_publisher(participant, publisher_name_);
     auto topic = get_topic<S>(participant, topic_name_);
-    writer_ = get_data_writer<S>(publisher, topic);
+    writer_ = get_data_writer<S>(publisher, topic, qos_profile_path_, qos_profile_name_);
 
     return ::OutEventPort<T>::Activate();
 };
