@@ -79,7 +79,7 @@ node(masterNode){
     def saxonPath = reGenPath
 
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
-    def fileString = ' -s:' + file
+    def fileString = ' -s:' + workspacePath + "/" + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
@@ -114,7 +114,7 @@ node(masterNode){
             dir("lib"){
                 //Generate QOS into lib directory
                 def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
-                runScript(componentGenCommand, false)
+                runScript(qosGenCommand, false)
             }
         }
     }
