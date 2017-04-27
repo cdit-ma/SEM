@@ -271,7 +271,7 @@ bool ExecutionManager::ConstructControlMessages(){
 
                             //QOS Profile Name
                             auto qos_name_pb = port_pb->add_attributes();
-                            auto qos_name_info_pb = qos_path_pb->mutable_info();
+                            auto qos_name_info_pb = qos_name_pb->mutable_info();
                             qos_name_info_pb->set_name("qos_profile_name");
                             qos_name_pb->set_kind(NodeManager::Attribute::STRING);
                             set_attr_string(qos_name_pb, event_port->qos_profile_name);

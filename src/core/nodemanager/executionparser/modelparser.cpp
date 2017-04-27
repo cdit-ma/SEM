@@ -334,7 +334,7 @@ bool Graphml::ModelParser::Process(){
                             //Set QOS to port
                             auto qos_profile_id = entity_qos_map_[p_id];
                             port->qos_profile_name = GetDataValue(qos_profile_id, "label");
-                            port->qos_profile_path = port->middleware + "/" + port->qos_profile_name;
+                            port->qos_profile_path = port->middleware + "/" + port->qos_profile_name + ".xml";
                         }
 
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
