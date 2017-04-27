@@ -39,7 +39,8 @@ def blockingKill(String pid){
         def out = sh(returnStatus: true, script:"wait " + pid)
         if(out != 0){
             def out2 = sh(returnStatus: true, script:"ps -p " + pid)
-            if(out2){
+            print(out2)
+            if(out2 != 0){
                 error()
             }
         }
