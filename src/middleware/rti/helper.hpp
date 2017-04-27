@@ -67,7 +67,7 @@ template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscri
     if(subscriber != nullptr && topic != nullptr){
         dds::sub::qos::DataReaderQos qos;
         //The next setting is used to force dynamic memory allocation for samples with a serialized size of larger than 32K
-        qos.policy<rti::core::policy::Property>().set({"dds.data_writer.history.memory_manager.fast_pool.pool_buffer_max_size", "32768"});
+        qos.policy<rti::core::policy::Property>().set({"dds.data_reader.history.memory_manager.fast_pool.pool_buffer_max_size", "32768"});
 
         reader = dds::sub::DataReader<M>(subscriber, topic, qos);
         reader.retain();
