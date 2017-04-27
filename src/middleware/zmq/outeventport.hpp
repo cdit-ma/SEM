@@ -20,6 +20,7 @@ namespace zmq{
 
             bool Activate();
             bool Passivate();
+
         private:
             void zmq_sleep();
 
@@ -46,7 +47,7 @@ void zmq::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): ::OutEventPort<T>(component, name){
+zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
 };
 
 

@@ -4,7 +4,7 @@
 #include <iostream>
 
 PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
-EventPort(component, name, EventPort::Kind::PE){
+EventPort(component, name, EventPort::Kind::PE, "periodic"){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
 }
@@ -43,11 +43,16 @@ bool PeriodicEventPort::WaitForTick(){
 
 void PeriodicEventPort::Loop(){
     while(true){
-        if(callback_ != nullptr){
-            //logger()->LogMessageEvent(this);
-            //Construct a callback object
-            callback_(new BaseMessage());
+        auto t = new BaseMessage();
+        if(is_active() && callback_){
+            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::STARTED_FUNC);
+            callback_(t);
+            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        }else{
+            //Log that didn't call back on this message
+            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::IGNORED);
         }
+        delete t;
         if(!WaitForTick()){
             break;
         }

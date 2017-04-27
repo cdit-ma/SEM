@@ -24,6 +24,7 @@ namespace zmq{
             bool Teardown();
             bool Activate();
             bool Passivate();
+
         private:
             void zmq_loop();
 
@@ -89,7 +90,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 
 template <class T, class S>
 zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
-::InEventPort<T>(component, name, callback_function){
+::InEventPort<T>(component, name, callback_function, "zmq"){
     terminate_endpoint_ = "inproc://term*" + component->get_name() + "*" + name + "*";
 };
 

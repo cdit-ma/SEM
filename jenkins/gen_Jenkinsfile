@@ -1,4 +1,5 @@
-
+//This script requires the following Jenkins plugins:
+//-Pipeline: Utility Steps
 
 // This method collects a list of Node names from the current Jenkins instance
 @NonCPS
@@ -32,9 +33,28 @@ def runScript(String script, boolean background){
     }
 }
 
+def blockingKill(String pid){
+    if(isUnix()){
+        sh("kill " + pid)
+        def out = sh(returnStatus: true, script:"wait " + pid)
+        if(out != 0){
+            def out2 = sh(returnStatus: true, script:"kill -s 0 " + pid)
+            print(out2)
+            if(out2 == 0){
+                error()
+            }
+        }
+    }
+    else{
+        //TODO: do windows things here
+    }
+}
+
 def masterNode = "${MASTER_NODE}"
-def buildDir = "gen"
+def buildDir = "gen" + env.BUILD_ID
 def buildArchiveDir = "build" + env.BUILD_ID
+
+//Deployment plans
 def loganServers = [:]
 def loganClients = [:]
 def loganServers_shutdown = [:]
@@ -47,7 +67,6 @@ def jDeployment = "";
 def file = "model.graphml"
 node(){
     writeFile file: file, text: "${model}"
-    print(pwd())
     stash includes: file, name: 'model'
     archiveArtifacts file
 }
@@ -59,18 +78,14 @@ node(masterNode){
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    
     def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
     def fileString = ' -s:' + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
-    print(file)
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
         //Generate deployment json
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
         def json = sh(returnStdout: true, script: executionParser)
-        print(json)
-
         //Parse json
         jDeployment = readJSON text: json
     }
@@ -79,7 +94,7 @@ node(masterNode){
     dir(reGenPath){
         if("${checkout}" == 'true'){
             stage('Checkout Transforms'){
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f61aee32-b55a-4a7a-bef4-6372ed9fc94f', url: 'https://github.com/cdit-ma/re_gen.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '1f1e1fcb-b84a-48a4-be37-0aac3118caa0', url: 'https://github.com/cdit-ma/re_gen.git']]])
             }
         }
     }
@@ -97,25 +112,25 @@ node(masterNode){
         }
     }
 
-    zip(zipFile: "archive.zip", archive: true, dir: buildPath)
-
-    //Store an archive of generated C++ files
     stage('Archive'){
+        //Store an archive of generated C++ files
+        zip(zipFile: "archive.zip", archive: true, dir: buildPath)
         dir(workspacePath){
             // Stash generated cpp files.
             stash includes: buildDir + '/**', name: 'codeGen'
-        }
-        dir(workspacePath + "/" + buildArchiveDir){
-            unstash 'codeGen'
         }
     }
 }
 
 //Itterate through all nodes
-def nodeKeys = jDeployment.keySet() as List;
+def nodeKeys = jDeployment["nodes"].keySet() as List;
+def modelName = jDeployment["model"].name
+currentBuild.description = modelName
+
+stage("Build deployment plan"){
 for(def i = 0; i < nodeKeys.size(); i++){
     def nodeName = nodeKeys[i];
-    def jNode = jDeployment[nodeName];
+    def jNode = jDeployment["nodes"][nodeName];
     
     
     if(jNode["re_node_manager"]){
@@ -150,10 +165,8 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 def workspacePath = pwd()
                 def buildPath = workspacePath + "/" + buildDir + "/lib"
                 dir(buildPath){
-                    print("Current Directory: " + pwd())
                     unstash 'model'
                     def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                    print(nodeName + " : " + command);
                     sh command;
                 }
             }
@@ -182,15 +195,16 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
             node(nodeName){
-                def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                print("THIS IS THE NEW FILE" + serverRun)
-                def out = runScript(serverRun, true)
-                print("THIS IS THE NEW FILE" + out + "%%%%")
-
+                dir(buildDir){
+                    def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
+                    def out = runScript(serverRun, true)
+                }
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
-                        runScript("kill " + out, false)
-                        archiveArtifacts databaseFile
+                        dir(buildDir){
+                            blockingKill(out)
+                            archiveArtifacts databaseFile
+                        }
                     }
                 }
             }
@@ -209,21 +223,22 @@ for(def i = 0; i < nodeKeys.size(); i++){
             node(nodeName){
                 def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
                 def out = runScript(clientRun, true)
-
                 loganClients_shutdown[nodeName] = {
                     node(nodeName){
-                        runScript("kill " + out, false)
+                        blockingKill(out)
                     }
                 }
             }
         }
     }
-
-    
+}
 }
 
-stage("Start logan"){
+stage("Start logan servers"){
     parallel loganServers
+}
+
+stage("Start logan clients"){
     parallel loganClients
 }
 
@@ -235,10 +250,9 @@ stage("Execute Model"){
     parallel reManagers
 }
 
-stage("Teardown"){
+stage("Stop logan clients"){
     parallel loganClients_shutdown
+}
+stage("Stop logan servers"){
     parallel loganServers_shutdown
 }
-
-currentBuild.result = "UNSTABLE"
-currentBuild.description = "WTF"

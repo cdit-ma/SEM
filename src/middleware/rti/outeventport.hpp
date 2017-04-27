@@ -20,6 +20,7 @@ namespace rti{
 
             bool Activate();
             bool Passivate();
+
         private:
             std::mutex control_mutex_;
 
@@ -50,7 +51,7 @@ void rti::OutEventPort<T, S>::tx(T* message){
 
 template <class T, class S>
 rti::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
-::OutEventPort<T>(component, name){};
+::OutEventPort<T>(component, name, "rti"){};
 
 template <class T, class S>
 void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){

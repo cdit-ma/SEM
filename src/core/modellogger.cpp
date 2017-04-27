@@ -109,6 +109,7 @@ void fill_port(re_common::Port* p, EventPort* eventport){
         p->set_id(eventport->get_id());
         p->set_type(eventport->get_type());
         p->set_kind((re_common::Port::Kind)((int)eventport->get_kind()));
+        p->set_middleware(eventport->get_middleware());
     }
 }
 void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){

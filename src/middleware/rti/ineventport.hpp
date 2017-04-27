@@ -25,6 +25,7 @@ namespace rti{
             bool Activate();
             bool Passivate();
 
+
         private:
             void receive_loop();
             
@@ -140,7 +141,7 @@ void rti::InEventPort<T, S>::notify(){
 
 template <class T, class S>
 rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
-::InEventPort<T>(component, name, callback_function){
+::InEventPort<T>(component, name, callback_function, "rti"){
 };
 
 template <class T, class S>

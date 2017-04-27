@@ -8,6 +8,9 @@
 #include "../controlmessage/controlmessage.pb.h"
 #include "../controlmessage/translate.h"
 
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/message.h>
+
 DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
     library_path_ = library_path;
     execution_ = execution;

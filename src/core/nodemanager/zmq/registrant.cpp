@@ -78,8 +78,8 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
         std::string slave_name_str(static_cast<char *>(slave_name.data()), slave_name.size());
 
         std::cout << "------------[Slave Info]------------" << std::endl;
-        std::cout << "* Mode: " << slave_mode_str << std::endl;
         std::cout << "* Master Endpoint: " << master_control_pub_addr_str << std::endl;
+        std::cout << "* Logging Mode: " << slave_mode_str << std::endl;
         std::cout << "* Logger Endpoint: " << slave_logging_pub_addr_str << std::endl;
         std::cout << "* Slave Hostname: " << slave_name_str << std::endl;
         std::cout << "------------------------------------" << std::endl;
@@ -90,11 +90,17 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
             //Setup Model Logging
             bool s1 = deployment_manager_->SetupControlMessageReceiver(master_control_pub_addr_str, slave_name_str);
 
-            ModelLogger::Mode logger_mode;
+            ModelLogger::Mode logger_mode = ModelLogger::Mode::OFF;
 
-            if(slave_name_str == "LIVE") logger_mode = ModelLogger::Mode::LIVE;
-            else if(slave_name_str == "OFF") logger_mode = ModelLogger::Mode::OFF;
-            else logger_mode = ModelLogger::Mode::CACHED;
+            if(slave_mode_str == "LIVE"){
+                logger_mode = ModelLogger::Mode::LIVE;
+            }       
+            if(slave_mode_str == "OFF"){
+                logger_mode = ModelLogger::Mode::OFF;
+            }
+            if(slave_mode_str == "CACHED"){
+                logger_mode = ModelLogger::Mode::CACHED;
+            }
 
             bool s2 = deployment_manager_->SetupModelLogger(slave_logging_pub_addr_str, slave_name_str, logger_mode);
 

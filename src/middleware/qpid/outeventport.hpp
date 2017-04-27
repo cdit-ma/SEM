@@ -28,6 +28,7 @@ namespace qpid{
 
             bool Activate();
             bool Passivate();
+
         private:
             std::mutex control_mutex_;
             bool configured_ = false;
@@ -57,7 +58,7 @@ void qpid::OutEventPort<T, S>::tx(T* message){
 
 template <class T, class S>
 qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
-::OutEventPort<T>(component, name){};
+::OutEventPort<T>(component, name, "qpid"){};
 
 template <class T, class S>
 void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){

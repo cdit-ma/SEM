@@ -12,6 +12,7 @@ SET(CMAKE_C_FLAGS "-O0")
 
 set(PROJ_NAME cpu_worker)
 set(TESTER_NAME ${PROJ_NAME}_tester)
+set(PROFILER_NAME ${PROJ_NAME}_profiler)
 
 project(${PROJ_NAME})
 
@@ -33,6 +34,7 @@ include_directories("${RE_PATH}/src")
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 add_executable(${TESTER_NAME} cpu_worker_test.cpp)
+add_executable(${PROFILER_NAME} cpu_worker_profiler.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -44,3 +46,5 @@ endif(MSVC)
 target_link_libraries(${PROJ_NAME} re_core)
 
 target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
+
+target_link_libraries(${PROFILER_NAME} ${PROJ_NAME})
