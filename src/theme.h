@@ -132,6 +132,7 @@ public:
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getLineEditStyleSheet();
+    QString getTextEditStyleSheet();
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();

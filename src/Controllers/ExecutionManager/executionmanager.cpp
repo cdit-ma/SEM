@@ -76,9 +76,9 @@ void ExecutionManager::ValidateModel(QString model_path)
                 }
             }
         }
-        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "bracketsAngled", -1, success_count == count ? NS_INFO : NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_ERROR, NT_MODEL, NC_NOCATEGORY);
     }else{
-        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
     }
 }
 

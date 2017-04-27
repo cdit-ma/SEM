@@ -952,6 +952,22 @@ QString Theme::getLineEditStyleSheet()
            "}";
 }
 
+QString Theme::getTextEditStyleSheet()
+{
+    return "QPlainTextEdit {"
+           "margin: 0px;"
+           "padding: 0px;"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border-radius: 0px;"
+           "}"
+           "QPlainTextEdit:focus {"
+           "border: 1px solid " % getHighlightColorHex() % ";"
+           "}";
+}
+
+
 QString Theme::getRadioButtonStyleSheet()
 {
     return "QRadioButton {"

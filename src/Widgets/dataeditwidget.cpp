@@ -174,11 +174,15 @@ void DataEditWidget::themeChanged()
         }
 
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
         QPushButton* button = qobject_cast<QPushButton*>(editWidget_1);
+
         if(lineEdit){
             lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
         }else if(button){
             button->setStyleSheet(theme->getPushButtonStyleSheet());
+        }else if(textEdit){
+            textEdit->setStyleSheet(theme->getTextEditStyleSheet());
         }else{
             editWidget_1->setStyleSheet(style);
         }
@@ -319,9 +323,7 @@ void DataEditWidget::setupLayout()
     }
     case ST_BOOL:{
         QCheckBox* checkBox = new QCheckBox(label, this);
-
         checkBox->setChecked(currentData.toBool());
-
 
         connect(checkBox, &QCheckBox::clicked, this, &DataEditWidget::editFinished);
 
@@ -341,7 +343,6 @@ void DataEditWidget::setupLayout()
         editWidget_1 = spinBox;
 
         connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [spinBox, this](int value){editFinished();});
-        //connect(spinBox, &QSpinBox::editingFinished, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         break;
