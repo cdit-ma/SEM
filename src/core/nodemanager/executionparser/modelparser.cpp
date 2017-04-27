@@ -61,8 +61,8 @@ bool Graphml::ModelParser::Process(){
         auto source_id = GetAttribute(e_id, "source");
         auto target_id = GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
-        std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
-        std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
+        //std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
+        //std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
         std::cout << std::endl;
     }
 
