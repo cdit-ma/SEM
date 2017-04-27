@@ -171,6 +171,7 @@ bool NodeContainer::AddComponent(Component* component){
     auto search = components_.find(component_name);
     
     if(search == components_.end()){
+        //Set the library path
         std::pair<std::string, Component*> insert_pair(component_name, component);
         //Insert into hash
         components_.insert(insert_pair);

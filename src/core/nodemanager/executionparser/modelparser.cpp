@@ -16,8 +16,6 @@ Graphml::ModelParser::ModelParser(const std::string filename){
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
 }
-
-
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
         return false;
@@ -334,6 +332,8 @@ bool Graphml::ModelParser::Process(){
                             //Set QOS to port
                             auto qos_profile_id = entity_qos_map_[p_id];
                             port->qos_profile_name = GetDataValue(qos_profile_id, "label");
+                            //Relative to the library directory
+                            port->qos_profile_path = "file://qos/" + to_lower(port->qos_profile_name) + ".xml";
                         }
 
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));

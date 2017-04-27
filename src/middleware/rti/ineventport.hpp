@@ -68,7 +68,9 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
 
     if(attributes.count("qos_profile_name")){
         qos_profile_name_ = attributes["qos_profile_name"]->get_String();
-        qos_profile_path_ = "qos/" + this->get_middleware() + "/" + qos_profile_name_ + ".xml";
+    }
+    if(attributes.count("qos_profile_path")){
+        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
     }
 
     std::cout << "rti::InEventPort" << std::endl;

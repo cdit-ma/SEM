@@ -269,6 +269,13 @@ bool ExecutionManager::ConstructControlMessages(){
                             qos_name_pb->set_kind(NodeManager::Attribute::STRING);
                             set_attr_string(qos_name_pb, event_port->qos_profile_name);
 
+                            //QOS Profile Path
+                            auto qos_path_pb = port_pb->add_attributes();
+                            auto qos_path_info_pb = qos_path_pb->mutable_info();
+                            qos_path_info_pb->set_name("qos_profile_path");
+                            qos_path_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(qos_path_pb, event_port->qos_profile_path);
+
                             if(is_outport){
                                 //Set publisher name
                                 auto pub_name_pb = port_pb->add_attributes();
