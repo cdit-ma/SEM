@@ -137,10 +137,6 @@ node(masterNode){
     }
 }
 
-if(fail_flag){
-    error("Fail flag set to true after code gen and archive stages.")
-}
-
 //Itterate through all nodes
 def nodeKeys = jDeployment["nodes"].keySet() as List;
 def modelName = jDeployment["model"].name
@@ -172,8 +168,8 @@ for(def i = 0; i < nodeKeys.size(); i++){
             node(nodeName){
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
-                    sh 'cmake ..'
-                    sh 'make'
+                    if(runScript('cmake ..') != 0) fail_flag = true;
+                    if(runScript('make') != 0) fail_flag = true;
                 }
             }
         }
@@ -267,7 +263,13 @@ stage("Compiling C++"){
 }
 
 stage("Execute Model"){
-    parallel reManagers
+    if(!fail_flag){
+        parallel reManagers
+    }
+    else{
+        print("Execution skipped, compilation or code generation failed!")
+    }
+
 }
 
 stage("Stop logan clients"){
