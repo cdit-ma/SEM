@@ -79,8 +79,8 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     std::cout << "rti::InEventPort" << std::endl;
     std::cout << "**domain_id_: " << domain_id_ << std::endl;
     std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
-    std::cout << "**topic_name_: " << topic_name_ << std::endl << std::endl;
-    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl << std::endl;
+    std::cout << "**topic_name_: "<< topic_name_ << std::endl;
+    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
     std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
 

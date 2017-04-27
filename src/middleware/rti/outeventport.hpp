@@ -83,8 +83,8 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::cout << "rti::OutEventPort" << std::endl;
     std::cout << "**domain_id_: "<< domain_id_ << std::endl;
     std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
-    std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
-    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl << std::endl;
+    std::cout << "**topic_name_: "<< topic_name_ << std::endl;
+    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
     std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 };
 
