@@ -107,8 +107,15 @@ node(masterNode){
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
             runScript(typeGenCommand, false)
-            def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
+            def componentGenCommand = jarString + '/g2components.xsl' + fileString
             runScript(componentGenCommand, false)
+
+            
+            dir("lib"){
+                //Generate QOS into lib directory
+                def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
+                runScript(componentGenCommand, false)
+            }
         }
     }
 
