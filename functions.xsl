@@ -54,9 +54,21 @@
         <xsl:value-of select="concat(o:quote(), $str, o:quote())" />
     </xsl:function>	
 
+    <xsl:function name="o:sequence_to_string">
+        <xsl:param name="seq" />
+        <xsl:value-of select="string-join($seq, '')" />
+    </xsl:function>	
+
+    
+
     <xsl:function name="o:angle_wrap">
         <xsl:param name="str" as="xs:string" />
         <xsl:value-of select="concat(o:lt(), $str, o:gt())" />
+    </xsl:function>	
+
+    <xsl:function name="o:angle_wrap_end">
+        <xsl:param name="str" as="xs:string" />
+        <xsl:value-of select="concat(o:lt(), '/', $str, o:gt())" />
     </xsl:function>	
 
     <xsl:function name="o:square_wrap">
@@ -2101,5 +2113,10 @@
             </xsl:for-each>
         </xsl:for-each>
     </xsl:function>
+
+
+
+
+    
 
 </xsl:stylesheet>
