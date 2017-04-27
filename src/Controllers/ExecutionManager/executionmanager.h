@@ -10,7 +10,7 @@ class ExecutionManager: public QObject
 public:
     ExecutionManager(ViewController* view_controller);
 
-    void ValidateModel(QString model_path, QString output_file_path);
+    void ValidateModel(QString model_path);
     void GenerateCodeForComponent(QString document_path, QString component_name);
     void GenerateWorkspace(QString document_path, QString output_directory);
 signals:

@@ -477,6 +477,7 @@ void ViewController::modelValidated(QString reportPath)
     query.evaluateTo(&reportMessages);
     xmlFile.close();
 
+
     emit vc_modelValidated(reportMessages);
     emit vc_backgroundProcess(false, BP_VALIDATION);
 }
@@ -562,17 +563,9 @@ void ViewController::getCodeForComponent()
 
 void ViewController::validateModel()
 {
-
-    //em->RunTransform();
-    return;
     if(controller){
         QString filePath = getTempFileForModel();
-        QString reportPath = FileHandler::getTempFileName("-ValidateReport.xml");
-
-        if(!filePath.isEmpty()){
-            emit vc_validateModel(filePath, reportPath);
-            emit vc_backgroundProcess(true, BP_VALIDATION);
-        }
+        execution_manager->ValidateModel(filePath);
     }
 }
 

@@ -75,7 +75,7 @@ public slots:
     void setLastNotificationItem(int ID);
     void showLastNotification();
 
-    void modelValidated(QStringList report);
+    void modelValidated(QString report);
 
 private:
     void addNotification(QString description,

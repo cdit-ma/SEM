@@ -305,6 +305,9 @@ void DataEditWidget::setupLayout()
         case ST_STRING:{
         QPlainTextEdit* textEdit = new QPlainTextEdit(this);
         textEdit->setPlainText(currentData.toString());
+
+        textEdit->setTabChangesFocus(true);
+
         textEdit->setFixedHeight(SMALL_SQUARE);
 
         //Any CChange should change
@@ -402,6 +405,10 @@ void DataEditWidget::setupLayout()
     }
 
     if(editWidget_1){
+        if(editLabel){
+            editLabel->setFocusPolicy(Qt::ClickFocus);
+            editLabel->setFocusProxy(editWidget_1);
+        }
         editWidget_1->setFixedHeight(SMALL_SQUARE);
     }
     if(editWidget_2){

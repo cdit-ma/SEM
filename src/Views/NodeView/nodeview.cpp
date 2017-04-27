@@ -718,6 +718,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
                 break;
             case Node::NK_IDL:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
                 break;
             case Node::NK_COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);

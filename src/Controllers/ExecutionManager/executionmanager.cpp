@@ -2,6 +2,8 @@
 #include <QApplication>
 #include <QStringBuilder>
 #include <QDebug>
+#include <QXmlStreamReader>
+
 #include "../../Utils/filehandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../ViewController/viewcontroller.h"
@@ -16,14 +18,68 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
 
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::jenkinsManager_GotJava);
 
+    //connect(this, &ExecutionManager::GotValidationReport, NotificationManager::manager(), &NotificationManager::modelValidated);
     //run check for java
     GotJava_();
 }
 
 
-void ExecutionManager::ValidateModel(QString model_path, QString output_file_path)
+QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 {
+    QString val;
+    //Get the Attributes of the current XML entity.
+    QXmlStreamAttributes attributes = xml.attributes();
 
+    if(attributes.hasAttribute(attribute_name)){
+        val = attributes.value(attribute_name).toString();
+    }
+    return val;
+}
+
+void ExecutionManager::ValidateModel(QString model_path)
+{
+    emit NotificationManager::manager()->backgroundProcess(true, BP_VALIDATION);
+    auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
+    emit NotificationManager::manager()->backgroundProcess(false, BP_VALIDATION);
+
+    if(results.success){
+        int count = 0;
+        int success_count = 0;
+
+        QString report = results.standard_output.join("");
+
+        QXmlStreamReader xml(report);
+
+        QString current_test;
+
+        while(!xml.atEnd()){
+            //Read each line of the xml document.
+            xml.readNext();
+            auto tag_name = xml.name();
+
+            if(xml.isStartElement()){
+                if(tag_name == "test"){
+                    current_test = get_xml_attribute(xml, "name");
+
+                }else if(tag_name == "result"){
+                    auto result = get_xml_attribute(xml, "success");
+                    count ++;
+
+                    if(result == "false"){
+                        auto id = get_xml_attribute(xml, "id");
+                        auto warning = get_xml_attribute(xml, "warning") == "true";
+                        auto error_code = xml.readElementText();
+                        NotificationManager::manager()->displayNotification(error_code, "", "", id.toInt(), warning? NS_INFO : NS_WARNING, NT_MODEL, NC_VALIDATION);
+                    }else if(result == "true"){
+                        success_count ++;
+                    }
+                }
+            }
+        }
+        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "bracketsAngled", -1, success_count == count ? NS_INFO : NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+    }else{
+        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+    }
 }
 
 void ExecutionManager::GenerateCodeForComponent(QString document_path, QString component_name)
@@ -107,6 +163,7 @@ bool ExecutionManager::GotJava_()
         emit GotJava(result.success, result.standard_error.join(""));
         got_java_ = result.success;
     }
+    return got_java_;
 }
 
 ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)

@@ -41,6 +41,9 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
 
     connect(view_controller, &ViewController::vc_executeJenkinsJob, this, &JenkinsManager::BuildJob);
 
+    auto action_controller = view_controller->getActionController();
+    connect(action_controller->jenkins_importNodes, &QAction::triggered, this, &JenkinsManager::GetNodes);
+
     //Validate
     ValidateSettings();
 }

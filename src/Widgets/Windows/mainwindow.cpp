@@ -118,7 +118,7 @@ void MainWindow::setViewController(ViewController *vc)
     ActionController* actionController = vc->getActionController();
 
     connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
-    connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
+    //connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 

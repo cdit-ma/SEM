@@ -328,7 +328,7 @@ void NotificationManager::showLastNotification()
  * @brief NotificationManager::modelValidated
  * @param report
  */
-void NotificationManager::modelValidated(QStringList report)
+void NotificationManager::modelValidated(QString report)
 {
     QString status = "Failed";
     if (report.isEmpty()) {

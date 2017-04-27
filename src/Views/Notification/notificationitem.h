@@ -37,6 +37,7 @@ public slots:
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent();
 
 private:
     void updateStyleSheet();

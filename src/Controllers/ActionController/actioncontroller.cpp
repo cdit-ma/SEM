@@ -3,7 +3,6 @@
 #include "../../theme.h"
 #include "../../Utils/filehandler.h"
 #include "../../Utils/rootaction.h"
-
 #include <QDebug>
 
 ActionController::ActionController(ViewController* vc) : QObject(vc)
@@ -99,6 +98,9 @@ void ActionController::connectViewController(ViewController *controller)
 
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
+
+
+
 
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
