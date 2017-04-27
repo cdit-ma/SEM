@@ -33,8 +33,9 @@
             <xsl:for-each select="$aggregates">
                 <xsl:variable name="id" select="cdit:get_node_id(.)" />
                 <xsl:variable name="key_id" select="cdit:get_key_id(., 'key')" />
+                <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node/gml:data[@key=$key_id and lower-case(text()) = 'true']) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key,'Got no children with key set', 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat('Aggregate ', o:quote_wrap($type), ' has no child with data ', o:quote_wrap('key'), ' set to true.'), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -43,15 +44,17 @@
 
     <xsl:function name="cdit:test_requires_children">
         <xsl:param name="root"/>
-        <xsl:param name="entities" as="element()*" />
+        <xsl:param name="entity_kind" />
         <xsl:param name="test"/>
+
+        <xsl:variable name="entities" as="element()*" select="cdit:get_entities_of_kind($root, $entity_kind)" />
         
 
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="cdit:get_node_id(.)" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, 'Requires children', 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat($entity_kind, ' requires a child entity'), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -72,7 +75,7 @@
                 <xsl:variable name="type" select="./gml:data[@key=$type_key_id]/text()" />
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="matched_types" select="count($all_types[text() = $type])" />        
-                <xsl:value-of select="cdit:output_result($id, $matched_types = 1, concat('Type ', o:quote_wrap($type), ' not unique in model'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $matched_types = 1, concat('Aggregate type ', o:quote_wrap($type), ' is not unique in model'), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -93,7 +96,7 @@
                 <xsl:variable name="label" select="./gml:data[@key=$label_key_id]/text()" />
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="matched_labels" select="count($all_labels[text() = $label])" />        
-                <xsl:value-of select="cdit:output_result($id, $matched_labels = 1, concat('Component ', o:quote_wrap($label), ' not unique in model'), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $matched_labels = 1, concat('Component label ', o:quote_wrap($label), ' not unique in model'), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -107,11 +110,11 @@
 
         <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind($root, 'Aggregate')" />
 
-        <xsl:value-of select="cdit:test_requires_children($root, $aggregates, 'Aggregate entities require at least one child')" />
+        <xsl:value-of select="cdit:test_requires_children($root, 'Aggregate', 'Aggregate entities require at least one child')" />
         <xsl:value-of select="cdit:test_aggregate_requires_key($root, $aggregates)" />
         <xsl:value-of select="cdit:test_aggregate_unique_type($root, $aggregates)" />
 
-        <xsl:value-of select="cdit:test_requires_children($root, cdit:get_entities_of_kind($root, 'Vector'), 'Vector entities require at least one child')" />
+        <xsl:value-of select="cdit:test_requires_children($root, 'Vector', 'Vector entities require at least one child')" />
         
     </xsl:function>
 
