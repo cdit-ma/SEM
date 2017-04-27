@@ -342,7 +342,7 @@ bool Graphml::ModelParser::Process(){
                             auto qos_profile_id = entity_qos_map_[p_id];
                             port->qos_profile_name = GetDataValue(qos_profile_id, "label");
                             //Relative to the library directory
-                            port->qos_profile_path = "file://qos/" + to_lower(port->qos_profile_name) + ".xml";
+                            port->qos_profile_path = "file://qos/" + to_lower(port->middleware) + "/" + to_lower(port->qos_profile_name) + ".xml";
                         }
 
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
