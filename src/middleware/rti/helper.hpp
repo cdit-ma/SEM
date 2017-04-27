@@ -49,8 +49,9 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
     if(publisher != nullptr && topic != nullptr){
         dds::pub::qos::DataWriterQos qos;
         if(qos_uri != ""){
-            std::cout << "Setting QOS Profile from: " << qos_uri << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri);
+            std::string profile_name = qos_profile + "::" + qos_profile;
+            std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
+            dds::core::QosProvider qos_provider(qos_uri, profile_name);
             qos = qos_provider.datawriter_qos();
         }
 
@@ -74,8 +75,9 @@ template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscri
         dds::sub::qos::DataReaderQos qos;
 
         if(qos_uri != ""){
-            std::cout << "Setting QOS Profile from: " << qos_uri << std::endl;
-            dds::core::QosProvider qos_provider(qos_uri);
+            std::string profile_name = qos_profile + "::" + qos_profile;
+            std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
+            dds::core::QosProvider qos_provider(qos_uri, profile_name);
             qos = qos_provider.datareader_qos();
         }
         //The next setting is used to force dynamic memory allocation for samples with a serialized size of larger than 32K
