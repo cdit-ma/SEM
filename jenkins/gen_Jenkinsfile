@@ -201,10 +201,8 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 }
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
-                        dir(buildDir){
-                            blockingKill(out)
-                            archiveArtifacts databaseFile
-                        }
+                        blockingKill(out)
+                        archiveArtifacts buildDir + "/" + databaseFile
                     }
                 }
             }
