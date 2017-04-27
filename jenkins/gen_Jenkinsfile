@@ -45,11 +45,16 @@ def blockingKill(String pid){
             }
         }
     }
+    else{
+        //TODO: do windows things here
+    }
 }
 
 def masterNode = "${MASTER_NODE}"
-def buildDir = "gen"
+def buildDir = "gen" + env.BUILD_ID
 def buildArchiveDir = "build" + env.BUILD_ID
+
+//Deployment plans
 def loganServers = [:]
 def loganClients = [:]
 def loganServers_shutdown = [:]
@@ -107,16 +112,12 @@ node(masterNode){
         }
     }
 
-    zip(zipFile: "archive.zip", archive: true, dir: buildPath)
-
-    //Store an archive of generated C++ files
     stage('Archive'){
+        //Store an archive of generated C++ files
+        zip(zipFile: "archive.zip", archive: true, dir: buildPath)
         dir(workspacePath){
             // Stash generated cpp files.
             stash includes: buildDir + '/**', name: 'codeGen'
-        }
-        dir(workspacePath + "/" + buildArchiveDir){
-            unstash 'codeGen'
         }
     }
 }
@@ -194,13 +195,16 @@ for(def i = 0; i < nodeKeys.size(); i++){
         //Update the map to include the launch instructions for logan_server
         loganServers[nodeName] = {
             node(nodeName){
-                deleteDir()
-                def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                def out = runScript(serverRun, true)
+                dir(buildDir){
+                    def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
+                    def out = runScript(serverRun, true)
+                }
                 loganServers_shutdown[nodeName] = {
                     node(nodeName){
-                        blockingKill(out)
-                        archiveArtifacts databaseFile
+                        dir(buildDir){
+                            blockingKill(out)
+                            archiveArtifacts databaseFile
+                        }
                     }
                 }
             }
