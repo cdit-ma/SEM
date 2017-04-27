@@ -117,18 +117,23 @@
         <xsl:param name="entity_kind" />
         <xsl:param name="test"/>
 
-        <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| '" />
+        <xsl:variable name="invalid_characters" select="'\/:*?&quot;&gt;&lt;| '"  />
         <xsl:variable name="entities" as="element()*" select="cdit:get_entities_of_kind($root, $entity_kind)" />
+
+        <xsl:variable name="replace_map">
+             <xsl:for-each select="1 to string-length($invalid_characters)">*</xsl:for-each>
+        </xsl:variable>
 
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="cdit:get_node_id(.)" />
                 <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
                 <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-                <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" />        
+                <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
+                <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
 
                 <xsl:variable name="got_valid_label" select="$label = $label_replaced" />        
-                <xsl:value-of select="cdit:output_result($id, $got_valid_label, concat($kind, ' ', o:quote_wrap($label), ' has an invalid character ', o:bracket_wrap($invalid_characters), ' in label'), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_valid_label, concat($kind, ' ', o:quote_wrap($label), ' has an invalid characters in label ', o:quote_wrap($label_print), ' (Replaced with *)'), false(), 2)"/> 
             </xsl:for-each>
         </xsl:variable>
 
