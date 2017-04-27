@@ -23,356 +23,369 @@ bool Graphml::ModelParser::Process(){
         return false;
     }
 
-    //std::vector<std::string> modelIdVec = graphml_parser_->FindNodes("Model");
-    //model_->id = modelIdVec[0];
-    
-    //model_->name = graphml_parser_->GetAttribute(model_->id, "label");
-
     //Get the ID's of the edges
     deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
     assembly_edge_ids_ = graphml_parser_->FindEdges("Edge_Assembly");
     definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
     aggregate_edge_ids_ = graphml_parser_->FindEdges("Edge_Aggregate");
+    qos_edge_ids_ = graphml_parser_->FindEdges("Edge_QOS");
 
     for(auto c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
-            RecurseEdge(c_id, c_id);
-        }
+        RecurseEdge(c_id, c_id);
+    }
         
-        //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
-        for(auto e_id: deployment_edge_ids_){
-            auto source_id = GetAttribute(e_id, "source");
-            auto target_id = GetAttribute(e_id, "target");
-            deployed_entities_map_[source_id] = target_id;
-        }
+    //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
+    for(auto e_id: deployment_edge_ids_){
+        auto source_id = GetAttribute(e_id, "source");
+        auto target_id = GetAttribute(e_id, "target");
+        deployed_entities_map_[source_id] = target_id;
+    }
 
-        //Parse HardwareClusters
-        for(auto c_id : graphml_parser_->FindNodes("HardwareCluster")){
-            if(!GetHardwareCluster(c_id)){
-                auto cluster = new HardwareCluster();
-                cluster->id = c_id;
-                cluster->name = GetDataValue(c_id, "label");
-                hardware_clusters_[c_id] = cluster;
+    //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
+    for(auto e_id: qos_edge_ids_){
+        auto source_id = GetAttribute(e_id, "source");
+        auto target_id = GetAttribute(e_id, "target");
+        entity_qos_map_[source_id] = target_id;
+    }
+
+
+    
+
+    //Parse HardwareClusters
+    for(auto c_id : graphml_parser_->FindNodes("HardwareCluster")){
+        if(!GetHardwareCluster(c_id)){
+            auto cluster = new HardwareCluster();
+            cluster->id = c_id;
+            cluster->name = GetDataValue(c_id, "label");
+            hardware_clusters_[c_id] = cluster;
+        }
+    }
+
+    //Parse HardwareNodes
+    for(auto n_id : graphml_parser_->FindNodes("HardwareNode")){
+        if(!GetHardwareNode(n_id)){
+            auto node = new HardwareNode();
+            node->id = n_id;
+            node->name = GetDataValue(n_id, "label");
+            node->ip_address = GetDataValue(n_id, "ip_address"); 
+            //Set Port Number for ZMQ Logger
+            node->logan_client_port_number = node->port_count++;
+            node->model_logger_port_number = node->port_count++;
+
+            //Get the parent
+            auto parent_id = graphml_parser_->GetParentNode(n_id);
+            //Check if the parent is a cluster
+            auto parent_cluster = GetHardwareCluster(parent_id);
+            if(parent_cluster){
+                node->parent_id = parent_id;
+                parent_cluster->node_ids.push_back(n_id);
             }
+            hardware_nodes_[n_id] = node;
         }
+    }
 
-        //Parse HardwareNodes
-        for(auto n_id : graphml_parser_->FindNodes("HardwareNode")){
-            if(!GetHardwareNode(n_id)){
-                auto node = new HardwareNode();
-                node->id = n_id;
-                node->name = GetDataValue(n_id, "label");
-                node->ip_address = GetDataValue(n_id, "ip_address"); 
-                //Set Port Number for ZMQ Logger
-                node->logan_client_port_number = node->port_count++;
-                node->model_logger_port_number = node->port_count++;
-
-                //Get the parent
-                auto parent_id = graphml_parser_->GetParentNode(n_id);
-                //Check if the parent is a cluster
-                auto parent_cluster = GetHardwareCluster(parent_id);
-                if(parent_cluster){
-                    node->parent_id = parent_id;
-                    parent_cluster->node_ids.push_back(n_id);
-                }
-                hardware_nodes_[n_id] = node;
-            }
-        }
-
-        //Parse LoggingServers
-        for(auto l_id : graphml_parser_->FindNodes("LoggingServer")){
-            if(!GetLoggingServer(l_id)){
-                auto server = new LoggingServer();
-                auto hardware_id = GetDeployedID(l_id);
-                server->database_name = GetDataValue(l_id, "database");
-                
-                auto hardware = GetHardwareNode(hardware_id);
-                if(hardware){
-                    hardware->logging_server_id = l_id;
-                }
-
-                logging_servers_[l_id] = server;
-            }
-        }
-
-        //Parse LoggingProfiles
-        for(auto l_id : graphml_parser_->FindNodes("LoggingProfile")){
-            if(!GetLoggingProfile(l_id)){
-                auto profile = new LoggingProfile();
-                profile->id = l_id;
-                profile->mode = GetDataValue(l_id, "mode");
-                profile->frequency = GetDataValue(l_id, "frequency");
-
-                std::string processes = GetDataValue(l_id, "processes_to_log");
-                std::replace(processes.begin(), processes.end(), ',', ' ');
-                profile->processes = processes;
-
-                HardwareNode* node = 0;
-                
-                //Find the profile attached to this node
-                for(auto e_id : deployment_edge_ids_){
-                    auto src_id = graphml_parser_->GetAttribute(e_id, "source");
-                    if(src_id == l_id){
-                        //Get the nodes this is deployed on
-                        auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
-                        auto hardware = GetHardwareNode(dst_id);
-                        if(hardware){
-                            hardware->logging_profile_id = l_id;
-                            node = hardware;
-                            break;
-                        }
-                    }
-                }
-
-                //Find the Server this profile is connected to
-                for(auto e_id : assembly_edge_ids_){
-                    auto src_id = graphml_parser_->GetAttribute(e_id, "source");
-                    if(src_id == l_id){
-                        //Get the nodes this is deployed on
-                        auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
-                        auto server = GetLoggingServer(dst_id);
-                        if(server && node){
-                            server->connected_hardware_ids.push_back(node->id);
-                        }
-                    }
-                }
-                
-                logging_profiles_[l_id] = profile;
-            }
-        }
-
-      
-
-        //Parse ComponentAssembly
-        for(auto c_id : graphml_parser_->FindNodes("ComponentAssembly")){
-            if(!GetComponentAssembly(c_id)){
-                auto assembly = new ComponentAssembly();
-                assembly->id = c_id;
-                
-                assembly->replicate_count = std::stoi(GetDataValue(c_id, "replicate_count"));
-                
-                auto parent_id = graphml_parser_->GetParentNode(c_id);
-                auto parent_assembly = GetComponentAssembly(parent_id);
-                
-                if(parent_assembly){
-                    //Set the parent_id if we have a parent assembly
-                    assembly->parent_id = parent_id;
-                }
-                component_assemblies_[c_id] = assembly;
-            }
-        }
-
-        //Parse Component
-        for(auto c_id : graphml_parser_->FindNodes("Component")){
-            if(!GetComponentDefinition(c_id)){
-                auto component = new Component();
-                component->id = c_id;
-                component->name = GetDataValue(c_id, "label");
-                components_[c_id] = component;
-            }
-        }
-
-        //Parse ComponentImpl
-        for(auto c_id : graphml_parser_->FindNodes("ComponentImpl")){
-            auto def_id = GetDefinitionId(c_id);
-            auto component = GetComponentDefinition(def_id);
+    //Parse LoggingServers
+    for(auto l_id : graphml_parser_->FindNodes("LoggingServer")){
+        if(!GetLoggingServer(l_id)){
+            auto server = new LoggingServer();
+            auto hardware_id = GetDeployedID(l_id);
+            server->database_name = GetDataValue(l_id, "database");
             
-            if(component){
-                //Set the Implemenation for the component
-                component->implementation_id = c_id;
+            auto hardware = GetHardwareNode(hardware_id);
+            if(hardware){
+                hardware->logging_server_id = l_id;
             }
-        }
 
-        
-        //Parse ComponentInstances
-        for(auto c_id : graphml_parser_->FindNodes("ComponentInstance")){
-            //Default replication count of 1
-            int replication_count = 1;
+            logging_servers_[l_id] = server;
+        }
+    }
+
+    //Parse LoggingProfiles
+    for(auto l_id : graphml_parser_->FindNodes("LoggingProfile")){
+        if(!GetLoggingProfile(l_id)){
+            auto profile = new LoggingProfile();
+            profile->id = l_id;
+            profile->mode = GetDataValue(l_id, "mode");
+            profile->frequency = GetDataValue(l_id, "frequency");
+
+            std::string processes = GetDataValue(l_id, "processes_to_log");
+            std::replace(processes.begin(), processes.end(), ',', ' ');
+            profile->processes = processes;
+
+            HardwareNode* node = 0;
+            
+            //Find the profile attached to this node
+            for(auto e_id : deployment_edge_ids_){
+                auto src_id = graphml_parser_->GetAttribute(e_id, "source");
+                if(src_id == l_id){
+                    //Get the nodes this is deployed on
+                    auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
+                    auto hardware = GetHardwareNode(dst_id);
+                    if(hardware){
+                        hardware->logging_profile_id = l_id;
+                        node = hardware;
+                        break;
+                    }
+                }
+            }
+
+            //Find the Server this profile is connected to
+            for(auto e_id : assembly_edge_ids_){
+                auto src_id = graphml_parser_->GetAttribute(e_id, "source");
+                if(src_id == l_id){
+                    //Get the nodes this is deployed on
+                    auto dst_id = graphml_parser_->GetAttribute(e_id, "target");
+                    auto server = GetLoggingServer(dst_id);
+                    if(server && node){
+                        server->connected_hardware_ids.push_back(node->id);
+                    }
+                }
+            }
+            
+            logging_profiles_[l_id] = profile;
+        }
+    }
+
+    
+
+    //Parse ComponentAssembly
+    for(auto c_id : graphml_parser_->FindNodes("ComponentAssembly")){
+        if(!GetComponentAssembly(c_id)){
+            auto assembly = new ComponentAssembly();
+            assembly->id = c_id;
+            
+            assembly->replicate_count = std::stoi(GetDataValue(c_id, "replicate_count"));
             
             auto parent_id = graphml_parser_->GetParentNode(c_id);
-            auto c_parent_id = parent_id;
-
-            auto def_id = GetDefinitionId(c_id);
-            auto component = GetComponentDefinition(def_id);
-            auto impl_id = component->implementation_id;
+            auto parent_assembly = GetComponentAssembly(parent_id);
             
-
-            //Get the deployed ID of this component, if it's been deployed
-            std::string hardware_id = GetDeployedID(c_id);
-
-            std::string definition_id = GetDefinitionId(c_id);
-            
-            while(true){
-                auto component_assembly = GetComponentAssembly(c_parent_id);
-                if(component_assembly){
-                    if(hardware_id.empty()){
-                        //If we haven't been deployed yet, Check if the ComponentAssembly has been deployed
-                        hardware_id = GetDeployedID(c_parent_id);
-                    }
-
-                    if(component_assembly->replicate_count > 0){
-                        //Calculate the number of these components
-                        replication_count *= component_assembly->replicate_count;
-                    }
-                    //Get next parent
-                    c_parent_id = component_assembly->parent_id;
-                }else{
-                    //Terminate
-                    break;
-                }
+            if(parent_assembly){
+                //Set the parent_id if we have a parent assembly
+                assembly->parent_id = parent_id;
             }
-
-            //Get the ids of the attributes and ports
-            auto attribute_ids = graphml_parser_->FindNodes("AttributeInstance", c_id);
-            auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", c_id);
-            {
-                auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", c_id);
-                //Combine into one list to reduce code duplication            
-                port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
-            }
-
-            //Get the periodic events from the impl
-            auto periodic_event_ids = graphml_parser_->FindNodes("PeriodicEvent", impl_id);
-
-
-            HardwareCluster* cluster = GetHardwareCluster(hardware_id);
-            HardwareNode* node = GetHardwareNode(hardware_id);
-
-            auto component_replication = new ComponentReplication(); 
-            component_replication->id = c_id;
-
-            //Construct the number of nodes
-            for(int i = 0; i < replication_count; i++){
-                HardwareNode* deployed_node = 0;
-
-                
-                
-                //Get the deployed node
-                if(node){
-                    deployed_node = node;
-                }else if(cluster){
-                    auto n_id = cluster->GetHardwareNode(i);
-                    deployed_node = GetHardwareNode(n_id);
-                }
-
-                if(!deployed_node){
-                    std::cout << "Component '" << c_id << "' Not Deployed" << std::endl;
-                    break;
-                }
-
-                //Construct a unique_id
-                std::string unique_id;
-                if(i > 0){
-                    unique_id = "_" + std::to_string(i);
-                }
-
-                auto c_uid = c_id + unique_id;
-                if(!GetComponentInstance(c_uid)){
-                    //Construct a Component
-                    auto component_inst = new ComponentInstance();
-                    component_inst->deployed_node_id = deployed_node->id;
-                    component_inst->original_id = c_id;
-                    component_inst->id = c_uid;
-                    component_inst->replicate_id = i;
-                    //Append uniquity to label
-                    component_inst->name = GetDataValue(c_id, "label") + unique_id;
-
-                    
-
-                    //Attach our definitions
-                    if(component){
-                        component_inst->type_name = component->name;
-                        component->instance_ids.push_back(c_uid);
-                        component_inst->definition_id = component->id;
-                    }
-
-                    //Parse Attributes
-                    for(auto a_id : attribute_ids){
-                        auto a_uid = a_id + unique_id;
-                        if(!GetAttribute(a_uid)){
-                            auto attribute = new Attribute();
-                            attribute->id = a_uid;
-                            attribute->component_id = c_uid;
-                            attribute->name = GetDataValue(a_id, "label");
-                            attribute->type = GetDataValue(a_id, "type");
-                            attribute->value = GetDataValue(a_id, "value");
-                            attributes_[a_uid] = attribute;
-                            
-                            //Add the Attribute to the Component
-                            component_inst->attribute_ids.push_back(a_uid);
-                        }
-                    }
-
-                    //Parse In/OutEventPortInstance
-                    for(auto p_id: port_ids){
-                        auto p_uid = p_id + unique_id;
-                        if(!GetEventPort(p_uid)){
-                            auto port = new EventPort();
-                            port->id = p_uid;
-                            port->component_id = c_uid;
-                            port->name = GetDataValue(p_id, "label");
-                            //TODO uniquify topic_name if it's not set
-                            port->topic_name = GetDataValue(p_id, "topicName");
-                            port->kind = GetDataValue(p_id, "kind");
-                            port->middleware = GetDataValue(p_id, "middleware");
-
-                            auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
-
-                            port->message_type = GetDataValue(aggregate_id, "label");
-                            port->namespace_name = GetDataValue(aggregate_id, "namespace");
-                            
-
-                            //Register Only OutEventPortInstances
-                            if(port->kind == "OutEventPortInstance" && deployed_node && port->middleware == "ZMQ"){
-                                //Set Port Number only for ZMQ
-                                port->port_number = ++deployed_node->port_count;
-                                
-                                //Construct a TCP Address
-                                port->port_address = GetTCPAddress(deployed_node->ip_address, port->port_number);
-                            }
-                            event_ports_[p_uid] = port;
-                            //Add the Attribute to the Component
-                            component_inst->event_port_ids.push_back(p_uid);
-                        }
-                    }
-
-
-                    //Parse Periodic_Events
-                    for(auto p_id : periodic_event_ids){
-                        auto p_uid = p_id + unique_id;
-                        if(!GetEventPort(p_uid)){
-                            auto port = new EventPort();
-                            //setup the port
-                            port->id = p_uid;
-                            port->component_id = c_uid;
-                            //Get the original values
-                            port->name = GetDataValue(p_id, "label");
-                            port->kind = GetDataValue(p_id, "kind");
-                            port->frequency = GetDataValue(p_id, "frequency");
-
-                            event_ports_[p_uid] = port;
-                            //Add the Attribute to the Component
-                            component_inst->event_port_ids.push_back(p_uid);
-                        }
-                    }
-
-
-                    if(deployed_node){
-                        deployed_node->component_ids.push_back(c_uid);
-
-                        if(first_node_){
-                            first_node_ = false;
-                            deployed_node->is_re_master = true;
-                        }
-                    }
-                    component_instances_[c_uid] = component_inst;
-
-                    //Append to the component_replication object this nodes id
-                    component_replication->component_instance_ids.push_back(c_uid);
-                }
-            }
-
-            component_replications_[c_id] = component_replication;
+            component_assemblies_[c_id] = assembly;
         }
+    }
+
+    //Parse Component
+    for(auto c_id : graphml_parser_->FindNodes("Component")){
+        if(!GetComponentDefinition(c_id)){
+            auto component = new Component();
+            component->id = c_id;
+            component->name = GetDataValue(c_id, "label");
+            components_[c_id] = component;
+        }
+    }
+
+    //Parse ComponentImpl
+    for(auto c_id : graphml_parser_->FindNodes("ComponentImpl")){
+        auto def_id = GetDefinitionId(c_id);
+        auto component = GetComponentDefinition(def_id);
+        
+        if(component){
+            //Set the Implemenation for the component
+            component->implementation_id = c_id;
+        }
+    }
+
+    
+    //Parse ComponentInstances
+    for(auto c_id : graphml_parser_->FindNodes("ComponentInstance")){
+        //Default replication count of 1
+        int replication_count = 1;
+        
+        auto parent_id = graphml_parser_->GetParentNode(c_id);
+        auto c_parent_id = parent_id;
+
+        auto def_id = GetDefinitionId(c_id);
+        auto component = GetComponentDefinition(def_id);
+        auto impl_id = component->implementation_id;
+        
+
+        //Get the deployed ID of this component, if it's been deployed
+        std::string hardware_id = GetDeployedID(c_id);
+
+        std::string definition_id = GetDefinitionId(c_id);
+        
+        while(true){
+            auto component_assembly = GetComponentAssembly(c_parent_id);
+            if(component_assembly){
+                if(hardware_id.empty()){
+                    //If we haven't been deployed yet, Check if the ComponentAssembly has been deployed
+                    hardware_id = GetDeployedID(c_parent_id);
+                }
+
+                if(component_assembly->replicate_count > 0){
+                    //Calculate the number of these components
+                    replication_count *= component_assembly->replicate_count;
+                }
+                //Get next parent
+                c_parent_id = component_assembly->parent_id;
+            }else{
+                //Terminate
+                break;
+            }
+        }
+
+        //Get the ids of the attributes and ports
+        auto attribute_ids = graphml_parser_->FindNodes("AttributeInstance", c_id);
+        auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", c_id);
+        {
+            auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", c_id);
+            //Combine into one list to reduce code duplication            
+            port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
+        }
+
+        //Get the periodic events from the impl
+        auto periodic_event_ids = graphml_parser_->FindNodes("PeriodicEvent", impl_id);
+
+
+        HardwareCluster* cluster = GetHardwareCluster(hardware_id);
+        HardwareNode* node = GetHardwareNode(hardware_id);
+
+        auto component_replication = new ComponentReplication(); 
+        component_replication->id = c_id;
+
+        //Construct the number of nodes
+        for(int i = 0; i < replication_count; i++){
+            HardwareNode* deployed_node = 0;
+
+            
+            
+            //Get the deployed node
+            if(node){
+                deployed_node = node;
+            }else if(cluster){
+                auto n_id = cluster->GetHardwareNode(i);
+                deployed_node = GetHardwareNode(n_id);
+            }
+
+            if(!deployed_node){
+                std::cout << "Component '" << c_id << "' Not Deployed" << std::endl;
+                break;
+            }
+
+            //Construct a unique_id
+            std::string unique_id;
+            if(i > 0){
+                unique_id = "_" + std::to_string(i);
+            }
+
+            auto c_uid = c_id + unique_id;
+            if(!GetComponentInstance(c_uid)){
+                //Construct a Component
+                auto component_inst = new ComponentInstance();
+                component_inst->deployed_node_id = deployed_node->id;
+                component_inst->original_id = c_id;
+                component_inst->id = c_uid;
+                component_inst->replicate_id = i;
+                //Append uniquity to label
+                component_inst->name = GetDataValue(c_id, "label") + unique_id;
+
+                
+
+                //Attach our definitions
+                if(component){
+                    component_inst->type_name = component->name;
+                    component->instance_ids.push_back(c_uid);
+                    component_inst->definition_id = component->id;
+                }
+
+                //Parse Attributes
+                for(auto a_id : attribute_ids){
+                    auto a_uid = a_id + unique_id;
+                    if(!GetAttribute(a_uid)){
+                        auto attribute = new Attribute();
+                        attribute->id = a_uid;
+                        attribute->component_id = c_uid;
+                        attribute->name = GetDataValue(a_id, "label");
+                        attribute->type = GetDataValue(a_id, "type");
+                        attribute->value = GetDataValue(a_id, "value");
+                        attributes_[a_uid] = attribute;
+                        
+                        //Add the Attribute to the Component
+                        component_inst->attribute_ids.push_back(a_uid);
+                    }
+                }
+
+                //Parse In/OutEventPortInstance
+                for(auto p_id: port_ids){
+                    auto p_uid = p_id + unique_id;
+                    if(!GetEventPort(p_uid)){
+                        auto port = new EventPort();
+                        port->id = p_uid;
+                        port->component_id = c_uid;
+                        port->name = GetDataValue(p_id, "label");
+                        //TODO uniquify topic_name if it's not set
+                        port->topic_name = GetDataValue(p_id, "topicName");
+                        port->kind = GetDataValue(p_id, "kind");
+                        port->middleware = GetDataValue(p_id, "middleware");
+
+                        if(entity_qos_map_.count(p_id)){
+                            //Set QOS to port
+                            auto qos_profile_id = entity_qos_map_[p_id];
+                            port->qos_profile_name = GetDataValue(qos_profile_id, "label");
+                            port->qos_profile_path = port->middleware + "/" + port->qos_profile_name;
+                        }
+
+                        auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
+
+                        port->message_type = GetDataValue(aggregate_id, "label");
+                        port->namespace_name = GetDataValue(aggregate_id, "namespace");
+                        
+
+                        //Register Only OutEventPortInstances
+                        if(port->kind == "OutEventPortInstance" && deployed_node && port->middleware == "ZMQ"){
+                            //Set Port Number only for ZMQ
+                            port->port_number = ++deployed_node->port_count;
+                            
+                            //Construct a TCP Address
+                            port->port_address = GetTCPAddress(deployed_node->ip_address, port->port_number);
+                        }
+                        event_ports_[p_uid] = port;
+                        //Add the Attribute to the Component
+                        component_inst->event_port_ids.push_back(p_uid);
+                    }
+                }
+
+
+                //Parse Periodic_Events
+                for(auto p_id : periodic_event_ids){
+                    auto p_uid = p_id + unique_id;
+                    if(!GetEventPort(p_uid)){
+                        auto port = new EventPort();
+                        //setup the port
+                        port->id = p_uid;
+                        port->component_id = c_uid;
+                        //Get the original values
+                        port->name = GetDataValue(p_id, "label");
+                        port->kind = GetDataValue(p_id, "kind");
+                        port->frequency = GetDataValue(p_id, "frequency");
+
+                        event_ports_[p_uid] = port;
+                        //Add the Attribute to the Component
+                        component_inst->event_port_ids.push_back(p_uid);
+                    }
+                }
+
+
+                if(deployed_node){
+                    deployed_node->component_ids.push_back(c_uid);
+
+                    if(first_node_){
+                        first_node_ = false;
+                        deployed_node->is_re_master = true;
+                    }
+                }
+                component_instances_[c_uid] = component_inst;
+
+                //Append to the component_replication object this nodes id
+                component_replication->component_instance_ids.push_back(c_uid);
+            }
+        }
+
+        component_replications_[c_id] = component_replication;
+    }
     
 
     //Calculate the connections taking into account replication!

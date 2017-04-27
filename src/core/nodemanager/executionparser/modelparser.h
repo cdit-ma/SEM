@@ -90,10 +90,12 @@ namespace Graphml{
             std::vector<std::string> assembly_edge_ids_;
             std::vector<std::string> definition_edge_ids_;
             std::vector<std::string> aggregate_edge_ids_;
+            std::vector<std::string> qos_edge_ids_;
 
             std::map<std::string, std::string> deployed_entities_map_;
             std::map<std::string, std::string> definition_ids_;
             std::map<std::string, std::string> aggregate_ids_;
+            std::map<std::string, std::string> entity_qos_map_;
 
 
             std::vector<std::string> required_slaves_;

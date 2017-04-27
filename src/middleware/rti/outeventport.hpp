@@ -28,6 +28,9 @@ namespace rti{
             std::string topic_name_;
             int domain_id_;
             std::string publisher_name_;
+            std::string qos_profile_path_;
+            std::string qos_profile_name_;
+
 
 
             dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
@@ -65,12 +68,23 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         domain_id_ = attributes["domain_id"]->get_Integer();
         configured_ = true && configured_;                
     }
+    if(attributes.count("qos_profile_path")){
+        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
+        configured_ = true && configured_;                
+    }
+
+    if(attributes.count("qos_profile_name")){
+        qos_profile_name_ = attributes["qos_profile_name"]->get_String();
+        configured_ = true && configured_;                
+    }
 
     
     std::cout << "rti::OutEventPort" << std::endl;
     std::cout << "**domain_id_: "<< domain_id_ << std::endl;
     std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
     std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
+    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl << std::endl;
+    std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 };
 
 template <class T, class S>
@@ -92,7 +106,7 @@ bool rti::OutEventPort<T, S>::Activate(){
     
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     auto publisher = helper->get_publisher(participant, publisher_name_);
-    writer_ = get_data_writer<S>(publisher, topic);
+    writer_ = get_data_writer<S>(publisher, topic, qos_profile_path_, qos_profile_name_);
     return ::OutEventPort<T>::Activate();
 };
 
