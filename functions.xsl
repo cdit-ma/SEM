@@ -1960,6 +1960,39 @@
         </xsl:for-each>
     </xsl:function>
 
+    <xsl:function name="o:xml_wrap">
+        <xsl:param name="key_name"/>
+        <xsl:param name="attribute"/>
+        <xsl:param name="value"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="open_bracket">
+            <xsl:choose>
+                <xsl:when test="$attribute = ''">
+                    <xsl:value-of select="$key_name" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat($key_name, ' ', $attribute)" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:variable name="flat_val" select="string-join($value, '')" />
+
+        <xsl:choose>
+            <xsl:when test="contains($flat_val, o:nl())">
+                <!-- Multiline -->
+                <xsl:value-of select="concat(o:t($tab), o:angle_wrap($open_bracket), o:nl())" />
+                <xsl:value-of select="$flat_val" />
+                <xsl:value-of select="concat(o:t($tab), o:angle_wrap_end($key_name), o:nl())" />
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Single line -->
+                <xsl:value-of select="concat(o:t($tab), o:angle_wrap($open_bracket), $flat_val, o:angle_wrap_end($key_name), o:nl())" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
    
 
 
