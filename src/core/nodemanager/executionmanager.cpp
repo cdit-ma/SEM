@@ -234,6 +234,9 @@ bool ExecutionManager::ConstructControlMessages(){
                             std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
                         }
 
+                        //Set the middleware
+                        port_pb->set_middleware(mw);
+
                         bool is_rti = mw == NodeManager::EventPort::RTI;
                         bool is_ospl = mw == NodeManager::EventPort::OSPL;
                         bool is_qpid = mw == NodeManager::EventPort::QPID;
