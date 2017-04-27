@@ -113,6 +113,7 @@ node(masterNode){
             dir("lib"){
                 //Generate QOS into lib directory
                 def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
+                print(qosGenCommand)
                 runScript(qosGenCommand, false)
             }
         }
