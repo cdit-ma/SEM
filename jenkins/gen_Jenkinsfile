@@ -40,7 +40,7 @@ def blockingKill(String pid){
         if(out != 0){
             def out2 = sh(returnStatus: true, script:"kill -s 0 " + pid)
             print(out2)
-            if(out2 != 0){
+            if(out2 == 0){
                 error()
             }
         }
