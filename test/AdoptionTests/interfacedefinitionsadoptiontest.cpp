@@ -1,6 +1,6 @@
 #include "interfacedefinitionsadoptiontest.h"
 
-#include "../src/Controllers/modelcontroller.h"
+#include "../../src/Controllers/modelcontroller.h"
 
 void InterfaceDefinitionsAdoptionTest::test(){
     QFETCH(Node*, parent);

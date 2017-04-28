@@ -454,7 +454,7 @@ void MainWindow::initializeApplication()
 
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
-    QApplication::setApplicationVersion(APP_VERSION);
+    QApplication::setApplicationVersion(APP_VERSION());
     QApplication::setOrganizationName("CDIT-MA");
     QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Icons", "medeaLogo"));

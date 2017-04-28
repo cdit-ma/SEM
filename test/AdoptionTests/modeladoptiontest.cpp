@@ -1,6 +1,5 @@
 #include "modeladoptiontest.h"
-#include "../src/Controllers/modelcontroller.h"
-
+#include "../../src/Controllers/modelcontroller.h"
 void ModelAdoptionTest::test()
 {
     QFETCH(Node*, parent);

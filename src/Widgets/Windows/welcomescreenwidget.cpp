@@ -2,6 +2,8 @@
 
 #include <QLabel>
 #include <QVBoxLayout>
+#include "../../theme.h"
+#include <QStringBuilder>
 
 
 /**
@@ -15,7 +17,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
 
     QLabel* medeaIcon = new QLabel(this);
     QLabel* medeaLabel = new QLabel("MEDEA");
-    QLabel* medeaVersionLabel = new QLabel("Version " APP_VERSION);
+    QLabel* medeaVersionLabel = new QLabel("Version " % APP_VERSION());
     medeaLabel->setStyleSheet("font-size: 32pt; color: white; text-align: center;");
     medeaVersionLabel->setStyleSheet("font-size: 12pt; color: gray; text-align: center;");
 

@@ -1,12 +1,14 @@
 #ifndef MODELCONTROLLERTESTS_H
 #define MODELCONTROLLERTESTS_H
 
+#include <QString>
 #include <QtTest/QtTest>
 
 class ModelControllerTests: public QObject{
     Q_OBJECT
 
 public:
+    ModelControllerTests(){};
 
 signals:
     void setupController();

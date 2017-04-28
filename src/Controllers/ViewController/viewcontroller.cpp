@@ -1,6 +1,5 @@
 #include "viewcontroller.h"
 
-//#include "../NotificationManager/notificationmanager.h"
 #include "../WindowManager/windowmanager.h"
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
@@ -24,7 +23,6 @@
 #include <QListIterator>
 #include <QStringBuilder>
 #include <QDesktopServices>
-#include <QXmlQuery>
 #include <QFile>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
@@ -463,23 +461,6 @@ void ViewController::askQuestion(QString title, QString message, int ID)
 
 void ViewController::modelValidated(QString reportPath)
 {
-    QFile xmlFile(reportPath);
-    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
-        return;
-    }
-
-    QXmlQuery query;
-    query.bindVariable("graphmlFile", &xmlFile);
-    const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()").arg(xmlFile.fileName());
-    query.setQuery(queryMessages);
-
-    QStringList reportMessages;
-    query.evaluateTo(&reportMessages);
-    xmlFile.close();
-
-
-    emit vc_modelValidated(reportMessages);
-    emit vc_backgroundProcess(false, BP_VALIDATION);
 }
 
 void ViewController::importGraphMLFile(QString graphmlPath)
@@ -642,7 +623,7 @@ void ViewController::welcomeActionFinished()
 
 void ViewController::_showGitHubPage(QString relURL)
 {
-    QString URL = APP_URL % relURL;
+    QString URL = APP_URL() % relURL;
     _showWebpage(URL);
 }
 
@@ -1566,8 +1547,8 @@ void ViewController::aboutQt()
 void ViewController::aboutMEDEA()
 {
     QString aboutString =
-    "<h3>MEDEA " APP_VERSION "</h3>"
-    "<a href=\"" APP_URL "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
+    "<h3>MEDEA " % APP_VERSION() % "</h3>"
+    "<a href=\"" % APP_URL() % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
@@ -1582,7 +1563,7 @@ void ViewController::aboutMEDEA()
     "<li>Matthew Hart</li>"
     "</ul>";
     BaseWindow* window = WindowManager::manager()->getActiveWindow();
-    QMessageBox::about(window, "About MEDEA " APP_VERSION, aboutString);
+    QMessageBox::about(window, "About MEDEA " % APP_VERSION(), aboutString);
 }
 
 

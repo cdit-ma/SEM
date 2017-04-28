@@ -10,7 +10,7 @@
 class ModelElementTests : public QObject{
     Q_OBJECT
 public:
-
+    ModelElementTests(){};
 signals:
 
 public slots:

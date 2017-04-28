@@ -14,7 +14,7 @@
 
 #include "SceneItems/Edge/edgeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
-#include "theme.h"
+#include "../../theme.h"
 
 
 #define ZOOM_INCREMENTOR 1.05

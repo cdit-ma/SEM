@@ -3,6 +3,14 @@
 
 #define SHADE_AMOUNT 130
 
+
+QString APP_URL(){
+    return "https://github.com/cdit-ma/MEDEA/";
+}
+QString APP_VERSION(){
+    return "2.1.0-RE";
+}
+
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
     switch(aspect){

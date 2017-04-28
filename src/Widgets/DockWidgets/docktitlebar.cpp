@@ -1,5 +1,5 @@
 #include "docktitlebar.h"
-#include "theme.h"
+#include "../../theme.h"
 
 #include <QDebug>
 #include <QBitmap>

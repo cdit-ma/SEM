@@ -1,7 +1,7 @@
 #ifndef NOTIFICATIONMANAGER_H
 #define NOTIFICATIONMANAGER_H
 
-#include "enumerations.h"
+#include "../../enumerations.h"
 //#include "../ViewController/viewcontroller.h"
 #include "../ActionController/actioncontroller.h"
 

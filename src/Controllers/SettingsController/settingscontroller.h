@@ -1,7 +1,7 @@
 #ifndef SETTINGSCONTROLLER_H
 #define SETTINGSCONTROLLER_H
 
-#include "enumerations.h"
+#include "../../enumerations.h"
 
 
 #include <QSettings>

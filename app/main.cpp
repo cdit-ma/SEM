@@ -1,10 +1,10 @@
 #include <QApplication>
 #include <QString>
 
-#include "Controllers/ViewController/viewcontroller.h"
-#include "Controllers/WindowManager/windowmanager.h"
-#include "Widgets/Windows/mainwindow.h"
-#include "Controllers/SettingsController/settingscontroller.h"
+#include "../src/Controllers/ViewController/viewcontroller.h"
+#include "../src/Controllers/WindowManager/windowmanager.h"
+#include "../src/Widgets/Windows/mainwindow.h"
+#include "../src/Controllers/SettingsController/settingscontroller.h"
 
 // taskkill
 // /F /fi "IMAGENAME eq medea.exe"

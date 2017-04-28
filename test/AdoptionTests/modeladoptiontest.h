@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtTest/QtTest>
 
-#include "../src/Controllers/modelcontroller.h"
+
 
 class ModelAdoptionTest : public QObject{
     Q_OBJECT

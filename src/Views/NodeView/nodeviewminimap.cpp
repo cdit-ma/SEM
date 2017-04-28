@@ -3,7 +3,7 @@
 #include <QMouseEvent>
 #include <QPen>
 #include <QDebug>
-#include "theme.h"
+#include "../../theme.h"
 #include <QTimer>
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
