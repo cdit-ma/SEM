@@ -25,9 +25,11 @@ int main(){
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
+    auto per_five = (double)RUN_COUNT * ((double)1000000/(double)ms.count());
+
     std::string newline("\n");
 
-    std::string output = "{" + newline + tab() + json_pair("MWIP_microseconds", std::to_string(ms.count()/RUN_COUNT)) + newline + "}";
+    std::string output = "{" + newline + tab() + json_pair("MWIP_IN_ONE_SECOND", std::to_string(per_five)) + newline + "}";
 
     std::cout << output << std::endl;
 
