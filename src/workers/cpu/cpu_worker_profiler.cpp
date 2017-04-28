@@ -29,7 +29,7 @@ int main(){
 
     std::string newline("\n");
 
-    std::string output = "{" + newline + tab() + json_pair("MWIP_IN_ONE_SECOND", std::to_string(per_five)) + newline + "}";
+    std::string output = "{" + newline + tab() + json_pair("MWIP_PER_SECOND", std::to_string(per_five)) + newline + "}";
 
     std::cout << output << std::endl;
 
