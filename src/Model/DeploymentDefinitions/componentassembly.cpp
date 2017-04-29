@@ -4,6 +4,8 @@ ComponentAssembly::ComponentAssembly():Node(NK_COMPONENT_ASSEMBLY)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setAcceptsEdgeKind(Edge::EC_QOS);
+
+    updateDefaultData("replicate_count", QVariant::Int, false, 1);
 }
 
 bool ComponentAssembly::canAdoptChild(Node *child)

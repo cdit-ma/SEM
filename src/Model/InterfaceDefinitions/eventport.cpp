@@ -9,6 +9,9 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     setNodeType(NT_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
+
+    
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPort::isInPort() const

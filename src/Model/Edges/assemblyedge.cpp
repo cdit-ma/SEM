@@ -8,10 +8,16 @@ AssemblyEdge::AssemblyEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_ASSEMBL
 AssemblyEdge *AssemblyEdge::createAssemblyEdge(Node *src, Node *dst)
 {
     AssemblyEdge* edge = 0;
-    if(src->canAcceptEdge(Edge::EC_ASSEMBLY, dst)){
-        edge = new AssemblyEdge(src, dst);
-    }
-    return edge;
 
+    if(src && dst){
+        if(src->canAcceptEdge(Edge::EC_ASSEMBLY, dst)){
+            edge = new AssemblyEdge(src, dst);
+        }
+    }else if(!src && !dst){
+        //Allow an empty edge
+        edge = new AssemblyEdge(0, 0);
+    }
+
+    return edge;
 }
 

@@ -9,7 +9,6 @@ public:
     DDS_DurabilityQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
-    QList<Data *> getDefaultData();
 };
 #endif // DDS_DURABILITYQOSPOLICY_H
 

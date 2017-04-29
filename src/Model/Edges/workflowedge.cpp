@@ -8,8 +8,13 @@ WorkflowEdge::WorkflowEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_WORKFLO
 WorkflowEdge *WorkflowEdge::createWorkflowEdge(Node *src, Node *dst)
 {
     WorkflowEdge* edge = 0;
-    if(src->canAcceptEdge(Edge::EC_WORKFLOW, dst)){
-        edge = new WorkflowEdge(src, dst);
+    if(src && dst){
+        if(src->canAcceptEdge(Edge::EC_WORKFLOW, dst)){
+            edge = new WorkflowEdge(src, dst);
+        }
+    }else if(!src && !dst){
+        //Allow an empty edge
+        edge = new WorkflowEdge(0, 0);
     }
     return edge;
 }

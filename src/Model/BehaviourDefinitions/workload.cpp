@@ -3,6 +3,8 @@
 Workload::Workload():BehaviourNode(NK_WORKLOAD){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
+
+    setExpandEnabled(true);
 }
 
 bool Workload::canAdoptChild(Node *child)

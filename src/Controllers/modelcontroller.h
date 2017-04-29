@@ -476,6 +476,7 @@ private:
     void storeGraphMLInHash(Entity*item);
     Entity*getGraphMLFromHash(int ID);
     void removeGraphMLFromHash(int ID);
+    Node* construct_node(Node* parent_node, Node::NODE_KIND node_kind);
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
@@ -537,11 +538,6 @@ private:
 
 
     void setupLocalNode();
-
-    void enforceUniqueLabel(Node* node, QString newLabel = "");
-    bool requiresUniqueLabel(Node* node);
-    void enforceUniqueSortOrder(Node* node, int newPosition = -1);
-
 
 
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.
@@ -705,6 +701,8 @@ private:
 
     QThread* controllerThread;
     QReadWriteLock lock;
+
+    EntityFactory* entity_factory = 0;
 
 };
  QDataStream &operator<<(QDataStream &out, const EventAction &action);

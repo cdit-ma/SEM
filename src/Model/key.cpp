@@ -6,33 +6,6 @@
 #include <QStringBuilder>
 
 
-QHash<QString, Key*> Key::keyLookup_;
-
-Key *Key::GetKey(QString key_name)
-{
-    return keyLookup_.value(key_name, 0);
-}
-
-Key *Key::GetKey(int key_id)
-{
-    foreach(Key* key, keyLookup_.values()){
-        if(key->getID() == key_id){
-            return key;
-        }
-    }
-    return 0;
-}
-
-Key *Key::GetKey(QString key_name, QVariant::Type type)
-{
-    if(keyLookup_.contains(key_name)){
-        return keyLookup_[key_name];
-    }else{
-        //Return Key
-        Key* key = new Key(key_name, type, Entity::EK_ALL);
-        return key;
-    }
-}
 
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
@@ -74,16 +47,10 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _entityKind = entityKind;
     _isProtected = false;
     _isVisual = false;
-
-    if(keyLookup_.contains(_keyName)){
-         qCritical() << "Got Key: " << _keyName;
-    }
-    keyLookup_[_keyName] = this;
 }
 
 Key::~Key()
 {
-    keyLookup_.remove(_keyName);
 }
 
 void Key::setProtected(bool protect)
@@ -208,11 +175,17 @@ bool Key::gotInvalidCharacters(QString entityKinds)
     return invalidCharacters.contains(entityKinds) || invalidCharacters.contains("ALL");
 }
 
+bool Key::forceDataValue(Data* data, QVariant value){
+    bool result = false;
+    if(data){
+        result = data->forceValue(value);
+    }
+    return result;
+}
+
 QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 {
     if(data->getKey() != this){
-        qCritical() << "DIFFERENT KEY: ";
-        //Return a blank QVariant
         return dataValue;
     }
 

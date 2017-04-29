@@ -6,13 +6,9 @@
 class Entity;
 class Key : public GraphML
 {
+    
     Q_OBJECT
 public:
-    static QHash<QString, Key*> keyLookup_;
-    static Key* GetKey(QString key_name);
-    static Key* GetKey(int key_id);
-    static Key* GetKey(QString key_name, QVariant::Type type);
-
     static QString getGraphMLTypeName(const QVariant::Type type);
 
     static QVariant::Type getTypeFromGraphML(const QString typeString);
@@ -34,6 +30,7 @@ public:
     QVariant::Type getType() const;
 
 
+
     void addValidValues(QStringList validValues, QStringList entityKinds = QStringList("ALL"));
     void addValidRange(QPair<qreal, qreal> range, QStringList entityKinds = QStringList("ALL"));
     void addInvalidCharacters(QStringList invalidCharacters, QStringList entityKinds = QStringList("ALL"));
@@ -49,11 +46,14 @@ public:
     QStringList getInvalidCharacters(QString entityKinds = "ALL");
     bool gotInvalidCharacters(QString entityKinds = "ALL");
 
-    QVariant validateDataChange(Data* data, QVariant dataValue);
+    virtual QVariant validateDataChange(Data* data, QVariant dataValue);
 
     QString toGraphML(int indentDepth);
     QString toString();
     bool equals(const Key* key) const;
+protected:
+
+    bool forceDataValue(Data* data, QVariant value);
 signals:
     void validateError(QString, QString, int);
 private:

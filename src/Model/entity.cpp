@@ -150,6 +150,48 @@ void Entity::_dataProtected(Data *data)
     }
 }
 
+void Entity::updateDefaultData(QString key_name, QVariant::Type type, bool is_protected, QVariant value){
+
+    if(!default_data_.contains(key_name)){
+        default_data_.insert(key_name, new DefaultData());
+    }
+    if(default_data_.contains(key_name)){
+        auto data = default_data_[key_name];
+        data->key_name = key_name;
+        data->type = type;
+        data->is_protected = is_protected;
+        if(value.isValid()){
+            data->value = value;
+        }
+    }
+}
+
+void Entity::setMoveEnabled(bool enabled){
+    position_enabled = enabled;
+}
+void Entity::setSizeEnabled(bool enabled){
+    size_enabled  = enabled;
+}
+void Entity::setExpandEnabled(bool enabled){
+    expand_enabled = enabled;
+}
+
+bool Entity::isMoveEnabled(){
+    return position_enabled;
+}
+bool Entity::isSizeEnabled(){
+    return size_enabled;
+}
+bool Entity::isExpandEnabled(){
+    return expand_enabled;
+}
+
+QList<DefaultData*> Entity::getDefaultDataStructs(){
+    return default_data_.values();
+}
+
+
+
 /**
  * @brief Entity::getData
  * Gets the Data which has key with name KeyName

@@ -3,6 +3,8 @@
 InEventPortImpl::InEventPortImpl():EventPortImpl(NK_INEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(false);
+
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool InEventPortImpl::canAdoptChild(Node *child)

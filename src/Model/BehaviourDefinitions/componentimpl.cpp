@@ -3,6 +3,8 @@
 ComponentImpl::ComponentImpl():Node(Node::NK_COMPONENT_IMPL){
     setNodeType(NT_IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
+
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool ComponentImpl::canAdoptChild(Node *child)

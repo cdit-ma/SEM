@@ -2,6 +2,7 @@
 
 IDL::IDL(): Node(NK_IDL)
 {
+    
 }
 
 bool IDL::canAdoptChild(Node *item)

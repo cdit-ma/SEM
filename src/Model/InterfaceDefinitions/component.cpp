@@ -4,6 +4,8 @@ Component::Component():Node(Node::NK_COMPONENT)
 {
     setNodeType(NT_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
+
+    
 }
 
 bool Component::canAdoptChild(Node *child)

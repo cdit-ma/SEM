@@ -5,6 +5,9 @@ Variable::Variable():DataNode(NK_VARIABLE)
     setDataProducer(true);
     setDataReciever(true);
     setMultipleDataReceiver(true);
+
+    updateDefaultData("type", QVariant::String, false, "String");
+    updateDefaultData("value", QVariant::String);
 }
 
 bool Variable::canAdoptChild(Node* child)

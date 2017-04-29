@@ -4,6 +4,9 @@ VariadicParameter::VariadicParameter(): Parameter(NK_VARIADIC_PARAMETER)
 {
     setDataReciever(true);
     setDataProducer(false);
+
+    
+    updateDefaultData("value", QVariant::String);
 }
 
 bool VariadicParameter::canAdoptChild(Node *)

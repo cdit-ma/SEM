@@ -3,6 +3,10 @@
 AssemblyDefinitions::AssemblyDefinitions():Node(Node::NK_ASSEMBLY_DEFINITIONS)
 {
     setNodeType(NT_ASPECT);
+
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "ASSEMBLIES");
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect() const

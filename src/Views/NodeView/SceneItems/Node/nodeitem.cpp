@@ -651,7 +651,7 @@ void NodeItem::setSecondaryTextKey(QString key)
 void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
 {
     visualEdgeKind = kind;
-    visualEntityIcon = EdgeFactory::getEdgeKindString(kind);
+    visualEntityIcon = EntityFactory::getEdgeKindString(kind);
     update();
 }
 

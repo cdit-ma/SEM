@@ -8,7 +8,7 @@
 
 #include "../../Utils/actiongroup.h"
 #include "nodeviewitemaction.h"
-#include "../../Model/edgefactory.h"
+#include "../../Model/entityfactory.h"
 
 class ViewController;
 class SelectionController;

@@ -4,6 +4,8 @@
 OutEventPortImpl::OutEventPortImpl():EventPortImpl(NK_OUTEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
+    
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

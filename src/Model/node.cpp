@@ -6,11 +6,16 @@
 #include <QStringBuilder>
 #include <QByteArray>
 #include <QStack>
-#include "nodefactory.h"
+#include "entityfactory.h"
 
 Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
 {
+    //Set Kind
+    updateDefaultData("kind", QVariant::String, true, EntityFactory::getNodeKindString(kind));
+    updateDefaultData("label", QVariant::String, false, EntityFactory::getNodeKindString(kind));
+    updateDefaultData("sortOrder", QVariant::Int, false, -1);
     this->nodeKind = kind;
+
     parentNode = 0;
     childCount = 0;
     definition = 0;
@@ -302,24 +307,7 @@ VIEW_ASPECT Node::getViewAspect() const
     return aspect;
 }
 
-QList<Data *> Node::getDefaultData()
-{
-    QList<Data*> data_list;
-    {
-        //Need Kind
-        auto key = Key::GetKey("kind", QVariant::String);
-        auto data = new Data(key, getNodeKindStr());
-        data->setProtected(true);
-        data_list.append(data);
-    }
-    {
-        //Need Sort_rder
-        auto key = Key::GetKey("sortOrder", QVariant::Int);
-        auto data = new Data(key, -1);
-        data_list.append(data);
-    }
-    return data_list;
-}
+
 
 Node *Node::getParentNode(int depth)
 {
@@ -430,7 +418,7 @@ bool Node::setAsRoot(int root_index)
 
 QString Node::getNodeKindStr()
 {
-    return NodeFactory::getNodeKindString(nodeKind);
+    return EntityFactory::getNodeKindString(nodeKind);
 }
 
 bool Node::indirectlyConnectedTo(Node *node)
@@ -916,6 +904,13 @@ void Node::setParentNode(Node *parent, int index)
 
         //Set the view Aspect.
         setViewAspect(parent->getViewAspect());
+
+        foreach(auto data, getData()){
+            data->revalidateData();
+        }
+
+
+        //Forea
     }else{
         setViewAspect(VA_NONE);
     }
@@ -966,7 +961,7 @@ QList<Node *> Node::getOrderedChildNodes() const
     QMap<int, Node*> orderedList;
 
     foreach(Node* child, children){
-        int sortID = child->getDataValue("sortOrder").toInt();
+        int sortID = child->getDataValue("index").toInt();
         orderedList.insertMulti(sortID, child);
     }
     return orderedList.values();

@@ -13,6 +13,8 @@ private:
     QString getType();
 private slots:
     void updateType(int ID, QString keyName);
+
+
 };
 
 

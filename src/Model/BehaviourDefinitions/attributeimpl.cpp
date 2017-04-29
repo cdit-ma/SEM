@@ -9,6 +9,8 @@ AttributeImpl::AttributeImpl():DataNode(Node::NK_ATTRIBUTE_IMPL)
     setDataProducer(true);
     setDataReciever(true);
     setMultipleDataReceiver(true);
+
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool AttributeImpl::canAdoptChild(Node*)
@@ -40,4 +42,3 @@ bool AttributeImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     return DataNode::canAcceptEdge(edgeKind, dst);
 }
-

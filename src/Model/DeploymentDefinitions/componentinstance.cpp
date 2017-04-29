@@ -6,6 +6,9 @@ ComponentInstance::ComponentInstance():Node(Node::NK_COMPONENT_INSTANCE)
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setAcceptsEdgeKind(Edge::EC_QOS);
+
+    updateDefaultData("label", QVariant::String, false);
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool ComponentInstance::canAdoptChild(Node *child)

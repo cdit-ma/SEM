@@ -4,6 +4,11 @@ InputParameter::InputParameter(): Parameter(NK_INPUT_PARAMETER)
 {
     setDataReciever(true);
     setDataProducer(false);
+
+    updateDefaultData("type", QVariant::String, true);
+    updateDefaultData("value", QVariant::String, false);
+    updateDefaultData("label", QVariant::String, true);
+    updateDefaultData("sortOrder", QVariant::Int, true);
 }
 
 bool InputParameter::canAdoptChild(Node *)

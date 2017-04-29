@@ -5,6 +5,9 @@ BlackBoxInstance::BlackBoxInstance():Node(Node::NK_BLACKBOX_INSTANCE)
     setNodeType(NT_INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+
+    updateDefaultData("label", QVariant::String, false);
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool BlackBoxInstance::canAdoptChild(Node *child)

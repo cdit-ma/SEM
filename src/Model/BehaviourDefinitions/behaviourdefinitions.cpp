@@ -3,6 +3,10 @@
 BehaviourDefinitions::BehaviourDefinitions():Node(Node::NK_BEHAVIOUR_DEFINITIONS)
 {
     setNodeType(NT_ASPECT);
+
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "COMPONENTS");
 }
 
 VIEW_ASPECT BehaviourDefinitions::getViewAspect() const

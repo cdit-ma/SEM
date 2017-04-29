@@ -2,6 +2,7 @@
 
 InEventPort::InEventPort():EventPort(NK_INEVENTPORT)
 {
+    
 }
 
 bool InEventPort::canAdoptChild(Node *child)

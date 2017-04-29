@@ -3,6 +3,10 @@
 HardwareDefinitions::HardwareDefinitions():Node(Node::NK_HARDWARE_DEFINITIONS)
 {
     setNodeType(NT_ASPECT);
+
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "HARDWARE");
 }
 
 VIEW_ASPECT HardwareDefinitions::getViewAspect() const

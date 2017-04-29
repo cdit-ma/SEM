@@ -1,23 +1,14 @@
 #include "loggingserver.h"
-#include "../key.h"
-#include "../data.h"
+
 LoggingServer::LoggingServer():Node(NK_LOGGINGSERVER)
 {
     setNodeType(NT_LOGGING);
     setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+
+    updateDefaultData("database", QVariant::String, "output.sql");
 }
 
-QList<Data *> LoggingServer::getDefaultData()
-{
-    auto data_list = Node::getDefaultData();
-    {
-        //Process
-        auto key = Key::GetKey("database", QVariant::String);
-        data_list.append(new Data(key, "output.sql"));
-    }
-    return data_list;
-}
 
 bool LoggingServer::canAdoptChild(Node*)
 {

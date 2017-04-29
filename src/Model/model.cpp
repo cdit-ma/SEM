@@ -2,7 +2,9 @@
 
 Model::Model(): Node(NK_MODEL)
 {
-
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String);
 }
 
 bool Model::canAdoptChild(Node *child)

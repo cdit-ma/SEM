@@ -8,6 +8,9 @@ VectorInstance::VectorInstance(): DataNode(Node::NK_VECTOR_INSTANCE)
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setNodeType(NT_INSTANCE);
     setNodeType(NT_DEFINITION);
+
+    updateDefaultData("label", QVariant::String, true, getNodeKindStr());
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)

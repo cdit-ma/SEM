@@ -90,23 +90,30 @@ bool Data::isProtected() const
     return _isDataLinked || _isProtected;
 }
 
+bool Data::_setValue(QVariant value, bool validate){
+    //Set using the 
+    QVariant new_value = value;
+    
+    if(validate && _key){
+        new_value = _key->validateDataChange(this, new_value);
+    }
+
+    //Check if the data changed
+    bool data_changed = new_value != _value;
+    _value = new_value;
+
+    updateChildren(data_changed);
+    return data_changed;
+}
+
+
+bool Data::forceValue(QVariant value){
+    return _setValue(value, false);
+}
 
 bool Data::setValue(QVariant value)
 {
-    QVariant newValue = value;
-    if(_key){
-        newValue = _key->validateDataChange(this, value);
-    }
-
-    bool _dataChanged = false;
-    if(newValue.isValid() && newValue != _value){
-        _dataChanged = true;
-        _value = newValue;
-    }
-
-    updateChildren(_dataChanged);
-
-    return _dataChanged;
+    return _setValue(value, true);
 }
 
 void Data::setParentData(Data *parentData)
@@ -232,6 +239,10 @@ void Data::removeChildData(Data *childData)
         }
         childData->clearValue();
     }
+}
+
+void Data::revalidateData(){
+    setValue(getValue());
 }
 
 void Data::parentDataChanged(int ID, QString, QVariant data)

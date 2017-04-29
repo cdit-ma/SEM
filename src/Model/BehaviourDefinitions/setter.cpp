@@ -4,6 +4,8 @@ Setter::Setter():BehaviourNode(NK_SETTER)
 {
     setWorkflowProducer(true);
     setWorkflowReciever(true);
+
+    updateDefaultData("operator", QVariant::String, false, "=");
 }
 
 bool Setter::canAdoptChild(Node* child)

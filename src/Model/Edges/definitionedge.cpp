@@ -8,8 +8,13 @@ DefinitionEdge::DefinitionEdge(Node *src, Node *dst) : Edge(src, dst, Edge::EC_D
 DefinitionEdge *DefinitionEdge::createDefinitionEdge(Node *src, Node *dst)
 {
     DefinitionEdge* edge = 0;
-    if(src->canAcceptEdge(Edge::EC_DEFINITION, dst)){
-        edge = new DefinitionEdge(src, dst);
+    if(src && dst){
+        if(src->canAcceptEdge(Edge::EC_DEFINITION, dst)){
+            edge = new DefinitionEdge(src, dst);
+        }
+    }else if(!src && !dst){
+        //Allow an empty edge
+        edge = new DefinitionEdge(0, 0);
     }
     return edge;
 }

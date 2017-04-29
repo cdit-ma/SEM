@@ -171,8 +171,8 @@ HEADERS += \
     Views/Notification/notificationdialog.h \
     Views/Notification/notificationobject.h \
     Views/Notification/notificationtoolbar.h \
-    Model/nodefactory.h \
-    Model/edgefactory.h \
+    Model/entityfactory.h \
+    Model/entityfactory.h \
     Views/Notification/notificationitem.h \
     Utils/filtergroup.h \
     Model/BehaviourDefinitions/variadicparameter.h \
@@ -353,7 +353,7 @@ SOURCES += \
     Views/Notification/notificationdialog.cpp \
     Views/Notification/notificationobject.cpp \
     Views/Notification/notificationtoolbar.cpp \
-    Model/nodefactory.cpp \
+    Model/EntityFactory.cpp \
     Model/edgefactory.cpp \
     Views/Notification/notificationitem.cpp \
     Utils/filtergroup.cpp \

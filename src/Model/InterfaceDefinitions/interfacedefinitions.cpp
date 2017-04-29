@@ -3,6 +3,10 @@
 InterfaceDefinitions::InterfaceDefinitions(): Node(NK_INTERFACE_DEFINITIONS)
 {
     setNodeType(NT_ASPECT);
+
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "DATATYPES");
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect() const

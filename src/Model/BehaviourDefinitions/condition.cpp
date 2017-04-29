@@ -6,6 +6,13 @@ Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
     setNodeType(NT_CONDITION);
     setWorkflowProducer(true);
     setWorkflowReciever(false);
+
+
+    if(kind == NK_CONDITION){
+        updateDefaultData("value", QVariant::String);
+    }
+    setMoveEnabled(false);
+    setExpandEnabled(false);
 }
 
 Branch *Condition::getBranch()

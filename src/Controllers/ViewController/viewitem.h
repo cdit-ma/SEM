@@ -6,8 +6,8 @@
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
 
-#include "../../Model/edgefactory.h"
-#include "../../Model/nodefactory.h"
+#include "../../Model/entityfactory.h"
+#include "../../Model/entityfactory.h"
 
 //Forward declaration.
 class ViewController;

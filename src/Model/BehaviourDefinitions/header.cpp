@@ -3,6 +3,9 @@
 Header::Header():BehaviourNode(NK_HEADER){
     setWorkflowReciever(false);
     setWorkflowProducer(false);
+
+    updateDefaultData("header_name", QVariant::String);
+    updateDefaultData("include_path", QVariant::String);
 }
 
 bool Header::canAdoptChild(Node *child)

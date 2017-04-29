@@ -10,6 +10,9 @@ Vector::Vector(): DataNode(Node::NK_VECTOR)
     setNodeType(NT_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
+
+    
+    updateDefaultData("type", QVariant::String, true);
 }
 
 QString Vector::getVectorType()

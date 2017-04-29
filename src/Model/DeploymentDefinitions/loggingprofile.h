@@ -8,8 +8,6 @@ class LoggingProfile : public Node
 public:
     LoggingProfile();
 
-    QList<Data*> getDefaultData();
-
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

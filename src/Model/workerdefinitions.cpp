@@ -3,6 +3,9 @@
 
 WorkerDefinitions::WorkerDefinitions(): Node(NK_WORKER_DEFINITIONS)
 {
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "WORKERS");
 }
 
 

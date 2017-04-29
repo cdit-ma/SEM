@@ -2,6 +2,9 @@
 
 DeploymentDefinitions::DeploymentDefinitions():Node(NK_DEPLOYMENT_DEFINITIONS)
 {
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+    updateDefaultData("label", QVariant::String, true, "DEPLOYMENT");
 }
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)

@@ -229,7 +229,7 @@ void ToolbarController::addWorkerProcess(int processID, QPointF position)
 
 bool ToolbarController::requiresSubAction(Node::NODE_KIND kind)
 {
-
+    return false;
 }
 
 void ToolbarController::actionHoverEnter(int ID)
@@ -382,8 +382,8 @@ void ToolbarController::setupNodeActions()
 
 void ToolbarController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_KIND kind, EdgeFactory::getEdgeKinds()){
-        QString edgeKind = EdgeFactory::getEdgeKindString(kind);
+    foreach(Edge::EDGE_KIND kind, EntityFactory::getEdgeKinds()){
+        QString edgeKind = EntityFactory::getEdgeKindString(kind);
         RootAction* connectAction = new RootAction("Edge", edgeKind);
         RootAction* disconnectAction = new RootAction("Edge", edgeKind);
         connectAction->setIconPath("EntityIcons", edgeKind);

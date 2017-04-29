@@ -4,22 +4,26 @@
 #include "node.h"
 #include <QDebug>
 #include <QStringBuilder>
+#include "entityfactory.h"
 
 
 
 Edge::Edge(Node *s, Node *d, EDGE_KIND edgeClass):Entity(EK_EDGE)
 {
+
+    this->edgeClass = edgeClass;
+    updateDefaultData("kind", QVariant::String, true, EntityFactory::getEdgeKindString(edgeClass));
+
     //Set the instance Variables
     source = s;
     destination = d;
 
-    this->edgeClass = edgeClass;
 
     //Attach the Edge to its source/Destination
-    source->addEdge(this);
-    destination->addEdge(this);
-
-
+    if(source && destination){
+        source->addEdge(this);
+        destination->addEdge(this);
+    }
     type = getType();
 }
 

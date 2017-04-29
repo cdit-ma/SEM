@@ -119,15 +119,17 @@ public:
         NT_LOGGING              = 1 << 15,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
     };
 
-    //Constuctor
-    Node(NODE_KIND kind = NK_NONE);
-    ~Node();
+    protected:
+        //Constuctor
+        Node(NODE_KIND kind = NK_NONE);
+    public:
+        ~Node();
 
     QString toGraphML(int indentDepth);
     QString toGraphMLNoVisualData(int indentDepth);
 
     virtual VIEW_ASPECT getViewAspect() const;
-    virtual QList<Data*> getDefaultData();
+    
 
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();

@@ -5,6 +5,15 @@ Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
 {
     setNodeType(NT_PARAMETER);
     setAcceptsEdgeKind(Edge::EC_DATA);
+
+    setMoveEnabled(false);
+    setExpandEnabled(false);
+
+    if(kind != NK_VARIADIC_PARAMETER){
+        updateDefaultData("icon", QVariant::String, true);
+        updateDefaultData("icon_prefix", QVariant::String, true);
+        updateDefaultData("description", QVariant::String, true);
+    }
 }
 
 bool Parameter::isInputParameter() const

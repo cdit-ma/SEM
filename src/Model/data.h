@@ -5,6 +5,7 @@
 class Data : public GraphML
 {
     Q_OBJECT
+    friend class Key;
 public:
     Data(Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
@@ -19,11 +20,11 @@ public:
 
 
     bool setValue(QVariant value);
-
+    
     void setParentData(Data* parentData);
     Data* getParentData();
     void unsetParentData();
-
+    void revalidateData();
     void clearValue();
     bool compare(const Data* data) const;
 
@@ -38,6 +39,8 @@ public:
     QString toGraphML(int indentDepth);
     QString toString();
 protected:
+
+    bool forceValue(QVariant value);
     void addChildData(Data* childData);
     void removeChildData(Data* childData);
 signals:
@@ -45,6 +48,7 @@ signals:
 private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
+    bool _setValue(QVariant value, bool validate = true);
     void updateProtected();
     void updateChildren(bool changed = true);
     Entity* _parent;

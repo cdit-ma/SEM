@@ -8,6 +8,9 @@ AggregateInstance::AggregateInstance():DataNode(Node::NK_AGGREGATE_INSTANCE)
 
     setDataProducer(true);
     setDataReciever(true);
+
+    updateDefaultData("label", QVariant::String, false, getNodeKindStr());
+    updateDefaultData("type", QVariant::String, false);
 }
 
 bool AggregateInstance::canAdoptChild(Node *child)
@@ -54,3 +57,4 @@ bool AggregateInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     return DataNode::canAcceptEdge(edgeKind, dst);
 }
+

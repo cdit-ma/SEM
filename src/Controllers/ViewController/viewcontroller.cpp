@@ -580,7 +580,7 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 void ViewController::setupEntityKindItems()
 {
     //Prune out the kinds we don't need.
-    auto constructableNodes = NodeFactory::getNodeKinds();
+    auto constructableNodes = EntityFactory::getNodeKinds();
     constructableNodes.removeAll(Node::NK_ATTRIBUTE_IMPL);
     constructableNodes.removeAll(Node::NK_ASSEMBLY_DEFINITIONS);
     constructableNodes.removeAll(Node::NK_DEPLOYMENT_DEFINITIONS);
@@ -600,14 +600,14 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(Node::NK_VARIABLE_PARAMETER);
 
     for(auto kind : constructableNodes){
-        QString label = NodeFactory::getNodeKindString(kind);
+        QString label = EntityFactory::getNodeKindString(kind);
         auto item = new NodeViewItem(this, kind, label);
         //qCritical() << label;
         setDefaultIcon(item);
         nodeKindItems.append(item);
     }
 
-    for(auto kind : EdgeFactory::getEdgeKinds()){
+    for(auto kind : EntityFactory::getEdgeKinds()){
         auto item = new EdgeViewItem(this, kind);
         setDefaultIcon(item);
         edgeKindItems.append(item);

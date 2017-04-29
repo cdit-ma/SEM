@@ -8,6 +8,10 @@ Aggregate::Aggregate(): Node(Node::NK_AGGREGATE)
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 
     connect(this, &Node::dataChanged, this, &Aggregate::updateType);
+
+    
+    updateDefaultData("type", QVariant::String, true);
+    updateDefaultData("namespace", QVariant::String);
 }
 
 
@@ -71,3 +75,4 @@ bool Aggregate::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }
+

@@ -4,6 +4,8 @@ EventPortImpl::EventPortImpl(Node::NODE_KIND kind):BehaviourNode(kind)
 {
     setNodeType(NT_IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
+
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPortImpl::isInPort()

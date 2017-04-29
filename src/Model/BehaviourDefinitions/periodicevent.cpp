@@ -4,6 +4,9 @@ PeriodicEvent::PeriodicEvent():BehaviourNode(NK_PERIODICEVENT){
     //Setup initial settings
     setWorkflowProducer(true);
     setWorkflowReciever(false);
+
+    updateDefaultData("frequency", QVariant::Double, false, 1);
+    //updateDefaultData("type", QVariant::String, false, false, 1);
 }
 
 bool PeriodicEvent::canAdoptChild(Node * node)

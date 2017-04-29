@@ -4,6 +4,14 @@ EventPortAssembly::EventPortAssembly(Node::NODE_KIND kind): EventPort(kind)
 {
     setNodeType(NT_EVENTPORT_ASSEMBLY);
     setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
+
+
+    updateDefaultData("type", QVariant::String, true);
+
+    if(kind == NK_INEVENTPORT_INSTANCE || kind == NK_OUTEVENTPORT_INSTANCE){
+        updateDefaultData("topicName", QVariant::String);
+        updateDefaultData("middleware", QVariant::String, false, "ZMQ");
+    }
 }
 
 bool EventPortAssembly::isInPortDelegate() const

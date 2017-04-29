@@ -10,6 +10,7 @@ public:
 
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    QList<Data*> getDefaultData();
 };
 
 #endif // ATTRIBUTEIMPL_H

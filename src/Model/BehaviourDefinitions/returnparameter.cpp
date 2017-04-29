@@ -6,6 +6,10 @@ ReturnParameter:: ReturnParameter(): Parameter(NK_RETURN_PARAMETER)
 {
     setDataProducer(true);
     setDataReciever(false);
+
+    updateDefaultData("type", QVariant::String, true);
+    updateDefaultData("label", QVariant::String, true);
+    updateDefaultData("sortOrder", QVariant::Int, true);
 }
 
 bool ReturnParameter::canAdoptChild(Node *node)

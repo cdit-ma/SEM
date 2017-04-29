@@ -7,6 +7,9 @@ MemberInstance::MemberInstance():DataNode(NK_MEMBER_INSTANCE)
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setDataReciever(true);
     setDataProducer(true);
+
+    
+    updateDefaultData("type", QVariant::String, true);
 }
 
 bool MemberInstance::canAdoptChild(Node*)
