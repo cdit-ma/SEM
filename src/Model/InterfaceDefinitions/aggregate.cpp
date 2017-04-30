@@ -1,9 +1,9 @@
 #include "aggregate.h"
 #include "../data.h"
 
-Aggregate::Aggregate(): Node(Node::NK_AGGREGATE)
+Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
 {
-    setNodeType(Node::NT_DEFINITION);
+    setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 
@@ -39,16 +39,16 @@ bool Aggregate::canAdoptChild(Node *child)
         return false;
     }
 
-    Node::NODE_KIND kind = child->getNodeKind();
+    NODE_KIND kind = child->getNodeKind();
 
     switch(kind){
-    case NK_AGGREGATE_INSTANCE:
+    case NODE_KIND::AGGREGATE_INSTANCE:
         break;
-    case NK_MEMBER:
+    case NODE_KIND::MEMBER:
         break;
-    case NK_VECTOR:
+    case NODE_KIND::VECTOR:
         break;
-    case NK_VECTOR_INSTANCE:{
+    case NODE_KIND::VECTOR_INSTANCE:{
         Node* vector = child->getDefinition();
         if(vector && vector->hasChildren()){
             //Check first child of vector.

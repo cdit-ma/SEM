@@ -1,6 +1,6 @@
 #include "variadicparameter.h"
 
-VariadicParameter::VariadicParameter(): Parameter(NK_VARIADIC_PARAMETER)
+VariadicParameter::VariadicParameter(): Parameter(NODE_KIND::VARIADIC_PARAMETER)
 {
     setDataReciever(true);
     setDataProducer(false);

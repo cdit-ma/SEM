@@ -1,8 +1,8 @@
 #include "component.h"
 
-Component::Component():Node(Node::NK_COMPONENT)
+Component::Component():Node(NODE_KIND::COMPONENT)
 {
-    setNodeType(NT_DEFINITION);
+    setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
     
@@ -11,9 +11,9 @@ Component::Component():Node(Node::NK_COMPONENT)
 bool Component::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_ATTRIBUTE:
-    case NK_INEVENTPORT:
-    case NK_OUTEVENTPORT:
+    case NODE_KIND::ATTRIBUTE:
+    case NODE_KIND::INEVENTPORT:
+    case NODE_KIND::OUTEVENTPORT:
         break;
     default:
         return false;

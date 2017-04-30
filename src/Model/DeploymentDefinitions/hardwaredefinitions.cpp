@@ -1,8 +1,8 @@
 #include "hardwaredefinitions.h"
 
-HardwareDefinitions::HardwareDefinitions():Node(Node::NK_HARDWARE_DEFINITIONS)
+HardwareDefinitions::HardwareDefinitions():Node(NODE_KIND::HARDWARE_DEFINITIONS)
 {
-    setNodeType(NT_ASPECT);
+    setNodeType(NODE_TYPE::ASPECT);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -17,10 +17,10 @@ VIEW_ASPECT HardwareDefinitions::getViewAspect() const
 bool HardwareDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_HARDWARE_CLUSTER:
-    case NK_LOGGINGPROFILE:
-    case NK_LOGGINGSERVER:
-    case NK_HARDWARE_NODE:
+    case NODE_KIND::HARDWARE_CLUSTER:
+    case NODE_KIND::LOGGINGPROFILE:
+    case NODE_KIND::LOGGINGSERVER:
+    case NODE_KIND::HARDWARE_NODE:
         break;
     default:
         return false;

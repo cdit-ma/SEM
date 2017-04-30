@@ -1,6 +1,6 @@
 #include "deploymentdefinitions.h"
 
-DeploymentDefinitions::DeploymentDefinitions():Node(NK_DEPLOYMENT_DEFINITIONS)
+DeploymentDefinitions::DeploymentDefinitions():Node(NODE_KIND::DEPLOYMENT_DEFINITIONS)
 {
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -9,12 +9,12 @@ DeploymentDefinitions::DeploymentDefinitions():Node(NK_DEPLOYMENT_DEFINITIONS)
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)
 {
-    if(!node->isNodeOfType(NT_ASPECT)){
+    if(!node->isNodeOfType(NODE_TYPE::ASPECT)){
         return false;
     }
     switch(node->getNodeKind()){
-    case NK_ASSEMBLY_DEFINITIONS:
-    case NK_HARDWARE_DEFINITIONS:
+    case NODE_KIND::ASSEMBLY_DEFINITIONS:
+    case NODE_KIND::HARDWARE_DEFINITIONS:
         foreach(Node* child, getChildren(0)){
             if(child->getNodeKind() == node->getNodeKind()){
                 return false;

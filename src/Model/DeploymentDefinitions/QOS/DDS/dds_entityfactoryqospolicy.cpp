@@ -1,8 +1,8 @@
 #include "dds_entityfactoryqospolicy.h"
 
-DDS_EntityFactoryQosPolicy::DDS_EntityFactoryQosPolicy():Node(NK_QOS_DDS_POLICY_ENTITYFACTORY)
+DDS_EntityFactoryQosPolicy::DDS_EntityFactoryQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_ENTITYFACTORY)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

@@ -1,8 +1,8 @@
 #include "dds_userdataqospolicy.h"
 
-DDS_UserDataQosPolicy::DDS_UserDataQosPolicy():Node(NK_QOS_DDS_POLICY_USERDATA)
+DDS_UserDataQosPolicy::DDS_UserDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_USERDATA)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

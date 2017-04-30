@@ -1,6 +1,6 @@
 #include "workload.h"
 
-Workload::Workload():BehaviourNode(NK_WORKLOAD){
+Workload::Workload():BehaviourNode(NODE_KIND::WORKLOAD){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
 
@@ -10,8 +10,8 @@ Workload::Workload():BehaviourNode(NK_WORKLOAD){
 bool Workload::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_PROCESS:
-    case NK_WORKER_PROCESS:
+    case NODE_KIND::PROCESS:
+    case NODE_KIND::WORKER_PROCESS:
         break;
     default:
         return false;

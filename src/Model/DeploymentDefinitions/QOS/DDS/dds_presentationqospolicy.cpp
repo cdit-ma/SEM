@@ -1,8 +1,8 @@
 #include "dds_presentationqospolicy.h"
 
-DDS_PresentationQosPolicy::DDS_PresentationQosPolicy():Node(NK_QOS_DDS_POLICY_PRESENTATION)
+DDS_PresentationQosPolicy::DDS_PresentationQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_PRESENTATION)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

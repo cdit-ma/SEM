@@ -6,9 +6,9 @@
 #include <QDebug>
 
 
-BehaviourNode::BehaviourNode(Node::NODE_KIND kind):Node(kind)
+BehaviourNode::BehaviourNode(NODE_KIND kind):Node(kind)
 {
-    setNodeType(NT_BEHAVIOUR);
+    setNodeType(NODE_TYPE::BEHAVIOUR);
     setAcceptsEdgeKind(Edge::EC_WORKFLOW);
     _isProducer = false;
     _isReciever = false;
@@ -45,7 +45,7 @@ BehaviourNode *BehaviourNode::getProducerNode() const
                 if(!node){
                     node = source;
                 }
-                if(source->isNodeOfType(NT_BRANCH)){
+                if(source->isNodeOfType(NODE_TYPE::BRANCH)){
                     return source;
                 }
             }
@@ -72,7 +72,7 @@ QList<BehaviourNode *> BehaviourNode::getRecieverNodes() const
 BehaviourNode *BehaviourNode::getParentBehaviourNode()
 {
     Node* node = getParentNode();
-    if(node && node->isNodeOfType(NT_BEHAVIOUR)){
+    if(node && node->isNodeOfType(NODE_TYPE::BEHAVIOUR)){
         return (BehaviourNode*) node;
     }
     return 0;
@@ -133,7 +133,7 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
 
     switch(edgeClass){
     case Edge::EC_WORKFLOW:{
-        if(!dst->isNodeOfType(NT_BEHAVIOUR)){
+        if(!dst->isNodeOfType(NODE_TYPE::BEHAVIOUR)){
             return false;
         }
 
@@ -143,12 +143,12 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
 
         BehaviourNode* bNode = (BehaviourNode*) dst;
 
-        if(bNode->getNodeKind() == NK_TERMINATION){
+        if(bNode->getNodeKind() == NODE_KIND::TERMINATION){
             Branch* branch = ((Termination*)bNode)->getBranch();
             BehaviourNode* initialProducer = getInitialProducer();
 
             if(branch){
-                if(initialProducer->isNodeOfType(NT_CONDITION)){
+                if(initialProducer->isNodeOfType(NODE_TYPE::CONDITION)){
                     Condition* condition = (Condition*) initialProducer;
                     if(condition->gotTermination()){
                         return false;
@@ -161,7 +161,7 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
                     return false;
                 }
             }else{
-                if(isNodeOfType(NT_BRANCH)){
+                if(isNodeOfType(NODE_TYPE::BRANCH)){
                     Branch* branch = (Branch*) this;
                     if(branch->getTermination()){
                         qCritical() << "NO TERMINATION?";

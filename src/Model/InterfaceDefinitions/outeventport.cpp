@@ -1,6 +1,6 @@
 #include "outeventport.h"
 
-OutEventPort::OutEventPort():EventPort(NK_OUTEVENTPORT)
+OutEventPort::OutEventPort():EventPort(NODE_KIND::OUTEVENTPORT)
 {
 
 }

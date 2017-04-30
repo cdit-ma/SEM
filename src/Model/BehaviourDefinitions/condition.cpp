@@ -3,12 +3,12 @@
 #include "branch.h"
 
 Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
-    setNodeType(NT_CONDITION);
+    setNodeType(NODE_TYPE::CONDITION);
     setWorkflowProducer(true);
     setWorkflowReciever(false);
 
 
-    if(kind == NK_CONDITION){
+    if(kind == NODE_KIND::CONDITION){
         updateDefaultData("value", QVariant::String);
     }
     setMoveEnabled(false);
@@ -19,7 +19,7 @@ Branch *Condition::getBranch()
 {
     BehaviourNode* parent = getParentBehaviourNode();
 
-    if(parent && parent->isNodeOfType(NT_BRANCH)){
+    if(parent && parent->isNodeOfType(NODE_TYPE::BRANCH)){
         return (Branch*) parent;
     }
     return 0;

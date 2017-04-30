@@ -1,14 +1,14 @@
 #include "eventportdelegate.h"
 #include <QDebug>
-EventPortAssembly::EventPortAssembly(Node::NODE_KIND kind): EventPort(kind)
+EventPortAssembly::EventPortAssembly(NODE_KIND kind): EventPort(kind)
 {
-    setNodeType(NT_EVENTPORT_ASSEMBLY);
+    setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
     setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
 
 
     updateDefaultData("type", QVariant::String, true);
 
-    if(kind == NK_INEVENTPORT_INSTANCE || kind == NK_OUTEVENTPORT_INSTANCE){
+    if(kind == NODE_KIND::INEVENTPORT_INSTANCE || kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
         updateDefaultData("topicName", QVariant::String);
         updateDefaultData("middleware", QVariant::String, false, "ZMQ");
     }
@@ -16,12 +16,12 @@ EventPortAssembly::EventPortAssembly(Node::NODE_KIND kind): EventPort(kind)
 
 bool EventPortAssembly::isInPortDelegate() const
 {
-    return getNodeKind() == NK_INEVENTPORT_DELEGATE;
+    return getNodeKind() == NODE_KIND::INEVENTPORT_DELEGATE;
 }
 
 bool EventPortAssembly::isOutPortDelegate() const
 {
-    return getNodeKind() == NK_OUTEVENTPORT_DELEGATE;
+    return getNodeKind() == NODE_KIND::OUTEVENTPORT_DELEGATE;
 }
 
 bool EventPortAssembly::isInPortAssembly() const
@@ -47,12 +47,12 @@ bool EventPortAssembly::isPortInstance() const
 
 bool EventPortAssembly::isInPortInstance() const
 {
-    return getNodeKind() == NK_INEVENTPORT_INSTANCE;
+    return getNodeKind() == NODE_KIND::INEVENTPORT_INSTANCE;
 }
 
 bool EventPortAssembly::isOutPortInstance() const
 {
-    return getNodeKind() == NK_OUTEVENTPORT_INSTANCE;
+    return getNodeKind() == NODE_KIND::OUTEVENTPORT_INSTANCE;
 }
 
 bool EventPortAssembly::canAdoptChild(Node* child)
@@ -70,7 +70,7 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     switch(edgeKind){
     case Edge::EC_ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
-        if(!dst->isNodeOfType(NT_EVENTPORT_ASSEMBLY)){
+        if(!dst->isNodeOfType(NODE_TYPE::EVENTPORT_ASSEMBLY)){
             return false;
         }
 

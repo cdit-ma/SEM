@@ -1,8 +1,8 @@
 #include "attribute.h"
 
-Attribute::Attribute():Node(Node::NK_ATTRIBUTE)
+Attribute::Attribute():Node(NODE_KIND::ATTRIBUTE)
 {
-    setNodeType(NT_DEFINITION);
+    setNodeType(NODE_TYPE::DEFINITION);
 
     
     updateDefaultData("type", QVariant::String, false, "String");

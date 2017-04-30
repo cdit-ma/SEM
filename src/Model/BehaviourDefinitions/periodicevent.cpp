@@ -1,6 +1,7 @@
 #include "periodicevent.h"
+#include "../nodekinds.h"
 
-PeriodicEvent::PeriodicEvent():BehaviourNode(NK_PERIODICEVENT){
+PeriodicEvent::PeriodicEvent():BehaviourNode(NODE_KIND::PERIODICEVENT){
     //Setup initial settings
     setWorkflowProducer(true);
     setWorkflowReciever(false);

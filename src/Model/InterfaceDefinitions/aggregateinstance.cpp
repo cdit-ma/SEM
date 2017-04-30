@@ -1,10 +1,10 @@
 #include "aggregateinstance.h"
 
-AggregateInstance::AggregateInstance():DataNode(Node::NK_AGGREGATE_INSTANCE)
+AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 {
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
-    setNodeType(NT_INSTANCE);
-    setNodeType(NT_DEFINITION);
+    setNodeType(NODE_TYPE::INSTANCE);
+    setNodeType(NODE_TYPE::DEFINITION);
 
     setDataProducer(true);
     setDataReciever(true);
@@ -16,9 +16,9 @@ AggregateInstance::AggregateInstance():DataNode(Node::NK_AGGREGATE_INSTANCE)
 bool AggregateInstance::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_AGGREGATE_INSTANCE:
-    case NK_MEMBER_INSTANCE:
-    case NK_VECTOR_INSTANCE:
+    case NODE_KIND::AGGREGATE_INSTANCE:
+    case NODE_KIND::MEMBER_INSTANCE:
+    case NODE_KIND::VECTOR_INSTANCE:
         break;
     default:
         return false;
@@ -34,7 +34,7 @@ bool AggregateInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     switch(edgeKind){
     case Edge::EC_DATA:{
         //Can only connect to an AggregateInstance.
-        if(dst->getNodeKind() == NK_AGGREGATE_INSTANCE){
+        if(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
             //Can only connect to an AggregateInstance with the same definition.
             if(!getDefinition(true) || getDefinition(true) != dst->getDefinition(true)){
                 return false;
@@ -46,7 +46,7 @@ bool AggregateInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     case Edge::EC_DEFINITION:{
 
         //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(!(dst->getNodeKind() == NK_AGGREGATE_INSTANCE || dst->getNodeKind() == NK_AGGREGATE)){
+        if(!(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE || dst->getNodeKind() == NODE_KIND::AGGREGATE)){
             return false;
         }
         break;

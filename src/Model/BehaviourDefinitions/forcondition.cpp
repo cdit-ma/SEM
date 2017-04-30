@@ -1,13 +1,13 @@
 #include "forcondition.h"
 
-ForCondition::ForCondition():Condition(NK_FOR_CONDITION){
+ForCondition::ForCondition():Condition(NODE_KIND::FOR_CONDITION){
 }
 
 bool ForCondition::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-        case Node::NK_VARIABLE_PARAMETER:
-        case Node::NK_INPUT_PARAMETER:
+        case NODE_KIND::VARIABLE_PARAMETER:
+        case NODE_KIND::INPUT_PARAMETER:
             break;
     default:
         return false;

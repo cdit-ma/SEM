@@ -4,6 +4,7 @@
 #include "../../Utils/filehandler.h"
 #include "../../Utils/rootaction.h"
 #include <QDebug>
+#include "../../Model/nodekinds.h"
 
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
@@ -282,14 +283,14 @@ void ActionController::selectionChanged(int selectionSize)
 
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
-            Node::NODE_KIND kind = node->getNodeKind();
+            NODE_KIND kind = node->getNodeKind();
 
-            hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
-            hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
-            canLock = !(node->isNodeOfType(Node::NT_ASPECT) || kind == Node::NK_MODEL);
+            hasDefn = node->isNodeOfType(NODE_TYPE::INSTANCE) || node->isNodeOfType(NODE_TYPE::IMPLEMENTATION);
+            hasImpl = hasDefn || node->isNodeOfType(NODE_TYPE::DEFINITION);
+            canLock = !(node->isNodeOfType(NODE_TYPE::ASPECT) || kind == NODE_KIND::MODEL);
 
-            hasCode = kind == Node::NK_COMPONENT || kind == Node::NK_COMPONENT_INSTANCE || kind == Node::NK_COMPONENT_IMPL;
-            hasComponentAssembly = kind == Node::NK_COMPONENT_ASSEMBLY;
+            hasCode = kind == NODE_KIND::COMPONENT || kind == NODE_KIND::COMPONENT_INSTANCE || kind == NODE_KIND::COMPONENT_IMPL;
+            hasComponentAssembly = kind == NODE_KIND::COMPONENT_ASSEMBLY;
         }
 
         toolbar_wiki->setEnabled(gotSelection);

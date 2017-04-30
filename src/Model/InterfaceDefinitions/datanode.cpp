@@ -2,10 +2,10 @@
 #include "vectorinstance.h"
 #include <QDebug>
 
-DataNode::DataNode(Node::NODE_KIND kind):Node(kind)
+DataNode::DataNode(NODE_KIND kind):Node(kind)
 {
     setAcceptsEdgeKind(Edge::EC_DATA);
-    setNodeType(NT_DATA);
+    setNodeType(NODE_TYPE::DATA);
     _isProducer = false;
     _isReciever = false;
 }
@@ -76,7 +76,7 @@ bool DataNode::comparableTypes(DataNode *node)
     numberTypes << "Float" << "Double" << "Integer" << "Boolean";
 
     if(node){
-        if(node->getNodeKind() == NK_VARIADIC_PARAMETER){
+        if(node->getNodeKind() == NODE_KIND::VARIADIC_PARAMETER){
            return true;
         }
 
@@ -97,13 +97,13 @@ bool DataNode::comparableTypes(DataNode *node)
 
         if(type2 == "Vector"){
             auto kind = getNodeKind();
-            if(kind == NK_VECTOR || kind == NK_VECTOR_INSTANCE){
+            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
                return true;
             }
         }
         if(type1 == "Vector"){
             auto kind = node->getNodeKind();
-            if(kind == NK_VECTOR || kind == NK_VECTOR_INSTANCE){
+            if(kind == NODE_KIND::VECTOR || kind == NODE_KIND::VECTOR_INSTANCE){
                return true;
             }
         }
@@ -122,7 +122,7 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_DATA:{
-        if(!dst->isNodeOfType(NT_DATA)){
+        if(!dst->isNodeOfType(NODE_TYPE::DATA)){
             //Cannot connect to a non DataNode type.
             return false;
         }
@@ -161,7 +161,7 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
         Node* sharedAncestor = getParentNode(heightToAncestor);
         if(sharedAncestor){
-            if(sharedAncestor->getNodeKind() == NK_AGGREGATE_INSTANCE){
+            if(sharedAncestor->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
                 //Can't data connect if our shared parent is an Aggregate Instance.
                 return false;
             }

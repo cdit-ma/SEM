@@ -1,8 +1,8 @@
 #include "dds_timebasedfilterqospolicy.h"
 
-DDS_TimeBasedFilterQosPolicy::DDS_TimeBasedFilterQosPolicy():Node(NK_QOS_DDS_POLICY_TIMEBASEDFILTER)
+DDS_TimeBasedFilterQosPolicy::DDS_TimeBasedFilterQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_TIMEBASEDFILTER)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

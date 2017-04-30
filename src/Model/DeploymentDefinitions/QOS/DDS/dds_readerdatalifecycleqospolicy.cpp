@@ -1,8 +1,8 @@
 #include "dds_readerdatalifecycleqospolicy.h"
 
-DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy():Node(NK_QOS_DDS_POLICY_READERDATALIFECYCLE)
+DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_READERDATALIFECYCLE)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

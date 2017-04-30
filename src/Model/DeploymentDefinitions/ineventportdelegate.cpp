@@ -1,9 +1,9 @@
 #include "ineventportdelegate.h"
 
-InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NK_INEVENTPORT_DELEGATE)
+InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NODE_KIND::INEVENTPORT_DELEGATE)
 {
     removeEdgeKind(Edge::EC_DEFINITION);
-    removeNodeType(NT_DEFINITION);
+    removeNodeType(NODE_TYPE::DEFINITION);
 }
 
 bool InEventPortDelegate::canAdoptChild(Node*)

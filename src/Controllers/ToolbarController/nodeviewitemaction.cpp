@@ -1,6 +1,6 @@
 #include "nodeviewitemaction.h"
 #include "../../theme.h"
-
+#include "../../Model/nodekinds.h"
 NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem", "")
 {
     nodeViewItem = item;
@@ -52,12 +52,12 @@ QString NodeViewItemAction::getKind()
     return "";
 }
 
-Node::NODE_KIND NodeViewItemAction::getNodeKind()
+NODE_KIND NodeViewItemAction::getNodeKind()
 {
     if(nodeViewItem){
         return nodeViewItem->getNodeKind();
     }
-    return Node::NK_NONE;
+    return NODE_KIND::NONE;
 }
 
 QString NodeViewItemAction::getLabel()

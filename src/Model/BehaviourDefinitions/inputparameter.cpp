@@ -1,6 +1,7 @@
 #include "inputparameter.h"
+#include "../nodekinds.h"
 
-InputParameter::InputParameter(): Parameter(NK_INPUT_PARAMETER)
+InputParameter::InputParameter(): Parameter(NODE_KIND::INPUT_PARAMETER)
 {
     setDataReciever(true);
     setDataProducer(false);

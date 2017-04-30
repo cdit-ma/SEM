@@ -1,8 +1,8 @@
 #include "dds_transportpriorityqospolicy.h"
 
-DDS_TransportPriorityQosPolicy::DDS_TransportPriorityQosPolicy():Node(NK_QOS_DDS_POLICY_TRANSPORTPRIORITY)
+DDS_TransportPriorityQosPolicy::DDS_TransportPriorityQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_TRANSPORTPRIORITY)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

@@ -1,6 +1,6 @@
 #include "workerprocess.h"
 
-WorkerProcess::WorkerProcess():Process(NK_WORKER_PROCESS)
+WorkerProcess::WorkerProcess():Process(NODE_KIND::WORKER_PROCESS)
 {
     updateDefaultData("file", QVariant::String, true);
     updateDefaultData("folder", QVariant::String, true);

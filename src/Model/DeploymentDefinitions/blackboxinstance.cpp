@@ -1,8 +1,8 @@
 #include "blackboxinstance.h"
 
-BlackBoxInstance::BlackBoxInstance():Node(Node::NK_BLACKBOX_INSTANCE)
+BlackBoxInstance::BlackBoxInstance():Node(NODE_KIND::BLACKBOX_INSTANCE)
 {
-    setNodeType(NT_INSTANCE);
+    setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
 
@@ -14,8 +14,8 @@ bool BlackBoxInstance::canAdoptChild(Node *child)
 {
     //Can Only adopt EventPort Instances
     switch(child->getNodeKind()){
-    case NK_INEVENTPORT_INSTANCE:
-    case NK_OUTEVENTPORT_INSTANCE:
+    case NODE_KIND::INEVENTPORT_INSTANCE:
+    case NODE_KIND::OUTEVENTPORT_INSTANCE:
         break;
     default:
         return false;
@@ -31,7 +31,7 @@ bool BlackBoxInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
-        if(dst->getNodeKind() != NK_BLACKBOX){
+        if(dst->getNodeKind() != NODE_KIND::BLACKBOX){
             return false;
         }
         break;

@@ -1,6 +1,7 @@
 #include "ineventportimpl.h"
+#include "../nodekinds.h"
 
-InEventPortImpl::InEventPortImpl():EventPortImpl(NK_INEVENTPORT_IMPL){
+InEventPortImpl::InEventPortImpl():EventPortImpl(NODE_KIND::INEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(false);
 
@@ -23,7 +24,7 @@ bool InEventPortImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         if(!dst->getImplementations().isEmpty()){
             return false;
         }
-        if(dst->getNodeKind() != NK_INEVENTPORT){
+        if(dst->getNodeKind() != NODE_KIND::INEVENTPORT){
             return false;
         }
         break;

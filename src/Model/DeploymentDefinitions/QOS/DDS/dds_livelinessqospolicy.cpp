@@ -1,9 +1,9 @@
 #include "dds_livelinessqospolicy.h"
 #include "../../../data.h"
 
-DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy():Node(NK_QOS_DDS_POLICY_LIVELINESS)
+DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LIVELINESS)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

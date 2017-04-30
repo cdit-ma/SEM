@@ -87,7 +87,7 @@ public slots:
     void minimap_Zoom(int delta);
 private slots:
     void node_ConnectMode(NodeItem* item);
-    void node_PopOutRelatedNode(NodeViewItem* item, Node::NODE_KIND kind);
+    void node_PopOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);

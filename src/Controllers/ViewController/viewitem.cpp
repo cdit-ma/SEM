@@ -29,6 +29,15 @@ ViewItem::ViewItem(ViewController *controller)
     tableModel = 0;
 }
 
+ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entity_kind)
+{
+    this->controller = controller;
+    this->ID = ID;
+    this->entityKind = entity_kind;
+    _parent = 0 ;
+    tableModel = new DataTableModel(this);;
+}
+
 ViewItem::~ViewItem()
 {
 }
@@ -67,12 +76,16 @@ bool ViewItem::isInModel() const
 
 }
 
-QVariant ViewItem::getData(QString keyName) const
+QVariant ViewItem::getData(QString key_name) const
 {
-    if(_data.contains(keyName)){
-        return _data[keyName];
+    return _data.value(key_name);
+    /*
+    QVariant data;
+
+    if(controller){
+        controller->getEntityDataValue(ID, key_name);
     }
-    return QVariant();
+    return data;*/
 }
 
 QVariant ViewItem::getProperty(QString propertyName) const
@@ -86,7 +99,11 @@ QVariant ViewItem::getProperty(QString propertyName) const
 
 QStringList ViewItem::getKeys() const
 {
-    return _data.keys();
+    QStringList keys;
+    if(controller){
+        keys = controller->getEntityKeys(ID);
+    }
+    return keys;
 }
 
 QStringList ViewItem::getProperties() const
@@ -96,6 +113,7 @@ QStringList ViewItem::getProperties() const
 
 bool ViewItem::hasData(QString keyName) const
 {
+    return true;
     return _data.contains(keyName);
 }
 
@@ -228,14 +246,17 @@ QStringList ViewItem::getProtectedKeys() const
     return getProperty("protectedKeys").toStringList();
 }
 
-QStringList ViewItem::getValidValuesForKey(QString keyName) const
+ViewController* ViewItem::getController(){
+    return controller;
+}
+
+QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
 {
-    //TODO
-    QStringList data;
+    QList<QVariant> valid_values;
     if(controller){
-        data = controller->getValidValuesForKey(ID, keyName);
+        valid_values = controller->getValidValuesForKey(ID, keyName);
     }
-    return data;
+    return valid_values;
 }
 
 void ViewItem::changeData(QString keyName, QVariant data)

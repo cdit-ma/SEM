@@ -1,8 +1,8 @@
 #include "attributeinstance.h"
 
-AttributeInstance::AttributeInstance():Node(Node::NK_ATTRIBUTE_INSTANCE)
+AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)
 {
-    setNodeType(NT_INSTANCE);
+    setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
     //Locked Label
@@ -25,7 +25,7 @@ bool AttributeInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
-        if(dst->getNodeKind() != NK_ATTRIBUTE){
+        if(dst->getNodeKind() != NODE_KIND::ATTRIBUTE){
             return false;
         }
         break;

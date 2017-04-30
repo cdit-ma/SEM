@@ -1,11 +1,11 @@
 #include "key.h"
+
 #include "entity.h"
 #include "data.h"
-#include <QDebug>
 #include "node.h"
+
+#include <QDebug>
 #include <QStringBuilder>
-
-
 
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
@@ -40,13 +40,10 @@ QVariant::Type Key::getTypeFromGraphML(const QString typeString)
     return QVariant::nameToType(typeStringLow.toStdString().c_str());
 }
 
-Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):GraphML(GK_KEY)
+Key::Key(QString key_name, QVariant::Type type):GraphML(GK_KEY)
 {
-    _keyName = keyName;
-    _keyType = type;
-    _entityKind = entityKind;
-    _isProtected = false;
-    _isVisual = false;
+    key_name_ = key_name;
+    key_type_ = type;
 }
 
 Key::~Key()
@@ -55,124 +52,22 @@ Key::~Key()
 
 void Key::setProtected(bool protect)
 {
-    _isProtected = protect;
+    is_protected_ = protect;
 }
 
-bool Key::isProtected()
+bool Key::isProtected() const
 {
-    return _isProtected;
-}
-
-void Key::setIsVisualData(bool visual)
-{
-    _isVisual = visual;
-}
-
-bool Key::isVisualData()
-{
-    return _isVisual;
+    return is_protected_;
 }
 
 QString Key::getName() const
 {
-    return _keyName;
-}
-
-bool Key::setDefaultValue(const QVariant value)
-{
-    QVariant copy = value;
-
-    //If Value can be converted to this type.
-    if(copy.canConvert(_keyType) && copy.convert(_keyType)){
-        defaultValue = value;
-        return true;
-    }
-    return false;
-}
-
-QVariant Key::getDefaultValue() const
-{
-    return defaultValue;
-}
-
-Entity::ENTITY_KIND Key::getEntityKind() const
-{
-    return _entityKind;
+    return key_name_;
 }
 
 QVariant::Type Key::getType() const
 {
-    return _keyType;
-}
-
-void Key::addValidValues(QStringList validValues, QStringList entityKinds)
-{
-    foreach(QString nodeKind, entityKinds){
-        foreach(QString validValue, validValues){
-            addValidValue(nodeKind, validValue);
-        }
-    }
-}
-
-void Key::addValidRange(QPair<qreal, qreal> range, QStringList entityKinds)
-{
-    foreach(QString nodeKind, entityKinds){
-        validRanges[nodeKind] = range;
-    }
-}
-
-void Key::addInvalidCharacters(QStringList invalidCharacters, QStringList nodeKinds)
-{
-    foreach(QString nodeKind, nodeKinds){
-        foreach(QString invalidCharacter, invalidCharacters){
-            addInvalidCharacters(nodeKind, invalidCharacter);
-        }
-    }
-}
-
-QPair<qreal, qreal> Key::getValidRange(QString entityKinds)
-{
-    if(validRanges.contains(entityKinds)){
-        return validRanges[entityKinds];
-    }else if(validRanges.contains("ALL")){
-        return validRanges["ALL"];
-    }
-    return QPair<qreal, qreal>();
-}
-
-bool Key::gotValidRange(QString entityKinds)
-{
-    return validRanges.contains(entityKinds) || validRanges.contains("ALL");
-}
-
-QStringList Key::getValidValues(QString entityKinds)
-{
-    if(validValues.contains(entityKinds)){
-        return validValues[entityKinds];
-    }else if(validValues.contains("ALL")){
-        return validValues["ALL"];
-    }
-    return QStringList();
-}
-
-bool Key::gotValidValues(QString entityKinds)
-{
-    return validValues.contains(entityKinds) || validValues.contains("ALL");
-}
-
-QStringList Key::getInvalidCharacters(QString nodeKind)
-{
-    if(invalidCharacters.contains(nodeKind)){
-        return invalidCharacters[nodeKind];
-    }else if(invalidCharacters.contains("ALL")){
-        return invalidCharacters["ALL"];
-    }
-    return QStringList();
-}
-
-bool Key::gotInvalidCharacters(QString entityKinds)
-{
-    return invalidCharacters.contains(entityKinds) || invalidCharacters.contains("ALL");
+    return key_type_;
 }
 
 bool Key::forceDataValue(Data* data, QVariant value){
@@ -183,188 +78,78 @@ bool Key::forceDataValue(Data* data, QVariant value){
     return result;
 }
 
-QVariant Key::validateDataChange(Data *data, QVariant dataValue)
+QVariant Key::validateDataChange(Data *data, QVariant new_value)
 {
-    if(data->getKey() != this){
-        return dataValue;
+    if(!data || data->getKey() != this){
+        return new_value;
     }
 
-    Entity* parentEntity = data->getParent();
+    Entity* entity = data->getParent();
+    QVariant value = data->getValue();
 
-    QString entityKind = "";
+    //Check if the value can be converted to this key type
+    if(!new_value.canConvert(key_type_)){
+        emit validation_failed(entity->getID(), "Value cannot be converted to Key's type.");
+        return value;
+    }
 
-    QString entityNodeKind = "";
+    NODE_KIND node_kind = NODE_KIND::NONE;
 
-	int parentEntityID = -1;
-    if(parentEntity){
-        entityKind = parentEntity->getEntityName();
-        if(parentEntity->isNode()){
-            entityNodeKind = ((Node*)parentEntity)->getNodeKindStr();
+    if(entity && entity->isNode()){
+        node_kind = ((Node*)entity)->getNodeKind();
+    }
+
+    //If we have valid values, has to be one of these
+    if(gotValidValues(node_kind)){
+        auto valid_values = getValidValues(node_kind);
+        if(!valid_values.contains(new_value)){
+            emit validation_failed(entity->getID(), "Value not in list of valid values.");
+            return value;
         }
-		parentEntityID = parentEntity->getID();
     }
 
-
-
-    QString errorString = "";
-
-
-
-    bool okay = false;
-    switch(_keyType){
-        case QVariant::String:
-    {
-            if(dataValue.canConvert(QVariant::String)){
-                if(_keyName == "label"){
-                    QString newValue = dataValue.toString();
-                    newValue.replace(QString(" "), QString("_"));
-                    newValue.replace(QString("\t"), QString("_"));
-                    dataValue = newValue;
-                }else if(_keyName == "processes_to_log"){
-                    QString newValue = dataValue.toString();
-                    newValue.replace(QString(" "), QString(""));
-                    newValue.replace(QString(","), QString("\n"));
-                    QString value = "";
-                    foreach(QString proc, newValue.split("\n")){
-                        if(!proc.isEmpty()){
-                            value += proc + "\n";
-                        }
-                    }
-                    if(value.endsWith("\n")){
-                        //Trim off Last \n
-                        value = value.left(value.length() - 1);
-                    }
-                    dataValue = value;
-                }
-
-                //Check for valid values
-                if(gotValidValues(entityNodeKind)){
-                    QStringList values = getValidValues(entityNodeKind);
-                    if(values.contains(dataValue.toString()) || ignoreValues[entityNodeKind]){
-                        okay = true;
-                    }else{
-                        errorString = "Value doesn't match any valid values: " + values.join(",");
-                    }
-                }else{
-                    okay = true;
-                }
-                if(okay){
-                    //Check for invalid Characters.
-                    if(gotInvalidCharacters(entityNodeKind)){
-                        QStringList badChars = getInvalidCharacters(entityNodeKind);
-                        foreach(QChar qChar, dataValue.toString()){
-                            if(badChars.contains(qChar)){
-                                errorString = "Value has one or more invalid characters (" + badChars.join(" ") + ")";
-                                okay = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        }
-    case QVariant::Bool:
-        okay = dataValue.convert(QVariant::Bool);
-        errorString = "Converting: '" % dataValue.toString() % "' failed!";
-        break;
-    default:{
-        //Could be a number.
-        if(dataValue.canConvert(_keyType)){
-            dataValue.convert(_keyType);
-
-            double newValue = dataValue.toDouble(&okay);
-            if(okay){
-                if(gotValidRange(entityNodeKind)){
-                    QPair<qreal, qreal> range = getValidRange(entityNodeKind);
-                    if(range.first > newValue || range.second < newValue){
-                        errorString = "Number value is outside of valid range: " + QString::number(range.first) + " > value > " + QString::number(range.second) +"!";
-                        okay = false;
-                    }
-                }else{
-                    okay = true;
-                }
-            }
-        }
-        break;
-    }
-    }
-
-
-
-    if(okay){
-        //Return new Value
-        return dataValue;
-    }else{
-        if(dataValue.isValid()){
-            emit validateError("Data Validation Failed", errorString, parentEntityID);
-        }
-        //Return old value.
-        return data->getValue();
-    }
+    return new_value;
 }
 
 QString Key::toGraphML(int indentDepth)
 {
-    QString tab("\t");
     //Construct the desired tab width.
-    QString indent = tab.repeated(indentDepth);
-
-    QString xml;
-    xml += indent;
-    xml += QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"").arg(getName(), getGraphMLTypeName(_keyType), Entity::getEntityKindName(_entityKind), QString::number(getID()));
-
-    if(!defaultValue.isNull()){
-        xml += ">\n";
-        xml += indent + QString("\t<default>%1</default>\n").arg(getDefaultValue().toString());
-        xml += indent + "</key>\n";
-    }else{
-        xml += "/>\n";
-    }
-    return xml;
+    QString tabs = QString("\t").repeated(indentDepth);
+    return QString("%1<key attr.name=\"%2\" attr.type=\"%3\" for=\"all\" id=\"%4\"/>\n").arg(
+        tabs,
+        getName(),
+        getGraphMLTypeName(key_type_),
+        QString::number(getID())
+        );
 }
 
 QString Key::toString()
 {
-    return QString("[" + QString::number(getID()) + "]Key" + getName() + " For: " + Entity::getEntityKindName(_entityKind) + " Type: " + QVariant::typeToName(_keyType));
+    return QString("[%1] Key: %2 Type: %3").arg(
+        QString::number(getID()),
+        getName(),
+        getGraphMLTypeName(key_type_)
+        );
 }
 
-bool Key::equals(const Key *key) const
-{
-    if(_keyType != key->getType()){
-        return false;
-    }
-    if(_keyName != key->getName()){
-        return false;
-    }
-    return true;
-}
 
-/**
- * @brief Key::addValidValue
- * Adds a value to the list of valid values for the provided nodeKind.
- * @param nodeKind The nodeKind of the valid value
- * @param value The valid value
- */
-void Key::addValidValue(QString nodeKind, QString value)
-{
-    QStringList values = validValues[nodeKind];
-    if(!values.contains(value)){
-        values.append(value);
-        validValues[nodeKind] = values;
+void Key::addValidValue(QVariant value, NODE_KIND kind){
+    if(!valid_values_.contains(kind, value)){
+        valid_values_.insert(kind, value);
+        qCritical() << "Key: " << getName() << " Added Valid Value: " << value;
     }
 }
 
-void Key::setAllowAllValues(QString nodeKind)
-{
-    ignoreValues[nodeKind] = true;
+void Key::addValidValues(QList<QVariant> values, NODE_KIND kind){
+    foreach(auto value, values){
+        addValidValue(value, kind);
+    }
 }
 
-void Key::addInvalidCharacters(QString nodeKind, QString invalidCharacter)
-{
-    QStringList values = invalidCharacters[nodeKind];
-    if(!values.contains(invalidCharacter)){
-        values.append(invalidCharacter);
-        invalidCharacters[nodeKind] = values;
-    }
+bool Key::gotValidValues(NODE_KIND kind){
+    return valid_values_.contains(kind);
+}
+
+QList<QVariant> Key::getValidValues(NODE_KIND kind){
+    return valid_values_.values(kind);
 }

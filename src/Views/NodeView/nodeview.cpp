@@ -350,7 +350,7 @@ void NodeView::node_ConnectMode(NodeItem *item)
     }
 }
 
-void NodeView::node_PopOutRelatedNode(NodeViewItem *item, Node::NODE_KIND kind)
+void NodeView::node_PopOutRelatedNode(NodeViewItem *item, NODE_KIND kind)
 {
     //Get the edge
     for(auto edge: item->getEdges()){
@@ -691,7 +691,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
         if(containedNodeViewItem->isAncestorOf(item)){
             int ID = item->getID();
             NodeItem* nodeItem =  0;
-            Node::NODE_KIND nodeKind = item->getNodeKind();
+            NODE_KIND nodeKind = item->getNodeKind();
             QString nodeKindStr = item->getData("kind").toString();
 
             //Ignore
@@ -703,129 +703,129 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
 
             switch(nodeKind){
-            case Node::NK_HARDWARE_NODE:
+            case NODE_KIND::HARDWARE_NODE:
                 nodeItem = new HardwareNodeItem(item, parentNode);
                 break;
-            case Node::NK_MANAGEMENT_COMPONENT:
+            case NODE_KIND::MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
-            case Node::NK_LOGGINGSERVER:
+            case NODE_KIND::LOGGINGSERVER:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("database");
                 break;
-            case Node::NK_LOGGINGPROFILE:
+            case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
                 break;
-            case Node::NK_IDL:
+            case NODE_KIND::IDL:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
                 break;
-            case Node::NK_COMPONENT:
+            case NODE_KIND::COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(Node::NK_COMPONENT_IMPL);
+                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT_IMPL);
                 break;
-            case Node::NK_COMPONENT_INSTANCE:
+            case NODE_KIND::COMPONENT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(Node::NK_COMPONENT);
+                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
-            case Node::NK_COMPONENT_IMPL:
+            case NODE_KIND::COMPONENT_IMPL:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(Node::NK_COMPONENT);
+                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
-            case Node::NK_COMPONENT_ASSEMBLY:
-            case Node::NK_BLACKBOX:
-            case Node::NK_BLACKBOX_INSTANCE:
+            case NODE_KIND::COMPONENT_ASSEMBLY:
+            case NODE_KIND::BLACKBOX:
+            case NODE_KIND::BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
-            case Node::NK_TERMINATION:
+            case NODE_KIND::TERMINATION:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_HARDWARE_CLUSTER:
+            case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
                 break;
-            case Node::NK_INEVENTPORT_INSTANCE:
-            case Node::NK_OUTEVENTPORT_INSTANCE:
-            case Node::NK_INEVENTPORT_DELEGATE:
-            case Node::NK_OUTEVENTPORT_DELEGATE:
+            case NODE_KIND::INEVENTPORT_INSTANCE:
+            case NODE_KIND::OUTEVENTPORT_INSTANCE:
+            case NODE_KIND::INEVENTPORT_DELEGATE:
+            case NODE_KIND::OUTEVENTPORT_DELEGATE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
-            case Node::NK_FOR_CONDITION:
+            case NODE_KIND::FOR_CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_CONDITION:
+            case NODE_KIND::CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_ATTRIBUTE_INSTANCE:
+            case NODE_KIND::ATTRIBUTE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
-            case Node::NK_AGGREGATE:
+            case NODE_KIND::AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 break;
-            case Node::NK_SETTER:
+            case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operator");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_WORKER_PROCESS:
-            case Node::NK_PROCESS:
+            case NODE_KIND::WORKER_PROCESS:
+            case NODE_KIND::PROCESS:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_MEMBER_INSTANCE:
+            case NODE_KIND::MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
-            case Node::NK_VARIABLE:
+            case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
-            case Node::NK_ATTRIBUTE_IMPL:
-            case Node::NK_AGGREGATE_INSTANCE:
+            case NODE_KIND::ATTRIBUTE_IMPL:
+            case NODE_KIND::AGGREGATE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
-            case Node::NK_MEMBER:
+            case NODE_KIND::MEMBER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setIconOverlay("Icons", "key");
                 break;
-            case Node::NK_INEVENTPORT_IMPL:
-            case Node::NK_OUTEVENTPORT_IMPL:
+            case NODE_KIND::INEVENTPORT_IMPL:
+            case NODE_KIND::OUTEVENTPORT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_ATTRIBUTE:
+            case NODE_KIND::ATTRIBUTE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 break;
-            case Node::NK_VARIABLE_PARAMETER:
-            case Node::NK_INPUT_PARAMETER:
-            case Node::NK_VARIADIC_PARAMETER:
+            case NODE_KIND::VARIABLE_PARAMETER:
+            case NODE_KIND::INPUT_PARAMETER:
+            case NODE_KIND::VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
@@ -834,7 +834,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("value");
                 break;
 
-            case Node::NK_RETURN_PARAMETER:
+            case NODE_KIND::RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
@@ -842,37 +842,37 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
                 break;
-            case Node::NK_INEVENTPORT:
-            case Node::NK_OUTEVENTPORT:
+            case NODE_KIND::INEVENTPORT:
+            case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 break;
-            case Node::NK_PERIODICEVENT:
+            case NODE_KIND::PERIODICEVENT:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_BRANCH_STATE:
-            case Node::NK_WHILELOOP:
+            case NODE_KIND::BRANCH_STATE:
+            case NODE_KIND::WHILELOOP:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
-            case Node::NK_CODE:
-            case Node::NK_HEADER:
-            case Node::NK_WORKLOAD:
+            case NODE_KIND::CODE:
+            case NODE_KIND::HEADER:
+            case NODE_KIND::WORKLOAD:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
 
-            case Node::NK_VECTOR:
+            case NODE_KIND::VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 if(item->getViewAspect() == VA_BEHAVIOUR){
                     nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 }
                 break;
-            case Node::NK_VECTOR_INSTANCE:
+            case NODE_KIND::VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");

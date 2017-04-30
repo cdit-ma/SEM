@@ -98,7 +98,7 @@ ToolbarController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getWorkerFunctions()
 {
-    return getItemsOfKind(Node::NK_WORKER_PROCESS);
+    return getItemsOfKind(NODE_KIND::WORKER_PROCESS);
 }
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
@@ -227,9 +227,9 @@ QStringList ViewController::getAdoptableNodeKinds()
     return QStringList();
 }
 
-QList<Node::NODE_KIND> ViewController::getAdoptableNodeKinds2()
+QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 {
-    QList<Node::NODE_KIND> kinds;
+    QList<NODE_KIND> kinds;
 
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
@@ -266,13 +266,13 @@ QList<Edge::EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
     return edgeKinds;
 }
 
-QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
+QList<QVariant> ViewController::getValidValuesForKey(int ID, QString keyName)
 {
-    QStringList values;
+    QList<QVariant> valid_values;
     if(controller){
-        values = controller->getValidKeyValues(ID, keyName);
+        valid_values = controller->getValidKeyValues(ID, keyName);
     }
-    return values;
+    return valid_values;
 }
 
 
@@ -296,7 +296,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
 
             switch(node_kind){
-            case Node::NK_HARDWARE_NODE:{
+            case NODE_KIND::HARDWARE_NODE:{
                 bool server_node = viewItem->hasData("os") && viewItem->hasData("architecture") && !viewItem->hasData("localhost");
 
                 if(server_node){
@@ -306,7 +306,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
-            case Node::NK_WORKLOAD:{
+            case NODE_KIND::WORKLOAD:{
                 if(nodeViewItem->getViewAspect() == VA_WORKERS){
                     //If we are
                     alias = icon_prefix;
@@ -314,61 +314,61 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
-            case Node::NK_VARIADIC_PARAMETER:{
+            case NODE_KIND::VARIADIC_PARAMETER:{
                 alias = "Icons";
                 image = "label";
                 break;
             }
-            case Node::NK_VARIABLE_PARAMETER:{
+            case NODE_KIND::VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";
                 break;
             }
-            case Node::NK_SETTER:{
+            case NODE_KIND::SETTER:{
                 alias = "Icons";
                 image = "pencil";
                 break;
             }
-            case Node::NK_FOR_CONDITION:{
+            case NODE_KIND::FOR_CONDITION:{
                 alias = "EntityIcons";
                 image = "Condition";
                 break;
             }
-            case Node::NK_WORKER_DEFINITIONS:{
+            case NODE_KIND::WORKER_DEFINITIONS:{
                 alias = "Icons";
                 image = "medeaLogo";
                 break;
             }
-            case Node::NK_WORKER_PROCESS:
-            case Node::NK_INPUT_PARAMETER:
-            case Node::NK_RETURN_PARAMETER:{
+            case NODE_KIND::WORKER_PROCESS:
+            case NODE_KIND::INPUT_PARAMETER:
+            case NODE_KIND::RETURN_PARAMETER:{
                 if(icon_prefix.length() > 0 && icon.length() > 0){
                     alias = icon_prefix;
                     image = icon;
                 }
                 break;
             }
-            case Node::NK_LOGGINGPROFILE:{
+            case NODE_KIND::LOGGINGPROFILE:{
                 alias = "Icons";
                 image = "person";
                 break;
             }
-            case Node::NK_LOGGINGSERVER:{
+            case NODE_KIND::LOGGINGSERVER:{
                 alias = "Icons";
                 image = "servers";
                 break;
             }
-            case Node::NK_VECTOR:
-            case Node::NK_VECTOR_INSTANCE:{
+            case NODE_KIND::VECTOR:
+            case NODE_KIND::VECTOR_INSTANCE:{
                 //Check children
                 foreach(ViewItem* child, viewItem->getDirectChildren()){
                     auto* node = (NodeViewItem*) child;
                     if(child->isNode()){
                         auto child_kind = node->getNodeKind();
 
-                        if(child_kind == Node::NK_MEMBER || child_kind == Node::NK_MEMBER_INSTANCE){
+                        if(child_kind == NODE_KIND::MEMBER || child_kind == NODE_KIND::MEMBER_INSTANCE){
                             image += "_Member";
-                        }else if(child_kind == Node::NK_AGGREGATE_INSTANCE){
+                        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE){
                             image += "_AggregateInstance";
                         }
                     }
@@ -376,7 +376,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
-            case Node::NK_MODEL:
+            case NODE_KIND::MODEL:
                 alias = "Icons";
                 image = "medeaLogo";
                 break;
@@ -404,7 +404,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
 ViewItem *ViewController::getModel()
 {
-    int ID = nodeKindLookups.value(Node::NK_MODEL, -1);
+    int ID = nodeKindLookups.value(NODE_KIND::MODEL, -1);
     return getViewItem(ID);
 }
 
@@ -531,7 +531,7 @@ void ViewController::getCodeForComponent()
     if(item && item->isNode()){
         NodeViewItem* node = (NodeViewItem*) item;
 
-        if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+        if(node->getNodeKind() == NODE_KIND::COMPONENT_IMPL || node->getNodeKind() == NODE_KIND::COMPONENT || node->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE){
             QString componentName = node->getData("label").toString();
             QString filePath = getTempFileForModel();
             if(!componentName.isEmpty() && !filePath.isEmpty()){
@@ -581,26 +581,27 @@ void ViewController::setupEntityKindItems()
 {
     //Prune out the kinds we don't need.
     auto constructableNodes = EntityFactory::getNodeKinds();
-    constructableNodes.removeAll(Node::NK_ATTRIBUTE_IMPL);
-    constructableNodes.removeAll(Node::NK_ASSEMBLY_DEFINITIONS);
-    constructableNodes.removeAll(Node::NK_DEPLOYMENT_DEFINITIONS);
-    constructableNodes.removeAll(Node::NK_HARDWARE_DEFINITIONS);
-    constructableNodes.removeAll(Node::NK_HARDWARE_CLUSTER);
-    constructableNodes.removeAll(Node::NK_HARDWARE_NODE);
-    constructableNodes.removeAll(Node::NK_INEVENTPORT_IMPL);
-    constructableNodes.removeAll(Node::NK_INTERFACE_DEFINITIONS);
-    constructableNodes.removeAll(Node::NK_MANAGEMENT_COMPONENT);
-    constructableNodes.removeAll(Node::NK_OUTEVENTPORT_INSTANCE);
-    constructableNodes.removeAll(Node::NK_PROCESS);
-    constructableNodes.removeAll(Node::NK_RETURN_PARAMETER);
-    constructableNodes.removeAll(Node::NK_INPUT_PARAMETER);
-    constructableNodes.removeAll(Node::NK_WORKLOAD_DEFINITIONS);
-    constructableNodes.removeAll(Node::NK_WORKLOAD);
-    constructableNodes.removeAll(Node::NK_VECTOR_INSTANCE);
-    constructableNodes.removeAll(Node::NK_VARIABLE_PARAMETER);
+    constructableNodes.removeAll(NODE_KIND::ATTRIBUTE_IMPL);
+    constructableNodes.removeAll(NODE_KIND::ASSEMBLY_DEFINITIONS);
+    constructableNodes.removeAll(NODE_KIND::DEPLOYMENT_DEFINITIONS);
+    constructableNodes.removeAll(NODE_KIND::HARDWARE_DEFINITIONS);
+    constructableNodes.removeAll(NODE_KIND::HARDWARE_CLUSTER);
+    constructableNodes.removeAll(NODE_KIND::HARDWARE_NODE);
+    constructableNodes.removeAll(NODE_KIND::INEVENTPORT_IMPL);
+    constructableNodes.removeAll(NODE_KIND::INTERFACE_DEFINITIONS);
+    constructableNodes.removeAll(NODE_KIND::MANAGEMENT_COMPONENT);
+    constructableNodes.removeAll(NODE_KIND::OUTEVENTPORT_INSTANCE);
+    constructableNodes.removeAll(NODE_KIND::PROCESS);
+    constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
+    constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
+    constructableNodes.removeAll(NODE_KIND::WORKLOAD_DEFINITIONS);
+    constructableNodes.removeAll(NODE_KIND::WORKLOAD);
+    constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
+    constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
 
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getNodeKindString(kind);
+
         auto item = new NodeViewItem(this, kind, label);
         //qCritical() << label;
         setDefaultIcon(item);
@@ -765,12 +766,6 @@ bool ViewController::destructViewItem(ViewItem *item)
             //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
             nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
-
-            //Remove Node from tree lookup.
-            QString treeKey = nodeItem->getTreeIndex();
-            if(treeLookup.contains(treeKey)){
-                treeLookup.remove(treeKey);
-            }
         }else if(viewItem->isEdge()){
             //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
@@ -787,8 +782,8 @@ bool ViewController::destructViewItem(ViewItem *item)
             if(parentItem->isNode()){
                 //Update the Icon of Vectors!
                 switch(parentNodeItem->getNodeKind()){
-                case Node::NK_VECTOR:
-                case Node::NK_VECTOR_INSTANCE:
+                case NODE_KIND::VECTOR:
+                case NODE_KIND::VECTOR_INSTANCE:
                     setDefaultIcon(parentItem);
                     break;
                 default:
@@ -874,37 +869,12 @@ NodeViewItem *ViewController::getNodesDefinition(int ID)
 
 NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem *node2)
 {
-    QString tree1;
-    QString tree2;
-
-    if(node1){
-        tree1 = node1->getTreeIndex();
+    NodeViewItem* parent = 0;
+    if(controller){
+        auto ID = controller->getSharedParent(node1->getID(), node2->getID());
+        parent = getNodeViewItem(ID);
     }
-    if(node2){
-        tree2 = node2->getTreeIndex();
-    }
-
-    int i = 0;
-
-    while(true){
-        if(tree1.length() < i || tree2.length() < i){
-            //End of a string
-            break;
-        }
-        if(tree1.at(i) != tree2.at(i)){
-            //Different chars
-            break;
-        }
-        i++;
-    }
-
-    QString parentTree = tree1.left(i);
-
-    if(treeLookup.contains(parentTree)){
-        int ID = treeLookup[parentTree];
-        return getNodeViewItem(ID);
-    }
-    return 0;
+    return parent;
 }
 
 NodeView *ViewController::getActiveNodeView()
@@ -987,7 +957,7 @@ void ViewController::editReplicationCount()
 
 void ViewController::constructDDSQOSProfile()
 {
-    foreach(ViewItem* item, getItemsOfKind(Node::NK_ASSEMBLY_DEFINITIONS)){
+    foreach(ViewItem* item, getItemsOfKind(NODE_KIND::ASSEMBLY_DEFINITIONS)){
         if(item){
             emit vc_constructNode(item->getID(), "DDS_QOSProfile");
         }
@@ -1135,7 +1105,7 @@ QList<ViewItem *> ViewController::getItemsOfKind(Edge::EDGE_KIND kind)
     return items;
 }
 
-QList<ViewItem *> ViewController::getItemsOfKind(Node::NODE_KIND kind)
+QList<ViewItem *> ViewController::getItemsOfKind(NODE_KIND kind)
 {
     QList<ViewItem*> items;
     foreach(int ID, nodeKindLookups.values(kind)){
@@ -1145,6 +1115,74 @@ QList<ViewItem *> ViewController::getItemsOfKind(Node::NODE_KIND kind)
         }
     }
     return items;
+}
+
+VIEW_ASPECT ViewController::getNodeViewAspect(int ID){
+    VIEW_ASPECT aspect;
+    if(controller){
+        aspect = controller->getNodeViewAspect(ID);
+    }
+    return aspect;
+}
+
+bool ViewController::isNodeAncestor(int ID, int ID2){
+    bool is_ancestor = false;
+    if(controller){
+        is_ancestor = controller->isNodeAncestor(ID, ID2);
+    }
+    return is_ancestor;
+}
+
+QStringList ViewController::getEntityKeys(int ID){
+    QStringList keys;
+    if(controller){
+        keys = controller->getEntityKeys(ID);
+    }
+    return keys;
+}
+
+QVariant ViewController::getEntityDataValue(int ID, QString key_name){
+    QVariant data;
+    if(controller){
+        data = controller->getEntityDataValue(ID, key_name);
+    }
+    //qCritical() << "Data for: " << ID << " KEY : " << key_name << " = " << data;
+    return data;
+}
+void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
+    qCritical() << "NODE MADE: " << id;
+    //Construct a basic item
+    NodeViewItem* item = new NodeViewItem(this, id, kind);
+
+    //Fill with Data
+    foreach(QString key, getEntityKeys(id)){
+        item->changeData(key, getEntityDataValue(id, key));
+    }
+
+    //Get our parent
+    auto parent = getNodeViewItem(parent_id);
+
+    nodeKindLookups.insertMulti(kind, id);
+    
+    
+    if(parent){
+        parent->addChild(item);
+    }else{
+        rootItem->addChild(item);
+        topLevelItems.append(id);
+    }
+
+    
+
+    //Insert into map
+    viewItems[id] = item;
+    setDefaultIcon(item);
+
+
+    connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+
+    //Tell Views
+    emit vc_viewItemConstructed(item);
 }
 
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
@@ -1159,13 +1197,13 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         ViewItem* parentItem = getViewItem(parentID);
         NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
 
-        QString treeKey = nodeItem->getTreeIndex();
+       // QString treeKey = nodeItem->getTreeIndex();
 
         nodeKindLookups.insertMulti(nodeItem->getNodeKind(), ID);
 
-        if(!treeLookup.contains(treeKey)){
-            treeLookup[treeKey] = ID;
-        }
+        //if(!treeLookup.contains(treeKey)){
+        //    treeLookup[treeKey] = ID;
+        //}
 
         //Attach the node to it's parent
         if(parentItem){
@@ -1244,6 +1282,22 @@ void ViewController::controller_dataRemoved(int ID, QString key)
     }
 }
 
+
+bool ViewController::isNodeOfType(int ID, NODE_TYPE type){
+    bool is_type = false;
+    if(controller){
+        is_type = controller->isNodeOfType(ID, type); 
+    }
+    return is_type;
+}
+int ViewController::getNodeParentID(int ID){
+    int parent_id = -1;
+    if(controller){
+        parent_id = controller->getNodeParentID(ID);
+    }
+    return parent_id;
+
+}
 void ViewController::controller_propertyChanged(int ID, QString property, QVariant data)
 {
     ViewItem* viewItem = getViewItem(ID);

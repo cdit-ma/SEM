@@ -119,7 +119,7 @@ Node *EntityFactory::createNode(QString nodeKind)
     return createNode(getNodeKind(nodeKind));
 }
 
-Node *EntityFactory::createNode(Node::NODE_KIND nodeKind)
+Node *EntityFactory::createNode(NODE_KIND nodeKind)
 {
     return _createNode(nodeKind);
 }
@@ -135,7 +135,7 @@ Edge *EntityFactory::createEdge(Node *source, Node *destination, Edge::EDGE_KIND
 }
 
 
-QString EntityFactory::getNodeKindString(Node::NODE_KIND nodeKind)
+QString EntityFactory::getNodeKindString(NODE_KIND nodeKind)
 {
     QString kind;
     auto nS = globalFactory()->nodeLookup.value(nodeKind, 0);
@@ -155,7 +155,7 @@ QString EntityFactory::getEdgeKindString(Edge::EDGE_KIND edgeKind)
     return kind;
 }
 
-QList<Node::NODE_KIND> EntityFactory::getNodeKinds()
+QList<NODE_KIND> EntityFactory::getNodeKinds()
 {
     return globalFactory()->nodeLookup.keys();
 }
@@ -166,9 +166,9 @@ QList<Edge::EDGE_KIND> EntityFactory::getEdgeKinds()
 }
 
 
-Node::NODE_KIND EntityFactory::getNodeKind(QString kind)
+NODE_KIND EntityFactory::getNodeKind(QString kind)
 {
-    return globalFactory()->nodeKindLookup.value(kind, Node::NK_NONE);
+    return globalFactory()->nodeKindLookup.value(kind, NODE_KIND::NONE);
 }
 
 Edge::EDGE_KIND EntityFactory::getEdgeKind(QString kind)
@@ -180,98 +180,98 @@ Edge::EDGE_KIND EntityFactory::getEdgeKind(QString kind)
 EntityFactory::EntityFactory()
 {
     //Aspects
-    addNodeKind(Node::NK_MODEL, "Model", [](){return new Model();});
-    addNodeKind(Node::NK_BEHAVIOUR_DEFINITIONS, "BehaviourDefinitions", [](){return new BehaviourDefinitions();});
-    addNodeKind(Node::NK_ASSEMBLY_DEFINITIONS, "AssemblyDefinitions", [](){return new AssemblyDefinitions();});
-    addNodeKind(Node::NK_DEPLOYMENT_DEFINITIONS, "DeploymentDefinitions", [](){return new DeploymentDefinitions();});
-    addNodeKind(Node::NK_HARDWARE_DEFINITIONS, "HardwareDefinitions", [](){return new HardwareDefinitions();});
-    addNodeKind(Node::NK_WORKER_DEFINITIONS, "WorkerDefinitions", [](){return new WorkerDefinitions();});
-    addNodeKind(Node::NK_INTERFACE_DEFINITIONS, "InterfaceDefinitions", [](){return new InterfaceDefinitions();});
+    addNodeKind(NODE_KIND::MODEL, "Model", [](){return new Model();});
+    addNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS, "BehaviourDefinitions", [](){return new BehaviourDefinitions();});
+    addNodeKind(NODE_KIND::ASSEMBLY_DEFINITIONS, "AssemblyDefinitions", [](){return new AssemblyDefinitions();});
+    addNodeKind(NODE_KIND::DEPLOYMENT_DEFINITIONS, "DeploymentDefinitions", [](){return new DeploymentDefinitions();});
+    addNodeKind(NODE_KIND::HARDWARE_DEFINITIONS, "HardwareDefinitions", [](){return new HardwareDefinitions();});
+    addNodeKind(NODE_KIND::WORKER_DEFINITIONS, "WorkerDefinitions", [](){return new WorkerDefinitions();});
+    addNodeKind(NODE_KIND::INTERFACE_DEFINITIONS, "InterfaceDefinitions", [](){return new InterfaceDefinitions();});
 
     //Impl Elements
-    addNodeKind(Node::NK_COMPONENT_IMPL, "ComponentImpl", [](){return new ComponentImpl();});
-    addNodeKind(Node::NK_ATTRIBUTE_IMPL, "AttributeImpl", [](){return new AttributeImpl();});
-    addNodeKind(Node::NK_INEVENTPORT_IMPL, "InEventPortImpl", [](){return new InEventPortImpl();});
-    addNodeKind(Node::NK_OUTEVENTPORT_IMPL, "OutEventPortImpl", [](){return new OutEventPortImpl();});
+    addNodeKind(NODE_KIND::COMPONENT_IMPL, "ComponentImpl", [](){return new ComponentImpl();});
+    addNodeKind(NODE_KIND::ATTRIBUTE_IMPL, "AttributeImpl", [](){return new AttributeImpl();});
+    addNodeKind(NODE_KIND::INEVENTPORT_IMPL, "InEventPortImpl", [](){return new InEventPortImpl();});
+    addNodeKind(NODE_KIND::OUTEVENTPORT_IMPL, "OutEventPortImpl", [](){return new OutEventPortImpl();});
 
     //Behaviour Elements
-    addNodeKind(Node::NK_BRANCH_STATE, "BranchState", [](){return new BranchState();});
-    addNodeKind(Node::NK_CODE, "Code", [](){return new Code();});
-    addNodeKind(Node::NK_CONDITION, "Condition", [](){return new Condition();});
-    addNodeKind(Node::NK_FOR_CONDITION, "ForCondition", [](){return new ForCondition();});
-    addNodeKind(Node::NK_HEADER, "Header", [](){return new Header();});
-    addNodeKind(Node::NK_INPUT_PARAMETER, "InputParameter", [](){return new InputParameter();});
-    addNodeKind(Node::NK_PERIODICEVENT, "PeriodicEvent", [](){return new PeriodicEvent();});
-    addNodeKind(Node::NK_PROCESS, "Process", [](){return new Process();});
-    addNodeKind(Node::NK_RETURN_PARAMETER, "ReturnParameter", [](){return new ReturnParameter();});
-    addNodeKind(Node::NK_SETTER, "Setter", [](){return new Setter();});
-    addNodeKind(Node::NK_TERMINATION, "Termination", [](){return new Termination();});
-    addNodeKind(Node::NK_VARIABLE, "Variable", [](){return new Variable();});
-    addNodeKind(Node::NK_VARIABLE_PARAMETER, "VariableParameter", [](){return new VariableParameter();});
-    addNodeKind(Node::NK_VARIADIC_PARAMETER, "VariadicParameter", [](){return new VariadicParameter();});
-    addNodeKind(Node::NK_WHILELOOP, "WhileLoop", [](){return new WhileLoop();});
-    addNodeKind(Node::NK_WORKER_PROCESS, "WorkerProcess", [](){return new WorkerProcess();});
-    addNodeKind(Node::NK_WORKLOAD, "Workload", [](){return new Workload();});
+    addNodeKind(NODE_KIND::BRANCH_STATE, "BranchState", [](){return new BranchState();});
+    addNodeKind(NODE_KIND::CODE, "Code", [](){return new Code();});
+    addNodeKind(NODE_KIND::CONDITION, "Condition", [](){return new Condition();});
+    addNodeKind(NODE_KIND::FOR_CONDITION, "ForCondition", [](){return new ForCondition();});
+    addNodeKind(NODE_KIND::HEADER, "Header", [](){return new Header();});
+    addNodeKind(NODE_KIND::INPUT_PARAMETER, "InputParameter", [](){return new InputParameter();});
+    addNodeKind(NODE_KIND::PERIODICEVENT, "PeriodicEvent", [](){return new PeriodicEvent();});
+    addNodeKind(NODE_KIND::PROCESS, "Process", [](){return new Process();});
+    addNodeKind(NODE_KIND::RETURN_PARAMETER, "ReturnParameter", [](){return new ReturnParameter();});
+    addNodeKind(NODE_KIND::SETTER, "Setter", [](){return new Setter();});
+    addNodeKind(NODE_KIND::TERMINATION, "Termination", [](){return new Termination();});
+    addNodeKind(NODE_KIND::VARIABLE, "Variable", [](){return new Variable();});
+    addNodeKind(NODE_KIND::VARIABLE_PARAMETER, "VariableParameter", [](){return new VariableParameter();});
+    addNodeKind(NODE_KIND::VARIADIC_PARAMETER, "VariadicParameter", [](){return new VariadicParameter();});
+    addNodeKind(NODE_KIND::WHILELOOP, "WhileLoop", [](){return new WhileLoop();});
+    addNodeKind(NODE_KIND::WORKER_PROCESS, "WorkerProcess", [](){return new WorkerProcess();});
+    addNodeKind(NODE_KIND::WORKLOAD, "Workload", [](){return new Workload();});
 
     //Instance Elements
-    addNodeKind(Node::NK_COMPONENT_INSTANCE, "ComponentInstance", [](){return new ComponentInstance();});
-    addNodeKind(Node::NK_ATTRIBUTE_INSTANCE, "AttributeInstance", [](){return new AttributeInstance();});
-    addNodeKind(Node::NK_INEVENTPORT_INSTANCE, "InEventPortInstance", [](){return new InEventPortInstance();});
-    addNodeKind(Node::NK_OUTEVENTPORT_INSTANCE, "OutEventPortInstance", [](){return new OutEventPortInstance();});
-    addNodeKind(Node::NK_BLACKBOX_INSTANCE, "BlackBoxInstance", [](){return new BlackBoxInstance();});
-    addNodeKind(Node::NK_AGGREGATE_INSTANCE, "AggregateInstance", [](){return new AggregateInstance();});
-    addNodeKind(Node::NK_MEMBER_INSTANCE, "MemberInstance", [](){return new MemberInstance();});
-    addNodeKind(Node::NK_VECTOR_INSTANCE, "VectorInstance", [](){return new VectorInstance();});
+    addNodeKind(NODE_KIND::COMPONENT_INSTANCE, "ComponentInstance", [](){return new ComponentInstance();});
+    addNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE, "AttributeInstance", [](){return new AttributeInstance();});
+    addNodeKind(NODE_KIND::INEVENTPORT_INSTANCE, "InEventPortInstance", [](){return new InEventPortInstance();});
+    addNodeKind(NODE_KIND::OUTEVENTPORT_INSTANCE, "OutEventPortInstance", [](){return new OutEventPortInstance();});
+    addNodeKind(NODE_KIND::BLACKBOX_INSTANCE, "BlackBoxInstance", [](){return new BlackBoxInstance();});
+    addNodeKind(NODE_KIND::AGGREGATE_INSTANCE, "AggregateInstance", [](){return new AggregateInstance();});
+    addNodeKind(NODE_KIND::MEMBER_INSTANCE, "MemberInstance", [](){return new MemberInstance();});
+    addNodeKind(NODE_KIND::VECTOR_INSTANCE, "VectorInstance", [](){return new VectorInstance();});
 
     //Deployment Elements
-    addNodeKind(Node::NK_COMPONENT_ASSEMBLY, "ComponentAssembly", [](){return new ComponentAssembly();});
-    addNodeKind(Node::NK_HARDWARE_NODE, "HardwareNode", [](){return new HardwareNode();});
-    addNodeKind(Node::NK_HARDWARE_CLUSTER, "HardwareCluster", [](){return new HardwareCluster();});
-    addNodeKind(Node::NK_MANAGEMENT_COMPONENT, "ManagementComponent", [](){return new ManagementComponent();});
-    addNodeKind(Node::NK_INEVENTPORT_DELEGATE, "InEventPortDelegate", [](){return new InEventPortDelegate();});
-    addNodeKind(Node::NK_OUTEVENTPORT_DELEGATE, "OutEventPortDelegate", [](){return new OutEventPortDelegate();});
-    addNodeKind(Node::NK_LOGGINGPROFILE, "LoggingProfile", [](){return new LoggingProfile();});
-    addNodeKind(Node::NK_LOGGINGSERVER, "LoggingServer", [](){return new LoggingServer();});
+    addNodeKind(NODE_KIND::COMPONENT_ASSEMBLY, "ComponentAssembly", [](){return new ComponentAssembly();});
+    addNodeKind(NODE_KIND::HARDWARE_NODE, "HardwareNode", [](){return new HardwareNode();});
+    addNodeKind(NODE_KIND::HARDWARE_CLUSTER, "HardwareCluster", [](){return new HardwareCluster();});
+    addNodeKind(NODE_KIND::MANAGEMENT_COMPONENT, "ManagementComponent", [](){return new ManagementComponent();});
+    addNodeKind(NODE_KIND::INEVENTPORT_DELEGATE, "InEventPortDelegate", [](){return new InEventPortDelegate();});
+    addNodeKind(NODE_KIND::OUTEVENTPORT_DELEGATE, "OutEventPortDelegate", [](){return new OutEventPortDelegate();});
+    addNodeKind(NODE_KIND::LOGGINGPROFILE, "LoggingProfile", [](){return new LoggingProfile();});
+    addNodeKind(NODE_KIND::LOGGINGSERVER, "LoggingServer", [](){return new LoggingServer();});
 
 
     //Definition Elements
-    addNodeKind(Node::NK_AGGREGATE, "Aggregate", [](){return new Aggregate();});
-    addNodeKind(Node::NK_ATTRIBUTE, "Attribute", [](){return new Attribute();});
-    addNodeKind(Node::NK_BLACKBOX, "BlackBox", [](){return new BlackBox();});
-    addNodeKind(Node::NK_COMPONENT, "Component", [](){return new Component();});
-    addNodeKind(Node::NK_INEVENTPORT, "InEventPort", [](){return new InEventPort();});
-    addNodeKind(Node::NK_MEMBER, "Member", [](){return new Member();});
-    addNodeKind(Node::NK_OUTEVENTPORT, "OutEventPort", [](){return new OutEventPort();});
-    addNodeKind(Node::NK_VECTOR, "Vector", [](){return new Vector();});
+    addNodeKind(NODE_KIND::AGGREGATE, "Aggregate", [](){return new Aggregate();});
+    addNodeKind(NODE_KIND::ATTRIBUTE, "Attribute", [](){return new Attribute();});
+    addNodeKind(NODE_KIND::BLACKBOX, "BlackBox", [](){return new BlackBox();});
+    addNodeKind(NODE_KIND::COMPONENT, "Component", [](){return new Component();});
+    addNodeKind(NODE_KIND::INEVENTPORT, "InEventPort", [](){return new InEventPort();});
+    addNodeKind(NODE_KIND::MEMBER, "Member", [](){return new Member();});
+    addNodeKind(NODE_KIND::OUTEVENTPORT, "OutEventPort", [](){return new OutEventPort();});
+    addNodeKind(NODE_KIND::VECTOR, "Vector", [](){return new Vector();});
 
     //QOS Profiles
-    addNodeKind(Node::NK_QOS_DDS_PROFILE, "DDS_QOSProfile", [](){return new DDS_QOSProfile();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_DEADLINE, "DDS_DeadlineQosPolicy", [](){return new DDS_DeadlineQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_DESTINATIONORDER, "DDS_DestinationOrderQosPolicy", [](){return new DDS_DestinationOrderQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_DURABILITY, "DDS_DurabilityQosPolicy", [](){return new DDS_DurabilityQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_DURABILITYSERVICE, "DDS_DurabilityServiceQosPolicy", [](){return new DDS_DurabilityServiceQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_ENTITYFACTORY, "DDS_EntityFactoryQosPolicy", [](){return new DDS_EntityFactoryQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_GROUPDATA, "DDS_GroupDataQosPolicy", [](){return new DDS_GroupDataQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_HISTORY, "DDS_HistoryQosPolicy", [](){return new DDS_HistoryQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_LATENCYBUDGET, "DDS_LatencyBudgetQosPolicy", [](){return new DDS_LatencyBudgetQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_LIFESPAN, "DDS_LifespanQosPolicy", [](){return new DDS_LifespanQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_LIVELINESS, "DDS_LivelinessQosPolicy", [](){return new DDS_LivelinessQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_OWNERSHIP, "DDS_OwnershipQosPolicy", [](){return new DDS_OwnershipQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_OWNERSHIPSTRENGTH, "DDS_OwnershipStrengthQosPolicy", [](){return new DDS_OwnershipStrengthQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_PARTITION, "DDS_PartitionQosPolicy", [](){return new DDS_PartitionQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_PRESENTATION, "DDS_PresentationQosPolicy", [](){return new DDS_PresentationQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_READERDATALIFECYCLE, "DDS_ReaderDataLifecycleQosPolicy", [](){return new DDS_ReaderDataLifecycleQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_RELIABILITY, "DDS_ReliabilityQosPolicy", [](){return new DDS_ReliabilityQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_RESOURCELIMITS, "DDS_ResourceLimitsQosPolicy", [](){return new DDS_ResourceLimitsQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_TIMEBASEDFILTER, "DDS_TimeBasedFilterQosPolicy", [](){return new DDS_TimeBasedFilterQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_TOPICDATA, "DDS_TopicDataQosPolicy", [](){return new DDS_TopicDataQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_TRANSPORTPRIORITY, "DDS_TransportPriorityQosPolicy", [](){return new DDS_TransportPriorityQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_USERDATA, "DDS_UserDataQosPolicy", [](){return new DDS_UserDataQosPolicy();});
-    addNodeKind(Node::NK_QOS_DDS_POLICY_WRITERDATALIFECYCLE, "DDS_WriterDataLifecycleQosPolicy", [](){return new DDS_WriterDataLifecycleQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_PROFILE, "DDS_QOSProfile", [](){return new DDS_QOSProfile();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_DEADLINE, "DDS_DeadlineQosPolicy", [](){return new DDS_DeadlineQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER, "DDS_DestinationOrderQosPolicy", [](){return new DDS_DestinationOrderQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_DURABILITY, "DDS_DurabilityQosPolicy", [](){return new DDS_DurabilityQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE, "DDS_DurabilityServiceQosPolicy", [](){return new DDS_DurabilityServiceQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_ENTITYFACTORY, "DDS_EntityFactoryQosPolicy", [](){return new DDS_EntityFactoryQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_GROUPDATA, "DDS_GroupDataQosPolicy", [](){return new DDS_GroupDataQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_HISTORY, "DDS_HistoryQosPolicy", [](){return new DDS_HistoryQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET, "DDS_LatencyBudgetQosPolicy", [](){return new DDS_LatencyBudgetQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_LIFESPAN, "DDS_LifespanQosPolicy", [](){return new DDS_LifespanQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_LIVELINESS, "DDS_LivelinessQosPolicy", [](){return new DDS_LivelinessQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_OWNERSHIP, "DDS_OwnershipQosPolicy", [](){return new DDS_OwnershipQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH, "DDS_OwnershipStrengthQosPolicy", [](){return new DDS_OwnershipStrengthQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_PARTITION, "DDS_PartitionQosPolicy", [](){return new DDS_PartitionQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_PRESENTATION, "DDS_PresentationQosPolicy", [](){return new DDS_PresentationQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_READERDATALIFECYCLE, "DDS_ReaderDataLifecycleQosPolicy", [](){return new DDS_ReaderDataLifecycleQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_RELIABILITY, "DDS_ReliabilityQosPolicy", [](){return new DDS_ReliabilityQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_RESOURCELIMITS, "DDS_ResourceLimitsQosPolicy", [](){return new DDS_ResourceLimitsQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_TIMEBASEDFILTER, "DDS_TimeBasedFilterQosPolicy", [](){return new DDS_TimeBasedFilterQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_TOPICDATA, "DDS_TopicDataQosPolicy", [](){return new DDS_TopicDataQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_TRANSPORTPRIORITY, "DDS_TransportPriorityQosPolicy", [](){return new DDS_TransportPriorityQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_USERDATA, "DDS_UserDataQosPolicy", [](){return new DDS_UserDataQosPolicy();});
+    addNodeKind(NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE, "DDS_WriterDataLifecycleQosPolicy", [](){return new DDS_WriterDataLifecycleQosPolicy();});
 
     //Elements
-    addNodeKind(Node::NK_IDL, "IDL", [](){return new IDL();});
-    addNodeKind(Node::NK_NONE, "NO KIND", [](){return (Node*)0;});
+    addNodeKind(NODE_KIND::IDL, "IDL", [](){return new IDL();});
+    addNodeKind(NODE_KIND::NONE, "NO KIND", [](){return (Node*)0;});
 
     addEdgeKind(Edge::EC_DEFINITION, "Edge_Definition", &DefinitionEdge::createDefinitionEdge);
     addEdgeKind(Edge::EC_AGGREGATE, "Edge_Aggregate", &AggregateEdge::createAggregateEdge);
@@ -299,19 +299,43 @@ EntityFactory *EntityFactory::getNewFactory()
 {
     return new EntityFactory();
 }
+void EntityFactory::setupOnceOffKeys(Node* node){
+    if(node){
+        //Construct the keys
+        foreach(auto data_struct, node->getDefaultDataStructs()){
+            auto key = GetKey(data_struct->key_name, data_struct->type);
+        }
+        for(auto key_name : node->getValidValueKeys()){
+            qCritical() << "Got Valid Value for: " << key_name;
+            auto key = GetKey(key_name);
+            if(key){
+                auto values = node->getValidValues(key_name);
+                key->addValidValues(values, node->getNodeKind());
+            }
+        }
+    }
+}
 
-Node *EntityFactory::_createNode(Node::NODE_KIND kind)
+Node *EntityFactory::_createNode(NODE_KIND kind)
 {
     Node* node = 0;
 
     auto nS = nodeLookup.value(kind, 0);
 
     if(nS){
+
+        //Update Keys
+        if(!nS->node){
+           // qCritical() << "Trying to Construct:  " << nS->kind_str;
+            nS->node = nS->constructor();
+            setupOnceOffKeys(nS->node);
+        }
+
         node = nS->constructor();
     }
     
     if(!node){
-        qCritical() << "Node Kind: " << kind << " Not Implemented!";
+        //qCritical() << "Node Kind: " << kind << " Not Implemented!";
         qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
     }else{
         //Attach data
@@ -321,7 +345,7 @@ Node *EntityFactory::_createNode(Node::NODE_KIND kind)
     return node;
 }
 
-QList<Data *> EntityFactory::getDefaultNodeData(Node::NODE_KIND kind)
+QList<Data *> EntityFactory::getDefaultNodeData(NODE_KIND kind)
 {
     return _constructDefaultData(getNode(kind));
 }
@@ -338,7 +362,7 @@ Edge* EntityFactory::getEdge(Edge::EDGE_KIND kind){
     }
     return edge;
 }
-Node* EntityFactory::getNode(Node::NODE_KIND kind){
+Node* EntityFactory::getNode(NODE_KIND kind){
     Node* node = 0;
     auto lookup = nodeLookup.value(kind, 0);
     if(lookup){
@@ -361,6 +385,8 @@ QList<Data*> EntityFactory::_constructDefaultData(Entity* entity){
     if(entity){
         foreach(auto data_struct, entity->getDefaultDataStructs()){
             auto key = GetKey(data_struct->key_name, data_struct->type);
+
+
             auto data = new Data(key, data_struct->value, data_struct->is_protected);
             data_list << data;
         }
@@ -378,7 +404,7 @@ QList<Data*> EntityFactory::_constructDefaultData(Entity* entity){
     return data_list;
 }
 
-void EntityFactory::addNodeKind(Node::NODE_KIND kind, QString kind_str, std::function<Node *()> constructor)
+void EntityFactory::addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node *()> constructor)
 {
     if(!nodeLookup.contains(kind)){
         auto nS = new NodeLookupStruct();
@@ -388,13 +414,15 @@ void EntityFactory::addNodeKind(Node::NODE_KIND kind, QString kind_str, std::fun
         nS->node = 0;
         nodeLookup.insert(kind, nS);
 
+        
+
         if(!nodeKindLookup.contains(kind_str)){
             nodeKindLookup.insert(kind_str, kind);
         }else{
             qCritical() << "Duplication: " << kind_str;
         }
     }else{
-        qCritical() << "Duplication: " << kind;
+        //qCritical() << "Duplication: " << kind;
     }
 }
 
@@ -444,8 +472,9 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         }else if(key_name == "sortOrder"){
             key = new IndexKey();    
         }else{
-            key = new Key(key_name, type, Entity::EK_ALL);
+            key = new Key(key_name, type);
         }
+        keyLookup_[key_name] = key;
         return key;
     }
 }

@@ -1,8 +1,8 @@
 #include "dds_partitionqospolicy.h"
 
-DDS_PartitionQosPolicy::DDS_PartitionQosPolicy():Node(NK_QOS_DDS_POLICY_PARTITION)
+DDS_PartitionQosPolicy::DDS_PartitionQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_PARTITION)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
     setMoveEnabled(false);
     setExpandEnabled(false);
     updateDefaultData("label", QVariant::String, true, "partition");

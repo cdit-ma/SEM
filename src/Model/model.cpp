@@ -1,6 +1,6 @@
 #include "model.h"
 
-Model::Model(): Node(NK_MODEL)
+Model::Model(): Node(NODE_KIND::MODEL)
 {
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -10,9 +10,9 @@ Model::Model(): Node(NK_MODEL)
 bool Model::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_INTERFACE_DEFINITIONS:
-    case NK_DEPLOYMENT_DEFINITIONS:
-    case NK_BEHAVIOUR_DEFINITIONS:
+    case NODE_KIND::INTERFACE_DEFINITIONS:
+    case NODE_KIND::DEPLOYMENT_DEFINITIONS:
+    case NODE_KIND::BEHAVIOUR_DEFINITIONS:
         break;
     default:
         return false;

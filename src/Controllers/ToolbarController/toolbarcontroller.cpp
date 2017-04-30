@@ -116,15 +116,15 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 actions[ID] = action;
                 actionGroup->addAction(action);
 
-                if (node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
+                if (node->getNodeKind() == NODE_KIND::HARDWARE_NODE || node->getNodeKind() == NODE_KIND::HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
-                }else if(node->getViewAspect() == VA_WORKERS && (node->getNodeKind() == Node::NK_WORKER_PROCESS || node->getNodeKind() == Node::NK_WORKLOAD)){
+                }else if(node->getViewAspect() == VA_WORKERS && (node->getNodeKind() == NODE_KIND::WORKER_PROCESS || node->getNodeKind() == NODE_KIND::WORKLOAD)){
                     workerProcessIDs.append(ID);
                     emit workerProcessCreated(ID);
                 }
                 /*
-                else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
+                else if ((node->getNodeKind() == NODE_KIND::WORKER_PROCESS) || (node->getNodeKind() == NODE_KIND::WORKER_DEFINITIONS)) {
                                    if(node->getViewAspect() == VA_WORKERS){
                                        workerProcessIDs.append(ID);
                                        emit workerProcessCreated(ID);
@@ -156,7 +156,7 @@ void ToolbarController::viewItem_Destructed(int ID, ViewItem *)
 void ToolbarController::selectionChanged(int selected)
 {
     //Get the valid list of things to enable disable
-    QList<Node::NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
+    QList<NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
     QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
 
@@ -227,7 +227,7 @@ void ToolbarController::addWorkerProcess(int processID, QPointF position)
     }
 }
 
-bool ToolbarController::requiresSubAction(Node::NODE_KIND kind)
+bool ToolbarController::requiresSubAction(NODE_KIND kind)
 {
     return false;
 }

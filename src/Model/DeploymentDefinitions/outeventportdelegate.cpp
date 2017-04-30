@@ -1,9 +1,9 @@
 #include "outeventportdelegate.h"
 
-OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NK_OUTEVENTPORT_DELEGATE)
+OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NODE_KIND::OUTEVENTPORT_DELEGATE)
 {
     removeEdgeKind(Edge::EC_DEFINITION);
-    removeNodeType(NT_DEFINITION);
+    removeNodeType(NODE_TYPE::DEFINITION);
 }
 
 bool OutEventPortDelegate::canAdoptChild(Node*)

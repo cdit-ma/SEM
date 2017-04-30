@@ -1,6 +1,6 @@
 #include "variable.h"
 
-Variable::Variable():DataNode(NK_VARIABLE)
+Variable::Variable():DataNode(NODE_KIND::VARIABLE)
 {
     setDataProducer(true);
     setDataReciever(true);
@@ -13,8 +13,8 @@ Variable::Variable():DataNode(NK_VARIABLE)
 bool Variable::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-    case NK_AGGREGATE_INSTANCE:
-    case NK_VECTOR:
+    case NODE_KIND::AGGREGATE_INSTANCE:
+    case NODE_KIND::VECTOR:
         break;
     default:
         return false;
@@ -34,7 +34,7 @@ bool Variable::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DATA:{
-        if(dst->getNodeKind() == NK_VARIABLE || dst->getNodeKind() == NK_ATTRIBUTE_IMPL){
+        if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
             return false;
         }
         break;

@@ -1,7 +1,8 @@
 #include "componentimpl.h"
+#include "../nodekinds.h"
 
-ComponentImpl::ComponentImpl():Node(Node::NK_COMPONENT_IMPL){
-    setNodeType(NT_IMPLEMENTATION);
+ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
+    setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
     updateDefaultData("type", QVariant::String, true);
@@ -10,20 +11,20 @@ ComponentImpl::ComponentImpl():Node(Node::NK_COMPONENT_IMPL){
 bool ComponentImpl::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-        case Node::NK_ATTRIBUTE_IMPL:
-        case Node::NK_INEVENTPORT_IMPL:
-        case Node::NK_OUTEVENTPORT_IMPL:
-        case Node::NK_BRANCH_STATE:
-        case Node::NK_PERIODICEVENT:
-        case Node::NK_TERMINATION:
-        case Node::NK_VARIABLE:
-        case Node::NK_WORKLOAD:
-        case Node::NK_PROCESS:
-        case Node::NK_WORKER_PROCESS:
-        case Node::NK_WHILELOOP:
-        case Node::NK_SETTER:
-        case Node::NK_CODE:
-        case Node::NK_HEADER:
+        case NODE_KIND::ATTRIBUTE_IMPL:
+        case NODE_KIND::INEVENTPORT_IMPL:
+        case NODE_KIND::OUTEVENTPORT_IMPL:
+        case NODE_KIND::BRANCH_STATE:
+        case NODE_KIND::PERIODICEVENT:
+        case NODE_KIND::TERMINATION:
+        case NODE_KIND::VARIABLE:
+        case NODE_KIND::WORKLOAD:
+        case NODE_KIND::PROCESS:
+        case NODE_KIND::WORKER_PROCESS:
+        case NODE_KIND::WHILELOOP:
+        case NODE_KIND::SETTER:
+        case NODE_KIND::CODE:
+        case NODE_KIND::HEADER:
             break;
     default:
         return false;
@@ -42,7 +43,7 @@ bool ComponentImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         if(!dst->getImplementations().isEmpty()){
             return false;
         }
-        if(dst->getNodeKind() != NK_COMPONENT){
+        if(dst->getNodeKind() != NODE_KIND::COMPONENT){
             return false;
         }
         break;

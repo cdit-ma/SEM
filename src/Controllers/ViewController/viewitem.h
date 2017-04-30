@@ -20,6 +20,7 @@ class ViewItem: public QObjectRegistrar
 public:
     ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ViewItem(ViewController* controller);
+    ViewItem(ViewController* controller, int ID, ENTITY_KIND entity_kind);
     ~ViewItem();
 
     DataTableModel* getTableModel();
@@ -57,7 +58,7 @@ public:
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
 
-    QStringList getValidValuesForKey(QString keyName) const;
+    QList<QVariant> getValidValuesForKey(QString keyName) const;
 signals:
     void labelChanged(QString label);
     void iconChanged();
@@ -78,7 +79,7 @@ protected:
 
     void changeProperty(QString propertyName, QVariant data);
     void removeProperty(QString propertyName);
-
+    ViewController* getController();
 private:
     void destruct();
 

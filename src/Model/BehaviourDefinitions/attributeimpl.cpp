@@ -1,8 +1,9 @@
 #include "attributeimpl.h"
+#include "../nodekinds.h"
 
-AttributeImpl::AttributeImpl():DataNode(Node::NK_ATTRIBUTE_IMPL)
+AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
 {
-    setNodeType(NT_IMPLEMENTATION);
+    setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DATA);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
@@ -26,13 +27,13 @@ bool AttributeImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
-        if(dst->getNodeKind() != NK_ATTRIBUTE){
+        if(dst->getNodeKind() != NODE_KIND::ATTRIBUTE){
             return false;
         }
         break;
     }
     case Edge::EC_DATA:{
-        if(dst->getNodeKind() == NK_VARIABLE || dst->getNodeKind() == NK_ATTRIBUTE_IMPL){
+        if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
             return false;
         }
         break;

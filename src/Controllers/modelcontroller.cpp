@@ -137,7 +137,7 @@ ModelController::ModelController() :QObject(0)
 
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<Edge::EDGE_KIND>("Edge::EDGE_KIND");
-    qRegisterMetaType<Node::NODE_KIND>("Node::NODE_KIND");
+    qRegisterMetaType<NODE_KIND>("NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<ReadOnlyState>("ReadOnlyState");
 
@@ -185,11 +185,13 @@ ModelController::ModelController() :QObject(0)
 
     visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly" << "dataProtected";
 
-    nonSnippetableKinds << Node::NK_OUTEVENTPORT_IMPL << Node::NK_INEVENTPORT_IMPL;
+    nonSnippetableKinds << NODE_KIND::OUTEVENTPORT_IMPL << NODE_KIND::INEVENTPORT_IMPL;
 }
 void ModelController::connectViewController(ViewController *view)
 {
     connect(this, &ModelController::entityConstructed, view, &ViewController::controller_entityConstructed);
+    connect(this, &ModelController::NodeConstructed, view, &ViewController::model_NodeConstructed);
+
     connect(this, &ModelController::entityDestructed, view, &ViewController::controller_entityDestructed);
     connect(view, &ViewController::vc_setupModel, this, &ModelController::setupController);
     connect(this, &ModelController::controller_IsModelReady, view, &ViewController::setControllerReady);
@@ -278,13 +280,15 @@ void ModelController::disconnectViewController(ViewController *view)
 
 
 
+
+
 void ModelController::setupController()
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     setupModel();
     //loadWorkerDefinitions();
     clearHistory();
-    lock.unlock();
+    lock_.unlock();
     INITIALIZING = false;
 
     emit controller_ProjectFileChanged("Untitled Project");
@@ -301,12 +305,7 @@ ModelController::~ModelController()
     DESTRUCTING_CONTROLLER = true;
 
     destructNode(workerDefinitions);
-    destructNode(model);
-
-
-    while(!keys.isEmpty()){
-        delete keys.take(keys.keys().first());
-    }
+    destructNode(model); 
 }
 
 void ModelController::setExternalWorkerDefinitionPath(QString path)
@@ -733,7 +732,7 @@ void ModelController::updateUndoRedoState()
     }
 }
 
-Node* ModelController::construct_node(Node* parent_node, Node::NODE_KIND node_kind){
+Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind){
     Node* node = 0;
     if(parent_node){
         //Construct node with default data
@@ -829,7 +828,7 @@ void ModelController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIN
     bool success = true;
     if(validIDs.contains(dstID)){
 
-        lock.lockForWrite();
+        lock_.lockForWrite();
         triggerAction("Constructing child edge");
         foreach(int srcID, srcIDs){
             Node* src = getNodeFromID(srcID);
@@ -845,7 +844,7 @@ void ModelController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIN
                 break;
             }
         }
-        lock.unlock();
+        lock_.unlock();
     }else{
         success = false;
     }
@@ -854,7 +853,7 @@ void ModelController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIN
 
 void ModelController::destructEdges(QList<int> srcIDs, int dstID, Edge::EDGE_KIND edgeClass)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
 
     bool success = true;
     triggerAction("Destructing edges");
@@ -870,14 +869,14 @@ void ModelController::destructEdges(QList<int> srcIDs, int dstID, Edge::EDGE_KIN
             }
         }
     }
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success, "Edge couldn't be destructed");
 }
 
 
 void ModelController::constructWorkerProcess(int parentID, int workerProcessID, QPointF pos)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
 
     Node* parentNode = getNodeFromID(parentID);
     Node* processNode = getNodeFromID(workerProcessID);
@@ -895,7 +894,7 @@ void ModelController::constructWorkerProcess(int parentID, int workerProcessID, 
             success = true;
         }
     }
-    lock.unlock();
+    lock_.unlock();
 
     emit controller_ActionFinished(success, "Worker Process Couldn't be constructed!");
 }
@@ -939,11 +938,11 @@ void ModelController::constructDDSQOSProfile(int parentID, QPointF position)
         Node* profile = constructChildNode(parentNode, constructDataVector("DDS_QOSProfile", position));
         if(profile){
             //Itterate through QOS
-            for(int k = Node::NK_QOS_DDS_POLICY_DEADLINE; k <= Node::NK_QOS_DDS_POLICY_WRITERDATALIFECYCLE; k++){
-                auto kind = (Node::NODE_KIND) k;
+            /*for(auto k = NODE_KIND::QOS_DDS_POLICY_DEADLINE; k <= NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE; k++){
+                auto kind = (NODE_KIND) k;
                 QString kind_str = entity_factory->getNodeKindString(kind);
                 constructChildNode(profile, constructDataVector(kind_str));
-            }
+            }*/
         }
     }
 }
@@ -984,7 +983,7 @@ void ModelController::constructForCondition(int parentID, QPointF position)
 
 void ModelController::constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind, QPointF pos)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(dstID);
     if(parentNode && connectedNode){
@@ -1037,7 +1036,7 @@ void ModelController::constructConnectedNode(int parentID, QString nodeKind, int
 
         }
     }
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished();
 }
 
@@ -1109,12 +1108,12 @@ void ModelController::redo()
 
 void ModelController::openProject(QString filePath, QString xmlData)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     OPENING_PROJECT = true;
     emit showProgress(true, "Opening Project");
     bool result = _newImportGraphML(xmlData, getModel());
     OPENING_PROJECT = false;
-    lock.unlock();
+    lock_.unlock();
 
     //Update the project filePath
     setProjectPath(filePath);
@@ -1138,7 +1137,7 @@ void ModelController::openProject(QString filePath, QString xmlData)
 void ModelController::copy(QList<int> IDs)
 {
 
-    lock.lockForWrite();
+    lock_.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     bool success = false;
@@ -1151,7 +1150,7 @@ void ModelController::copy(QList<int> IDs)
         }
     }
 
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success, "Cannot copy selection.");
 }
 
@@ -1161,7 +1160,7 @@ void ModelController::copy(QList<int> IDs)
  */
 void ModelController::remove(QList<int> IDs)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     if(canRemove(selection)){
@@ -1172,12 +1171,12 @@ void ModelController::remove(QList<int> IDs)
     } else {
         emit controller_ActionFinished();
     }
-    lock.unlock();
+    lock_.unlock();
 }
 
 void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
 
 
@@ -1222,7 +1221,7 @@ void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
             _setData(item, "readOnly", readOnly);
         }
     }
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(true);
 }
 
@@ -1242,14 +1241,14 @@ void ModelController::clear()
  */
 void ModelController::replicate(QList<int> IDs)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     bool success = false;
     if(canReplicate(selection)){
         success = _replicate(selection);
     }
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success, "Cannot Replicate selection.");
 }
 
@@ -1259,7 +1258,7 @@ void ModelController::replicate(QList<int> IDs)
  */
 void ModelController::cut(QList<int> IDs)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     bool success = false;
@@ -1270,7 +1269,7 @@ void ModelController::cut(QList<int> IDs)
         success = _remove(selection);
     }
 
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success, "Cannot cut selection.");
 }
 
@@ -1283,14 +1282,14 @@ void ModelController::cut(QList<int> IDs)
  */
 void ModelController::paste(QList<int> IDs, QString xmlData)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     bool success = false;
     if(canPaste(selection)){
         success = _paste(selection.first()->getID(), xmlData);
     }
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success, "Cannot paste into selection");
 }
 
@@ -1743,13 +1742,13 @@ QStringList ModelController::getAdoptableNodeKinds(int ID)
 {
     QStringList adoptableNodeKinds;
 
-    lock.lockForRead();
+    lock_.lockForRead();
     Node* parent = getNodeFromID(ID);
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
 
-        foreach(Node::NODE_KIND nodeKind, entity_factory->getNodeKinds()){
+        foreach(NODE_KIND nodeKind, entity_factory->getNodeKinds()){
             auto node = entity_factory->createNode(nodeKind);
             if(node){
                 if(parent->canAdoptChild(node)){
@@ -1761,7 +1760,7 @@ QStringList ModelController::getAdoptableNodeKinds(int ID)
         }
     }
 
-    lock.unlock();
+    lock_.unlock();
     return adoptableNodeKinds;
 }
 
@@ -1770,12 +1769,12 @@ QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KI
 {
 
     QList<int> dstIDs;
-    lock.lockForRead();
+    lock_.lockForRead();
 
     foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
         dstIDs.append(dst->getID());
     }
-    lock.unlock();
+    lock_.unlock();
     return dstIDs;
 }
 
@@ -1783,7 +1782,7 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, QStri
 {
     QList<int> dstIDs;
 
-    lock.lockForRead();
+    lock_.lockForRead();
     Node* parentNode = getNodeFromID(parentID);
     Node* childNode = constructTypedNode(instanceNodeKind, true);
 
@@ -1802,7 +1801,7 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, QStri
         delete childNode;
     }
 
-    lock.unlock();
+    lock_.unlock();
     return dstIDs;
 }
 
@@ -1860,15 +1859,15 @@ QList<int> ModelController::getOrderedSelectionIDs(QList<int> selection)
 QList<int> ModelController::getWorkerFunctions()
 {
     QList<int> IDs;
-    lock.lockForRead();
+    lock_.lockForRead();
 
-    foreach(Node* process, workerDefinitions->getChildrenOfKind(Node::NK_PROCESS, 2)){
+    foreach(Node* process, workerDefinitions->getChildrenOfKind(NODE_KIND::PROCESS, 2)){
         int ID = process->getID();
         if(!IDs.contains(ID)){
             IDs.append(ID);
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return IDs;
 }
 
@@ -1946,24 +1945,102 @@ QList<Entity*> ModelController::getOrderedSelection(QList<int> selection)
     return orderedSelection;
 }
 
-QStringList ModelController::getValidKeyValues(int nodeID, QString keyName)
+QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
 {
-    QStringList validKeyValues;
-    lock.lockForRead();
-    Key* key = getKeyFromName(keyName);
+    QReadLocker lock(&lock_);
+    QList<QVariant> valid_values;
+    
+    Key* key = getKeyFromName(key_name);
     if(key){
-        QString nodeKind = "";
-        if(nodeID != -1){
-            Node* node = getNodeFromID(nodeID);
-			if(node){
-				nodeKind = node->getNodeKindStr();
-			}
+        auto node = getNodeFromID(id);
+        if(node){
+            valid_values = key->getValidValues(node->getNodeKind());
         }
-        validKeyValues = key->getValidValues(nodeKind);
-
     }
-    lock.unlock();
-    return validKeyValues;
+    return valid_values;
+}
+
+int ModelController::getSharedParent(int ID, int ID2){
+    QReadLocker lock(&lock_);
+    int parent_id = -1;
+    auto node_1 = getNodeFromID(ID);
+    auto node_2 = getNodeFromID(ID2);
+    if(node_1 && node_2){
+        auto parent = node_1->getCommonAncestor(node_2);
+        if(parent){
+            parent_id = parent->getID();
+        }
+    }
+    return parent_id;
+}
+
+bool ModelController::isNodeAncestor(int ID, int ID2){
+    QReadLocker lock(&lock_);
+    bool is_ancestor = false;
+    auto node_1 = getNodeFromID(ID);
+    auto node_2 = getNodeFromID(ID2);
+    if(node_1 && node_2){
+        is_ancestor = node_1->isAncestorOf(node_2);
+    }
+    return is_ancestor;
+}
+
+int ModelController::getNodeParentID(int ID){
+    QReadLocker lock(&lock_);
+    int parent_id = -1;
+    auto node = getNodeFromID(ID);
+    
+    if(node){
+        auto parent = node->getParentNode();
+        if(parent){
+            parent_id = parent->getID();
+        }
+    }
+    return parent_id;
+}
+
+VIEW_ASPECT ModelController::getNodeViewAspect(int ID){
+    QReadLocker lock(&lock_);
+    VIEW_ASPECT aspect = VA_NONE;
+    auto node = getNodeFromID(ID);
+    
+    if(node){
+        aspect = node->getViewAspect();
+    }
+    return aspect;
+}
+
+QStringList ModelController::getEntityKeys(int ID){
+    QReadLocker lock(&lock_);
+    QStringList keys;
+
+    auto entity = getGraphMLFromHash(ID);
+    if(entity){
+        keys = entity->getKeyNames();
+    }
+    return keys;
+}
+
+QVariant ModelController::getEntityDataValue(int ID, QString key_name){
+    QReadLocker lock(&lock_);
+    QVariant value;
+
+    auto entity = getGraphMLFromHash(ID);
+    if(entity){
+        value = entity->getDataValue(key_name);
+    }
+    return value;
+}
+
+
+bool ModelController::isNodeOfType(int ID, NODE_TYPE type){
+    QReadLocker lock(&lock_);
+    bool is_type = false;
+    auto node = getNodeFromID(ID);
+    if(node){
+        is_type = node->isNodeOfType(type);
+    }
+    return is_type;
 }
 
 QList<int> ModelController::getInstances(int ID)
@@ -2040,220 +2117,8 @@ QString ModelController::getXMLAttribute(QXmlStreamReader &xml, QString attribut
 Key *ModelController::constructKey(QString name, QVariant::Type type)
 {
     return entity_factory->GetKey(name, type);
-    Key* newKey = new Key(name, type, Entity::EK_ALL);
-
-    //Search for a matching Key. If we find one, remove the newly created Key
-    foreach(Key* key, keys){
-        if(key->equals(newKey)){
-            delete newKey;
-            return key;
-        }
-    }
-
-    //Protect the Key if it meant to be protected
-    if(protectedKeyNames.contains(name)){
-        newKey->setProtected(true);
-    }
-
-    //Set the keys data so that we can distinguish between things for read only mode.
-    if(visualKeyNames.contains(name)){
-        newKey->setIsVisualData(true);
-    }
-
-    if(name == "type"){
-        QStringList validValues;
-        QStringList keysValues;
-        keysValues << "Attribute" << "Member" << "Variable" << "VariableParameter";
-
-        validValues << "Boolean" << "String" << "Character" << "Integer" << "Double" << "Float";
-
-        /*
-        validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger"
-        << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger"
-        << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber"
-        << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
-        */
-        newKey->addValidValues(validValues, keysValues);
-        newKey->setAllowAllValues("Variable");
-
-        keysValues.clear();;
-        validValues.clear();
-        keysValues << "PeriodicEvent";
-        validValues << "Constant" << "Exponential";
-        newKey->addValidValues(validValues, keysValues);
-    }
-    if(name == "operator"){
-        QStringList validValues;
-        QStringList keysValues;
-        keysValues << "Setter";
-        validValues << "=" << "+=" << "-=" << "*=" << "/=";
-        newKey->addValidValues(validValues, keysValues);
-    }
-    if(name == "middleware"){
-        QStringList validValues;
-        QStringList keysValues;
-        keysValues << "Model" << "InEventPortInstance" << "OutEventPortInstance";
-        validValues << "ZMQ" << "RTI" << "OSPL" << "QPID";
-        newKey->addValidValues(validValues, keysValues);
-    }
-
-    if (name == "actionOn") {
-        QStringList validValues;
-        QStringList keysValues;
-        keysValues << "Process";
-        validValues << "Activate" << "Preprocess" << "Mainprocess" << "Postprocess" << "Passivate";
-        newKey->addValidValues(validValues, keysValues);
-    }
-    if(name == "replicate_count"){
-        QStringList keysValues;
-        keysValues << "ComponentAssembly";
-        QPair<qreal, qreal> range;
-        range.first = 1;
-        range.second = 999999;
-        newKey->addValidRange(range, keysValues);
-    }
-    if(name == "folder" || name == "file"){
-        QStringList invalidChars;
-        invalidChars  << "|" << "," << "*" << "?" << "<" << ">" << ":";
-        if(name == "file"){
-            invalidChars << "/" << "\\" << "\t";
-        }
-        newKey->addInvalidCharacters(invalidChars);
-    }
-    if(name == "label"){
-        QStringList invalidChars;
-        invalidChars << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
-        invalidChars << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
-        newKey->addInvalidCharacters(invalidChars);
-    }
-
-    if(name.startsWith("qos_dds")){
-        if(name == "qos_dds_kind"){
-            {
-               //HistoryQosPolicy
-               QStringList kinds, values;
-               kinds << "DDS_HistoryQosPolicy";
-               values << "KEEP_LAST_HISTORY_QOS";
-               values << "KEEP_ALL_HISTORY_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-            {
-               //OwnershipQosPolicyKind
-               QStringList kinds, values;
-               kinds << "DDS_OwnershipQosPolicy";
-               values << "SHARED_OWNERSHIP_QOS";
-               values << "EXCLUSIVE_OWNERSHIP_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-            {
-               //ReliabilityQosPolicyKind
-               QStringList kinds, values;
-               kinds << "DDS_ReliabilityQosPolicy";
-               values << "BEST_EFFORT_RELIABILITY_QOS";
-               values << "RELIABLE_RELIABILITY_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-            {
-               //LivelinessQosPolicyKind
-               QStringList kinds, values;
-               kinds << "DDS_LivelinessQosPolicy";
-               values << "AUTOMATIC_LIVELINESS_QOS";
-               values << "MANUAL_BY_PARTICIPANT_LIVELINESS_QOS";
-               values << "MANUAL_BY_TOPIC_LIVELINESS_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-            {
-               //DurabilityQosPolicyKind
-               QStringList kinds, values;
-               kinds << "DDS_DurabilityQosPolicy";
-               values << "VOLATILE_DURABILITY_QOS";
-               values << "TRANSIENT_LOCAL_DURABILITY_QOS";
-               values << "TRANSIENT_DURABILITY_QOS";
-               values << "PERSISTENT_DURABILITY_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-            {
-               //DestinationOrderQosPolicyKind
-               QStringList kinds, values;
-               kinds << "DDS_DestinationOrderQosPolicy";
-               values << "BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS";
-               values << "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-        }else if(name == "qos_dds_access_scope"){
-            {
-               //PresentationQosPolicyAccessScopeKind
-               QStringList kinds, values;
-               kinds << "DDS_PresentationQosPolicy";
-               values << "INSTANCE_PRESENTATION_QOS";
-               values << "TOPIC_PRESENTATION_QOS";
-               values << "GROUP_PRESENTATION_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-        }else if(name == "qos_dds_access_scope"){
-            {
-               //PresentationQosPolicyAccessScopeKind
-               QStringList kinds, values;
-               kinds << "DDS_PresentationQosPolicy";
-               values << "INSTANCE_PRESENTATION_QOS";
-               values << "TOPIC_PRESENTATION_QOS";
-               values << "GROUP_PRESENTATION_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-        }else if(name == "qos_dds_history_kind"){
-            {
-               //HistoryQosPolicy
-               QStringList kinds, values;
-               kinds << "DDS_DurabilityServiceQosPolicy";
-               values << "KEEP_LAST_HISTORY_QOS";
-               values << "KEEP_ALL_HISTORY_QOS";
-               newKey->addValidValues(values, kinds);
-            }
-        }
-    }
-
-
-    connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
-    //Add it to the list of Keys.
-    if(keys.contains(name)){
-        qCritical() << "Duplicate Keys: " << name;
-    }else{
-        keys[name] = newKey;
-    }
-
-    newKey->setParent(this);
-    //Construct an Action to reverse the update
-    EventAction action = getEventAction();
-    action.ID = newKey->getID();
-    action.Action.type = CONSTRUCTED;
-    action.Action.kind = newKey->getGraphMLKind();
-    action.Key.type = type;
-
-    addActionToStack(action);
-
-    return newKey;
 }
 
-bool ModelController::destructKey(QString name)
-{
-    Key* key = getKeyFromName(name);
-    if(key){
-
-        //Construct an Action to reverse the update
-        EventAction action = getEventAction();
-        action.ID = key->getID();
-        action.Action.type = DESTRUCTED;
-        action.Action.kind = key->getGraphMLKind();
-        action.Key.type = key->getType();
-
-        addActionToStack(action);
-
-        keys.remove(name);
-        delete key;
-        return true;
-    }
-    return false;
-}
 
 Key *ModelController::getKeyFromName(QString name)
 {
@@ -2326,14 +2191,20 @@ void ModelController::storeGraphMLInHash(Entity* item)
         }
 
         if(entityKind == Entity::EK_NODE){
-            properties["kind"] = node->getNodeKind();
+            //Construct Node
+            emit NodeConstructed(node->getParentNodeID(), ID, node->getNodeKind());
+
+            properties["kind"] = QVariant::fromValue(node->getNodeKind());
             properties["viewAspect"] = node->getViewAspect();
             properties["treeIndex"] = node->getTreeIndexAlpha();
             properties["parentID"] = node->getParentNodeID();
-            properties["nodeTypes"] = node->getTypes();
+            //properties["nodeTypes"] = node->getTypes();
             properties["inModel"] = node->isInModel();
 
         }else if(entityKind == Entity::EK_EDGE){
+            //Construct Node
+            emit EdgeConstructed(ID, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());//, node->getParentNodeID(), ID, node->getNodeKind());
+
             properties["kind"] = edge->getEdgeKind();
             properties["srcID"] = edge->getSourceID();
             properties["dstID"] = edge->getDestinationID();
@@ -2348,7 +2219,7 @@ void ModelController::storeGraphMLInHash(Entity* item)
             ek = EK_EDGE;
         }
 
-        emit entityConstructed(ID, ek, kind, data, properties);
+        //emit entityConstructed(ID, ek, kind, data, properties);
     }
 }
 
@@ -2907,7 +2778,7 @@ bool ModelController::destructEdge(Edge *edge)
         break;
     }
     case Edge::EC_DATA:{
-        if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
+        if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
             setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
         }
         break;
@@ -2982,11 +2853,6 @@ bool ModelController::reverseAction(EventAction action)
             }
         }
     }else if(action.Action.kind == GraphML::GK_KEY){
-        if(action.Action.type == CONSTRUCTED){
-            success = destructKey(action.Key.name);
-        }else if(action.Action.type == DESTRUCTED){
-            success = constructKey(action.Key.name, action.Key.type);
-        }
     }
     return success;
 }
@@ -3567,7 +3433,7 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
     if(isUserAction()){
         //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
         foreach(Node* child, definition->getChildren(0)){
-            if(child && child->isNodeOfType(Node::NT_DEFINITION)){
+            if(child && child->isNodeOfType(NODE_TYPE::DEFINITION)){
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDependantRelative(node, child);
 
@@ -3631,7 +3497,7 @@ bool ModelController::setupEventPortAggregateRelationship(EventPort *eventPort, 
 
     //Only auto construct if we are processing a user action.
     if(isUserAction()){
-        if(eventPort->getNodeKind() == Node::NK_INEVENTPORT || eventPort->getNodeKind() == Node::NK_OUTEVENTPORT){
+        if(eventPort->getNodeKind() == NODE_KIND::INEVENTPORT || eventPort->getNodeKind() == NODE_KIND::OUTEVENTPORT){
             //Check for an Existing AggregateInstance in the EventPort.
             foreach(Node* child, eventPort->getChildren(0)){
                 if(child->getDataValue("kind") == "AggregateInstance"){
@@ -3805,7 +3671,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
 
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
-        if(inputTopParent->getNodeKind() == Node::NK_VARIABLE){
+        if(inputTopParent->getNodeKind() == NODE_KIND::VARIABLE){
             return true;
         }
     }
@@ -3816,7 +3682,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
 
     if(outputTopParent){
         //Bind Parent Label if we are a variable.
-        if(outputTopParent->getNodeKind() == Node::NK_VARIABLE || outputTopParent->getNodeKind() == Node::NK_ATTRIBUTE_IMPL){
+        if(outputTopParent->getNodeKind() == NODE_KIND::VARIABLE || outputTopParent->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
             definitionData = outputTopParent->getData("label");
         }
     }
@@ -3832,7 +3698,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     //Bind special stuffs.
     Node* inputParent = input->getParentNode();
     if(inputParent){
-        if(inputParent->getNodeKind() == Node::NK_WORKER_PROCESS){
+        if(inputParent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
             QString workerName = inputParent->getDataValue("worker").toString();
             QString parameterLabel = input->getDataValue("label").toString();
 
@@ -3849,7 +3715,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
                     //Check the siblings of the input
                     foreach(Node* child, input->getSiblings()){
 
-                        if(child && child->isNodeOfType(Node::NT_PARAMETER)){
+                        if(child && child->isNodeOfType(NODE_TYPE::PARAMETER)){
                             Parameter* parameter = (Parameter*) child;
                             QString parameter_label = parameter->getDataValue("label").toString();
 
@@ -3969,10 +3835,10 @@ void ModelController::constructEdgeGUI(Edge *edge)
         break;
     }
     case Edge::EC_AGGREGATE:{
-        if(dst->getNodeKind() == Node::NK_AGGREGATE){
+        if(dst->getNodeKind() == NODE_KIND::AGGREGATE){
             Aggregate* aggregate = (Aggregate*) dst;
 
-            if(src->isNodeOfType(Node::NT_EVENTPORT)){
+            if(src->isNodeOfType(NODE_TYPE::EVENTPORT)){
                 EventPort* eventPort = (EventPort*) src;
                 setupEventPortAggregateRelationship(eventPort, aggregate);
             }else{
@@ -3998,7 +3864,7 @@ void ModelController::constructEdgeGUI(Edge *edge)
         break;
     }
     case Edge::EC_DATA:{
-        if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
+        if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
             setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
         }
         break;
@@ -4227,24 +4093,24 @@ WorkerDefinitions *ModelController::getWorkerDefinitions()
 
 QString ModelController::getProjectAsGraphML()
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QString data = _exportGraphMLDocument(model);
-    lock.unlock();
+    lock_.unlock();
     return data;
 }
 
 QString ModelController::getSelectionAsGraphMLSnippet(QList<int> IDs)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<int> orderedIDs = getOrderedSelectionIDs(IDs);
     QString data = _exportSnippet(orderedIDs);
-    lock.unlock();
+    lock_.unlock();
     return data;
 }
 
 QList<Edge::EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
 
     QList<Entity*> entities = getOrderedSelection(IDs);
     QList<Edge::EDGE_KIND> edgeKinds;
@@ -4269,13 +4135,13 @@ QList<Edge::EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int>
             break;
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return edgeKinds;
 }
 
 QList<Edge::EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
 
     QList<Entity*> entities = getOrderedSelection(IDs);
     QList<Edge::EDGE_KIND> edgeKinds;
@@ -4290,23 +4156,23 @@ QList<Edge::EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<i
             }
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return edgeKinds;
 
 }
 
-QList<Node::NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
+QList<NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
 {
-    QList<Node::NODE_KIND> kinds;
+    QList<NODE_KIND> kinds;
 
-    lock.lockForRead();
+    lock_.lockForRead();
 
     Node* parent = getNodeFromID(ID);
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
 
-        foreach(Node::NODE_KIND nodeKind, entity_factory->getNodeKinds()){
+        foreach(NODE_KIND nodeKind, entity_factory->getNodeKinds()){
             auto node = entity_factory->createNode(nodeKind);
             if(node){
                 if(parent->canAdoptChild(node)){
@@ -4317,7 +4183,7 @@ QList<Node::NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
             }
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return kinds;
 }
 
@@ -4405,13 +4271,13 @@ void ModelController::removeData(int parentID, QString keyName)
  */
 void ModelController::importProjects(QStringList xmlDataList)
 {
-    lock.lockForWrite();
+    lock_.lockForWrite();
     emit showProgress(true, "Importing Projects");
     IMPORTING_PROJECT = true;
     bool success = _importProjects(xmlDataList);
     IMPORTING_PROJECT = false;
     emit showProgress(false);
-    lock.unlock();
+    lock_.unlock();
     emit controller_ActionFinished(success);
 }
 
@@ -5076,28 +4942,28 @@ void ModelController::setProjectPath(QString path)
 
 bool ModelController::canCopy(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canCopy(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canReplicate(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canReplicate(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canCut(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canCopy(items) && canCopy(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
@@ -5190,19 +5056,19 @@ bool ModelController::canRemove(QList<Entity *> selection)
             }
             if(parentNode){
                 switch(node->getNodeKind()){
-                    case Node::NK_VARIABLE:{
+                    case NODE_KIND::VARIABLE:{
                         if(node->isInstance()){
                             return false;
                         }
                         break;
                     }
-                    case Node::NK_INPUT_PARAMETER:{
+                    case NODE_KIND::INPUT_PARAMETER:{
                         if(!node->getDataValue("is_variadic").toBool()){
                             return false;
                         }
                         break;
                     }
-                    case Node::NK_RETURN_PARAMETER:{
+                    case NODE_KIND::RETURN_PARAMETER:{
                         return false;
                         break;
                     }
@@ -5212,7 +5078,7 @@ bool ModelController::canRemove(QList<Entity *> selection)
 
                 if(node->isImpl() && node->getDefinition()){
                     //Only allowed to delete OutEventPortImpls
-                    if(node->getNodeKind() != Node::NK_OUTEVENTPORT_IMPL){
+                    if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
                         return false;
                     }
                 }
@@ -5312,55 +5178,55 @@ bool ModelController::canImportSnippet(QList<Entity *> selection)
 
 bool ModelController::canRemove(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canRemove(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canPaste(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canPaste(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canExportSnippet(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canExportSnippet(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canImportSnippet(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canImportSnippet(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canSetReadOnly(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canSetReadOnly(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
 bool ModelController::canUnsetReadOnly(QList<int> selection)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     QList<Entity*> items = getOrderedSelection(selection);
     bool result = canUnsetReadOnly(items);
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
@@ -5381,7 +5247,7 @@ bool ModelController::canRedo()
  */
 bool ModelController::canLocalDeploy()
 {
-    lock.lockForRead();
+    lock_.lockForRead();
 
     bool result = true;
     if(assemblyDefinitions){
@@ -5397,7 +5263,7 @@ bool ModelController::canLocalDeploy()
         }
         result = count > 0;
     }
-    lock.unlock();
+    lock_.unlock();
     return result;
 }
 
@@ -5416,7 +5282,7 @@ bool ModelController::isProjectSaved() const
 
 int ModelController::getDefinition(int ID)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     Node* original = getNodeFromID(ID);
     int defID = -1;
     if(original){
@@ -5425,13 +5291,13 @@ int ModelController::getDefinition(int ID)
             defID = node->getID();
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return defID;
 }
 
 int ModelController::getImplementation(int ID)
 {
-    lock.lockForRead();
+    lock_.lockForRead();
     int implID = -1;
     Node* original = getNodeFromID(ID);
     if(original){
@@ -5448,7 +5314,7 @@ int ModelController::getImplementation(int ID)
             }
         }
     }
-    lock.unlock();
+    lock_.unlock();
     return implID;
 }
 
@@ -5470,6 +5336,8 @@ Node* ModelController::getSharedParent(QList<int> IDs)
     }
     return parent;
 }
+
+
 
 QString ModelController::getDataValueFromKeyName(QList<Data *> dataList, QString keyName)
 {

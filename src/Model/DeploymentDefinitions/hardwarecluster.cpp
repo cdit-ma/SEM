@@ -1,9 +1,9 @@
 #include "hardwarecluster.h"
 
-HardwareCluster::HardwareCluster():Node(NK_HARDWARE_CLUSTER)
+HardwareCluster::HardwareCluster():Node(NODE_KIND::HARDWARE_CLUSTER)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
-    setNodeType(NT_HARDWARE);
+    setNodeType(NODE_TYPE::HARDWARE);
 
     
 }
@@ -11,7 +11,7 @@ HardwareCluster::HardwareCluster():Node(NK_HARDWARE_CLUSTER)
 bool HardwareCluster::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_HARDWARE_NODE:
+    case NODE_KIND::HARDWARE_NODE:
         break;
     default:
         return false;

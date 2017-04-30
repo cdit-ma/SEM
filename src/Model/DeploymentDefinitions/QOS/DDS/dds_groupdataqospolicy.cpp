@@ -1,8 +1,8 @@
 #include "dds_groupdataqospolicy.h"
 
-DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy():Node(NK_QOS_DDS_POLICY_GROUPDATA)
+DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_GROUPDATA)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

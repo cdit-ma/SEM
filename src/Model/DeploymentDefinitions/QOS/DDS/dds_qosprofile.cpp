@@ -1,10 +1,10 @@
 #include "dds_qosprofile.h"
 
-DDS_QOSProfile::DDS_QOSProfile():Node(NK_QOS_DDS_PROFILE)
+DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
 {
-    setNodeType(NT_QOS_PROFILE);
-    setNodeType(NT_QOS);
-    setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS_PROFILE);
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
     setAcceptsEdgeKind(Edge::EC_QOS);
 
     setMoveEnabled(false);
@@ -14,13 +14,13 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NK_QOS_DDS_PROFILE)
 
 bool DDS_QOSProfile::canAdoptChild(Node *node)
 {
-    if(!node->isNodeOfType(NT_QOS)){
+    if(!node->isNodeOfType(NODE_TYPE::QOS)){
         return false;
     }
-    if(!node->isNodeOfType(NT_DDS)){
+    if(!node->isNodeOfType(NODE_TYPE::DDS)){
         return false;
     }
-    if(node->isNodeOfType(NT_QOS_PROFILE)){
+    if(node->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
         return false;
     }
 

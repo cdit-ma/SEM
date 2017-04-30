@@ -6,9 +6,10 @@
 #include <QStringBuilder>
 #include <QByteArray>
 #include <QStack>
+#include "nodekinds.h"
 #include "entityfactory.h"
 
-Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
+Node::Node(NODE_KIND kind):Entity(EK_NODE)
 {
     //Set Kind
     updateDefaultData("kind", QVariant::String, true, EntityFactory::getNodeKindString(kind));
@@ -19,7 +20,6 @@ Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
     parentNode = 0;
     childCount = 0;
     definition = 0;
-    types = 0;
     aspect = VA_NONE;
 }
 
@@ -44,7 +44,7 @@ QString Node::getTreeIndexAlpha()
     return treeIndexString;
 }
 
-Node::NODE_KIND Node::getNodeKind() const
+NODE_KIND Node::getNodeKind() const
 {
     return nodeKind;
 }
@@ -86,7 +86,7 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         }
 
         //Node must be a Definition Node Type.
-        if(!dst->isNodeOfType(NT_DEFINITION)){
+        if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
             return false;
         }
         if(parentNode){
@@ -123,13 +123,13 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case Edge::EC_QOS:{
-        if(!dst->isNodeOfType(NT_QOS_PROFILE)){
+        if(!dst->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
             return false;
         }
         break;
     }
     case Edge::EC_DEPLOYMENT:{
-        if(!dst->isNodeOfType(NT_HARDWARE)){
+        if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
         }
         break;
@@ -156,9 +156,9 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     return true;
 }
 
-bool Node::isNodeOfType(Node::NODE_TYPE type) const
+bool Node::isNodeOfType(NODE_TYPE type) const
 {
-    return type & types;
+    return types.contains(type);
 }
 
 bool Node::acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const
@@ -217,22 +217,14 @@ QList<Edge::EDGE_KIND> Node::getAcceptedEdgeKinds() const
     return validEdgeKinds;
 }
 
-void Node::setNodeType(Node::NODE_TYPE type)
+void Node::setNodeType(NODE_TYPE type)
 {
-    int newTypes = types | type;
-    if(newTypes != types){
-        types = newTypes;
-        emit propertyChanged(getID(), "nodeTypes", types);
-    }
+    types.insert(type);
 }
 
-void Node::removeNodeType(Node::NODE_TYPE type)
+void Node::removeNodeType(NODE_TYPE type)
 {
-    int newTypes = types & ~type;
-    if(newTypes != types){
-        types = newTypes;
-        emit propertyChanged(getID(), "nodeTypes", types);
-    }
+    types.remove(type);
 }
 
 void Node::setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind)
@@ -615,6 +607,24 @@ bool Node::removeChild(Node *child)
     return false;
 }
 
+void Node::addValidValue(QString key_name, QVariant value){
+    if(!valid_values_.contains(key_name, value)){
+        valid_values_.insert(key_name, value);
+    }
+}
+void Node::addValidValues(QString key_name, QList<QVariant> values){
+    foreach(auto value, values){
+        addValidValue(key_name, value);
+    }
+}
+
+QStringList Node::getValidValueKeys(){
+    return valid_values_.uniqueKeys();
+}
+QList<QVariant> Node::getValidValues(QString key_name){
+    return valid_values_.values(key_name);
+}
+
 
 bool Node::ancestorOf(Node *node)
 {
@@ -753,12 +763,12 @@ bool Node::isInModel()
 
 bool Node::isDefinition() const
 {
-    return isNodeOfType(NT_DEFINITION);
+    return isNodeOfType(NODE_TYPE::DEFINITION);
 }
 
 bool Node::isInstance() const
 {
-    return isNodeOfType(NT_INSTANCE);
+    return isNodeOfType(NODE_TYPE::INSTANCE);
 }
 
 bool Node::isInstanceImpl() const
@@ -768,15 +778,15 @@ bool Node::isInstanceImpl() const
 
 bool Node::isAspect() const
 {
-    return isNodeOfType(NT_ASPECT);
+    return isNodeOfType(NODE_TYPE::ASPECT);
 }
 
 bool Node::isImpl() const
 {
-    return isNodeOfType(NT_IMPLEMENTATION);
+    return isNodeOfType(NODE_TYPE::IMPLEMENTATION);
 }
 
-int Node::getTypes() const
+QSet<NODE_TYPE> Node::getTypes() const
 {
     return types;
 }
@@ -806,7 +816,7 @@ void Node::unsetDefinition()
 
 void Node::addInstance(Node *inst)
 {
-    if(isNodeOfType(NT_DEFINITION)){
+    if(isNodeOfType(NODE_TYPE::DEFINITION)){
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);
@@ -821,7 +831,7 @@ QList<Node *> Node::getInstances() const
 
 void Node::removeInstance(Node *inst)
 {
-    if(isNodeOfType(NT_DEFINITION)){
+    if(isNodeOfType(NODE_TYPE::DEFINITION)){
         instances.removeAll(inst);
         instances.removeAll(inst);
         inst->unsetDefinition();
@@ -830,7 +840,7 @@ void Node::removeInstance(Node *inst)
 
 void Node::addImplementation(Node *impl)
 {
-    if(isNodeOfType(NT_DEFINITION)){
+    if(isNodeOfType(NODE_TYPE::DEFINITION)){
         if(!implementations.contains(impl)){
             implementations.push_back(impl);
             impl->setDefinition(this);
@@ -869,7 +879,7 @@ QList<Node *> Node::getDependants() const
 
 void Node::removeImplementation(Node *impl)
 {
-    if(isNodeOfType(NT_DEFINITION)){
+    if(isNodeOfType(NODE_TYPE::DEFINITION)){
         implementations.removeAll(impl);
         impl->unsetDefinition();
     }

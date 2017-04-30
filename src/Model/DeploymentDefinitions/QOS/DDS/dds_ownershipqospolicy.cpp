@@ -1,8 +1,8 @@
 #include "dds_ownershipqospolicy.h"
 
-DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy():Node(NK_QOS_DDS_POLICY_OWNERSHIP)
+DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_OWNERSHIP)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

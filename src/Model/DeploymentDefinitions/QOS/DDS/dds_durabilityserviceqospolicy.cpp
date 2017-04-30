@@ -1,8 +1,8 @@
 #include "dds_durabilityserviceqospolicy.h"
 
-DDS_DurabilityServiceQosPolicy::DDS_DurabilityServiceQosPolicy():Node(NK_QOS_DDS_POLICY_DURABILITYSERVICE)
+DDS_DurabilityServiceQosPolicy::DDS_DurabilityServiceQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

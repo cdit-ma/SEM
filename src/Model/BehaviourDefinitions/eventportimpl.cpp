@@ -1,8 +1,8 @@
 #include "eventportimpl.h"
-
-EventPortImpl::EventPortImpl(Node::NODE_KIND kind):BehaviourNode(kind)
+#include "../nodekinds.h"
+EventPortImpl::EventPortImpl(NODE_KIND kind):BehaviourNode(kind)
 {
-    setNodeType(NT_IMPLEMENTATION);
+    setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
     updateDefaultData("type", QVariant::String, true);
@@ -10,12 +10,12 @@ EventPortImpl::EventPortImpl(Node::NODE_KIND kind):BehaviourNode(kind)
 
 bool EventPortImpl::isInPort()
 {
-    return getNodeKind() == NK_INEVENTPORT_IMPL;
+    return getNodeKind() == NODE_KIND::INEVENTPORT_IMPL;
 }
 
 bool EventPortImpl::isOutPort()
 {
-    return getNodeKind() == NK_OUTEVENTPORT_IMPL;
+    return getNodeKind() == NODE_KIND::OUTEVENTPORT_IMPL;
 }
 
 bool EventPortImpl::canAdoptChild(Node *child)
@@ -26,7 +26,7 @@ bool EventPortImpl::canAdoptChild(Node *child)
     }
 
     //Can only adopt AggregateInstances
-    if(child->getNodeKind() != NK_AGGREGATE_INSTANCE){
+    if(child->getNodeKind() != NODE_KIND::AGGREGATE_INSTANCE){
         return false;
     }
 

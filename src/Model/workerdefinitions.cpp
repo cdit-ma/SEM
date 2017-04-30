@@ -1,7 +1,7 @@
 #include "workerdefinitions.h"
 #include "BehaviourDefinitions/workload.h"
 
-WorkerDefinitions::WorkerDefinitions(): Node(NK_WORKER_DEFINITIONS)
+WorkerDefinitions::WorkerDefinitions(): Node(NODE_KIND::WORKER_DEFINITIONS)
 {
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -17,7 +17,7 @@ VIEW_ASPECT WorkerDefinitions::getViewAspect() const
 bool WorkerDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_WORKLOAD:
+    case NODE_KIND::WORKLOAD:
         break;
     default:
         return false;

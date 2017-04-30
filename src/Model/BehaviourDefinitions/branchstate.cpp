@@ -1,12 +1,12 @@
 #include "branchstate.h"
 #include "condition.h"
 
-BranchState::BranchState():Branch(NK_BRANCH_STATE){
+BranchState::BranchState():Branch(NODE_KIND::BRANCH_STATE){
 }
 
 bool BranchState::canAdoptChild(Node *child)
 {
-    if(child->getNodeKind() != NK_CONDITION){
+    if(child->getNodeKind() != NODE_KIND::CONDITION){
         return false;
     }
     return Branch::canAdoptChild(child);

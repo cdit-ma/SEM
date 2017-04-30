@@ -1,6 +1,6 @@
 #include "setter.h"
 
-Setter::Setter():BehaviourNode(NK_SETTER)
+Setter::Setter():BehaviourNode(NODE_KIND::SETTER)
 {
     setWorkflowProducer(true);
     setWorkflowReciever(true);
@@ -11,8 +11,8 @@ Setter::Setter():BehaviourNode(NK_SETTER)
 bool Setter::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-    case NK_INPUT_PARAMETER:
-    case NK_VARIADIC_PARAMETER:
+    case NODE_KIND::INPUT_PARAMETER:
+    case NODE_KIND::VARIADIC_PARAMETER:
         break;
     default:
         return false;

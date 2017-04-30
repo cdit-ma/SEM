@@ -1,6 +1,6 @@
 #include "code.h"
 
-Code::Code():BehaviourNode(NK_CODE){
+Code::Code():BehaviourNode(NODE_KIND::CODE){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
 

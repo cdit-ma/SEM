@@ -108,7 +108,7 @@ NodeViewItem *NodeItem::getNodeViewItem() const
     return nodeViewItem;
 }
 
-Node::NODE_KIND NodeItem::getNodeKind() const
+NODE_KIND NodeItem::getNodeKind() const
 {
     return nodeViewItem->getNodeKind();
 }
@@ -655,7 +655,7 @@ void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
     update();
 }
 
-void NodeItem::setVisualNodeKind(Node::NODE_KIND kind)
+void NodeItem::setVisualNodeKind(NODE_KIND kind)
 {
     visualNodeKind = kind;
     visualEntityIcon = "ComponentImpl";
@@ -667,14 +667,14 @@ Edge::EDGE_KIND NodeItem::getVisualEdgeKind() const
     return visualEdgeKind;
 }
 
-Node::NODE_KIND NodeItem::getVisualNodeKind() const
+NODE_KIND NodeItem::getVisualNodeKind() const
 {
     return visualNodeKind;
 }
 
 bool NodeItem::gotVisualNodeKind() const
 {
-    return visualNodeKind != Node::NK_NONE;
+    return visualNodeKind != NODE_KIND::NONE;
 }
 
 bool NodeItem::gotVisualEdgeKind() const
@@ -748,7 +748,7 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
             updateReadState();
         }else if(keyName == "readOnly"){
             update();
-        }else if(keyName == "key" && getNodeKind() == Node::NK_MEMBER){
+        }else if(keyName == "key" && getNodeKind() == NODE_KIND::MEMBER){
             bool boolData = data.toBool();
             setIconOverlayVisible(boolData);
         }
@@ -1248,7 +1248,7 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(getVisualNodeKind() && event->button() == Qt::LeftButton){
+    if(getVisualNodeKind() != NODE_KIND::NONE && event->button() == Qt::LeftButton){
         if(getElementPath(ER_CONNECT).contains(event->pos())){
             emit req_popOutRelatedNode(getNodeViewItem(), visualNodeKind);
         }

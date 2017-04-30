@@ -6,7 +6,7 @@ class EventPortAssembly: public EventPort
 {
     Q_OBJECT
 public:
-    EventPortAssembly(Node::NODE_KIND kind);
+    EventPortAssembly(NODE_KIND kind);
 
     bool isPortDelegate() const;
 

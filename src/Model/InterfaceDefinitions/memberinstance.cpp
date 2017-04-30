@@ -1,9 +1,9 @@
 #include "memberinstance.h"
 
-MemberInstance::MemberInstance():DataNode(NK_MEMBER_INSTANCE)
+MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
 {
-    setNodeType(NT_DEFINITION);
-    setNodeType(NT_INSTANCE);
+    setNodeType(NODE_TYPE::DEFINITION);
+    setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setDataReciever(true);
     setDataProducer(true);
@@ -24,7 +24,7 @@ bool MemberInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
         case Edge::EC_DEFINITION:{
-            if(!(dst->getNodeKind() == NK_MEMBER || dst->getNodeKind() == NK_MEMBER_INSTANCE)){
+            if(!(dst->getNodeKind() == NODE_KIND::MEMBER || dst->getNodeKind() == NODE_KIND::MEMBER_INSTANCE)){
                 return false;
             }
             break;

@@ -1,27 +1,31 @@
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 #include <QDebug>
-
+#include "viewcontroller.h"
 
 NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, entityKind, kind, data, properties)
 {
-    nodeKind = Node::NK_NONE;
+    nodeKind = NODE_KIND::NONE;
 
     if(properties.contains("kind")){
-        nodeKind = (Node::NODE_KIND) properties["kind"].toInt();
+        nodeKind = (NODE_KIND) properties["kind"].toInt();
     }
 }
 
-NodeViewItem::NodeViewItem(ViewController *controller, Node::NODE_KIND kind, QString label):ViewItem(controller)
+NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller)
 {
     nodeKind = kind;
     changeData("kind", EntityFactory::getNodeKindString(kind));
     changeData("label", label);
+}
 
+NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, ENTITY_KIND::EK_NODE)
+{
+    nodeKind = kind;
 }
 
 
-Node::NODE_KIND NodeViewItem::getNodeKind() const
+NODE_KIND NodeViewItem::getNodeKind() const
 {
     return nodeKind;
 }
@@ -37,30 +41,28 @@ NodeViewItem *NodeViewItem::getParentNodeViewItem()
 
 VIEW_ASPECT NodeViewItem::getViewAspect()
 {
-    VIEW_ASPECT aspect = VA_NONE;
-    if(hasProperty("viewAspect")){
-        int val = getProperty("viewAspect").toInt();
-        aspect = (VIEW_ASPECT) val;
+    //Get Once
+    if(aspect == VA_NONE){
+        aspect = getController()->getNodeViewAspect(getID());
     }
     return aspect;
 }
 
 int NodeViewItem::getParentID()
 {
-    int ID = -1;
-    if(hasProperty("parentID")){
-        ID = getProperty("parentID").toInt();
+    if(parent_id == -1){
+        parent_id = getController()->getNodeParentID(getID());
     }
-    return ID;
+    return parent_id;
 }
 
-bool NodeViewItem::isNodeOfType(Node::NODE_TYPE type) const
+bool NodeViewItem::isNodeOfType(NODE_TYPE type)
 {
-    if(hasProperty("nodeTypes")){
-        int types = getProperty("nodeTypes").toInt();
-        return types & type;
+    bool is_type = false;
+    if(getController()){
+        is_type = getController()->isNodeOfType(getID(), type);
     }
-    return false;
+    return is_type;
 }
 
 void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
@@ -98,33 +100,14 @@ bool NodeViewItem::gotEdge(Edge::EDGE_KIND edgeKind) const
     return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : !edges.values(edgeKind).isEmpty();
 }
 
-QString NodeViewItem::getTreeIndex()
-{
-    QString index;
-    if(hasProperty("treeIndex")){
-        index = getProperty("treeIndex").toString();
-    }
-    return index;
-}
-
-
 
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
-	if(!item){
-		return false;
-	}
-    QString thisTree = getTreeIndex();
-    QString thatTree = item->getTreeIndex();
+    bool is_ancestor = false;
 
-    if(this == item){
-        return true;
+    if(getController() && item){
+        is_ancestor = getController()->isNodeAncestor(getID(), item->getID());
     }
-
-    if(thisTree.size() >= thatTree.size()){
-        return false;
-    }
-
-    return thatTree.startsWith(thisTree);
+    return is_ancestor;
 }
 

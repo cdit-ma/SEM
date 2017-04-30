@@ -1,8 +1,8 @@
 #include "dds_topicdataqospolicy.h"
 
-DDS_TopicDataQosPolicy::DDS_TopicDataQosPolicy():Node(NK_QOS_DDS_POLICY_TOPICDATA)
+DDS_TopicDataQosPolicy::DDS_TopicDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_TOPICDATA)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
     setMoveEnabled(false);
     setExpandEnabled(false);
     updateDefaultData("label", QVariant::String, true, "topic_data");

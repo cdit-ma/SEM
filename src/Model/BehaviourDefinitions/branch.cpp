@@ -4,14 +4,14 @@
 Branch::Branch(NODE_KIND kind):BehaviourNode(kind){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
-    setNodeType(NT_BRANCH);
+    setNodeType(NODE_TYPE::BRANCH);
 }
 
 
 Termination *Branch::getTermination()
 {
     foreach(BehaviourNode* right, getRecieverNodes()){
-        if(right->getNodeKind() == NK_TERMINATION){
+        if(right->getNodeKind() == NODE_KIND::TERMINATION){
             return (Termination*) right;
         }
     }
@@ -20,7 +20,7 @@ Termination *Branch::getTermination()
 
 bool Branch::canAdoptChild(Node *child)
 {
-    if(!child->isNodeOfType(NT_CONDITION)){
+    if(!child->isNodeOfType(NODE_TYPE::CONDITION)){
         return false;
     }
     return BehaviourNode::canAdoptChild(child);
@@ -34,7 +34,7 @@ bool Branch::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_WORKFLOW:{
-        if(dst->getNodeKind() != NK_TERMINATION){
+        if(dst->getNodeKind() != NODE_KIND::TERMINATION){
             return false;
         }
         if(getTermination()){

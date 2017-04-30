@@ -1,8 +1,8 @@
 #include "componentinstance.h"
 
-ComponentInstance::ComponentInstance():Node(Node::NK_COMPONENT_INSTANCE)
+ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
 {
-    setNodeType(NT_INSTANCE);
+    setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setAcceptsEdgeKind(Edge::EC_QOS);
@@ -15,9 +15,9 @@ bool ComponentInstance::canAdoptChild(Node *child)
 {
 
     switch(child->getNodeKind()){
-    case NK_ATTRIBUTE_INSTANCE:
-    case NK_INEVENTPORT_INSTANCE:
-    case NK_OUTEVENTPORT_INSTANCE:
+    case NODE_KIND::ATTRIBUTE_INSTANCE:
+    case NODE_KIND::INEVENTPORT_INSTANCE:
+    case NODE_KIND::OUTEVENTPORT_INSTANCE:
         break;
     default:
         return false;
@@ -33,7 +33,7 @@ bool ComponentInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
-        if(dst->getNodeKind() != NK_COMPONENT){
+        if(dst->getNodeKind() != NODE_KIND::COMPONENT){
             return false;
         }
         break;

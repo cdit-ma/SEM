@@ -1,78 +1,51 @@
 #ifndef KEY_H
 #define KEY_H
 #include "graphml.h"
+
+#include <QMultiMap>
 #include <QVariant>
-#include "entity.h"
-class Entity;
+
+//Forward declare
+class Data;
+enum class NODE_KIND;
+
 class Key : public GraphML
 {
-    
+    friend class EntityFactory;
     Q_OBJECT
 public:
+    //Used for conversion to and from for export
     static QString getGraphMLTypeName(const QVariant::Type type);
-
     static QVariant::Type getTypeFromGraphML(const QString typeString);
-
-    Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind);
+protected:
+    Key(QString keyName, QVariant::Type type);
     ~Key();
-
     void setProtected(bool protect);
-    bool isProtected();
-
-    void setIsVisualData(bool visual);
-    bool isVisualData();
+    void addValidValue(QVariant value, NODE_KIND kind);
+    void addValidValues(QList<QVariant> values, NODE_KIND kind);
+public:
+    bool isProtected() const;
     QString getName() const;
-
-    bool setDefaultValue(const QVariant value);
-    QVariant getDefaultValue() const;
-
-    Entity::ENTITY_KIND getEntityKind() const;
     QVariant::Type getType() const;
+    bool gotValidValues(NODE_KIND kind);
+    QList<QVariant> getValidValues(NODE_KIND kind);
 
-
-
-    void addValidValues(QStringList validValues, QStringList entityKinds = QStringList("ALL"));
-    void addValidRange(QPair<qreal, qreal> range, QStringList entityKinds = QStringList("ALL"));
-    void addInvalidCharacters(QStringList invalidCharacters, QStringList entityKinds = QStringList("ALL"));
-
-    void setAllowAllValues(QString nodeKind);
-
-    QPair<qreal, qreal> getValidRange(QString entityKinds = "ALL");
-    bool gotValidRange(QString entityKinds = "ALL");
-
-    QStringList getValidValues(QString entityKinds = "ALL");
-    bool gotValidValues(QString entityKinds = "ALL");
-
-    QStringList getInvalidCharacters(QString entityKinds = "ALL");
-    bool gotInvalidCharacters(QString entityKinds = "ALL");
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);
-
     QString toGraphML(int indentDepth);
     QString toString();
-    bool equals(const Key* key) const;
 protected:
-
     bool forceDataValue(Data* data, QVariant value);
 signals:
+    void validation_failed(int ID, QString error);
     void validateError(QString, QString, int);
 private:
-    void addValidValue(QString nodeKind, QString value);
+    
+    QString key_name_;
+    QVariant::Type key_type_;
+    bool is_protected_ = false;
 
-    void addInvalidCharacters(QString nodeKind, QString invalidCharacter);
-    QString _keyName;
-    QVariant::Type _keyType;
-    Entity::ENTITY_KIND _entityKind;
-    bool _isVisual;
-
-    bool _isProtected;
-    QVariant defaultValue;
-
-    QMap<QString, bool> ignoreValues;
-    QMap<QString, QPair<qreal, qreal> > validRanges;
-    QMap<QString, QStringList> validValues;
-    QMap<QString, QStringList> invalidCharacters;
-
+    QMultiMap<NODE_KIND, QVariant> valid_values_;
 };
 
 #endif // KEY_H

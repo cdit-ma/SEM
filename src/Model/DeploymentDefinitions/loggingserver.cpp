@@ -1,8 +1,8 @@
 #include "loggingserver.h"
 
-LoggingServer::LoggingServer():Node(NK_LOGGINGSERVER)
+LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
 {
-    setNodeType(NT_LOGGING);
+    setNodeType(NODE_TYPE::LOGGING);
     setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
 

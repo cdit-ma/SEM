@@ -1,9 +1,9 @@
 #include "hardwarenode.h"
 
-HardwareNode::HardwareNode():Node(NK_HARDWARE_NODE)
+HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
-    setNodeType(NT_HARDWARE);
+    setNodeType(NODE_TYPE::HARDWARE);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

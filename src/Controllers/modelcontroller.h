@@ -239,9 +239,9 @@ public:
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
 
-    QList<Node::NODE_KIND> getAdoptableNodeKinds2(int ID);
+    QList<NODE_KIND> getAdoptableNodeKinds2(int ID);
     QStringList getAdoptableNodeKinds(int ID);
-    QStringList getValidKeyValues(int ID, QString keyName);
+    QList<QVariant> getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_KIND edgeClass);
 
@@ -250,6 +250,16 @@ public:
     QList<int> getWorkerFunctions();
 
 
+    //NEW FUNCTIONS FRESHLY IMPLEMENTED WITH QREADLOCKER
+    bool isNodeOfType(int ID, NODE_TYPE type);
+    int getNodeParentID(int ID);
+    VIEW_ASPECT getNodeViewAspect(int ID);
+    int getSharedParent(int ID, int ID2);
+    bool isNodeAncestor(int ID, int ID2);
+
+    //UNSURE IF NEEDED
+    QStringList getEntityKeys(int ID);
+    QVariant getEntityDataValue(int ID, QString key_name);
 private:
     void loadWorkerDefinitions();
     //Gets the Model Node.
@@ -304,9 +314,14 @@ private:
 
 
 signals:
+    //New SIGNAL
+    void NodeConstructed(int parent_id, int id, NODE_KIND kind);
+    void EdgeConstructed(int id, Edge::EDGE_KIND kind, int src_id, int dst_id);
+    
     void projectModified(bool modified);
     void initiateTeardown();
     void controller_dead();
+
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
 
@@ -458,7 +473,6 @@ private:
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     Key* constructKey(QString name, QVariant::Type type);
-    bool destructKey(QString name);
     Key* getKeyFromName(QString name);
     Key* getKeyFromID(int ID);
 
@@ -476,7 +490,7 @@ private:
     void storeGraphMLInHash(Entity*item);
     Entity*getGraphMLFromHash(int ID);
     void removeGraphMLFromHash(int ID);
-    Node* construct_node(Node* parent_node, Node::NODE_KIND node_kind);
+    Node* construct_node(Node* parent_node, NODE_KIND node_kind);
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
@@ -557,7 +571,7 @@ private:
     QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
 
-    Node* constructTypedNode(Node::NODE_KIND nodeKind, QString nodeType="", QString nodeLabel="");
+    Node* constructTypedNode(NODE_KIND nodeKind, QString nodeType="", QString nodeLabel="");
 
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);
@@ -630,8 +644,8 @@ private:
 
     QString getProcessName(Process* process);
 
-    QList<Node::NODE_KIND> snippetableParentKinds;
-    QList<Node::NODE_KIND> nonSnippetableKinds;
+    QList<NODE_KIND> snippetableParentKinds;
+    QList<NODE_KIND> nonSnippetableKinds;
 
     //A list of View Aspects present in the model.
     QStringList viewAspects;
@@ -700,7 +714,7 @@ private:
     bool projectDirty;
 
     QThread* controllerThread;
-    QReadWriteLock lock;
+    QReadWriteLock lock_;
 
     EntityFactory* entity_factory = 0;
 

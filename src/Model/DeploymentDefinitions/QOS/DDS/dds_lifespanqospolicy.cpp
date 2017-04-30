@@ -1,8 +1,8 @@
 #include "dds_lifespanqospolicy.h"
 
-DDS_LifespanQosPolicy::DDS_LifespanQosPolicy():Node(NK_QOS_DDS_POLICY_LIFESPAN)
+DDS_LifespanQosPolicy::DDS_LifespanQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LIFESPAN)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

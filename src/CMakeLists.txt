@@ -183,7 +183,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/forcondition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/setter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variableparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/root.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingprofile.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
@@ -368,7 +367,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/forcondition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/setter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variableparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/root.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingprofile.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h

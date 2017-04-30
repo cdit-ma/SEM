@@ -1,13 +1,13 @@
 #include "vector.h"
 #include <QDebug>
 #include "../data.h"
-Vector::Vector(): DataNode(Node::NK_VECTOR)
+Vector::Vector(): DataNode(NODE_KIND::VECTOR)
 {
     //Can be both an input/output for data.
     setDataProducer(true);
     setDataReciever(true);
 
-    setNodeType(NT_DEFINITION);
+    setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
 
@@ -23,8 +23,8 @@ QString Vector::getVectorType()
     if(child){
         //Check Type
         switch(child->getNodeKind()){
-        case NK_MEMBER:
-        case NK_AGGREGATE_INSTANCE:{
+        case NODE_KIND::MEMBER:
+        case NODE_KIND::AGGREGATE_INSTANCE:{
             childType = child->getDataValue("type").toString();
             break;
         }
@@ -42,8 +42,8 @@ bool Vector::canAdoptChild(Node *child)
 {
     //Can Only adopt 1x Member/AggregateInstance
     switch(child->getNodeKind()){
-    case NK_MEMBER:
-    case NK_AGGREGATE_INSTANCE:
+    case NODE_KIND::MEMBER:
+    case NODE_KIND::AGGREGATE_INSTANCE:
         if(hasChildren()){
             return false;
         }
@@ -61,7 +61,7 @@ bool Vector::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_AGGREGATE:{
-        if(dst->getNodeKind() != NK_AGGREGATE){
+        if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
         }
         if(hasChildren()){

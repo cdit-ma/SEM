@@ -1,8 +1,8 @@
 #include "dds_destinationorderqospolicy.h"
 
-DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy():Node(NK_QOS_DDS_POLICY_DESTINATIONORDER)
+DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

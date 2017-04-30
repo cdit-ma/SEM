@@ -1,7 +1,8 @@
 #include "outeventportimpl.h"
+#include "../nodekinds.h"
 #include <QDebug>
 
-OutEventPortImpl::OutEventPortImpl():EventPortImpl(NK_OUTEVENTPORT_IMPL){
+OutEventPortImpl::OutEventPortImpl():EventPortImpl(NODE_KIND::OUTEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
     
@@ -21,7 +22,7 @@ bool OutEventPortImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
-        if(dst->getNodeKind() != NK_OUTEVENTPORT){
+        if(dst->getNodeKind() != NODE_KIND::OUTEVENTPORT){
             return false;
         }
         break;

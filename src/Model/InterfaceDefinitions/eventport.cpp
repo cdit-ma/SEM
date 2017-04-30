@@ -5,8 +5,8 @@
 EventPort::EventPort(NODE_KIND kind):Node(kind)
 {
     aggregate = 0;
-    setNodeType(NT_EVENTPORT);
-    setNodeType(NT_DEFINITION);
+    setNodeType(NODE_TYPE::EVENTPORT);
+    setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 
@@ -16,12 +16,12 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
 
 bool EventPort::isInPort() const
 {
-    return getNodeKind() == NK_INEVENTPORT;
+    return getNodeKind() == NODE_KIND::INEVENTPORT;
 }
 
 bool EventPort::isOutPort() const
 {
-    return getNodeKind() == NK_OUTEVENTPORT;
+    return getNodeKind() == NODE_KIND::OUTEVENTPORT;
 }
 
 void EventPort::setAggregate(Aggregate *aggregate)
@@ -37,7 +37,7 @@ Aggregate *EventPort::getAggregate()
     if(isInstance()){
         Node* definition = getDefinition(true);
 
-        if(definition && definition->isNodeOfType(NT_EVENTPORT)){
+        if(definition && definition->isNodeOfType(NODE_TYPE::EVENTPORT)){
             return ((EventPort*)definition)->getAggregate();
         }
     }
@@ -59,7 +59,7 @@ bool EventPort::canAdoptChild(Node *child)
     }
 
     //Can only adopt AggregateInstances
-    if(child->getNodeKind() != NK_AGGREGATE_INSTANCE){
+    if(child->getNodeKind() != NODE_KIND::AGGREGATE_INSTANCE){
         return false;
     }
 
@@ -73,7 +73,7 @@ bool EventPort::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_AGGREGATE:{
-        if(isNodeOfType(NT_INSTANCE)){
+        if(isNodeOfType(NODE_TYPE::INSTANCE)){
             //Don't allow Instances to have aggregate.
             return false;
         }
@@ -83,7 +83,7 @@ bool EventPort::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
-        if(dst->getNodeKind() != NK_AGGREGATE){
+        if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
         }
 

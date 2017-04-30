@@ -8,7 +8,7 @@ class EventPort : public Node
 {
     Q_OBJECT
 public:
-    EventPort(Node::NODE_KIND kind);
+    EventPort(NODE_KIND kind);
     bool isInPort() const;
     bool isOutPort() const;
 

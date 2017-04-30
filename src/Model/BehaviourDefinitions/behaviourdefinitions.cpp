@@ -1,8 +1,9 @@
 #include "behaviourdefinitions.h"
+#include "../nodekinds.h"
 
-BehaviourDefinitions::BehaviourDefinitions():Node(Node::NK_BEHAVIOUR_DEFINITIONS)
+BehaviourDefinitions::BehaviourDefinitions():Node(NODE_KIND::BEHAVIOUR_DEFINITIONS)
 {
-    setNodeType(NT_ASPECT);
+    setNodeType(NODE_TYPE::ASPECT);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -17,7 +18,7 @@ VIEW_ASPECT BehaviourDefinitions::getViewAspect() const
 bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case Node::NK_COMPONENT_IMPL:{
+    case NODE_KIND::COMPONENT_IMPL:{
         break;
     }
     default:

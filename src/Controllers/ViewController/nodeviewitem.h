@@ -3,7 +3,7 @@
 #include <QObject>
 
 #include "viewitem.h"
-#include "../../Model/node.h"
+#include "../../Model/nodekinds.h"
 
 class EdgeViewItem;
 
@@ -12,23 +12,22 @@ class NodeViewItem: public ViewItem
     Q_OBJECT
 public:
     NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
-    NodeViewItem(ViewController* controller, Node::NODE_KIND kind, QString label);
+    NodeViewItem(ViewController* controller, NODE_KIND kind, QString label);
+    
+    NodeViewItem(ViewController* controller, int ID, NODE_KIND kind);
 
 
-    Node::NODE_KIND getNodeKind() const;
+    NODE_KIND getNodeKind() const;
     NodeViewItem* getParentNodeViewItem();
     VIEW_ASPECT getViewAspect();
     int getParentID();
-    bool isNodeOfType(Node::NODE_TYPE type) const;
+    bool isNodeOfType(NODE_TYPE type);
 
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
     QList<EdgeViewItem*> getEdges(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
     bool gotEdge(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
-
-    QString getTreeIndex();
-
-
+    
     bool isAncestorOf(NodeViewItem* item);
 signals:
     void edgeAdded(Edge::EDGE_KIND edgeKind);
@@ -36,6 +35,8 @@ signals:
 
 private:
     QMultiMap<Edge::EDGE_KIND, EdgeViewItem*> edges;
-    Node::NODE_KIND nodeKind;
+    NODE_KIND nodeKind;
+    VIEW_ASPECT aspect = VA_NONE;
+    int parent_id = -1;
 };
 #endif // VIEWITEM_H

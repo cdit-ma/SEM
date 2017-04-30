@@ -1,6 +1,6 @@
 #include "ineventport.h"
 
-InEventPort::InEventPort():EventPort(NK_INEVENTPORT)
+InEventPort::InEventPort():EventPort(NODE_KIND::INEVENTPORT)
 {
     
 }

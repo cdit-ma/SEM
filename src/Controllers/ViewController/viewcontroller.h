@@ -41,7 +41,7 @@ public:
     NodeViewDockWidget* constructNodeViewDockWidget(QString label="");
 
     QStringList getAdoptableNodeKinds();
-    QList<Node::NODE_KIND> getAdoptableNodeKinds2();
+    QList<NODE_KIND> getAdoptableNodeKinds2();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
 
@@ -50,7 +50,7 @@ public:
     QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
     QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
 
-    QStringList getValidValuesForKey(int ID, QString keyName);
+    QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
@@ -64,6 +64,14 @@ public:
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
     void setController(ModelController* c);
+
+
+    bool isNodeAncestor(int ID, int ID2);
+    VIEW_ASPECT getNodeViewAspect(int ID);
+    QStringList getEntityKeys(int ID);
+    QVariant getEntityDataValue(int ID, QString key_name);
+    bool isNodeOfType(int ID, NODE_TYPE type);
+    int getNodeParentID(int ID);
 signals:
     //TO OTHER VIEWS SIGNALS
 
@@ -179,6 +187,9 @@ public slots:
 
 
     void actionFinished(bool success, QString gg);
+
+    void model_NodeConstructed(int parent_id, int id, NODE_KIND kind);
+
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
@@ -255,6 +266,7 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+
     void setupEntityKindItems();
     void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
@@ -290,7 +302,7 @@ private:
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
 
-    QList<ViewItem*> getItemsOfKind(Node::NODE_KIND kind);
+    QList<ViewItem*> getItemsOfKind(NODE_KIND kind);
     QList<ViewItem*> getItemsOfKind(Edge::EDGE_KIND kind);
     bool _modelReady;
 
@@ -308,7 +320,7 @@ private:
     ViewItem* getViewItem(int ID);
 
     QHash<QString, int> treeLookup;
-    QMultiMap<Node::NODE_KIND, int> nodeKindLookups;
+    QMultiMap<NODE_KIND, int> nodeKindLookups;
     QMultiMap<Edge::EDGE_KIND, int> edgeKindLookups;
 
     QHash<int, ViewItem*> viewItems;

@@ -1,15 +1,15 @@
 #include "parameter.h"
-#include "../InterfaceDefinitions/datanode.h"
-#include <QDebug>
-Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
+#include "../nodekinds.h"
+
+Parameter::Parameter(NODE_KIND kind):DataNode(kind)
 {
-    setNodeType(NT_PARAMETER);
+    setNodeType(NODE_TYPE::PARAMETER);
     setAcceptsEdgeKind(Edge::EC_DATA);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
 
-    if(kind != NK_VARIADIC_PARAMETER){
+    if(kind != NODE_KIND::VARIADIC_PARAMETER){
         updateDefaultData("icon", QVariant::String, true);
         updateDefaultData("icon_prefix", QVariant::String, true);
         updateDefaultData("description", QVariant::String, true);
@@ -18,22 +18,22 @@ Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
 
 bool Parameter::isInputParameter() const
 {
-    return getNodeKind() == NK_INPUT_PARAMETER;
+    return getNodeKind() == NODE_KIND::INPUT_PARAMETER;
 }
 
 bool Parameter::isVariadicParameter() const
 {
-    return getNodeKind() == NK_VARIADIC_PARAMETER;
+    return getNodeKind() == NODE_KIND::VARIADIC_PARAMETER;
 }
 
 bool Parameter::isReturnParameter() const
 {
-    return getNodeKind() == NK_RETURN_PARAMETER;
+    return getNodeKind() == NODE_KIND::RETURN_PARAMETER;
 }
 
 bool Parameter::isVariableParameter() const
 {
-    return getNodeKind() == NK_VARIABLE_PARAMETER;
+    return getNodeKind() == NODE_KIND::VARIABLE_PARAMETER;
 }
 
 bool Parameter::canAdoptChild(Node*)
@@ -49,7 +49,7 @@ bool Parameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DATA:{
-        if(dst->isNodeOfType(NT_PARAMETER)){
+        if(dst->isNodeOfType(NODE_TYPE::PARAMETER)){
             Parameter* parameter = (Parameter*) dst;
             //Allow connection to things in the same component
             if(getDepthFromCommonAncestor(dst) == 1){

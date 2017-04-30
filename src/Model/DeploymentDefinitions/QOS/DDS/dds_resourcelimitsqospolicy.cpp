@@ -1,7 +1,7 @@
 #include "dds_resourcelimitsqospolicy.h"
-DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy():Node(NK_QOS_DDS_POLICY_RESOURCELIMITS)
+DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_RESOURCELIMITS)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

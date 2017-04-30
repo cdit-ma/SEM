@@ -1,8 +1,8 @@
 #include "assemblydefinitions.h"
 
-AssemblyDefinitions::AssemblyDefinitions():Node(Node::NK_ASSEMBLY_DEFINITIONS)
+AssemblyDefinitions::AssemblyDefinitions():Node(NODE_KIND::ASSEMBLY_DEFINITIONS)
 {
-    setNodeType(NT_ASPECT);
+    setNodeType(NODE_TYPE::ASPECT);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -17,10 +17,10 @@ VIEW_ASPECT AssemblyDefinitions::getViewAspect() const
 bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
     switch(node->getNodeKind()){
-    case NK_COMPONENT_ASSEMBLY:
+    case NODE_KIND::COMPONENT_ASSEMBLY:
 
-    case NK_MANAGEMENT_COMPONENT:
-        foreach(Node* child, getChildrenOfKind(NK_MANAGEMENT_COMPONENT, 0)){
+    case NODE_KIND::MANAGEMENT_COMPONENT:
+        foreach(Node* child, getChildrenOfKind(NODE_KIND::MANAGEMENT_COMPONENT, 0)){
             if(node->compareData(child, "type")){
                 //AssemblyDefinition can only adopt ManagementComponents with different types.
                 return false;
@@ -29,7 +29,7 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
         break;
     default:
         //Check for QOS profiles.
-        if(!node->isNodeOfType(NT_QOS_PROFILE)){
+        if(!node->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
             return false;
         }
     }

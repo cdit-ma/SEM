@@ -167,9 +167,6 @@ QList<Data *> Data::getChildData()
 
 bool Data::isVisualData()
 {
-    if(_key){
-        return _key->isVisualData();
-    }
     return false;
 }
 

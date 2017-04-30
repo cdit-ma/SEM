@@ -1,6 +1,6 @@
 #include "variableparameter.h"
 
-VariableParameter:: VariableParameter(): Parameter(NK_VARIABLE_PARAMETER)
+VariableParameter:: VariableParameter(): Parameter(NODE_KIND::VARIABLE_PARAMETER)
 {
     setDataProducer(true);
     setDataReciever(true);

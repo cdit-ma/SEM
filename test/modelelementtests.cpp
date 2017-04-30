@@ -28,11 +28,11 @@ void ModelElementTests::modelCreationTest(){
 
     QList<Node*> children = model->getChildren();
 
-    QList<Node::NODE_KIND> kinds({Node::NK_INTERFACE_DEFINITIONS,
-                                 Node::NK_BEHAVIOUR_DEFINITIONS,
-                                 Node::NK_DEPLOYMENT_DEFINITIONS,
-                                 Node::NK_ASSEMBLY_DEFINITIONS,
-                                 Node::NK_HARDWARE_DEFINITIONS});
+    QList<NODE_KIND> kinds({NODE_KIND::INTERFACE_DEFINITIONS,
+                                 NODE_KIND::BEHAVIOUR_DEFINITIONS,
+                                 NODE_KIND::DEPLOYMENT_DEFINITIONS,
+                                 NODE_KIND::ASSEMBLY_DEFINITIONS,
+                                 NODE_KIND::HARDWARE_DEFINITIONS});
 
     //Check that only required nodes were created
     //Use qverify to bail out of testing early
@@ -55,7 +55,7 @@ void ModelElementTests::componentImplTest(){
     BehaviourDefinitions* bd = 0;
 
     foreach(Node* child , model->getChildren()){
-        if(child->getNodeKind() == Node::NK_BEHAVIOUR_DEFINITIONS){
+        if(child->getNodeKind() == NODE_KIND::BEHAVIOUR_DEFINITIONS){
             //bd = child;
             bd = (BehaviourDefinitions*)child;
         }

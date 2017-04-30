@@ -1,8 +1,8 @@
 #include "dds_latencybudgetqospolicy.h"
 
-DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NK_QOS_DDS_POLICY_LATENCYBUDGET)
+DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
     setMoveEnabled(false);
     setExpandEnabled(false);
     updateDefaultData("label", QVariant::String, true, "latency_budget");

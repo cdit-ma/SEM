@@ -15,7 +15,7 @@ public:
 
     int getID();
     QString getKind();
-    Node::NODE_KIND getNodeKind();
+    NODE_KIND getNodeKind();
     QString getLabel();
 
     NodeViewItem* getNodeViewItem();

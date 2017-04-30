@@ -1,6 +1,6 @@
 #include "header.h"
 
-Header::Header():BehaviourNode(NK_HEADER){
+Header::Header():BehaviourNode(NODE_KIND::HEADER){
     setWorkflowReciever(false);
     setWorkflowProducer(false);
 

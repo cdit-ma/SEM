@@ -1,8 +1,8 @@
 #include "dds_historyqospolicy.h"
 
-DDS_HistoryQosPolicy::DDS_HistoryQosPolicy():Node(NK_QOS_DDS_POLICY_HISTORY)
+DDS_HistoryQosPolicy::DDS_HistoryQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_HISTORY)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

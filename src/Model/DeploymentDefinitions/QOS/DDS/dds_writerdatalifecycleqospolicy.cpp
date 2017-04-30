@@ -1,8 +1,8 @@
 #include "dds_writerdatalifecycleqospolicy.h"
 
-DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy():Node(NK_QOS_DDS_POLICY_WRITERDATALIFECYCLE)
+DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);

@@ -1,7 +1,7 @@
 #include "dds_reliabilityqospolicy.h"
-DDS_ReliabilityQosPolicy::DDS_ReliabilityQosPolicy():Node(NK_QOS_DDS_POLICY_RELIABILITY)
+DDS_ReliabilityQosPolicy::DDS_ReliabilityQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_RELIABILITY)
 {
-    setNodeType(NT_QOS); setNodeType(NT_DDS);
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
 
     setMoveEnabled(false);

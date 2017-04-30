@@ -1,6 +1,6 @@
 #include "whileloop.h"
 
-WhileLoop::WhileLoop():Branch(NK_WHILELOOP){
+WhileLoop::WhileLoop():Branch(NODE_KIND::WHILELOOP){
 }
 
 bool WhileLoop::canAdoptChild(Node *node)

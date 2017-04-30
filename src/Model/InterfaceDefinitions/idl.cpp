@@ -1,6 +1,6 @@
 #include "idl.h"
 
-IDL::IDL(): Node(NK_IDL)
+IDL::IDL(): Node(NODE_KIND::IDL)
 {
     
 }
@@ -8,10 +8,10 @@ IDL::IDL(): Node(NK_IDL)
 bool IDL::canAdoptChild(Node *item)
 {
     switch(item->getNodeKind()){
-    case NK_AGGREGATE:
-    case NK_BLACKBOX:
-    case NK_COMPONENT:
-    case NK_VECTOR:
+    case NODE_KIND::AGGREGATE:
+    case NODE_KIND::BLACKBOX:
+    case NODE_KIND::COMPONENT:
+    case NODE_KIND::VECTOR:
         break;
     default:
         return false;
@@ -20,15 +20,15 @@ bool IDL::canAdoptChild(Node *item)
     //Can only adopt Aggregate and Vector's in IDL's containing Aggregates/Vectors. Otherwise all children need to match kinds.
     foreach(Node* child, getChildren(0)){
         switch(child->getNodeKind()){
-        case NK_VECTOR:
-        case NK_AGGREGATE:{
-            if(!(item->getNodeKind() == NK_AGGREGATE || item->getNodeKind() == NK_VECTOR)){
+        case NODE_KIND::VECTOR:
+        case NODE_KIND::AGGREGATE:{
+            if(!(item->getNodeKind() == NODE_KIND::AGGREGATE || item->getNodeKind() == NODE_KIND::VECTOR)){
                 return false;
             }
             break;
         }
-        case NK_COMPONENT:
-        case NK_BLACKBOX:
+        case NODE_KIND::COMPONENT:
+        case NODE_KIND::BLACKBOX:
             if(child->getNodeKind() != item->getNodeKind()){
                 return false;
             }

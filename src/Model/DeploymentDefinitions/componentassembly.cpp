@@ -1,6 +1,6 @@
 #include "componentassembly.h"
 
-ComponentAssembly::ComponentAssembly():Node(NK_COMPONENT_ASSEMBLY)
+ComponentAssembly::ComponentAssembly():Node(NODE_KIND::COMPONENT_ASSEMBLY)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setAcceptsEdgeKind(Edge::EC_QOS);
@@ -12,11 +12,11 @@ bool ComponentAssembly::canAdoptChild(Node *child)
 {
     //Can Only adopt EventPort Instances
     switch(child->getNodeKind()){
-    case NK_BLACKBOX_INSTANCE:
-    case NK_COMPONENT_ASSEMBLY:
-    case NK_COMPONENT_INSTANCE:
-    case NK_INEVENTPORT_DELEGATE:
-    case NK_OUTEVENTPORT_DELEGATE:
+    case NODE_KIND::BLACKBOX_INSTANCE:
+    case NODE_KIND::COMPONENT_ASSEMBLY:
+    case NODE_KIND::COMPONENT_INSTANCE:
+    case NODE_KIND::INEVENTPORT_DELEGATE:
+    case NODE_KIND::OUTEVENTPORT_DELEGATE:
         break;
     default:
         return false;

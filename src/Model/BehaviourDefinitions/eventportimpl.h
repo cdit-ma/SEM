@@ -6,7 +6,7 @@ class EventPortImpl : public BehaviourNode
 {
     Q_OBJECT
 public:
-    EventPortImpl(Node::NODE_KIND kind);
+    EventPortImpl(NODE_KIND kind);
 
     bool isInPort();
     bool isOutPort();

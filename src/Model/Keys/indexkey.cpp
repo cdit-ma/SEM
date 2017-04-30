@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 
-IndexKey::IndexKey(): Key("index", QVariant::Int, Entity::EK_ALL){
+IndexKey::IndexKey(): Key("index", QVariant::Int){
 
 }   
 

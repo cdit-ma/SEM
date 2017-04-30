@@ -1,7 +1,7 @@
 #include "termination.h"
 #include "branch.h"
 #include <QDebug>
-Termination::Termination():BehaviourNode(NK_TERMINATION){
+Termination::Termination():BehaviourNode(NODE_KIND::TERMINATION){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
 }
@@ -11,7 +11,7 @@ Branch *Termination::getBranch()
 {
     foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
         BehaviourNode* source = (BehaviourNode*) edge->getSource();
-        if(source->isNodeOfType(NT_BRANCH)){
+        if(source->isNodeOfType(NODE_TYPE::BRANCH)){
             Branch* branch = (Branch*) source;
             if(branch->getTermination() == this){
                 return branch;

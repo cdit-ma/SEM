@@ -35,7 +35,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     addRequiredData("y");
 
 
-    if(viewItem->getNodeKind() == Node::NK_MEMBER){
+    if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
         addRequiredData("key");
     }
     reloadRequiredData();

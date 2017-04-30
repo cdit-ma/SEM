@@ -1,6 +1,6 @@
 #include "managementcomponent.h"
 
-ManagementComponent::ManagementComponent():Node(NK_MANAGEMENT_COMPONENT)
+ManagementComponent::ManagementComponent():Node(NODE_KIND::MANAGEMENT_COMPONENT)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
 }

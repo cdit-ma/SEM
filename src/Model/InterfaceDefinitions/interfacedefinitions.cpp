@@ -1,8 +1,8 @@
 #include "interfacedefinitions.h"
 
-InterfaceDefinitions::InterfaceDefinitions(): Node(NK_INTERFACE_DEFINITIONS)
+InterfaceDefinitions::InterfaceDefinitions(): Node(NODE_KIND::INTERFACE_DEFINITIONS)
 {
-    setNodeType(NT_ASPECT);
+    setNodeType(NODE_TYPE::ASPECT);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -17,12 +17,12 @@ VIEW_ASPECT InterfaceDefinitions::getViewAspect() const
 bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NK_IDL:
+    case NODE_KIND::IDL:
         break;
-    case NK_AGGREGATE:
+    case NODE_KIND::AGGREGATE:
         break;
-    case NK_COMPONENT:
-    case NK_COMPONENT_IMPL:
+    case NODE_KIND::COMPONENT:
+    case NODE_KIND::COMPONENT_IMPL:
         break;
     default:
         return false;
