@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_TransportPriorityQosPolicy: public Node 
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_TransportPriorityQosPolicy(EntityFactory* factory);

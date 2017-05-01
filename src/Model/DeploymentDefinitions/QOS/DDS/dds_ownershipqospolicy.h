@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_OwnershipQosPolicy: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_OwnershipQosPolicy(EntityFactory* factory);

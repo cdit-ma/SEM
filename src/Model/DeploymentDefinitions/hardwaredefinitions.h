@@ -6,6 +6,7 @@
 class EntityFactory;
 class HardwareDefinitions: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	HardwareDefinitions(EntityFactory* factory);

@@ -5,6 +5,7 @@
 class EntityFactory;
 class LoggingProfile : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	LoggingProfile(EntityFactory* factory);

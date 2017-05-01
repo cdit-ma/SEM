@@ -5,6 +5,7 @@
 class EntityFactory;
 class ComponentImpl: public Node
 {
+	friend class EntityFactory;
      Q_OBJECT
 protected:
 	ComponentImpl(EntityFactory* factory);

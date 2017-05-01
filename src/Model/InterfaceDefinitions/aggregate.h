@@ -5,6 +5,7 @@
 class EntityFactory;
 class Aggregate : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Aggregate(EntityFactory* factory);

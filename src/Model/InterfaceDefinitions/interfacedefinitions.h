@@ -5,6 +5,7 @@
 class EntityFactory;
 class InterfaceDefinitions: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	InterfaceDefinitions(EntityFactory* factory);

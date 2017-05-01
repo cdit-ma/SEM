@@ -155,11 +155,11 @@ void ToolbarController::viewItem_Destructed(int ID, ViewItem *)
 
 void ToolbarController::selectionChanged(int selected)
 {
+    
     //Get the valid list of things to enable disable
     QList<NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
     QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
-
     //Disable the
     foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
         NodeViewItemAction* nodeAction = (NodeViewItemAction*) action;

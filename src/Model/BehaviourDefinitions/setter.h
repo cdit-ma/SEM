@@ -5,6 +5,7 @@
 class EntityFactory;
 class Setter: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Setter(EntityFactory* factory);

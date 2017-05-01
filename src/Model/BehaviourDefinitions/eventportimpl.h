@@ -5,6 +5,7 @@
 class EntityFactory;
 class EventPortImpl : public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	EventPortImpl(EntityFactory* factory, NODE_KIND kind, QString kind_str);

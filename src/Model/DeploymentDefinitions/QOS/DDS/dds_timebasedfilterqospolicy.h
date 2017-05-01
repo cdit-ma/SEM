@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_TimeBasedFilterQosPolicy: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_TimeBasedFilterQosPolicy(EntityFactory* factory);

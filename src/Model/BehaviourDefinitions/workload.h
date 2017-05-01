@@ -6,6 +6,7 @@
 class EntityFactory;
 class Workload: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Workload(EntityFactory* factory);

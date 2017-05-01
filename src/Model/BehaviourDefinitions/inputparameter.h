@@ -5,6 +5,7 @@
 class EntityFactory;
 class InputParameter : public Parameter
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	InputParameter(EntityFactory* factory);

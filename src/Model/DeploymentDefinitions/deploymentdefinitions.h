@@ -5,6 +5,7 @@
 class EntityFactory;
 class DeploymentDefinitions: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DeploymentDefinitions(EntityFactory* factory);

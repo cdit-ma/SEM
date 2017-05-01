@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_ReaderDataLifecycleQosPolicy: public Node 
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_ReaderDataLifecycleQosPolicy(EntityFactory* factory);

@@ -9,6 +9,7 @@ class Branch;
 class EntityFactory;
 class Condition: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Condition(EntityFactory* factory, NODE_KIND kind, QString kind_str);

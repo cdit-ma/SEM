@@ -5,6 +5,7 @@
 class EntityFactory;
 class EventPortAssembly: public EventPort
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str);

@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_ResourceLimitsQosPolicy: public Node 
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_ResourceLimitsQosPolicy(EntityFactory* factory);

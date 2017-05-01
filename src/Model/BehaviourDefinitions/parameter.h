@@ -5,6 +5,7 @@
 class EntityFactory;
 class Parameter: public DataNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str);

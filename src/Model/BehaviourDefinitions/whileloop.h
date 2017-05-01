@@ -5,6 +5,7 @@
 class EntityFactory;
 class WhileLoop: public Branch
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	WhileLoop(EntityFactory* factory);

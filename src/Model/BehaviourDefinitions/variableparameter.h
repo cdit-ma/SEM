@@ -6,6 +6,7 @@
 class EntityFactory;
 class VariableParameter : public Parameter
 {
+	friend class EntityFactory;
     Q_OBJECT
 
 protected:

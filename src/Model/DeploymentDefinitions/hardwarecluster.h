@@ -4,6 +4,7 @@
 class EntityFactory;
 class HardwareCluster : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	HardwareCluster(EntityFactory* factory);

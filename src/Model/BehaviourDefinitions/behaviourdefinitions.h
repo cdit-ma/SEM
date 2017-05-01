@@ -6,6 +6,7 @@
 class EntityFactory;
 class BehaviourDefinitions: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	BehaviourDefinitions(EntityFactory* factory);

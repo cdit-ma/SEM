@@ -5,6 +5,7 @@
 class EntityFactory;
 class PeriodicEvent: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	PeriodicEvent(EntityFactory* factory);

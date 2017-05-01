@@ -5,6 +5,7 @@
 class EntityFactory;
 class Variable: public DataNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Variable(EntityFactory* factory);

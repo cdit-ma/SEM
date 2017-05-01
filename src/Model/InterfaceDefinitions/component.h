@@ -5,6 +5,7 @@
 class EntityFactory;
 class Component : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Component(EntityFactory* factory);

@@ -5,6 +5,7 @@
 class EntityFactory;
 class AttributeImpl : public DataNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	AttributeImpl(EntityFactory* factory);

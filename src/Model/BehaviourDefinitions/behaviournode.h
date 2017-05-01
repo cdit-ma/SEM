@@ -5,6 +5,7 @@
 class EntityFactory;
 class BehaviourNode : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
     BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);

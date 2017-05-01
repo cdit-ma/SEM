@@ -6,6 +6,7 @@ InterfaceDefinitions::InterfaceDefinitions(EntityFactory* factory) : Node(factor
 	QString kind_string = "InterfaceDefinitions";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InterfaceDefinitions();});
 };
+
 InterfaceDefinitions::InterfaceDefinitions(): Node(NODE_KIND::INTERFACE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);

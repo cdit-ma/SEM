@@ -5,6 +5,7 @@
 class EntityFactory;
 class AggregateInstance : public DataNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	AggregateInstance(EntityFactory* factory);

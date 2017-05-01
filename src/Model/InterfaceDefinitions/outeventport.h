@@ -5,6 +5,7 @@
 class EntityFactory;
 class OutEventPort : public EventPort
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	OutEventPort(EntityFactory* factory);

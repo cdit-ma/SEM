@@ -5,6 +5,7 @@
 class EntityFactory;
 class AssemblyDefinitions: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	AssemblyDefinitions(EntityFactory* factory);

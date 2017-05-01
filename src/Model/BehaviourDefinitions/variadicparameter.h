@@ -5,6 +5,7 @@
 class EntityFactory;
 class VariadicParameter : public Parameter
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	VariadicParameter(EntityFactory* factory);

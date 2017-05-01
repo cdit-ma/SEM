@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_QOSProfile: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_QOSProfile(EntityFactory* factory);

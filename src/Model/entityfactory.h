@@ -28,7 +28,6 @@ private:
         QString kind_str;
         std::function<Node* ()> constructor;
         QHash<QString, DefaultDataStruct*> default_data;
-        Node* node = 0;
     };
 
     struct EdgeLookupStruct{
@@ -77,6 +76,7 @@ protected:
     Key* GetKey(QString key_name, QVariant::Type type);
     QList<Key*> GetKeys();
 private:
+    NodeLookupStruct* getNodeLookup(NODE_KIND kind);
     QHash<NODE_KIND, NodeLookupStruct*> nodeLookup;
     QHash<Edge::EDGE_KIND, EdgeLookupStruct*> edgeLookup;
     
@@ -88,8 +88,8 @@ private:
     QList<Data*> _constructDefaultData(Entity* entity);
 
     Edge* getEdge(Edge::EDGE_KIND kind);
-    Node* getNode(NODE_KIND kind);
 private:
+
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
     void addEdgeKind(Edge::EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
     void setupOnceOffKeys(Node* node);

@@ -5,6 +5,7 @@
 class EntityFactory;
 class InEventPortDelegate: public EventPortAssembly
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	InEventPortDelegate(EntityFactory* factory);

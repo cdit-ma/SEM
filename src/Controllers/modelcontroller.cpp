@@ -1741,6 +1741,7 @@ long long ModelController::getMACAddress()
 QStringList ModelController::getAdoptableNodeKinds(int ID)
 {
     QStringList adoptableNodeKinds;
+    return adoptableNodeKinds;
 
     lock_.lockForRead();
     Node* parent = getNodeFromID(ID);
@@ -4173,13 +4174,16 @@ QList<NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
     if(parent && !parent->isReadOnly()){
 
         foreach(NODE_KIND nodeKind, entity_factory->getNodeKinds()){
+            qCritical() << "Node: " << (int)nodeKind;
+            qCritical() << "Node: " << entity_factory->getNodeKindString(nodeKind);
             auto node = entity_factory->createNode(nodeKind);
+            qCritical() << "Node: " << node;
             if(node){
                 if(parent->canAdoptChild(node)){
                     kinds.append(nodeKind);
                 }
                 //Clean up memory.
-                delete node;
+                //delete node;
             }
         }
     }

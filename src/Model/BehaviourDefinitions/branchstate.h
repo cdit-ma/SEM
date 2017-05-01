@@ -5,6 +5,7 @@
 class EntityFactory;
 class BranchState: public Branch
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	BranchState(EntityFactory* factory);

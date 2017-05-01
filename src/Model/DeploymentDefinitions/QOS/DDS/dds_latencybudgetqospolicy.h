@@ -5,6 +5,7 @@
 class EntityFactory;
 class DDS_LatencyBudgetQosPolicy: public Node 
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	DDS_LatencyBudgetQosPolicy(EntityFactory* factory);

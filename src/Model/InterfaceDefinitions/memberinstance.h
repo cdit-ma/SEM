@@ -5,6 +5,7 @@
 class EntityFactory;
 class MemberInstance : public DataNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	MemberInstance(EntityFactory* factory);

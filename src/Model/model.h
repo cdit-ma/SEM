@@ -2,9 +2,10 @@
 #define MODEL_H
 
 #include "node.h"
-
+class EntityFactory;
 class Model: public Node
 {
+    friend class EntityFactory;
     Q_OBJECT
 protected:
 	Model(EntityFactory* factory);

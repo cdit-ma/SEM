@@ -1150,7 +1150,6 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     return data;
 }
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
-    qCritical() << "NODE MADE: " << id;
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
 

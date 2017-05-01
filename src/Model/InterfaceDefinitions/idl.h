@@ -5,6 +5,7 @@
 class EntityFactory;
 class IDL : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	IDL(EntityFactory* factory);

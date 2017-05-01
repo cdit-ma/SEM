@@ -6,6 +6,7 @@ class Branch;
 class EntityFactory;
 class Termination: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Termination(EntityFactory* factory);

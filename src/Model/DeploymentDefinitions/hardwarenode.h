@@ -5,6 +5,7 @@
 class EntityFactory;
 class HardwareNode : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	HardwareNode(EntityFactory* factory);

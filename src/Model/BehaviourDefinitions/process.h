@@ -7,6 +7,7 @@
 class EntityFactory;
 class Process: public BehaviourNode
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	Process(EntityFactory* factory, NODE_KIND kind, QString kind_str);

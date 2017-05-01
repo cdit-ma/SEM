@@ -7,6 +7,7 @@ class Aggregate;
 class EntityFactory;
 class EventPort : public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
     EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str);

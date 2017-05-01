@@ -5,6 +5,7 @@
 class EntityFactory;
 class BlackBoxInstance: public Node
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	BlackBoxInstance(EntityFactory* factory);

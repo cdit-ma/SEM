@@ -5,6 +5,7 @@
 class EntityFactory;
 class ForCondition: public Condition
 {
+	friend class EntityFactory;
     Q_OBJECT
 protected:
 	ForCondition(EntityFactory* factory);
