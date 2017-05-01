@@ -1,10 +1,17 @@
 #include "deploymentdefinitions.h"
+#include "../entityfactory.h"
+
+DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::DEPLOYMENT_DEFINITIONS, "DeploymentDefinitions"){
+	auto node_kind = NODE_KIND::DEPLOYMENT_DEFINITIONS;
+	QString kind_string = "DeploymentDefinitions";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DeploymentDefinitions();});
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "DEPLOYMENT");
+};
 
 DeploymentDefinitions::DeploymentDefinitions():Node(NODE_KIND::DEPLOYMENT_DEFINITIONS)
 {
     setMoveEnabled(false);
     setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "DEPLOYMENT");
 }
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)

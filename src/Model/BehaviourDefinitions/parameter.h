@@ -2,11 +2,14 @@
 #define PARAMETER_H
 #include "../InterfaceDefinitions/datanode.h"
 
+class EntityFactory;
 class Parameter: public DataNode
 {
     Q_OBJECT
-public:
+protected:
+	Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     Parameter(NODE_KIND kind);
+public:
 
     bool isInputParameter() const;
     bool isVariadicParameter() const;

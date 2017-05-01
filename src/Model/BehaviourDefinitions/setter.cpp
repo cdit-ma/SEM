@@ -1,11 +1,21 @@
 #include "setter.h"
 
+#include "../entityfactory.h"
+
+Setter::Setter(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::SETTER, "Setter"){
+	auto node_kind = NODE_KIND::SETTER;
+	QString kind_string = "Setter";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Setter();});
+
+
+    //Register DefaultData
+    RegisterDefaultData(factory, node_kind, "operator", QVariant::String, false, "=");
+};
+
 Setter::Setter():BehaviourNode(NODE_KIND::SETTER)
 {
     setWorkflowProducer(true);
     setWorkflowReciever(true);
-
-    updateDefaultData("operator", QVariant::String, false, "=");
 }
 
 bool Setter::canAdoptChild(Node* child)

@@ -2,11 +2,13 @@
 #define DATANODE_H
 #include "../node.h"
 
+class EntityFactory;
 class DataNode : public Node
 {
-public:
+protected:
+    DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     DataNode(NODE_KIND kind);
-
+public:
     bool hasInputData();
     bool hasOutputData();
 

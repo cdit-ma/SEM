@@ -227,6 +227,12 @@ void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QV
     }
 }   
 
+void registerNode(Node* node){
+    if(node){
+        delete node;
+    }
+}
+
 EntityFactory::EntityFactory()
 {
     //Setup node kinds

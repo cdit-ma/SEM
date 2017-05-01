@@ -1,14 +1,16 @@
 #ifndef TERMINATION_H
 #define TERMINATION_H
 #include "behaviournode.h"
-class Branch;
 
+class Branch;
+class EntityFactory;
 class Termination: public BehaviourNode
 {
     Q_OBJECT
+protected:
+	Termination(EntityFactory* factory);
+	Termination();
 public:
-    Termination();
-
     Branch* getBranch();
 
     bool canAdoptChild(Node* child);

@@ -1,9 +1,16 @@
 #include "workload.h"
 
+#include "../entityfactory.h"
+
+Workload::Workload(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::WORKLOAD, "Workload"){
+	auto node_kind = NODE_KIND::WORKLOAD;
+	QString kind_string = "Workload";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Workload();});
+};
+
 Workload::Workload():BehaviourNode(NODE_KIND::WORKLOAD){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
-
     setExpandEnabled(true);
 }
 

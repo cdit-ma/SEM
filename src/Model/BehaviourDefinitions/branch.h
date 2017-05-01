@@ -3,11 +3,14 @@
 #include "behaviournode.h"
 #include "termination.h"
 
+class EntityFactory;
 class Branch: public BehaviourNode
 {
     Q_OBJECT
-public:
+protected:
+	Branch(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     Branch(NODE_KIND kind);
+public:
     Termination* getTermination();
 
     virtual bool canAdoptChild(Node *node);

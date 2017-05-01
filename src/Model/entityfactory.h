@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QHash>
+#include <functional>
 
 #include "node.h"
 #include "edge.h"

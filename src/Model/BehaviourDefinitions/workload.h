@@ -3,12 +3,14 @@
 
 #include "behaviournode.h"
 
+class EntityFactory;
 class Workload: public BehaviourNode
 {
     Q_OBJECT
+protected:
+	Workload(EntityFactory* factory);
+	Workload();
 public:
-    Workload();
-
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

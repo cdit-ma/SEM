@@ -1,11 +1,20 @@
 #include "componentimpl.h"
 #include "../nodekinds.h"
 
+#include "../entityfactory.h"
+
+ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_IMPL, "ComponentImpl"){
+	auto node_kind = NODE_KIND::COMPONENT_IMPL;
+	QString kind_string = "ComponentImpl";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ComponentImpl();});
+
+    //Register DefaultData
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
+
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
     setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
-
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool ComponentImpl::canAdoptChild(Node *child)

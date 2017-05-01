@@ -2,11 +2,14 @@
 #define COMPONENT_H
 #include "../node.h"
 
+class EntityFactory;
 class Component : public Node
 {
     Q_OBJECT
+protected:
+	Component(EntityFactory* factory);
+	Component();
 public:
-    Component();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

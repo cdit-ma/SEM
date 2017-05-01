@@ -1,11 +1,18 @@
 #include "hardwarecluster.h"
+#include "../entityfactory.h"
+
+HardwareCluster::HardwareCluster(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_CLUSTER, "HardwareCluster"){
+	auto node_kind = NODE_KIND::HARDWARE_CLUSTER;
+	QString kind_string = "HardwareCluster";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareCluster();});
+
+    //TODO register data
+};
 
 HardwareCluster::HardwareCluster():Node(NODE_KIND::HARDWARE_CLUSTER)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setNodeType(NODE_TYPE::HARDWARE);
-
-    
 }
 
 bool HardwareCluster::canAdoptChild(Node *child)

@@ -1,5 +1,15 @@
 #include "model.h"
 
+
+Model::Model(EntityFactory* factory) : Node(factory, NODE_KIND::MODEL, "Model"){
+	auto node_kind = NODE_KIND::MODEL;
+	QString kind_string = "Model";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Model();});
+
+    //Register Data
+    //RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
+};
+
 Model::Model(): Node(NODE_KIND::MODEL)
 {
     setMoveEnabled(false);

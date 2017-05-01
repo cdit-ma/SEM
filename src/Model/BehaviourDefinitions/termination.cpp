@@ -1,11 +1,18 @@
 #include "termination.h"
 #include "branch.h"
 #include <QDebug>
+#include "../entityfactory.h"
+
+Termination::Termination(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::TERMINATION, "Termination"){
+	auto node_kind = NODE_KIND::TERMINATION;
+	QString kind_string = "Termination";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Termination();});
+};
+
 Termination::Termination():BehaviourNode(NODE_KIND::TERMINATION){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
 }
-
 
 Branch *Termination::getBranch()
 {

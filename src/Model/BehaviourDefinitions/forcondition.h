@@ -2,12 +2,14 @@
 #define FORCONDITION_H
 #include "condition.h"
 
+class EntityFactory;
 class ForCondition: public Condition
 {
     Q_OBJECT
+protected:
+	ForCondition(EntityFactory* factory);
+	ForCondition();
 public:
-    ForCondition();
-
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

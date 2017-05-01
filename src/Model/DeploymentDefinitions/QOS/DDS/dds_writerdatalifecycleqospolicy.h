@@ -2,11 +2,14 @@
 #define DDS_WRITERDATALIFECYCLEQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_WriterDataLifecycleQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_WriterDataLifecycleQosPolicy(EntityFactory* factory);
+	DDS_WriterDataLifecycleQosPolicy();
 public:
-    DDS_WriterDataLifecycleQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

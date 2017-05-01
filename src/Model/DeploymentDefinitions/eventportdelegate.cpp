@@ -1,17 +1,19 @@
 #include "eventportdelegate.h"
 #include <QDebug>
+#include "../entityfactory.h"
+EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str) : EventPort(factory, kind, kind_str){
+    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
+
+    if(kind == NODE_KIND::INEVENTPORT_INSTANCE || kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+        RegisterDefaultData(factory, kind, "topicName", QVariant::String, false);
+        RegisterDefaultData(factory, kind, "middleware", QVariant::String, false, "ZMQ");
+    }
+};
+
 EventPortAssembly::EventPortAssembly(NODE_KIND kind): EventPort(kind)
 {
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
     setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
-
-
-    updateDefaultData("type", QVariant::String, true);
-
-    if(kind == NODE_KIND::INEVENTPORT_INSTANCE || kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
-        updateDefaultData("topicName", QVariant::String);
-        updateDefaultData("middleware", QVariant::String, false, "ZMQ");
-    }
 }
 
 bool EventPortAssembly::isInPortDelegate() const

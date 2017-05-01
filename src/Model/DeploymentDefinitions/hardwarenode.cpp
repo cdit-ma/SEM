@@ -1,4 +1,17 @@
 #include "hardwarenode.h"
+#include "../entityfactory.h"
+
+HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_NODE, "HardwareNode"){
+	auto node_kind = NODE_KIND::HARDWARE_NODE;
+	QString kind_string = "HardwareNode";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareNode();});
+
+
+    RegisterDefaultData(factory, node_kind, "architecture", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "ip_address", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "os", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "os_version", QVariant::String, true);
+};
 
 HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
 {
@@ -7,11 +20,6 @@ HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
 
     setMoveEnabled(false);
     setExpandEnabled(false);
-    
-    updateDefaultData("architecture", QVariant::String, true);
-    updateDefaultData("ip_address", QVariant::String, true);
-    updateDefaultData("os", QVariant::String, true);
-    updateDefaultData("os_version", QVariant::String, true);
 }
 
 bool HardwareNode::canAdoptChild(Node*)

@@ -1,5 +1,11 @@
 #include "dds_groupdataqospolicy.h"
 
+#include "../../../entityfactory.h"
+DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_GROUPDATA, "DDS_GroupDataQosPolicy"){
+	auto node_kind = NODE_KIND::QOS_DDS_POLICY_GROUPDATA;
+	QString kind_string = "DDS_GroupDataQosPolicy";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_GroupDataQosPolicy();});
+};
 DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_GROUPDATA)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);

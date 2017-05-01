@@ -6,11 +6,16 @@
 class Termination;
 class Branch;
 
+class EntityFactory;
 class Condition: public BehaviourNode
 {
     Q_OBJECT
-public:
+protected:
+	Condition(EntityFactory* factory, NODE_KIND kind, QString kind_str);
+	Condition(EntityFactory* factory);
+
     Condition(NODE_KIND kind = NODE_KIND::CONDITION);
+public:
 
     Branch* getBranch();
     Termination* getRequiredTermination();

@@ -2,11 +2,16 @@
 #include "../nodekinds.h"
 #include <QDebug>
 
+#include "../entityfactory.h"
+
+OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : EventPortImpl(factory, NODE_KIND::OUTEVENTPORT_IMPL, "OutEventPortImpl"){
+	auto node_kind = NODE_KIND::OUTEVENTPORT_IMPL;
+	QString kind_string = "OutEventPortImpl";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new OutEventPortImpl();});
+};
 OutEventPortImpl::OutEventPortImpl():EventPortImpl(NODE_KIND::OUTEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
-    
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

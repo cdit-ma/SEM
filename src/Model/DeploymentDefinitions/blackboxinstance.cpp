@@ -1,13 +1,19 @@
 #include "blackboxinstance.h"
+#include "../entityfactory.h"
+
+BlackBoxInstance::BlackBoxInstance(EntityFactory* factory) : Node(factory, NODE_KIND::BLACKBOX_INSTANCE, "BlackBoxInstance"){
+	auto node_kind = NODE_KIND::BLACKBOX_INSTANCE;
+	QString kind_string = "BlackBoxInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BlackBoxInstance();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
 
 BlackBoxInstance::BlackBoxInstance():Node(NODE_KIND::BLACKBOX_INSTANCE)
 {
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
-
-    updateDefaultData("label", QVariant::String, false);
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool BlackBoxInstance::canAdoptChild(Node *child)

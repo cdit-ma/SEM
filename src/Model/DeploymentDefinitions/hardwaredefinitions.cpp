@@ -1,12 +1,19 @@
 #include "hardwaredefinitions.h"
+#include "../entityfactory.h"
+
+HardwareDefinitions::HardwareDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_DEFINITIONS, "HardwareDefinitions"){
+	auto node_kind = NODE_KIND::HARDWARE_DEFINITIONS;
+	QString kind_string = "HardwareDefinitions";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareDefinitions();});
+
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "HARDWARE");
+};
 
 HardwareDefinitions::HardwareDefinitions():Node(NODE_KIND::HARDWARE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-
     setMoveEnabled(false);
     setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "HARDWARE");
 }
 
 VIEW_ASPECT HardwareDefinitions::getViewAspect() const

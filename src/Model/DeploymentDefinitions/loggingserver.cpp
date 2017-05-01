@@ -1,4 +1,13 @@
 #include "loggingserver.h"
+#include "../entityfactory.h"
+
+LoggingServer::LoggingServer(EntityFactory* factory) : Node(factory, NODE_KIND::LOGGINGSERVER, "LoggingServer"){
+	auto node_kind = NODE_KIND::LOGGINGSERVER;
+	QString kind_string = "LoggingServer";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new LoggingServer();});
+
+    RegisterDefaultData(factory, node_kind, "database", QVariant::String, false, "output.sql");
+};
 
 LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
 {

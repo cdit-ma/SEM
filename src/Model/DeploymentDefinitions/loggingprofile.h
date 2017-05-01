@@ -2,12 +2,14 @@
 #define LOGGINGPROFILE_H
 #include "../node.h"
 
+class EntityFactory;
 class LoggingProfile : public Node
 {
     Q_OBJECT
+protected:
+	LoggingProfile(EntityFactory* factory);
+	LoggingProfile();
 public:
-    LoggingProfile();
-
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

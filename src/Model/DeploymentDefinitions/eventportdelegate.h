@@ -2,11 +2,14 @@
 #define EVENTPORTDELEGATE_H
 #include "../InterfaceDefinitions/eventport.h"
 
+class EntityFactory;
 class EventPortAssembly: public EventPort
 {
     Q_OBJECT
-public:
+protected:
+	EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     EventPortAssembly(NODE_KIND kind);
+public:
 
     bool isPortDelegate() const;
 

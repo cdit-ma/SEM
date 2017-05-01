@@ -2,11 +2,14 @@
 #define HARDWARENODE_H
 #include "../node.h"
 
+class EntityFactory;
 class HardwareNode : public Node
 {
     Q_OBJECT
+protected:
+	HardwareNode(EntityFactory* factory);
+	HardwareNode();
 public:
-    HardwareNode();
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

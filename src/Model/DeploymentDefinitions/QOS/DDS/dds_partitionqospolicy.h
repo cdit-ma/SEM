@@ -2,11 +2,14 @@
 #define DDS_PARTITIONQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_PartitionQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_PartitionQosPolicy(EntityFactory* factory);
+	DDS_PartitionQosPolicy();
 public:
-    DDS_PartitionQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

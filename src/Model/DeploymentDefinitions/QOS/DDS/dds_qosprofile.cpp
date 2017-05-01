@@ -1,5 +1,11 @@
 #include "dds_qosprofile.h"
 
+#include "../../../entityfactory.h"
+DDS_QOSProfile::DDS_QOSProfile(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_PROFILE, "DDS_QOSProfile"){
+	auto node_kind = NODE_KIND::QOS_DDS_PROFILE;
+	QString kind_string = "DDS_QOSProfile";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_QOSProfile();});
+};
 DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
 {
     setNodeType(NODE_TYPE::QOS_PROFILE);

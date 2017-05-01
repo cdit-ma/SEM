@@ -2,11 +2,14 @@
 #define DDS_TOPICDATAQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_TopicDataQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_TopicDataQosPolicy(EntityFactory* factory);
+	DDS_TopicDataQosPolicy();
 public:
-    DDS_TopicDataQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

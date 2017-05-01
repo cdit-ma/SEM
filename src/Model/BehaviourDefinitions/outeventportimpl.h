@@ -2,11 +2,14 @@
 #define OUTEVENTPORTIMPL_H
 #include "eventportimpl.h"
 
+class EntityFactory;
 class OutEventPortImpl : public EventPortImpl
 {
     Q_OBJECT
+protected:
+	OutEventPortImpl(EntityFactory* factory);
+	OutEventPortImpl();
 public:
-    OutEventPortImpl();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

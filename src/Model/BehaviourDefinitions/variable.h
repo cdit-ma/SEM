@@ -2,12 +2,14 @@
 #define VARIABLE_H
 #include "../InterfaceDefinitions/datanode.h"
 
+class EntityFactory;
 class Variable: public DataNode
 {
     Q_OBJECT
+protected:
+	Variable(EntityFactory* factory);
+	Variable();
 public:
-    Variable();
-
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 

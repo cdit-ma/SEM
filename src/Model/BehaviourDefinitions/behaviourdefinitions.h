@@ -3,11 +3,14 @@
 
 #include "../node.h"
 
+class EntityFactory;
 class BehaviourDefinitions: public Node
 {
     Q_OBJECT
+protected:
+	BehaviourDefinitions(EntityFactory* factory);
+	BehaviourDefinitions();
 public:
-    BehaviourDefinitions();
     VIEW_ASPECT getViewAspect() const;
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);

@@ -1,12 +1,20 @@
 #include "assemblydefinitions.h"
 
+#include "../entityfactory.h"
+
+AssemblyDefinitions::AssemblyDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::ASSEMBLY_DEFINITIONS, "AssemblyDefinitions"){
+	auto node_kind = NODE_KIND::ASSEMBLY_DEFINITIONS;
+	QString kind_string = "AssemblyDefinitions";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AssemblyDefinitions();});
+
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "ASSEMBLIES");
+};
+
 AssemblyDefinitions::AssemblyDefinitions():Node(NODE_KIND::ASSEMBLY_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-
     setMoveEnabled(false);
     setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "ASSEMBLIES");
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect() const

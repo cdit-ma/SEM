@@ -2,11 +2,14 @@
 #define DDS_RESOURCELIMITSQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_ResourceLimitsQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_ResourceLimitsQosPolicy(EntityFactory* factory);
+	DDS_ResourceLimitsQosPolicy();
 public:
-    DDS_ResourceLimitsQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

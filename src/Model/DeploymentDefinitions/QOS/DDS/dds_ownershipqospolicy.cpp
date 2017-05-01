@@ -1,5 +1,11 @@
 #include "dds_ownershipqospolicy.h"
 
+#include "../../../entityfactory.h"
+DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_OWNERSHIP, "DDS_OwnershipQosPolicy"){
+	auto node_kind = NODE_KIND::QOS_DDS_POLICY_OWNERSHIP;
+	QString kind_string = "DDS_OwnershipQosPolicy";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_OwnershipQosPolicy();});
+};
 DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_OWNERSHIP)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);

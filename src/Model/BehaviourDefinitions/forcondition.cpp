@@ -1,6 +1,14 @@
 #include "forcondition.h"
+#include "../entityfactory.h"
+
+ForCondition::ForCondition(EntityFactory* factory) : Condition(factory, NODE_KIND::FOR_CONDITION, "ForCondition"){
+	auto node_kind = NODE_KIND::FOR_CONDITION;
+	QString kind_string = "ForCondition";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ForCondition();});
+};
 
 ForCondition::ForCondition():Condition(NODE_KIND::FOR_CONDITION){
+    
 }
 
 bool ForCondition::canAdoptChild(Node* child)

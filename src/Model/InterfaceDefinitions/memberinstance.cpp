@@ -1,4 +1,13 @@
 #include "memberinstance.h"
+#include "../entityfactory.h"
+
+MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::MEMBER_INSTANCE, "MemberInstance"){
+	auto node_kind = NODE_KIND::MEMBER_INSTANCE;
+	QString kind_string = "MemberInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new MemberInstance();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
 
 MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
 {
@@ -7,9 +16,6 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setDataReciever(true);
     setDataProducer(true);
-
-    
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool MemberInstance::canAdoptChild(Node*)

@@ -2,12 +2,14 @@
 #define INEVENTPORTINSTANCE_H
 #include "eventportdelegate.h"
 
+class EntityFactory;
 class InEventPortInstance : public EventPortAssembly
 {
     Q_OBJECT
+protected:
+	InEventPortInstance(EntityFactory* factory);
+	InEventPortInstance();
 public:
-    InEventPortInstance();
-
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

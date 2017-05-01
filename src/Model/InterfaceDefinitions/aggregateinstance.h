@@ -2,11 +2,14 @@
 #define AGGREGATEINSTANCE_H
 #include "datanode.h"
 
+class EntityFactory;
 class AggregateInstance : public DataNode
 {
     Q_OBJECT
+protected:
+	AggregateInstance(EntityFactory* factory);
+	AggregateInstance();
 public:
-    AggregateInstance();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

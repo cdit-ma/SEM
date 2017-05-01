@@ -1,11 +1,17 @@
 #include "ineventportimpl.h"
 #include "../nodekinds.h"
 
+#include "../entityfactory.h"
+
+InEventPortImpl::InEventPortImpl(EntityFactory* factory) : EventPortImpl(factory, NODE_KIND::INEVENTPORT_IMPL, "InEventPortImpl"){
+	auto node_kind = NODE_KIND::INEVENTPORT_IMPL;
+	QString kind_string = "InEventPortImpl";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPortImpl();});
+};
+
 InEventPortImpl::InEventPortImpl():EventPortImpl(NODE_KIND::INEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(false);
-
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool InEventPortImpl::canAdoptChild(Node *child)

@@ -1,15 +1,20 @@
 #include "attributeinstance.h"
 
+#include "../entityfactory.h"
+AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NODE_KIND::ATTRIBUTE_INSTANCE, "AttributeInstance"){
+	auto node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
+	QString kind_string = "AttributeInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AttributeInstance();});
+
+    //Register Data
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
+};
+
 AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)
 {
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
-
-    //Locked Label
-    updateDefaultData("label", QVariant::String, true);
-    updateDefaultData("type", QVariant::String, true);
-    updateDefaultData("sortOrder", QVariant::Int, true);
-    updateDefaultData("value", QVariant::String);
 }
 
 bool AttributeInstance::canAdoptChild(Node*)

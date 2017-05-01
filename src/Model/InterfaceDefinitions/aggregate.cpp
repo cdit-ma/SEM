@@ -1,6 +1,17 @@
 #include "aggregate.h"
 #include "../data.h"
 
+#include "../entityfactory.h"
+
+Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGATE, "Aggregate"){
+	auto node_kind = NODE_KIND::AGGREGATE;
+	QString kind_string = "Aggregate";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Aggregate();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String);
+};
+
 Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
 {
     setNodeType(NODE_TYPE::DEFINITION);
@@ -8,10 +19,6 @@ Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 
     connect(this, &Node::dataChanged, this, &Aggregate::updateType);
-
-    
-    updateDefaultData("type", QVariant::String, true);
-    updateDefaultData("namespace", QVariant::String);
 }
 
 

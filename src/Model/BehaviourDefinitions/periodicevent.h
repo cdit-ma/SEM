@@ -2,11 +2,14 @@
 #define PERIODICEVENT_H
 #include "behaviournode.h"
 
+class EntityFactory;
 class PeriodicEvent: public BehaviourNode
 {
     Q_OBJECT
+protected:
+	PeriodicEvent(EntityFactory* factory);
+	PeriodicEvent();
 public:
-    PeriodicEvent();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

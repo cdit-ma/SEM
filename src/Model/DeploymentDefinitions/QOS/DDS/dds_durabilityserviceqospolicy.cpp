@@ -1,5 +1,11 @@
 #include "dds_durabilityserviceqospolicy.h"
 
+#include "../../../entityfactory.h"
+DDS_DurabilityServiceQosPolicy::DDS_DurabilityServiceQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE, "DDS_DurabilityServiceQosPolicy"){
+	auto node_kind = NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE;
+	QString kind_string = "DDS_DurabilityServiceQosPolicy";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_DurabilityServiceQosPolicy();});
+};
 DDS_DurabilityServiceQosPolicy::DDS_DurabilityServiceQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);

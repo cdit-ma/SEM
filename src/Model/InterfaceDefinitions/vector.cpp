@@ -1,6 +1,16 @@
 #include "vector.h"
 #include <QDebug>
 #include "../data.h"
+#include "../entityfactory.h"
+
+Vector::Vector(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR, "Vector"){
+	auto node_kind = NODE_KIND::VECTOR;
+	QString kind_string = "Vector";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Vector();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
+
 Vector::Vector(): DataNode(NODE_KIND::VECTOR)
 {
     //Can be both an input/output for data.
@@ -10,9 +20,6 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
-
-    
-    updateDefaultData("type", QVariant::String, true);
 }
 
 QString Vector::getVectorType()

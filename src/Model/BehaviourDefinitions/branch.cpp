@@ -1,12 +1,16 @@
 #include "branch.h"
 #include "condition.h"
 
+#include "../entityfactory.h"
+Branch::Branch(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
+	
+};
+
 Branch::Branch(NODE_KIND kind):BehaviourNode(kind){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
     setNodeType(NODE_TYPE::BRANCH);
 }
-
 
 Termination *Branch::getTermination()
 {

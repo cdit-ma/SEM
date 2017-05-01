@@ -2,11 +2,14 @@
 #define DDS_OWNERSHIPQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_OwnershipQosPolicy: public Node
 {
     Q_OBJECT
+protected:
+	DDS_OwnershipQosPolicy(EntityFactory* factory);
+	DDS_OwnershipQosPolicy();
 public:
-    DDS_OwnershipQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

@@ -6,8 +6,11 @@
 class Model: public Node
 {
     Q_OBJECT
-public:
+protected:
+	Model(EntityFactory* factory);
     Model();
+public:
+
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

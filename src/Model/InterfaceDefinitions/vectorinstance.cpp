@@ -1,4 +1,15 @@
 #include "vectorinstance.h"
+#include "../entityfactory.h"
+
+VectorInstance::VectorInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR_INSTANCE, "VectorInstance"){
+	auto node_kind = NODE_KIND::VECTOR_INSTANCE;
+	QString kind_string = "VectorInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new VectorInstance();});
+
+    //Register Data
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
 
 VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 {
@@ -8,9 +19,6 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
     setNodeType(NODE_TYPE::DEFINITION);
-
-    updateDefaultData("label", QVariant::String, true, getNodeKindStr());
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)

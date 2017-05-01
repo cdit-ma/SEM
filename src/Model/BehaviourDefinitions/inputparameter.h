@@ -2,11 +2,14 @@
 #define INPUTPARAMETER_H
 #include "parameter.h"
 
+class EntityFactory;
 class InputParameter : public Parameter
 {
     Q_OBJECT
+protected:
+	InputParameter(EntityFactory* factory);
+	InputParameter();
 public:
-    InputParameter();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

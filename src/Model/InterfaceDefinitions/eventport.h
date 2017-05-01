@@ -4,11 +4,14 @@
 
 class Aggregate;
 
+class EntityFactory;
 class EventPort : public Node
 {
     Q_OBJECT
-public:
+protected:
+    EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     EventPort(NODE_KIND kind);
+public:
     bool isInPort() const;
     bool isOutPort() const;
 

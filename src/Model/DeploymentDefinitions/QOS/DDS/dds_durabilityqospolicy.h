@@ -2,11 +2,14 @@
 #define DDS_DURABILITYQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_DurabilityQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_DurabilityQosPolicy(EntityFactory* factory);
+	DDS_DurabilityQosPolicy();
 public:
-    DDS_DurabilityQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

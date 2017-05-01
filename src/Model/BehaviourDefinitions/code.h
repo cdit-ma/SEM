@@ -3,11 +3,14 @@
 
 #include "behaviournode.h"
 
+class EntityFactory;
 class Code: public BehaviourNode
 {
     Q_OBJECT
+protected:
+	Code(EntityFactory* factory);
+	Code();
 public:
-    Code();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

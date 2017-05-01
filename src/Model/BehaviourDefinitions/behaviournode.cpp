@@ -6,7 +6,11 @@
 #include <QDebug>
 
 
-BehaviourNode::BehaviourNode(NODE_KIND kind):Node(kind)
+#include "../entityfactory.h"
+BehaviourNode::BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+};
+
+BehaviourNode::BehaviourNode(NODE_KIND kind) : Node(kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR);
     setAcceptsEdgeKind(Edge::EC_WORKFLOW);

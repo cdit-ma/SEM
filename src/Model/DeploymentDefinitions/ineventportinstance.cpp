@@ -1,4 +1,11 @@
 #include "ineventportinstance.h"
+#include "../entityfactory.h"
+
+InEventPortInstance::InEventPortInstance(EntityFactory* factory) : EventPortAssembly(factory, NODE_KIND::INEVENTPORT_INSTANCE, "InEventPortInstance"){
+	auto node_kind = NODE_KIND::INEVENTPORT_INSTANCE;
+	QString kind_string = "InEventPortInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPortInstance();});
+};
 
 InEventPortInstance::InEventPortInstance():EventPortAssembly(NODE_KIND::INEVENTPORT_INSTANCE)
 {
@@ -6,8 +13,6 @@ InEventPortInstance::InEventPortInstance():EventPortAssembly(NODE_KIND::INEVENTP
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_QOS);
     removeEdgeKind(Edge::EC_AGGREGATE);
-
-    
 }
 
 bool InEventPortInstance::canAdoptChild(Node*)

@@ -1,8 +1,14 @@
 #include "idl.h"
+#include "../entityfactory.h"
+
+IDL::IDL(EntityFactory* factory) : Node(factory, NODE_KIND::IDL, "IDL"){
+	auto node_kind = NODE_KIND::IDL;
+	QString kind_string = "IDL";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new IDL();});
+};
 
 IDL::IDL(): Node(NODE_KIND::IDL)
 {
-    
 }
 
 bool IDL::canAdoptChild(Node *item)

@@ -2,11 +2,14 @@
 #define COMPONENTBEHAVIOUR_H
 #include "../node.h"
 
+class EntityFactory;
 class ComponentImpl: public Node
 {
      Q_OBJECT
+protected:
+	ComponentImpl(EntityFactory* factory);
+	ComponentImpl();
 public:
-    ComponentImpl();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

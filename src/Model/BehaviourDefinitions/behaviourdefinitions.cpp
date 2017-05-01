@@ -1,6 +1,16 @@
 #include "behaviourdefinitions.h"
 #include "../nodekinds.h"
 
+#include "../entityfactory.h"
+BehaviourDefinitions::BehaviourDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::BEHAVIOUR_DEFINITIONS, "BehaviourDefinitions"){
+	auto node_kind = NODE_KIND::BEHAVIOUR_DEFINITIONS;
+	QString kind_string = "BehaviourDefinitions";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BehaviourDefinitions();});
+
+    //Register Data
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "COMPONENTS");
+};
+
 BehaviourDefinitions::BehaviourDefinitions():Node(NODE_KIND::BEHAVIOUR_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);

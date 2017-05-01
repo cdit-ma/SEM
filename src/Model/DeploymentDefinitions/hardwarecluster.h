@@ -1,11 +1,14 @@
 #ifndef HARDWARECLUSTER_H
 #define HARDWARECLUSTER_H
 #include "../node.h"
+class EntityFactory;
 class HardwareCluster : public Node
 {
     Q_OBJECT
+protected:
+	HardwareCluster(EntityFactory* factory);
+	HardwareCluster();
 public:
-    HardwareCluster();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

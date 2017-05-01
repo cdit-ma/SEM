@@ -1,5 +1,13 @@
 #include "aggregateinstance.h"
+#include "../entityfactory.h"
 
+AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::AGGREGATE_INSTANCE, "AggregateInstance"){
+	auto node_kind = NODE_KIND::AGGREGATE_INSTANCE;
+	QString kind_string = "AggregateInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AggregateInstance();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
 AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 {
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
@@ -8,9 +16,6 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 
     setDataProducer(true);
     setDataReciever(true);
-
-    updateDefaultData("label", QVariant::String, false, getNodeKindStr());
-    updateDefaultData("type", QVariant::String, false);
 }
 
 bool AggregateInstance::canAdoptChild(Node *child)

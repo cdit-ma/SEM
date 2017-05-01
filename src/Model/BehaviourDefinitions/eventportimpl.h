@@ -2,11 +2,15 @@
 #define EVENTPORTIMPL_H
 #include "behaviournode.h"
 
+class EntityFactory;
 class EventPortImpl : public BehaviourNode
 {
     Q_OBJECT
-public:
+protected:
+	EventPortImpl(EntityFactory* factory, NODE_KIND kind, QString kind_str);
+    
     EventPortImpl(NODE_KIND kind);
+public:
 
     bool isInPort();
     bool isOutPort();

@@ -2,6 +2,19 @@
 #include "termination.h"
 #include "branch.h"
 
+#include "../entityfactory.h"
+Condition::Condition(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
+};
+
+Condition::Condition(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::CONDITION, "Condition"){
+	auto node_kind = NODE_KIND::CONDITION;
+	QString kind_string = "Condition";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Condition();});
+
+    //Register DefaultData
+    RegisterDefaultData(factory, node_kind, "value", QVariant::String);
+};
+
 Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
     setNodeType(NODE_TYPE::CONDITION);
     setWorkflowProducer(true);

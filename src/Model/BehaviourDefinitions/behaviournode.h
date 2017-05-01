@@ -2,11 +2,14 @@
 #define BEHAVIOURNODE_H
 #include "../node.h"
 
+class EntityFactory;
 class BehaviourNode : public Node
 {
     Q_OBJECT
-public:
+protected:
+    BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     BehaviourNode(NODE_KIND kind);
+public:
 
     void setWorkflowProducer(bool producer);
     void setWorkflowReciever(bool reciever);

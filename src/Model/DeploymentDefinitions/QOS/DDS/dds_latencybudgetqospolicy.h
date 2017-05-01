@@ -2,11 +2,14 @@
 #define DDS_LATENCYBUDGETQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_LatencyBudgetQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_LatencyBudgetQosPolicy(EntityFactory* factory);
+	DDS_LatencyBudgetQosPolicy();
 public:
-    DDS_LatencyBudgetQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

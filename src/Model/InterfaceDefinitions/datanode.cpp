@@ -1,6 +1,10 @@
 #include "datanode.h"
 #include "vectorinstance.h"
 #include <QDebug>
+#include "../entityfactory.h"
+
+DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+};
 
 DataNode::DataNode(NODE_KIND kind):Node(kind)
 {

@@ -2,12 +2,14 @@
 #define VECTORINSTANCE_H
 #include "datanode.h"
 
+class EntityFactory;
 class VectorInstance : public DataNode
 {
     Q_OBJECT
+protected:
+	VectorInstance(EntityFactory* factory);
+	VectorInstance();
 public:
-    VectorInstance();
-
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

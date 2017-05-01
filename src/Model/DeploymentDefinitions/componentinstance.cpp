@@ -1,4 +1,13 @@
 #include "componentinstance.h"
+#include "../entityfactory.h"
+
+ComponentInstance::ComponentInstance(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_INSTANCE, "ComponentInstance"){
+	auto node_kind = NODE_KIND::COMPONENT_INSTANCE;
+	QString kind_string = "ComponentInstance";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ComponentInstance();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
 
 ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
 {

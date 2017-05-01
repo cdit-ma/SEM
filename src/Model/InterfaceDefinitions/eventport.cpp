@@ -2,6 +2,11 @@
 #include "aggregate.h"
 #include "aggregateinstance.h"
 
+#include "../entityfactory.h"
+
+EventPort::EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+};
+
 EventPort::EventPort(NODE_KIND kind):Node(kind)
 {
     aggregate = 0;

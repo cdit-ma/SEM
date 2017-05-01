@@ -1,11 +1,19 @@
 #include "process.h"
 #include "parameter.h"
 
+#include "../entityfactory.h"
+Process::Process(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
+};
+
+Process::Process(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::PROCESS, "Process"){
+	auto node_kind = NODE_KIND::PROCESS;
+	QString kind_string = "Process";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Process();});
+};
+
 Process::Process(NODE_KIND kind):BehaviourNode(kind){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
-    //setWorkflowProducer(false);
-    //setWorkflowReciever(false);
 }
 
 bool Process::canAdoptChild(Node* node)

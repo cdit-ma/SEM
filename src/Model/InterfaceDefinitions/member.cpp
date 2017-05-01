@@ -1,11 +1,11 @@
 #include "member.h"
+#include "../entityfactory.h"
 
-Member::Member(): Node(NODE_KIND::MEMBER)
-{
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Member"){
+	auto node_kind = NODE_KIND::MEMBER;
+	QString kind_string = "Member";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Member();});
 
-    
     QList<QVariant> types;
     types << "String";
     types << "Boolean";
@@ -14,9 +14,14 @@ Member::Member(): Node(NODE_KIND::MEMBER)
     types << "Float";
     types << "Character";
 
-    addValidValues("type", types);
-    updateDefaultData("type", QVariant::String, false, "String");
-    updateDefaultData("key", QVariant::Bool, false, false);
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, false, "String");
+    RegisterDefaultData(factory, node_kind, "key", QVariant::String, false, false);
+};
+
+Member::Member(): Node(NODE_KIND::MEMBER)
+{
+    setNodeType(NODE_TYPE::DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
 

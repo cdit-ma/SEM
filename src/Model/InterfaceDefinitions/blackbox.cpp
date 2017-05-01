@@ -1,11 +1,16 @@
 #include "blackbox.h"
+#include "../entityfactory.h"
+
+BlackBox::BlackBox(EntityFactory* factory) : Node(factory, NODE_KIND::BLACKBOX, "BlackBox"){
+	auto node_kind = NODE_KIND::BLACKBOX;
+	QString kind_string = "BlackBox";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BlackBox();});
+};
 
 BlackBox::BlackBox():Node(NODE_KIND::BLACKBOX)
 {
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
-
-    
 }
 
 bool BlackBox::canAdoptChild(Node *child)

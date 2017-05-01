@@ -2,12 +2,14 @@
 #define VECTOR_H
 #include "datanode.h"
 
+class EntityFactory;
 class Vector : public DataNode
 {
     Q_OBJECT
+protected:
+	Vector(EntityFactory* factory);
+	Vector();
 public:
-    Vector();
-
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 private:

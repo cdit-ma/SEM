@@ -1,13 +1,21 @@
 #include "variable.h"
 
+#include "../entityfactory.h"
+
+Variable::Variable(EntityFactory* factory) : DataNode(factory, NODE_KIND::VARIABLE, "Variable"){
+	auto node_kind = NODE_KIND::VARIABLE;
+	QString kind_string = "Variable";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Variable();});
+
+     //Register DefaultData
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, false, "String");
+    RegisterDefaultData(factory, node_kind, "value", QVariant::String);
+};
 Variable::Variable():DataNode(NODE_KIND::VARIABLE)
 {
     setDataProducer(true);
     setDataReciever(true);
     setMultipleDataReceiver(true);
-
-    updateDefaultData("type", QVariant::String, false, "String");
-    updateDefaultData("value", QVariant::String);
 }
 
 bool Variable::canAdoptChild(Node* child)

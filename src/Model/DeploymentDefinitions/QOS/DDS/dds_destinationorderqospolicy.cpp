@@ -1,5 +1,11 @@
 #include "dds_destinationorderqospolicy.h"
 
+#include "../../../entityfactory.h"
+DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER, "DDS_DestinationOrderQosPolicy"){
+	auto node_kind = NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER;
+	QString kind_string = "DDS_DestinationOrderQosPolicy";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_DestinationOrderQosPolicy();});
+};
 DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);

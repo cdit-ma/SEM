@@ -1,6 +1,19 @@
 #include "parameter.h"
 #include "../nodekinds.h"
 
+#include "../entityfactory.h"
+
+Parameter::Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str) : DataNode(factory, kind, kind_str){
+    
+    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
+    
+    if(kind != NODE_KIND::VARIADIC_PARAMETER){
+        RegisterDefaultData(factory, kind, "icon", QVariant::String, true);
+        RegisterDefaultData(factory, kind, "icon_prefix", QVariant::String, true);
+        RegisterDefaultData(factory, kind, "description", QVariant::String, true);
+    }
+};
+
 Parameter::Parameter(NODE_KIND kind):DataNode(kind)
 {
     setNodeType(NODE_TYPE::PARAMETER);
@@ -8,12 +21,6 @@ Parameter::Parameter(NODE_KIND kind):DataNode(kind)
 
     setMoveEnabled(false);
     setExpandEnabled(false);
-
-    if(kind != NODE_KIND::VARIADIC_PARAMETER){
-        updateDefaultData("icon", QVariant::String, true);
-        updateDefaultData("icon_prefix", QVariant::String, true);
-        updateDefaultData("description", QVariant::String, true);
-    }
 }
 
 bool Parameter::isInputParameter() const

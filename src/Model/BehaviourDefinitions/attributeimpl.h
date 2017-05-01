@@ -2,11 +2,13 @@
 #define ATTRIBUTEIMPL_H
 #include "../InterfaceDefinitions/datanode.h"
 
+class EntityFactory;
 class AttributeImpl : public DataNode
 {
     Q_OBJECT
-public:
-    AttributeImpl();
+protected:
+	AttributeImpl(EntityFactory* factory);
+	AttributeImpl();
 
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);

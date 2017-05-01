@@ -2,11 +2,14 @@
 #define LOGGINGSERVER_H
 #include "../node.h"
 
+class EntityFactory;
 class LoggingServer : public Node
 {
     Q_OBJECT
+protected:
+	LoggingServer(EntityFactory* factory);
+	LoggingServer();
 public:
-    LoggingServer();
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

@@ -1,6 +1,17 @@
 #include "attributeimpl.h"
 #include "../nodekinds.h"
 
+#include "../entityfactory.h"
+
+AttributeImpl::AttributeImpl(EntityFactory* factory) : DataNode(factory, NODE_KIND::ATTRIBUTE_IMPL, "AttributeImpl"){
+	auto node_kind = NODE_KIND::ATTRIBUTE_IMPL;
+	QString kind_string = "AttributeImpl";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AttributeImpl();});
+
+    //Register Data
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+};
+
 AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
 {
     setNodeType(NODE_TYPE::IMPLEMENTATION);
@@ -10,8 +21,6 @@ AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
     setDataProducer(true);
     setDataReciever(true);
     setMultipleDataReceiver(true);
-
-    updateDefaultData("type", QVariant::String, true);
 }
 
 bool AttributeImpl::canAdoptChild(Node*)

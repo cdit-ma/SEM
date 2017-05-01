@@ -2,12 +2,14 @@
 #define DEPLOYMENTDEFINITIONS_H
 #include "../node.h"
 
+class EntityFactory;
 class DeploymentDefinitions: public Node
 {
     Q_OBJECT
+protected:
+	DeploymentDefinitions(EntityFactory* factory);
+	DeploymentDefinitions();
 public:
-    DeploymentDefinitions();
-
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

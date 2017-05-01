@@ -2,11 +2,14 @@
 #define DDS_LIVELINESSQOSPOLICY_H
 #include "../../../node.h"
 
+class EntityFactory;
 class DDS_LivelinessQosPolicy: public Node 
 {
     Q_OBJECT
+protected:
+	DDS_LivelinessQosPolicy(EntityFactory* factory);
+	DDS_LivelinessQosPolicy();
 public:
-    DDS_LivelinessQosPolicy();
     bool canAdoptChild(Node* node);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };

@@ -1,11 +1,18 @@
 #include "componentassembly.h"
+#include "../entityfactory.h"
+
+ComponentAssembly::ComponentAssembly(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_ASSEMBLY, "ComponentAssembly"){
+	auto node_kind = NODE_KIND::COMPONENT_ASSEMBLY;
+	QString kind_string = "ComponentAssembly";
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ComponentAssembly();});
+
+    RegisterDefaultData(factory, node_kind, "replicate_count", QVariant::Int, false, 1);
+};
 
 ComponentAssembly::ComponentAssembly():Node(NODE_KIND::COMPONENT_ASSEMBLY)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
     setAcceptsEdgeKind(Edge::EC_QOS);
-
-    updateDefaultData("replicate_count", QVariant::Int, false, 1);
 }
 
 bool ComponentAssembly::canAdoptChild(Node *child)
