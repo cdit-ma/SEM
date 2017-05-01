@@ -65,11 +65,12 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     themeChanged();
 }
 
-QList<NodeViewItemAction *> ToolbarController::getDefinitionNodeActions(QString kind)
+QList<NodeViewItemAction *> ToolbarController::getDefinitionNodeActions(NODE_KIND node_kind)
 {
     QList<NodeViewItemAction*> list;
 
-    foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
+    auto edge_kind = getNodesEdgeKind(node_kind);
+    foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(node_kind, edge_kind)){
         NodeViewItemAction* action = getNodeViewItemAction(item->getID());
         if(action){
             list.append(action);

@@ -16,7 +16,10 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setDataReciever(true);
     setDataProducer(true);
+
+    setDefinitionKind(NODE_KIND::MEMBER);
 }
+
 
 bool MemberInstance::canAdoptChild(Node*)
 {

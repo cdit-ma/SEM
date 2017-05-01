@@ -15,6 +15,9 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
     setNodeType(NODE_TYPE::INSTANCE);
     setNodeType(NODE_TYPE::DEFINITION);
 
+    setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setDefinitionKind(NODE_KIND::AGGREGATE);
+
     setDataProducer(true);
     setDataReciever(true);
 }

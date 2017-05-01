@@ -4,6 +4,7 @@
 #include <QStyleOptionGraphicsItem>
 
 #include "../entityitem.h"
+#include <algorithm>
 
 
 #define RESIZE_RECT_SIZE 4
@@ -165,7 +166,9 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 
 int NodeItem::getSortOrder() const
 {
-    if(hasData("sortOrder")){
+    if(hasData("index")){
+        return getData("index").toInt();
+    }else if(hasData("sortOrder")){
         return getData("sortOrder").toInt();
     }
     return -1;
@@ -181,19 +184,6 @@ QList<NodeItem *> NodeItem::getChildNodes() const
     return childNodes.values();
 }
 
-QList<NodeItem *> NodeItem::getOrderedChildNodes() const
-{
-    QMap<int, NodeItem*> items;
-
-    foreach(NodeItem* child, getChildNodes()){
-        int position = items.size();
-        if(child->hasData("sortOrder")){
-            position = child->getData("sortOrder").toInt();
-        }
-        items.insertMulti(position, child);
-    }
-    return items.values();
-}
 
 QList<EntityItem *> NodeItem::getChildEntities() const
 {

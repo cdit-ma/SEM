@@ -547,15 +547,9 @@ Node *Node::getFirstChild()
 
 QList<Node *> Node::getSiblings()
 {
-    QList<Node *> childList;
-    if(getParentNode()){
-        foreach(Node* sibling, getParentNode()->getChildren(0)){
-            if(sibling!= this){
-                childList << sibling;
-            }
-        }
-    }
-    return childList;
+    auto siblings = getParentNode()->getOrderedChildNodes();
+    siblings.removeAll(this);
+    return siblings;
 }
 
 QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
@@ -946,9 +940,6 @@ void Node::setParentNode(Node *parent, int index)
         foreach(auto data, getData()){
             data->revalidateData();
         }
-
-
-        //Forea
     }else{
         setViewAspect(VA_NONE);
     }
@@ -984,7 +975,7 @@ QList<Node *> Node::getOrderedChildNodes()
     std::sort(children.begin(), children.end(), [](const Node* a, const Node* b){
         auto a_ind = a->getDataValue("index").toInt();
         auto b_ind = b->getDataValue("index").toInt();
-        return a_ind > b_ind;
+        return a_ind < b_ind;
         });
     return children;
 }

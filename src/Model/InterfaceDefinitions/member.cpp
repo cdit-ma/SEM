@@ -31,6 +31,8 @@ Member::Member(): Node(NODE_KIND::MEMBER)
 {
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+
+    setInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 }
 
 

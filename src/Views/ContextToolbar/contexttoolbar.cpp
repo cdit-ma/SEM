@@ -158,18 +158,19 @@ void ContextToolbar::populateDynamicMenu()
     bool isConnect = senderMenu->property("connect").toBool();
     QList<NodeViewItemAction*> actions;
 
-    EDGE_KIND edgeClass = EntityFactory::getEdgeKind(kind);
-    if (edgeClass == EDGE_KIND::NONE) {
-        if (kind == "WorkerProcess") {
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
+    auto node_kind = EntityFactory::getNodeKind(kind);
+    if (node_kind != NODE_KIND::NONE) {
+        if(node_kind == NODE_KIND::WORKER_PROCESS){
             actions = toolbarController->getWorkerFunctions();
-        } else {
-            actions = toolbarController->getDefinitionNodeActions(kind);
+        }else{
+            actions = toolbarController->getDefinitionNodeActions(node_kind);
         }
     } else {
         if (isConnect) {
-            actions = toolbarController->getEdgeActionsOfKind(edgeClass);
+            actions = toolbarController->getEdgeActionsOfKind(edge_kind);
         } else {
-            actions = toolbarController->getExistingEdgeActionsOfKind(edgeClass);
+            actions = toolbarController->getExistingEdgeActionsOfKind(edge_kind);
         }
     }
 
@@ -215,9 +216,6 @@ void ContextToolbar::addChildNode(QAction* action)
 
     int ID = action->property("ID").toInt();
     QString parentKind = action->property("parent-kind").toString();
-
-    qCritical() << "parentKind: " << parentKind;
-    qCritical() << "kind: " << kind_str;
 
     NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
 

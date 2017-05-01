@@ -58,7 +58,8 @@ protected:
     static EntityFactory* globalFactory();
     static EntityFactory* getNewFactory();
 
-    Node* createNode(NODE_KIND nodeKind);
+    Node* createNode(NODE_KIND node_kind);
+    Node* createTempNode(NODE_KIND node_kind);
     Edge* createEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
 
 
@@ -80,8 +81,8 @@ private:
     QList<Data*> getDefaultData(QList<DefaultDataStruct*> data);
     EntityFactory();
     ~EntityFactory();
-    Node* _createNode(NODE_KIND kind);
-    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
+    Node* _createNode(NODE_KIND kind, bool attach_data);
+    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind, bool attach_data);
     
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);

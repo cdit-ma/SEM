@@ -29,6 +29,9 @@ Attribute::Attribute(EntityFactory* factory) : Node(factory, NODE_KIND::ATTRIBUT
 Attribute::Attribute():Node(NODE_KIND::ATTRIBUTE)
 {
     setNodeType(NODE_TYPE::DEFINITION);
+
+    setInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
+    setImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 }
 
 bool Attribute::canAdoptChild(Node*)

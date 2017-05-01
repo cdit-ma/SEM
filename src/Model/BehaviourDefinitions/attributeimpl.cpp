@@ -18,6 +18,8 @@ AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
     setAcceptsEdgeKind(EDGE_KIND::DATA);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 
+    setDefinitionKind(NODE_KIND::ATTRIBUTE);
+
     setDataProducer(true);
     setDataReciever(true);
     setMultipleDataReceiver(true);

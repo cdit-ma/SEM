@@ -31,7 +31,7 @@ public:
     ToolbarController* getToolbarController();
 
     QList<ViewItem*> getWorkerFunctions();
-    QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
+    QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
     QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
@@ -40,7 +40,6 @@ public:
 
     NodeViewDockWidget* constructNodeViewDockWidget(QString label="");
 
-    QStringList getAdoptableNodeKinds();
     QList<NODE_KIND> getAdoptableNodeKinds2();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();

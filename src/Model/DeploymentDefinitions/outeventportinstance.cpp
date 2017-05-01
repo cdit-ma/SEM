@@ -13,6 +13,7 @@ OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NODE_KIND::OUTEVE
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::QOS);
     removeEdgeKind(EDGE_KIND::AGGREGATE);
+    setDefinitionKind(NODE_KIND::OUTEVENTPORT);
 }
 
 bool OutEventPortInstance::canAdoptChild(Node*)

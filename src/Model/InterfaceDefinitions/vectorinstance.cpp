@@ -18,6 +18,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
     setDataReciever(true);
 
     setDefinitionKind(NODE_KIND::VECTOR);
+    setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
 
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);

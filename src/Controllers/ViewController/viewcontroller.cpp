@@ -101,18 +101,12 @@ QList<ViewItem *> ViewController::getWorkerFunctions()
     return getItemsOfKind(NODE_KIND::WORKER_PROCESS);
 }
 
-QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
+QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind)
 {
-    EDGE_KIND ec = EDGE_KIND::DEFINITION;
-
-    if(kind.endsWith("Delegate") || kind.endsWith("EventPort")){
-        ec = EDGE_KIND::AGGREGATE;
-    }
-
     QList<ViewItem*> items;
     if(controller  && selectionController && selectionController->getSelectionCount() == 1){
         int parentID = selectionController->getFirstSelectedItem()->getID();
-        QList<int> IDs = controller->getConstructableConnectableNodes(parentID, kind, ec);
+        QList<int> IDs = controller->getConstructableConnectableNodes(parentID, node_kind, edge_kind);
         items = getViewItems(IDs);
     }
     return items;
@@ -218,14 +212,6 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND
     return list;
 }
 
-QStringList ViewController::getAdoptableNodeKinds()
-{
-    if(selectionController && controller && selectionController->getSelectionCount() == 1){
-        int ID = selectionController->getFirstSelectedItem()->getID();
-        return controller->getAdoptableNodeKinds(ID);
-    }
-    return QStringList();
-}
 
 QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 {

@@ -584,27 +584,11 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
 
         if(dataValue == action.Data.oldValue){
             //Don't update if we have got the same value in the model.
-            return;
+            //return;
         }
 
-        bool need2Set = true;
-        //If we are dealing with a Node
-        if(parent->isNode()){
-            if(keyName == "label"){
-                //enforceUniqueLabel(node, dataValue.toString());
-                ///need2Set = false;
-            }else if(keyName == "sortOrder" && node->getParentNode()){
-                //enforceUniqueSortOrder(node, dataValue.toInt());
-                //need2Set = false;
-            }
-        }
-
-        if(need2Set){
-            parent->setDataValue(keyName, dataValue);
-        }
-
-
-
+        parent->setDataValue(keyName, dataValue);
+        
         action.Data.newValue = parent->getDataValue(keyName);
     }else{
         _attachData(parent, keyName, dataValue, true);
@@ -728,34 +712,41 @@ void ModelController::updateUndoRedoState()
     }
 }
 
-void ModelController::sl_construct_node(int parent_id, NODE_KIND kind){
-
+Node* ModelController::construct_temp_node(Node* parent_node, NODE_KIND node_kind){
+    Node* node = 0;
+    if(parent_node){
+        //Construct node with default data
+        node = entity_factory->createTempNode(node_kind);
+        
+        if(node){
+            if(!parent_node->addChild(node)){
+                //Free memory
+                node = 0;
+            }
+        }
+    }
+    return node;
 }
-void ModelController::sl_construct_connected_node(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind){
 
-}
-
-
-
-
-Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind){
+Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, bool notify_view){
     Node* node = 0;
     if(parent_node){
         //Construct node with default data
         node = entity_factory->createNode(node_kind);
         
         if(node){
-            //Try add to parent
-            parent_node->addChild(node);
+            //Attach to the parent
+            attachChildNode(parent_node, node, notify_view);
         }
     }
     return node;
 }
 
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
-    Node* source = construct_node(parent_node, node_kind);
+    
+    qCritical() << "Constructing Node: " << entity_factory->getNodeKindString(node_kind) << " IN : " << parent_node->toString();
+    Node* source = construct_node(parent_node, node_kind, false);
     if(source){
-
         auto edge = entity_factory->createEdge(source, destination, edge_kind);
 
         if(!edge){
@@ -786,57 +777,47 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF cente
     }
 }
 
-void ModelController::constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass)
+void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
 {
-    //Node* dst = getNodeFromID(dstID);
-    QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
+    QWriteLocker lock(&lock_);
 
-    bool success = true;
-    if(validIDs.contains(dstID)){
+    QList<int> valid_ids = getConnectableNodeIDs(src_ids, edge_kind);
 
-        lock_.lockForWrite();
+    if(valid_ids.contains(dst_id)){
         triggerAction("Constructing child edge");
-        foreach(int srcID, srcIDs){
-            Node* src = getNodeFromID(srcID);
-            Node* dst = getNodeFromID(dstID);
 
-            Edge* edge = constructEdgeWithData(edgeClass, src, dst);
+        Node* dst = getNodeFromID(dst_id);
+        for(auto src_id : src_ids){
+            auto src = getNodeFromID(src_id);
 
-            if(!edge){
-                edge = constructEdgeWithData(edgeClass, dst, src);
-            }
-            if(!edge){
-                success = false;
+            auto edge = entity_factory->createEdge(src, dst, edge_kind);
+
+            if(edge){
+                constructEdgeGUI(edge);
+            }else{
                 break;
             }
         }
-        lock_.unlock();
-    }else{
-        success = false;
     }
-    emit controller_ActionFinished(success, "Edge couldn't be constructed");
+
+    emit controller_ActionFinished();
 }
 
-void ModelController::destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass)
+void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
 {
-    lock_.lockForWrite();
+    QWriteLocker lock(&lock_);
 
-    bool success = true;
     triggerAction("Destructing edges");
-    Node* dst = getNodeFromID(dstID);
-    foreach(int srcID, srcIDs){
-        Node* src = getNodeFromID(srcID);
-        foreach(Edge* edge, src->getEdges(0, edgeClass)){
-            if(!dst || edge->getSource() == dst || edge->getDestination() == dst){
-                if(!destructEdge(edge)){
-                    success = false;
-                    break;
-                }
-            }
+    auto dst = getNodeFromID(dst_id);
+    for(auto src_id : src_ids){
+        auto src = getNodeFromID(src_id);
+
+        auto edge = src->getEdgeTo(dst, edge_kind);
+        if(edge){
+            destructEdge(edge);
         }
     }
-    lock_.unlock();
-    emit controller_ActionFinished(success, "Edge couldn't be destructed");
+    emit controller_ActionFinished();
 }
 
 
@@ -1641,38 +1622,6 @@ long long ModelController::getMACAddress()
 }
 
 
-/**
- * @brief NewController::getAdoptableNodeKinds Gets the list of NodeKinds that the node (From ID) can adopt.
- * @param ID The ID of the parent Node
- * @return A list of all adoptable node kinds.
- */
-QStringList ModelController::getAdoptableNodeKinds(int ID)
-{
-    QStringList adoptableNodeKinds;
-    return adoptableNodeKinds;
-
-    lock_.lockForRead();
-    Node* parent = getNodeFromID(ID);
-
-    //Ignore all children for read only kind.
-    if(parent && !parent->isReadOnly()){
-
-        foreach(NODE_KIND nodeKind, entity_factory->getNodeKinds()){
-            auto node = entity_factory->createNode(nodeKind);
-            if(node){
-                if(parent->canAdoptChild(node)){
-                    adoptableNodeKinds.append(entity_factory->getNodeKindString(nodeKind));
-                }
-                //TODO DELETE FREE
-                //delete node;
-            }
-        }
-    }
-
-    lock_.unlock();
-    return adoptableNodeKinds;
-}
-
 
 QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind)
 {
@@ -1687,32 +1636,22 @@ QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edg
     return dstIDs;
 }
 
-QList<int> ModelController::getConstructableConnectableNodes(int parentID, QString instanceNodeKind, EDGE_KIND edgeClass)
+QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_KIND kind, EDGE_KIND edge_kind)
 {
-    QList<int> dstIDs;
+    QList<int> dst_ids;
 
-    lock_.lockForRead();
-    Node* parentNode = getNodeFromID(parentID);
-    Node* childNode = constructTypedNode(instanceNodeKind, true);
-
-
-    if(childNode && parentNode){
-        if(parentNode->addChild(childNode)){
-            QList<Node*> source;
-            source << childNode;
-
-            foreach(Node* dst, _getConnectableNodes(source, edgeClass)){
-                dstIDs.append(dst->getID());
-            }
+    QWriteLocker lock(&lock_);
+    auto parent_node = getNodeFromID(parentID);
+    auto child_node = construct_temp_node(parent_node, kind);
+    if(child_node){
+        for(auto dst : _getConnectableNodes(QList<Node*>{child_node}, edge_kind)){
+            dst_ids << dst->getID();
         }
-    }
-    if(childNode){
         //TODO DELETE FREE
-        //delete childNode;
+        //Free Memory
     }
 
-    lock_.unlock();
-    return dstIDs;
+    return dst_ids;
 }
 
 QList<Node *> ModelController::_getConnectableNodes(QList<Node *> sourceNodes, EDGE_KIND edgeKind)
@@ -2197,99 +2136,37 @@ void ModelController::removeGraphMLFromHash(int ID)
 }
 
 
-bool ModelController::attachChildNode(Node *parentNode, Node *node, bool sendGUIRequest)
+bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_view)
 {
-    bool inModel = _isInModel(node);
-
-    if(!inModel){
-        if(parentNode->addChild(node)){
-          
-            if(sendGUIRequest){
-                constructNodeGUI(node);
-            }
-        }else{
-            return false;
-
+    //attach
+    if(parentNode->addChild(node)){
+        if(notify_view){
+            constructNodeGUI(node);
         }
-    }else{
-        return node->getParentNode() == parentNode;
-    }
 
-    if(isUserAction()){
-        ReadOnlyState nodeState = getReadOnlyState(node);
+         if(isUserAction()){
+            qCritical() << "IS USER ACTION!";
+            ReadOnlyState nodeState = getReadOnlyState(node);
 
-        //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
-        foreach(Node* dependant, parentNode->getDependants()){
-            ReadOnlyState dependantState = getReadOnlyState(dependant);
-            if(nodeState.isValid() && dependantState.isValid()){
-                if(nodeState.snippetMAC == dependantState.snippetMAC && nodeState.snippetTime == dependantState.snippetTime){
-                    //If we have to construct into a read-only node which shares the same MAC and Time, assume the read only snippet contains an item in document, so don't autoconstruct.
-                    continue;
+            //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
+            foreach(Node* dependant, parentNode->getDependants()){
+                qCritical() << dependant->toString();
+                ReadOnlyState dependantState = getReadOnlyState(dependant);
+                if(nodeState.isValid() && dependantState.isValid()){
+                    if(nodeState.snippetMAC == dependantState.snippetMAC && nodeState.snippetTime == dependantState.snippetTime){
+                        //If we have to construct into a read-only node which shares the same MAC and Time, assume the read only snippet contains an item in document, so don't autoconstruct.
+                        continue;
+                    }
                 }
+                //Setup dependant
+                constructDependantRelative(dependant, node);
             }
-            constructDependantRelative(dependant, node);
-        }
+         }
+         return true;
     }
-
-    return true;
+    return false;
 }
 
-Node *ModelController::_constructNode(QList<Data *> nodeData)
-{
-    //Get the Kind from the data.
-    QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
-    QString childNodeType = getDataValueFromKeyName(nodeData, "type");
-
-    QString childUniqueID = getDataValueFromKeyName(nodeData, "label");;
-    if(childNodeKind.startsWith("Hardware")){
-        //Use the URL, but fall back on the label if nothing is in url
-        QString url = getDataValueFromKeyName(nodeData, "url");
-        if(url != ""){
-            childUniqueID = url;
-        }
-    }
-
-    //Construct a new Node
-    //Node* node = entity_factory->createNode(childNodeKind);
-
-    //Construct the node.
-    qCritical() << childNodeKind;
-    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childUniqueID);
-
-    //Enforce Default Data!
-    QList<Data*> requiredData;
-
-    bool inModel = false;
-    if(node){
-		inModel = node->isInModel();
-        requiredData = constructDataVector(childNodeKind);
-
-        //Attach Default Data.
-        _attachData(node, requiredData, inModel);
-
-        //Update Data with custom Data!
-        _attachData(node, nodeData, inModel);
-    }
-
-    //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
-    while(!requiredData.isEmpty()){
-        Data* data = requiredData.takeFirst();
-        if(!node || data->getParent() != node){
-            delete data;
-        }
-    }
-
-    //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
-    while(!nodeData.isEmpty()){
-        Data* data = nodeData.takeFirst();
-
-        if(!node || data->getParent() != node){
-            delete data;
-        }
-    }
-
-    return node;
-}
 
 bool ModelController::updateProgressNotification()
 {
@@ -2381,6 +2258,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
+    qCritical() << "Trying to make Dependant: " << definition->toString() << " " << entity_factory->getNodeKindString(dependant_kind);
 
     //For each child in parent, check to see if any Nodes match Label/Type
     foreach(Node* child, parent->getChildrenOfKind(dependant_kind, 0)){
@@ -3003,64 +2881,6 @@ QString ModelController::_copy(QList<Entity *> selection)
     return result;
 }
 
-Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QString nodeType, QString nodeLabel)
-{
-
-
-
-
-    bool storeNode = !isTemporary;
-    if(nodeKind == "Model"){
-        if(model){
-            return model;
-        }
-    }else if(nodeKind == "BehaviourDefinitions"){
-        if(behaviourDefinitions){
-            return behaviourDefinitions;
-        }
-    }else if(nodeKind == "InterfaceDefinitions"){
-        if(interfaceDefinitions){
-            return interfaceDefinitions;
-        }
-    }else if(nodeKind == "AssemblyDefinitions"){
-        if(assemblyDefinitions){
-            return assemblyDefinitions;
-        }
-    }else if(nodeKind == "HardwareDefinitions"){
-        if(hardwareDefinitions){
-            return hardwareDefinitions;
-        }
-    }else if(nodeKind == "DeploymentDefinitions"){
-        if(deploymentDefinitions){
-            return deploymentDefinitions;
-        }
-    }else if(nodeKind == "WorkerDefinitions"){
-        if(workerDefinitions){
-            return workerDefinitions;
-        }
-    }else if(nodeKind == "HardwareNode"){
-        if(hardwareEntities.contains(nodeLabel)){
-            return hardwareEntities[nodeLabel];
-        }else{
-            HardwareNode* hN = (HardwareNode*) entity_factory->createNode(nodeKind);
-            if(storeNode && nodeLabel != ""){
-                hardwareEntities[nodeLabel] = hN;
-            }
-            return hN;
-        }
-    }else if(nodeKind == "HardwareCluster"){
-        if(hardwareEntities.contains(nodeLabel)){
-            return hardwareEntities[nodeLabel];
-        }else{
-            HardwareCluster* hC = (HardwareCluster*) entity_factory->createNode(nodeKind);
-            if(storeNode && nodeLabel != ""){
-                hardwareEntities[nodeLabel] = hC;
-            }
-            return hC;
-        }
-    }
-    return entity_factory->createNode(nodeKind);
-}
 
 void ModelController::constructNodeGUI(Node *node)
 {
@@ -3141,76 +2961,78 @@ void ModelController::setupModel()
 
 
 
-void ModelController::bindData(Node *definition, Node *child)
+void ModelController::bindData(Node *defn, Node *child)
 {
-    if(!(definition && child)){
+    if(!defn || !child){
         return;
     }
 
-    Data* def_Type = definition->getData("type");
-    Data* def_Label = definition->getData("label");
-    Data* child_Type = child->getData("type");
-    Data* child_Label = child->getData("label");
-    Data* def_Key = definition->getData("key");
-    Data* child_Key = child->getData("key");
-    Data* def_Sort = definition->getData("sortOrder");
-    Data* child_Sort = child->getData("sortOrder");
-
-    QString childKind = child->getNodeKindStr();
-    bool bindTypes = true;
-    bool bindLabels = false;
-
-    bool bindSort = false;
-    if(child->getParentNode()->isInstance()){
-        bindSort = true;
+    qCritical() << "Getting Defintion Kind:";
+    auto defn_kind = defn->getNodeKind();
+    qCritical() << "Getting parent_kind Kind:";
+    auto parent_kind = NODE_KIND::NONE;
+    if(child->getParentNode()){
+        parent_kind = child->getParentNode()->getNodeKind();
     }
+    qCritical() << "Getting CHILD Kind:";
+    auto child_kind = child->getNodeKind();
 
-    if(!definition->getDefinition() && !def_Type){
-        bindTypes = false;
+    auto defn_type = defn->getData("type");
+    auto defn_label = defn->getData("label");
+    auto defn_key = defn->getData("key");
+    auto defn_index = defn->getData("index");
+
+    auto child_type = child->getData("type");
+    auto child_label = child->getData("label");
+    auto child_key = child->getData("key");
+    auto child_index = child->getData("index");
+
+    //We can't bind to any of these if they aren't set
+    bool bind_types = child_type;
+    bool bind_labels = child_label && defn_label;
+    bool bind_keys = child_key && defn_key;
+    bool bind_index = child_index && defn_index;
+
+    //The only time we should bind the index is when we are contained in another instance
+    if(!child->getParentNode()->isInstance()){
+        bind_index = false;
     }
-    if((child->isInstance() || child->isImpl()) || (def_Type && def_Label)){
-        if(child->getDataValue("kind") == "ComponentInstance" || child->getDataValue("kind") == "BlackBoxInstance"){
+    
+    if(child->isInstance() || child->isImpl()){
+        if(child_kind == NODE_KIND::COMPONENT_INSTANCE || child_kind == NODE_KIND::BLACKBOX_INSTANCE){
             //Allow ComponentInstance and BlackBoxInstance to have unique labels
-            bindLabels = false;
-        }else if(childKind == "AggregateInstance" || childKind == "VectorInstance"){
-            //Allow Aggregates to contain Aggregate Instances with unique labels
-            if(child->getParentNode()->getDataValue("kind") == "Aggregate"){
-                bindLabels = false;
-            }else{
-                bindLabels = true;
+            bind_labels = false;
+        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE){
+            if(parent_kind == NODE_KIND::AGGREGATE){
+                //Allow Aggregates to contain Aggregate Instances with unique labels
+                bind_labels = false;
             }
-        }else{
-            bindLabels = true;
+        }
+    }
 
+    //Bind Type to either Type or Label
+    
+    if(bind_types){
+        if(defn_type){
+            child_type->setParentData(defn_type);
+        }else if(defn_label){
+            child_type->setParentData(defn_label);
         }
     }
 
-    if(bindTypes){
-        child_Type->setParentData(def_Type);
-    }else{
-        child_Type->setParentData(def_Label);
-    }
-    child_Type->setProtected(true);
-
-    if(def_Key && child_Key){
-        child_Key->setParentData(def_Key);
+    //Bind label
+    if(bind_labels){
+        child_label->setParentData(defn_label);
     }
 
-    if(bindSort){
-        child_Sort->setParentData(def_Sort);
+    //Bind Keys
+    if(bind_keys){
+        child_key->setParentData(defn_key);
     }
 
-    if(bindLabels){
-        child_Label->setParentData(def_Label);
-    }else{
-        //Set the value.
-        if(child_Label->getValue().toString().startsWith(child->getDataValue("kind").toString())){
-            if(child->isImpl()){
-                _setData(child, "label", def_Label->getValue().toString() + "_Impl");
-            }else{
-                _setData(child, "label", def_Label->getValue().toString() + "_Inst");
-            }
-        }
+    //Bind Index
+    if(bind_index){
+        child_index->setParentData(defn_index);
     }
 }
 
@@ -3238,8 +3060,9 @@ void ModelController::unbindData(Node *definition, Node *instance)
  */
 bool ModelController::setupDependantRelationship(Node *definition, Node *node)
 {
+    qCritical() << "setupDependantRelationship()";
     //Got Aggregate Edge.
-    if(!(definition && node)){
+    if(!definition || !node){
         qCritical() << "setupDefinitionRelationship(): Definition or Node is NULL.";
         return false;
     }
@@ -3249,6 +3072,7 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
         //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
         foreach(Node* child, definition->getChildren(0)){
             if(child && child->isNodeOfType(NODE_TYPE::DEFINITION)){
+                qCritical() << "Instance Relationship: " << child->toString();
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDependantRelative(node, child);
 
@@ -3260,9 +3084,11 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
         }
     }
 
+    qCritical() << "BINDING";
     //Bind the un-protected Data attached to the Definition to the Instance.
     bindData(definition, node);
 
+    qCritical() << "BINDING";
     //Get Connecting Edge.
     Edge* edge = node->getEdgeTo(definition);
     Key* labelKey = constructKey("label", QVariant::String);
@@ -3273,6 +3099,7 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
         return false;
     }
 
+    qCritical() << "INSTANCE SETTING";
     if(node->isInstance()){
         definition->addInstance(node);
         definitionType = "Instance";
@@ -3288,6 +3115,7 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
         attachData(edge, label, false);
     }
 
+    qCritical() << "~setupDependantRelationship()";
     return true;
 }
 
@@ -3614,6 +3442,7 @@ void ModelController::constructEdgeGUI(Edge *edge)
     }
     EDGE_KIND edgeClass = edge->getEdgeKind();
 
+    
     switch(edgeClass){
     case EDGE_KIND::DEFINITION:{
         setupDependantRelationship(dst, src);
@@ -3921,26 +3750,24 @@ QList<NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
     QReadLocker lock(&lock_);
     QList<NODE_KIND> kinds;
 
-
     Node* parent = getNodeFromID(ID);
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
         for(auto node_kind: entity_factory->getNodeKinds()){
-            auto node = entity_factory->createNode(node_kind);
+            
+            auto node = entity_factory->createTempNode(node_kind);
             if(node){
                 if(parent->canAdoptChild(node)){
-                    kinds.append(node_kind);
+                    kinds << node_kind;
                 }
                 //Clean up memory.
                 //TODO DELETE FREE
                 //delete node;
-            }else{
-                qCritical() << "Broken Constructor: " << (int)node_kind;
-                qCritical() << "Node: " << entity_factory->getNodeKindString(node_kind);
             }
         }
     }
+
     return kinds;
 }
 
@@ -4193,8 +4020,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
             currentKind = GraphML::GK_DATA;
         }else if(tagName == "key"){
             currentKind = GraphML::GK_KEY;
-        }else if(tagName == "default"){
-            //TODO handle import of default.
         }
 
         if(xml.isStartElement()){
@@ -4248,7 +4073,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 QVariant::Type keyType = Key::getTypeFromGraphML(keyTypeStr);
 
                 Key* key = constructKey(keyName, keyType);
-                keyHash.insert(ID,key);
+                keyHash.insert(ID, key);
             }else if(currentKind == GraphML::GK_DATA){
                 QString keyID = getXMLAttribute(xml, "key");
                 Key* key = keyHash[keyID];
@@ -4409,17 +4234,20 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 if(parentEntity && parentEntity->gotActualID()){
                     //Get the parentNode
                     Node* parentNode = getNodeFromID(parentEntity->getActualID());
-
+                    
+                    NODE_KIND kind = entity_factory->getNodeKind(entity->getKind());
                     Node* newNode = 0;
 
                         //Don't attach model information for anything but Open
-                    if(!OPENING_PROJECT && entity->getKind() == "Model"){
+                    if(!OPENING_PROJECT && kind == NODE_KIND::MODEL){
                         newNode = getModel();
                         //Ignore the construction.
                         entity->setIgnoreConstruction();
                     }else{
-                        QList<Data*> dataList = entity->takeDataList();
-                        newNode = _constructNode(dataList);
+                        newNode = entity_factory->createNode(kind);
+                        if(newNode){
+                            _attachData(newNode, entity->takeDataList());
+                        }
                     }
 
                     if(!newNode){
@@ -4500,7 +4328,8 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 EDGE_KIND edgeClass = entity_factory->getEdgeKind(kind);
 
                 //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
-                if(edgeClass == EDGE_KIND::NONE || edgeClass == EDGE_KIND::NONE){
+                if(edgeClass == EDGE_KIND::NONE){
+                    qCritical() << "Trying Edges!";
                     foreach(EDGE_KIND ec, getPotentialEdgeClasses(src, dst)){
                         entity->appendEdgeKind(ec);
                     }
@@ -4512,13 +4341,13 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 					//Insert the item in the lookup
 					edgesMap.insertMulti(entity->getEdgeKind(), entity);
                 }else{
-                    QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
+                    QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". NO MORE KINDS.";
                     NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
                 }
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". Missing SRC/DST";
                 NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
 			}
         }

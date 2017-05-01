@@ -12,6 +12,7 @@ InEventPortImpl::InEventPortImpl(EntityFactory* factory) : EventPortImpl(factory
 InEventPortImpl::InEventPortImpl():EventPortImpl(NODE_KIND::INEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(false);
+    setDefinitionKind(NODE_KIND::INEVENTPORT);
 }
 
 bool InEventPortImpl::canAdoptChild(Node *child)

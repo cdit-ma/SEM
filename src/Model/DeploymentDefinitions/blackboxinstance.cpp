@@ -14,6 +14,8 @@ BlackBoxInstance::BlackBoxInstance():Node(NODE_KIND::BLACKBOX_INSTANCE)
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
+
+     setDefinitionKind(NODE_KIND::BLACKBOX);
 }
 
 bool BlackBoxInstance::canAdoptChild(Node *child)

@@ -20,7 +20,7 @@ public:
 
     ToolbarController(ViewController* viewController);
 
-    QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
+    QList<NodeViewItemAction*> getDefinitionNodeActions(NODE_KIND node_kind);
     QList<NodeViewItemAction*> getWorkerFunctions();
 
     NodeViewItemAction* getNodeAction(int ID);

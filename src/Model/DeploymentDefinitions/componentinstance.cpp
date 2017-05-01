@@ -16,6 +16,8 @@ ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
     setAcceptsEdgeKind(EDGE_KIND::QOS);
 
+    setDefinitionKind(NODE_KIND::COMPONENT);
+
     updateDefaultData("label", QVariant::String, false);
     updateDefaultData("type", QVariant::String, true);
 }

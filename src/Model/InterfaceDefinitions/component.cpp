@@ -11,6 +11,9 @@ Component::Component():Node(NODE_KIND::COMPONENT)
 {
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+
+    setInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
+    setImplKind(NODE_KIND::COMPONENT_IMPL);
 }
 
 bool Component::canAdoptChild(Node *child)

@@ -338,8 +338,9 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
             isDefinitionsDock = true;
+            NODE_KIND node_kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
             // get definitions list from controller
-            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
+            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(node_kind);
             populateDock(dockWidget, actions, true);
             break;
         }

@@ -18,6 +18,9 @@ Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
 
+    setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
+    
+
     connect(this, &Node::dataChanged, this, &Aggregate::updateType);
 }
 

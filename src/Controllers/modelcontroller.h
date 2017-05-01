@@ -240,16 +240,16 @@ public:
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
 
     QList<NODE_KIND> getAdoptableNodeKinds2(int ID);
-    QStringList getAdoptableNodeKinds(int ID);
+    
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
-    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, EDGE_KIND edgeClass);
 
     QList<int> getOrderedSelectionIDs(QList<int> selection);
 
     QList<int> getWorkerFunctions();
 
 
+    QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
     //NEW FUNCTIONS FRESHLY IMPLEMENTED WITH QREADLOCKER
     bool isNodeOfType(int ID, NODE_TYPE type);
     int getNodeParentID(int ID);
@@ -374,13 +374,10 @@ public slots:
     void setupController();
     void setData(int parentID, QString keyName, QVariant dataValue);
     void removeData(int parentID, QString keyName);
-private slots:
-    //New Slots
-    void sl_construct_node(int parent_id, NODE_KIND kind);
-    void sl_construct_connected_node(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind);
 
 private:
-    Node* construct_node(Node* parent_node, NODE_KIND kind);
+    Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
+    Node* construct_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
 
 private slots:
@@ -414,8 +411,8 @@ private slots:
 
 
 
-    void constructEdge(QList<int> srcIDs, int dstID,EDGE_KIND edgeClass);
-    void destructEdges(QList<int> srcIDs, int dstID,EDGE_KIND edgeClass);
+    void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
+    void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
 
     void constructDDSQOSProfile(int parentID, QPointF position);
     void constructForCondition(int parentID, QPointF position);
@@ -507,9 +504,8 @@ private:
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
 
-    bool attachChildNode(Node* parentNode, Node* childNode, bool sendGUIRequest = true);
 
-    Node* _constructNode(QList<Data*> data);
+    bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
     bool updateProgressNotification();
     QList<int> getIDs(QList<Entity*> items);
@@ -580,10 +576,7 @@ private:
 
 
     QPair<bool, QString> readFile(QString filePath);
-    Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
-
-    Node* constructTypedNode(NODE_KIND nodeKind, QString nodeType="", QString nodeLabel="");
-
+    
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);
     //bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);

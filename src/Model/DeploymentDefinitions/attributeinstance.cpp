@@ -15,6 +15,8 @@ AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)
 {
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    
+    setDefinitionKind(NODE_KIND::ATTRIBUTE);
 }
 
 bool AttributeInstance::canAdoptChild(Node*)

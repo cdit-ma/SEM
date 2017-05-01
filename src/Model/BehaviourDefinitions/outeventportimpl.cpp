@@ -12,6 +12,7 @@ OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : EventPortImpl(facto
 OutEventPortImpl::OutEventPortImpl():EventPortImpl(NODE_KIND::OUTEVENTPORT_IMPL){
     setWorkflowProducer(true);
     setWorkflowReciever(true);
+    setDefinitionKind(NODE_KIND::OUTEVENTPORT);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

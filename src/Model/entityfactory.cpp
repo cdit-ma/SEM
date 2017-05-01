@@ -113,14 +113,19 @@
 EntityFactory* EntityFactory::global_factory = 0;
 
 
+Node *EntityFactory::createTempNode(NODE_KIND nodeKind)
+{
+    return _createNode(nodeKind, false);
+}
+
 Node *EntityFactory::createNode(NODE_KIND nodeKind)
 {
-    return _createNode(nodeKind);
+    return _createNode(nodeKind, true);
 }
 
 Edge *EntityFactory::createEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
 {
-    return _createEdge(source, destination, edge_kind);
+    return _createEdge(source, destination, edge_kind, true);
 }
 
 
@@ -215,7 +220,10 @@ void EntityFactory::RegisterDefaultData(EDGE_KIND kind, QString key_name, QVaria
         if(data){
             //Update
             data->is_protected = is_protected;
-            data->value = value;
+
+            if(value.isValid()){
+                data->value = value;    
+            }
         }
     }
 }
@@ -239,7 +247,9 @@ void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVaria
         if(data){
             //Update
             data->is_protected = is_protected;
-            data->value = value;
+            if(value.isValid()){
+                data->value = value;    
+            }
         }
     }
 }
@@ -425,7 +435,7 @@ QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data){
     return data_list;
 }
 
-Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind)
+Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind, bool attach_data)
 {
     Edge* edge = 0;
 
@@ -433,7 +443,7 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
   
     if(edge_struct && edge_struct->constructor){
         edge = edge_struct->constructor(source, destination);
-        if(edge){
+        if(edge && attach_data){
             auto data = getDefaultData(edge_struct->default_data.values());
             edge->addData(data);
         }
@@ -442,14 +452,14 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
     return edge;
 }
 
-Node *EntityFactory::_createNode(NODE_KIND kind)
+Node *EntityFactory::_createNode(NODE_KIND kind, bool attach_data)
 {
     Node* node = 0;
     auto node_struct = getNodeStruct(kind);
 
     if(node_struct && node_struct->constructor){
         node = node_struct->constructor();
-        if(node){
+        if(node && attach_data){
             auto data = getDefaultData(node_struct->default_data.values());
             node->addData(data);
         }

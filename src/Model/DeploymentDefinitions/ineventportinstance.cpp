@@ -13,6 +13,8 @@ InEventPortInstance::InEventPortInstance():EventPortAssembly(NODE_KIND::INEVENTP
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::QOS);
     removeEdgeKind(EDGE_KIND::AGGREGATE);
+
+    setDefinitionKind(NODE_KIND::INEVENTPORT);
 }
 
 bool InEventPortInstance::canAdoptChild(Node*)

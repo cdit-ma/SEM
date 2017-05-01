@@ -35,7 +35,6 @@ public:
 
     bool hasChildNodes() const;
     QList<NodeItem*> getChildNodes() const;
-    QList<NodeItem*> getOrderedChildNodes() const;
     QList<EntityItem*> getChildEntities() const;
 
     QPainterPath getChildNodePath();

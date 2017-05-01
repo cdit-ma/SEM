@@ -1,7 +1,7 @@
 #include "indexkey.h"
 #include "../data.h"
 #include "../node.h"
-
+#include <QDebug>
 IndexKey::IndexKey(): Key("index", QVariant::Int){
 
 }   
@@ -16,14 +16,14 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
         node = (Node*) entity;
     }
     
-    //If its not attached to a node, the value is valid
+    //If its not attached to a node, the value is invalid
     if(!node){
-        return new_index;
+        return -1;
     }
 
     //Siblings are already in Index'd order
     auto siblings = node->getSiblings();
-    int old_index = node->getDataValue("index").toInt();
+    int old_index = data->getValue().toInt();
     int max_index = node->getSiblings().count();
 
     //Don't set Below 0
@@ -36,9 +36,8 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
         new_index = max_index;
     }
 
-    //Don't need to update
     if(new_index == old_index){
-        return old_index;
+        return new_index;
     }
     
     //Insert the node into the correct position
@@ -50,7 +49,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
         if(data){
             //Get the index the sibling node
             int current_index = data->getValue().toInt();
-            if(current_index != i){
+            if(current_index != i && sibling != node){
                 //Force the value as to not end up in recursion
                 forceDataValue(data, i);
             }
