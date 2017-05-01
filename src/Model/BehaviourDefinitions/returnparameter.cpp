@@ -6,7 +6,7 @@
 #include "../entityfactory.h"
 
 ReturnParameter::ReturnParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::RETURN_PARAMETER, "ReturnParameter"){
-	auto node_kind = NODE_KIND::INPUT_PARAMETER;
+	auto node_kind = NODE_KIND::RETURN_PARAMETER;
 	QString kind_string = "ReturnParameter";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ReturnParameter();});
 };

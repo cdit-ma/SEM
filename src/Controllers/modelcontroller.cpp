@@ -189,8 +189,8 @@ ModelController::ModelController() :QObject(0)
 }
 void ModelController::connectViewController(ViewController *view)
 {
-    connect(this, &ModelController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &ModelController::NodeConstructed, view, &ViewController::model_NodeConstructed);
+    connect(this, &ModelController::EdgeConstructed, view, &ViewController::model_EdgeConstructed);
 
     connect(this, &ModelController::entityDestructed, view, &ViewController::controller_entityDestructed);
     connect(view, &ViewController::vc_setupModel, this, &ModelController::setupController);
@@ -439,7 +439,7 @@ QString ModelController::_exportGraphMLDocument(QList<int> entityIDs, bool allEd
 
     //Export the XML for this node
     foreach(Key* key, containedKeys){
-        keyXML += key->toGraphML(2);
+        keyXML += key->toGraphML(1);
     }
 
     foreach(Node* node, topLevelNodes){
@@ -755,12 +755,17 @@ Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind){
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
     Node* source = construct_node(parent_node, node_kind);
     if(source){
+
         auto edge = entity_factory->createEdge(source, destination, edge_kind);
 
         if(!edge){
+            qCritical() << " NO EDGE :( ";
             //Free up memory
             //TODO ME<ORY
             source = 0;
+        }else{
+            constructNodeGUI(source);
+            constructEdgeGUI(edge);
         }
     }
     return source;
@@ -937,11 +942,8 @@ void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, i
     Node* dst = getNodeFromID(dstID);
 
     if(parent && dst){
+        triggerAction("Constructed Connected Node");
         auto node = construct_connected_node(parent, nodeKind, dst, edgeKind);
-        if(node){
-            triggerAction("Constructed Connected Node");
-            constructNodeGUI(node);
-        }
     }
     emit controller_ActionFinished();
 }
@@ -2102,25 +2104,9 @@ void ModelController::storeGraphMLInHash(Entity* item)
         if(entityKind == Entity::EK_NODE){
             //Construct Node
             emit NodeConstructed(node->getParentNodeID(), ID, node->getNodeKind());
-
-            properties["kind"] = QVariant::fromValue(node->getNodeKind());
-            properties["viewAspect"] = node->getViewAspect();
-            properties["treeIndex"] = node->getTreeIndexAlpha();
-            properties["parentID"] = node->getParentNodeID();
-            //properties["nodeTypes"] = node->getTypes();
-            properties["inModel"] = node->isInModel();
-
         }else if(entityKind == Entity::EK_EDGE){
             //Construct Node
             emit EdgeConstructed(ID, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());
-        }
-
-        properties["protectedKeys"] = item->getProtectedKeys();
-
-        ENTITY_KIND ek = EK_NODE;
-
-        if(item->isEdge()){
-            ek = EK_EDGE;
         }
 
         //emit entityConstructed(ID, ek, kind, data, properties);
@@ -3110,7 +3096,6 @@ void ModelController::constructNodeGUI(Node *node)
 
 void ModelController::setupModel()
 {
-
     //Construct the top level parents.
     model = (Model*) entity_factory->createNode(NODE_KIND::MODEL);
     workerDefinitions = entity_factory->createNode(NODE_KIND::WORKER_DEFINITIONS);
@@ -3136,7 +3121,7 @@ void ModelController::setupModel()
     localhostNode->setDataValue("ip_address", "127.0.0.1");
     localhostNode->setDataValue("os", getSysOS());
     localhostNode->setDataValue("os_version", getSysOSVersion());
-    localhostNode->setDataValue("label", getSysArch());
+    localhostNode->setDataValue("arch", getSysArch());
 
     //Protect the nodes
     protectedNodes << model;

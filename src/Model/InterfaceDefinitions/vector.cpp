@@ -17,6 +17,9 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
     setDataProducer(true);
     setDataReciever(true);
 
+   
+	setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
+
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);

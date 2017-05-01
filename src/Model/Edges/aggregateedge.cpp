@@ -1,5 +1,6 @@
 #include "aggregateedge.h"
 #include "../node.h"
+#include <QDebug>
 
 AggregateEdge::AggregateEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::AGGREGATE)
 {
@@ -17,7 +18,11 @@ AggregateEdge *AggregateEdge::ConstructEdge(Node *src, Node *dst)
     if(src && dst){
         if(src->canAcceptEdge(EDGE_KIND::AGGREGATE, dst)){
             edge = new AggregateEdge(src, dst);
+        }else{
+            qCritical() << "Cant accept edge!";
         }
+    }else{
+        qCritical() << "NO SRC/DST";
     }
     return edge;
 }

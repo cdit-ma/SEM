@@ -1154,20 +1154,53 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     //qCritical() << "Data for: " << ID << " KEY : " << key_name << " = " << data;
     return data;
 }
+
+void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
+    auto src = getNodeViewItem(src_id);
+    auto dst = getNodeViewItem(dst_id);
+    auto parent = getSharedParent(src, dst);
+    if(src && dst && parent){
+        auto edge = new EdgeViewItem(this, id, src, dst, kind);
+        
+        //Fill with Data
+        foreach(QString key, getEntityKeys(id)){
+            //qCritical() << "Updating Data: " << key;
+            edge->changeData(key, getEntityDataValue(id, key));
+        }
+
+        edgeKindLookups.insertMulti(kind, id);
+
+        if(parent){
+            parent->addChild(edge);
+        }else{
+            rootItem->addChild(edge);
+            topLevelItems.append(id);
+        }
+
+        src->addEdgeItem(edge);
+        dst->addEdgeItem(edge);
+
+         //Insert into map
+        viewItems[id] = edge;
+        setDefaultIcon(edge);
+
+        connect(edge->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+        //Tell Views
+        emit vc_viewItemConstructed(edge);
+    }
+}
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
 
     //Fill with Data
     foreach(QString key, getEntityKeys(id)){
-        qCritical() << "Updating Data: " << key;
+        //qCritical() << "Updating Data: " << key;
         item->changeData(key, getEntityDataValue(id, key));
     }
 
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
-
-    nodeKindLookups.insertMulti(kind, id);
     
     
     if(parent){
@@ -1176,88 +1209,14 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
         rootItem->addChild(item);
         topLevelItems.append(id);
     }
-
-    
+    nodeKindLookups.insertMulti(kind, id);
 
     //Insert into map
     viewItems[id] = item;
     setDefaultIcon(item);
-
-
     connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-
     //Tell Views
     emit vc_viewItemConstructed(item);
-}
-
-void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
-{
-    ViewItem* viewItem = 0;
-
-    if(eKind == EK_NODE){
-        NodeViewItem* nodeItem = new NodeViewItem(this, ID, eKind, kind, data, properties);
-        viewItem = nodeItem;
-        int parentID = nodeItem->getParentID();
-
-        ViewItem* parentItem = getViewItem(parentID);
-        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
-
-       // QString treeKey = nodeItem->getTreeIndex();
-
-        nodeKindLookups.insertMulti(nodeItem->getNodeKind(), ID);
-
-        //if(!treeLookup.contains(treeKey)){
-        //    treeLookup[treeKey] = ID;
-        //}
-
-        //Attach the node to it's parent
-        if(parentItem){
-            parentItem->addChild(nodeItem);
-        }else{
-            rootItem->addChild(nodeItem);
-            topLevelItems.append(ID);
-        }
-    }else if(eKind == EK_EDGE){
-        int srcID = properties["srcID"].toInt();
-        int dstID = properties["dstID"].toInt();
-        NodeViewItem* source = getNodeViewItem(srcID);
-        NodeViewItem* destination = getNodeViewItem(dstID);
-
-        NodeViewItem* parent = getSharedParent(source, destination);
-
-        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, source, destination, kind, data, properties);
-
-
-        edgeKindLookups.insertMulti(edgeItem->getEdgeKind(), ID);
-
-        if(parent){
-            parent->addChild(edgeItem);
-        }else{
-            qCritical() << "NO PARENT EDGE" << edgeItem;
-            rootItem->addChild(edgeItem);
-            topLevelItems.append(ID);
-        }
-
-        source->addEdgeItem(edgeItem);
-        destination->addEdgeItem(edgeItem);
-
-        viewItem = edgeItem;
-    }
-
-    if(viewItem){
-        viewItems[ID] = viewItem;
-        setDefaultIcon(viewItem);
-
-        //auto parent = viewItem->getParentItem();
-        //if(parent){
-        //    setDefaultIcon(parent);
-        //}
-
-        connect(viewItem->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-
-        //Tell Views
-        emit vc_viewItemConstructed(viewItem);
-    }
 }
 
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)

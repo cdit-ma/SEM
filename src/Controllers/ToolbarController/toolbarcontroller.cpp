@@ -10,6 +10,18 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
 {
     interfaceKinds << "BlackBox" << "Component" << "Aggregate" << "Vector" << "InEventPort" << "OutEventPort";
 
+    connectedNodeEdgeKinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
+
+    connectedNodeEdgeKinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+
     kindsWithSubActions << "BlackBoxInstance" << "ComponentInstance" << "ComponentImpl";
     kindsWithSubActions << "AggregateInstance" << "VectorInstance" << "InEventPort";
     kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
@@ -185,13 +197,12 @@ void ToolbarController::actionFinished()
     }
 }
 
-void ToolbarController::addChildNode(QString kind_str, QPointF position)
+void ToolbarController::addChildNode(NODE_KIND kind, QPointF position)
 {
     ViewItem* item = selectionController->getActiveSelectedItem();
 
     if(item){
         int ID = item->getID();
-        auto kind = EntityFactory::getNodeKind(kind_str);
         emit viewController->vc_constructNode(ID, kind, position);
     }
 }
@@ -212,13 +223,12 @@ void ToolbarController::removeEdge(int dstID, EDGE_KIND edgeKind)
     }
 }
 
-void ToolbarController::addConnectedChildNode(int dstID, QString kind_str, QPointF position)
+void ToolbarController::addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
-        auto kind = EntityFactory::getNodeKind(kind_str);
-
-        emit viewController->vc_constructConnectedNode(ID, kind,dstID, EDGE_KIND::NONE, position);
+        EDGE_KIND edge_kind = getNodesEdgeKind(kind);
+        emit viewController->vc_constructConnectedNode(ID, kind, dstID, edge_kind, position);
     }
 }
 
@@ -364,6 +374,13 @@ QStringList ToolbarController::getKindsRequiringSubActions()
     return kindsWithSubActions;
 }
 
+EDGE_KIND ToolbarController::getNodesEdgeKind(NODE_KIND kind){
+    if(connectedNodeEdgeKinds.contains(kind)){
+        qCritical() << "Got Edge Kind In lookup";
+        return connectedNodeEdgeKinds[kind];
+    }
+    return EDGE_KIND::NONE;
+}
 /**
  * @brief ToolActionController::setupNodeActions
  * Construct a RootAction for each node kind in the ViewController, it hashes them and puts them in adoptableKindsGroup

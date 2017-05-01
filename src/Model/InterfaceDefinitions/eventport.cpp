@@ -5,6 +5,7 @@
 #include "../entityfactory.h"
 
 EventPort::EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
 };
 
 EventPort::EventPort(NODE_KIND kind):Node(kind)

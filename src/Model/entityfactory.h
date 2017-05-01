@@ -58,12 +58,8 @@ protected:
     static EntityFactory* globalFactory();
     static EntityFactory* getNewFactory();
 
-    Node* createNode(QString nodeKind);
     Node* createNode(NODE_KIND nodeKind);
-
     Edge* createEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
-    Edge* createEdge(Node* source, Node* destination, QString kind);
-
 
 
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);

@@ -18,7 +18,6 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
-    ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ViewItem(ViewController* controller);
     ViewItem(ViewController* controller, int ID, ENTITY_KIND entity_kind);
     ~ViewItem();

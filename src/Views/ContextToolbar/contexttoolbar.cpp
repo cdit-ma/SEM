@@ -211,16 +211,22 @@ void ContextToolbar::addChildNode(QAction* action)
         return;
     }
 
-    QString kind = action->property("kind").toString();
+    QString kind_str = action->property("kind").toString();
 
     int ID = action->property("ID").toInt();
     QString parentKind = action->property("parent-kind").toString();
+
+    qCritical() << "parentKind: " << parentKind;
+    qCritical() << "kind: " << kind_str;
+
+    NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
 
     if (ID > 0 && !parentKind.isEmpty()) {
         if (parentKind == "WorkerProcess") {
             toolbarController->addWorkerProcess(ID, itemPos);
         } else {
-            toolbarController->addConnectedChildNode(ID, parentKind, itemPos);
+
+            toolbarController->addConnectedChildNode(ID, kind, itemPos);
         }
     } else {
         toolbarController->addChildNode(kind, itemPos);

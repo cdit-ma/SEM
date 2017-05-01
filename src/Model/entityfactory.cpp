@@ -113,21 +113,9 @@
 EntityFactory* EntityFactory::global_factory = 0;
 
 
-
-Node *EntityFactory::createNode(QString nodeKind)
-{
-    qCritical() << "Trying to create Node: " << nodeKind;
-    return createNode(getNodeKind(nodeKind));
-}
-
 Node *EntityFactory::createNode(NODE_KIND nodeKind)
 {
     return _createNode(nodeKind);
-}
-
-Edge *EntityFactory::createEdge(Node *source, Node *destination, QString edge_kind)
-{
-    return createEdge(source, destination, getEdgeKind(edge_kind));
 }
 
 Edge *EntityFactory::createEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
@@ -188,11 +176,10 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
 
         //Insert into our reverse lookup
         if(!node_kind_lookup.contains(kind_string)){
-            qCritical() << "Lookup: " << kind_string << " -> " << (int)kind;
             node_kind_lookup.insert(kind_string, kind);
         }
-    
-        qCritical() << "Registered Node: " << (int)kind << " " << kind_string << " " << (constructor != 0);
+        
+        qCritical() << "Registered Node: " << node_kind_lookup.size() << " " << kind_string << " " << (constructor ? "callable" : "not callable");
     }
 }
 
@@ -205,10 +192,9 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
 
         //Insert into our reverse lookup
         if(!edge_kind_lookup.contains(kind_string)){
-            qCritical() << "Lookup: " << kind_string << " -> " << (int)kind;
             edge_kind_lookup.insert(kind_string, kind);
         }
-        qCritical() << "Registered Edge: " << (int)kind << " " << kind_string << " " << (constructor != 0);
+        qCritical() << "Registered Edge: " << edge_kind_lookup.size() << " " << kind_string << " " << (constructor ? "callable" : "not callable");
     }
 }
 
@@ -390,7 +376,6 @@ EntityFactory *EntityFactory::getNewFactory()
 EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
     auto node = node_struct_lookup.value(kind, 0);
     if(!node){
-        qCritical() << "REGISTERED NODE KIND: " << (int)kind;
         node = new NodeLookupStruct();
         node->kind = kind;
         node_struct_lookup.insert(kind, node);
@@ -445,6 +430,7 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
     Edge* edge = 0;
 
     auto edge_struct = getEdgeStruct(kind);
+  
     if(edge_struct && edge_struct->constructor){
         edge = edge_struct->constructor(source, destination);
         if(edge){
@@ -453,9 +439,6 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
         }
     }
 
-    if(!edge){
-        qCritical() << "Edge Kind: " << getEdgeKindString(kind) << " Not Implemented!";
-    }
     return edge;
 }
 

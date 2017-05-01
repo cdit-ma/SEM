@@ -6,7 +6,7 @@ HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HA
 	QString kind_string = "HardwareNode";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareNode();});
 
-
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "architecture", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "ip_address", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "os", QVariant::String, true);

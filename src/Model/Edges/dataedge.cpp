@@ -6,7 +6,7 @@ DataEdge::DataEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::DATA)
 }
 
 DataEdge::DataEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::DATA, "Edge_Data"){
-    auto kind = EDGE_KIND::AGGREGATE;
+    auto kind = EDGE_KIND::DATA;
 	QString kind_string = "Edge_Data";
 	RegisterEdgeKind(factory, kind, kind_string, &DataEdge::ConstructEdge);
 }

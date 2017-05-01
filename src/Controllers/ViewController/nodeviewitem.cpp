@@ -5,14 +5,6 @@
 #include "../../Model/nodekinds.h"
 #include "../../Model/edgekinds.h"
 
-NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, entityKind, kind, data, properties)
-{
-    nodeKind = NODE_KIND::NONE;
-
-    if(properties.contains("kind")){
-        nodeKind = (NODE_KIND) properties["kind"].toInt();
-    }
-}
 
 NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller)
 {

@@ -9,6 +9,8 @@ InEventPort::InEventPort(EntityFactory* factory) : EventPort(factory, NODE_KIND:
 
 InEventPort::InEventPort():EventPort(NODE_KIND::INEVENTPORT)
 {
+	setImplKind(NODE_KIND::INEVENTPORT_IMPL);
+	setInstanceKind(NODE_KIND::INEVENTPORT_INSTANCE);
 }
 
 bool InEventPort::canAdoptChild(Node *child)

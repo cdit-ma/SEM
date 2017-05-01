@@ -6,6 +6,7 @@ AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory,
 	QString kind_string = "AggregateInstance";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AggregateInstance();});
 
+    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
 };
 AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)

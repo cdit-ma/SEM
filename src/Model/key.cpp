@@ -117,8 +117,8 @@ QString Key::toGraphML(int indent)
     QTextStream stream(&xml); 
 
     QString tab = QString("\t").repeated(indent);
-    stream << tab << "<key attr.name=\"" << getName() << "\" ";
-    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\" ";
+    stream << tab << "<key attr.name=\"" << getName() << "\"";
+    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
     stream << " id=\"" << getID()<< "\"/>\n";
     return xml;
 }

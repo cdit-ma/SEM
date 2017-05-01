@@ -25,7 +25,7 @@ public:
 
     NodeViewItemAction* getNodeAction(int ID);
 
-
+    EDGE_KIND getNodesEdgeKind(NODE_KIND kind);
     QList<NodeViewItemAction*> getEdgeActionsOfKind(EDGE_KIND kind);
     QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(EDGE_KIND kind);
 
@@ -45,10 +45,10 @@ public:
     
     QString getInfoActionKeyForAdoptableKind(QString kind);
 
-    void addChildNode(QString kind, QPointF position);
+    void addChildNode(NODE_KIND kind, QPointF position);
     void addEdge(int dstID, EDGE_KIND edgeKind);
     void removeEdge(int dstID, EDGE_KIND edgeKind);
-    void addConnectedChildNode(int dstID, QString kind, QPointF position);
+    void addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 
     bool requiresSubAction(NODE_KIND kind);
@@ -82,7 +82,7 @@ private:
     QHash<NODE_KIND, RootAction*> nodeKindActions;
     QHash<EDGE_KIND, RootAction*> connectEdgeKindActions;
     QHash<EDGE_KIND, RootAction*> disconnectEdgeKindActions;
-
+    QHash<NODE_KIND, EDGE_KIND> connectedNodeEdgeKinds;
     QList<int> hardwareIDs;
     QList<int> workerProcessIDs;
 

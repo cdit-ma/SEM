@@ -136,15 +136,17 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
                 openRequiredDock(definitionsDock);
             }
         } else {
-            toolActionController->addChildNode(triggeredAdoptableKind, QPoint(0,0));
+            NODE_KIND kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
+            toolActionController->addChildNode(kind, QPoint(0,0));
         }
         break;
     }
     case ToolbarController::DEFINITIONS:
     {
-        QVariant ID = action->getProperty("ID");
-        QVariant parentKind = action->getProperty("parent-kind");
-        toolActionController->addConnectedChildNode(ID.toInt(), parentKind.toString(), QPointF());
+        auto id = action->getProperty("ID").toInt();
+        auto kind_str = action->getProperty("parent-kind").toString();
+        NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
+        toolActionController->addConnectedChildNode(id, kind, QPointF());
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;

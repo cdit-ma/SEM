@@ -9,7 +9,8 @@ OutEventPort::OutEventPort(EntityFactory* factory) : EventPort(factory, NODE_KIN
 
 OutEventPort::OutEventPort():EventPort(NODE_KIND::OUTEVENTPORT)
 {
-	
+	setImplKind(NODE_KIND::OUTEVENTPORT_IMPL);
+	setInstanceKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
 }
 
 bool OutEventPort::canAdoptChild(Node *child)

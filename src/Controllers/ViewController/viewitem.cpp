@@ -5,23 +5,6 @@
 #include <QDebug>
 #include <QStack>
 
-ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
-{
-    this->controller = controller;
-    this->ID = ID;
-    this->kind = kind;
-    this->entityKind = entityKind;
-    _data = dataList;
-    _properties = properties;
-    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
-
-    //Set the default icon.
-    defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
-    currentIcon = defaultIcon;
-    _parent = 0 ;
-    tableModel = new DataTableModel(this);
-}
-
 ViewItem::ViewItem(ViewController *controller)
 {
     this->controller = controller;
@@ -35,6 +18,8 @@ ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entity_kind)
     this->controller = controller;
     this->ID = ID;
     this->entityKind = entity_kind;
+
+    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
     _parent = 0 ;
     tableModel = new DataTableModel(this);;
 }

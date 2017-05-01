@@ -47,7 +47,7 @@ Node::Node(EntityFactory* factory, NODE_KIND kind, QString kind_string):Entity(E
     //Register kind, label and index as required data
     RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
     RegisterDefaultData(factory, kind, "label", QVariant::String, false, kind_string);
-    RegisterDefaultData(factory, kind, "index", QVariant::Int, false, -1);
+    RegisterDefaultData(factory, kind, "index", QVariant::Int, true, -1);
 }
 
 QString Node::toGraphML(int indentDepth)
