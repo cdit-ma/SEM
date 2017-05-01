@@ -12,19 +12,28 @@
 enum class NODE_TYPE;
 enum class NODE_KIND;
 
+class EntityFactory;
 class Node : public Entity
 {
     Q_OBJECT
 
     friend class Edge;
     friend class EntityFactory;
-public:
     
-    
+    public:
 
     protected:
+        static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+        static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
+        static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
+
+
         //Constuctor
         Node(NODE_KIND kind);
+
+        //Entity Factory Constructor
+        Node(EntityFactory* factory, NODE_KIND kind, QString kind_string);
+
 
         void addValidValue(QString key_name, QVariant value);
         void addValidValues(QString key_name, QList<QVariant> values);
@@ -148,8 +157,8 @@ private:
     QString treeIndexString;
     int childCount;
 
-    Node* parentNode;
-    Node* definition;
+    Node* parentNode = 0;
+    Node* definition = 0;;
 
     NODE_KIND nodeKind;
     NODE_TYPE nodeType;

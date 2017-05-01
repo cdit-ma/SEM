@@ -9,18 +9,40 @@
 #include "nodekinds.h"
 #include "entityfactory.h"
 
-Node::Node(NODE_KIND kind):Entity(EK_NODE)
+Node::Node(NODE_KIND node_kind):Entity(EK_NODE)
 {
-    //Set Kind
-    updateDefaultData("kind", QVariant::String, true, EntityFactory::getNodeKindString(kind));
-    updateDefaultData("label", QVariant::String, false, EntityFactory::getNodeKindString(kind));
-    updateDefaultData("sortOrder", QVariant::Int, false, -1);
-    this->nodeKind = kind;
-
+    nodeKind = node_kind;
     parentNode = 0;
     childCount = 0;
     definition = 0;
     aspect = VA_NONE;
+}
+
+
+void Node::RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
+    if(factory){
+        factory->RegisterNodeKind(kind, kind_string, constructor);
+    }
+}
+
+void Node::RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
+    if(factory){
+        factory->RegisterDefaultData(kind, key_name, type, is_protected, value);
+    }
+}
+
+void Node::RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
+    if(factory){
+        factory->RegisterValidDataValues(kind, key_name, type, values);
+    }
+}
+
+
+Node::Node(EntityFactory* factory, NODE_KIND kind, QString kind_string):Entity(EK_NODE){
+    //Register kind, label and index as required data
+    RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
+    RegisterDefaultData(factory, kind, "label", QVariant::String, false, kind_string);
+    RegisterDefaultData(factory, kind, "index", QVariant::Int, false, -1);
 }
 
 QString Node::toGraphML(int indentDepth)
@@ -621,6 +643,7 @@ void Node::addValidValues(QString key_name, QList<QVariant> values){
 QStringList Node::getValidValueKeys(){
     return valid_values_.uniqueKeys();
 }
+
 QList<QVariant> Node::getValidValues(QString key_name){
     return valid_values_.values(key_name);
 }

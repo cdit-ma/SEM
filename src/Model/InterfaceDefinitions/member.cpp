@@ -13,12 +13,12 @@ Member::Member(): Node(NODE_KIND::MEMBER)
     types << "Double";
     types << "Float";
     types << "Character";
-    addValidValues("type", types);
 
+    addValidValues("type", types);
     updateDefaultData("type", QVariant::String, false, "String");
     updateDefaultData("key", QVariant::Bool, false, false);
-
 }
+
 
 bool Member::canAdoptChild(Node*)
 {

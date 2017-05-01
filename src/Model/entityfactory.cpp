@@ -176,9 +176,66 @@ Edge::EDGE_KIND EntityFactory::getEdgeKind(QString kind)
     return globalFactory()->edgeKindLookup.value(kind, Edge::EC_NONE);
 }
 
+void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
+    //TODO
+    auto node = nodeLookup.value(kind, 0);
+    if(!node){
+        node = new NodeLookupStruct();
+        node->kind = kind;
+        node->kind_str = kind_string;
+        node->constructor = constructor;
+
+        //Insert into our lookup
+        nodeLookup.insert(kind, node);
+
+        //Insert into our reverse lookup
+        if(!nodeKindLookup.contains(kind_string)){
+            nodeKindLookup.insert(kind_string, kind);
+        }
+    }
+}
+
+void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
+    auto node = nodeLookup.value(kind, 0);
+    if(node){
+        auto data = node->default_data.value(key_name, 0);
+        if(!data){
+            //Construct and insert a new default data
+            data = new DefaultDataStruct();
+            data->key_name = key_name;
+            data->type = type;
+            //Insert
+            node->default_data.insert(key_name, data);
+        }
+
+        //Update the default data map
+        if(data){
+            //Update
+            data->is_protected = is_protected;
+            data->value = value;
+        }
+    }else{
+        qCritical() << "NO NODE!";
+    }
+}
+void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
+    //Register the valid values to the key
+    auto key = GetKey(key_name, type);
+    if(key){
+        //Register the values
+        key->addValidValues(values, kind);
+    }
+}   
 
 EntityFactory::EntityFactory()
 {
+    //Setup node kinds
+
+    //
+    //new Model(this);
+
+
+    
     //Aspects
     addNodeKind(NODE_KIND::MODEL, "Model", [](){return new Model();});
     addNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS, "BehaviourDefinitions", [](){return new BehaviourDefinitions();});

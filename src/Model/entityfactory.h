@@ -14,16 +14,27 @@ class EntityFactory
 {
 private:
     friend class ModelController;
+    friend class Node;
+    struct DefaultDataStruct{
+        QString key_name;
+        QVariant::Type type;
+        bool is_protected;
+        QVariant value;
+    };
+
     struct NodeLookupStruct{
         NODE_KIND kind;
         QString kind_str;
         std::function<Node* ()> constructor;
+        QHash<QString, DefaultDataStruct*> default_data;
         Node* node = 0;
     };
+
     struct EdgeLookupStruct{
         Edge::EDGE_KIND kind;
         QString kind_str;
         std::function<Edge* (Node*, Node*)> constructor;
+        QHash<QString, DefaultDataStruct*> default_data;
         Edge* edge = 0;
     };
 
@@ -48,6 +59,13 @@ protected:
 
     Edge* createEdge(Node* source, Node* destination, Edge::EDGE_KIND edgeKind);
     Edge* createEdge(Node* source, Node* destination, QString kind);
+
+
+
+    void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+    void RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
+    void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
+
 protected:
     EntityFactory();
     ~EntityFactory();
