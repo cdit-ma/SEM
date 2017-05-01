@@ -34,14 +34,14 @@ bool Variable::canAdoptChild(Node* child)
     return DataNode::canAdoptChild(child);
 }
 
-bool Variable::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Variable::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_DATA:{
+    case EDGE_KIND::DATA:{
         if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
             return false;
         }

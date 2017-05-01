@@ -10,7 +10,7 @@ Component::Component(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONEN
 Component::Component():Node(NODE_KIND::COMPONENT)
 {
     setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 }
 
 bool Component::canAdoptChild(Node *child)
@@ -26,7 +26,7 @@ bool Component::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Component::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool Component::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

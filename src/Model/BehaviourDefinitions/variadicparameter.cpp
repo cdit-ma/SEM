@@ -21,7 +21,7 @@ bool VariadicParameter::canAdoptChild(Node *)
     return false;
 }
 
-bool VariadicParameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool VariadicParameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return Parameter::canAcceptEdge(edgeKind, dst);
 }

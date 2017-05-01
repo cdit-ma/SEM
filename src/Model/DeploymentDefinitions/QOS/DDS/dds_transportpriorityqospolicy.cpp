@@ -21,7 +21,7 @@ bool DDS_TransportPriorityQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_TransportPriorityQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_TransportPriorityQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

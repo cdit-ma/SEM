@@ -24,7 +24,7 @@ bool ForCondition::canAdoptChild(Node* child)
     return Node::canAdoptChild(child);
 }
 
-bool ForCondition::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool ForCondition::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return Condition::canAcceptEdge(edgeKind, dst);
 }

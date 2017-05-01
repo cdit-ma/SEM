@@ -1,6 +1,7 @@
 #include "node.h"
 #include "data.h"
 #include "edge.h"
+#include <algorithm>
 #include <QDebug>
 #include <QCryptographicHash>
 #include <QStringBuilder>
@@ -16,6 +17,10 @@ Node::Node(NODE_KIND node_kind):Entity(EK_NODE)
     childCount = 0;
     definition = 0;
     aspect = VA_NONE;
+
+    definition_kind_ = NODE_KIND::NONE;
+    instance_kind_ = NODE_KIND::NONE;
+    impl_kind_ = NODE_KIND::NONE;
 }
 
 
@@ -88,7 +93,7 @@ Node::~Node()
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
  */
-bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
@@ -96,7 +101,7 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
     Node* parentNode = getParentNode();
     switch(edgeKind){
-        case Edge::EC_DEFINITION:{
+        case EDGE_KIND::DEFINITION:{
         //This must be an Instance/Impl Node Type
         if(!(isInstanceImpl())){
             return false;
@@ -134,8 +139,8 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
         break;
     }
-    case Edge::EC_WORKFLOW:
-    case Edge::EC_DATA:{
+    case EDGE_KIND::WORKFLOW:
+    case EDGE_KIND::DATA:{
         int depthToAspect = getDepthFromAspect();
         int depthToCommonParent = getDepthFromCommonAncestor(dst);
 
@@ -144,13 +149,13 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         }
         break;
     }
-    case Edge::EC_QOS:{
+    case EDGE_KIND::QOS:{
         if(!dst->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
             return false;
         }
         break;
     }
-    case Edge::EC_DEPLOYMENT:{
+    case EDGE_KIND::DEPLOYMENT:{
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
         }
@@ -183,16 +188,16 @@ bool Node::isNodeOfType(NODE_TYPE type) const
     return types.contains(type);
 }
 
-bool Node::acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const
+bool Node::acceptsEdgeKind(EDGE_KIND edgeKind) const
 {
     return validEdgeKinds.contains(edgeKind);
 }
 
-bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
+bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
 {
     if(validEdgeKinds.contains(edgeKind)){
         switch(edgeKind){
-        case Edge::EC_DEFINITION:{
+        case EDGE_KIND::DEFINITION:{
             if(definition){
                 return false;
             }
@@ -202,16 +207,16 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
             }
             break;
         }
-        case Edge::EC_ASSEMBLY:
+        case EDGE_KIND::ASSEMBLY:
             //Can always have more assembly edges
             return true;
-        case Edge::EC_WORKFLOW:
+        case EDGE_KIND::WORKFLOW:
             //Handled by BehaviourNode
             return true;
-        case Edge::EC_DEPLOYMENT:
+        case EDGE_KIND::DEPLOYMENT:
             return true;
-        case Edge::EC_AGGREGATE:
-        case Edge::EC_QOS:{
+        case EDGE_KIND::AGGREGATE:
+        case EDGE_KIND::QOS:{
             foreach(Edge* edge, edges.values(edgeKind)){
                 if(edge->getSource() == this){
                     return false;
@@ -219,7 +224,7 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
             }
             break;
         }
-        case Edge::EC_DATA:{
+        case EDGE_KIND::DATA:{
             if(getViewAspect() == VA_BEHAVIOUR){
                 return true;
             }else{
@@ -234,7 +239,7 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
     return false;
 }
 
-QList<Edge::EDGE_KIND> Node::getAcceptedEdgeKinds() const
+QList<EDGE_KIND> Node::getAcceptedEdgeKinds() const
 {
     return validEdgeKinds;
 }
@@ -249,14 +254,14 @@ void Node::removeNodeType(NODE_TYPE type)
     types.remove(type);
 }
 
-void Node::setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind)
+void Node::setAcceptsEdgeKind(EDGE_KIND edgeKind)
 {
     if(!validEdgeKinds.contains(edgeKind)){
         validEdgeKinds.append(edgeKind);
     }
 }
 
-void Node::removeEdgeKind(Edge::EDGE_KIND edgeKind)
+void Node::removeEdgeKind(EDGE_KIND edgeKind)
 {
     validEdgeKinds.removeAll(edgeKind);
 }
@@ -471,7 +476,7 @@ bool Node::containsChild(Node *child)
     return children.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth) const
+QList<Node *> Node::getChildren(int depth)
 {
     QList<Node *> childList = getOrderedChildNodes();
 
@@ -499,11 +504,11 @@ QList<int> Node::getChildrenIDs(int depth)
 
 
 
-QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind) const
+QList<Edge *> Node::getEdges(int depth, EDGE_KIND edgeKind)
 {
     QList<Edge*> edgesToMap;
 
-    if(edgeKind == Edge::EC_NONE){
+    if(edgeKind == EDGE_KIND::NONE){
         edgesToMap += edges.values();
     }else{
         edgesToMap += edges.values(edgeKind);
@@ -521,7 +526,7 @@ QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind) const
         }
     }
 
-    QMap<Edge::EDGE_KIND, Edge *> edgeMap;
+    QMap<EDGE_KIND, Edge *> edgeMap;
     foreach(Edge* edge, edgesToMap){
         edgeMap.insertMulti(edge->getEdgeKind(), edge);
     }
@@ -575,11 +580,11 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
     return returnableList;
 }
 
-QList<int> Node::getEdgeIDs(Edge::EDGE_KIND edgeClass)
+QList<int> Node::getEdgeIDs(EDGE_KIND edgeClass)
 {
     QList<int> returnable;
     foreach(Edge* edge, getEdges(0)){
-        if(edgeClass == Edge::EC_NONE || edge->getEdgeKind() == edgeClass){
+        if(edgeClass == EDGE_KIND::NONE || edge->getEdgeKind() == edgeClass){
             returnable += edge->getID();
         }
     }
@@ -709,10 +714,10 @@ bool Node::isDescendantOf(Node *node)
 
 
 
-Edge* Node::getEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
+Edge* Node::getEdgeTo(Node *node, EDGE_KIND edgeKind)
 {
     foreach(Edge* edge, getEdges(0, edgeKind)){
-        if(edge->contains(node)){
+        if(edge->isConnected(node)){
             return edge;
         }
     }
@@ -720,7 +725,7 @@ Edge* Node::getEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
 }
 
 
-bool Node::gotEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
+bool Node::gotEdgeTo(Node *node, EDGE_KIND edgeKind)
 {
     return getEdgeTo(node, edgeKind) != 0;
 }
@@ -876,7 +881,7 @@ QList<Node *> Node::getImplementations() const
     return implementations;
 }
 
-QList<Node *> Node::getNestedDependants() const
+QList<Node *> Node::getNestedDependants()
 {
     QList<Node*> nodes;
     foreach(Node* child, getChildren(0)){
@@ -949,53 +954,60 @@ void Node::setParentNode(Node *parent, int index)
     }
 }
 
-QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)
+QString Node::_toGraphML(int indent, bool ignoreVisuals)
 {
-    QString tab("\t");
-    //Construct the desired tab width.
-    QString indent = tab.repeated(indentDepth);
-
     QString xml;
-    xml += indent;
-    xml += indent + QString("<node id =\"%1\">\n").arg(getID());
+    QTextStream stream(&xml); 
 
+    QString tab = QString("\t").repeated(indent);
+    stream << tab << "<node id=\"" << getID() << "\">\n";
+    
+    for(auto data : getData()){
+        stream << data->toGraphML(indent + 1);
+    }
 
-    foreach(Data* data, getData()){
-        if(data->isVisualData() && ignoreVisuals){
-            if(data->getKeyName() != "readOnly"){
-                //Skip Visual data.
-                continue;
-            }
+    //Children are in a <graph>
+    if(hasChildren()){
+        stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
+        for(auto child : getChildren(0)){
+            stream << child->toGraphML(indent + 2);
         }
-        xml += data->toGraphML(indentDepth + 1);
+        stream << tab << "\t</graph>\n";
     }
 
-    if(childrenCount() > 0){
-        xml += indent;
-        xml += QString("\t<graph id =\"g%1\">\n").arg(getID());
-    }
-
-    foreach(Node* child, getChildren(0)){
-        xml += child->toGraphML(indentDepth + 2);
-    }
-
-    if(childrenCount() > 0){
-        xml += indent;
-        xml += QString("\t</graph>\n");
-    }
-    xml += indent;
-    xml += "</node>\n";
-
+    stream <<  tab << "</node>\n";
     return xml;
 }
 
-QList<Node *> Node::getOrderedChildNodes() const
+QList<Node *> Node::getOrderedChildNodes()
 {
-    QMap<int, Node*> orderedList;
+    std::sort(children.begin(), children.end(), [](const Node* a, const Node* b){
+        auto a_ind = a->getDataValue("index").toInt();
+        auto b_ind = b->getDataValue("index").toInt();
+        return a_ind > b_ind;
+        });
+    return children;
+}
 
-    foreach(Node* child, children){
-        int sortID = child->getDataValue("index").toInt();
-        orderedList.insertMulti(sortID, child);
-    }
-    return orderedList.values();
+void Node::setInstanceKind(NODE_KIND kind){
+    instance_kind_ = kind;
+}
+
+void Node::setDefinitionKind(NODE_KIND kind){
+    definition_kind_ = kind;
+}
+void Node::setImplKind(NODE_KIND kind){
+    impl_kind_ = kind;
+}
+
+NODE_KIND Node::getInstanceKind() const{
+    return instance_kind_;
+}
+
+NODE_KIND Node::getDefinitionKind() const{
+    return definition_kind_;
+}
+
+NODE_KIND Node::getImplKind() const{
+    return impl_kind_;
 }

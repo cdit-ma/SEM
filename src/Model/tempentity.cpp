@@ -129,19 +129,19 @@ void TempEntity::setActualID(int ID)
     actualID = ID;
 }
 
-void TempEntity::appendEdgeKind(Edge::EDGE_KIND edgeKind)
+void TempEntity::appendEdgeKind(EDGE_KIND edgeKind)
 {
     if(!edgeKinds.contains(edgeKind)){
         edgeKinds.append(edgeKind);
     }
 }
 
-void TempEntity::removeEdgeKind(Edge::EDGE_KIND edgeKind)
+void TempEntity::removeEdgeKind(EDGE_KIND edgeKind)
 {
     edgeKinds.removeAll(edgeKind);
 }
 
-Edge::EDGE_KIND TempEntity::getEdgeKind()
+EDGE_KIND TempEntity::getEdgeKind()
 {
     return edgeKinds.first();
 }

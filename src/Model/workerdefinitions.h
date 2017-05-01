@@ -15,7 +15,7 @@ public:
     VIEW_ASPECT getViewAspect() const;
 
     bool canAdoptChild(Node *node);
-    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // WORKERDEFINITIONS_H

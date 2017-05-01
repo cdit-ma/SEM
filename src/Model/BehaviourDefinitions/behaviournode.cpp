@@ -13,7 +13,7 @@ BehaviourNode::BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kin
 BehaviourNode::BehaviourNode(NODE_KIND kind) : Node(kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR);
-    setAcceptsEdgeKind(Edge::EC_WORKFLOW);
+    setAcceptsEdgeKind(EDGE_KIND::WORKFLOW);
     _isProducer = false;
     _isReciever = false;
 }
@@ -38,12 +38,12 @@ bool BehaviourNode::isWorkflowReciever() const
     return _isReciever;
 }
 
-BehaviourNode *BehaviourNode::getProducerNode() const
+BehaviourNode *BehaviourNode::getProducerNode()
 {
     if(isWorkflowReciever()){
         //Find Reciving edge;
         BehaviourNode* node = 0;
-        foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
+        foreach(Edge* edge, getEdges(0, EDGE_KIND::WORKFLOW)){
             if(edge->getDestination() == this){
                 BehaviourNode* source = (BehaviourNode*)edge->getSource();
                 if(!node){
@@ -59,12 +59,12 @@ BehaviourNode *BehaviourNode::getProducerNode() const
     return 0;
 }
 
-QList<BehaviourNode *> BehaviourNode::getRecieverNodes() const
+QList<BehaviourNode *> BehaviourNode::getRecieverNodes()
 {
     QList<BehaviourNode*> nodes;
 
     //Find Recieving edge;
-    foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
+    foreach(Edge* edge, getEdges(0, EDGE_KIND::WORKFLOW)){
         if(edge->getSource() == this){
             nodes.append((BehaviourNode*)edge->getDestination());
         }
@@ -129,14 +129,14 @@ bool BehaviourNode::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
+bool BehaviourNode::canAcceptEdge(EDGE_KIND edgeClass, Node *dst)
 {
     if(!acceptsEdgeKind(edgeClass)){
         return false;
     }
 
     switch(edgeClass){
-    case Edge::EC_WORKFLOW:{
+    case EDGE_KIND::WORKFLOW:{
         if(!dst->isNodeOfType(NODE_TYPE::BEHAVIOUR)){
             return false;
         }
@@ -203,11 +203,11 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
     return Node::canAcceptEdge(edgeClass, dst);
 }
 
-bool BehaviourNode::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
+bool BehaviourNode::requiresEdgeKind(EDGE_KIND edgeKind)
 {
     if(getAcceptedEdgeKinds().contains(edgeKind)){
         switch(edgeKind){
-        case Edge::EC_WORKFLOW:{
+        case EDGE_KIND::WORKFLOW:{
             bool needOutput = isWorkflowProducer() && getRecieverNodes().isEmpty();
             bool needInput = isWorkflowReciever() && !getProducerNode();
             if(!needOutput && !needInput){

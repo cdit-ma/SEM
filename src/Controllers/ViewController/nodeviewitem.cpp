@@ -2,6 +2,8 @@
 #include "edgeviewitem.h"
 #include <QDebug>
 #include "viewcontroller.h"
+#include "../../Model/nodekinds.h"
+#include "../../Model/edgekinds.h"
 
 NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, entityKind, kind, data, properties)
 {
@@ -68,7 +70,7 @@ bool NodeViewItem::isNodeOfType(NODE_TYPE type)
 void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
 {
     if(edge){
-        Edge::EDGE_KIND kind = edge->getEdgeKind();
+        EDGE_KIND kind = edge->getEdgeKind();
         if(!edges.contains(kind, edge)){
             //this->registerObject(edge);
             edges.insertMulti(kind, edge);
@@ -80,7 +82,7 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
 void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
 {
     if(edge){
-        Edge::EDGE_KIND kind = edge->getEdgeKind();
+        EDGE_KIND kind = edge->getEdgeKind();
         if(edges.contains(kind, edge)){
             edges.remove(kind, edge);
             //this->unregisterObject(edge);
@@ -90,14 +92,19 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
     }
 }
 
-QList<EdgeViewItem *> NodeViewItem::getEdges(Edge::EDGE_KIND edgeKind) const
+QList<EdgeViewItem *> NodeViewItem::getEdges() const
 {
-    return edgeKind == Edge::EC_NONE ? edges.values() : edges.values(edgeKind);
+    return edges.values();
 }
 
-bool NodeViewItem::gotEdge(Edge::EDGE_KIND edgeKind) const
+QList<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edgeKind) const
 {
-    return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : !edges.values(edgeKind).isEmpty();
+    return edgeKind == EDGE_KIND::NONE ? edges.values() : edges.values(edgeKind);
+}
+
+bool NodeViewItem::gotEdge(EDGE_KIND edgeKind) const
+{
+    return edgeKind == EDGE_KIND::NONE ? !edges.values().isEmpty() : !edges.values(edgeKind).isEmpty();
 }
 
 

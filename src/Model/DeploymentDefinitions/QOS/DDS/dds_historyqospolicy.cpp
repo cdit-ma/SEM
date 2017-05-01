@@ -26,7 +26,7 @@ bool DDS_HistoryQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_HistoryQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_HistoryQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

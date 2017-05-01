@@ -160,10 +160,10 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     case ToolbarController::HARDWARE:
     {
         int ID = action->getProperty("ID").toInt();
-        toolActionController->removeEdge(-1, Edge::EC_DEPLOYMENT);
+        toolActionController->removeEdge(-1, EDGE_KIND::DEPLOYMENT);
 
         if(!action->isHighlighted()){
-            toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
+            toolActionController->addEdge(ID, EDGE_KIND::DEPLOYMENT);
         }
         break;
     }
@@ -451,7 +451,7 @@ void DockTabWidget::refreshDock(DockWidget* dockWidget)
         }
     } else {
         // update hardware dock; update highlighted dock item
-        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
+        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(EDGE_KIND::DEPLOYMENT);
         // clear previous highlighted item
         hardwareDock->highlightItem();
         if (connectedHardwareItems.count() == 1) {

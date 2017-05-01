@@ -1,5 +1,6 @@
 #include "viewitem.h"
 #include "viewcontroller.h"
+#include "../modelcontroller.h"
 
 #include <QDebug>
 #include <QStack>
@@ -127,7 +128,6 @@ bool ViewItem::isDataProtected(QString keyName) const
     if(isReadOnly()){
         return true;
     }else{
-
         return getProtectedKeys().contains(keyName);
     }
 }
@@ -243,12 +243,17 @@ void ViewItem::setParentViewItem(ViewItem *item)
 
 QStringList ViewItem::getProtectedKeys() const
 {
-    return getProperty("protectedKeys").toStringList();
+    QStringList keys;
+    if(controller){
+        keys = controller->getModelController()->getProtectedEntityKeys(ID);
+    }
+    return keys;
 }
 
 ViewController* ViewItem::getController(){
     return controller;
 }
+
 
 QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
 {

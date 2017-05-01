@@ -715,11 +715,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::IDL:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_DEPLOYMENT);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -741,7 +741,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::TERMINATION:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -754,23 +754,23 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
                 break;
             case NODE_KIND::FOR_CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::ATTRIBUTE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 break;
             case NODE_KIND::AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -779,7 +779,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operator");
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::WORKER_PROCESS:
             case NODE_KIND::PROCESS:
@@ -787,24 +787,24 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 break;
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
             case NODE_KIND::AGGREGATE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 break;
             case NODE_KIND::MEMBER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -816,7 +816,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::ATTRIBUTE:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -828,7 +828,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("value");
@@ -837,7 +837,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
@@ -851,30 +851,30 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::BRANCH_STATE:
             case NODE_KIND::WHILELOOP:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CODE:
             case NODE_KIND::HEADER:
             case NODE_KIND::WORKLOAD:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
                 break;
 
             case NODE_KIND::VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 if(item->getViewAspect() == VA_BEHAVIOUR){
-                    nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                    nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 }
                 break;
             case NODE_KIND::VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
 
@@ -890,6 +890,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     nodeItem->setIgnorePosition(true);
                 }
 
+                
                 guiItems[ID] = nodeItem;
 
                 setupConnections(nodeItem);
@@ -903,6 +904,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
 
                 }
+
+                //We should care about position and expansion for any entity we visualise
+                emit viewController->vc_setData(ID, "x", 0.0);
+                emit viewController->vc_setData(ID, "y", 0.0);
+                emit viewController->vc_setData(ID, "isExpanded", true);
+            
+
             }
         }
     }
@@ -912,10 +920,10 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
 {
 
     switch(item->getEdgeKind()){
-        case Edge::EC_ASSEMBLY:
-        case Edge::EC_DATA:
-        case Edge::EC_WORKFLOW:
-        case Edge::EC_DEPLOYMENT:
+        case EDGE_KIND::ASSEMBLY:
+        case EDGE_KIND::DATA:
+        case EDGE_KIND::WORKFLOW:
+        case EDGE_KIND::DEPLOYMENT:
             break;
         default:
             return;
@@ -1336,7 +1344,7 @@ void NodeView::state_Connecting_Exited()
     if(item && item->isNodeItem()){
         NodeItem* nodeItem = (NodeItem*) item;
 
-        Edge::EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
+        EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
 
         //Unhighlight things we can connect to
         QList<ViewItem*> items = viewController->getValidEdges(edgeKind);

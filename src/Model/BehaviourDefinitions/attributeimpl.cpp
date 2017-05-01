@@ -15,8 +15,8 @@ AttributeImpl::AttributeImpl(EntityFactory* factory) : DataNode(factory, NODE_KI
 AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
 {
     setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(Edge::EC_DATA);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DATA);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 
     setDataProducer(true);
     setDataReciever(true);
@@ -28,20 +28,20 @@ bool AttributeImpl::canAdoptChild(Node*)
     return false;
 }
 
-bool AttributeImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool AttributeImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_DEFINITION:{
+    case EDGE_KIND::DEFINITION:{
         if(dst->getNodeKind() != NODE_KIND::ATTRIBUTE){
             return false;
         }
         break;
     }
-    case Edge::EC_DATA:{
+    case EDGE_KIND::DATA:{
         if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
             return false;
         }

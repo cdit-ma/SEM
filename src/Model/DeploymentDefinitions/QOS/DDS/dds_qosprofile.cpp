@@ -11,7 +11,7 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
     setNodeType(NODE_TYPE::QOS_PROFILE);
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
-    setAcceptsEdgeKind(Edge::EC_QOS);
+    setAcceptsEdgeKind(EDGE_KIND::QOS);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -37,7 +37,7 @@ bool DDS_QOSProfile::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool DDS_QOSProfile::canAcceptEdge(Edge::EDGE_KIND , Node *)
+bool DDS_QOSProfile::canAcceptEdge(EDGE_KIND , Node *)
 {
     return false;
 }

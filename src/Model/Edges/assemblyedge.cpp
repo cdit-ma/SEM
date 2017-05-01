@@ -1,21 +1,24 @@
 #include "assemblyedge.h"
 #include "../node.h"
 
-AssemblyEdge::AssemblyEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_ASSEMBLY)
+AssemblyEdge::AssemblyEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::ASSEMBLY)
 {
 }
 
-AssemblyEdge *AssemblyEdge::createAssemblyEdge(Node *src, Node *dst)
+AssemblyEdge::AssemblyEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::ASSEMBLY, "Edge_Assembly"){
+    auto kind = EDGE_KIND::AGGREGATE;
+	QString kind_string = "Edge_Assembly";
+	RegisterEdgeKind(factory, kind, kind_string, &AssemblyEdge::ConstructEdge);
+}
+
+AssemblyEdge *AssemblyEdge::ConstructEdge(Node *src, Node *dst)
 {
     AssemblyEdge* edge = 0;
 
     if(src && dst){
-        if(src->canAcceptEdge(Edge::EC_ASSEMBLY, dst)){
+        if(src->canAcceptEdge(EDGE_KIND::ASSEMBLY, dst)){
             edge = new AssemblyEdge(src, dst);
         }
-    }else if(!src && !dst){
-        //Allow an empty edge
-        edge = new AssemblyEdge(0, 0);
     }
 
     return edge;

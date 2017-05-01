@@ -12,8 +12,8 @@ BlackBoxInstance::BlackBoxInstance(EntityFactory* factory) : Node(factory, NODE_
 BlackBoxInstance::BlackBoxInstance():Node(NODE_KIND::BLACKBOX_INSTANCE)
 {
     setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
 }
 
 bool BlackBoxInstance::canAdoptChild(Node *child)
@@ -30,13 +30,13 @@ bool BlackBoxInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool BlackBoxInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool BlackBoxInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
     switch(edgeKind){
-    case Edge::EC_DEFINITION:{
+    case EDGE_KIND::DEFINITION:{
         if(dst->getNodeKind() != NODE_KIND::BLACKBOX){
             return false;
         }

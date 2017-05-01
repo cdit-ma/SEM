@@ -12,8 +12,8 @@ LoggingServer::LoggingServer(EntityFactory* factory) : Node(factory, NODE_KIND::
 LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
 {
     setNodeType(NODE_TYPE::LOGGING);
-    setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
-    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
 
     updateDefaultData("database", QVariant::String, "output.sql");
 }
@@ -24,10 +24,10 @@ bool LoggingServer::canAdoptChild(Node*)
     return false;
 }
 
-bool LoggingServer::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool LoggingServer::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     switch(edgeKind){
-    case Edge::EC_ASSEMBLY:{
+    case EDGE_KIND::ASSEMBLY:{
         //Don't allow assembly edges
         return false;
     }

@@ -35,7 +35,7 @@ bool HardwareDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool HardwareDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool HardwareDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

@@ -21,7 +21,7 @@ Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Membe
 Member::Member(): Node(NODE_KIND::MEMBER)
 {
     setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 }
 
 
@@ -30,7 +30,7 @@ bool Member::canAdoptChild(Node*)
     return false;
 }
 
-bool Member::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool Member::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

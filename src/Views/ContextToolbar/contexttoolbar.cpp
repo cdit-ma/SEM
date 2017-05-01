@@ -158,8 +158,8 @@ void ContextToolbar::populateDynamicMenu()
     bool isConnect = senderMenu->property("connect").toBool();
     QList<NodeViewItemAction*> actions;
 
-    Edge::EDGE_KIND edgeClass = EntityFactory::getEdgeKind(kind);
-    if (edgeClass == Edge::EC_UNDEFINED) {
+    EDGE_KIND edgeClass = EntityFactory::getEdgeKind(kind);
+    if (edgeClass == EDGE_KIND::NONE) {
         if (kind == "WorkerProcess") {
             actions = toolbarController->getWorkerFunctions();
         } else {
@@ -240,7 +240,7 @@ void ContextToolbar::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
+    EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->addEdge(ID, edgeKind);
 }
@@ -258,7 +258,7 @@ void ContextToolbar::removeEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
+    EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->removeEdge(ID, edgeKind);
 }
@@ -294,14 +294,14 @@ void ContextToolbar::setupActions()
     connectGroup = new ActionGroup(this);
     disconnectGroup = new ActionGroup(this);
 
-    foreach (Edge::EDGE_KIND edgeKind, EntityFactory::getEdgeKinds()) {
+    foreach (EDGE_KIND edgeKind, EntityFactory::getEdgeKinds()) {
         bool constructConnectAction = true;
         bool constructDisconnectAction = true;
         switch (edgeKind) {
-            case Edge::EC_AGGREGATE:
+            case EDGE_KIND::AGGREGATE:
                 constructDisconnectAction = false;
                 break;
-            case Edge::EC_DEFINITION:
+            case EDGE_KIND::DEFINITION:
                 constructConnectAction = false;
                 constructDisconnectAction = false;
                 break;

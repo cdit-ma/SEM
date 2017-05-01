@@ -32,7 +32,7 @@ public:
 
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
-    QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -45,10 +45,13 @@ public:
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
 
-    QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
 
-    QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
+    ModelController* getModelController();
+
+    QList<EDGE_KIND> getValidEdgeKindsForSelection();
+
+    QList<EDGE_KIND> getExistingEdgeKindsForSelection();
+    QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
@@ -116,11 +119,11 @@ signals:
 
     void vc_executeJenkinsJob(QString filePath);
 
-    void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
-    void vc_destructEdges(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
+    void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+    void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+    void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
 
-    void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
+    void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
 
 
@@ -303,7 +306,7 @@ private:
     bool _openProject(QString filePath = "");
 
     QList<ViewItem*> getItemsOfKind(NODE_KIND kind);
-    QList<ViewItem*> getItemsOfKind(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
     bool _modelReady;
 
 
@@ -321,7 +324,7 @@ private:
 
     QHash<QString, int> treeLookup;
     QMultiMap<NODE_KIND, int> nodeKindLookups;
-    QMultiMap<Edge::EDGE_KIND, int> edgeKindLookups;
+    QMultiMap<EDGE_KIND, int> edgeKindLookups;
 
     QHash<int, ViewItem*> viewItems;
     QList<int> topLevelItems;

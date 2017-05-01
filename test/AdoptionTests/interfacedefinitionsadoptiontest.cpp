@@ -27,27 +27,27 @@ void InterfaceDefinitionsAdoptionTest::portTest(){
     idl->addChild(agg);
     idl2->addChild(in);
 
-    if(in->canAcceptEdge(Edge::EC_AGGREGATE, agg)){
+    if(in->canAcceptEdge(EDGE_KIND::AGGREGATE, agg)){
         in->setAggregate(agg);
     }
 
-    QList<Edge::EDGE_KIND> kinds({Edge::EC_ASSEMBLY,
-                                 Edge::EC_DATA,
-                                 Edge::EC_DEPLOYMENT,
-                                 Edge::EC_NONE,
-                                 Edge::EC_QOS,
-                                 Edge::EC_UNDEFINED,
-                                 Edge::EC_WORKFLOW});
+    QList<EDGE_KIND> kinds({EDGE_KIND::ASSEMBLY,
+                                 EDGE_KIND::DATA,
+                                 EDGE_KIND::DEPLOYMENT,
+                                 EDGE_KIND::NONE,
+                                 EDGE_KIND::QOS,
+                                 EDGE_KIND::NONE,
+                                 EDGE_KIND::WORKFLOW});
 
     //Should not accept any kinds other than definition and aggregate
-    foreach(Edge::EDGE_KIND kind, kinds){
+    foreach(EDGE_KIND kind, kinds){
         QVERIFY(!in->acceptsEdgeKind(kind));
     }
 
     Aggregate* agg2 = new Aggregate();
     idl->addChild(agg2);
 
-    QVERIFY(!in->canAcceptEdge(Edge::EC_AGGREGATE, agg));
+    QVERIFY(!in->canAcceptEdge(EDGE_KIND::AGGREGATE, agg));
 
     QVERIFY(in->getAggregate() == agg);
 

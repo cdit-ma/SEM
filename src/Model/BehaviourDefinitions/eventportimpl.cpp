@@ -9,7 +9,7 @@ EventPortImpl::EventPortImpl(EntityFactory* factory, NODE_KIND kind, QString kin
 EventPortImpl::EventPortImpl(NODE_KIND kind):BehaviourNode(kind)
 {
     setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 }
 
 bool EventPortImpl::isInPort()
@@ -37,7 +37,7 @@ bool EventPortImpl::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool EventPortImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool EventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

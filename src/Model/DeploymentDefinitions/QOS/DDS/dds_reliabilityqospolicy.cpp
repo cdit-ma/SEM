@@ -28,6 +28,6 @@ bool DDS_ReliabilityQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_ReliabilityQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *){
+bool DDS_ReliabilityQosPolicy::canAcceptEdge(EDGE_KIND, Node *){
     return false;
 }

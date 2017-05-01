@@ -16,13 +16,13 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
         this->dID = dst->getID();
     }
 
-    edgeKind = Edge::EC_NONE;
+    edgeKind = EDGE_KIND::NONE;
     if(properties.contains("kind")){
-        edgeKind = (Edge::EDGE_KIND) properties["kind"].toInt();
+        edgeKind = (EDGE_KIND) properties["kind"].toInt();
     }
 }
 
-EdgeViewItem::EdgeViewItem(ViewController *controller, Edge::EDGE_KIND kind): ViewItem(controller)
+EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind): ViewItem(controller)
 {
     edgeKind = kind;
 }
@@ -32,7 +32,7 @@ EdgeViewItem::~EdgeViewItem()
     disconnectEdge();
 }
 
-Edge::EDGE_KIND EdgeViewItem::getEdgeKind() const
+EDGE_KIND EdgeViewItem::getEdgeKind() const
 {
     return edgeKind;
 }

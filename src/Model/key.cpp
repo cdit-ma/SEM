@@ -111,25 +111,25 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
     return new_value;
 }
 
-QString Key::toGraphML(int indentDepth)
+QString Key::toGraphML(int indent)
 {
-    //Construct the desired tab width.
-    QString tabs = QString("\t").repeated(indentDepth);
-    return QString("%1<key attr.name=\"%2\" attr.type=\"%3\" for=\"all\" id=\"%4\"/>\n").arg(
-        tabs,
-        getName(),
-        getGraphMLTypeName(key_type_),
-        QString::number(getID())
-        );
+    QString xml;
+    QTextStream stream(&xml); 
+
+    QString tab = QString("\t").repeated(indent);
+    stream << tab << "<key attr.name=\"" << getName() << "\" ";
+    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\" ";
+    stream << " id=\"" << getID()<< "\"/>\n";
+    return xml;
 }
 
 QString Key::toString()
 {
-    return QString("[%1] Key: %2 Type: %3").arg(
-        QString::number(getID()),
-        getName(),
-        getGraphMLTypeName(key_type_)
-        );
+    QString str;
+    QTextStream stream(&str); 
+    //Todo get actual edge type
+    stream << "[" << getID() << "] Key " << getName() << " Type: " << getGraphMLTypeName(key_type_);
+    return str;
 }
 
 

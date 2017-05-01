@@ -15,8 +15,8 @@ Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGAT
 Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
 {
     setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_AGGREGATE);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
 
     connect(this, &Node::dataChanged, this, &Aggregate::updateType);
 }
@@ -78,7 +78,7 @@ bool Aggregate::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Aggregate::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool Aggregate::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

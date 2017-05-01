@@ -47,10 +47,10 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     }
 
     switch(edgeViewItem->getEdgeKind()){
-        case Edge::EC_DATA:
+        case EDGE_KIND::DATA:
             pen.setStyle(Qt::DotLine);
         break;
-        case Edge::EC_ASSEMBLY:
+        case EDGE_KIND::ASSEMBLY:
             pen.setStyle(Qt::DashLine);
         break;
     default:
@@ -64,7 +64,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
 
-    setDefaultZValue(Edge::EC_UNDEFINED - edgeViewItem->getEdgeKind());
+    setDefaultZValue((int)EDGE_KIND::NONE - (int)edgeViewItem->getEdgeKind());
 
     //When ever the center point changes we should update the curves.
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);

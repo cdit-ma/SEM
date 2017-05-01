@@ -16,11 +16,8 @@ class EntityFactory;
 class Node : public Entity
 {
     Q_OBJECT
-
     friend class Edge;
     friend class EntityFactory;
-    
-    public:
 
     protected:
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
@@ -30,6 +27,7 @@ class Node : public Entity
 
         //Constuctor
         Node(NODE_KIND kind);
+        ~Node();
 
         //Entity Factory Constructor
         Node(EntityFactory* factory, NODE_KIND kind, QString kind_string);
@@ -39,8 +37,14 @@ class Node : public Entity
         void addValidValues(QString key_name, QList<QVariant> values);
         QStringList getValidValueKeys();
         QList<QVariant> getValidValues(QString key_name);
+
+        void setInstanceKind(NODE_KIND kind);
+        void setDefinitionKind(NODE_KIND kind);
+        void setImplKind(NODE_KIND kind);
     public:
-        ~Node();
+        NODE_KIND getInstanceKind() const;
+        NODE_KIND getDefinitionKind() const;
+        NODE_KIND getImplKind() const;
 
     QString toGraphML(int indentDepth);
     QString toGraphMLNoVisualData(int indentDepth);
@@ -76,13 +80,13 @@ class Node : public Entity
     bool indirectlyConnectedTo(Node* node);
 
     bool containsChild(Node* child);
-    QList<Node *> getChildren(int depth =-1) const;
+    QList<Node *> getChildren(int depth =-1);
     QList<int> getChildrenIDs(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
     QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
 
 
-    QList<int> getEdgeIDs(Edge::EDGE_KIND edgeClass = Edge::EC_NONE);
+    QList<int> getEdgeIDs(EDGE_KIND edgeClass = EDGE_KIND::NONE);
     Node* getFirstChild();
 
     QList<Node *> getSiblings();
@@ -102,10 +106,10 @@ class Node : public Entity
     bool isDescendantOf(Node *node);
 
     //Gets the edge that is joining the node to this.
-    Edge* getEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
-    bool gotEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
+    Edge* getEdgeTo(Node* node, EDGE_KIND edgeKind = EDGE_KIND::NONE);
+    bool gotEdgeTo(Node* node, EDGE_KIND edgeKind = EDGE_KIND::NONE);
 
-    QList<Edge *> getEdges(int depth=-1, Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
+    QList<Edge *> getEdges(int depth=-1, EDGE_KIND edgeKind = EDGE_KIND::NONE);
     QList<Key *> getKeys(int depth=-1);
 
     bool isDefinition() const;
@@ -126,7 +130,7 @@ class Node : public Entity
 
     void addImplementation(Node* impl);
     QList<Node*> getImplementations() const;
-    QList<Node*> getNestedDependants() const;
+    QList<Node*> getNestedDependants();
     QList<Node*> getDependants() const;
 
     void removeImplementation(Node* impl);
@@ -151,7 +155,7 @@ private:
     bool ancestorOf(Edge* edge);
     bool containsEdge(Edge* edge);
 
-    QList<Node*> getOrderedChildNodes() const;
+    QList<Node*> getOrderedChildNodes();
 
     QList<int> treeIndex;
     QString treeIndexString;
@@ -174,7 +178,7 @@ private:
 
     //The list of contained Edge elements in this graph. (Top level only)
 
-    QMultiMap<Edge::EDGE_KIND, Edge*> edges;
+    QMultiMap<EDGE_KIND, Edge*> edges;
 
     //List of valid values for keys 
     QMultiMap<QString, QVariant> valid_values_;
@@ -184,21 +188,25 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QList<Edge::EDGE_KIND> validEdgeKinds;
+    QList<EDGE_KIND> validEdgeKinds;
 
+    NODE_KIND definition_kind_;
+    NODE_KIND instance_kind_;
+    NODE_KIND impl_kind_;
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
     void removeNodeType(NODE_TYPE type);
-    void setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind);
-    void removeEdgeKind(Edge::EDGE_KIND edgeKind);
+    void setAcceptsEdgeKind(EDGE_KIND edgeKind);
+    void removeEdgeKind(EDGE_KIND edgeKind);
 public:
     bool isNodeOfType(NODE_TYPE type) const;
-    bool acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const;
+    bool acceptsEdgeKind(EDGE_KIND edgeKind) const;
 
-    QList<Edge::EDGE_KIND> getAcceptedEdgeKinds() const;
-    virtual bool requiresEdgeKind(Edge::EDGE_KIND edgeKind) const;
-    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node* dst);
+    QList<EDGE_KIND> getAcceptedEdgeKinds() const;
+    
+    virtual bool requiresEdgeKind(EDGE_KIND edgeKind);
+    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);
 };
 
 #endif // NODE_H

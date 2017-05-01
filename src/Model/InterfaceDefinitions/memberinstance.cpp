@@ -13,7 +13,7 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
 {
     setNodeType(NODE_TYPE::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setDataReciever(true);
     setDataProducer(true);
 }
@@ -23,19 +23,19 @@ bool MemberInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool MemberInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool MemberInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
     switch(edgeKind){
-        case Edge::EC_DEFINITION:{
+        case EDGE_KIND::DEFINITION:{
             if(!(dst->getNodeKind() == NODE_KIND::MEMBER || dst->getNodeKind() == NODE_KIND::MEMBER_INSTANCE)){
                 return false;
             }
             break;
         }
-    case Edge::EC_WORKFLOW:{
+    case EDGE_KIND::WORKFLOW:{
         return false;
     }
     default:

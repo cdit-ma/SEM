@@ -16,7 +16,7 @@ Termination::Termination():BehaviourNode(NODE_KIND::TERMINATION){
 
 Branch *Termination::getBranch()
 {
-    foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
+    foreach(Edge* edge, getEdges(0, EDGE_KIND::WORKFLOW)){
         BehaviourNode* source = (BehaviourNode*) edge->getSource();
         if(source->isNodeOfType(NODE_TYPE::BRANCH)){
             Branch* branch = (Branch*) source;
@@ -33,14 +33,14 @@ bool Termination::canAdoptChild(Node*)
     return false;
 }
 
-bool Termination::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Termination::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_WORKFLOW:{
+    case EDGE_KIND::WORKFLOW:{
         if(!getBranch()){
             return false;
         }

@@ -62,7 +62,7 @@ bool Condition::canAdoptChild(Node*)
     return false;
 }
 
-bool Condition::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Condition::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

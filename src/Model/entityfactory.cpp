@@ -130,56 +130,56 @@ Edge *EntityFactory::createEdge(Node *source, Node *destination, QString edge_ki
     return createEdge(source, destination, getEdgeKind(edge_kind));
 }
 
-Edge *EntityFactory::createEdge(Node *source, Node *destination, Edge::EDGE_KIND edge_kind)
+Edge *EntityFactory::createEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
 {
     return _createEdge(source, destination, edge_kind);
 }
 
 
-QString EntityFactory::getNodeKindString(NODE_KIND nodeKind)
+QString EntityFactory::getNodeKindString(NODE_KIND kind)
 {
-    QString kind;
-    auto nS = globalFactory()->nodeLookup.value(nodeKind, 0);
-    if(nS){
-        kind = nS->kind_str;
+    QString kind_str;
+    auto node_struct = globalFactory()->getNodeStruct(kind);
+    if(node_struct){
+        kind_str = node_struct->kind_str;
     }
-    return kind;
+    return kind_str;
 }
 
-QString EntityFactory::getEdgeKindString(Edge::EDGE_KIND edgeKind)
+QString EntityFactory::getEdgeKindString(EDGE_KIND kind)
 {
-    QString kind;
-    auto eS = globalFactory()->edgeLookup.value(edgeKind, 0);
-    if(eS){
-        kind = eS->kind_str;
+    QString kind_str;
+    auto edge_struct = globalFactory()->getEdgeStruct(kind);
+    if(edge_struct){
+        kind_str = edge_struct->kind_str;
     }
-    return kind;
+    return kind_str;
 }
 
 QList<NODE_KIND> EntityFactory::getNodeKinds()
 {
-    return globalFactory()->nodeLookup.keys();
+    return globalFactory()->node_struct_lookup.keys();
 }
 
-QList<Edge::EDGE_KIND> EntityFactory::getEdgeKinds()
+QList<EDGE_KIND> EntityFactory::getEdgeKinds()
 {
-    return globalFactory()->edgeLookup.keys();
+    return globalFactory()->edge_struct_lookup.keys();
 }
 
 
 NODE_KIND EntityFactory::getNodeKind(QString kind)
 {
-    return globalFactory()->nodeKindLookup.value(kind, NODE_KIND::NONE);
+    return globalFactory()->node_kind_lookup.value(kind, NODE_KIND::NONE);
 }
 
-Edge::EDGE_KIND EntityFactory::getEdgeKind(QString kind)
+EDGE_KIND EntityFactory::getEdgeKind(QString kind)
 {
-    return globalFactory()->edgeKindLookup.value(kind, Edge::EC_NONE);
+    return globalFactory()->edge_kind_lookup.value(kind, EDGE_KIND::NONE);
 }
 
 void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
     //TODO
-    auto node = getNodeLookup(kind);
+    auto node = getNodeStruct(kind);
 
     if(node){
         node->kind = kind;
@@ -187,19 +187,56 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
         node->constructor = constructor;
 
         //Insert into our reverse lookup
-        if(!nodeKindLookup.contains(kind_string)){
+        if(!node_kind_lookup.contains(kind_string)){
             qCritical() << "Lookup: " << kind_string << " -> " << (int)kind;
-            nodeKindLookup.insert(kind_string, kind);
+            node_kind_lookup.insert(kind_string, kind);
         }
     
         qCritical() << "Registered Node: " << (int)kind << " " << kind_string << " " << (constructor != 0);
     }
 }
 
+void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
+    auto edge = getEdgeStruct(kind);
+    if(edge){
+        edge->kind = kind;
+        edge->kind_str = kind_string;
+        edge->constructor = constructor;
+
+        //Insert into our reverse lookup
+        if(!edge_kind_lookup.contains(kind_string)){
+            qCritical() << "Lookup: " << kind_string << " -> " << (int)kind;
+            edge_kind_lookup.insert(kind_string, kind);
+        }
+        qCritical() << "Registered Edge: " << (int)kind << " " << kind_string << " " << (constructor != 0);
+    }
+}
+
+void EntityFactory::RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
+    auto edge_struct = getEdgeStruct(kind);
+    if(edge_struct){
+        auto data = edge_struct->default_data.value(key_name, 0);
+        if(!data){
+            //Construct and insert a new default data
+            data = new DefaultDataStruct();
+            data->key_name = key_name;
+            data->type = type;
+            //Insert
+            edge_struct->default_data.insert(key_name, data);
+        }
+
+        //Update the default data map
+        if(data){
+            //Update
+            data->is_protected = is_protected;
+            data->value = value;
+        }
+    }
+}
+
+
 void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-    
-    //TODO
-    auto node = getNodeLookup(kind);
+    auto node = getNodeStruct(kind);
 
     if(node){
         auto data = node->default_data.value(key_name, 0);
@@ -218,8 +255,6 @@ void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVaria
             data->is_protected = is_protected;
             data->value = value;
         }
-    }else{
-        qCritical() << "NO NODE!";
     }
 }
 void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
@@ -322,17 +357,16 @@ EntityFactory::EntityFactory()
     DDS_WriterDataLifecycleQosPolicy(this);
 
     //Elements
-    
     IDL(this);
 
-
-    addEdgeKind(Edge::EC_DEFINITION, "Edge_Definition", &DefinitionEdge::createDefinitionEdge);
-    addEdgeKind(Edge::EC_AGGREGATE, "Edge_Aggregate", &AggregateEdge::createAggregateEdge);
-    addEdgeKind(Edge::EC_WORKFLOW, "Edge_Workflow", &WorkflowEdge::createWorkflowEdge);
-    addEdgeKind(Edge::EC_ASSEMBLY, "Edge_Assembly", &AssemblyEdge::createAssemblyEdge);
-    addEdgeKind(Edge::EC_DATA, "Edge_Data", &DataEdge::createDataEdge);
-    addEdgeKind(Edge::EC_DEPLOYMENT, "Edge_Deployment", &DeploymentEdge::createDeploymentEdge);
-    addEdgeKind(Edge::EC_QOS, "Edge_QOS", &QOSEdge::createQOSEdge);
+    //Edges
+    DefinitionEdge(this);
+    AggregateEdge(this);
+    WorkflowEdge(this);
+    AssemblyEdge(this);
+    DataEdge(this);
+    DeploymentEdge(this);
+    QosEdge(this);
 }
 
 EntityFactory::~EntityFactory()
@@ -353,132 +387,96 @@ EntityFactory *EntityFactory::getNewFactory()
     return new EntityFactory();
 }
 
-EntityFactory::NodeLookupStruct* EntityFactory::getNodeLookup(NODE_KIND kind){
-    auto node = nodeLookup.value(kind, 0);
+EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
+    auto node = node_struct_lookup.value(kind, 0);
     if(!node){
         qCritical() << "REGISTERED NODE KIND: " << (int)kind;
         node = new NodeLookupStruct();
         node->kind = kind;
-        nodeLookup.insert(kind, node);
+        node_struct_lookup.insert(kind, node);
     }
     return node;
 }
 
-void EntityFactory::setupOnceOffKeys(Node* node){
+EntityFactory::EdgeLookupStruct* EntityFactory::getEdgeStruct(EDGE_KIND kind){
+    auto edge = edge_struct_lookup.value(kind, 0);
+    if(!edge){
+        edge = new EdgeLookupStruct();
+        edge->kind = kind;
+        edge_struct_lookup.insert(kind, edge);
+    }
+    return edge;
+}
+
+
+
+QList<Data *> EntityFactory::getDefaultNodeData(NODE_KIND kind)
+{
+    QList<Data*> data_list;
+    auto node = getNodeStruct(kind);
     if(node){
-        //Construct the keys
-        foreach(auto data_struct, node->getDefaultDataStructs()){
-            auto key = GetKey(data_struct->key_name, data_struct->type);
-        }
-        for(auto key_name : node->getValidValueKeys()){
-            qCritical() << "Got Valid Value for: " << key_name;
-            auto key = GetKey(key_name);
-            if(key){
-                auto values = node->getValidValues(key_name);
-                key->addValidValues(values, node->getNodeKind());
-            }
+        data_list = getDefaultData(node->default_data.values());
+    }
+    return data_list;
+}
+
+QList<Data *> EntityFactory::getDefaultEdgeData(EDGE_KIND kind)
+{
+    QList<Data*> data_list;
+    auto edge = getEdgeStruct(kind);
+    if(edge){
+        data_list = getDefaultData(edge->default_data.values());
+    }
+    return data_list;
+}
+
+QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data){
+    QList<Data*> data_list;
+    foreach(auto data_struct, data){
+        auto key = GetKey(data_struct->key_name, data_struct->type);
+        auto data = new Data(key, data_struct->value, data_struct->is_protected);
+        data_list << data;
+    }
+    return data_list;
+}
+
+Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind)
+{
+    Edge* edge = 0;
+
+    auto edge_struct = getEdgeStruct(kind);
+    if(edge_struct && edge_struct->constructor){
+        edge = edge_struct->constructor(source, destination);
+        if(edge){
+            auto data = getDefaultData(edge_struct->default_data.values());
+            edge->addData(data);
         }
     }
+
+    if(!edge){
+        qCritical() << "Edge Kind: " << getEdgeKindString(kind) << " Not Implemented!";
+    }
+    return edge;
 }
 
 Node *EntityFactory::_createNode(NODE_KIND kind)
 {
     Node* node = 0;
+    auto node_struct = getNodeStruct(kind);
 
-    auto nS = nodeLookup.value(kind, 0);
-
-    if(nS && nS->constructor){
-        node = nS->constructor();
-    }else{
-        qCritical() << "Can't find lookup for: " << (int) kind;
+    if(node_struct && node_struct->constructor){
+        node = node_struct->constructor();
+        if(node){
+            auto data = getDefaultData(node_struct->default_data.values());
+            node->addData(data);
+        }
     }
-    
+
     if(!node){
-        //qCritical() << "Node Kind: " << kind << " Not Implemented!";
         qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
-    }else{
-        //Attach data
-        auto data = _constructDefaultData(node);
-        node->addData(data);
     }
+
     return node;
-}
-
-QList<Data *> EntityFactory::getDefaultNodeData(NODE_KIND kind)
-{
-    QList<Data*> data_list;
-    auto node = getNodeLookup(kind);
-    if(node){
-        foreach(auto data_struct, node->default_data){
-            auto key = GetKey(data_struct->key_name, data_struct->type);
-            auto data = new Data(key, data_struct->value, data_struct->is_protected);
-            data_list << data;
-        }
-    }
-    qCritical() << "DATA: " << data_list.size();
-    return data_list;
-}
-
-Edge* EntityFactory::getEdge(Edge::EDGE_KIND kind){
-    Edge* edge = 0;
-    auto lookup = edgeLookup.value(kind, 0);
-    if(lookup){
-        if(!lookup->edge){
-            //Construct a edge
-            lookup->edge = lookup->constructor(0, 0);
-        }
-        edge = lookup->edge;
-    }
-    return edge;
-}
-
-
-QList<Data *> EntityFactory::getDefaultEdgeData(Edge::EDGE_KIND kind)
-{
-    return _constructDefaultData(getEdge(kind));
-}
-
-QList<Data*> EntityFactory::_constructDefaultData(Entity* entity){
-    QList<Data*> data_list;
-    if(entity){
-        foreach(auto data_struct, entity->getDefaultDataStructs()){
-            auto key = GetKey(data_struct->key_name, data_struct->type);
-
-
-            auto data = new Data(key, data_struct->value, data_struct->is_protected);
-            data_list << data;
-        }
-        if(entity->isMoveEnabled()){
-            auto x = GetKey("x", QVariant::Double);
-            auto y = GetKey("y", QVariant::Double);
-            data_list << new Data(x, -1);
-            data_list << new Data(y, -1);
-        }
-        if(entity->isExpandEnabled()){
-            auto x = GetKey("isExpanded", QVariant::Bool);
-            data_list << new Data(x, true);
-        }
-    }   
-    return data_list;
-}
-
-Edge *EntityFactory::_createEdge(Node *source, Node *destination, Edge::EDGE_KIND edgeKind)
-{
-    Edge* edge = 0;
-
-    if(source && destination){
-        auto eS = edgeLookup.value(edgeKind, 0);
-
-        if(eS){
-            edge = eS->constructor(source, destination);
-        }
-    }
-
-    if(!edge){
-        qCritical() << "Edge Kind: " << getEdgeKindString(edgeKind) << " Not Implemented!";
-    }
-    
-    return edge;
 }
 
 
@@ -505,7 +503,7 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         Key* key = 0;
         if(key_name == "label"){
             key = new LabelKey();
-        }else if(key_name == "sortOrder"){
+        }else if(key_name == "index"){
             key = new IndexKey();    
         }else{
             key = new Key(key_name, type);
@@ -515,22 +513,6 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
     }
 }
 
-
 QList<Key*> EntityFactory::GetKeys(){
     return keyLookup_.values();
-}
-
-void EntityFactory::addEdgeKind(Edge::EDGE_KIND edge_kind, QString edge_kind_str, std::function<Edge *(Node *, Node *)> constructor)
-{
-    if(!edgeLookup.contains(edge_kind)){
-        auto eS = new EdgeLookupStruct();
-        eS->kind = edge_kind;
-        eS->kind_str = edge_kind_str;
-        eS->constructor = constructor;
-        edgeLookup.insert(edge_kind, eS);
-
-        if(!edgeKindLookup.contains(edge_kind_str)){
-            edgeKindLookup.insert(edge_kind_str, edge_kind);
-        }
-    }
 }

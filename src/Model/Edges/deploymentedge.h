@@ -2,13 +2,15 @@
 #define DEPLOYMENTEDGE_H
 #include "../edge.h"
 
-class DeploymentEdge: public Edge{
+class EntityFactory;
+class DeploymentEdge : public Edge
+{
     Q_OBJECT
+    friend class EntityFactory;
 protected:
-    DeploymentEdge(Node* src, Node* dst);
-public:
-    static DeploymentEdge* createDeploymentEdge(Node* src, Node* dst);
+    DeploymentEdge(EntityFactory* factory);
+    DeploymentEdge(Node *src, Node *dst);
+private:
+    static DeploymentEdge* ConstructEdge(Node* src, Node* dst);
 };
-
-
-#endif
+#endif // AGGREGATEEDGE_H

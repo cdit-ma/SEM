@@ -22,7 +22,7 @@ bool DDS_LifespanQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_LifespanQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_LifespanQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

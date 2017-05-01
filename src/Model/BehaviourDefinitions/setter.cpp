@@ -35,7 +35,7 @@ bool Setter::canAdoptChild(Node* child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool Setter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Setter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

@@ -40,7 +40,7 @@ bool Process::canAdoptChild(Node* node)
     return BehaviourNode::canAdoptChild(node);
 }
 
-bool Process::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Process::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
     //Q_UNUSED(edgeKind);

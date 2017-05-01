@@ -12,6 +12,6 @@ protected:
 	DeploymentDefinitions();
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DEPLOYMENTDEFINITIONS_H

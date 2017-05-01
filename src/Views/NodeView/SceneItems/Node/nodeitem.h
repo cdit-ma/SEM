@@ -133,9 +133,9 @@ public:
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
 
-    void setVisualEdgeKind(Edge::EDGE_KIND kind);
+    void setVisualEdgeKind(EDGE_KIND kind);
     void setVisualNodeKind(NODE_KIND kind);
-    Edge::EDGE_KIND getVisualEdgeKind() const;
+    EDGE_KIND getVisualEdgeKind() const;
     NODE_KIND getVisualNodeKind() const;
 
     bool gotVisualNodeKind() const;
@@ -174,8 +174,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
-    void edgeAdded(Edge::EDGE_KIND kind);
-    void edgeRemoved(Edge::EDGE_KIND kind);
+    void edgeAdded(EDGE_KIND kind);
+    void edgeRemoved(EDGE_KIND kind);
 
 
     void updateReadState();
@@ -190,7 +190,7 @@ private:
     KIND nodeItemKind;
 
     NODE_KIND visualNodeKind = NODE_KIND::NONE;
-    Edge::EDGE_KIND visualEdgeKind = Edge::EC_NONE;
+    EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
     QString visualEntityIcon;
 
     NODE_READ_STATE readState;

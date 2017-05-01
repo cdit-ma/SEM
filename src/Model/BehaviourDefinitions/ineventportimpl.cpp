@@ -19,14 +19,14 @@ bool InEventPortImpl::canAdoptChild(Node *child)
     return EventPortImpl::canAdoptChild(child);
 }
 
-bool InEventPortImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool InEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_DEFINITION:{
+    case EDGE_KIND::DEFINITION:{
         if(!dst->getImplementations().isEmpty()){
             return false;
         }

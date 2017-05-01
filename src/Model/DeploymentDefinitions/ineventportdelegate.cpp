@@ -10,7 +10,7 @@ InEventPortDelegate::InEventPortDelegate(EntityFactory* factory) : EventPortAsse
 
 InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NODE_KIND::INEVENTPORT_DELEGATE)
 {
-    removeEdgeKind(Edge::EC_DEFINITION);
+    removeEdgeKind(EDGE_KIND::DEFINITION);
     removeNodeType(NODE_TYPE::DEFINITION);
 }
 
@@ -19,7 +19,7 @@ bool InEventPortDelegate::canAdoptChild(Node*)
     return false;
 }
 
-bool InEventPortDelegate::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool InEventPortDelegate::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }

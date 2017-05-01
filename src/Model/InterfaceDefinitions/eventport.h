@@ -21,7 +21,7 @@ public:
     void unsetAggregate();
 
     virtual bool canAdoptChild(Node *node);
-    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 
 private:
     Aggregate* aggregate;

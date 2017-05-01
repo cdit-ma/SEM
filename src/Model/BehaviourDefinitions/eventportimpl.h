@@ -17,7 +17,7 @@ public:
     bool isOutPort();
 
     virtual bool canAdoptChild(Node* child);
-    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // EVENTPORTIMPL_H

@@ -23,7 +23,7 @@ bool PeriodicEvent::canAdoptChild(Node * node)
     return false;
 }
 
-bool PeriodicEvent::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool PeriodicEvent::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

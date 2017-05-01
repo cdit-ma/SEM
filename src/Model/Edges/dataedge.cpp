@@ -1,22 +1,23 @@
 #include "dataedge.h"
 #include "../node.h"
 
-DataEdge::DataEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_DATA)
+DataEdge::DataEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::DATA)
 {
 }
 
-DataEdge *DataEdge::createDataEdge(Node *src, Node *dst)
+DataEdge::DataEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::DATA, "Edge_Data"){
+    auto kind = EDGE_KIND::AGGREGATE;
+	QString kind_string = "Edge_Data";
+	RegisterEdgeKind(factory, kind, kind_string, &DataEdge::ConstructEdge);
+}
+
+DataEdge *DataEdge::ConstructEdge(Node *src, Node *dst)
 {
     DataEdge* edge = 0;
-    
     if(src && dst){
-        if(src->canAcceptEdge(Edge::EC_DATA, dst)){
+        if(src->canAcceptEdge(EDGE_KIND::DATA, dst)){
             edge = new DataEdge(src, dst);
         }
-    }else if(!src && !dst){
-        //Allow an empty edge
-        edge = new DataEdge(0, 0);
     }
-
     return edge;
 }

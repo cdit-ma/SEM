@@ -10,10 +10,10 @@ class EdgeViewItem: public ViewItem
     Q_OBJECT
 public:
     EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
-    EdgeViewItem(ViewController* controller, Edge::EDGE_KIND kind);
+    EdgeViewItem(ViewController* controller, EDGE_KIND kind);
     ~EdgeViewItem();
 
-    Edge::EDGE_KIND getEdgeKind() const;
+    EDGE_KIND getEdgeKind() const;
     NodeViewItem* getSource();
     NodeViewItem* getDestination();
     NodeViewItem* getParentItem();
@@ -23,7 +23,7 @@ public:
 private:
     NodeViewItem* source;
     NodeViewItem* destination;
-    Edge::EDGE_KIND edgeKind;
+    EDGE_KIND edgeKind;
 
     int sID;
     int dID;

@@ -2,13 +2,15 @@
 #define QOSEDGE_H
 #include "../edge.h"
 
-class QOSEdge : public Edge
+class EntityFactory;
+class QosEdge : public Edge
 {
     Q_OBJECT
+    friend class EntityFactory;
 protected:
-    QOSEdge(Node *src, Node *dst);
-public:
-    static QOSEdge* createQOSEdge(Node* src, Node* dst);
+    QosEdge(EntityFactory* factory);
+    QosEdge(Node *src, Node *dst);
+private:
+    static QosEdge* ConstructEdge(Node* src, Node* dst);
 };
-
-#endif // QOSEDGE_H
+#endif // QosEDGE_H

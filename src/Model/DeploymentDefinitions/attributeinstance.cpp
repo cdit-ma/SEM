@@ -14,7 +14,7 @@ AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NOD
 AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)
 {
     setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 }
 
 bool AttributeInstance::canAdoptChild(Node*)
@@ -22,14 +22,14 @@ bool AttributeInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool AttributeInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool AttributeInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_DEFINITION:{
+    case EDGE_KIND::DEFINITION:{
         if(dst->getNodeKind() != NODE_KIND::ATTRIBUTE){
             return false;
         }

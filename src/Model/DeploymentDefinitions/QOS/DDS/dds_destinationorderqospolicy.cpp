@@ -25,7 +25,7 @@ bool DDS_DestinationOrderQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_DestinationOrderQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_DestinationOrderQosPolicy::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     Q_UNUSED(edgeKind);
     Q_UNUSED(dst);

@@ -103,10 +103,10 @@ QList<ViewItem *> ViewController::getWorkerFunctions()
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
-    Edge::EDGE_KIND ec = Edge::EC_DEFINITION;
+    EDGE_KIND ec = EDGE_KIND::DEFINITION;
 
     if(kind.endsWith("Delegate") || kind.endsWith("EventPort")){
-        ec = Edge::EC_AGGREGATE;
+        ec = EDGE_KIND::AGGREGATE;
     }
 
     QList<ViewItem*> items;
@@ -118,7 +118,7 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
     return items;
 }
 
-QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
+QList<ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
 {
     QList<ViewItem*> items;
     if(selectionController && controller){
@@ -194,7 +194,7 @@ NodeViewDockWidget *ViewController::constructNodeViewDockWidget(QString label)
     return (NodeViewDockWidget*)dw;
 }
 
-QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind)
+QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND kind)
 {
     QList<ViewItem *> list;
 
@@ -248,18 +248,18 @@ QList<EdgeViewItem *> ViewController::getEdgeKindItems()
     return edgeKindItems;
 }
 
-QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
+QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
-    QList<Edge::EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
     return edgeKinds;
 }
 
-QList<Edge::EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+QList<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
 {
-    QList<Edge::EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
@@ -386,7 +386,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             }
         }else if(isEdge){
             switch(edgeViewItem->getEdgeKind()){
-                case Edge::EC_DEFINITION:{
+                case EDGE_KIND::DEFINITION:{
                     alias = "Icons";
                     image = "gears";
                 }
@@ -959,7 +959,7 @@ void ViewController::constructDDSQOSProfile()
 {
     foreach(ViewItem* item, getItemsOfKind(NODE_KIND::ASSEMBLY_DEFINITIONS)){
         if(item){
-            emit vc_constructNode(item->getID(), "DDS_QOSProfile");
+            emit vc_constructNode(item->getID(), NODE_KIND::QOS_DDS_PROFILE);
         }
     }
 }
@@ -1093,7 +1093,7 @@ bool ViewController::_openProject(QString filePath)
     return false;
 }
 
-QList<ViewItem *> ViewController::getItemsOfKind(Edge::EDGE_KIND kind)
+QList<ViewItem *> ViewController::getItemsOfKind(EDGE_KIND kind)
 {
     QList<ViewItem*> items;
     foreach(int ID, edgeKindLookups.values(kind)){
@@ -1133,6 +1133,11 @@ bool ViewController::isNodeAncestor(int ID, int ID2){
     return is_ancestor;
 }
 
+
+ModelController* ViewController::getModelController(){
+    return controller;    
+}
+
 QStringList ViewController::getEntityKeys(int ID){
     QStringList keys;
     if(controller){
@@ -1155,6 +1160,7 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
 
     //Fill with Data
     foreach(QString key, getEntityKeys(id)){
+        qCritical() << "Updating Data: " << key;
         item->changeData(key, getEntityDataValue(id, key));
     }
 

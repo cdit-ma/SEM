@@ -2,78 +2,42 @@
 #define EDGE_H
 
 #include "entity.h"
+#include "edgekinds.h"
 
+class EntityFactory;
 class Node;
 
-//Base class of an edge object (Treated as Class for extended Node Types). Extends the GraphML Abstract Base Class.
 class Edge: public Entity{
     Q_OBJECT
 
     //The factory can access protected constructors
-    friend class EdgeFactory;
-public:
-    enum EDGE_KIND{
-        EC_NONE = 0,
-        EC_DEFINITION= 1,
-        EC_AGGREGATE= 2,
-        EC_WORKFLOW= 3,
-        EC_ASSEMBLY= 4,
-        EC_DATA= 5,
-        EC_DEPLOYMENT= 6,
-        EC_QOS= 7,
-        EC_UNDEFINED = 8};
-    //Enum for Node Types
-    enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
-
-    //Constructor
+    friend class EntityFactory;
 protected:
-    Edge(Node* source, Node* destination, EDGE_KIND edgeClass = EC_NONE);
-
-public:
+    static void RegisterEdgeKind(EntityFactory* factory, EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
+    static void RegisterDefaultData(EntityFactory* factory, EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
+    
+    Edge(Node* source, Node* destination, EDGE_KIND kind);
+    Edge(EntityFactory* factory, EDGE_KIND kind, QString kind_string);
     ~Edge();
-
+public:
     //Get the source graphml object of this Edge
     Node* getSource() const;
-    int getSourceID();
-    int getDestinationID();
-
-    //Get the destination graphml object of this Edge
     Node* getDestination() const;
+    int getSourceID() const;
+    int getDestinationID() const;
+    bool isConnected(Node* node);
+    bool isInModel();
+
+    EDGE_KIND getEdgeKind() const;
 
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);
-
-    bool isInstanceToInstanceLink();
-    bool isInstanceLink();
-    bool isImplLink();
-    bool isAggregateLink();
-    bool isDeploymentLink();
-    bool isAssemblyLink();
-    bool isComponentLink();
-    bool isTerminationLink();
-    bool isNormalLink();
-    bool isDataLink();
-
-    bool isAssemblyLevelLink();
-
-
-    bool isDelegateLink();
-    bool contains(Node *item);
     QString toString();
-
-
-    bool isAggregateEdge();
-    bool isDefinitionEdge();
-    EDGE_KIND getEdgeKind();
 private:
-    EDGE_TYPE getType();
-    EDGE_TYPE type;
-    EDGE_KIND edgeClass;
-    Node* source;
-    Node* destination;
-
-public:
-    bool isInModel();
+    EDGE_KIND kind;
+    
+    Node* source = 0;
+    Node* destination = 0;
 };
 
 #endif // EDGE_H

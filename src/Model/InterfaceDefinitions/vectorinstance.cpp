@@ -16,7 +16,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
     //Can be both an input/output for data.
     setDataProducer(true);
     setDataReciever(true);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
     setNodeType(NODE_TYPE::DEFINITION);
 }
@@ -39,19 +39,19 @@ bool VectorInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool VectorInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool VectorInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
     switch(edgeKind){
-    case Edge::EC_DEFINITION:{
+    case EDGE_KIND::DEFINITION:{
         if(!(dst->getNodeKind() == NODE_KIND::VECTOR_INSTANCE || dst->getNodeKind() == NODE_KIND::VECTOR)){
             return false;
         }
         break;
     }
-    case Edge::EC_DATA:{
+    case EDGE_KIND::DATA:{
         if(dst->getNodeKind() == NODE_KIND::VECTOR_INSTANCE){
             if(getDefinition(true) && dst->getDefinition(true) != getDefinition(true)){
                 return false;

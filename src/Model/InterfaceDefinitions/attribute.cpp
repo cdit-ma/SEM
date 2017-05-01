@@ -36,7 +36,7 @@ bool Attribute::canAdoptChild(Node*)
     return false;
 }
 
-bool Attribute::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool Attribute::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

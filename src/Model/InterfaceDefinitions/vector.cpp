@@ -18,7 +18,7 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
     setDataReciever(true);
 
     setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
 }
 
@@ -61,13 +61,13 @@ bool Vector::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Vector::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
     switch(edgeKind){
-    case Edge::EC_AGGREGATE:{
+    case EDGE_KIND::AGGREGATE:{
         if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
         }

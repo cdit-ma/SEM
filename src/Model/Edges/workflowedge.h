@@ -1,16 +1,16 @@
 #ifndef WORKFLOWEDGE_H
 #define WORKFLOWEDGE_H
 #include "../edge.h"
-class WorkflowEdge: public Edge{
+
+class EntityFactory;
+class WorkflowEdge : public Edge
+{
     Q_OBJECT
+    friend class EntityFactory;
 protected:
-    //Constructor
-    WorkflowEdge(Node* src, Node* dst);
-
-public:
-    static WorkflowEdge* createWorkflowEdge(Node* src, Node* dst);
-
+    WorkflowEdge(EntityFactory* factory);
+    WorkflowEdge(Node *src, Node *dst);
+private:
+    static WorkflowEdge* ConstructEdge(Node* src, Node* dst);
 };
-
-
 #endif // WORKFLOWEDGE_H

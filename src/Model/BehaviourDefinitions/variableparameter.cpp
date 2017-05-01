@@ -21,7 +21,7 @@ bool VariableParameter::canAdoptChild(Node *node)
     return false;
 }
 
-bool VariableParameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool VariableParameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return Parameter::canAcceptEdge(edgeKind, dst);
 }

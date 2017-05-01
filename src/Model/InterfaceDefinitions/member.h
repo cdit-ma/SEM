@@ -12,7 +12,7 @@ protected:
 	Member();
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // MEMBER_H

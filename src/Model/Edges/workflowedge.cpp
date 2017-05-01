@@ -1,21 +1,23 @@
 #include "workflowedge.h"
 #include "../node.h"
 
-WorkflowEdge::WorkflowEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_WORKFLOW)
+WorkflowEdge::WorkflowEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::WORKFLOW)
 {
 }
 
-WorkflowEdge *WorkflowEdge::createWorkflowEdge(Node *src, Node *dst)
+WorkflowEdge::WorkflowEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::WORKFLOW, "Edge_Workflow"){
+    auto kind = EDGE_KIND::WORKFLOW;
+	QString kind_string = "Edge_Workflow";
+	RegisterEdgeKind(factory, kind, kind_string, &WorkflowEdge::ConstructEdge);
+}
+
+WorkflowEdge *WorkflowEdge::ConstructEdge(Node *src, Node *dst)
 {
     WorkflowEdge* edge = 0;
     if(src && dst){
-        if(src->canAcceptEdge(Edge::EC_WORKFLOW, dst)){
+        if(src->canAcceptEdge(EDGE_KIND::WORKFLOW, dst)){
             edge = new WorkflowEdge(src, dst);
         }
-    }else if(!src && !dst){
-        //Allow an empty edge
-        edge = new WorkflowEdge(0, 0);
     }
     return edge;
 }
-

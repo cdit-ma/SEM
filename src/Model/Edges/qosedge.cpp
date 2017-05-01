@@ -1,22 +1,23 @@
 #include "qosedge.h"
 #include "../node.h"
-QOSEdge::QOSEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_QOS)
+
+QosEdge::QosEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::QOS)
 {
-    
 }
 
-QOSEdge *QOSEdge::createQOSEdge(Node *src, Node *dst)
-{
-    QOSEdge* edge = 0;
+QosEdge::QosEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::QOS, "Edge_Qos"){
+    auto kind = EDGE_KIND::QOS;
+	QString kind_string = "Edge_Qos";
+	RegisterEdgeKind(factory, kind, kind_string, &QosEdge::ConstructEdge);
+}
 
+QosEdge *QosEdge::ConstructEdge(Node *src, Node *dst)
+{
+    QosEdge* edge = 0;
     if(src && dst){
-        if(src->canAcceptEdge(Edge::EC_QOS, dst)){
-            edge = new QOSEdge(src, dst);
+        if(src->canAcceptEdge(EDGE_KIND::QOS, dst)){
+            edge = new QosEdge(src, dst);
         }
-    }else if(!src && !dst){
-        //Allow an empty edge
-        edge = new QOSEdge(0, 0);
     }
-    
     return edge;
 }

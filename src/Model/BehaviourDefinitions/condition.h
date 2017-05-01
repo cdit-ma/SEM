@@ -23,7 +23,7 @@ public:
     bool gotTermination();
 
     virtual bool canAdoptChild(Node*);
-    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // CONDITION_H

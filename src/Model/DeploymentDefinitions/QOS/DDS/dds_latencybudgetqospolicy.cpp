@@ -21,7 +21,7 @@ bool DDS_LatencyBudgetQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_LatencyBudgetQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_LatencyBudgetQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

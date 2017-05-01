@@ -14,8 +14,8 @@ LoggingProfile::LoggingProfile(EntityFactory* factory) : Node(factory, NODE_KIND
 LoggingProfile::LoggingProfile():Node(NODE_KIND::LOGGINGPROFILE)
 {
     setNodeType(NODE_TYPE::LOGGING);
-    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
-    setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY);
 }
 
 bool LoggingProfile::canAdoptChild(Node*)
@@ -23,10 +23,10 @@ bool LoggingProfile::canAdoptChild(Node*)
     return false;
 }
 
-bool LoggingProfile::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool LoggingProfile::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     switch(edgeKind){
-    case Edge::EC_ASSEMBLY:{
+    case EDGE_KIND::ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
         if(dst->getNodeKind() != NODE_KIND::LOGGINGSERVER){
             return false;

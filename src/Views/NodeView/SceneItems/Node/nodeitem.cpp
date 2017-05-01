@@ -31,7 +31,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     hoveredResizeVertex = RV_NONE;
     readState = NodeItem::NORMAL;
 
-    visualEdgeKind = Edge::EC_NONE;
+    visualEdgeKind = EDGE_KIND::NONE;
 
 
     nodeViewItem = viewItem;
@@ -648,7 +648,7 @@ void NodeItem::setSecondaryTextKey(QString key)
 
 
 
-void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
+void NodeItem::setVisualEdgeKind(EDGE_KIND kind)
 {
     visualEdgeKind = kind;
     visualEntityIcon = EntityFactory::getEdgeKindString(kind);
@@ -662,7 +662,7 @@ void NodeItem::setVisualNodeKind(NODE_KIND kind)
     update();
 }
 
-Edge::EDGE_KIND NodeItem::getVisualEdgeKind() const
+EDGE_KIND NodeItem::getVisualEdgeKind() const
 {
     return visualEdgeKind;
 }
@@ -679,7 +679,7 @@ bool NodeItem::gotVisualNodeKind() const
 
 bool NodeItem::gotVisualEdgeKind() const
 {
-    return visualEdgeKind != Edge::EC_NONE;
+    return visualEdgeKind != EDGE_KIND::NONE;
 }
 
 bool NodeItem::gotVisualButton() const
@@ -788,11 +788,11 @@ void NodeItem::childPosChanged()
     resizeToChildren();
 }
 
-void NodeItem::edgeAdded(Edge::EDGE_KIND kind)
+void NodeItem::edgeAdded(EDGE_KIND kind)
 {
     switch(kind){
-        case Edge::EC_DEPLOYMENT:
-        case Edge::EC_QOS:
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::QOS:
             update();
             break;
     default:
@@ -800,11 +800,11 @@ void NodeItem::edgeAdded(Edge::EDGE_KIND kind)
     }
 }
 
-void NodeItem::edgeRemoved(Edge::EDGE_KIND kind)
+void NodeItem::edgeRemoved(EDGE_KIND kind)
 {
     switch(kind){
-        case Edge::EC_DEPLOYMENT:
-        case Edge::EC_QOS:
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::QOS:
             update();
             break;
     default:
@@ -975,11 +975,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-        if(getNodeViewItem()->gotEdge(Edge::EC_DEPLOYMENT)){
+        if(getNodeViewItem()->gotEdge(EDGE_KIND::DEPLOYMENT)){
             paintPixmap(painter, lod, ER_DEPLOYED, "Icons", "screen");
         }
 
-        if(getNodeViewItem()->gotEdge(Edge::EC_QOS)){
+        if(getNodeViewItem()->gotEdge(EDGE_KIND::QOS)){
             paintPixmap(painter, lod, ER_QOS, "Icons", "speedGauge");
         }
 

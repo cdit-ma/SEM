@@ -37,7 +37,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool InterfaceDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool InterfaceDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

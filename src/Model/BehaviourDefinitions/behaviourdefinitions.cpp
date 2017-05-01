@@ -37,7 +37,7 @@ bool BehaviourDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool BehaviourDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool BehaviourDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

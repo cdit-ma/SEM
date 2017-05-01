@@ -35,9 +35,9 @@ public:
     int getPrevID();
     void setActualID(int ID);
 
-    void appendEdgeKind(Edge::EDGE_KIND edgeKind);
-    void removeEdgeKind(Edge::EDGE_KIND edgeKind);
-    Edge::EDGE_KIND getEdgeKind();
+    void appendEdgeKind(EDGE_KIND edgeKind);
+    void removeEdgeKind(EDGE_KIND edgeKind);
+    EDGE_KIND getEdgeKind();
     bool hasEdgeKind();
 
 
@@ -99,7 +99,7 @@ private:
     Node* src;
     Node* dst;
 
-    QList<Edge::EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edgeKinds;
 
     int retryCount;
     bool ignoreConstruction;

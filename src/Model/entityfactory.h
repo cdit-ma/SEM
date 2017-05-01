@@ -3,19 +3,25 @@
 
 #include <QList>
 #include <QHash>
+#include <QVariant>
 #include <functional>
 
-#include "node.h"
-#include "edge.h"
+enum class NODE_KIND;
+enum class EDGE_KIND;
 
 class Key;
-
+class Node;
+class Data;
+class Edge;
 class ModelController;
+
 class EntityFactory
 {
 private:
     friend class ModelController;
     friend class Node;
+    friend class Edge;
+
     struct DefaultDataStruct{
         QString key_name;
         QVariant::Type type;
@@ -31,7 +37,7 @@ private:
     };
 
     struct EdgeLookupStruct{
-        Edge::EDGE_KIND kind;
+        EDGE_KIND kind;
         QString kind_str;
         std::function<Edge* (Node*, Node*)> constructor;
         QHash<QString, DefaultDataStruct*> default_data;
@@ -40,59 +46,58 @@ private:
 
 public:
     static QList<NODE_KIND> getNodeKinds();
-    static QList<Edge::EDGE_KIND> getEdgeKinds();
+    static QList<EDGE_KIND> getEdgeKinds();
 
     static NODE_KIND getNodeKind(QString node_kind);
-    static Edge::EDGE_KIND getEdgeKind(QString edge_kind);
+    static EDGE_KIND getEdgeKind(QString edge_kind);
 
     static QString getNodeKindString(NODE_KIND node_kind);
-    static QString getEdgeKindString(Edge::EDGE_KIND edge_kind);
+    static QString getEdgeKindString(EDGE_KIND edge_kind);
 
 protected:
     static EntityFactory* globalFactory();
-    
     static EntityFactory* getNewFactory();
 
-    
     Node* createNode(QString nodeKind);
     Node* createNode(NODE_KIND nodeKind);
 
-    Edge* createEdge(Node* source, Node* destination, Edge::EDGE_KIND edgeKind);
+    Edge* createEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
     Edge* createEdge(Node* source, Node* destination, QString kind);
 
 
 
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+    void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
+    void RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
     void RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-    void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
+    void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 protected:
-    EntityFactory();
-    ~EntityFactory();
+   
     QList<Data*> getDefaultNodeData(NODE_KIND kind);
-    QList<Data*> getDefaultEdgeData(Edge::EDGE_KIND kind);
+    QList<Data*> getDefaultEdgeData(EDGE_KIND kind);
     Key* GetKey(QString key_name);
     Key* GetKey(int key_id);
     Key* GetKey(QString key_name, QVariant::Type type);
     QList<Key*> GetKeys();
 private:
-    NodeLookupStruct* getNodeLookup(NODE_KIND kind);
-    QHash<NODE_KIND, NodeLookupStruct*> nodeLookup;
-    QHash<Edge::EDGE_KIND, EdgeLookupStruct*> edgeLookup;
-    
-    QHash<QString, Edge::EDGE_KIND> edgeKindLookup;
-    QHash<QString, NODE_KIND> nodeKindLookup;
-
+    QList<Data*> getDefaultData(QList<DefaultDataStruct*> data);
+    EntityFactory();
+    ~EntityFactory();
     Node* _createNode(NODE_KIND kind);
-    Edge* _createEdge(Node* source, Node* destination, Edge::EDGE_KIND edge_kind);
-    QList<Data*> _constructDefaultData(Entity* entity);
+    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
+    
+    NodeLookupStruct* getNodeStruct(NODE_KIND kind);
+    EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 
-    Edge* getEdge(Edge::EDGE_KIND kind);
+    QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
+    QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;
+    QHash<QString, EDGE_KIND> edge_kind_lookup;
+    QHash<QString, NODE_KIND> node_kind_lookup;
 private:
 
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
-    void addEdgeKind(Edge::EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
-    void setupOnceOffKeys(Node* node);
+    void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
 
     QHash<QString, Key*> keyLookup_;

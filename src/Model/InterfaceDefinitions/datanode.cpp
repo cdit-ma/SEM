@@ -8,7 +8,7 @@ DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : N
 
 DataNode::DataNode(NODE_KIND kind):Node(kind)
 {
-    setAcceptsEdgeKind(Edge::EC_DATA);
+    setAcceptsEdgeKind(EDGE_KIND::DATA);
     setNodeType(NODE_TYPE::DATA);
     _isProducer = false;
     _isReciever = false;
@@ -26,7 +26,7 @@ bool DataNode::hasOutputData()
 
 DataNode *DataNode::getInputData()
 {
-    foreach(Edge* edge, getEdges(0, Edge::EC_DATA)){
+    foreach(Edge* edge, getEdges(0, EDGE_KIND::DATA)){
         if(edge->getDestination() == this){
             return (DataNode*) edge->getSource();
         }
@@ -36,7 +36,7 @@ DataNode *DataNode::getInputData()
 
 DataNode *DataNode::getOutputData()
 {
-    foreach(Edge* edge, getEdges(0, Edge::EC_DATA)){
+    foreach(Edge* edge, getEdges(0, EDGE_KIND::DATA)){
         if(edge->getSource() == this){
             return (DataNode*) edge->getDestination();
         }
@@ -119,13 +119,13 @@ bool DataNode::comparableTypes(DataNode *node)
 
 }
 
-bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
     switch(edgeKind){
-    case Edge::EC_DATA:{
+    case EDGE_KIND::DATA:{
         if(!dst->isNodeOfType(NODE_TYPE::DATA)){
             //Cannot connect to a non DataNode type.
             return false;

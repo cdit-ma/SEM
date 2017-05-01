@@ -22,7 +22,7 @@ bool Header::canAdoptChild(Node *child)
     return false;
 }
 
-bool Header::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Header::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

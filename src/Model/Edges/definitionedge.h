@@ -2,19 +2,16 @@
 #define DEFINITIONEDGE_H
 #include "../edge.h"
 
-class DefinitionEdge: public Edge{
+class EntityFactory;
+class DefinitionEdge : public Edge
+{
     Q_OBJECT
-
+    friend class EntityFactory;
 protected:
-    //Constructor
-    DefinitionEdge(Node* src, Node* dst);
-
-public:
-    static DefinitionEdge* createDefinitionEdge(Node* src, Node* dst);
-
-    bool isImplEdge() const;
-    bool isInstanceEdge() const;
-    bool isInterInstanceEdge() const;
+    DefinitionEdge(EntityFactory* factory);
+    DefinitionEdge(Node *src, Node *dst);
+private:
+    static DefinitionEdge* ConstructEdge(Node* src, Node* dst);
 };
 
 #endif // EDGE_H

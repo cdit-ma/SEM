@@ -13,7 +13,7 @@ EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QSt
 EventPortAssembly::EventPortAssembly(NODE_KIND kind): EventPort(kind)
 {
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
-    setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY);
 }
 
 bool EventPortAssembly::isInPortDelegate() const
@@ -62,15 +62,14 @@ bool EventPortAssembly::canAdoptChild(Node* child)
     return EventPort::canAdoptChild(child);
 }
 
-bool EventPortAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
-        qCritical() << "CANNOT ACCEPT EDGE TYPE: " << edgeKind;
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_ASSEMBLY:{
+    case EDGE_KIND::ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
         if(!dst->isNodeOfType(NODE_TYPE::EVENTPORT_ASSEMBLY)){
             return false;

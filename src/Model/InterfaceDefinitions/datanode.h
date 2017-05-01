@@ -23,7 +23,7 @@ public:
     bool isMultipleDataReceiver() const;
 
     bool comparableTypes(DataNode* node);
-    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst) = 0;
+    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) = 0;
 private:
 
     bool _isProducer;

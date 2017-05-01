@@ -12,7 +12,7 @@ protected:
 	DDS_ResourceLimitsQosPolicy();
 public:
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_RESOURCELIMITSQOSPOLICY_H
 

@@ -22,7 +22,7 @@ bool DDS_UserDataQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_UserDataQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_UserDataQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

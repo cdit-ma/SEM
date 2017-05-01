@@ -11,8 +11,8 @@ ComponentAssembly::ComponentAssembly(EntityFactory* factory) : Node(factory, NOD
 
 ComponentAssembly::ComponentAssembly():Node(NODE_KIND::COMPONENT_ASSEMBLY)
 {
-    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
-    setAcceptsEdgeKind(Edge::EC_QOS);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
+    setAcceptsEdgeKind(EDGE_KIND::QOS);
 }
 
 bool ComponentAssembly::canAdoptChild(Node *child)
@@ -32,14 +32,14 @@ bool ComponentAssembly::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool ComponentAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool ComponentAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     //Can only have one Deployed Node
-    if(edgeKind == Edge::EC_DEPLOYMENT){
+    if(edgeKind == EDGE_KIND::DEPLOYMENT){
         if(!getEdges(0, edgeKind).empty()){
             return false;
         }

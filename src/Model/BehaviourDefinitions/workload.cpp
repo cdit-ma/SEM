@@ -26,7 +26,7 @@ bool Workload::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool Workload::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Workload::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

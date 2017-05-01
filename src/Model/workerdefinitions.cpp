@@ -12,6 +12,7 @@ WorkerDefinitions::WorkerDefinitions(EntityFactory* factory) : Node(factory, NOD
 
 WorkerDefinitions::WorkerDefinitions(): Node(NODE_KIND::WORKER_DEFINITIONS)
 {
+    setAsRoot(1);
     setMoveEnabled(false);
     setExpandEnabled(false);
     updateDefaultData("label", QVariant::String, true, "WORKERS");
@@ -34,7 +35,7 @@ bool WorkerDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool WorkerDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool WorkerDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

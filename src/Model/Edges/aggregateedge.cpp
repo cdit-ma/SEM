@@ -1,20 +1,23 @@
 #include "aggregateedge.h"
 #include "../node.h"
 
-AggregateEdge::AggregateEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_AGGREGATE)
+AggregateEdge::AggregateEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::AGGREGATE)
 {
 }
 
-AggregateEdge *AggregateEdge::createAggregateEdge(Node *src, Node *dst)
+AggregateEdge::AggregateEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::AGGREGATE, "Edge_Aggregate"){
+    auto kind = EDGE_KIND::AGGREGATE;
+	QString kind_string = "Edge_Aggregate";
+	RegisterEdgeKind(factory, kind, kind_string, &AggregateEdge::ConstructEdge);
+}
+
+AggregateEdge *AggregateEdge::ConstructEdge(Node *src, Node *dst)
 {
     AggregateEdge* edge = 0;
     if(src && dst){
-        if(src->canAcceptEdge(Edge::EC_AGGREGATE, dst)){
+        if(src->canAcceptEdge(EDGE_KIND::AGGREGATE, dst)){
             edge = new AggregateEdge(src, dst);
         }
-    }else if(!src && !dst){
-        //Allow an empty edge
-        edge = new AggregateEdge(0, 0);
     }
     return edge;
 }

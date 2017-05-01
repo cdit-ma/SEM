@@ -17,7 +17,7 @@ Parameter::Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str) :
 Parameter::Parameter(NODE_KIND kind):DataNode(kind)
 {
     setNodeType(NODE_TYPE::PARAMETER);
-    setAcceptsEdgeKind(Edge::EC_DATA);
+    setAcceptsEdgeKind(EDGE_KIND::DATA);
 
     setMoveEnabled(false);
     setExpandEnabled(false);
@@ -48,14 +48,14 @@ bool Parameter::canAdoptChild(Node*)
     return false;
 }
 
-bool Parameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Parameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_DATA:{
+    case EDGE_KIND::DATA:{
         if(dst->isNodeOfType(NODE_TYPE::PARAMETER)){
             Parameter* parameter = (Parameter*) dst;
             //Allow connection to things in the same component

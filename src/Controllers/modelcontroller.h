@@ -190,7 +190,7 @@ struct EventAction{
         QString XML;
         QString nodeKind;
         Entity::ENTITY_KIND kind;
-        Edge::EDGE_KIND edgeClass;
+        EDGE_KIND edgeClass;
     } Entity;
 
     struct _Key{
@@ -236,14 +236,14 @@ public:
     QString getProjectAsGraphML();
     QString getSelectionAsGraphMLSnippet(QList<int> IDs);
 
-    QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
-    QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
+    QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
+    QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
 
     QList<NODE_KIND> getAdoptableNodeKinds2(int ID);
     QStringList getAdoptableNodeKinds(int ID);
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
-    QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KIND edgeKind);
-    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_KIND edgeClass);
+    QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
+    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, EDGE_KIND edgeClass);
 
     QList<int> getOrderedSelectionIDs(QList<int> selection);
 
@@ -257,15 +257,20 @@ public:
     int getSharedParent(int ID, int ID2);
     bool isNodeAncestor(int ID, int ID2);
 
+
+
+
     //UNSURE IF NEEDED
+    QStringList getProtectedEntityKeys(int ID);
     QStringList getEntityKeys(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
+    
 private:
     void loadWorkerDefinitions();
     //Gets the Model Node.
     Model* getModel();
     WorkerDefinitions* getWorkerDefinitions();
-    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_KIND edgeKind);
+    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
     QList<Entity *> getOrderedSelection(QList<int> selection);
 public:
     bool canUndo();
@@ -316,7 +321,7 @@ private:
 signals:
     //New SIGNAL
     void NodeConstructed(int parent_id, int id, NODE_KIND kind);
-    void EdgeConstructed(int id, Edge::EDGE_KIND kind, int src_id, int dst_id);
+    void EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
     
     void projectModified(bool modified);
     void initiateTeardown();
@@ -370,6 +375,18 @@ public slots:
     void setData(int parentID, QString keyName, QVariant dataValue);
     void removeData(int parentID, QString keyName);
 private slots:
+    //New Slots
+    void sl_construct_node(int parent_id, NODE_KIND kind);
+    void sl_construct_connected_node(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind);
+
+private:
+    Node* construct_node(Node* parent_node, NODE_KIND kind);
+    Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
+
+private slots:
+    void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+    void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
+
 
     void enableDebugLogging(bool logMode, QString applicationPath="");
 
@@ -396,12 +413,9 @@ private slots:
     void clear();
 
 
-    void constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
 
-    void constructNode(int parentID, QString kind, QPointF centerPoint);
-
-    void constructEdge(QList<int> srcIDs, int dstID,Edge::EDGE_KIND edgeClass = Edge::EC_UNDEFINED);
-    void destructEdges(QList<int> srcIDs, int dstID,Edge::EDGE_KIND edgeClass = Edge::EC_UNDEFINED);
+    void constructEdge(QList<int> srcIDs, int dstID,EDGE_KIND edgeClass);
+    void destructEdges(QList<int> srcIDs, int dstID,EDGE_KIND edgeClass);
 
     void constructDDSQOSProfile(int parentID, QPointF position);
     void constructForCondition(int parentID, QPointF position);
@@ -420,8 +434,8 @@ private slots:
     void _projectNameChanged();
 
 private:
-    Edge::EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
-    QList<Edge::EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
+    EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
+    QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
     void clearHistory();
 
     QString _copy(QList<Entity*> selection);
@@ -483,17 +497,16 @@ private:
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-    Edge* _constructEdge(Edge::EDGE_KIND edgeClass, Node* src, Node* dst);
-    Edge* constructEdgeWithData(Edge::EDGE_KIND edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
+   
+    Edge* constructEdgeWithData(EDGE_KIND edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(Entity*item);
     Entity*getGraphMLFromHash(int ID);
     void removeGraphMLFromHash(int ID);
-    Node* construct_node(Node* parent_node, NODE_KIND node_kind);
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
-    Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
+
     bool attachChildNode(Node* parentNode, Node* childNode, bool sendGUIRequest = true);
 
     Node* _constructNode(QList<Data*> data);
@@ -518,7 +531,7 @@ private:
 
     //Constructs a Vector of basic Data entities required for creating a Node.
     QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
-    QList<Data*> constructRequiredEdgeData(Edge::EDGE_KIND edgeClass);
+    QList<Data*> constructRequiredEdgeData(EDGE_KIND edgeClass);
     QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
@@ -551,10 +564,8 @@ private:
     bool isGraphMLValid(QString inputGraphML);
 
 
-    void setupLocalNode();
 
-
-    //Used by Undo/Redo to reverse an ActionItem from the Stacks.
+    //Used by Undo/Redo to reverse an ActionItem from the Stacks.4
     bool reverseAction(EventAction action);
 
     //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.

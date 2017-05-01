@@ -21,7 +21,7 @@ bool DDS_EntityFactoryQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_EntityFactoryQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DDS_EntityFactoryQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

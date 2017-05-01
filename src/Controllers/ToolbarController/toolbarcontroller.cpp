@@ -158,8 +158,8 @@ void ToolbarController::selectionChanged(int selected)
     
     //Get the valid list of things to enable disable
     QList<NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
-    QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
-    QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
+    QList<EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
+    QList<EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
     //Disable the
     foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
         NodeViewItemAction* nodeAction = (NodeViewItemAction*) action;
@@ -167,12 +167,12 @@ void ToolbarController::selectionChanged(int selected)
         action->setEnabled(validNodes.contains(kind));
     }
 
-    foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
+    foreach(EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
         RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
     }
 
-    foreach(Edge::EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
+    foreach(EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
         RootAction* action = disconnectEdgeKindActions[edgeKind];
         action->setEnabled(existingEdges.contains(edgeKind));
     }
@@ -185,17 +185,18 @@ void ToolbarController::actionFinished()
     }
 }
 
-void ToolbarController::addChildNode(QString kind, QPointF position)
+void ToolbarController::addChildNode(QString kind_str, QPointF position)
 {
     ViewItem* item = selectionController->getActiveSelectedItem();
 
     if(item){
         int ID = item->getID();
+        auto kind = EntityFactory::getNodeKind(kind_str);
         emit viewController->vc_constructNode(ID, kind, position);
     }
 }
 
-void ToolbarController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
+void ToolbarController::addEdge(int dstID, EDGE_KIND edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
@@ -203,7 +204,7 @@ void ToolbarController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
-void ToolbarController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
+void ToolbarController::removeEdge(int dstID, EDGE_KIND edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
@@ -211,11 +212,13 @@ void ToolbarController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
-void ToolbarController::addConnectedChildNode(int dstID, QString kind, QPointF position)
+void ToolbarController::addConnectedChildNode(int dstID, QString kind_str, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
-        emit viewController->vc_constructConnectedNode(ID, kind,dstID, Edge::EC_UNDEFINED, position);
+        auto kind = EntityFactory::getNodeKind(kind_str);
+
+        emit viewController->vc_constructConnectedNode(ID, kind,dstID, EDGE_KIND::NONE, position);
     }
 }
 
@@ -260,7 +263,7 @@ void ToolbarController::setupToolActions()
     createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Icons", "circleInfo");
 }
 
-QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
+QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
 
@@ -272,7 +275,7 @@ QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(Edge::EDGE_K
     return list;
 }
 
-QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
+QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
     foreach(ViewItem* item, viewController->getExistingEdgeEndPointsForSelection(kind)){
@@ -283,7 +286,7 @@ QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(Edge
     return list;
 }
 
-RootAction *ToolbarController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+RootAction *ToolbarController::getConnectEdgeActionOfKind(EDGE_KIND kind)
 {
     if(connectEdgeKindActions.contains(kind)){
         return connectEdgeKindActions[kind];
@@ -291,7 +294,7 @@ RootAction *ToolbarController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
     return 0;
 }
 
-RootAction *ToolbarController::getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+RootAction *ToolbarController::getDisconnectEdgeActionOfKind(EDGE_KIND kind)
 {
     if(disconnectEdgeKindActions.contains(kind)){
         return disconnectEdgeKindActions[kind];
@@ -382,7 +385,7 @@ void ToolbarController::setupNodeActions()
 
 void ToolbarController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_KIND kind, EntityFactory::getEdgeKinds()){
+    foreach(EDGE_KIND kind, EntityFactory::getEdgeKinds()){
         QString edgeKind = EntityFactory::getEdgeKindString(kind);
         RootAction* connectAction = new RootAction("Edge", edgeKind);
         RootAction* disconnectAction = new RootAction("Edge", edgeKind);

@@ -25,16 +25,18 @@ public:
 
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
-    QList<EdgeViewItem*> getEdges(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
-    bool gotEdge(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
+
+    QList<EdgeViewItem*> getEdges() const;
+    QList<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
+    bool gotEdge(EDGE_KIND edgeKind) const;
     
     bool isAncestorOf(NodeViewItem* item);
 signals:
-    void edgeAdded(Edge::EDGE_KIND edgeKind);
-    void edgeRemoved(Edge::EDGE_KIND edgeKind);
+    void edgeAdded(EDGE_KIND edgeKind);
+    void edgeRemoved(EDGE_KIND edgeKind);
 
 private:
-    QMultiMap<Edge::EDGE_KIND, EdgeViewItem*> edges;
+    QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND nodeKind;
     VIEW_ASPECT aspect = VA_NONE;
     int parent_id = -1;

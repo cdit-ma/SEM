@@ -30,14 +30,14 @@ bool Branch::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool Branch::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Branch::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
     switch(edgeKind){
-    case Edge::EC_WORKFLOW:{
+    case EDGE_KIND::WORKFLOW:{
         if(dst->getNodeKind() != NODE_KIND::TERMINATION){
             return false;
         }

@@ -34,7 +34,7 @@ bool DeploymentDefinitions::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool DeploymentDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+bool DeploymentDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

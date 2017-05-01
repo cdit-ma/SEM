@@ -21,7 +21,7 @@ bool WhileLoop::canAdoptChild(Node *node)
     return Branch::canAdoptChild(node);
 }
 
-bool WhileLoop::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool WhileLoop::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return Branch::canAcceptEdge(edgeKind, dst);
 }
