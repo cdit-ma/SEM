@@ -1,4 +1,4 @@
-#include "cpu_worker.h"
+#include "../cpu_worker_impl.h"
 #include <chrono>
 #include <iostream>
 
@@ -17,7 +17,7 @@ std::string json_pair(std::string key, std::string val){
 }
 
 int main(){
-    Cpu_Worker worker(0, "cpu_worker");
+    Cpu_Worker_Impl worker;
 
     auto start = std::chrono::steady_clock::now();
     
