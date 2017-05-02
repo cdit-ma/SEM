@@ -27,13 +27,12 @@ FIND_LIBRARY(QPID_TYPES
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(QPID_LIBRARIES 
+find_package_handle_standard_args(QPID
+    QPID_LIBRARIES 
     QPID_MESSAGING
     QPID_BROKER
     QPID_COMMON
     QPID_TYPES
-    dl
-    pthread
     QPID_INCLUDE_DIRS
 )
 
