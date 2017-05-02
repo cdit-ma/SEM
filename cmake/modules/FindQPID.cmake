@@ -26,16 +26,21 @@ FIND_LIBRARY(QPID_TYPES
     $ENV{QPID_ROOT}/lib/
 )
 
-if(${QPID_COMMON} AND ${QPID_TYPES} AND ${QPID_BROKER} AND ${QPID_MESSAGING})
-    set(QPID_FOUND TRUE)
-    message(STATUS "Found QPID libraries: ${QPID_COMMON}")
-endif()
-
-SET(QPID_LIBRARIES 
-    ${QPID_COMMON}
-    ${QPID_TYPES}
-    ${QPID_BROKER}
-    ${QPID_MESSAGING}
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(QPID_LIBRARIES 
+    QPID_MESSAGING
+    QPID_BROKER
+    QPID_COMMON
+    QPID_TYPES
     dl
     pthread
+    QPID_INCLUDE_DIRS
+)
+
+mark_as_advanced(
+    QPID_LIBRARIES 
+    QPID_MESSAGING
+    QPID_BROKER
+    QPID_COMMON
+    QPID_TYPES
 )
