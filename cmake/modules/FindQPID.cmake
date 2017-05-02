@@ -26,6 +26,8 @@ FIND_LIBRARY(QPID_TYPES
     $ENV{QPID_ROOT}/lib/
 )
 
+SET(QPID_LIBRARIES ${QPID_MESSAGING} ${QPID_BROKER} ${QPID_COMMON} ${QPID_TYPES})
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QPID
     QPID_LIBRARIES 

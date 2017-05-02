@@ -28,6 +28,5 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
 include_directories(${QPID_INCLUDE_DIRS})
-
 target_link_libraries(${PROJ_NAME} ${QPID_LIBRARIES})
 
