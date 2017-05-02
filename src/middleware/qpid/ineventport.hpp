@@ -127,7 +127,7 @@ void qpid::InEventPort<T, S>::qpid_loop(){
                 break;
             }
             std::string str = sample.getContent();
-            auto m = proto::decode<S>(msg_str);
+            auto m = proto::decode<S>(str);
             this->EnqueueMessage(m);
         } catch (...){
             if(receiver_.isClosed()){
