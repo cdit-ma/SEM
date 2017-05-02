@@ -34,7 +34,6 @@ EDGE_KIND Edge::getEdgeKind() const{
 }
 
 Edge::Edge(EntityFactory* factory, EDGE_KIND kind, QString kind_string):Entity(EK_EDGE){
-    qCritical() << "Registering Kind: " << (int)kind << " TO STRING " << kind_string;
     RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
 }
 

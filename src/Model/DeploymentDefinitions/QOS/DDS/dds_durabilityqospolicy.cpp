@@ -10,10 +10,10 @@ DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NODE_KIND::QOS_DDS_POLIC
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "durability");
-    updateDefaultData("qos_dds_kind", QVariant::String, false, "VOLATILE_DURABILITY_QOS");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "durability");
+    //updateDefaultData("qos_dds_kind", QVariant::String, false, "VOLATILE_DURABILITY_QOS");
 
     auto values = QStringList();
     values << "VOLATILE_DURABILITY_QOS";

@@ -1,5 +1,5 @@
 #include "hardwaredefinitions.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 HardwareDefinitions::HardwareDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_DEFINITIONS, "HardwareDefinitions"){
 	auto node_kind = NODE_KIND::HARDWARE_DEFINITIONS;
@@ -12,8 +12,8 @@ HardwareDefinitions::HardwareDefinitions(EntityFactory* factory) : Node(factory,
 HardwareDefinitions::HardwareDefinitions():Node(NODE_KIND::HARDWARE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 VIEW_ASPECT HardwareDefinitions::getViewAspect() const

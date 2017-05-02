@@ -10,11 +10,11 @@ DDS_TimeBasedFilterQosPolicy::DDS_TimeBasedFilterQosPolicy():Node(NODE_KIND::QOS
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "time_based_filter");
-    updateDefaultData("qos_dds_minimum_separation_sec", QVariant::String, false, "0");
-    updateDefaultData("qos_dds_minimum_separation_nanosec", QVariant::String, false, "0");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "time_based_filter");
+    //updateDefaultData("qos_dds_minimum_separation_sec", QVariant::String, false, "0");
+    //updateDefaultData("qos_dds_minimum_separation_nanosec", QVariant::String, false, "0");
 }
 
 bool DDS_TimeBasedFilterQosPolicy::canAdoptChild(Node*)

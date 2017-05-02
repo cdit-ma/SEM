@@ -3,7 +3,7 @@
 #include "parameter.h"
 #include "variable.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 ReturnParameter::ReturnParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::RETURN_PARAMETER, "ReturnParameter"){
 	auto node_kind = NODE_KIND::RETURN_PARAMETER;

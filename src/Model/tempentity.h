@@ -40,6 +40,7 @@ public:
     EDGE_KIND getEdgeKind();
     bool hasEdgeKind();
 
+    QVariant getData(QString key);
 
     TempEntity* getParentEntity();
     void setParentID(QString ID);

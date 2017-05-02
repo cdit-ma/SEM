@@ -1,15 +1,14 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
 
-
+#include <QObject>
 #include <QStack>
 #include <QFile>
 #include <QPointF>
 #include <QXmlStreamReader>
-#include <QNetworkInterface>
 #include <QReadWriteLock>
 
-#include "ViewController/viewcontroller.h"
+//#include "ViewController/viewcontroller.h"
 
 #include "../Model/model.h"
 #include "../Model/edge.h"
@@ -218,8 +217,8 @@ public:
     void setExternalWorkerDefinitionPath(QString path);
 
 
-    void connectViewController(ViewController* view);
-    void disconnectViewController(ViewController *view);
+   // void connectViewController(ViewController* view);
+   // void disconnectViewController(ViewController *view);
 
     QString getProjectPath() const;
     void setProjectPath(QString path);
@@ -377,12 +376,15 @@ public slots:
 
 private:
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
-    Node* construct_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
-    Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
 
-private slots:
+    Node* construct_node(Node* parent_node, NODE_KIND kind);
+    Node* construct_child_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
+    Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
+    int GetEdgeOrderIndex(EDGE_KIND kind);
+public slots:
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
+    void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
 
 
     void enableDebugLogging(bool logMode, QString applicationPath="");
@@ -414,11 +416,7 @@ private slots:
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
 
-    void constructDDSQOSProfile(int parentID, QPointF position);
-    void constructForCondition(int parentID, QPointF position);
-    void constructWorkerProcess(int parentID, int workerProcessID, QPointF pos);
-    void constructSetter(int parentID, QPointF position);
-
+    
 
 
 
@@ -431,6 +429,12 @@ private slots:
     void _projectNameChanged();
 
 private:
+    Node* construct_setter_node(Node* parent);
+    Node* construct_dds_profile_node(Node* parent);
+    Node* construct_for_condition_node(Node* parent);
+
+
+
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
     void clearHistory();
@@ -467,6 +471,8 @@ private:
 
     bool _newImportGraphML(QString document, Node* parent = 0);
 
+    
+
 
     ReadOnlyState getReadOnlyState(Node* node);
 
@@ -482,11 +488,6 @@ private:
     QString _exportGraphMLDocument(QList<int> entityIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
-    //Finds or Constructs a GraphMLKey given a Name, Type and ForType
-    Key* constructKey(QString name, QVariant::Type type);
-    Key* getKeyFromName(QString name);
-    Key* getKeyFromID(int ID);
-
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     int constructDependantRelative(Node* parent, Node* definition);
 
@@ -498,11 +499,13 @@ private:
     Edge* constructEdgeWithData(EDGE_KIND edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
-    void storeGraphMLInHash(Entity*item);
-    Entity*getGraphMLFromHash(int ID);
-    void removeGraphMLFromHash(int ID);
-
-    //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
+    
+    Entity* getEntity(int ID);
+    Node* getNode(int ID);
+    Edge* getEdge(int ID);   
+    
+    void storeEntity(Entity* item);
+    void removeEntity(int ID);
 
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
@@ -512,9 +515,7 @@ private:
     QList<Entity*> getEntities(QList<int> IDs);
 
 
-
-    QList<Data*> cloneNodesData(Node* original, bool ignoreVisuals=true);
-    Node* cloneNode(Node* original, Node* parent, bool ignoreVisuals=true);
+    Node* cloneNode(Node* original, Node* parent);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
     void constructEdgeGUI(Edge* edge);
@@ -525,10 +526,6 @@ private:
     bool destructEdge(Edge* edge);
 
 
-    //Constructs a Vector of basic Data entities required for creating a Node.
-    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
-    QList<Data*> constructRequiredEdgeData(EDGE_KIND edgeClass);
-    QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
 
@@ -588,35 +585,15 @@ private:
 
 
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
-    Entity*getGraphMLFromID(int ID);
-    Node* getNodeFromID(int ID);
     Node* getFirstNodeFromList(QList<int> ID);
-    Edge* getEdgeFromID(int ID);
+    
 
     //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
-    int getIDFromOldID(int ID);
+    int get_linked_ids(int ID);
+    void link_ids(int oldID, int newID);
 
-    int getIntFromQString(QString ID);
-    //Links an ID of an already deleted GraphML Item to the ID of the new GraphML Item.
-    void linkOldIDToID(int oldID, int newID);
 
-    //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
-    Node* getNodeFromGraphML(Entity* item);
-    Edge* getEdgeFromGraphML(Entity* item);
-
-    bool _isInModel(Entity* item);
-    bool _isInWorkerDefinitions(Entity* item);
-
-    QString getSysOS();
-    QString getSysArch();
-    QString getSysOSVersion();
-
-    //Stores the GraphMLKey's used by the Model.
-    QHash<QString, Key*> keys;
-
-    //Stores the list of nodeID's and EdgeID's inside the Hash.
-    QList<int> nodeIDs;
-    QList<int> edgeIDs;
+    
 
     //Stack of ActionItems in the Undo/Redo Stack.
     QStack<EventAction> undoActionStack;
@@ -629,15 +606,13 @@ private:
     void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);
 
     //Provides a lookup for IDs.
-    QHash<int, int> IDLookupHash;
-    QHash<int, Entity*> IDLookupGraphMLHash;
-    //QHash<int, EntityAdapter*> ID2AdapterHash;
+    QHash<int, int> id_hash_;
+    QHash<int, Entity*> entity_hash_;
 
+    //Stores the list of nodeID's and EdgeID's inside the Hash.
+    QList<int> node_ids_;
+    QList<int> edge_ids_;
 
-
-    QHash<int, QString> reverseKindLookup;
-
-    QHash<QString, QList<int> > kindLookup;
 
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
@@ -651,11 +626,6 @@ private:
     QList<NODE_KIND> snippetableParentKinds;
     QList<NODE_KIND> nonSnippetableKinds;
 
-    //A list of View Aspects present in the model.
-    QStringList viewAspects;
-    //A list of KeyNames to be protected.
-    QStringList protectedKeyNames;
-    QStringList visualKeyNames;
 
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
@@ -664,24 +634,24 @@ private:
     bool USE_LOGGING;
     bool IMPORTING_SNIPPET;
 
-    Model* model;
-    Node* workerDefinitions;
+    Model* model = 0;
+    Node* workerDefinitions = 0;
+    Node* behaviourDefinitions = 0;
+    Node* deploymentDefinitions = 0;
+    Node* interfaceDefinitions = 0;
+    Node* hardwareDefinitions = 0;
+    Node* assemblyDefinitions = 0;
+    Node* localhostNode = 0;
 
-    Node* behaviourDefinitions;
-    Node* deploymentDefinitions;
-    Node* interfaceDefinitions;
-    Node* hardwareDefinitions;
-    Node* assemblyDefinitions;
-    Node* localhostNode;
+    Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
+    Node* get_hardware_by_url(Node* parent_node, NODE_KIND kind, QString url);
 
     //List of undeleteable nodes
     QList<Node*> protectedNodes;
 
-    QList<Node*> getAllNodes();
+    QList<Node*> getNodes();
     QList<Node*> getNodes(QList<int> IDs);
 
-    QHash<QString, Node*> hardwareEntities;
-    QHash<QString, Process*> workerProcesses;
 
     int previousUndos;
 

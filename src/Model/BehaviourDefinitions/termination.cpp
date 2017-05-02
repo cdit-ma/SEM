@@ -1,7 +1,7 @@
 #include "termination.h"
 #include "branch.h"
 #include <QDebug>
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Termination::Termination(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::TERMINATION, "Termination"){
 	auto node_kind = NODE_KIND::TERMINATION;

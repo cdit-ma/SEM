@@ -10,10 +10,10 @@ DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy():Node(NODE_K
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "writer_data_lifecycle");
-    updateDefaultData("qos_dds_autodispose_unregistered_instances", QVariant::Bool, false, true);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "writer_data_lifecycle");
+    //updateDefaultData("qos_dds_autodispose_unregistered_instances", QVariant::Bool, false, true);
 }
 
 bool DDS_WriterDataLifecycleQosPolicy::canAdoptChild(Node*)

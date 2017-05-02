@@ -10,13 +10,13 @@ DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy():Node(NODE_K
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "reader_data_lifecycle");
-    updateDefaultData("qos_dds_autopurge_nowriter_samples_delay_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
-    updateDefaultData("qos_dds_autopurge_nowriter_samples_delay_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
-    updateDefaultData("qos_dds_autopurge_disposed_samples_delay_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
-    updateDefaultData("qos_dds_autopurge_disposed_samples_delay_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "reader_data_lifecycle");
+    //updateDefaultData("qos_dds_autopurge_nowriter_samples_delay_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
+    //updateDefaultData("qos_dds_autopurge_nowriter_samples_delay_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
+    //updateDefaultData("qos_dds_autopurge_disposed_samples_delay_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
+    //updateDefaultData("qos_dds_autopurge_disposed_samples_delay_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
 }
 
 bool DDS_ReaderDataLifecycleQosPolicy::canAdoptChild(Node*)

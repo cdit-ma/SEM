@@ -204,6 +204,9 @@ void ToolbarController::addChildNode(NODE_KIND kind, QPointF position)
 
     if(item){
         int ID = item->getID();
+        //if()
+        //Expand!
+        emit viewController->vc_setData(ID, "isExpanded", true);
         emit viewController->vc_constructNode(ID, kind, position);
     }
 }
@@ -377,7 +380,6 @@ QStringList ToolbarController::getKindsRequiringSubActions()
 
 EDGE_KIND ToolbarController::getNodesEdgeKind(NODE_KIND kind){
     if(connectedNodeEdgeKinds.contains(kind)){
-        qCritical() << "Got Edge Kind In lookup";
         return connectedNodeEdgeKinds[kind];
     }
     return EDGE_KIND::NONE;

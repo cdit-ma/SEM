@@ -1,5 +1,6 @@
 #include "definitionedge.h"
 #include "../node.h"
+#include <QDebug>
 
 DefinitionEdge::DefinitionEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::DEFINITION)
 {

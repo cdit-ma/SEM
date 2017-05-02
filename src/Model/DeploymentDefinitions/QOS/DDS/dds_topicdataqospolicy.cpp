@@ -9,10 +9,10 @@ DDS_TopicDataQosPolicy::DDS_TopicDataQosPolicy(EntityFactory* factory) : Node(fa
 DDS_TopicDataQosPolicy::DDS_TopicDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_TOPICDATA)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "topic_data");
-    updateDefaultData("qos_dds_str_value", QVariant::String);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "topic_data");
+    //updateDefaultData("qos_dds_str_value", QVariant::String);
 }
 
 bool DDS_TopicDataQosPolicy::canAdoptChild(Node*)

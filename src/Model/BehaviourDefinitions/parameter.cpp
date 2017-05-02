@@ -1,7 +1,7 @@
 #include "parameter.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Parameter::Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str) : DataNode(factory, kind, kind_str){
     
@@ -19,8 +19,8 @@ Parameter::Parameter(NODE_KIND kind):DataNode(kind)
     setNodeType(NODE_TYPE::PARAMETER);
     setAcceptsEdgeKind(EDGE_KIND::DATA);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 bool Parameter::isInputParameter() const

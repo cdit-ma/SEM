@@ -10,11 +10,11 @@ DDS_DeadlineQosPolicy::DDS_DeadlineQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DE
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "deadline");
-    updateDefaultData("qos_dds_period_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
-    updateDefaultData("qos_dds_period_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "deadline");
+    //updateDefaultData("qos_dds_period_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
+    //updateDefaultData("qos_dds_period_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
 }
 
 bool DDS_DeadlineQosPolicy::canAdoptChild(Node*)

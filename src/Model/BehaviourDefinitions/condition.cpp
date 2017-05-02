@@ -2,7 +2,7 @@
 #include "termination.h"
 #include "branch.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 Condition::Condition(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
 };
 
@@ -22,10 +22,10 @@ Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
 
 
     if(kind == NODE_KIND::CONDITION){
-        updateDefaultData("value", QVariant::String);
+        //updateDefaultData("value", QVariant::String);
     }
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 Branch *Condition::getBranch()

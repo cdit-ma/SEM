@@ -98,10 +98,10 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-
-    Node* parentNode = getParentNode();
+    
     switch(edgeKind){
         case EDGE_KIND::DEFINITION:{
+
         //This must be an Instance/Impl Node Type
         if(!(isInstanceImpl())){
             return false;
@@ -112,10 +112,13 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
+  
         //Node must be a Definition Node Type.
         if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
             return false;
         }
+       
+
         if(parentNode){
             if(parentNode->isInstanceImpl()){
                 Node* pDef = parentNode->getDefinition();
@@ -546,9 +549,12 @@ Node *Node::getFirstChild()
 
 
 QList<Node *> Node::getSiblings()
-{
-    auto siblings = getParentNode()->getOrderedChildNodes();
-    siblings.removeAll(this);
+{   
+    QList<Node*> siblings;
+    if(getParentNode()){
+        siblings = getParentNode()->getOrderedChildNodes();
+        siblings.removeAll(this);
+    }
     return siblings;
 }
 
@@ -824,6 +830,7 @@ void Node::setDefinition(Node *def)
 Node *Node::getDefinition(bool recurse) const
 {
     Node* def = definition;
+
 
     if(recurse && def && def->getDefinition(false)){
         def = def->getDefinition(true);

@@ -1,7 +1,7 @@
 #include "process.h"
 #include "parameter.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 Process::Process(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
 };
 

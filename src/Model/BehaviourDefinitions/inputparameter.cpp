@@ -1,7 +1,7 @@
 #include "inputparameter.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 InputParameter::InputParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::INPUT_PARAMETER, "InputParameter"){
 	auto node_kind = NODE_KIND::INPUT_PARAMETER;

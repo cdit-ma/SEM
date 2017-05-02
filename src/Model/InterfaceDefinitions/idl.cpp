@@ -1,5 +1,5 @@
 #include "idl.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 IDL::IDL(EntityFactory* factory) : Node(factory, NODE_KIND::IDL, "IDL"){
 	auto node_kind = NODE_KIND::IDL;

@@ -1,5 +1,5 @@
 #include "deploymentdefinitions.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::DEPLOYMENT_DEFINITIONS, "DeploymentDefinitions"){
 	auto node_kind = NODE_KIND::DEPLOYMENT_DEFINITIONS;
@@ -10,8 +10,8 @@ DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory) : Node(fact
 
 DeploymentDefinitions::DeploymentDefinitions():Node(NODE_KIND::DEPLOYMENT_DEFINITIONS)
 {
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)

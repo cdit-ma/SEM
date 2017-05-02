@@ -1,7 +1,7 @@
 #include "branch.h"
 #include "condition.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 Branch::Branch(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
 	
 };

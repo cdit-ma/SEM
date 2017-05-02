@@ -1,6 +1,6 @@
 #include "variadicparameter.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 VariadicParameter::VariadicParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::VARIADIC_PARAMETER, "VariadicParameter"){
 	auto node_kind = NODE_KIND::VARIADIC_PARAMETER;

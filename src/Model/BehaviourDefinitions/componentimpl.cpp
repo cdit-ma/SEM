@@ -1,7 +1,7 @@
 #include "componentimpl.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_IMPL, "ComponentImpl"){
 	auto node_kind = NODE_KIND::COMPONENT_IMPL;

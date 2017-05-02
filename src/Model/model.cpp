@@ -13,9 +13,9 @@ Model::Model(EntityFactory* factory) : Node(factory, NODE_KIND::MODEL, "Model"){
 Model::Model(): Node(NODE_KIND::MODEL)
 {
     setAsRoot(0);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String);
 }
 
 bool Model::canAdoptChild(Node *child)

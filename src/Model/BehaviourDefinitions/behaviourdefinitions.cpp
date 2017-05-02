@@ -1,7 +1,7 @@
 #include "behaviourdefinitions.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 BehaviourDefinitions::BehaviourDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::BEHAVIOUR_DEFINITIONS, "BehaviourDefinitions"){
 	auto node_kind = NODE_KIND::BEHAVIOUR_DEFINITIONS;
 	QString kind_string = "BehaviourDefinitions";
@@ -15,9 +15,9 @@ BehaviourDefinitions::BehaviourDefinitions():Node(NODE_KIND::BEHAVIOUR_DEFINITIO
 {
     setNodeType(NODE_TYPE::ASPECT);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "COMPONENTS");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "COMPONENTS");
 }
 
 VIEW_ASPECT BehaviourDefinitions::getViewAspect() const

@@ -1,7 +1,7 @@
 #include "branchstate.h"
 #include "condition.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 BranchState::BranchState(EntityFactory* factory) : Branch(factory, NODE_KIND::BRANCH_STATE, "BranchState"){
 	auto node_kind = NODE_KIND::BRANCH_STATE;

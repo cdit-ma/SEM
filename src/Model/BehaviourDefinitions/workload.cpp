@@ -1,6 +1,6 @@
 #include "workload.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Workload::Workload(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::WORKLOAD, "Workload"){
 	auto node_kind = NODE_KIND::WORKLOAD;
@@ -11,7 +11,7 @@ Workload::Workload(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::W
 Workload::Workload():BehaviourNode(NODE_KIND::WORKLOAD){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
-    setExpandEnabled(true);
+    //setExpandEnabled(true);
 }
 
 bool Workload::canAdoptChild(Node *child)

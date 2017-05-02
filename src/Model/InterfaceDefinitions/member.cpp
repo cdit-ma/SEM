@@ -1,5 +1,5 @@
 #include "member.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Member"){
 	auto node_kind = NODE_KIND::MEMBER;

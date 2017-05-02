@@ -6,7 +6,7 @@
 #include <QDebug>
 
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 BehaviourNode::BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
 };
 

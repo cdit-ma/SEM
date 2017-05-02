@@ -1,7 +1,7 @@
 #include "ineventportimpl.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 InEventPortImpl::InEventPortImpl(EntityFactory* factory) : EventPortImpl(factory, NODE_KIND::INEVENTPORT_IMPL, "InEventPortImpl"){
 	auto node_kind = NODE_KIND::INEVENTPORT_IMPL;

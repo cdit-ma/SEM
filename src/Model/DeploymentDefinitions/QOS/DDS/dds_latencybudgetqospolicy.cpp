@@ -9,11 +9,11 @@ DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy(EntityFactory* factory) :
 DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET)
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "latency_budget");
-    updateDefaultData("qos_dds_duration_sec", QVariant::String, false, "0");
-    updateDefaultData("qos_dds_duration_nanosec", QVariant::String, false, "0");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "latency_budget");
+    //updateDefaultData("qos_dds_duration_sec", QVariant::String, false, "0");
+    //updateDefaultData("qos_dds_duration_nanosec", QVariant::String, false, "0");
 }
 
 bool DDS_LatencyBudgetQosPolicy::canAdoptChild(Node*)

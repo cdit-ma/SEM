@@ -1,5 +1,5 @@
 #include "hardwarenode.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_NODE, "HardwareNode"){
 	auto node_kind = NODE_KIND::HARDWARE_NODE;
@@ -18,8 +18,8 @@ HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
     setNodeType(NODE_TYPE::HARDWARE);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 bool HardwareNode::canAdoptChild(Node*)

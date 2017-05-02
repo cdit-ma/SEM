@@ -1,5 +1,5 @@
 #include "vectorinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 VectorInstance::VectorInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR_INSTANCE, "VectorInstance"){
 	auto node_kind = NODE_KIND::VECTOR_INSTANCE;
@@ -19,6 +19,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 
     setDefinitionKind(NODE_KIND::VECTOR);
     setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
+    setImplKind(NODE_KIND::VECTOR_INSTANCE);
 
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);

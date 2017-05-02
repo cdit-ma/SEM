@@ -72,6 +72,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     //Listen to the X/Y data
     addRequiredData("x");
     addRequiredData("y");
+
     reloadRequiredData();
 }
 

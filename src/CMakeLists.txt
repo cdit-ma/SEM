@@ -24,98 +24,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/modelcontroller.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/attributeimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/behaviourdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/behaviournode.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/branch.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/branchstate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/componentimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/eventportimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/ineventportimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/inputparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/outeventportimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/parameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/periodicevent.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/returnparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/termination.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variable.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/whileloop.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/workerprocess.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/workload.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/assemblydefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/attributeinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/blackboxinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/componentassembly.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/componentinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/deploymentdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/eventportdelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwarecluster.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwaredefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwarenode.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/ineventportdelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/ineventportinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/managementcomponent.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/outeventportdelegate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/outeventportinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/aggregateedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/assemblyedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/dataedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/definitionedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/deploymentedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/qosedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/workflowedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/aggregate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/aggregateinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/attribute.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/blackbox.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/component.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/datanode.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/eventport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/idl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/ineventport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/interfacedefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/member.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/memberinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/outeventport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/vector.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/vectorinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/data.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/edge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/entity.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/graphml.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/key.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/model.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/tempentity.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/workerdefinitions.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/Widgets/XMITreeViewDialog.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/xmiimporter.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/xmitreemodel.cpp
@@ -174,26 +85,14 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationobject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/entityfactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variadicparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/code.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/header.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/forcondition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/setter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variableparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingprofile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Keys/labelkey.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Keys/indexkey.cpp
 )
 
 SET(HEADERS
@@ -206,98 +105,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/modelcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/attributeimpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/behaviourdefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/behaviournode.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/branch.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/branchstate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/componentimpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/condition.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/eventportimpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/ineventportimpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/inputparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/outeventportimpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/parameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/periodicevent.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/process.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/returnparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/termination.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variable.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/whileloop.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/workerprocess.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/workload.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/assemblydefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/attributeinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/blackboxinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/componentassembly.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/componentinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/deploymentdefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/eventportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwarecluster.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwaredefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/hardwarenode.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/ineventportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/ineventportinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/managementcomponent.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/outeventportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/outeventportinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/aggregateedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/assemblyedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/dataedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/definitionedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/deploymentedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/qosedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/Edges/workflowedge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/aggregate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/aggregateinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/attribute.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/blackbox.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/component.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/datanode.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/eventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/idl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/ineventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/interfacedefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/member.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/memberinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/outeventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/vector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/InterfaceDefinitions/vectorinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/edge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/entity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/graphml.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/key.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/model.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/node.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/tempentity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/workerdefinitions.h
     #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/Widgets/XMITreeViewDialog.h
     #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/xmiimporter.h
     #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/xmitreemodel.h
@@ -358,17 +167,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationobject.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/entityfactory.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variadicparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/code.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/header.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/forcondition.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/setter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/BehaviourDefinitions/variableparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingprofile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Model/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
@@ -381,9 +181,12 @@ set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
-
+add_subdirectory("Model")
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
+
 
 target_link_libraries(${LIB_NAME} Qt5::Widgets)
 target_link_libraries(${LIB_NAME} Qt5::Gui)
 target_link_libraries(${LIB_NAME} Qt5::Network)
+
+target_link_libraries(${LIB_NAME} MEDEA_MODELCONTROLLER)

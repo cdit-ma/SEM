@@ -905,10 +905,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                 }
 
+
                 //We should care about position and expansion for any entity we visualise
-                emit viewController->vc_setData(ID, "x", 0.0);
-                emit viewController->vc_setData(ID, "y", 0.0);
-                emit viewController->vc_setData(ID, "isExpanded", true);
+                //emit viewController->vc_setData(ID, "x", 0.0);
+                //emit viewController->vc_setData(ID, "y", 0.0);
+                //emit viewController->vc_setData(ID, "isExpanded", true);
             
 
             }
@@ -951,6 +952,9 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
             if(!scene()->items().contains(edgeItem)){
                 scene()->addItem(edgeItem);
             }
+
+            //emit viewController->vc_setData(ID, "x", 0.0);
+            //emit viewController->vc_setData(ID, "y", 0.0);
         }
     }
 }
@@ -1245,7 +1249,7 @@ void NodeView::state_Moving_Exited()
             emit triggerAction("Moving Selection");
             foreach(ViewItem* viewItem, selection){
                 EntityItem* item = getEntityItem(viewItem);
-                if(item){
+                if(item && !item->isIgnoringPosition()){
                     QPointF pos = item->getNearestGridPoint();
                     emit setData(item->getID(), "x", pos.x());
                     emit setData(item->getID(), "y", pos.y());

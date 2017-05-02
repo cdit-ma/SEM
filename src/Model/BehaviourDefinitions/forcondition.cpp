@@ -1,5 +1,5 @@
 #include "forcondition.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 ForCondition::ForCondition(EntityFactory* factory) : Condition(factory, NODE_KIND::FOR_CONDITION, "ForCondition"){
 	auto node_kind = NODE_KIND::FOR_CONDITION;

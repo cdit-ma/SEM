@@ -1,6 +1,6 @@
 #include "code.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Code::Code(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::CODE, "Code"){
 	auto node_kind = NODE_KIND::CODE;

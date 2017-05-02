@@ -1,5 +1,5 @@
 #include "ineventportinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 InEventPortInstance::InEventPortInstance(EntityFactory* factory) : EventPortAssembly(factory, NODE_KIND::INEVENTPORT_INSTANCE, "InEventPortInstance"){
 	auto node_kind = NODE_KIND::INEVENTPORT_INSTANCE;

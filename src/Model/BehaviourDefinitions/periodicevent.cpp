@@ -1,7 +1,7 @@
 #include "periodicevent.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 PeriodicEvent::PeriodicEvent(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::PERIODICEVENT, "PeriodicEvent"){
 	auto node_kind = NODE_KIND::PERIODICEVENT;

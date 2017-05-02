@@ -62,6 +62,8 @@ protected:
     Node* createTempNode(NODE_KIND node_kind);
     Edge* createEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
 
+    void destructNode(Node* node);
+    void destructEdge(Edge* node);
 
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
     void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);

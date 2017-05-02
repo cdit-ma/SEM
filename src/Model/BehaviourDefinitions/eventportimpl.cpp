@@ -1,6 +1,6 @@
 #include "eventportimpl.h"
 #include "../nodekinds.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 EventPortImpl::EventPortImpl(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
     //Register DefaultData
     RegisterDefaultData(factory, kind, "type", QVariant::String, true);

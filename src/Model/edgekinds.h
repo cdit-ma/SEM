@@ -16,5 +16,7 @@ inline uint qHash(EDGE_KIND key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 };
+
+
 Q_DECLARE_METATYPE(EDGE_KIND);
 #endif

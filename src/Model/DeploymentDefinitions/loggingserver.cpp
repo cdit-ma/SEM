@@ -1,5 +1,5 @@
 #include "loggingserver.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 LoggingServer::LoggingServer(EntityFactory* factory) : Node(factory, NODE_KIND::LOGGINGSERVER, "LoggingServer"){
 	auto node_kind = NODE_KIND::LOGGINGSERVER;
@@ -15,7 +15,7 @@ LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
 
-    updateDefaultData("database", QVariant::String, "output.sql");
+    //updateDefaultData("database", QVariant::String, "output.sql");
 }
 
 

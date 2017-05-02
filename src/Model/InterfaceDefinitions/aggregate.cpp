@@ -1,7 +1,7 @@
 #include "aggregate.h"
 #include "../data.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGATE, "Aggregate"){
 	auto node_kind = NODE_KIND::AGGREGATE;

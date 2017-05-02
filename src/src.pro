@@ -19,7 +19,7 @@ HEADERS += \
 	Controllers/ViewController/nodeviewitem.h \
 	Controllers/ViewController/viewcontroller.h \
 	Controllers/ViewController/viewitem.h \
-	Controllers/modelcontroller.h \
+
 	Controllers/SettingsController/settingscontroller.h \
 	Controllers/SettingsController/setting.h \
 	Model/BehaviourDefinitions/attributeimpl.h \

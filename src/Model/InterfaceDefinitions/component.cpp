@@ -1,5 +1,5 @@
 #include "component.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Component::Component(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT, "Component"){
 	auto node_kind = NODE_KIND::COMPONENT;

@@ -1,6 +1,6 @@
 #include "ineventportdelegate.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 InEventPortDelegate::InEventPortDelegate(EntityFactory* factory) : EventPortAssembly(factory, NODE_KIND::INEVENTPORT_DELEGATE, "InEventPortDelegate"){
 	auto node_kind = NODE_KIND::INEVENTPORT_DELEGATE;

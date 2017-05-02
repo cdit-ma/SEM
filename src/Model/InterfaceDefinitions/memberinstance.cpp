@@ -1,5 +1,5 @@
 #include "memberinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::MEMBER_INSTANCE, "MemberInstance"){
 	auto node_kind = NODE_KIND::MEMBER_INSTANCE;
@@ -18,6 +18,8 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
     setDataProducer(true);
 
     setDefinitionKind(NODE_KIND::MEMBER);
+    setInstanceKind(NODE_KIND::MEMBER_INSTANCE);
+    setImplKind(NODE_KIND::MEMBER_INSTANCE);
 }
 
 

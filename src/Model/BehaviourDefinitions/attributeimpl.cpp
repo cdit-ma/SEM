@@ -1,7 +1,7 @@
 #include "attributeimpl.h"
 #include "../nodekinds.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 AttributeImpl::AttributeImpl(EntityFactory* factory) : DataNode(factory, NODE_KIND::ATTRIBUTE_IMPL, "AttributeImpl"){
 	auto node_kind = NODE_KIND::ATTRIBUTE_IMPL;

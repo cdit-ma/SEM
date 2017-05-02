@@ -5,12 +5,7 @@
 #include <QHash>
 #include <QVariant>
 
-struct DefaultData{
-    QString key_name;
-    QVariant::Type type;
-    bool is_protected;
-    QVariant value;
-};
+
 class Data;
 class Key;
 class Entity: public GraphML
@@ -32,16 +27,6 @@ public:
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
 
-protected:
-    void setMoveEnabled(bool enabled);
-    void setSizeEnabled(bool enabled);
-    void setExpandEnabled(bool enabled);
-    bool isMoveEnabled();
-    bool isSizeEnabled();
-    bool isExpandEnabled();
-
-    void updateDefaultData(QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-    QList<DefaultData*> getDefaultDataStructs();
 
 protected:
     void _dataChanged(Data* data);
@@ -97,7 +82,6 @@ private:
 
     QHash<Key*, Data*> dataLookup;
     QHash<QString, Key*> keyLookup;
-    QHash<QString, DefaultData*> default_data_;
 
     bool position_enabled = true;
     bool size_enabled = false;

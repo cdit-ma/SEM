@@ -207,6 +207,18 @@ int TempEntity::getLineNumber()
     return lineNumber;
 }
 
+QVariant TempEntity::getData(QString key){
+
+    QVariant val;
+    for(auto data: dataList){
+        if(data->getKeyName() == key){
+            val = data->getValue();
+            break;
+        }
+    }
+    return val;
+}
+
 void TempEntity::addData(Data *data)
 {
     if(data){

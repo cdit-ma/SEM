@@ -2,7 +2,7 @@
 #include "../nodekinds.h"
 #include <QDebug>
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : EventPortImpl(factory, NODE_KIND::OUTEVENTPORT_IMPL, "OutEventPortImpl"){
 	auto node_kind = NODE_KIND::OUTEVENTPORT_IMPL;

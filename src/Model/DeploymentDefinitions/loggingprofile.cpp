@@ -1,6 +1,6 @@
 #include "loggingprofile.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 LoggingProfile::LoggingProfile(EntityFactory* factory) : Node(factory, NODE_KIND::LOGGINGPROFILE, "LoggingProfile"){
 	auto node_kind = NODE_KIND::LOGGINGPROFILE;
 	QString kind_string = "LoggingProfile";

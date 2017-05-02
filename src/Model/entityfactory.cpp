@@ -184,7 +184,7 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
             node_kind_lookup.insert(kind_string, kind);
         }
         
-        qCritical() << "Registered Node: " << node_kind_lookup.size() << " " << kind_string << " " << (constructor ? "callable" : "not callable");
+        qCritical() << "EntityFactory: Registered Node #" << node_kind_lookup.size() << kind_string;
     }
 }
 
@@ -199,7 +199,7 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
         if(!edge_kind_lookup.contains(kind_string)){
             edge_kind_lookup.insert(kind_string, kind);
         }
-        qCritical() << "Registered Edge: " << edge_kind_lookup.size() << " " << kind_string << " " << (constructor ? "callable" : "not callable");
+        qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
     }
 }
 
@@ -508,4 +508,15 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
 
 QList<Key*> EntityFactory::GetKeys(){
     return keyLookup_.values();
+}
+
+void EntityFactory::destructNode(Node* node){
+    if(node){
+        delete node;
+    }
+}
+void EntityFactory::destructEdge(Edge* edge){
+    if(edge){
+        delete edge;
+    }
 }

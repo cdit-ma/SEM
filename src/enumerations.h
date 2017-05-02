@@ -3,7 +3,7 @@
 
 #include <QStringList>
 #include <QString>
-#include <QColor>
+//#include <QColor>
 #include <QList>
 #include <QHash>
 
@@ -129,6 +129,7 @@ extern QString GET_ASPECT_NAME(VIEW_ASPECT aspect);
 extern VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind);
 extern QStringList GET_ASPECT_NAMES();
 
+/*
 extern QColor GET_INVERT_COLOR(VIEW_THEME theme);
 extern QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert = false);
 extern QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect);
@@ -138,6 +139,6 @@ extern QString GET_COLOR_STRING(QColor color, COLOR_SHADE shade = NORMAL_SHADE);
 extern QString GET_DOCK_LABEL(DOCK_TYPE type);
 
 extern QColor GET_HARDWARE_HIGHLIGHT_COLOR();
-
+*/
 
 #endif // ENUMERATIONS_H

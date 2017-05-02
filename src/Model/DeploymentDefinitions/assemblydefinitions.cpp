@@ -1,6 +1,6 @@
 #include "assemblydefinitions.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 AssemblyDefinitions::AssemblyDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::ASSEMBLY_DEFINITIONS, "AssemblyDefinitions"){
 	auto node_kind = NODE_KIND::ASSEMBLY_DEFINITIONS;
@@ -13,8 +13,8 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactory* factory) : Node(factory,
 AssemblyDefinitions::AssemblyDefinitions():Node(NODE_KIND::ASSEMBLY_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect() const

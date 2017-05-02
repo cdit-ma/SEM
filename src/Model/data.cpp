@@ -223,7 +223,7 @@ void Data::addChildData(Data *childData)
             _childData[ID] = childData;
         }
         //Update.
-        childData->setValue(getValue());
+        childData->forceValue(getValue());
     }
 }
 
@@ -255,7 +255,7 @@ void Data::updateChildren(bool changed)
     //Send a signal saying the data changed, regardless of whether it did.
     if(changed){
         foreach(Data* data, _childData.values()){
-            data->setValue(getValue());
+            data->forceValue(getValue());
         }
     }
     if(getParent()){

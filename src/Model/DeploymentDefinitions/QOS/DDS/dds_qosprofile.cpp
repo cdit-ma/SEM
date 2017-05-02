@@ -13,9 +13,9 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
     setNodeType(NODE_TYPE::DDS);
     setAcceptsEdgeKind(EDGE_KIND::QOS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, false, "qos_profile");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, false, "qos_profile");
 }
 
 bool DDS_QOSProfile::canAdoptChild(Node *node)

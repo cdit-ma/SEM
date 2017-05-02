@@ -1,6 +1,6 @@
 #include "setter.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Setter::Setter(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::SETTER, "Setter"){
 	auto node_kind = NODE_KIND::SETTER;
@@ -10,6 +10,12 @@ Setter::Setter(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::SETTE
 
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "operator", QVariant::String, false, "=");
+
+    QList<QVariant> operator_types;
+    operator_types << "=" << "+=" << "-=" << "*=" << "/=";
+
+    //Register values
+    RegisterValidDataValues(factory, node_kind, "operator", QVariant::String, operator_types);
 };
 
 Setter::Setter():BehaviourNode(NODE_KIND::SETTER)

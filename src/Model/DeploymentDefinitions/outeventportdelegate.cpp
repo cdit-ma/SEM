@@ -1,5 +1,5 @@
 #include "outeventportdelegate.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 OutEventPortDelegate::OutEventPortDelegate(EntityFactory* factory) : EventPortAssembly(factory, NODE_KIND::OUTEVENTPORT_DELEGATE, "OutEventPortDelegate"){
 	auto node_kind = NODE_KIND::OUTEVENTPORT_DELEGATE;

@@ -1,6 +1,6 @@
 #include "enumerations.h"
 #include <QDebug>
-
+#include <QColor>
 #define SHADE_AMOUNT 130
 
 
@@ -68,11 +68,11 @@ QStringList GET_ASPECT_NAMES()
     return list;
 }
 
+/*
+
 QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
-    /*
-     * THESE ARE THE ORIGINAL COLOURS
-     */
+    
     switch(aspect){
     case VA_INTERFACES:
         return QColor(110,210,210);
@@ -133,7 +133,7 @@ QColor GET_INVERT_COLOR(VIEW_THEME theme){
         return Qt::white;
     }
 }
-
+*/
 
 
 QList<VIEW_ASPECT> GET_VIEW_ASPECTS()
@@ -160,7 +160,7 @@ QString GET_DOCK_LABEL(DOCK_TYPE type)
     }
 }
 
-
+/*
 QString GET_COLOR_STRING(QColor color, COLOR_SHADE shade)
 {
     if (!color.isValid()) {
@@ -197,17 +197,7 @@ QString GET_VIEW_COLOR_STRING(VIEW_THEME theme, COLOR_SHADE shade)
 QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert)
 {
     if (invert) {
-        /*
-        switch (theme) {
-        case VT_LIGHT_THEME:
-        case VT_NORMAL_THEME:
-            return Qt::white;
-        case VT_DARK_THEME:
-            return Qt::black;
-        default:
-            return Qt::blue;
-        }
-        */
+
         return Qt::black;
     } else {
         switch (theme) {
@@ -220,7 +210,7 @@ QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert)
             return Qt::red;
         }
     }
-}
+}*/
 
 QHash<QString, QString> GET_SETTINGS_TOOLTIPS_HASH()
 {
@@ -369,7 +359,7 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
     return groups;
 }
 
-
+/*
 QColor GET_HARDWARE_HIGHLIGHT_COLOR()
 {
     //return QColor(153,153,255);
@@ -377,7 +367,7 @@ QColor GET_HARDWARE_HIGHLIGHT_COLOR()
     //return QColor(0,76,153);
     //return QColor(102,0,51);
     return QColor(178,34,34);
-}
+}*/
 
 
 RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)

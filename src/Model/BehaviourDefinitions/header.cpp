@@ -1,6 +1,6 @@
 #include "header.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Header::Header(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::HEADER, "Header"){
 	auto node_kind = NODE_KIND::HEADER;

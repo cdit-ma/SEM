@@ -1,7 +1,7 @@
 #include "vector.h"
 #include <QDebug>
 #include "../data.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Vector::Vector(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR, "Vector"){
 	auto node_kind = NODE_KIND::VECTOR;

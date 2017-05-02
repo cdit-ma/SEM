@@ -136,7 +136,7 @@ QString Key::toString()
 void Key::addValidValue(QVariant value, NODE_KIND kind){
     if(!valid_values_.contains(kind, value)){
         valid_values_.insert(kind, value);
-        qCritical() << "Key: " << getName() << " Added Valid Value: " << value;
+        //qCritical() << "Key: " << getName() << " Added Valid Value: " << value;
     }
 }
 

@@ -1,5 +1,5 @@
 #include "blackboxinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 BlackBoxInstance::BlackBoxInstance(EntityFactory* factory) : Node(factory, NODE_KIND::BLACKBOX_INSTANCE, "BlackBoxInstance"){
 	auto node_kind = NODE_KIND::BLACKBOX_INSTANCE;

@@ -1,5 +1,5 @@
 #include "componentinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 ComponentInstance::ComponentInstance(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_INSTANCE, "ComponentInstance"){
 	auto node_kind = NODE_KIND::COMPONENT_INSTANCE;
@@ -18,8 +18,8 @@ ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
 
     setDefinitionKind(NODE_KIND::COMPONENT);
 
-    updateDefaultData("label", QVariant::String, false);
-    updateDefaultData("type", QVariant::String, true);
+    //updateDefaultData("label", QVariant::String, false);
+    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool ComponentInstance::canAdoptChild(Node *child)

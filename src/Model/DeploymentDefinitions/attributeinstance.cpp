@@ -1,6 +1,6 @@
 #include "attributeinstance.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NODE_KIND::ATTRIBUTE_INSTANCE, "AttributeInstance"){
 	auto node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
 	QString kind_string = "AttributeInstance";

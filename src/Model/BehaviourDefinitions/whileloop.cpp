@@ -1,6 +1,6 @@
 #include "whileloop.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 WhileLoop::WhileLoop(EntityFactory* factory) : Branch(factory, NODE_KIND::WHILELOOP, "WhileLoop"){
 	auto node_kind = NODE_KIND::WHILELOOP;

@@ -13,9 +13,9 @@ WorkerDefinitions::WorkerDefinitions(EntityFactory* factory) : Node(factory, NOD
 WorkerDefinitions::WorkerDefinitions(): Node(NODE_KIND::WORKER_DEFINITIONS)
 {
     setAsRoot(1);
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "WORKERS");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "WORKERS");
 }
 
 

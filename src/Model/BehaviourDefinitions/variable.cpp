@@ -1,6 +1,6 @@
 #include "variable.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 Variable::Variable(EntityFactory* factory) : DataNode(factory, NODE_KIND::VARIABLE, "Variable"){
 	auto node_kind = NODE_KIND::VARIABLE;

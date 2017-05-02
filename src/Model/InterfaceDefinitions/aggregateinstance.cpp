@@ -1,5 +1,6 @@
 #include "aggregateinstance.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
+#include <QDebug>
 
 AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::AGGREGATE_INSTANCE, "AggregateInstance"){
 	auto node_kind = NODE_KIND::AGGREGATE_INSTANCE;
@@ -17,6 +18,8 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 
     setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setDefinitionKind(NODE_KIND::AGGREGATE);
+    setImplKind(NODE_KIND::AGGREGATE_INSTANCE);
+    
 
     setDataProducer(true);
     setDataReciever(true);
@@ -41,8 +44,7 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         return false;
     }
     switch(edgeKind){
-    case EDGE_KIND::DATA:{
-        //Can only connect to an AggregateInstance.
+    case EDGE_KIND::DATA:{        //Can only connect to an AggregateInstance.
         if(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
             //Can only connect to an AggregateInstance with the same definition.
             if(!getDefinition(true) || getDefinition(true) != dst->getDefinition(true)){
@@ -53,7 +55,6 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case EDGE_KIND::DEFINITION:{
-
         //Can only connect a definition edge to an Aggregate/AggregateInstance..
         if(!(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE || dst->getNodeKind() == NODE_KIND::AGGREGATE)){
             return false;

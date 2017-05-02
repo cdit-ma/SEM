@@ -10,11 +10,11 @@ DDS_LifespanQosPolicy::DDS_LifespanQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LI
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "lifespan");
-    updateDefaultData("qos_dds_duration_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
-    updateDefaultData("qos_dds_duration_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "lifespan");
+    //updateDefaultData("qos_dds_duration_sec", QVariant::String, false, "DURATION_INFINITE_SEC");
+    //updateDefaultData("qos_dds_duration_nanosec", QVariant::String, false, "DURATION_INFINITE_NSEC");
 }
 
 bool DDS_LifespanQosPolicy::canAdoptChild(Node*)

@@ -1,5 +1,5 @@
 #include "hardwarecluster.h"
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 HardwareCluster::HardwareCluster(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_CLUSTER, "HardwareCluster"){
 	auto node_kind = NODE_KIND::HARDWARE_CLUSTER;

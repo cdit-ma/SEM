@@ -12,6 +12,7 @@
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 
+
 //class NotificationManager;
 class ModelController;
 class ContextToolbar;
@@ -20,9 +21,12 @@ class JenkinsManager;
 class ViewController : public QObject
 {
     Q_OBJECT
+
 public:
     ViewController();
     ~ViewController();
+
+    void connectModelController(ModelController* c);
 
     JenkinsManager* getJenkinsManager();
     ExecutionManager* getExecutionManager();
@@ -88,22 +92,44 @@ signals:
 
     void vc_editTableCell(int ID, QString keyName);
 
-    void mc_showProgress(bool, QString);
-    void mc_progressChanged(int);
-
-
-
-
-    void mc_modelReady(bool);
-    void mc_projectModified(bool);
-    void mc_undoRedoUpdated();
-    void vc_actionFinished();
-
     void vc_projectClosed();
 
+    void vc_setupModel();
+        void vc_undo();
+        void vc_redo();
+        void vc_triggerAction(QString);
+        void vc_setData(int, QString, QVariant);
+        void vc_removeData(int, QString);
+        void vc_deleteEntities(QList<int> IDs);
+        void vc_cutEntities(QList<int> IDs);
+        void vc_copyEntities(QList<int> IDs);
+        void vc_paste(QList<int> IDs, QString data);
+        void vc_replicateEntities(QList<int> IDs);
+        void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+
+        void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+        void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+        void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+        void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
+        void vc_importProjects(QStringList fileData);
+        void vc_openProject(QString fileName, QString filePath);
+        void vc_projectSaved(QString filePath);
+        void vc_projectPathChanged(QString);
+        void vc_answerQuestion(bool);
+        void vc_exportSnippet(QList<int> IDs);
+        void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
+
+        void mc_showProgress(bool, QString);
+        void mc_progressChanged(int);
+        void mc_modelReady(bool);
+        void mc_projectModified(bool);
+        void mc_undoRedoUpdated();
+
+        void vc_actionFinished();
 
     //TO CONTROLLER SIGNALS
 
+/*
     void vc_setupModel();
     void vc_undo();
     void vc_redo();
@@ -116,7 +142,7 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
 
-    void vc_executeJenkinsJob(QString filePath);
+    
 
     void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
     void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
@@ -130,12 +156,12 @@ signals:
     void vc_openProject(QString fileName, QString filePath);
 
     void vc_projectSaved(QString filePath);
-    void vc_projectPathChanged(QString);
+    void vc_projectPathChanged(QString);*/
 
     //void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c);
     //void vc_showNotification(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
     //void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
-
+    void vc_executeJenkinsJob(QString filePath);
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
@@ -152,10 +178,6 @@ signals:
 
     void vc_importXMEProject(QString xmePath, QString graphmlPath);
     void vc_importXMIProject(QString XMIPath);
-
-    void vc_answerQuestion(bool);
-    void vc_exportSnippet(QList<int> IDs);
-    void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
 
     void vc_highlightItem(int ID, bool highlight);
 

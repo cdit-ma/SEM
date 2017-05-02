@@ -1,6 +1,6 @@
 #include "eventportdelegate.h"
 #include <QDebug>
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str) : EventPort(factory, kind, kind_str){
     RegisterDefaultData(factory, kind, "type", QVariant::String, true);
 
@@ -72,11 +72,13 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     case EDGE_KIND::ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
         if(!dst->isNodeOfType(NODE_TYPE::EVENTPORT_ASSEMBLY)){
+            qCritical() << "Not and eventport";
             return false;
         }
 
         //Can't have an assembly link without an aggregate.
         if(!getAggregate()){
+            qCritical() << "No Aggregate";
             return false;
         }
 
@@ -99,6 +101,7 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             return false;
         }
         if(totalDepth > 4){
+            qCritical() << "Out of Assembly";
             return false;
         }
 

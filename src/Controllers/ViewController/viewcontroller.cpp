@@ -33,7 +33,7 @@
 #define XMI_FILE_EXT "UML XMI Documents (*.xml)"
 #define XMI_FILE_SUFFIX ".xml"
 
-ViewController::ViewController(){
+ViewController::ViewController() : QObject(){
     qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
     controller = 0;
 
@@ -63,6 +63,51 @@ ViewController::ViewController(){
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
+}
+
+void ViewController::connectModelController(ModelController* c){
+    connect(controller, &ModelController::NodeConstructed, this, &ViewController::model_NodeConstructed);
+    connect(controller, &ModelController::EdgeConstructed, this, &ViewController::model_EdgeConstructed);
+    connect(controller, &ModelController::entityDestructed, this, &ViewController::controller_entityDestructed);
+    connect(this, &ViewController::vc_setupModel, controller, &ModelController::setupController);
+    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setControllerReady);
+    connect(controller, &ModelController::dataChanged, this, &ViewController::controller_dataChanged);
+    connect(controller, &ModelController::dataRemoved, this, &ViewController::controller_dataRemoved);
+    connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
+    connect(this, &ViewController::vc_openProject, controller, &ModelController::openProject);
+    connect(controller, &ModelController::controller_OpenFinished, this, &ViewController::projectOpened);
+    connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
+    connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
+    connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
+    connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
+    connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
+    connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
+    connect(this, &ViewController::vc_constructWorkerProcess, controller, &ModelController::constructWorkerProcess);
+    connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
+    connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
+    connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
+    connect(this, &ViewController::vc_triggerAction, controller, &ModelController::triggerAction);
+    connect(this, &ViewController::vc_cutEntities, controller, &ModelController::cut);
+    connect(this, &ViewController::vc_copyEntities, controller, &ModelController::copy);
+    connect(this, &ViewController::vc_paste, controller, &ModelController::paste);
+    connect(this, &ViewController::vc_replicateEntities, controller, &ModelController::replicate);
+    connect(this, &ViewController::vc_deleteEntities, controller, &ModelController::remove);
+    connect(controller, &ModelController::projectModified, this, &ViewController::mc_projectModified);
+    connect(controller, &ModelController::controller_ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
+    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setModelReady);
+    connect(controller, &ModelController::controller_SetClipboardBuffer, this, &ViewController::setClipboardData);
+    connect(controller, &ModelController::controller_ActionFinished, this, &ViewController::actionFinished);
+    connect(controller, &ModelController::undoRedoChanged, this, &ViewController::mc_undoRedoUpdated);
+    connect(controller, &ModelController::showProgress, this, &ViewController::mc_showProgress);
+    connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
+    connect(controller, &ModelController::controller_AskQuestion, this, &ViewController::askQuestion);
+    connect(this, &ViewController::vc_answerQuestion, controller, &ModelController::gotQuestionAnswer);
+    connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
+    connect(this, &ViewController::vc_exportSnippet, controller, &ModelController::exportSnippet);
+    connect(controller, &ModelController::controller_ExportedSnippet, this, &ViewController::gotExportedSnippet);
+    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
+    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
+    this->setController(controller);
 }
 
 ViewController::~ViewController()
@@ -580,7 +625,6 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::PROCESS);
     constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
-    constructableNodes.removeAll(NODE_KIND::WORKLOAD_DEFINITIONS);
     constructableNodes.removeAll(NODE_KIND::WORKLOAD);
     constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
@@ -856,7 +900,7 @@ NodeViewItem *ViewController::getNodesDefinition(int ID)
 NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem *node2)
 {
     NodeViewItem* parent = 0;
-    if(controller){
+    if(controller && node1 && node2){
         auto ID = controller->getSharedParent(node1->getID(), node2->getID());
         parent = getNodeViewItem(ID);
     }
@@ -966,7 +1010,7 @@ void ViewController::_teardownProject()
             nodeKindLookups.clear();
             edgeKindLookups.clear();
 
-            controller->disconnectViewController(this);
+            //controller->disconnectViewController(this);
             controller = 0;
             setControllerReady(true);
         }
@@ -1142,6 +1186,7 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
 }
 
 void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
+    
     auto src = getNodeViewItem(src_id);
     auto dst = getNodeViewItem(dst_id);
     auto parent = getSharedParent(src, dst);
@@ -1605,7 +1650,8 @@ void ViewController::initializeController()
         setControllerReady(false);
         setModelReady(false);
         controller = new ModelController();
-        controller->connectViewController(this);
+        connectModelController(controller);
+        //controller->connectViewController(this);
     }
 }
 

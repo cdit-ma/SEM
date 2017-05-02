@@ -18,7 +18,6 @@ enum class NODE_KIND
         VECTOR_INSTANCE,
         COMPONENT,
         MEMBER_INSTANCE,
-        WORKLOAD_DEFINITIONS,
         ATTRIBUTE,
         BLACKBOX,
         INEVENTPORT,

@@ -466,9 +466,11 @@ QStringList EntityItem::getRequiredDataKeys()
 void EntityItem::reloadRequiredData()
 {
     foreach(QString keyName, requiredDataKeys){
-        QVariant dataValue = viewItem->getData(keyName);
-        if(!dataValue.isNull()){
-            dataChanged(keyName, dataValue);
+        if(viewItem->hasData(keyName)){
+            QVariant dataValue = viewItem->getData(keyName);
+            if(!dataValue.isNull()){
+                dataChanged(keyName, dataValue);
+            }
         }
     }
 }

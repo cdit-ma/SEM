@@ -1,5 +1,5 @@
 #include "outeventport.h"
-#include "../entityfactory.h"
+
 
 OutEventPort::OutEventPort(EntityFactory* factory) : EventPort(factory, NODE_KIND::OUTEVENTPORT, "OutEventPort"){
 	auto node_kind = NODE_KIND::OUTEVENTPORT;

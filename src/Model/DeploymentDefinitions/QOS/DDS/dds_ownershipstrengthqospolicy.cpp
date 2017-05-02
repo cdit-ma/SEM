@@ -10,10 +10,10 @@ DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy():Node(NODE_KIND:
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
     
-    setMoveEnabled(false);
-    setExpandEnabled(false);
-    updateDefaultData("label", QVariant::String, true, "ownership_strength");
-    updateDefaultData("qos_dds_int_value", QVariant::Int, false, 0);
+    //setMoveEnabled(false);
+    //setExpandEnabled(false);
+    //updateDefaultData("label", QVariant::String, true, "ownership_strength");
+    //updateDefaultData("qos_dds_int_value", QVariant::Int, false, 0);
 }
 
 bool DDS_OwnershipStrengthQosPolicy::canAdoptChild(Node*)

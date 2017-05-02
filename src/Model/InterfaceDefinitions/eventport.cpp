@@ -2,7 +2,7 @@
 #include "aggregate.h"
 #include "aggregateinstance.h"
 
-#include "../entityfactory.h"
+//#include "../entityfactory.h"
 
 EventPort::EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
     RegisterDefaultData(factory, kind, "type", QVariant::String, true);
@@ -17,7 +17,7 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
 
     
-    updateDefaultData("type", QVariant::String, true);
+    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPort::isInPort() const
