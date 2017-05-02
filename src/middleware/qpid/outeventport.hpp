@@ -15,7 +15,7 @@
 #include <qpid/messaging/Message_io.h>
 #include <qpid/messaging/Sender.h>
 #include <qpid/messaging/Session.h>
-
+#include <qpid/messaging/Duration.h>
 
 namespace qpid{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{

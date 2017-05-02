@@ -17,6 +17,7 @@
 #include <qpid/messaging/Message.h>
 #include <qpid/messaging/Receiver.h>
 #include <qpid/messaging/Session.h>
+#include <qpid/messaging/Duration.h>
 
 
 namespace qpid{
