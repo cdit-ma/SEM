@@ -16,20 +16,18 @@ logan client utilises the sigar system monitoring interface to collect system me
 * https://github.com/google/protobuf
 * https://github.com/zeromq/libzmq
 * https://github.com/hyperic/sigar
-* https://github.com/cdit-ma/re_common
-* https://sqlite.org/
 
 ## Build Tool:
 * https://github.com/Kitware/CMake
 
 ## Installation:
 * Build and install all required libraries
-* ``git clone https://github.com/cdit-ma/logan``
+* ``git clone --recursive https://github.com/cdit-ma/logan``
 * ``cd logan``
 * ``mkdir build``
 * ``cd build``
 * ``cmake .. -DBUILD_SERVER=ON -DBUILD_CLIENT=ON``
-* To disable re-model or hardware logging, ``-DDISABLE_MODEL_LOGGING`` or ``-DDISABLE_HARDWARE_LOGGING`` can be in the above cmake command.
+* To disable re-model or hardware logging, ``-DDISABLE_MODEL_LOGGING`` or ``-DDISABLE_HARDWARE_LOGGING`` can be added to above cmake command.
 * **Unix -** ``make``
 * **Windows -** ``msbuild logan.sln /p:Configuration=Release``
 * Executables will be placed in logan/bin
