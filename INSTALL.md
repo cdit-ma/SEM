@@ -19,7 +19,7 @@ Simple cpu profiler. Calculates number of MWIPs operations executable in one sec
 Core node manager. Controls registration of nodes, construction/destruction of components, activation of components and teardown of node.
 ## re\_node\_parser
 Used to pull deployment information out of Model GraphML file.
-## Testers
+## Tests
 ### cpu\_worker\_tester
 ### gpu\_worker\_tester
 ### memory\_worker\_tester

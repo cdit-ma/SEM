@@ -1,5 +1,7 @@
 # re
-Runtime Environment
+"Runtime Environment"
+
+**_re_** aims to provide users with an easy to use runtime environment for system modeling. **_re_** is best used in conjunction with [MEDEA](https://github.com/cdit-ma/MEDEA.git) for graphical modeling and supported by [logan](https://github.com/cdit-ma/logan.git) for realtime perfomance metric gathering.
 
 ## Supported Operating Systems:
 * Windows 7 (> Visual Studio 2015)
