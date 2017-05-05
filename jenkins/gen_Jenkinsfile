@@ -71,8 +71,9 @@ def compileCode = [:]
 def fail_flag = false
 def failureList = []
 
-
 def jDeployment = "";
+
+set +x
 
 def file = "model.graphml"
 node(){
