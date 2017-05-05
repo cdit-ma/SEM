@@ -130,7 +130,10 @@ node(masterNode){
                 //Generate QOS into lib directory
                 def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
                 print(qosGenCommand)
-                if(runScript(qosGenCommand) != 0) fail_flag = true;
+                if(runScript(qosGenCommand) != 0){
+                    failureList << "QoS generation failed"
+                    fail_flag = true;
+                }
             }
         }
     }
@@ -298,8 +301,10 @@ stage("Stop logan servers"){
 
 if(fail_flag){
     currentBuild.result = 'FAILURE'
+    print("Execution failed!")
+    print(failureList.size() + " Error(s)")
     for(s in failureList){
-        print("FAILURE: " + s)
+        print("ERROR: " + s)
     }
 }
 else{
