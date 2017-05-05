@@ -80,36 +80,45 @@ void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attri
 
 template <class T, class S>
 bool qpid::OutEventPort<T, S>::Teardown(){
-    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    configured_ = false;
-    return ::OutEventPort<T>::Teardown();
+    if(::OutEventPort<T>::Teardown()){
+        configured_ = false;
+        return true;
+    }
+    return false;
 };
 
 template <class T, class S>
 bool qpid::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(configured_){
-        connection_ = qpid::messaging::Connection(broker_);
-        connection_.open();
-        session_ = connection_.createSession();
-        std::string tn = "amq.topic/" + topic_;
-        sender_ = session_.createSender(tn);
+    if(::OutEventPort<T>::Activate()){
+        if(configured_){
+            connection_ = qpid::messaging::Connection(broker_);
+            connection_.open();
+            session_ = connection_.createSession();
+            std::string tn = "amq.topic/" + topic_;
+            sender_ = session_.createSender(tn);
+        }
+        return true;
     }
-    return ::OutEventPort<T>::Activate();    
+    return false;
 };
 
 template <class T, class S>
 bool qpid::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(connection_.isOpen()){
-        connection_.close();
-        std::cout << "out eventport passivate 1" << std::cout;
-        connection_ = 0;
-        std::cout << "out eventport passivate 2" << std::cout;
+    if(::OutEventPort<T>::Passivate()){
+        if(connection_.isOpen()){
+            connection_.close();
+            std::cout << "out eventport passivate 1" << std::cout;
+            connection_ = 0;
+            std::cout << "out eventport passivate 2" << std::cout;
+            EventPort::LogPassivation();
+        }
+        return true;
     }
-    return ::OutEventPort<T>::Passivate();
+    return false;
 };
 
 #endif //QPID_OUTEVENTPORT_H

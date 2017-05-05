@@ -87,38 +87,42 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
 
 template <class T, class S>
 bool qpid::InEventPort<T, S>::Teardown(){
-    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    configured_ = false;
-    return ::InEventPort<T>::Teardown();
+    if(::InEventPort<T>::Teardown()){
+        configured_ = false;
+        return true;
+    }
+    return false;
 };
 
 template <class T, class S>
 bool qpid::InEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(configured_){
-        qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
+    if(::InEventPort<T>::Activate()){
+        if(configured_){
+            qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
+        }
+        return true;
     }
-    return ::InEventPort<T>::Activate();
+    return false;
 };
 
 template <class T, class S>
 bool qpid::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(qpid_thread_ && connection_.isOpen()){
-        //do passivation things here
-        receiver_.close();
-        std::cout << "in eventport passivate 1" << std::cout;
-        qpid_thread_->join();
-        std::cout << "in eventport passivate 2" << std::cout;
-        delete qpid_thread_;
-        std::cout << "in eventport passivate 3" << std::cout;
-        qpid_thread_ = 0;
-        std::cout << "in eventport passivate 4" << std::cout;
-        connection_.close();
-        std::cout << "in eventport passivate 5" << std::cout;
+    if(::InEventPort<T>::Passivate()){
+        if(qpid_thread_ && connection_.isOpen()){
+            //do passivation things here
+            receiver_.close();
+            qpid_thread_->join();
+            delete qpid_thread_;
+            qpid_thread_ = 0;
+            connection_.close();
+            EventPort::LogPassivation();
+        }
+        return true;
     }
-    return ::InEventPort<T>::Passivate();
+    return false;
 };
 
 
