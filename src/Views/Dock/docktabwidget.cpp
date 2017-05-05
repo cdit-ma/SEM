@@ -2,6 +2,8 @@
 #include "dockwidgetactionitem.h"
 #include "dockwidgetparentactionitem.h"
 
+
+#include "../../ModelController/entityfactory.h"
 #include "../../Controllers/ToolbarController/nodeviewitemaction.h"
 #include "../../Utils/rootaction.h"
 #include "../../theme.h"

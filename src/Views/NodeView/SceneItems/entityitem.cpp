@@ -598,10 +598,6 @@ QVariant EntityItem::getData(QString keyName) const
     return viewItem->getData(keyName);
 }
 
-QVariant EntityItem::getProperty(QString propertyName) const
-{
-    return viewItem->getProperty(propertyName);
-}
 
 bool EntityItem::hasData(QString keyName) const
 {

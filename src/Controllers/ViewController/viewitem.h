@@ -6,8 +6,8 @@
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
 
-#include "../../Model/entityfactory.h"
-#include "../../Model/entityfactory.h"
+#include "../../ModelController/kinds.h"
+
 
 //Forward declaration.
 class ViewController;
@@ -19,23 +19,20 @@ class ViewItem: public QObjectRegistrar
     Q_OBJECT
 public:
     ViewItem(ViewController* controller);
-    ViewItem(ViewController* controller, int ID, ENTITY_KIND entity_kind);
+    ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind);
     ~ViewItem();
 
     DataTableModel* getTableModel();
 
     int getID() const;
-    ENTITY_KIND getEntityKind() const;
+    GRAPHML_KIND getEntityKind() const;
     bool isNode() const;
     bool isEdge() const;
-    bool isInModel() const;
+    virtual bool isInModel();
 
     QVariant getData(QString keyName) const;
-    QVariant getProperty(QString propertyName) const;
     QStringList getKeys() const;
-    QStringList getProperties() const;
     bool hasData(QString keyName) const;
-    bool hasProperty(QString propertyName) const;
 
     bool isDataProtected(QString keyName) const;
     bool isDataVisual(QString keyName) const;
@@ -76,8 +73,6 @@ protected:
     void changeData(QString keyName, QVariant data);
     void removeData(QString keyName);
 
-    void changeProperty(QString propertyName, QVariant data);
-    void removeProperty(QString propertyName);
     ViewController* getController();
 private:
     void destruct();
@@ -85,15 +80,14 @@ private:
 private:
     ViewItem* _parent;
     DataTableModel* tableModel;
-    QMultiMap<ENTITY_KIND, ViewItem*> children;
+    QMultiMap<GRAPHML_KIND, ViewItem*> children;
     ViewController* controller;
 
     QHash<QString, QVariant> _data;
-    QHash<QString, QVariant> _properties;
 
     int ID;
     QString kind;
-    ENTITY_KIND entityKind;
+    GRAPHML_KIND entityKind;
 
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;

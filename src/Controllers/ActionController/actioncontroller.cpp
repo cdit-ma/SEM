@@ -4,7 +4,7 @@
 #include "../../Utils/filehandler.h"
 #include "../../Utils/rootaction.h"
 #include <QDebug>
-#include "../../Model/nodekinds.h"
+#include "../../ModelController/nodekinds.h"
 
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {

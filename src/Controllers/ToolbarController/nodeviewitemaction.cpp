@@ -1,6 +1,6 @@
 #include "nodeviewitemaction.h"
 #include "../../theme.h"
-#include "../../Model/nodekinds.h"
+#include "../../ModelController/nodekinds.h"
 NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem", "")
 {
     nodeViewItem = item;

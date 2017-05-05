@@ -2,7 +2,7 @@
 #include "nodeviewitem.h"
 
 
-EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind):ViewItem(controller, ID, EK_EDGE)
+EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::EDGE)
 {
     sID = -1;
     dID = -1;
@@ -19,6 +19,12 @@ EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src
     edgeKind = kind;
 }
 
+bool EdgeViewItem::isInModel(){
+    if(source && destination){
+        return source->isInModel() && destination->isInModel();
+    }
+    return false;
+}
 EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind): ViewItem(controller)
 {
     edgeKind = kind;

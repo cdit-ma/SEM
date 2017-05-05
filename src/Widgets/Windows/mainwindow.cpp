@@ -580,11 +580,11 @@ void MainWindow::setupInnerWindow()
     NodeViewDockWidget* dwWorkers = viewController->constructNodeViewDockWidget("Workers");
 
     //Set each NodeView with there contained aspects
-    dwInterfaces->getNodeView()->setContainedViewAspect(VA_INTERFACES);
-    dwBehaviour->getNodeView()->setContainedViewAspect(VA_BEHAVIOUR);
-    dwAssemblies->getNodeView()->setContainedViewAspect(VA_ASSEMBLIES);
-    dwHardware->getNodeView()->setContainedViewAspect(VA_HARDWARE);
-    dwWorkers->getNodeView()->setContainedViewAspect(VA_WORKERS);
+    dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
+    dwBehaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
+    dwAssemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
+    dwHardware->getNodeView()->setContainedViewAspect(VIEW_ASPECT::HARDWARE);
+    dwWorkers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
 
     //Set allowed areas
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);

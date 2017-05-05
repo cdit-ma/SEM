@@ -4,7 +4,7 @@
 #include "../entityitem.h"
 #include "../../../../Controllers/ViewController/nodeviewitem.h"
 #include "../Edge/edgeitem.h"
-#include "../../../../Model/nodekinds.h"
+#include "../../../../ModelController/nodekinds.h"
 class NodeItem: public EntityItem
 {
     Q_OBJECT

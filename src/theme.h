@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QFuture>
 
+#include "ModelController/nodekinds.h"
 #include "enumerations.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 

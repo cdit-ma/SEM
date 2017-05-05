@@ -12,6 +12,7 @@ HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HA
     RegisterDefaultData(factory, node_kind, "ip_address", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "os", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "os_version", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "url", QVariant::String, true, "");
 };
 
 HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)

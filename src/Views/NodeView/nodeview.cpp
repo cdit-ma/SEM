@@ -53,7 +53,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     isPanning = false;
     viewController = 0;
     selectionHandler = 0;
-    containedAspect = VA_NONE;
+    containedAspect = VIEW_ASPECT::NONE;
     containedNodeViewItem = 0;
     isAspectView = false;
 
@@ -868,7 +868,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                if(item->getViewAspect() == VA_BEHAVIOUR){
+                if(item->getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
                     nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 }
                 break;

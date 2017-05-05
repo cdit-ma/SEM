@@ -4,6 +4,7 @@
 #include <QStyleOptionGraphicsItem>
 
 #include "../entityitem.h"
+#include "../../../../ModelController/entityfactory.h"
 #include <algorithm>
 
 
@@ -27,7 +28,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     resizeEnabled = false;
     ignorePosition = false;
     _rightJustified = false;
-    aspect = VA_NONE;
+    aspect = VIEW_ASPECT::NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
     readState = NodeItem::NORMAL;

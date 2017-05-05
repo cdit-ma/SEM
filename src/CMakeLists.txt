@@ -5,13 +5,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-set(LIB_NAME MEDEA_LIB)
-find_package(Qt5Gui)
-find_package(Qt5Network)
-find_package(Qt5Widgets)
+#Requires Qt5_DIR to be set to the directory which contains the bin/lib folders for QT5
+# IE Qt5_DIR /Users/dan/Qt5.7.0/5.7/clang_64
+
+set(PROJ_NAME MEDEA)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+
+add_subdirectory("ModelController")
+
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
@@ -24,7 +28,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.cpp
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/Widgets/XMITreeViewDialog.cpp
@@ -93,6 +96,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 SET(HEADERS
@@ -179,14 +183,46 @@ SET(HEADERS
 
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
-    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
-add_subdirectory("Model")
-add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
 
-target_link_libraries(${LIB_NAME} Qt5::Widgets)
-target_link_libraries(${LIB_NAME} Qt5::Gui)
-target_link_libraries(${LIB_NAME} Qt5::Network)
+SET(TRANSFORM_DEST_DIR "Resources/re_gen/")
+file(GLOB TRANSFORMS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../re_gen/*.xsl
+        ${CMAKE_CURRENT_SOURCE_DIR}/../re_gen/*.jar
+        )
 
-target_link_libraries(${LIB_NAME} MEDEA_MODELCONTROLLER)
+SET(SCRIPTS_DEST_DIR "Resources/scripts/")
+file(GLOB SCRIPTS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/*.*
+        )
+
+SET(LIBS_DEST_DIR "Resources/libs/")
+file(GLOB LIBS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Saxon/*.jar
+        )
+
+
+if(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE medea.icns)
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJ_NAME} v${VERSION}")
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJ_NAME})
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION})
+    set(MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION})
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2016. All Rights Reserved.")
+
+    #Bundle the MEDEA icon (icns) for mac
+    set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/../src/Resources/medea.icns)
+    set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set_source_files_properties(${TRANSFORMS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${TRANSFORM_DEST_DIR}")
+    set_source_files_properties(${SCRIPTS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${SCRIPTS_DEST_DIR}")
+    set_source_files_properties(${LIBS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${LIBS_DEST_DIR}")
+
+    add_executable(${PROJ_NAME} MACOSX_BUNDLE ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON} ${TRANSFORMS} ${SCRIPTS} ${LIBS})
+else()
+    #set_source_files_properties(${TRANSFORMS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${TRANSFORM_DEST_DIR}")
+    add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS} ${RESOURCES} ${TRANSFORMS} ${SCRIPTS} ${LIBS})
+endif()
+
+target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} medea_modelcontroller)

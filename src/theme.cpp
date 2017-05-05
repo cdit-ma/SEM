@@ -1147,19 +1147,19 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
         break;
     }
     case SK_THEME_ASPECT_BG_INTERFACES_COLOR:{
-        setAspectBackgroundColor(VA_INTERFACES, color);
+        setAspectBackgroundColor(VIEW_ASPECT::INTERFACES, color);
         break;
     }
     case SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR:{
-        setAspectBackgroundColor(VA_BEHAVIOUR, color);
+        setAspectBackgroundColor(VIEW_ASPECT::BEHAVIOUR, color);
         break;
     }
     case SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR:{
-        setAspectBackgroundColor(VA_ASSEMBLIES, color);
+        setAspectBackgroundColor(VIEW_ASPECT::ASSEMBLIES, color);
         break;
     }
     case SK_THEME_ASPECT_BG_HARDWARE_COLOR:{
-        setAspectBackgroundColor(VA_HARDWARE, color);
+        setAspectBackgroundColor(VIEW_ASPECT::HARDWARE, color);
         break;
     }
     case SK_THEME_SETTHEME_DARKTHEME:{

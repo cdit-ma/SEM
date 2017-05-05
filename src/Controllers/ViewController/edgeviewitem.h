@@ -2,7 +2,7 @@
 #define EDGEVIEWITEM_H
 
 #include "viewitem.h"
-#include "../../Model/edge.h"
+#include "../../ModelController/edgekinds.h"
 
 class NodeViewItem;
 class EdgeViewItem: public ViewItem
@@ -20,6 +20,7 @@ public:
     int getSourceID();
     int getDestinationID();
     void disconnectEdge();
+    bool isInModel();
 private:
     NodeViewItem* source;
     NodeViewItem* destination;

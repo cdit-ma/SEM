@@ -11,7 +11,8 @@
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 
-#include "../modelcontroller.h"
+#include "../../ModelController/modelcontroller.h"
+#include "../../ModelController/entityfactory.h"
 #include "../../Utils/filehandler.h"
 
 #include <QMessageBox>
@@ -173,16 +174,12 @@ QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
 
-    QStringList visualKeys = ModelController::getVisualKeys();
-
     foreach(ViewItem* item, viewItems.values()){
         if(item->isInModel()){
             //ID's
             suggestions.append(QString::number(item->getID()));
             foreach(QString key, item->getKeys()){
-                if(!visualKeys.contains(key)){
-                    suggestions.append(item->getData(key).toString());
-                }
+                suggestions.append(item->getData(key).toString());
             }
         }
     }
@@ -193,8 +190,6 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
     QMap<QString, ViewItem*> results;
 
-    QStringList visualKeys = ModelController::getVisualKeys();
-
     foreach(ViewItem* item, viewItems.values()){
         if(item->isInModel()){
             QString ID = QString::number(item->getID());
@@ -204,11 +199,9 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
             }
 
             foreach(QString key, item->getKeys()){
-                if(!visualKeys.contains(key)){
-                    QString data = item->getData(key).toString();
-                    if(data.contains(query, Qt::CaseInsensitive)){
-                        results.insertMulti(key, item);
-                    }
+                QString data = item->getData(key).toString();
+                if(data.contains(query, Qt::CaseInsensitive)){
+                    results.insertMulti(key, item);
                 }
             }
         }
@@ -328,17 +321,16 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:{
-                bool server_node = viewItem->hasData("os") && viewItem->hasData("architecture") && !viewItem->hasData("localhost");
-
-                if(server_node){
-                    QString os = viewItem->getData("os").toString();
-                    QString arch = viewItem->getData("architecture").toString();
-                    image = (os % "_" % arch);
+                QString os = viewItem->getData("os").toString();
+                QString arch = viewItem->getData("architecture").toString();
+                QString spec_image = (os % "_" % arch);
+                if(Theme::theme()->gotImage(alias, spec_image)){
+                    image = spec_image;
                 }
                 break;
             }
             case NODE_KIND::WORKLOAD:{
-                if(nodeViewItem->getViewAspect() == VA_WORKERS){
+                if(nodeViewItem->getViewAspect() == VIEW_ASPECT::WORKERS){
                     //If we are
                     alias = icon_prefix;
                     image = icon;
@@ -1250,7 +1242,7 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     emit vc_viewItemConstructed(item);
 }
 
-void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
+void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND eKind, QString kind)
 {
     Q_UNUSED(eKind);
     Q_UNUSED(kind);
@@ -1272,7 +1264,9 @@ void ViewController::controller_dataRemoved(int ID, QString key)
 {
     ViewItem* viewItem = getViewItem(ID);
 
+    qCritical() << "REmoving data: " << ID << " " << key;
     if(viewItem){
+        
         viewItem->removeData(key);
     }
 }
@@ -1293,23 +1287,7 @@ int ViewController::getNodeParentID(int ID){
     return parent_id;
 
 }
-void ViewController::controller_propertyChanged(int ID, QString property, QVariant data)
-{
-    ViewItem* viewItem = getViewItem(ID);
 
-    if(viewItem){
-        viewItem->changeProperty(property, data);
-    }
-}
-
-void ViewController::controller_propertyRemoved(int ID, QString property)
-{
-    ViewItem* viewItem = getViewItem(ID);
-
-    if(viewItem){
-        viewItem->removeProperty(property);
-    }
-}
 
 void ViewController::setClipboardData(QString data)
 {

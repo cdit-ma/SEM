@@ -61,7 +61,7 @@ ModelController::ModelController() :QObject(0)
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<ReadOnlyState>("ReadOnlyState");
 
-    //Model::resetID();
+    Node::resetID();
 
 
 
@@ -3533,8 +3533,10 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
             currentKind = GRAPHML_KIND::KEY;
         }
 
+        bool is_entity = currentKind == GRAPHML_KIND::NODE || currentKind == GRAPHML_KIND::EDGE;
+
         if(xml.isStartElement()){
-            if(currentKind != GRAPHML_KIND::NONE){
+            if(is_entity){
                 QString ID = getXMLAttribute(xml, "id");
                 int prevID = get_int_from_qstring(ID);
 
@@ -3542,7 +3544,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 TempEntity* entity = new TempEntity(currentKind, currentEntity);
                 entity->setID(ID);
                 entity->setPrevID(prevID);
-
                 entity->setLineNumber(xml.lineNumber());
 
 
@@ -3611,7 +3612,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 
         if(xml.isEndElement()){
             //For Nodes/Edges, step up a parent.
-            if(currentKind != GRAPHML_KIND::NONE){
+            if(is_entity){
                 currentEntity = currentEntity->getParentEntity();
             }
         }
@@ -3711,7 +3712,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     while(!nodeIDStack.isEmpty()){
         //Get the String ID of the node.
         QString ID = nodeIDStack.takeFirst();
-        
         TempEntity *entity = entityHash[ID];
 
         if(updateProgressNotification()){
@@ -3760,9 +3760,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     }else if(kind == NODE_KIND::HARDWARE_NODE || kind == NODE_KIND::HARDWARE_CLUSTER){
                         //If we have a url, use it to check for an existing node/cluster
                         auto url = entity->getData("url").toString();
-                        if(url != ""){
-                            newNode = get_hardware_by_url(parentNode, kind, url);
-                        }
+                        newNode = get_hardware_by_url(parentNode, kind, url);
                     }
 
                     if(!newNode){

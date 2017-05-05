@@ -1,6 +1,7 @@
 #include "enumerations.h"
 #include <QDebug>
 #include <QColor>
+#include "ModelController/nodekinds.h"
 #define SHADE_AMOUNT 130
 
 
@@ -14,13 +15,13 @@ QString APP_VERSION(){
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return VAP_TOPLEFT;
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return VAP_TOPRIGHT;
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return VAP_BOTTOMLEFT;
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return VAP_BOTTOMRIGHT;
     default:
         break;
@@ -31,13 +32,13 @@ VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return "Interfaces";
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return "Behaviour";
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return "Assemblies";
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return "Hardware";
     default:
         break;
@@ -48,15 +49,15 @@ QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
 VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
 {
     if(aspectKind == "InterfaceDefinitions"){
-        return VA_INTERFACES;
+        return VIEW_ASPECT::INTERFACES;
     }else if(aspectKind == "BehaviourDefinitions"){
-        return VA_BEHAVIOUR;
+        return VIEW_ASPECT::BEHAVIOUR;
     }else if(aspectKind == "HardwareDefinitions"){
-        return VA_HARDWARE;
+        return VIEW_ASPECT::HARDWARE;
     }else if(aspectKind == "AssemblyDefinitions"){
-        return VA_ASSEMBLIES;
+        return VIEW_ASPECT::ASSEMBLIES;
     }
-    return VA_NONE;
+    return VIEW_ASPECT::NONE;
 }
 
 QStringList GET_ASPECT_NAMES()
@@ -74,13 +75,13 @@ QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
     
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return QColor(110,210,210);
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return QColor(254,184,126);
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return QColor(255,160,160);
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return QColor(110,170,220);
     default:
         return Qt::white;
@@ -139,7 +140,7 @@ QColor GET_INVERT_COLOR(VIEW_THEME theme){
 QList<VIEW_ASPECT> GET_VIEW_ASPECTS()
 {
     QList<VIEW_ASPECT> list;
-    list << VA_INTERFACES << VA_BEHAVIOUR << VA_ASSEMBLIES << VA_HARDWARE;
+    list << VIEW_ASPECT::INTERFACES << VIEW_ASPECT::BEHAVIOUR << VIEW_ASPECT::ASSEMBLIES << VIEW_ASPECT::HARDWARE;
     return list;
 }
 
@@ -373,13 +374,13 @@ QColor GET_HARDWARE_HIGHLIGHT_COLOR()
 RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return RV_TOPLEFT;
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return RV_TOPRIGHT;
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return RV_BOTTOMLEFT;
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return RV_BOTTOMRIGHT;
     default:
         break;

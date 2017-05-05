@@ -2,20 +2,24 @@
 #include "edgeviewitem.h"
 #include <QDebug>
 #include "viewcontroller.h"
-#include "../../Model/nodekinds.h"
-#include "../../Model/edgekinds.h"
+#include "../../ModelController/entityfactory.h"
 
 
 NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller)
 {
+    aspect = VIEW_ASPECT::NONE;
     nodeKind = kind;
     changeData("kind", EntityFactory::getNodeKindString(kind));
     changeData("label", label);
 }
 
-NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, ENTITY_KIND::EK_NODE)
+NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
+    aspect = VIEW_ASPECT::NONE;
     nodeKind = kind;
+    changeData("x", 0);
+    changeData("y", 0);
+    changeData("isExpanded", true);
 }
 
 
@@ -36,7 +40,7 @@ NodeViewItem *NodeViewItem::getParentNodeViewItem()
 VIEW_ASPECT NodeViewItem::getViewAspect()
 {
     //Get Once
-    if(aspect == VA_NONE){
+    if(aspect == VIEW_ASPECT::NONE){
         aspect = getController()->getNodeViewAspect(getID());
     }
     return aspect;
@@ -82,6 +86,10 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
             //edge-edge->registerObject(this);
         }
     }
+}
+
+bool NodeViewItem::isInModel(){
+    return getViewAspect() != VIEW_ASPECT::WORKERS && getViewAspect() != VIEW_ASPECT::NONE;
 }
 
 QList<EdgeViewItem *> NodeViewItem::getEdges() const

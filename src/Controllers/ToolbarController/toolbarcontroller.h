@@ -8,7 +8,9 @@
 
 #include "../../Utils/actiongroup.h"
 #include "nodeviewitemaction.h"
-#include "../../Model/nodekinds.h"
+
+
+#include "../../ModelController/nodekinds.h"
 
 class ViewController;
 class SelectionController;

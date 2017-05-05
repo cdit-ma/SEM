@@ -3,7 +3,9 @@
 #include <QObject>
 
 #include "viewitem.h"
-#include "../../Model/nodekinds.h"
+#include "../../ModelController/nodekinds.h"
+#include "../../ModelController/edgekinds.h"
+
 
 class EdgeViewItem;
 
@@ -20,7 +22,7 @@ public:
     VIEW_ASPECT getViewAspect();
     int getParentID();
     bool isNodeOfType(NODE_TYPE type);
-
+    bool isInModel();
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
@@ -36,7 +38,7 @@ signals:
 private:
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND nodeKind;
-    VIEW_ASPECT aspect = VA_NONE;
+    VIEW_ASPECT aspect;
     int parent_id = -1;
 };
 #endif // VIEWITEM_H

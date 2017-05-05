@@ -1,5 +1,7 @@
 #include "contexttoolbar.h"
 
+#include "../../ModelController/entityfactory.h"
+
 #include <QDebug>
 #include <QProxyStyle>
 #include <QShortcut>
@@ -244,9 +246,10 @@ void ContextToolbar::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
+    NODE_KIND node_kind = EntityFactory::getNodeKind(kind);
+    EDGE_KIND edge_kind = toolbarController->getNodesEdgeKind(node_kind);
     int ID = action->property("ID").toInt();
-    toolbarController->addEdge(ID, edgeKind);
+    toolbarController->addEdge(ID, edge_kind);
 }
 
 

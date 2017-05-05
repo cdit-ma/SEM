@@ -2,6 +2,7 @@
 #include "../ViewController/viewcontroller.h"
 #include "../ViewController/nodeviewitem.h"
 #include "../SelectionController/selectioncontroller.h"
+#include "../../ModelController/entityfactory.h"
 #include "../../Utils/rootaction.h"
 
 #include <QDebug>
@@ -132,13 +133,13 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 if (node->getNodeKind() == NODE_KIND::HARDWARE_NODE || node->getNodeKind() == NODE_KIND::HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
-                }else if(node->getViewAspect() == VA_WORKERS && (node->getNodeKind() == NODE_KIND::WORKER_PROCESS || node->getNodeKind() == NODE_KIND::WORKLOAD)){
+                }else if(node->getViewAspect() == VIEW_ASPECT::WORKERS && (node->getNodeKind() == NODE_KIND::WORKER_PROCESS || node->getNodeKind() == NODE_KIND::WORKLOAD)){
                     workerProcessIDs.append(ID);
                     emit workerProcessCreated(ID);
                 }
                 /*
                 else if ((node->getNodeKind() == NODE_KIND::WORKER_PROCESS) || (node->getNodeKind() == NODE_KIND::WORKER_DEFINITIONS)) {
-                                   if(node->getViewAspect() == VA_WORKERS){
+                                   if(node->getViewAspect() == VIEW_ASPECT::WORKERS){
                                        workerProcessIDs.append(ID);
                                        emit workerProcessCreated(ID);
                                    }

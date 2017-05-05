@@ -133,6 +133,9 @@ enum class VIEW_ASPECT{
     HARDWARE,
     WORKERS
 };
-
+inline uint qHash(VIEW_ASPECT key, uint seed)
+    {
+        return ::qHash(static_cast<uint>(key), seed);
+    }
 Q_DECLARE_METATYPE(VIEW_ASPECT);
 #endif

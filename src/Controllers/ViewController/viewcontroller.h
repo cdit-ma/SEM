@@ -12,6 +12,9 @@
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 
+#include "../../ModelController/kinds.h"
+#include "../../ModelController/nodekinds.h"
+#include "../../ModelController/edgekinds.h"
 
 //class NotificationManager;
 class ModelController;
@@ -214,12 +217,9 @@ public slots:
 
     void model_NodeConstructed(int parent_id, int id, NODE_KIND kind);
     void model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
-    void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
+    void controller_entityDestructed(int ID, GRAPHML_KIND eKind, QString kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
     void controller_dataRemoved(int ID, QString key);
-
-    void controller_propertyChanged(int ID, QString property, QVariant data);
-    void controller_propertyRemoved(int ID, QString property);
 
     void setClipboardData(QString data);
 

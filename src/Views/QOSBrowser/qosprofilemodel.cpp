@@ -19,7 +19,7 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
         NodeViewItem* item = (NodeViewItem*)viewItem;
 
         VIEW_ASPECT aspect = item->getViewAspect();
-        if(aspect == VA_ASSEMBLIES){
+        if(aspect == VIEW_ASPECT::ASSEMBLIES){
             QString nodeKind = viewItem->getData("kind").toString();
             int parentID = item->getParentID();
 
