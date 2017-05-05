@@ -56,6 +56,7 @@ def blockingKill(String pid){
 }
 
 def masterNode = "${MASTER_NODE}"
+def executionTime = "${EXECUTION_TIME}"
 def buildDir = "gen" + env.BUILD_ID
 def buildArchiveDir = "build" + env.BUILD_ID
 
@@ -156,7 +157,7 @@ for(def i = 0; i < nodeKeys.size(); i++){
         }
         if(jNode["re_node_manager"]["master"]){
             //TODO: parse this
-            args += " -t 60";
+            args += " -t " + executionTime;
             args += " -d " + file
         }
         if(jNode["re_node_manager"]["slave"]){
@@ -267,7 +268,7 @@ stage("Execute Model"){
         parallel reManagers
     }
     else{
-        print("Execution skipped, compilation or code generation failed!")
+        print("############# Execution skipped, compilation or code generation failed! #############")
     }
 
 }
