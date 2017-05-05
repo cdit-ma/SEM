@@ -73,8 +73,6 @@ def failureList = []
 
 def jDeployment = "";
 
-set +x
-
 def file = "model.graphml"
 node(){
     writeFile file: file, text: "${model}"
