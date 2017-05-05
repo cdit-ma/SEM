@@ -111,9 +111,7 @@ bool qpid::OutEventPort<T, S>::Passivate(){
     if(::OutEventPort<T>::Passivate()){
         if(connection_.isOpen()){
             connection_.close();
-            std::cout << "out eventport passivate 1" << std::cout;
             connection_ = 0;
-            std::cout << "out eventport passivate 2" << std::cout;
             EventPort::LogPassivation();
         }
         return true;
