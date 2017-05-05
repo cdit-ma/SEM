@@ -279,3 +279,10 @@ stage("Stop logan clients"){
 stage("Stop logan servers"){
     parallel loganServers_shutdown
 }
+
+if(fail_flag){
+    currentBuild.result = 'FAILURE'
+}
+else{
+    currentBuild.result = 'SUCCESS'
+}
