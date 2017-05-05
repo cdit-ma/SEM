@@ -69,6 +69,7 @@ def reManagers = [:]
 def compileCode = [:]
 
 def fail_flag = false
+def failureList = []
 
 
 def jDeployment = "";
@@ -115,9 +116,15 @@ node(masterNode){
         unstash 'model'
         stage('C++ Generation'){
             def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-            if(runScript(typeGenCommand) != 0) fail_flag = true;
+            if(runScript(typeGenCommand) != 0){
+                failureList << "Datatype code generation failed"
+                fail_flag = true;
+            } 
             def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-            if(runScript(componentGenCommand) !=0) fail_flag = true;
+            if(runScript(componentGenCommand) !=0){
+                failureList << "Component code generation failed"
+                fail_flag = true;
+            }
 
             dir("lib"){
                 //Generate QOS into lib directory
@@ -169,8 +176,14 @@ for(def i = 0; i < nodeKeys.size(); i++){
             node(nodeName){
                 unstash 'codeGen'
                 dir(buildDir + "/build"){
-                    if(runScript('cmake ..') != 0) fail_flag = true;
-                    if(runScript('make') != 0) fail_flag = true;
+                    if(runScript('cmake ..') != 0){
+                        failureList << ("cmake failed on node: " + nodeName)
+                        fail_flag = true;
+                    }
+                    if(runScript('make') != 0){
+                        failureList << ("Compilation failed on node: " + nodeName)
+                        fail_flag = true;
+                    }
                 }
             }
         }
@@ -183,7 +196,10 @@ for(def i = 0; i < nodeKeys.size(); i++){
                 dir(buildPath){
                     unstash 'model'
                     def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                    if(runScript(command) != 0) fail_flag = true;
+                    if(runScript(command) != 0){
+                        failureList << ("Node manager failed on node: " + nodeName)
+                        fail_flag = true
+                    } 
                 }
             }
         }
@@ -282,6 +298,9 @@ stage("Stop logan servers"){
 
 if(fail_flag){
     currentBuild.result = 'FAILURE'
+    for(s in failureList){
+        print("FAILURE: " + s)
+    }
 }
 else{
     currentBuild.result = 'SUCCESS'
