@@ -108,11 +108,15 @@ bool qpid::InEventPort<T, S>::Passivate(){
     if(qpid_thread_ && connection_.isOpen()){
         //do passivation things here
         receiver_.close();
-
+        std::cout << "in eventport passivate 1" << std::cout;
         qpid_thread_->join();
+        std::cout << "in eventport passivate 2" << std::cout;
         delete qpid_thread_;
+        std::cout << "in eventport passivate 3" << std::cout;
         qpid_thread_ = 0;
+        std::cout << "in eventport passivate 4" << std::cout;
         connection_.close();
+        std::cout << "in eventport passivate 5" << std::cout;
     }
     return ::InEventPort<T>::Passivate();
 };
