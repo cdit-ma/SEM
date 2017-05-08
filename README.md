@@ -14,7 +14,7 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 
 # Building from source
 * Clone repo
-```
+* ```
 cd MEDEA
 mkdir build
 cd build
