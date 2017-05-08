@@ -235,7 +235,7 @@ set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
 
-add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} ${RESOURCES})
+add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
 target_link_libraries(${LIB_NAME} Qt5::Core)
 target_link_libraries(${LIB_NAME} Qt5::Network)

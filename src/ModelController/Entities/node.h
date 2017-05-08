@@ -8,7 +8,7 @@
 
 #include <QVariant>
 #include <QSet>
-
+#include <functional>
 enum class VIEW_ASPECT;
 
 class Edge;

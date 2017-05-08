@@ -1,5 +1,6 @@
 #ifndef EDGE_H
 #define EDGE_H
+#include <functional>
 
 #include "entity.h"
 
