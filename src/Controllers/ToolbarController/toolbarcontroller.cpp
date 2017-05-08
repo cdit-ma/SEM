@@ -139,16 +139,8 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                     }else if(node->getNodeKind() == NODE_KIND::WORKLOAD){
                         //emit workerWorkloadCreated(ID);
                     }
-                    workerProcessIDs.append(ID);
-                    
+                    //workerProcessIDs.append(ID);
                 }
-                /*
-                else if ((node->getNodeKind() == NODE_KIND::WORKER_PROCESS) || (node->getNodeKind() == NODE_KIND::WORKER_DEFINITIONS)) {
-                                   if(node->getViewAspect() == VIEW_ASPECT::WORKERS){
-                                       workerProcessIDs.append(ID);
-                                       emit workerProcessCreated(ID);
-                                   }
-                               }*/
             }
         }
     }
