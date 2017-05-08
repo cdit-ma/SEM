@@ -127,7 +127,7 @@
 
         <!-- Write base type class -->
         <xsl:result-document href="{o:xsl_wrap_file($base_type_h)}">
-            <xsl:value-of select="o:get_base_data_type_h($aggregate, $members, $vectors, $aggregate_inst)" />
+            <xsl:value-of select="o:get_base_data_type_h($aggregate, $members, $vectors, $aggregate_inst, $aggregates)" />
         </xsl:result-document>
 
         <xsl:result-document href="{o:xsl_wrap_file($base_type_cpp)}">

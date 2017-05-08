@@ -625,9 +625,10 @@
         <xsl:param name="aggregate_root" />
         <xsl:param name="members"/>
         <xsl:param name="vectors"/>
+        <xsl:param name="aggregate_insts"/>
         <xsl:param name="aggregates"/>
 
-        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregate_insts)" />
 
         <xsl:variable name="namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
@@ -645,7 +646,7 @@
         <xsl:value-of select="o:lib_include('core/basemessage.h')" />
         <xsl:value-of select="o:lib_include('string')" />
 
-        <xsl:variable name="rel_dir" select="'../'" />
+        <xsl:variable name="rel_dir" select="'../../'" />
 
         <!-- Include std vector if we need -->
         <xsl:if test="count($vectors) > 0">
@@ -656,10 +657,16 @@
         <!-- Include other required base types -->
         <xsl:if test="count($required_datatypes) > 0">
             <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
-            <xsl:for-each-group select="$required_datatypes" group-by=".">
-                <xsl:variable name="datatype" select="lower-case(.)" />
-                <xsl:value-of select="o:local_include(concat($rel_dir, $datatype, '/', $datatype, '.h'))" />
-            </xsl:for-each-group>
+            <xsl:for-each select="$aggregates">
+                
+                <xsl:variable name="agg_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+
+                <xsl:if test="contains($required_datatypes, $agg_type)">
+                    <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
+                    <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+                    <xsl:value-of select="o:local_include(concat($rel_dir, $agg_ns, '/', $agg_la, '/', $agg_la, '.h'))" />
+                </xsl:if>
+            </xsl:for-each>
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
@@ -690,7 +697,7 @@
         </xsl:for-each>
 
         <!-- Handle Aggregates -->
-        <xsl:for-each select="$aggregates">
+        <xsl:for-each select="$aggregate_insts">
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_cpp_type" select="cdit:get_aggregate_cpp_type(.)" />
 
@@ -948,10 +955,15 @@
 
             <xsl:if test="count($required_datatypes)">
                 <xsl:value-of select="o:cmake_comment(concat('Include the binary directories used by the ', o:angle_wrap($mw), ' libraries used this type'))" />
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="datatype" select="lower-case(.)" />
-                    <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../', $datatype))" />
-                </xsl:for-each-group>
+                
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+                    <xsl:if test="contains($required_datatypes, $aggregate_type)">
+                        <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
+                        <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+                        <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../../', $agg_ns, '/', $agg_la))" />
+                    </xsl:if>
+                </xsl:for-each>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
         </xsl:if>
