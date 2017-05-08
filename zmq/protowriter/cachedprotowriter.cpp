@@ -95,7 +95,9 @@ void zmq::CachedProtoWriter::Terminate(){
         }
     }
 
-    std::cout << "Successfully Written: " << sent_count << "/" << log_count_ << std::endl;
+    if(log_count_ != 0){
+        std::cout << "Successfully Written: " << sent_count << "/" << log_count_ << std::endl;
+    }
 
     //Remove the temp file
     std::remove(temp_file_path_.c_str());
@@ -164,7 +166,9 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
     //Open temp file for reading binary data
     std::fstream file(file_path, std::ios::in | std::ios::binary);
     if(!file){
-        std::cerr << "Failed to open file '" << file_path << "' to write." << std::endl;
+        if(log_count_ != 0){
+            std::cerr << "Failed to open file '" << file_path << "' to read." << std::endl;
+        }
         return queue;
     }
 
