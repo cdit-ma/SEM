@@ -246,8 +246,7 @@ void ContextToolbar::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    NODE_KIND node_kind = EntityFactory::getNodeKind(kind);
-    EDGE_KIND edge_kind = toolbarController->getNodesEdgeKind(node_kind);
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->addEdge(ID, edge_kind);
 }
@@ -265,9 +264,9 @@ void ContextToolbar::removeEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    EDGE_KIND edgeKind = EntityFactory::getEdgeKind(kind);
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
-    toolbarController->removeEdge(ID, edgeKind);
+    toolbarController->removeEdge(ID, edge_kind);
 }
 
 

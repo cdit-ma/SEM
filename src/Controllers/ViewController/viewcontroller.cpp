@@ -347,16 +347,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 image = "Variable";
                 break;
             }
-            case NODE_KIND::SETTER:{
-                alias = "Icons";
-                image = "pencil";
-                break;
-            }
-            case NODE_KIND::FOR_CONDITION:{
-                alias = "EntityIcons";
-                image = "Condition";
-                break;
-            }
             case NODE_KIND::WORKER_DEFINITIONS:{
                 alias = "Icons";
                 image = "medeaLogo";
@@ -1254,7 +1244,6 @@ void ViewController::controller_dataRemoved(int ID, QString key)
 {
     ViewItem* viewItem = getViewItem(ID);
 
-    qCritical() << "REmoving data: " << ID << " " << key;
     if(viewItem){
         
         viewItem->removeData(key);

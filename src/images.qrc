@@ -70,6 +70,8 @@
 		<file alias="Workload">Resources/EntityIcons/Workload.png</file>
 		<file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
 		<file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
+		<file alias="Setter">Resources/EntityIcons/Setter.png</file>
+		<file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
 	</qresource>
 
         <qresource prefix="/Images/Icons">
