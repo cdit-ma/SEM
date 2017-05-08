@@ -6,8 +6,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(CMAKE_MACOSX_RPATH 1)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-#set(CMAKE_INSTALL_RPATH "@loader_path")
 
 #Requires Qt5_DIR to be set to the directory which contains the bin/lib folders for QT5
 # IE Qt5_DIR /Users/dan/Qt5.7.0/5.7/clang_64
@@ -19,7 +17,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_subdirectory("ModelController")
-
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
