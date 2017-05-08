@@ -213,25 +213,26 @@ if(APPLE)
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2016. All Rights Reserved.")
 
     #Bundle the MEDEA icon (icns) for mac
-    set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/../src/Resources/medea.icns)
-    file(COPY ${MAC_ICON} DESTINATION "${MACOSX_PACKAGE_LOCATION}/Resources")
-    file(COPY ${SCRIPTS} DESTINATION "${MACOSX_PACKAGE_LOCATION}/${SCRIPTS_DEST_DIR}")
-    file(COPY ${LIBS} DESTINATION "${MACOSX_PACKAGE_LOCATION}/${LIBS_DEST_DIR}")
-    file(COPY ${TRANSFORMS} DESTINATION "${MACOSX_PACKAGE_LOCATION}/${TRANSFORM_DEST_DIR}")
-    # set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns)
+    set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    
+    set(PACKAGE_LOCATION "${PROJ_NAME}.app/Contents/")
+    file(COPY ${SCRIPTS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${SCRIPTS_DEST_DIR}")
+    file(COPY ${LIBS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${LIBS_DEST_DIR}")
+    file(COPY ${TRANSFORMS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${TRANSFORM_DEST_DIR}")
     # set_source_files_properties(${TRANSFORMS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${TRANSFORM_DEST_DIR}")
     # set_source_files_properties(${SCRIPTS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${SCRIPTS_DEST_DIR}")
     # set_source_files_properties(${LIBS} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/${LIBS_DEST_DIR}")
 
 
-    add_executable(${PROJ_NAME} MACOSX_BUNDLE ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON} ${TRANSFORMS} ${SCRIPTS} ${LIBS})
+    add_executable(${PROJ_NAME} MACOSX_BUNDLE ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON})
 else()
     #Bundle things for unix
     file(COPY ${SCRIPTS} DESTINATION ${SCRIPTS_DEST_DIR})
     file(COPY ${LIBS} DESTINATION ${LIBS_DEST_DIR})
     file(COPY ${TRANSFORMS} DESTINATION ${TRANSFORM_DEST_DIR})
 
-    add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS} ${RESOURCES} ${TRANSFORMS} ${SCRIPTS} ${LIBS})
+    add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS} ${RESOURCES})
 endif()
 
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
