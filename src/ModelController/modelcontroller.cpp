@@ -407,12 +407,6 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
                 return;
             }
         }
-
-        if(dataValue == action.Data.oldValue){
-            //Don't update if we have got the same value in the model.
-            //return;
-        }
-
         parent->setDataValue(keyName, dataValue);
         
         action.Data.newValue = parent->getDataValue(keyName);
@@ -3598,16 +3592,13 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
 
-                    bool addData = true;
-                    if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
-                        if(key->getName() == "sortOrder"){
-                            addData = false;
-                        }
-                    }
+                    bool addData = key->getName() != "index";
 
                     if(addData){
                         Data* data = new Data(key, dataValue);
                         currentEntity->addData(data);
+                    }else{
+                        qCritical() << "SHouldn't add data";
                     }
                 }
             }
@@ -3771,7 +3762,8 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     }
                     
                     if(newNode){
-                        _attachData(newNode, entity->takeDataList());
+                        auto data_list = entity->takeDataList();
+                        _attachData(newNode, data_list);
                     }else{
                         QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
                         //NotificationManager::manager()->displayNotification(message, "", "", parentNode->getID(), NS_WARNING);

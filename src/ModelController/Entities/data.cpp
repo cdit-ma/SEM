@@ -64,8 +64,13 @@ void Data::setParent(Entity *parent)
         setID();
         parent->_dataChanged(this);
         parent->_dataProtected(this);
+        
     }
     _parent = parent;
+    
+    if(_parent){
+        //revalidateData();
+    }
 }
 
 Entity *Data::getParent()

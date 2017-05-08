@@ -219,7 +219,7 @@ void ContextToolbar::addChildNode(QAction* action)
     int ID = action->property("ID").toInt();
     QString parentKind = action->property("parent-kind").toString();
 
-    NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
+    NODE_KIND kind = EntityFactory::getNodeKind(parentKind);
 
     if (ID > 0 && !parentKind.isEmpty()) {
         if (parentKind == "WorkerProcess") {
@@ -660,6 +660,7 @@ QAction* ContextToolbar::getInfoAction(QString hashKey)
 QList<QAction*> ContextToolbar::constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind)
 {
     QHash<NodeViewItemAction*, QList<QAction*> > parentViewItemHash;
+
     foreach (NodeViewItemAction* viewItemAction, actions) {
         NodeViewItemAction* parentViewItemAction = viewItemAction->getParentViewItemAction();
         if (parentViewItemAction) {

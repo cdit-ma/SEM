@@ -7,8 +7,17 @@ EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QSt
     RegisterDefaultData(factory, kind, "type", QVariant::String, true);
 
     if(kind == NODE_KIND::INEVENTPORT_INSTANCE || kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+        
+        QList<QVariant> values;
+        values << "ZMQ";
+        values << "RTI";
+        values << "OSPL";
+        values << "QPID";
+        
+        RegisterValidDataValues(factory, kind, "middleware", QVariant::String, values);
+
         RegisterDefaultData(factory, kind, "topicName", QVariant::String, false);
-        RegisterDefaultData(factory, kind, "middleware", QVariant::String, false, "ZMQ");
+        RegisterDefaultData(factory, kind, "middleware", QVariant::String, false, values.first());
     }
 };
 

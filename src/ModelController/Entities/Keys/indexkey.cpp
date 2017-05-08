@@ -18,7 +18,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     
     //If its not attached to a node, the value is invalid
     if(!node){
-        return -1;
+        return data_value;
     }
 
     //Siblings are already in Index'd order
