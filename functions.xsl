@@ -840,10 +840,12 @@
         <xsl:param name="aggregate_root" />
         <xsl:param name="members"/>
         <xsl:param name="vectors"/>
+        <xsl:param name="aggregates_inst"/>
         <xsl:param name="aggregates"/>
+        
         <xsl:param name="mw" as="xs:string" />
 
-        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates_inst)" />
         
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
@@ -882,11 +884,17 @@
 
             <!-- Copy the other Middleware specific files required to compile this type-->
             <xsl:if test="count($required_datatypes) and $mw_ext != ''">
-                <xsl:value-of select="o:cmake_comment(concat('Copy required ', o:angle_wrap($mw_ext), ' into the binary directory so the compilation of generated files can succeed'))" />
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="datatype" select="lower-case(.)" />
-                    <xsl:value-of select="concat('configure_file(../', $datatype, '/', $datatype, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
-                </xsl:for-each-group>
+                <xsl:value-of select="o:cmake_comment(concat('Copy 2required ', o:angle_wrap($mw_ext), ' into the binary directory so the compilation of generated files can succeed'))" />
+
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+                    <xsl:if test="contains($required_datatypes, $aggregate_type)">
+                        <xsl:variable name="agg_id" select="lower-case(cdit:get_node_id(.))" />
+                        <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
+                        <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+                        <xsl:value-of select="concat('configure_file(../../', $agg_ns, '/', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                    </xsl:if>
+                </xsl:for-each>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
 
@@ -1075,7 +1083,7 @@
         <xsl:for-each select="$members">
             <!-- TODO: Need to handle members/vectors/aggregates out of order -->
             <!-- The Sort Order starts at 0 -->
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:variable name="member_label" select="cdit:get_key_value(.,'label')" />
             <xsl:variable name="member_type" select="cdit:get_key_value(.,'type')" />
@@ -1094,7 +1102,7 @@
 
         <!-- Process Vectors -->
         <xsl:for-each select="$vectors">
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type(.)" />
@@ -1117,7 +1125,7 @@
 
         <!-- Process Aggregates -->
         <xsl:for-each select="$aggregates">
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_type" select="cdit:get_key_value(.,'type')" />
@@ -1173,7 +1181,7 @@
             <xsl:variable name="member_type" select="cdit:get_key_value(.,'type')" />
             <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
             <xsl:variable name="member_proto_type" select="cdit:get_cpp2proto_type($member_cpp_type)" />
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:value-of select="concat(o:t(1), $member_proto_type, ' ', $member_label, ' = ', $sort_order, ';', o:nl())" />
         </xsl:for-each>
@@ -1182,7 +1190,7 @@
             <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type(.)" />
             <xsl:variable name="vector_proto_type" select="cdit:get_cpp2proto_type($vector_cpp_type)" />
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
             
@@ -1200,7 +1208,7 @@
         </xsl:for-each>
 
         <xsl:for-each select="$aggregates">
-            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+            <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'index')) + 1" />
             
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_type" select="cdit:get_key_value(.,'type')" />

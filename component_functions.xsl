@@ -595,7 +595,7 @@
 
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
-        <xsl:variable name="sort_order" select="cdit:get_key_value($root, 'sortOrder')" />
+        <xsl:variable name="sort_order" select="cdit:get_key_value($root, 'index')" />
         <xsl:variable name="value" select="cdit:get_key_value($root, 'value')" />
 
         <xsl:variable name="children" select="$root/gml:graph/*" />
