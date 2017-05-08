@@ -125,6 +125,10 @@ void zmq::CachedProtoWriter::WriteQueue(){
 
         //Open temp file for appending binary data
         std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
+        if(log_count_ == 0){
+            std::cout << "No messages to write, skipping cached file read." << std::endl;
+            break;
+        }
         if(!file){
             std::cerr << "Failed to open temp file '" << temp_file_path_ << "' to write." << std::endl;
             break;
