@@ -265,7 +265,7 @@ void SettingsController::intializeSettings()
 
     _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
-    _getSetting(SK_JENKINS_JOBNAME)->setDefaultValue("re_gen");
+    _getSetting(SK_JENKINS_JOBNAME)->setDefaultValue("deploy_model");
 
 }
 

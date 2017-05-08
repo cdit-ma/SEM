@@ -55,14 +55,12 @@ OUTPUT <<= '<key attr.name="ip_address" attr.type="string" for="node" id="k6"/>'
 OUTPUT <<= '<key attr.name="os" attr.type="string" for="node" id="k7"/>' << nl();
 OUTPUT <<= '<key attr.name="architecture" attr.type="string" for="node" id="k8"/>' << nl();
 OUTPUT <<= '<key attr.name="os_version" attr.type="string" for="node" id="k9"/>' << nl();
-OUTPUT <<= '<key attr.name="shared_directory" attr.type="string" for="node" id="k10"/>' << nl();
 OUTPUT <<= '<key attr.name="readOnly" attr.type="boolean" for="node" id="k11"/>' << nl();
 OUTPUT <<= '<key attr.name="sortOrder" attr.type="int" for="node" id="k12"/>' << nl();
 OUTPUT <<= '<key attr.name="root_path" attr.type="string" for="node" id="k13"/>' << nl();
 OUTPUT <<= '<key attr.name="load_time" attr.type="string" for="node" id="k14"/>' << nl();
 OUTPUT <<= '<key attr.name="is_online" attr.type="boolean" for="node" id="k15"/>' << nl();
 OUTPUT <<= '<key attr.name="user_name" attr.type="string" for="node" id="k16"/>' << nl();
-OUTPUT <<= '<key attr.name="hostname" attr.type="string" for="node" id="k18"/>' << nl();
 OUTPUT <<= '<key attr.name="version" attr.type="string" for="node" id="k17"/>' << nl();
 OUTPUT <<= '<key attr.name="isExpanded" attr.type="boolean" for="node" id="k22"/>' << nl();
 OUTPUT <<= '<graph edgedefault="directed" id="' << getID() << '">' << nl();
@@ -95,17 +93,16 @@ for(slave in jenkins.slaves){
     OUTPUT <<= t(6) << '<data key="k22">true</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k3">' << slave.getNodeName() << '</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k4">' << slave.getLabelString() << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k18">' << hostname << '</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k6">' << IP << '</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k5">' << SERVER_URL << c.getUrl() << '</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k15">' << online << '</data>' << nl();
+    OUTPUT <<= t(6) << '<data key="k11">true</data>' << nl();
 
 	if(!c.isOffline()){
 			//Can only get whilst online
 			OUTPUT <<= t(6) << '<data key="k7">' << c.getSystemProperties().get("os.name", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k8">' << c.getSystemProperties().get("os.arch", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k9">' << c.getSystemProperties().get("os.version", "") << '</data>' << nl();
-			OUTPUT <<= t(6) << '<data key="k10">' << c.getEnvironment().get("sharedir", "NOTDEFINED") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k13">' << slave.getRootPath() << '</data>' << nl();
 	}
 
