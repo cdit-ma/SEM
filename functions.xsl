@@ -867,7 +867,7 @@
         <xsl:if test="$build_shared_library">
             <xsl:value-of select="o:cmake_set_env('SHARED_LIB_NAME', $lib_name)" />
         </xsl:if>
-
+        
         <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
 
         <!-- Get the Middleware specific package -->
@@ -904,8 +904,6 @@
             <xsl:value-of select="o:cmake_find_library(concat($mw,'_helper'), $mw_helper_libs , '${RE_PATH}/lib')" />
             <xsl:value-of select="o:nl()" />
         </xsl:if>
-
-       
 
         <xsl:if test="$build_shared_library">
             <!-- Set Source files -->
@@ -953,7 +951,6 @@
         
 
         
-
         
         <!-- Build Shared Library -->
         <xsl:if test="$build_shared_library">
@@ -965,6 +962,8 @@
             <xsl:value-of select="o:cmake_comment('Link the shared library.')" />
             <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
             
+             
+
             <xsl:if test="$mw_package_uc != ''">
                 <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${', $mw_package_uc, '_LIBRARIES})', o:nl())" />
             </xsl:if>
@@ -975,6 +974,7 @@
             
             <xsl:value-of select="o:nl()" />
             
+             
             <!-- Link against base datatype libraries -->
             <xsl:value-of select="o:cmake_comment('Link the shared library against the base type library')" />
             <xsl:variable name="base_lib" select="o:get_aggregate_lib_name($aggregate_root, 'base')" />
@@ -984,17 +984,20 @@
             <!-- Link against other proto libraries which this message contains -->
             <xsl:if test="count($required_datatypes)">
                 <xsl:value-of select="o:cmake_comment(concat('Link shared library against the ', o:angle_wrap($mw), ' libraries used this type'))" />
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="proto_lib" select="o:get_aggregate_lib_name(., 'proto')" />
-
-                    
-                    <xsl:variable name="datatype" select="." />
-                    <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $proto_lib, '_lib)', o:nl())" />
-                </xsl:for-each-group>
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+                    <xsl:if test="contains($required_datatypes, $aggregate_type)">
+                        <xsl:variable name="proto_lib" select="o:get_aggregate_lib_name(., 'proto')" />
+                        <xsl:variable name="datatype" select="." />
+                        <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $proto_lib, '_lib)', o:nl())" />
+                    </xsl:if>
+                </xsl:for-each>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
             <xsl:value-of select="o:nl()" />
         </xsl:if>
+
+        
 
         <!-- Build Module Library -->
         <xsl:if test="$build_module">
@@ -1947,7 +1950,7 @@
         <xsl:param name="vectors" as="element()*"/>
         <xsl:param name="aggregates" as="element()*"/>
 
-        <xsl:for-each select="$aggregates">
+        <xsl:for-each select="$vectors">
             <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
         
             <xsl:value-of select="$aggregate_type" />
