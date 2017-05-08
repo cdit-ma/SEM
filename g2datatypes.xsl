@@ -135,7 +135,7 @@
         </xsl:result-document>
 
         <xsl:result-document href="{o:xsl_wrap_file($base_type_cmake)}">
-            <xsl:value-of select="o:get_base_data_type_cmake($aggregate, $members, $vectors, $aggregate_inst)" />
+            <xsl:value-of select="o:get_base_data_type_cmake($aggregate, $members, $vectors, $aggregate_inst, $aggregates)" />
         </xsl:result-document>
 
 

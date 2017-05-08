@@ -774,9 +774,10 @@
         <xsl:param name="aggregate_root" />
         <xsl:param name="members"/>
         <xsl:param name="vectors"/>
+        <xsl:param name="aggregate_insts"/>
         <xsl:param name="aggregates"/>
 
-        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregate_insts)" />
 
         <!-- Get the label of the Aggregate -->
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
@@ -813,10 +814,18 @@
         <xsl:value-of select="o:cmake_link_re_core($PROJ_NAME)" />
 
 
-        <xsl:for-each-group select="$required_datatypes" group-by=".">
-            <xsl:variable name="datatype" select="concat('base_', lower-case(.))" />
-            <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
-        </xsl:for-each-group>
+        <xsl:if test="count($required_datatypes)">
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+                <xsl:if test="contains($required_datatypes, $aggregate_type)">
+                    <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
+                    <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+                    <xsl:variable name="datatype" select="concat('base_', lower-case($agg_ns), '_', lower-case($agg_la))" />
+                    <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
+                </xsl:if>
+            </xsl:for-each>
+            <xsl:value-of select="o:nl()" />
+        </xsl:if>
     </xsl:function>
 
     <xsl:function name="o:cmake_target_link_libraries">
