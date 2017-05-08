@@ -3598,7 +3598,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                         Data* data = new Data(key, dataValue);
                         currentEntity->addData(data);
                     }else{
-                        qCritical() << "SHouldn't add data";
                     }
                 }
             }
