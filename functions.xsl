@@ -764,7 +764,7 @@
         <xsl:for-each select="$aggregates">
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
+            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', $aggregate_type)" />
 
             <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
         </xsl:for-each>
