@@ -716,6 +716,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(EDGE_KIND::DEPLOYMENT);
+                nodeItem->setSecondaryTextKey("mode");
                 break;
             case NODE_KIND::IDL:
                 nodeItem = new DefaultNodeItem(item, parentNode);

@@ -371,16 +371,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
-            case NODE_KIND::LOGGINGPROFILE:{
-                alias = "Icons";
-                image = "person";
-                break;
-            }
-            case NODE_KIND::LOGGINGSERVER:{
-                alias = "Icons";
-                image = "servers";
-                break;
-            }
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INSTANCE:{
                 //Check children

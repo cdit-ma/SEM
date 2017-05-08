@@ -6,9 +6,16 @@ LoggingProfile::LoggingProfile(EntityFactory* factory) : Node(factory, NODE_KIND
 	QString kind_string = "LoggingProfile";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new LoggingProfile();});
 
+    QList<QVariant> types;
+    types << "CACHED";
+    types << "OFF";
+    types << "LIVE";
+
+    RegisterValidDataValues(factory, node_kind, "mode", QVariant::String, types);
+
     RegisterDefaultData(factory, node_kind, "processes_to_log", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "mode", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "frequency", QVariant::Double);
+    RegisterDefaultData(factory, node_kind, "mode", QVariant::String, false, types.first());
+    RegisterDefaultData(factory, node_kind, "frequency", QVariant::Double, false, 1);
 };
 
 LoggingProfile::LoggingProfile():Node(NODE_KIND::LOGGINGPROFILE)

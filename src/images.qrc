@@ -26,7 +26,7 @@
 		<file alias="Edge_Assembly">Resources/EntityIcons/Edge_Assembly.png</file>
 		<file alias="Edge_Data">Resources/EntityIcons/Edge_Data.png</file>
 		<file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
-		<file alias="Edge_QOS">Resources/EntityIcons/Edge_QOS.png</file>
+		<file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
 		<file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
 		<file alias="HardwareCluster">Resources/EntityIcons/HardwareCluster.png</file>
 		<file alias="HardwareDefinitions">Resources/EntityIcons/HardwareDefinitions.png</file>
@@ -68,6 +68,8 @@
 		<file alias="Windows7_x86">Resources/EntityIcons/Windows7_x86.png</file>
 		<file alias="WorkerProcess">Resources/EntityIcons/WorkerProcess.png</file>
 		<file alias="Workload">Resources/EntityIcons/Workload.png</file>
+		<file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
+		<file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
 	</qresource>
 
         <qresource prefix="/Images/Icons">

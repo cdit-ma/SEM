@@ -123,7 +123,7 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->setBrush(getBodyColor().darker(120));
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
 
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Icons", "arrowTransfer");
     }
     //Call Base class
     NodeItem::paint(painter, option, widget);

@@ -56,7 +56,7 @@ OUTPUT <<= '<key attr.name="os" attr.type="string" for="node" id="k7"/>' << nl()
 OUTPUT <<= '<key attr.name="architecture" attr.type="string" for="node" id="k8"/>' << nl();
 OUTPUT <<= '<key attr.name="os_version" attr.type="string" for="node" id="k9"/>' << nl();
 OUTPUT <<= '<key attr.name="readOnly" attr.type="boolean" for="node" id="k11"/>' << nl();
-OUTPUT <<= '<key attr.name="sortOrder" attr.type="int" for="node" id="k12"/>' << nl();
+OUTPUT <<= '<key attr.name="index" attr.type="int" for="node" id="k12"/>' << nl();
 OUTPUT <<= '<key attr.name="root_path" attr.type="string" for="node" id="k13"/>' << nl();
 OUTPUT <<= '<key attr.name="load_time" attr.type="string" for="node" id="k14"/>' << nl();
 OUTPUT <<= '<key attr.name="is_online" attr.type="boolean" for="node" id="k15"/>' << nl();
