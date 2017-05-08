@@ -13,8 +13,8 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 * [Oracle Java 7 Runtime](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
 # Building from source
-* Clone repo
-* ```
+```
+git clone https://github.com/cdit-ma/MEDEA --recursive
 cd MEDEA
 mkdir build
 cd build
