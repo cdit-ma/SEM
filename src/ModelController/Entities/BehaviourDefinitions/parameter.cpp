@@ -8,10 +8,9 @@ Parameter::Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str) :
     
     RegisterDefaultData(factory, kind, "type", QVariant::String, true);
     
-    if(kind != NODE_KIND::VARIADIC_PARAMETER){
+    if(kind == NODE_KIND::INPUT_PARAMETER || kind == NODE_KIND::RETURN_PARAMETER){
         RegisterDefaultData(factory, kind, "icon", QVariant::String, true);
         RegisterDefaultData(factory, kind, "icon_prefix", QVariant::String, true);
-        RegisterDefaultData(factory, kind, "description", QVariant::String, true);
     }
 };
 

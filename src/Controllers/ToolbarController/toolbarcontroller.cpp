@@ -9,8 +9,7 @@
 
 ToolbarController::ToolbarController(ViewController *viewController):QObject(viewController)
 {
-    interfaceKinds << "BlackBox" << "Component" << "Aggregate" << "Vector" << "InEventPort" << "OutEventPort";
-
+    //Set the kind of edge that each of these nodes require
     connectedNodeEdgeKinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
     connectedNodeEdgeKinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
     connectedNodeEdgeKinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
@@ -133,9 +132,15 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 if (node->getNodeKind() == NODE_KIND::HARDWARE_NODE || node->getNodeKind() == NODE_KIND::HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
-                }else if(node->getViewAspect() == VIEW_ASPECT::WORKERS && (node->getNodeKind() == NODE_KIND::WORKER_PROCESS || node->getNodeKind() == NODE_KIND::WORKLOAD)){
+                }else if(node->getViewAspect() == VIEW_ASPECT::WORKERS){
+                    if(node->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+                        
+                        //emit workerProcessCreated(ID);
+                    }else if(node->getNodeKind() == NODE_KIND::WORKLOAD){
+                        //emit workerWorkloadCreated(ID);
+                    }
                     workerProcessIDs.append(ID);
-                    emit workerProcessCreated(ID);
+                    
                 }
                 /*
                 else if ((node->getNodeKind() == NODE_KIND::WORKER_PROCESS) || (node->getNodeKind() == NODE_KIND::WORKER_DEFINITIONS)) {

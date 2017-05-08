@@ -74,13 +74,11 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     case EDGE_KIND::ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
         if(!dst->isNodeOfType(NODE_TYPE::EVENTPORT_ASSEMBLY)){
-            qCritical() << "Not and eventport";
             return false;
         }
 
         //Can't have an assembly link without an aggregate.
         if(!getAggregate()){
-            qCritical() << "No Aggregate";
             return false;
         }
 
@@ -88,7 +86,6 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         //Can't connect different aggregates
         if(getAggregate() != port->getAggregate()){
-            qCritical() << "Differeny aggregate Aggregate";
             return false;
         }
 
@@ -99,11 +96,9 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         //Can connect in either the same Assembly or 1 different higher.
         if(difference > 1){
-            qCritical() << "Different Depth";
             return false;
         }
         if(totalDepth > 4){
-            qCritical() << "Out of Assembly";
             return false;
         }
 
@@ -112,7 +107,6 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             if(depthToAncestor == 2){
                 //Don't allow connections from the same type, inter assembly.
                 if(isOutPortDelegate() && !port->isInPortDelegate()){
-                    qCritical() << "Same Type of delegate";
                     return false;
                 }
                 if(isOutPortInstance() && !port->isInPortInstance()){

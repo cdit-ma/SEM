@@ -3,6 +3,8 @@
 
 #include <QDebug>
 
+//TODO: REWRITE DOCKWIDGETS to handle ID's and removal of entities.
+//Should allow easier creation of groups. Potentially have a SET_KIND as GROUP kind of functionality which allows auto construction of the write type of dock widgets
 
 /**
  * @brief DockWidget::DockWidget
@@ -263,6 +265,14 @@ void DockWidget::highlightItem(int ID)
 }
 
 
+void DockWidget::viewItemGroupConstructed(int ID){
+    if (!actionItemIDHash.contains(ID)) {
+        auto node_action = toolActionController->getNodeAction(ID)->constructSubAction(false);
+        auto dockItem = new DockWidgetParentActionItem(node_action, this);
+        dockItem->setProperty("ID", ID);
+        addItem(dockItem);
+    }
+}
 /**
  * @brief DockWidget::viewItemConstructed
  * @param ID
@@ -271,8 +281,8 @@ void DockWidget::viewItemConstructed(int ID)
 {
     // can have an action item and a parent action item with the same ID
     if (!actionItemIDHash.contains(ID)) {
-        QAction* itemAction = toolActionController->getNodeAction(ID)->constructSubAction(false);
-        DockWidgetActionItem* dockItem = new DockWidgetActionItem(itemAction, this);
+        auto node_action = toolActionController->getNodeAction(ID)->constructSubAction(false);
+        auto dockItem = new DockWidgetActionItem(node_action, this);
         dockItem->setProperty("ID", ID);
         addItem(dockItem);
     }

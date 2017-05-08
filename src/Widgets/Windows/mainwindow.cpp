@@ -222,7 +222,6 @@ void MainWindow::toggleNotificationPanel()
  */
 void MainWindow::ensureNotificationPanelVisible()
 {
-    qCritical() << "YO ";
     if (!notificationDockWidget->isVisible()) {
         notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
     }
@@ -573,32 +572,28 @@ void MainWindow::setupInnerWindow()
     setCentralWidget(innerWindow);
 
     //Construct dockWidgets.
-    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interface");
+    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
     NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
-    NodeViewDockWidget* dwWorkers = viewController->constructNodeViewDockWidget("Workers");
 
     //Set each NodeView with there contained aspects
     dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dwBehaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
     dwAssemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
     dwHardware->getNodeView()->setContainedViewAspect(VIEW_ASPECT::HARDWARE);
-    dwWorkers->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
 
     //Set allowed areas
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwWorkers->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
     dwInterfaces->setIcon("EntityIcons", "InterfaceDefinitions");
     dwBehaviour->setIcon("EntityIcons", "BehaviourDefinitions");
     dwAssemblies->setIcon("EntityIcons", "AssemblyDefinitions");
     dwHardware->setIcon("EntityIcons", "HardwareDefinitions");
-    dwWorkers->setIcon("Icons", "spanner");
 
 
     //Set Icon Visibility
@@ -612,7 +607,6 @@ void MainWindow::setupInnerWindow()
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
-    dwWorkers->setProtected(true);
 
     SettingsController* s = SettingsController::settings();
 
@@ -621,13 +615,11 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwWorkers);
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwWorkers,  false);
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
@@ -973,7 +965,7 @@ void MainWindow::setupDockablePanels()
     innerWindow->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
-    innerWindow->setDockWidgetVisibility(jenkinsDockWidget, true);
+    innerWindow->setDockWidgetVisibility(jenkinsDockWidget, false);
     innerWindow->tabifyDockWidget(searchDockWidget, notificationDockWidget);
 
     /**

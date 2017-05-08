@@ -1,26 +1,26 @@
 #include "dds_durabilityqospolicy.h"
 
-
-
 DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_DURABILITY, "DDS_DurabilityQosPolicy"){
 	auto node_kind = NODE_KIND::QOS_DDS_POLICY_DURABILITY;
 	QString kind_string = "DDS_DurabilityQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_DurabilityQosPolicy();});
-};
-DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DURABILITY)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+	
+    RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_DurabilityQosPolicy();});
 
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
-    //updateDefaultData("label", QVariant::String, true, "durability");
-    //updateDefaultData("qos_dds_kind", QVariant::String, false, "VOLATILE_DURABILITY_QOS");
-
-    auto values = QStringList();
+    QList<QVariant> values;
     values << "VOLATILE_DURABILITY_QOS";
     values << "TRANSIENT_LOCAL_DURABILITY_QOS";
     values << "TRANSIENT_DURABILITY_QOS";
     values << "PERSISTENT_DURABILITY_QOS";
+
+    RegisterValidDataValues(factory, node_kind, "qos_dds_kind", QVariant::String, values);
+
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "durability");
+    RegisterDefaultData(factory, node_kind, "qos_dds_kind", QVariant::String, false, values.first());
+};
+
+DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DURABILITY)
+{
+    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
 
 bool DDS_DurabilityQosPolicy::canAdoptChild(Node*)

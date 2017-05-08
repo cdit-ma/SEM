@@ -10,16 +10,12 @@ BehaviourDefinitions::BehaviourDefinitions(EntityFactory* factory) : Node(factor
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BehaviourDefinitions();});
 
     //Register Data
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "COMPONENTS");
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "BEHAVIOUR");
 };
 
 BehaviourDefinitions::BehaviourDefinitions():Node(NODE_KIND::BEHAVIOUR_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
-    //updateDefaultData("label", QVariant::String, true, "COMPONENTS");
 }
 
 VIEW_ASPECT BehaviourDefinitions::getViewAspect() const

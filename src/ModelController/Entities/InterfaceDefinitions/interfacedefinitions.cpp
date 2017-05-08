@@ -6,16 +6,12 @@ InterfaceDefinitions::InterfaceDefinitions(EntityFactory* factory) : Node(factor
 	QString kind_string = "InterfaceDefinitions";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InterfaceDefinitions();});
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "DATATYPES");
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "INTERFACES");
 };
 
 InterfaceDefinitions::InterfaceDefinitions(): Node(NODE_KIND::INTERFACE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
-    //updateDefaultData("label", QVariant::String, true, "DATATYPES");
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect() const
@@ -31,7 +27,6 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     case NODE_KIND::AGGREGATE:
         break;
     case NODE_KIND::COMPONENT:
-    case NODE_KIND::COMPONENT_IMPL:
         break;
     default:
         return false;

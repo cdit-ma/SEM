@@ -59,7 +59,7 @@ signals:
     void hardwareDestructed(int ID);
     void workerProcessCreated(int ID);
     void workerProcessDestructed(int ID);
-
+    void workerWorkloadCreated(int ID);
 public slots:
     void actionHoverEnter(int ID);
     void actionHoverLeave(int ID);

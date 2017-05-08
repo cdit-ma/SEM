@@ -292,6 +292,7 @@ private:
     Node* construct_node(Node* parent_node, NODE_KIND kind);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
+    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
 public slots:
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
@@ -405,7 +406,7 @@ private:
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
    
-    Edge* constructEdgeWithData(EDGE_KIND edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
+    
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     

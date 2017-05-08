@@ -556,7 +556,7 @@ Node* ModelController::check_for_existing_node(Node* parent_node, NODE_KIND node
 Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind){
     Node* node = 0;
     node = check_for_existing_node(parent_node, node_kind);
-    if(!node){
+    if(!node){ 
         //Construct node with default data
         node = entity_factory->createNode(node_kind);   
     }
@@ -592,7 +592,7 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
     Node* source = construct_child_node(parent_node, node_kind, false);
     if(source){
-        auto edge = entity_factory->createEdge(source, destination, edge_kind);
+        auto edge = construct_edge(edge_kind, source, destination, false);
         
         if(!edge){
             //Free the memory
@@ -666,12 +666,9 @@ void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND ed
         triggerAction("Constructing child edge");
         for(auto src_id : src_ids){
             auto src = getNode(src_id);
-
-            auto edge = entity_factory->createEdge(src, dst, edge_kind);
-
-            if(edge){
-                constructEdgeGUI(edge);
-            }else{
+            auto edge = construct_edge(edge_kind, src, dst);
+            
+            if(!edge){
                 break;
             }
         }
@@ -706,7 +703,7 @@ Node* ModelController::construct_setter_node(Node* parent)
             auto value = construct_child_node(node, NODE_KIND::VARIADIC_PARAMETER);
 
             variable->setDataValue("icon", "Variable");
-            variable->setDataValue("iconPrefix", "EntityIcons");
+            variable->setDataValue("icon_prefix", "EntityIcons");
             return node;
         }
     }
@@ -718,16 +715,32 @@ Node* ModelController::construct_setter_node(Node* parent)
 Node* ModelController::construct_dds_profile_node(Node* parent)
 {
     if(parent){
-        auto node = construct_child_node(parent, NODE_KIND::QOS_DDS_PROFILE);
+        auto profile = construct_child_node(parent, NODE_KIND::QOS_DDS_PROFILE);
         
-        if(node){
-            //Itterate through QOS
-            /*for(auto k = NODE_KIND::QOS_DDS_POLICY_DEADLINE; k <= NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE; k++){
-                auto kind = (NODE_KIND) k;
-                QString kind_str = entity_factory->getNodeKindString(kind);
-                constructChildNode(profile, constructDataVector(kind_str));
-            }*/
-            return node;
+        if(profile){
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DEADLINE);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DURABILITY);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DURABILITYSERVICE);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_ENTITYFACTORY);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_GROUPDATA);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_HISTORY);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LIFESPAN);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_LIVELINESS);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_OWNERSHIP);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_PARTITION);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_PRESENTATION);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_READERDATALIFECYCLE);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_RELIABILITY);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_RESOURCELIMITS);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TIMEBASEDFILTER);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TOPICDATA);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_TRANSPORTPRIORITY);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_USERDATA);
+            construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE);
+            return profile;
         }
     }
     return 0;
@@ -753,15 +766,10 @@ Node* ModelController::construct_for_condition_node(Node* parent)
             variable->setDataValue("value", 0);
             condition->setDataValue("label", "Condition");
             condition->setDataValue("icon", "Condition");
-            condition->setDataValue("iconPrefix", "EntityIcons");
+            condition->setDataValue("icon_prefix", "EntityIcons");
             itteration->setDataValue("label", "Itteration");
             itteration->setDataValue("icon", "reload");
-            itteration->setDataValue("iconPrefix", "Icons");
-
-            //condition_data.append(new Data(iconKey, "Condition"));
-            //condition_data.append(new Data(iconPrefixKey, "EntityIcons"));
-            //itteration_data.append(new Data(iconKey, "reload"));
-            //itteration_data.append(new Data(iconPrefixKey, "Icons"));
+            itteration->setDataValue("icon_prefix", "Icons");
             return node;
         }
     }
@@ -792,16 +800,11 @@ void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, i
 
 
 
-Edge* ModelController::constructEdgeWithData(EDGE_KIND edgeClass, Node *src, Node *dst, QList<Data *> data, int previousID)
+Edge* ModelController::construct_edge(EDGE_KIND edgeClass, Node *src, Node *dst, bool notify_view)
 {
     Edge* edge = entity_factory->createEdge(src, dst, edgeClass);
-    if(edge){
-        _attachData(edge, data, false);
 
-        //If we are Undo-ing or Redo-ing and we have an ID to link it to.
-        if((UNDOING || REDOING) && previousID != -1){
-            link_ids(previousID, edge->getID());
-        }
+    if(edge && notify_view){
         constructEdgeGUI(edge);
     }
     return edge;
@@ -2045,7 +2048,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         }
 
         if(typeMatched && labelMatched){
-            Edge* edge = entity_factory->createEdge(child, definition, EDGE_KIND::DEFINITION);
+            auto edge = construct_edge(EDGE_KIND::DEFINITION, child, definition);
 
             if(!edge){
                 qCritical() << "constructDefinitionRelative(): Couldn't construct Edge between Relative Node and Definition Node.";
@@ -2816,7 +2819,7 @@ bool ModelController::setupEventPortAggregateRelationship(EventPort *eventPort, 
 
                 if(!aggregateInstance->gotEdgeTo(aggregate, EDGE_KIND::DEFINITION)){
                     //Try connect
-                    auto edge = entity_factory->createEdge(aggregateInstance, aggregate, EDGE_KIND::DEFINITION);
+                    auto edge = construct_edge(EDGE_KIND::DEFINITION, aggregateInstance, aggregate);
                     if(!edge){
                         qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
                         return false;
@@ -3919,17 +3922,16 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 
             if(src && dst){
                 Edge* edge = src->getEdgeTo(dst, edgeKind);
-                if(edge){
-                    //Attach the Data to the existing edge.
-                    _attachData(edge, entity->takeDataList());
-                }else{
-                    
-                    //Construct an Edge, with the data.
-                    edge = constructEdgeWithData(edgeKind, src, dst, entity->takeDataList());
+
+                if(!edge){
+                    //If we don't have an edge, construct one
+                    edge = construct_edge(edgeKind, src, dst);
                 }
 
                 if(edge){
-                    
+                    //Attach the Data to the existing edge.
+                    _attachData(edge, entity->takeDataList());
+
                     //Link the old ID to the new ID.
                     if(linkPreviousID && entity->hasPrevID()){
                         link_ids(entity->getPrevID(), edge->getID());
