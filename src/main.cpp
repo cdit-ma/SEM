@@ -33,7 +33,6 @@ int launchMEDEA(int argc, char *argv[]){
         }
     }
     a.setActiveWindow(window);
-	window->show();	
     return a.exec();
 }
 
