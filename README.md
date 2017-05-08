@@ -13,6 +13,7 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 * [Oracle Java 7 Runtime](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
 # Building from source
+* Set environment variable QT5_DIR to point the installation of QT5.7 (QT5_DIR=/Users/dan/Qt5.7.0/5.7/clang_64/)
 ```
 git clone https://github.com/cdit-ma/MEDEA --recursive
 cd MEDEA
