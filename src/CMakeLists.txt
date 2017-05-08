@@ -13,6 +13,10 @@ set(CMAKE_MACOSX_RPATH 1)
 set(PROJ_NAME MEDEA)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
+if(WIN32)
+	SET(QT_USE_QTMAIN TRUE)
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
@@ -234,8 +238,12 @@ else()
     file(COPY ${SCRIPTS} DESTINATION ${SCRIPTS_DEST_DIR})
     file(COPY ${LIBS} DESTINATION ${LIBS_DEST_DIR})
     file(COPY ${TRANSFORMS} DESTINATION ${TRANSFORM_DEST_DIR})
+    add_executable(${PROJ_NAME} ${GUI_TYPE}  ${SOURCE} ${HEADERS} ${RESOURCES})
+endif()
 
-    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES})
+if(WIN32)
+	#Link against the Win Main Launcher
+	target_link_libraries(${PROJ_NAME} Qt5::WinMain)
 endif()
 
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
