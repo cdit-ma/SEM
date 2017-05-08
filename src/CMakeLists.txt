@@ -235,7 +235,7 @@ else()
     file(COPY ${LIBS} DESTINATION ${LIBS_DEST_DIR})
     file(COPY ${TRANSFORMS} DESTINATION ${TRANSFORM_DEST_DIR})
 
-    add_executable(${PROJ_NAME} ${SOURCE} ${GUI_TYPE} ${HEADERS} ${RESOURCES})
+    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES})
 endif()
 
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
