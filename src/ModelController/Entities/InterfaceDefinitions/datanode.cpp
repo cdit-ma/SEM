@@ -158,6 +158,7 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         int heightToAncestor = getDepthFromCommonAncestor(dst);
         int heightToComponentImpl = getDepthFromAspect() - 1;
+        
 
         if(heightToAncestor > heightToComponentImpl){
             //Cannot connect to something outside of the same Component.
@@ -171,6 +172,28 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 return false;
             }
         }
+
+        Node* srcTopParent = getParentNode(heightToComponentImpl - 1);
+        if(srcTopParent){
+            if(srcTopParent->getNodeKind() == NODE_KIND::OUTEVENTPORT_IMPL){
+                //Can't connect data from Aggregates stored in OutEventPortIMpls
+                return false;
+            }
+        }
+
+        int max_height = dst->getDepthFromAspect() - 1;
+        int height = 0;
+        auto dst_parent = dst->getParentNode();
+        while(dst_parent && height < max_height){
+            if(dst_parent->getNodeKind() == NODE_KIND::VECTOR_INSTANCE){
+                //Can't data bind into a vector directly
+                return false;
+            }else{
+                dst_parent = dst_parent->getParentNode();
+                height ++;
+            }
+        }
+        
 
         //Compare types!
         if(!comparableTypes(dataNode)){

@@ -7,6 +7,7 @@ MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new MemberInstance();});
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
 };
 
 MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
