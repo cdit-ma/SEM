@@ -982,7 +982,11 @@ void ViewController::_teardownProject()
             nodeKindLookups.clear();
             edgeKindLookups.clear();
 
-            //controller->disconnectViewController(this);
+            //This will destruct!
+            disconnect(controller);
+            controller->disconnect(this);
+            emit controller->initiateTeardown();
+
             controller = 0;
             setControllerReady(true);
         }
@@ -1608,7 +1612,6 @@ void ViewController::initializeController()
         setModelReady(false);
         controller = new ModelController();
         connectModelController(controller);
-        //controller->connectViewController(this);
     }
 }
 

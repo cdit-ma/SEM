@@ -21,6 +21,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_subdirectory("ModelController")
+add_subdirectory("Test")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
