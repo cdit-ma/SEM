@@ -41,40 +41,65 @@
 
         <xsl:variable name="namespace" select="cdit:get_namespace($root)" />
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
+
+
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="type" select="cdit:get_key_value($root, 'type')" />
-        <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
-        
+
+        <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', cdit:get_aggregate_cpp_type($root))" />
 
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
-        <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
 
-        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_AggregateInstance: [', $id, '] = ', $label), $tab)" />
-
-        <!-- Construct Object -->
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="is_top_level_aggregate" select="cdit:get_key_value($parent_node, 'kind') != 'AggregateInstance'" />
         
-        <xsl:value-of select="concat(o:t($tab), $cpp_type, ' ', $var_name, ';', o:nl())" />
-        
-        <!-- Get the Source ID's which data link to this element -->
-        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
 
-        <xsl:if test="count($source_ids) > 0">
-            <xsl:for-each select="$source_ids">
-                <xsl:variable name="source_id" select="." />
-                <xsl:variable name="source" select="o:get_node_by_id($root, $source_id)" />
-
-                <xsl:variable name="target_value" select="cdit:get_mutable_aggregate_path($source)" />
-
-                <xsl:if test="$target_value != ''">
-                    <xsl:value-of select="concat(o:t($tab), $var_name, ' = ', $target_value, ';', o:nl())" />
-                </xsl:if>
-            </xsl:for-each>
+        <!-- If we are the top level aggregate -->
+        <xsl:if test="$is_top_level_aggregate">
+            <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_AggregateInstance: [', $id, '] = ', $label), $tab)" />
+            <xsl:value-of select="concat(o:t($tab), $cpp_type, ' ', $var_name, ';', o:nl())" />
         </xsl:if>
+
+        <xsl:variable name="setter" select="cdit:get_nested_mutable_setter($root, true())" />
+
+        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
+        <!-- Get the Source ID's which data link to this element -->
+        <xsl:for-each select="$source_ids">
+            <xsl:variable name="source_id" select="." />
+            <xsl:variable name="source" select="o:get_node_by_id($root, $source_id)" />
+            <xsl:variable name="target_value" select="cdit:get_mutable_aggregate_path($source)" />
+            
+            <xsl:if test="$target_value != ''">
+                <xsl:value-of select="concat(o:t($tab), $setter, '(', $target_value, ');', o:nl())" />
+            </xsl:if>
+        </xsl:for-each>
 
         <!-- Generate Code for Child-->
         <xsl:for-each select="$root/gml:graph/*">
             <xsl:value-of select="cdit:generate_workload_cpp(., $root, $tab)" />
         </xsl:for-each>
+    </xsl:function>
+    
+    <xsl:function name="cdit:get_nested_mutable_setter">
+        <xsl:param name="root"/>
+        <xsl:param name="use_setter"/>
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="parent_kind" select="cdit:get_key_value($parent_node, 'kind')" />
+
+        <xsl:variable name="is_top_level_aggregate" select="$parent_kind != 'AggregateInstance'" />
+        <xsl:choose>
+            <xsl:when test="$is_top_level_aggregate">
+                <xsl:value-of select="cdit:get_var_name($root)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="parent_setter" select="cdit:get_nested_mutable_setter($parent_node, false())" />
+                <xsl:variable name="setter" select="if($use_setter) then concat('set_', $label) else concat($label, '()')" />
+                <xsl:value-of select="concat($parent_setter, '.', $setter)" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cdit:generate_Branch">
@@ -595,7 +620,7 @@
 
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
-        <xsl:variable name="sort_order" select="cdit:get_key_value($root, 'index')" />
+        <xsl:variable name="index" select="cdit:get_key_value($root, 'index')" />
         <xsl:variable name="value" select="cdit:get_key_value($root, 'value')" />
 
         <xsl:variable name="children" select="$root/gml:graph/*" />
@@ -603,7 +628,7 @@
         <xsl:variable name="statement">
             <xsl:choose>
                 <xsl:when test="$parent_kind = 'BranchState'">
-                    <xsl:value-of select="if(number($sort_order) = 0) then 'if' else 'else if'" />
+                    <xsl:value-of select="if(number($index) = 0) then 'if' else 'else if'" />
                 </xsl:when>
                 <xsl:when test="$parent_kind = 'WhileLoop' and $kind = 'Condition'">
                     <xsl:value-of select="'while'" />
@@ -712,7 +737,10 @@
         <!-- <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_SettableElement: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" /> -->
 
         <!-- Construct the setter functions -->        
-        <xsl:variable name="set_function" select="concat($parent_var_name, '.set_', $label)" />
+
+        
+        <!-->        <xsl:variable name="set_function" select="concat($parent_var_name, '.set_', $label)" /> -->
+        <xsl:variable name="set_function" select="cdit:get_nested_mutable_setter($root, true())" />
 
         <!-- Get the Source ID's which data link to this element -->
         <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
@@ -1039,9 +1067,11 @@
         <!-- InEventPorts are declared as pure virtual, and are defined in the Impl-->
         <xsl:for-each select="$ineventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
+
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
             <xsl:value-of select="concat(o:t(2), 'void In_', $label, '(', $cpp_type, ' m);', o:nl())" />
@@ -1065,7 +1095,7 @@
                 </xsl:when>
                 <xsl:when test="$variable_type = 'AggregateInstance'">
                     <xsl:variable name="aggregate_cpp_type" select="cdit:get_aggregate_cpp_type($complex_child)" />
-                    <xsl:value-of select="concat(o:t(2), $aggregate_cpp_type, ' ', $var_name, ';', o:nl())" />
+                    <xsl:value-of select="concat(o:t(2), 'Base::', $aggregate_cpp_type, ' ', $var_name, ';', o:nl())" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="cpp_type" select="cdit:get_cpp_type($variable_type)" />
@@ -1164,9 +1194,10 @@
         <!-- InEventPorts are declared as pure virtual, and are defined in the Impl-->
         <xsl:for-each select="$ineventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1259,9 +1290,11 @@
         <!-- InEventPorts are declared as pure virtual, and are defined in the Impl-->
         <xsl:for-each select="$ineventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1272,13 +1305,12 @@
         <!-- OutEventPorts are declared and defined in the interface -->
         <xsl:for-each select="$outeventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
+            
             <xsl:variable name="function_name" select="cdit:get_outeventport_name(.)" />
-
-
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 2)" />
@@ -1366,9 +1398,10 @@
         <!-- Construct InEventPorts -->
         <xsl:for-each select="$ineventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 1)" />
@@ -1379,9 +1412,10 @@
         <!-- OutEventPorts -->
         <xsl:for-each select="$outeventports">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
+
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat(cdit:get_base_namespace(), '::', $type)" />
+            <xsl:variable name="cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 0)" />

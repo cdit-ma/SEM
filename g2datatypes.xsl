@@ -40,9 +40,14 @@
 
             <!-- Get the label of the Aggregate -->
             <xsl:variable name="aggregate_label" select="lower-case(cdit:get_key_value(., 'label'))" />
+            <xsl:variable name="aggregate_label_cc" select="o:camel_case(cdit:get_key_value(., 'label'))" />
             <xsl:variable name="aggregate_namespace" select="cdit:get_key_value(., 'namespace')" />
+
             <xsl:variable name="aggregate_namespace_lc" select="lower-case($aggregate_namespace)" />
-            <xsl:variable name="aggregate_type" select="cdit:get_key_value(.,'type')" />
+            
+            
+            
+            <xsl:variable name="aggregate_type" select="concat($aggregate_namespace, '::', $aggregate_label_cc)" />
 
             <!-- Set the Middleware for this XSL -->
             <xsl:variable name="base_mw" select="'base'" />
@@ -80,14 +85,14 @@
                 <!-- Protobuf requires a .proto file-->
                 <xsl:if test="$mw = 'proto'">
                     <xsl:result-document href="{o:xsl_wrap_file($port_proto)}">
-                        <xsl:value-of select="o:get_proto($aggregate, $members, $vectors, $aggregate_inst)" />
+                        <xsl:value-of select="o:get_proto($aggregate)" />
                     </xsl:result-document>
                 </xsl:if>
 
                 <!-- DDS Implementations require a .idl file-->
                 <xsl:if test="$mw = 'rti' or $mw = 'ospl'">
                     <xsl:result-document href="{o:xsl_wrap_file($port_idl)}">
-                        <xsl:value-of select="o:get_idl($aggregate, $members, $vectors, $aggregate_inst)" />
+                        <xsl:value-of select="o:get_idl($aggregate)" />
                     </xsl:result-document>
                 </xsl:if>
             
@@ -98,7 +103,7 @@
                     </xsl:result-document>
 
                     <xsl:result-document href="{o:xsl_wrap_file($port_convert_cpp)}">
-                        <xsl:value-of select="o:get_convert_cpp($aggregate, $members, $vectors, $aggregate_inst, $mw_type, $base_type, $mw, $base_mw, $middleware_namespace)" />
+                        <xsl:value-of select="o:get_convert_cpp($aggregate, $members, $vectors, $aggregate_inst, $aggregates, $mw_type, $base_type, $mw, $base_mw, $middleware_namespace)" />
                     </xsl:result-document>
                 </xsl:if>
 
@@ -112,7 +117,7 @@
                 <!-- Using CMake for make file construction-->		
                 <!-- Write File: middleware/{MIDDLEWARE}/CMakeLists.txt -->		
                 <xsl:result-document href="{o:xsl_wrap_file($port_cmake)}">		
-                    <xsl:value-of select="o:get_mw_type_cmake($aggregate, $members, $vectors, $aggregate_inst, $aggregates, $mw)" />		
+                    <xsl:value-of select="o:get_mw_type_cmake($aggregate, $mw)" />		
                 </xsl:result-document>
             </xsl:for-each>
 
