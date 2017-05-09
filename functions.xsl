@@ -1298,7 +1298,7 @@
                 </xsl:otherwise>
             </xsl:choose>
             <!-- Free Memory From Translate -->
-            <xsl:value-of select="concat(o:t(2), 'delete ', $dst_var, ';', o:nl())" />
+            <!--<xsl:value-of select="concat(o:t(2), 'delete ', $dst_var, ';', o:nl())" />-->
             <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
     </xsl:function>
 
