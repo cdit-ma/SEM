@@ -1019,7 +1019,7 @@
                 <xsl:value-of select="o:cmake_comment(concat('Link shared library against the ', o:angle_wrap($mw), ' libraries used this type'))" />
 
                 <xsl:for-each-group select="$aggregate_definitions" group-by=".">
-                    <xsl:variable name="proto_lib" select="o:get_aggregate_lib_name(., 'proto')" />
+                    <xsl:variable name="proto_lib" select="o:get_aggregate_lib_name(., $mw)" />
                     <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $proto_lib, '_lib)', o:nl())" />
                 </xsl:for-each-group>
                 <xsl:value-of select="o:nl()" />
