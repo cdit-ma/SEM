@@ -238,8 +238,8 @@ else()
 endif()
 
 if(WIN32)
-	#Link against the Win Main Launcher
-	target_link_libraries(${PROJ_NAME} Qt5::WinMain)
+    #Link against the Win Main Launcher
+    target_link_libraries(${PROJ_NAME} Qt5::WinMain)
 endif()
 
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
