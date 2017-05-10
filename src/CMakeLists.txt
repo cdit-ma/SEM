@@ -5,13 +5,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-set(CMAKE_MACOSX_RPATH 1)
-
-#Requires Qt5_DIR to be set to the directory which contains the bin/lib folders for QT5
-# IE Qt5_DIR /Users/dan/Qt5.7.0/5.7/clang_64
-
+#Requires Qt5_DIR and QTIFWDIR to be set
 set(PROJ_NAME MEDEA)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+SET(VERSION "2.1.0-RE")
+SET(URL "https://github.com/cdit-ma/MEDEA")
+SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
+
 
 if(WIN32)
 	SET(QT_USE_QTMAIN TRUE)
@@ -245,3 +246,39 @@ endif()
 
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller)
+
+INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION bin COMPONENT MEDEA)
+
+add_custom_command(TARGET ${PROJ_NAME}
+        POST_BUILD
+        COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${PROJ_NAME}.app
+        )
+
+
+
+SET(CPACK_GENERATOR "IFW") 
+
+# Set Project info
+SET(CPACK_PACKAGE_NAME "MEDEA")
+SET(CPACK_PACKAGE_VENDOR "CDIT-MA")
+#set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Modelling, Experiment DEsign and Analysis (MEDEA)")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${VERSION_NAME})
+
+# Set Icon
+if(APPLE)
+    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns) 
+elseif(WIN32)
+    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.ico) 
+endif()
+
+# Set URL/Title
+SET(CPACK_IFW_PRODUCT_URL ${URL}) 
+SET(CPACK_IFW_PACKAGE_TITLE ${VERSION_NAME}) 
+# Set Banner
+SET(CPACK_IFW_PACKAGE_BANNER ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/medeaBanner.png) 
+# Set Style
+SET(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern") 
+
+
+# Has to be last
+INCLUDE(CPack)

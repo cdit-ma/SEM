@@ -5,9 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-#Requires Qt5_DIR to be set to the directory which contains the bin/lib folders for QT5
-# IE Qt5_DIR /Users/dan/Qt5.7.0/5.7/clang_64
-
 set(LIB_NAME medea_modelcontroller)
 find_package(Qt5 COMPONENTS Core Network REQUIRED)
 

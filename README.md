@@ -12,13 +12,20 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 * [CMake 3.0](https://cmake.org/)
 * [Oracle Java 7 Runtime](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
-# Building from source
+# Building MEDEA binary from source
 * Set environment variable Qt5_DIR to point the installation of QT5.7 (Qt5_DIR=/Users/dan/Qt5.7.0/5.7/clang_64/)
-```
-git clone https://github.com/cdit-ma/MEDEA --recursive
-cd MEDEA
-mkdir build
-cd build
-cmake ..
-make -j10
-```
+> ```
+> git clone https://github.com/cdit-ma/MEDEA --recursive
+> cd MEDEA
+> mkdir build
+> cd build
+> cmake ..
+> make -j10
+> ```
+
+## Building MEDEA installer from source
+1. Set environment variable Qt5_DIR to point the installation of QT5.7
+2. Set environment variable QTIFWDIR to point the installation of QT Installer Framework
+3. Follow the build instructions above
+4. `make package`
+* The installer will be located in build/_CPack_Packages
