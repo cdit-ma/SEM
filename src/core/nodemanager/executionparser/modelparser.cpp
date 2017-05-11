@@ -799,7 +799,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
     std::string model_str;
     model_str += tab() + dblquotewrap("model") + ":{" + newline + tab(2) + json_pair("name", model_->name) + "," + 
                                                         newline + tab(2) + json_pair("id", model_->id) + "," + 
-                                                        newline + tab(2) + json_pair("projectUUID", model_->uuid) +
+                                                        newline + tab(2) + json_pair("projectUUID", model_->uuid) + "," +
                                                         newline + tab(2) + json_list_pair("middlewares", model_->middlewares) +
                                                         newline + tab() + "},";
 
