@@ -301,7 +301,13 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
 
 EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, 
                                       std::string port_name, std::string namespace_name){
-    auto p = to_lower(middleware + "_" + namespace_name + "_" + datatype);
+
+    std::string p = to_lower(middleware + "_");
+    if(!namespace_name.empty()){
+        p += namespace_name + "_";
+    }
+    p += datatype;
+    
     if(!tx_constructors_.count(p)){
         //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();

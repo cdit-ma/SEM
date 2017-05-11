@@ -14,6 +14,10 @@ std::string Graphml::ModelParser::to_lower(std::string s){
     return str;
 }
 
+bool string_list_contains(const std::vector<std::string> list, const std::string val){
+    return std::find(list.begin(), list.end(), val) != list.end();
+}
+
 
 Graphml::ModelParser::ModelParser(const std::string filename){
     //Setup the parser
@@ -348,6 +352,12 @@ bool Graphml::ModelParser::Process(){
                             port->qos_profile_path = "file://qos/" + to_lower(port->middleware) + "/" + to_lower(port->qos_profile_name) + ".xml";
                         }
 
+                        //Check if middleware is contained
+                        if (std::find(model_->middlewares.begin(), model_->middlewares.end(), port->middleware) == model_->middlewares.end()){
+                            model_->middlewares.push_back(port->middleware);
+                        }
+                        
+
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
 
                         port->message_type = GetDataValue(aggregate_id, "label");
@@ -460,6 +470,11 @@ bool Graphml::ModelParser::Process(){
                 }
             }
         }
+    }
+
+    //Check for ZMQ, QPID and add PROTo
+    if(string_list_contains(model_->middlewares, "ZMQ") || string_list_contains(model_->middlewares, "QPID")){
+        model_->middlewares.push_back("PROTO");
     }
     
     return true;
@@ -785,6 +800,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
     model_str += tab() + dblquotewrap("model") + ":{" + newline + tab(2) + json_pair("name", model_->name) + "," + 
                                                         newline + tab(2) + json_pair("id", model_->id) + "," + 
                                                         newline + tab(2) + json_pair("projectUUID", model_->uuid) +
+                                                        newline + tab(2) + json_list_pair("middlewares", model_->middlewares) +
                                                         newline + tab() + "},";
 
 
