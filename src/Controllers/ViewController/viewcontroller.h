@@ -112,6 +112,8 @@ signals:
 
         void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
         void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+        void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
+        
         void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
         void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
         void vc_importProjects(QStringList fileData);

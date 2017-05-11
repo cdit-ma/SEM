@@ -164,7 +164,9 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     case ToolbarController::HARDWARE:
     {
         int ID = action->getProperty("ID").toInt();
-        toolActionController->removeEdge(-1, EDGE_KIND::DEPLOYMENT);
+
+        //Disconnect all deployement edges from selection
+        toolActionController->removeAllEdges(EDGE_KIND::DEPLOYMENT);
 
         if(!action->isHighlighted()){
             toolActionController->addEdge(ID, EDGE_KIND::DEPLOYMENT);

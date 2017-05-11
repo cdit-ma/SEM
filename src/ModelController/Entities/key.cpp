@@ -92,6 +92,8 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
     if(!new_value.canConvert(key_type_)){
         emit validation_failed(entity->getID(), "Value cannot be converted to Key's type.");
         return value;
+    }else{
+        new_value.convert(key_type_);
     }
 
     NODE_KIND node_kind = NODE_KIND::NONE;

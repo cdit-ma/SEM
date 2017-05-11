@@ -684,6 +684,16 @@ QString NodeItem::getPrimaryTextKey() const
     return primaryTextKey;
 }
 
+QPair<QString, QString> NodeItem::getSecondaryIconPath() const{
+    return secondary_icon;
+}
+
+void NodeItem::setSecondaryIconPath(QPair<QString, QString> pair){
+    secondary_icon = pair;
+}
+
+
+
 QString NodeItem::getSecondaryTextKey() const
 {
     return secondaryTextKey;
@@ -979,7 +989,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
         if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Icons", getSecondaryTextKey());
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
         }
     }
 

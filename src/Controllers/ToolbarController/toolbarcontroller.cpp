@@ -225,6 +225,14 @@ void ToolbarController::removeEdge(int dstID, EDGE_KIND edgeKind)
     }
 }
 
+void ToolbarController::removeAllEdges(EDGE_KIND edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        emit viewController->vc_destructAllEdges(IDs, edgeKind);
+    }
+}
+
 void ToolbarController::addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();

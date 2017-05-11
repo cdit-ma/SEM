@@ -688,6 +688,24 @@ void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND ed
     emit controller_ActionFinished();
 }
 
+void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
+{
+    QWriteLocker lock(&lock_);
+
+    triggerAction("Destructing All edges");
+    for(auto src_id : src_ids){
+        auto src = getNode(src_id);
+        for(auto edge: src->getEdges(0, edge_kind)){
+            if(edge){
+                destructEdge(edge);
+            }
+        }
+    }
+    emit controller_ActionFinished();
+}
+
+
+
 Node* ModelController::construct_setter_node(Node* parent)
 {
     if(parent){
@@ -698,6 +716,14 @@ Node* ModelController::construct_setter_node(Node* parent)
 
             variable->setDataValue("icon", "Variable");
             variable->setDataValue("icon_prefix", "EntityIcons");
+            variable->setDataValue("label", "Variable");
+
+            value->setDataValue("icon", "Variable");
+            value->setDataValue("icon_prefix", "EntityIcons");
+
+            value->setDataValue("icon", "Variable");
+            value->setDataValue("icon_prefix", "EntityIcons");
+            value->setDataValue("label", "value");
             return node;
         }
     }
@@ -758,9 +784,11 @@ Node* ModelController::construct_for_condition_node(Node* parent)
             variable->setDataValue("type", "Integer");
             variable->setDataValue("label", "i");
             variable->setDataValue("value", 0);
+            condition->setDataValue("type", "String");
             condition->setDataValue("label", "Condition");
             condition->setDataValue("icon", "Condition");
             condition->setDataValue("icon_prefix", "EntityIcons");
+            itteration->setDataValue("type", "String");
             itteration->setDataValue("label", "Itteration");
             itteration->setDataValue("icon", "reload");
             itteration->setDataValue("icon_prefix", "Icons");
@@ -2938,7 +2966,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
         if(inputTopParent->getNodeKind() == NODE_KIND::VARIABLE){
-            return true;
+            //return true;
         }
     }
 

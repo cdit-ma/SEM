@@ -327,6 +327,9 @@ public slots:
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
 
+    void destructAllEdges(QList<int> srcIDs, EDGE_KIND edgeClass);
+    
+
     
 
 

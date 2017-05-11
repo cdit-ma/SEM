@@ -82,6 +82,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
     connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
+    connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
     connect(this, &ViewController::vc_constructWorkerProcess, controller, &ModelController::constructWorkerProcess);
     connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);

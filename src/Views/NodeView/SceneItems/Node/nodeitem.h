@@ -132,6 +132,7 @@ public:
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
 
+
     void setVisualEdgeKind(EDGE_KIND kind);
     void setVisualNodeKind(NODE_KIND kind);
     EDGE_KIND getVisualEdgeKind() const;
@@ -143,6 +144,8 @@ public:
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
+    QPair<QString, QString> getSecondaryIconPath() const;
+    void setSecondaryIconPath(QPair<QString, QString> pair);
     bool gotPrimaryTextKey() const;
     bool gotSecondaryTextKey() const;
 
@@ -228,6 +231,8 @@ private:
 
     QHash<int, NodeItem*> childNodes;
     QHash<int, EdgeItem*> childEdges;
+
+    QPair<QString, QString> secondary_icon;
 
     QPainterPath gridLines;
 

@@ -50,6 +50,7 @@ public:
     void addChildNode(NODE_KIND kind, QPointF position);
     void addEdge(int dstID, EDGE_KIND edgeKind);
     void removeEdge(int dstID, EDGE_KIND edgeKind);
+    void removeAllEdges(EDGE_KIND edgeKind);
     void addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 

@@ -64,7 +64,8 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
 
-    setDefaultZValue((int)EDGE_KIND::NONE - (int)edgeViewItem->getEdgeKind());
+    auto z_order = (int)EDGE_KIND::NONE - (int)edgeViewItem->getEdgeKind();
+    setDefaultZValue(z_order);
 
     //When ever the center point changes we should update the curves.
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
