@@ -121,7 +121,7 @@
                 <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
                 
                 <!-- Get the sources -->
-                <xsl:variable name="sources" select="cdit:get_edge_sources($root, 'Edge_Definition', $id)" />
+                <xsl:variable name="sources" select="cdit:get_edge_sources(., 'Edge_Definition', $id)" />
                 
                 <!-- Check if we -->
                 <xsl:variable name="got_impl" select="count($sources/gml:data[@key=$kind_key_id and text() = 'ComponentImpl']) = 1" />        

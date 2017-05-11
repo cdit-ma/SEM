@@ -2299,8 +2299,8 @@
         <xsl:param name="root" />
 
         <xsl:choose>
-            <xsl:when test="count($root/ancestor::gml:graph) = 1">
-                <xsl:sequence select="$root/ancestor::gml:graph" />
+            <xsl:when test="count($root/ancestor::gml:graphml) = 1">
+                <xsl:sequence select="$root/ancestor::gml:graphml" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="$root" />
