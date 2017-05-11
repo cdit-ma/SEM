@@ -282,7 +282,6 @@ if(WIN32)
     COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
     )
 elseif(APPLE)
-    Copy the 
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
     COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
     )

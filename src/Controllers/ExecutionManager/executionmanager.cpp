@@ -76,7 +76,11 @@ void ExecutionManager::ValidateModel(QString model_path)
                 }
             }
         }
-        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        //Show the Notification Panel on Validation failure
+        if(success_count < count){
+            NotificationManager::manager()->showNotificationPanel();
+        }
+        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_WARNING, NT_MODEL, NC_NOCATEGORY);
     }else{
         NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
     }
@@ -86,7 +90,7 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
 {
     //Get Temp Path
     QString path = FileHandler::getTempFileName("/");
-
+    //
     component_name = component_name.toLower();
     bool results = GenerateComponents(document_path, path, QStringList(component_name));
     if(results){

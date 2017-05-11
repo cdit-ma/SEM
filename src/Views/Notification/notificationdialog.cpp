@@ -405,10 +405,9 @@ void NotificationDialog::clearVisible()
 {
     QList<NotificationItem*> visibleItems;
     foreach (NotificationItem* item, notificationItems) {
-        if (!item->isVisible()) {
-            continue;
+        if (item->isVisible()) {
+            visibleItems.append(item);
         }
-        visibleItems.append(item);
     }
 
     // delete visible items
