@@ -111,7 +111,7 @@ node(masterNode){
     def middlewares = jDeployment["model"]["middlewares"]
 
     for(def i = 0; i < middlewares.size(); i++){
-        middlewareString += middleware
+        middlewareString += middlewares[i]
         if(i != middlewares.size()-1){
             middlewareString += ","
         }
