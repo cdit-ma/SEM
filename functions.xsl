@@ -336,9 +336,18 @@
 
         <!-- Include the base message type -->
         <xsl:value-of select="o:cpp_comment('Include the base type')" />
-        <!-- path back to root -->
-        <xsl:variable name="rel_path" select="'../../../'" />
-        <xsl:value-of select="o:local_include(concat($rel_path, 'base/', $aggregate_namespace, '/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
+
+
+        <xsl:choose>
+            <xsl:when test="$aggregate_namespace = ''">
+                <xsl:value-of select="o:local_include(concat('../../', 'base/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:local_include(concat('../../../', 'base/', $aggregate_namespace, '/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
+            </xsl:otherwise>
+        </xsl:choose>
+
+        
         <xsl:value-of select="o:nl()" />
 
         <!-- Forward declare the new type -->
@@ -599,7 +608,39 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
+    
+    
+    <xsl:function name="cdit:get_aggregate_namespace">
+        <xsl:param name="aggregate" />
 
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate, 'namespace')" />
+        <xsl:variable name="aggregate_label_cc" select="o:camel_case(cdit:get_key_value($aggregate, 'label'))" />
+        
+        <xsl:choose>
+            <xsl:when test="$aggregate_namespace =''">
+                <xsl:value-of select="$aggregate_label_cc" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat($aggregate_namespace, '::', $aggregate_label_cc)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_aggregate_namespace_pb">
+        <xsl:param name="aggregate" />
+
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate, 'namespace')" />
+        <xsl:variable name="aggregate_label_cc" select="o:camel_case(cdit:get_key_value($aggregate, 'label'))" />
+        
+        <xsl:choose>
+            <xsl:when test="$aggregate_namespace =''">
+                <xsl:value-of select="$aggregate_label_cc" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat($aggregate_namespace, '.', $aggregate_label_cc)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
   
 
     <xsl:function name="cdit:get_vector_cpp_type">
@@ -610,7 +651,7 @@
             <xsl:choose>
                 <xsl:when test="$is_vector_complex">
                     <xsl:variable name="aggregate" select="cdit:get_first_child_node($vector)" />
-                    <xsl:value-of select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
+                    <xsl:value-of select="concat('Base::', cdit:get_aggregate_inst_cpp_type($aggregate))" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:variable name="member" select="cdit:get_first_child_node($vector)" />
@@ -624,15 +665,11 @@
         <xsl:value-of select="concat('std::vector', o:angle_wrap($cpp_type))" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_aggregate_cpp_type">
+    <xsl:function name="cdit:get_aggregate_inst_cpp_type">
         <xsl:param name="aggregate" />
 
         <xsl:variable name="aggregate_definition" select="cdit:get_definition($aggregate)" />
-        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_definition, 'namespace')" />
-        <xsl:variable name="aggregate_type" select="o:camel_case(cdit:get_key_value($aggregate_definition, 'label'))" />
-
-        <xsl:variable name="aggregate_type" select="concat($aggregate_namespace, '::', $aggregate_type)" />
-        <xsl:value-of select="$aggregate_type" />
+        <xsl:value-of select="cdit:get_aggregate_namespace($aggregate_definition)" />
     </xsl:function>
 
     <xsl:function name="o:get_base_data_type_h">
@@ -714,7 +751,7 @@
         <!-- Handle Aggregates -->
         <xsl:for-each select="$aggregate_insts">
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type(.))" />
+            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_inst_cpp_type(.))" />
 
             <xsl:value-of select="concat(o:nl(), o:t(2))" />
             <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, ' ', o:angle_wrap($aggregate_cpp_type)))" />
@@ -744,7 +781,7 @@
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
-        <xsl:variable name="class_name" select="concat('Base::', $aggregate_namespace, '::', $aggregate_type)" />
+        <xsl:variable name="class_name" select="concat('Base::', cdit:get_aggregate_namespace($aggregate_root))" />
 
         <xsl:value-of select="o:local_include(concat($aggregate_label_lc, '.h'))" />
         <xsl:value-of select="o:nl()" />
@@ -768,7 +805,7 @@
                 <xsl:choose>
                     <xsl:when test="$is_vector_complex">
                         <xsl:variable name="aggregate" select="cdit:get_first_child_node(.)" />
-                        <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type($aggregate))" />
+                        <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_inst_cpp_type($aggregate))" />
                         <xsl:value-of select="$aggregate_cpp_type" />
                     </xsl:when>
                     <xsl:otherwise>
@@ -787,7 +824,7 @@
         <!-- Handle Aggregates -->
         <xsl:for-each select="$aggregates">
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_cpp_type(.))" />
+            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_inst_cpp_type(.))" />
             <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
         </xsl:for-each>
     </xsl:function>
@@ -841,10 +878,8 @@
                 <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
                 
                 <xsl:if test="$aggregate_type = $required_datatypes">
-                    <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
-                    <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
-                    <xsl:variable name="datatype" select="concat('base_', lower-case($agg_ns), '_', lower-case($agg_la))" />
-                    <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
+                    <xsl:variable name="base_lib" select="o:get_aggregate_lib_name(., 'base')" />
+                    <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $base_lib)" />
                 </xsl:if>
             </xsl:for-each>
             <xsl:value-of select="o:nl()" />
@@ -936,7 +971,15 @@
                     <xsl:variable name="agg_id" select="lower-case(cdit:get_node_id(.))" />
                     <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
                     <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
-                    <xsl:value-of select="concat('configure_file(../../', $agg_ns, '/', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+
+                    <xsl:choose>
+                        <xsl:when test="$agg_ns = ''">
+                            <xsl:value-of select="concat('configure_file(../../', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="concat('configure_file(../../', $agg_ns, '/', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each-group>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
@@ -982,7 +1025,15 @@
                 <xsl:for-each-group select="$aggregate_definitions" group-by=".">
                     <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
                     <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
-                    <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../../', $agg_ns, '/', $agg_la))" />
+
+                    <xsl:choose>
+                        <xsl:when test="$agg_ns = ''">
+                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../../', $agg_la))" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../../', $agg_ns, '/', $agg_la))" />
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:for-each-group>
                 <xsl:value-of select="o:nl()" />
             </xsl:if>
@@ -1190,7 +1241,10 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
-        <xsl:value-of select="concat('package ', $aggregate_namespace, ';', o:nl())" />
+        <xsl:if test="$aggregate_namespace != ''">
+            <xsl:value-of select="concat('package ', $aggregate_namespace, ';', o:nl())" />
+        </xsl:if>
+
         <xsl:value-of select="concat('message ', $aggregate_label_cc, '{', o:nl())" />
 
         <!-- Handle children in order -->
@@ -1216,11 +1270,7 @@
                             <xsl:when test="$is_vector_complex">
                                 <xsl:variable name="aggregate_instance" select="cdit:get_first_child_node(.)" />
                                 <xsl:variable name="aggregate_definition" select="cdit:get_definition($aggregate_instance)" />
-
-                                <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_definition, 'namespace')" />
-                                <xsl:variable name="aggregate_type" select="o:camel_case(cdit:get_key_value($aggregate_definition, 'label'))" />
-                                
-                                <xsl:value-of select="concat($aggregate_namespace, '.', $aggregate_type)" />
+                                <xsl:value-of select="cdit:get_aggregate_namespace_pb($aggregate_definition)" />
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:variable name="member" select="cdit:get_first_child_node(.)" />
@@ -1237,11 +1287,9 @@
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">
                     <xsl:variable name="aggregate_def" select="cdit:get_definition(.)" />
-            
-                    <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_def, 'namespace')" />
-                    <xsl:variable name="aggregate_type" select="o:camel_case(cdit:get_key_value($aggregate_def, 'label'))" />
+                    <xsl:variable name="aggregate_obj" select="cdit:get_aggregate_namespace_pb($aggregate_def)" />
 
-                    <xsl:value-of select="concat(o:t(1), $aggregate_namespace, '.', $aggregate_type, ' ', $label, ' = ', $index, ';', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), $aggregate_obj, ' ', $label, ' = ', $index, ';', o:nl())" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="concat(o:t(1), '// Kind ', $kind, ' Not implemented!')" />
@@ -1599,11 +1647,20 @@
         <xsl:value-of select="o:lib_include('core/libportexports.h')" />
         <xsl:value-of select="o:nl()" />
 
+
+        
         <!-- Include Convert functions -->
         <xsl:choose>
             <xsl:when test="$using_pb">
                 <xsl:value-of select="o:cpp_comment('Include the proto convert functions for the port type')" />
-                <xsl:value-of select="o:local_include(concat('../../../proto/', $agg_namespace, '/', $aggregate_label_lc, '/convert.h'))" />
+                <xsl:choose>
+                    <xsl:when test="$agg_namespace = ''">
+                        <xsl:value-of select="o:local_include(concat('../../', 'proto/', $aggregate_label_lc, '/convert.h'))" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="o:local_include(concat('../../../', 'proto/', $agg_namespace, '/', $aggregate_label_lc, '/convert.h'))" />
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="o:local_include('convert.h')" />

@@ -45,9 +45,7 @@
 
             <xsl:variable name="aggregate_namespace_lc" select="lower-case($aggregate_namespace)" />
             
-            
-            
-            <xsl:variable name="aggregate_type" select="concat($aggregate_namespace, '::', $aggregate_label_cc)" />
+            <xsl:variable name="aggregate_type" select="cdit:get_aggregate_namespace(.)" />
 
             <!-- Set the Middleware for this XSL -->
             <xsl:variable name="base_mw" select="'base'" />
