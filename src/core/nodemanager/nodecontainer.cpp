@@ -297,20 +297,24 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
     return 0;
 }
 
-
-
-EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, 
-                                      std::string port_name, std::string namespace_name){
-
-    std::string p = to_lower(middleware + "_");
+std::string get_port_binary(std::string middleware, std::string namespace_name, std::string datatype){
+    std::string p = middleware + "_";
     if(!namespace_name.empty()){
         p += namespace_name + "_";
     }
     p += datatype;
     
-    if(!tx_constructors_.count(p)){
+    return to_lower(p);
+}
+
+EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, 
+                                      std::string port_name, std::string namespace_name){
+
+    auto port_lib = get_port_binary(middleware, namespace_name, datatype);
+
+    if(!tx_constructors_.count(port_lib)){
         //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
-        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
+        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + port_lib + GetLibrarySuffix();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructTx");
@@ -318,22 +322,22 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
-            tx_constructors_[p] = typed_function;
+            tx_constructors_[port_lib] = typed_function;
         }
     }
 
-    if(tx_constructors_.count(p)){
-        return tx_constructors_[p](port_name, component);
+    if(tx_constructors_.count(port_lib)){
+        return tx_constructors_[port_lib](port_name, component);
     }
     return 0;
 }
 
 EventPort* NodeContainer::ConstructRx(std::string middleware, std::string datatype, Component* component,
                                       std::string port_name, std::string namespace_name){
-    auto p = to_lower(middleware + "_" + namespace_name + "_" + datatype);
     
-    if(!rx_constructors_.count(p)){
-        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
+    auto port_lib = get_port_binary(middleware, namespace_name, datatype);
+    if(!rx_constructors_.count(port_lib)){
+        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + port_lib + GetLibrarySuffix();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructRx");
@@ -341,12 +345,12 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
-            rx_constructors_[p] = typed_function;
+            rx_constructors_[port_lib] = typed_function;
         }
     }
 
-    if(rx_constructors_.count(p)){
-        return rx_constructors_[p](port_name, component);
+    if(rx_constructors_.count(port_lib)){
+        return rx_constructors_[port_lib](port_name, component);
     }
     return 0;
 }
