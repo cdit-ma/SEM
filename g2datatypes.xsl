@@ -17,7 +17,7 @@
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="middlewares"></xsl:param>
-    
+
     <!-- Get all of the Aggregates -->
     <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'Aggregate')" />
 
@@ -57,7 +57,7 @@
             <xsl:variable name="base_type" select="concat( 'Base::', $mw_type)" />
 
             <!-- Parse each Middleware -->
-            <xsl:for-each select="tokenize(normalize-space($middlewares), ',')"> 
+            <xsl:for-each select="tokenize(normalize-space(lower-case($middlewares)), ',')"> 
                 <xsl:variable name="mw" select="." />
                 <xsl:message>Parsing Middleware: <xsl:value-of select="$mw" /> </xsl:message>
 
@@ -146,7 +146,7 @@
 
         <xsl:variable name="datatype_cmake" select="'datatypes/CMakeLists.txt'" />
         <!-- Write out a datatype cmake file -->
-        <xsl:variable name="middleware_list" select="tokenize(normalize-space(concat($middlewares, ',base')), ',')" />
+        <xsl:variable name="middleware_list" select="tokenize(normalize-space(concat(lower-case($middlewares), ',base')), ',')" />
         <xsl:result-document href="{o:xsl_wrap_file($datatype_cmake)}">
             <xsl:value-of select="cdit:get_middleware_subfolder_cmake($middleware_list, $aggregates)" />
         </xsl:result-document>
