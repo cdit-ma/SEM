@@ -29,6 +29,7 @@
         <xsl:variable name="results">
             <xsl:value-of select="cdit:aggregate_tests(.)" />
             <xsl:value-of select="cdit:component_tests(.)" />
+            <xsl:value-of select="cdit:deployment_tests(.)" />
         </xsl:variable>
 
         <xsl:value-of select="o:xml_wrap('validation_report', '', $results, 0)" />

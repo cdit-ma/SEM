@@ -1669,6 +1669,34 @@
         <xsl:value-of select="$middleware='qpid' or $middleware='zmq' or $middleware='proto'" />
     </xsl:function>
 
+    <xsl:function name="cdit:middleware_requires_topic" as="xs:boolean">
+        <xsl:param name="middleware" />
+
+        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+
+        <xsl:value-of select="$middleware_lc='qpid' or $middleware_lc='rti' or $middleware_lc='ospl'" />
+   </xsl:function>
+
+   <xsl:function name="cdit:middlewares_match" as="xs:boolean">
+        <xsl:param name="middleware1" />
+        <xsl:param name="middleware2" />
+
+        <xsl:variable name="middleware1_lc" select="lower-case($middleware1)" />
+        <xsl:variable name="middleware2_lc" select="lower-case($middleware2)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware1_lc = $middleware2_lc">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="($middleware1_lc = 'rti' or $middleware1_lc = 'ospl') and ($middleware2_lc = 'ospl' or $middleware2_lc = 'rti')">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="false()" />
+            </xsl:otherwise>
+        </xsl:choose>
+   </xsl:function>
+
 
 
     <xsl:function name="cdit:get_middleware_file_header" as="xs:string">
@@ -2061,6 +2089,7 @@
         </xsl:if>
     </xsl:function>
 
+
     <xsl:function name="cdit:get_definitions">
         <xsl:param name="roots" />
 
@@ -2071,7 +2100,54 @@
 
     
 
-    
+    <xsl:function name="cdit:get_edge_sources">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="id" as="xs:string" />
+
+        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, $edge_kind, $id)" />
+
+        
+        <xsl:for-each select="$source_ids">
+            <xsl:variable name="source_id" select="." />
+            <xsl:variable name="source" select="cdit:get_node_by_id($root, $source_id)" />
+            <xsl:sequence select="$source" />
+        </xsl:for-each>
+   </xsl:function>
+
+   <xsl:function name="cdit:get_edge_targets">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="id" as="xs:string" />
+
+        <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($root, $edge_kind, $id)" />
+
+        
+        <xsl:for-each select="$target_ids">
+            <xsl:variable name="target_id" select="." />
+            <xsl:variable name="target" select="cdit:get_node_by_id($root, $target_id)" />
+            <xsl:sequence select="$target" />
+        </xsl:for-each>
+   </xsl:function>
+
+   
+
+   <xsl:function name="cdit:get_all_edge_targets">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="id" as="xs:string" />
+
+        <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($root, $edge_kind, $id)" />
+
+        
+        <xsl:for-each select="$target_ids">
+            <xsl:variable name="target_id" select="." />
+            <xsl:variable name="target" select="cdit:get_node_by_id($root, $target_id)" />
+            <xsl:variable name="targets" select="cdit:get_all_edge_targets($root, $edge_kind, $target_id)" />
+            <xsl:sequence select="$target" />
+            <xsl:sequence select="$targets" />
+        </xsl:for-each>
+   </xsl:function>
 
     <xsl:function name="cdit:get_edge_source_ids">
         <xsl:param name="root" />
@@ -2109,6 +2185,17 @@
         <xsl:param name="key_name" as="xs:string"/>
 
         <xsl:value-of select="lower-case(cdit:get_key_value($root, $key_name)) = 'true'" />
+    </xsl:function>
+    
+
+     <xsl:function name="cdit:get_parents_of_kind">
+        <xsl:param name="root" />
+        <xsl:param name="parent_kind" as="xs:string"/>
+
+        <xsl:variable name="kind_id" select="cdit:get_key_id($root, 'kind')" />
+        <xsl:for-each select="$root">
+            <xsl:sequence select="$root/ancestor::gml:node/gml:data[@key=$kind_id and text() = $parent_kind]/.." />
+        </xsl:for-each>
     </xsl:function>
 
     <xsl:function name="cdit:get_descendant_entities_of_kind" as="element()*">
@@ -2210,8 +2297,15 @@
 
     <xsl:function name="cdit:get_doc_root">
         <xsl:param name="root" />
-        <!-- There should only be one-->
-        <xsl:sequence select="$root/ancestor::gml:graph" />
+
+        <xsl:choose>
+            <xsl:when test="count($root/ancestor::gml:graph) = 1">
+                <xsl:sequence select="$root/ancestor::gml:graph" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$root" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cdit:get_node_by_id">

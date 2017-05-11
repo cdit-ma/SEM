@@ -109,7 +109,122 @@
         <xsl:value-of select="cdit:output_test('All Component entities require unique labels', $results, 1)" />
     </xsl:function>
 
-    
+    <xsl:function name="cdit:test_component_impls">
+        <xsl:param name="root"/>
+        <xsl:param name="components" as="element()*" />
+
+        <xsl:variable name="kind_key_id" select="cdit:get_key_id($root, 'kind')" />
+        
+        <xsl:variable name="results">
+            <xsl:for-each select="$components">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                
+                <!-- Get the sources -->
+                <xsl:variable name="sources" select="cdit:get_edge_sources($root, 'Edge_Definition', $id)" />
+                
+                <!-- Check if we -->
+                <xsl:variable name="got_impl" select="count($sources/gml:data[@key=$kind_key_id and text() = 'ComponentImpl']) = 1" />        
+                <xsl:variable name="got_instances" select="count($sources/gml:data[@key=$kind_key_id and text() = 'ComponentInstance']) > 0" />        
+                
+                <xsl:choose>
+                    <xsl:when test="$got_instances">
+                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component label ', o:quote_wrap($label), ' which has instances, does not have any defined ComponentImpl'), false(), 2)" />        
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component label ', o:quote_wrap($label), ' does not have any defined ComponentImpl'), true(), 2)" />        
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('All Components are defined', $results, 1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:test_assembly_connections">
+        <xsl:param name="root"/>
+        <xsl:param name="component_instances" as="element()*" />
+
+        <xsl:variable name="kind_key_id" select="cdit:get_key_id($root, 'kind')" />
+        
+        <xsl:variable name="results">
+            <xsl:for-each select="$component_instances">
+                <xsl:variable name="out_event_ports" as="element()*" select="cdit:get_entities_of_kind(., 'OutEventPortInstance')" />
+                <xsl:for-each select="$out_event_ports">
+                    <xsl:variable name="source_id" select="cdit:get_node_id(.)" />
+                    <xsl:variable name="source_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="source_kind" select="cdit:get_key_value(., 'kind')" />
+                    <xsl:variable name="source_middleware" select="cdit:get_key_value(., 'middleware')" />
+                    <xsl:variable name="source_topic" select="cdit:get_key_value(., 'topicName')" />
+                    <xsl:variable name="requires_topic" select="cdit:middleware_requires_topic($source_middleware)" />
+
+                    <xsl:if test="$requires_topic">
+                        <xsl:variable name="valid_topic" select="$source_topic != ''" />
+                        <xsl:value-of select="cdit:output_result($source_id, $valid_topic, concat($source_kind, ' ', o:quote_wrap($source_label), ' has invalid topicName'), false(), 2)"/> 
+                    </xsl:if>
+
+                    <!-- Get all assembly connections -->
+                    <xsl:variable name="targets" select="cdit:get_all_edge_targets($root, 'Edge_Assembly', $source_id)" />
+                    <xsl:for-each select="$targets">
+                        <xsl:variable name="target_id" select="cdit:get_node_id(.)" />
+                        <xsl:variable name="target_kind" select="cdit:get_key_value(., 'kind')" />
+                        <xsl:variable name="target_label" select="cdit:get_key_value(., 'label')" />
+                        <xsl:variable name="target_middleware" select="cdit:get_key_value(., 'middleware')" />
+                        <xsl:variable name="target_topic" select="cdit:get_key_value(., 'topicName')" />
+                        <xsl:if test="$target_kind = 'InEventPortInstance'">
+                            <xsl:variable name="match_middleware" select="cdit:middlewares_match($source_middleware, $target_middleware)" />
+                            
+                            <xsl:if test="$requires_topic">
+                                <xsl:variable name="match_topics" select="$source_topic = $target_topic" />
+                                <xsl:value-of select="cdit:output_result($target_id, $match_topics, concat($source_kind, ' ', o:quote_wrap($source_label), ' is connected to ', $target_kind, ' ', o:quote_wrap($target_label), ' which have different topicName'), false(), 2)"/> 
+                            </xsl:if>
+                            <xsl:value-of select="cdit:output_result($target_id, $match_middleware, concat($source_kind, ' ', o:quote_wrap($source_label), ' is connected to ', $target_kind, ' ', o:quote_wrap($target_label), ' which have incompatible middlewares'), false(), 2)"/> 
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="cdit:output_test('Assembly Tests', $results, 1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:test_deployment">
+        <xsl:param name="root"/>
+        <xsl:param name="component_instances" as="element()*" />
+
+        <xsl:variable name="kind_id" select="cdit:get_key_id($root, 'kind')" />
+        
+        <xsl:variable name="results">
+            <xsl:for-each select="$component_instances">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+
+                <xsl:variable name="deployed_nodes" select="cdit:get_edge_targets($root, 'Edge_Deployment', $id)" as="element()*"/>
+                
+                 <xsl:variable name="parent_deployed_nodes" as="element()*">
+                    <xsl:for-each select="cdit:get_parents_of_kind(., 'ComponentAssembly')">
+                        <xsl:for-each select="cdit:get_edge_targets($root, 'Edge_Deployment', cdit:get_node_id(.))">
+                            <xsl:sequence select="." />
+                        </xsl:for-each>
+                    </xsl:for-each>
+                </xsl:variable>
+
+                <xsl:variable name="is_directly_deployed" select="count($deployed_nodes) > 0" />
+                <xsl:variable name="is_indirectly_deployed" select="count($parent_deployed_nodes) > 0" />
+                 
+                <xsl:variable name="is_deployed" select="$is_directly_deployed or $is_indirectly_deployed" />
+                
+                <xsl:value-of select="cdit:output_result($id, $is_deployed, concat($kind, ' ', o:quote_wrap($label), ' is not deployed to a HardwareNode'), false(), 2)"/> 
+
+                <xsl:if test="$is_directly_deployed and $is_indirectly_deployed">
+                    <xsl:variable name="same_node" select="$deployed_nodes[1] = $parent_deployed_nodes[1]" />
+                    <xsl:value-of select="cdit:output_result($id, $same_node, concat($kind, ' ', o:quote_wrap($label), ' is deployed to a different HardwareNode than one if its ancestor ComponentAssembly entities'), true(), 2)"/> 
+                </xsl:if>        
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="cdit:output_test('Deployment Tests', $results, 1)" />
+    </xsl:function>
+
     
     
     <xsl:function name="cdit:test_invalid_label">
@@ -166,11 +281,24 @@
         <xsl:param name="root" />
 
         <xsl:variable name="components" as="element()*" select="cdit:get_entities_of_kind($root, 'Component')" />
+        
 
         <xsl:value-of select="cdit:test_components_unique_name($root, $components)" />
         <xsl:value-of select="cdit:test_invalid_label($root, 'Component', 'Component valid names')" />
         <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
+        <xsl:value-of select="cdit:test_component_impls($root, $components)" />
     </xsl:function>
+
+    <xsl:function name="cdit:deployment_tests">
+        <xsl:param name="root" />
+
+        <xsl:variable name="component_instances" as="element()*" select="cdit:get_entities_of_kind($root, 'ComponentInstance')" />
+        
+        <xsl:value-of select="cdit:test_assembly_connections($root, $component_instances)" />
+        <xsl:value-of select="cdit:test_deployment($root, $component_instances)" />
+    </xsl:function>
+
+    
 
     
 
