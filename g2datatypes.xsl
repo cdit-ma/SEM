@@ -69,7 +69,7 @@
                 <xsl:variable name="builds_module" select="o:cmake_mw_builds_module($mw) = true()" />
                 <xsl:variable name="builds_library" select="o:cmake_mw_builds_shared_library($mw) = true()" />
                 
-                <xsl:variable name="current_aggregate_path" select="concat($current_mw_path, $aggregate_namespace_lc, '/', $aggregate_label, '/')" />
+                <xsl:variable name="current_aggregate_path" select="concat($current_mw_path, if($aggregate_namespace_lc ='') then '' else concat($aggregate_namespace_lc, '/'), $aggregate_label, '/')" />
                 
                 <!-- Define output files -->
                 <xsl:variable name="port_proto" select="concat($current_aggregate_path, $aggregate_label, '.proto')" />
@@ -120,7 +120,7 @@
             </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
-        <xsl:variable name="base_aggregate_path" select="concat($base_path, $aggregate_namespace_lc, '/', $aggregate_label, '/')" />
+        <xsl:variable name="base_aggregate_path" select="concat($base_path, if($aggregate_namespace_lc ='') then '' else concat($aggregate_namespace_lc, '/'), $aggregate_label, '/')" />
 
         <xsl:variable name="ports_cmake" select="concat($middleware_path, 'CMakeLists.txt')" />
         
