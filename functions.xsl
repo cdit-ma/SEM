@@ -400,12 +400,24 @@
 
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
         <!-- Include the header -->
         <xsl:value-of select="o:local_include('convert.h')" />
         <!-- Include the generated header -->
         <xsl:value-of select="o:local_include(cdit:get_middleware_file_header($aggregate_label_lc, $mw))" />
         <xsl:value-of select="o:nl()" />
+
+         <xsl:variable name="rel_path">
+            <xsl:choose>
+                <xsl:when test="$aggregate_namespace = ''">
+                    <xsl:value-of select="'../'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="'../../'" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
         <!-- Include the other libraries which this aggregate contains-->
         <xsl:for-each-group select="$aggregate_definitions" group-by=".">
@@ -415,10 +427,10 @@
 
             <xsl:choose>
                 <xsl:when test="$agg_ns = ''">
-                    <xsl:value-of select="o:local_include(concat('../', $agg_la, '/convert.h'))" />
+                    <xsl:value-of select="o:local_include(concat($rel_path, $agg_la, '/convert.h'))" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="o:local_include(concat('../../', $agg_ns, '/', $agg_la, '/convert.h'))" />
+                    <xsl:value-of select="o:local_include(concat($rel_path, $agg_ns, '/', $agg_la, '/convert.h'))" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each-group>
@@ -716,6 +728,19 @@
         <!-- Include other required base types -->
         <xsl:if test="count($aggregate_definitions) > 0">
             <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
+
+             <xsl:variable name="rel_path">
+                <xsl:choose>
+                    <xsl:when test="$namespace = ''">
+                        <xsl:value-of select="'../'" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="'../../'" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+        
+
             <!-- Get the required Aggregates -->
             <xsl:for-each-group select="$aggregate_definitions" group-by=".">
                 <xsl:variable name="agg_id" select="lower-case(cdit:get_node_id(.))" />
@@ -724,10 +749,10 @@
 
                 <xsl:choose>
                     <xsl:when test="$agg_ns = ''">
-                        <xsl:value-of select="o:local_include(concat('../', $agg_la, '/', $agg_la, '.h'))" />
+                        <xsl:value-of select="o:local_include(concat($rel_path, $agg_la, '/', $agg_la, '.h'))" />
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="o:local_include(concat('../../', $agg_ns, '/', $agg_la, '/', $agg_la, '.h'))" />
+                        <xsl:value-of select="o:local_include(concat($rel_path, $agg_ns, '/', $agg_la, '/', $agg_la, '.h'))" />
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:for-each-group>
@@ -934,6 +959,9 @@
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
+        <xsl:variable name="aggregate_definition" select="o:get_definition($aggregate_root)" />
+        <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_definition, 'namespace')" />
+        
 
         <!-- Variables -->
         <xsl:variable name="proj_name" select="o:get_aggregate_lib_name($aggregate_root, $mw)" />
@@ -969,6 +997,18 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
+        <xsl:variable name="rel_path">
+            <xsl:choose>
+                <xsl:when test="$aggregate_namespace = ''">
+                    <xsl:value-of select="'../'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="'../../'" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        
+
         <xsl:if test="$build_shared_library">
             <xsl:value-of select="o:cmake_comment(concat('Copy this ', o:angle_wrap($mw_ext), ' file into the binary directory so the compilation of generated files can succeed'))" />
             <xsl:value-of select="concat('configure_file(', $aggregate_label_lc, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
@@ -986,10 +1026,10 @@
 
                     <xsl:choose>
                         <xsl:when test="$agg_ns = ''">
-                            <xsl:value-of select="concat('configure_file(../', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                            <xsl:value-of select="concat('configure_file(', $rel_path, $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="concat('configure_file(../../', $agg_ns, '/', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                            <xsl:value-of select="concat('configure_file(', $rel_path, $agg_ns, '/', $agg_la, '/', $agg_la, '.', $mw_ext, ' ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each-group>
@@ -1040,10 +1080,10 @@
 
                     <xsl:choose>
                         <xsl:when test="$agg_ns = ''">
-                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../', $agg_la))" />
+                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/', $rel_path, $agg_la))" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../../', $agg_ns, '/', $agg_la))" />
+                            <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/', $rel_path, $agg_ns, '/', $agg_la))" />
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each-group>
