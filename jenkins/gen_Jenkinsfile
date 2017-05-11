@@ -87,7 +87,7 @@ node(masterNode){
     def reGenPath = "${RE_GEN_PATH}"
     def saxonPath = reGenPath
 
-    def middlewareString = ' middlewares=zmq,proto,qpid,ospl,rti'
+    def middlewareString = ' middlewares='
     def fileString = ' -s:' + workspacePath + "/" + file
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     //Parse graphml model and generate deployment plan
@@ -107,7 +107,17 @@ node(masterNode){
             }
         }
     }
-     
+
+    def middlewares = jDeployment["middlewares"]
+
+    for(def i = 0; i < middlewares.size(); i++){
+        middlewareString += middleware
+        if(i != middlewares.size()-1){
+            middlewareString += ","
+        }
+    }
+    print(middlewareString)
+    
     def buildPath = workspacePath + "/" + buildDir
     
     //Generate C++ code
