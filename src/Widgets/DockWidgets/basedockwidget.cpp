@@ -1,0 +1,361 @@
+#include "basedockwidget.h"
+
+#include <QDebug>
+#include <QEvent>
+#include <QMouseEvent>
+
+#include "docktitlebar.h"
+#include "../../theme.h"
+#include "../Windows/basewindow.h"
+
+int BaseDockWidget::_DockWidgetID = 0;
+BaseDockWidget::BaseDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
+{
+    ID = ++_DockWidgetID;
+
+    setProperty("ID", ID);
+    this->type = type;
+    sourceWindow = 0;
+    currentWindow = 0;
+    initialArea = Qt::TopDockWidgetArea;
+    _isActive = false;
+
+    _isFocusEnabled = false;
+    titleBar = new DockTitleBar(this);
+    setTitleBarWidget(titleBar);
+
+    connect(this, &QDockWidget::visibilityChanged, this, &BaseDockWidget::_visibilityChanged);
+    _isProtected = false;
+
+    //setWindowFlags(Qt::WindowStaysOnTopHint);
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
+    if(titleBar){
+        //Do connects.
+        connect(titleBar->getAction(DockTitleBar::DA_CLOSE), &QAction::triggered, this, &BaseDockWidget::title_Close);
+        connect(titleBar->getAction(DockTitleBar::DA_MAXIMIZE), &QAction::triggered, this, &BaseDockWidget::title_Maximize);
+        connect(titleBar->getAction(DockTitleBar::DA_POPOUT), &QAction::triggered, this, &BaseDockWidget::title_PopOut);
+        connect(titleBar->getAction(DockTitleBar::DA_HIDE), &QAction::triggered, this, &BaseDockWidget::title_Visible);
+
+        connect(titleBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+        titleBar->installEventFilter(this);
+    }
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &BaseDockWidget::themeChanged);
+    visibilityChanged(false);
+
+    // this adds a border to the dock widgets when they are floating
+    borderFrame = new QFrame(this);
+    borderFrame->setStyleSheet("border-radius: " + Theme::theme()->getSharpCornerRadius() + "; border: 1px outset gray;");
+    borderFrame->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    borderFrame->hide();
+    connect(this, &BaseDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
+}
+
+BaseDockWidget::~BaseDockWidget()
+{
+
+}
+
+
+int BaseDockWidget::getID()
+{
+    return ID;
+}
+
+BaseDockWidget::DOCKWIDGET_TYPE BaseDockWidget::getDockType()
+{
+    return type;
+}
+
+Qt::DockWidgetArea BaseDockWidget::getDockWidgetArea()
+{
+    return initialArea;
+}
+
+void BaseDockWidget::setDockWidgetArea(Qt::DockWidgetArea area)
+{
+    initialArea = area;
+}
+
+void BaseDockWidget::setSourceWindow(BaseWindow *window)
+{
+    sourceWindow = window;
+}
+
+BaseWindow *BaseDockWidget::getSourceWindow()
+{
+    return sourceWindow;
+}
+
+QPair<QString, QString> BaseDockWidget::getIcon()
+{
+    return titleIcon;
+}
+
+DockTitleBar *BaseDockWidget::getTitleBar()
+{
+    return titleBar;
+}
+
+void BaseDockWidget::setTitleBarIconSize(int height)
+{
+    if(titleBar){
+        titleBar->setToolBarIconSize(height);
+    }
+}
+
+bool BaseDockWidget::isProtected()
+{
+    return _isProtected;
+}
+
+void BaseDockWidget::setProtected(bool protect)
+{
+    _isProtected = protect;
+    setCloseVisible(!protect);
+}
+
+void BaseDockWidget::setWidget(QWidget *w)
+{
+    if(widget()){
+        widget()->removeEventFilter(this);
+        widget()->setFocusProxy(0);
+    }
+    w->installEventFilter(this);
+    setFocusProxy(w);
+    QDockWidget::setWidget(w);
+}
+
+void BaseDockWidget::setCurrentWindow(BaseWindow *window)
+{
+    currentWindow = window;
+}
+
+BaseWindow *BaseDockWidget::getCurrentWindow()
+{
+    return currentWindow;
+}
+
+void BaseDockWidget::setIcon(QPair<QString, QString> pair)
+{
+    setIcon(pair.first, pair.second);
+}
+
+void BaseDockWidget::setIcon(QString prefix, QString alias)
+{
+    if(titleBar){
+        titleIcon.first = prefix;
+        titleIcon.second = alias;
+        titleBar->setIcon(Theme::theme()->getIcon(prefix, alias).pixmap(16,16));
+        emit iconChanged();
+    }
+
+}
+
+void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
+{
+    if(titleBar){
+        titleBar->setTitle(title, alignment);
+        QDockWidget::setWindowTitle(title);
+        emit titleChanged();
+    }
+}
+
+QString BaseDockWidget::getTitle()
+{
+    QString title = "";
+    if(titleBar){
+        title = titleBar->getTitle();
+    }
+    return title;
+}
+
+void BaseDockWidget::setActive(bool active)
+{
+    if (_isActive != active) {
+        _isActive = active;
+        titleBar->setActive(active);
+        themeChanged();
+        emit dockSetActive(active);
+    }
+}
+
+bool BaseDockWidget::isActive()
+{
+    return _isActive;
+}
+
+void BaseDockWidget::setMaximized(bool maximized)
+{
+    setVisible(maximized);
+    setMaximizeToggled(maximized);
+    setMaximizeEnabled(!maximized);
+}
+
+void BaseDockWidget::setFocusEnabled(bool enabled)
+{
+    _isFocusEnabled = enabled;
+}
+
+bool BaseDockWidget::isFocusEnabled()
+{
+    return _isFocusEnabled;
+}
+
+void BaseDockWidget::setIconVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_ICON, visible);
+}
+
+void BaseDockWidget::setCloseVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_CLOSE, visible);
+}
+
+void BaseDockWidget::setHideVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_HIDE, visible);
+}
+
+void BaseDockWidget::setMaximizeVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_MAXIMIZE, visible);
+}
+
+void BaseDockWidget::setPopOutVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_POPOUT, visible);
+}
+
+void BaseDockWidget::setProtectVisible(bool visible)
+{
+    setActionVisible(DockTitleBar::DA_PROTECT, visible);
+}
+
+void BaseDockWidget::setMaximizeToggled(bool toggled)
+{
+    setActionToggled(DockTitleBar::DA_MAXIMIZE, toggled);
+}
+
+void BaseDockWidget::setMaximizeEnabled(bool enabled)
+{
+    setActionEnabled(DockTitleBar::DA_MAXIMIZE, enabled);
+
+}
+
+void BaseDockWidget::setPopOutToggled(bool toggled)
+{
+    setActionToggled(DockTitleBar::DA_POPOUT, toggled);
+}
+
+void BaseDockWidget::setProtectToggled(bool toggled)
+{
+    setActionToggled(DockTitleBar::DA_PROTECT, toggled);
+}
+
+void BaseDockWidget::close()
+{
+    title_Close(true);
+}
+
+void BaseDockWidget::title_Maximize(bool maximize)
+{
+    emit req_Maximize(ID, maximize);
+}
+
+void BaseDockWidget::title_Visible(bool visible)
+{
+    emit req_Visible(ID, visible);
+}
+
+void BaseDockWidget::title_PopOut(bool)
+{
+    emit req_PopOut(ID);
+}
+
+void BaseDockWidget::title_Close(bool)
+{
+    emit req_Close(ID);
+}
+
+void BaseDockWidget::_visibilityChanged(bool visible)
+{
+    setActionToggled(DockTitleBar::DA_HIDE, visible);
+}
+
+void BaseDockWidget::destruct()
+{
+    WindowManager::destructDockWidget(this);
+}
+
+void BaseDockWidget::showContextMenu(const QPoint &point)
+{
+    if(parentWidget()){
+        parentWidget()->customContextMenuRequested(mapToParent(point));
+    }
+}
+
+void BaseDockWidget::closeOrHide()
+{
+    QAction* a = getAction(DockTitleBar::DA_CLOSE);
+    if(a && a->isVisible()){
+        title_Close(false);
+    }else{
+        title_Visible(false);
+    }
+}
+
+
+void BaseDockWidget::setActionVisible(DockTitleBar::DOCK_ACTION action, bool visible)
+{
+    QAction* a = getAction(action);
+    if(a){
+        a->setVisible(visible);
+    }
+}
+
+void BaseDockWidget::setActionToggled(DockTitleBar::DOCK_ACTION action, bool toggled)
+{
+    QAction* a = getAction(action);
+    if(a){
+        a->setChecked(toggled);
+    }
+}
+
+void BaseDockWidget::setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled)
+{
+    QAction* a = getAction(action);
+    if(a){
+        a->setEnabled(enabled);
+    }
+}
+
+QAction *BaseDockWidget::getAction(DockTitleBar::DOCK_ACTION action)
+{
+    QAction* a = 0;
+    if(titleBar){
+        a = titleBar->getAction(action);
+    }
+    return a;
+}
+
+bool BaseDockWidget::eventFilter(QObject *object, QEvent *event)
+{
+    if(object == titleBar && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        if(mouseEvent->button() == Qt::MiddleButton){
+            closeOrHide();
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(object, event);
+}
+
+void BaseDockWidget::resizeEvent(QResizeEvent *event)
+{
+    borderFrame->setFixedSize(this->size());
+    QDockWidget::resizeEvent(event);
+}
