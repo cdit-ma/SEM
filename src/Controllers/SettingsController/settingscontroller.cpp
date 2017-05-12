@@ -102,14 +102,10 @@ QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString
 void SettingsController::intializeSettings()
 {
     //General
-    createSetting(SK_GENERAL_DEBUG_LOGGING, ST_BOOL, "General", "", "Log debugging information");
-
+    //createSetting(SK_GENERAL_DEBUG_LOGGING, ST_BOOL, "General", "", "Log debugging information");
     createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "", "Default Model path");
-    createSetting(SK_GENERAL_CUTS_CONFIGURE_PATH, ST_FILE, "General", "", "CUTS configure script file path");
-
+    //createSetting(SK_GENERAL_CUTS_CONFIGURE_PATH, ST_FILE, "General", "", "CUTS configure script file path");
     createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "", "MEDEA Wiki URL");
-
-
 
     //General - Window
     createSetting(SK_GENERAL_WIDTH, ST_INT, "General", "Window", "Initial MEDEA window width");
@@ -117,17 +113,11 @@ void SettingsController::intializeSettings()
     createSetting(SK_GENERAL_MAXIMIZED, ST_BOOL, "General", "Window", "Launch MEDEA maximized");
     createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "Window", "Save window state on exit");
 
-
-
     //General - Controls
-    createSetting(SK_GENERAL_SELECT_ON_CREATION, ST_BOOL, "General", "Controls", "Select Entity on creation");
+    //createSetting(SK_GENERAL_SELECT_ON_CREATION, ST_BOOL, "General", "Controls", "Select Entity on creation");
     createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "Controls", "Zoom to mouse");
-
     createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
-
     createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "", "Reset All Settings");
-
-
 
     //Window - Views
     createSetting(SK_WINDOW_INTERFACES_VISIBLE, ST_BOOL, "Window", "Views", "Show Interfaces on launch");
@@ -136,21 +126,11 @@ void SettingsController::intializeSettings()
     createSetting(SK_WINDOW_HARDWARE_VISIBLE, ST_BOOL, "Window", "Views", "Show Hardware on launch");
     createSetting(SK_WINDOW_QOS_VISIBLE, ST_BOOL, "Window", "Views", "Show QOS Browser on launch");
 
-
-
-
-
-
     //Window - Tools
     createSetting(SK_WINDOW_TABLE_VISIBLE, ST_BOOL, "Window", "Tools", "Show Table on launch");
     createSetting(SK_WINDOW_MINIMAP_VISIBLE, ST_BOOL, "Window", "Tools", "Show Minimap on launch");
     createSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Manager on launch");
     createSetting(SK_WINDOW_TOOLBAR_VISIBLE, ST_BOOL, "Window", "Tools", "Show Toolbar on launch");
-
-
-
-
-
 
     //Toolbar - Visible Buttons
     createSetting(SK_TOOLBAR_CONTEXT, ST_BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar");
@@ -163,7 +143,7 @@ void SettingsController::intializeSettings()
     createSetting(SK_TOOLBAR_FIT_TO_SCREEN, ST_BOOL, "Toolbar", "Visible Buttons", "Fit To Screen");
     createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection");
     createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window");
-    createSetting(SK_TOOLBAR_SORT, ST_BOOL, "Toolbar", "Visible Buttons", "Sort");
+    //createSetting(SK_TOOLBAR_SORT, ST_BOOL, "Toolbar", "Visible Buttons", "Sort");
     createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search");
     createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete");
     createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally");
@@ -227,9 +207,8 @@ void SettingsController::intializeSettings()
 
     _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(700);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
-    _getSetting(SK_GENERAL_SELECT_ON_CREATION)->setDefaultValue(true);
+    //_getSetting(SK_GENERAL_SELECT_ON_CREATION)->setDefaultValue(true);
     _getSetting(SK_GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
-    _getSetting(SK_GENERAL_DEBUG_LOGGING)->setDefaultValue(false);
     _getSetting(SK_GENERAL_MAXIMIZED)->setDefaultValue(false);
 
 
@@ -256,7 +235,7 @@ void SettingsController::intializeSettings()
     _getSetting(SK_TOOLBAR_FIT_TO_SCREEN)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_SORT)->setDefaultValue(false);
+    //_getSetting(SK_TOOLBAR_SORT)->setDefaultValue(false);
     _getSetting(SK_TOOLBAR_DELETE)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);

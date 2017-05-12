@@ -72,6 +72,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::entityDestructed, this, &ViewController::controller_entityDestructed);
     connect(this, &ViewController::vc_setupModel, controller, &ModelController::setupController);
     connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setControllerReady);
+    
     connect(controller, &ModelController::dataChanged, this, &ViewController::controller_dataChanged);
     connect(controller, &ModelController::dataRemoved, this, &ViewController::controller_dataRemoved);
     connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
@@ -97,6 +98,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::projectModified, this, &ViewController::mc_projectModified);
     connect(controller, &ModelController::controller_ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
     connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setModelReady);
+    
     connect(controller, &ModelController::controller_SetClipboardBuffer, this, &ViewController::setClipboardData);
     connect(controller, &ModelController::controller_ActionFinished, this, &ViewController::actionFinished);
     connect(controller, &ModelController::undoRedoChanged, this, &ViewController::mc_undoRedoUpdated);
@@ -109,6 +111,8 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::controller_ExportedSnippet, this, &ViewController::gotExportedSnippet);
     connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
     connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
+    //Do this to reste dock
+    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::vc_ProjectLoaded);
     this->setController(controller);
 }
 
@@ -601,6 +605,7 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::WORKLOAD);
     constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
+    constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
 
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getNodeKindString(kind);

@@ -346,10 +346,10 @@ void ContextToolbar::setupActions()
     //mainGroup->addSeperator();
     //mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
-    mainGroup->addSeperator();
-    mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
-    mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
-    mainGroup->addSeperator();
+    //mainGroup->addSeperator();
+    //mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
+    //mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
+    //mainGroup->addSeperator();
     definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
     //instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));

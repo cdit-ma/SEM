@@ -292,6 +292,17 @@ void DockTabWidget::initialiseDocks()
     }
 }
 
+void DockTabWidget::resetDocks(bool ready){
+    if(ready){
+        // populate the functions dock - get functions list from controller
+        QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+        if (!actions.isEmpty()) {
+            functionsDock->displayInfoLabel(false);
+            populateDock(functionsDock, actions, true);
+        }
+    }
+}
+
 
 /**
  * @brief DockTabWidget::setupConnections
@@ -301,6 +312,8 @@ void DockTabWidget::setupConnections()
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(viewController, SIGNAL(vc_actionFinished()), this, SLOT(onActionFinished()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
+
+    connect(viewController, &ViewController::vc_ProjectLoaded, this, &DockTabWidget::resetDocks);
 
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));

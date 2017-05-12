@@ -88,6 +88,7 @@ signals:
     void vc_JenkinsReady(bool);
     void vc_JavaReady(bool);
     void vc_controllerReady(bool);
+    void vc_ProjectLoaded(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
@@ -96,7 +97,7 @@ signals:
     void vc_editTableCell(int ID, QString keyName);
 
     void vc_projectClosed();
-
+    
     void vc_setupModel();
         void vc_undo();
         void vc_redo();

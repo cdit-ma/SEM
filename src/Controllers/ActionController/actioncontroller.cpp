@@ -116,8 +116,8 @@ void ActionController::connectViewController(ViewController *controller)
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
         //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
-        connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
-        connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
+        //connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
+        //connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
 
 
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
@@ -301,8 +301,8 @@ void ActionController::selectionChanged(int selectionSize)
         toolbar_setReadOnly->setEnabled(!canLock);
         toolbar_unsetReadOnly->setEnabled(canLock);
 
-        file_importSnippet->setEnabled(viewController->canImportSnippet());
-        file_exportSnippet->setEnabled(viewController->canExportSnippet());
+        //file_importSnippet->setEnabled(viewController->canImportSnippet());
+        //file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
 
         model_getCodeForComponent->setEnabled(_gotJava && hasCode);
@@ -321,7 +321,7 @@ void ActionController::selectionChanged(int selectionSize)
 
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);
-        edit_sort->setEnabled(gotSelection);
+        //edit_sort->setEnabled(gotSelection);
         edit_renameActiveSelection->setEnabled(gotSelection);
         edit_clearSelection->setEnabled(gotMultipleSelection);
         edit_selectAll->setEnabled(gotSingleSelection);
@@ -433,8 +433,6 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
         return toolbar_centerOn;
     case SK_TOOLBAR_VIEW_IN_NEWWINDOW:
         return toolbar_viewInNewWindow;
-    case SK_TOOLBAR_SORT:
-        return toolbar_sort;
     case SK_TOOLBAR_DELETE:
         return toolbar_delete;
     case SK_TOOLBAR_ALIGN_HORIZONTAL:
@@ -644,10 +642,10 @@ void ActionController::setupActions()
     //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
     //file_importXMI->setToolTip("Import XMI Project into current project.");
 
-    file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
-    file_importSnippet->setToolTip("Import Snippet into selection.");
-    file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
-    file_exportSnippet->setToolTip("Export Snippet of selection.");
+    //file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
+    //file_importSnippet->setToolTip("Import Snippet into selection.");
+    //file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
+    //file_exportSnippet->setToolTip("Export Snippet of selection.");
 
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
     edit_undo->setToolTip("Undo last model change.");
@@ -699,8 +697,8 @@ void ActionController::setupActions()
 
 
 
-    edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
-    edit_sort->setToolTip("Sort selection.");
+    //edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
+    //edit_sort->setToolTip("Sort selection.");
 
     edit_alignVertical = createRootAction("Edit", "Align Vertically", "", "Icons", "alignVertical");
     edit_alignVertical->setToolTip("Align selection vertically.");
@@ -890,9 +888,9 @@ void ActionController::setupMainMenu()
     menu_file->addAction(file_importGraphML);
     //menu_file->addAction(file_importXME);
     //menu_file->addAction(file_importXMI);
-    menu_file->addSeparator();
-    menu_file->addAction(file_importSnippet);
-    menu_file->addAction(file_exportSnippet);
+    //menu_file->addSeparator();
+    //menu_file->addAction(file_importSnippet);
+    //menu_file->addAction(file_exportSnippet);
     menu_file->addSeparator();
     menu_file->addAction(file_exit);
 
@@ -910,7 +908,7 @@ void ActionController::setupMainMenu()
 
     menu_edit->addAction(edit_search);
     menu_edit->addSeparator();
-    menu_edit->addAction(edit_sort);
+    //menu_edit->addAction(edit_sort);
     menu_edit->addAction(edit_alignHorizontal);
     menu_edit->addAction(edit_alignVertical);
     menu_edit->addSeparator();
@@ -986,7 +984,7 @@ void ActionController::setupApplicationToolbar()
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeperator();
-    toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
+    //toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
@@ -1012,9 +1010,9 @@ void ActionController::setupContextToolbar()
     //contextToolbar->addAction(toolbar_hardware);
     //contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
-    contextToolbar->addAction(file_importSnippet->constructSubAction());
-    contextToolbar->addAction(file_exportSnippet->constructSubAction());
-    contextToolbar->addSeperator();
+    //contextToolbar->addAction(file_importSnippet->constructSubAction());
+    //contextToolbar->addAction(file_exportSnippet->constructSubAction());
+    //contextToolbar->addSeperator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
     contextToolbar->addSeperator();

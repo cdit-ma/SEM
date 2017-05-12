@@ -100,8 +100,8 @@ public:
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
     RootAction* file_closeProject;
-    RootAction* file_importSnippet;
-    RootAction* file_exportSnippet;
+    //RootAction* file_importSnippet;
+    //RootAction* file_exportSnippet;
     RootAction* file_exit;
 
     RootAction* edit_undo;
@@ -112,7 +112,7 @@ public:
     RootAction* edit_replicate;
     RootAction* edit_delete;
     RootAction* edit_search;
-    RootAction* edit_sort;
+    //RootAction* edit_sort;
     RootAction* edit_clearSelection;
     RootAction* edit_selectAll;
     RootAction* edit_alignHorizontal;
