@@ -12,10 +12,11 @@ set(TESTER_NAME ${PROJ_NAME}_tester)
 
 set(CLFFT_ROOT $ENV{CLFFT_ROOT})
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
+set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
 project(${PROJ_NAME})
 
 find_library(OPENCL_LIB OpenCL ${OPENCL_ROOT})
-find_library(CLFFT_LIB clFFT ${CLFFT_ROOT})
+find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
 #link_directories(${CLFFT_ROOT}/lib64)
 
