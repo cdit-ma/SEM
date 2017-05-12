@@ -175,7 +175,6 @@ void MainWindow::searchEntered()
  */
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
-    qCritical() << "Icon Path: " << iconPath << " Icon Name: " << iconName << " Description: " << description;
     notificationPopup->hide();
 
     notificationTimer->stop();

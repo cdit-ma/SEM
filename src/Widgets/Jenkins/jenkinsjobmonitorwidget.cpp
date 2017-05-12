@@ -325,7 +325,7 @@ void JenkinsJobMonitorWidget::_stopJob(QString jobName, int buildNumber, QString
 void JenkinsJobMonitorWidget::_gotoJenkinsURL(QString jobName, int buildNumber, QString activeConfiguration)
 {
     if(activeConfiguration == ""){
-        auto url = jenkins->GetUrl() + "blue/organizations/jenkins/" + jobName + "/detail/" + jobName + "/" + QString::number(buildNumber) + "/pipeline";
+        auto url = jenkins->GetUrl() + "job/" + jobName + "/" + QString::number(buildNumber);
         emit gotoURL(url);
     }
 }

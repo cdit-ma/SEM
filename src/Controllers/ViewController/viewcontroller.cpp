@@ -149,7 +149,15 @@ ToolbarController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getWorkerFunctions()
 {
-    return getItemsOfKind(NODE_KIND::WORKER_PROCESS);
+    QList<ViewItem*> workers;
+
+    foreach(ViewItem* item, getItemsOfKind(NODE_KIND::WORKER_PROCESS)){
+        NodeViewItem* node = (NodeViewItem*)item;
+        if(item && node->getViewAspect() == VIEW_ASPECT::WORKERS){
+            workers << item;
+        }
+    }
+    return workers;
 }
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind)
