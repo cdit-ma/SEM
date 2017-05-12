@@ -63,6 +63,7 @@ void DockWidget::addItem(DockWidgetItem* item)
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
+        toolbar->setIconSize(QSize(16,16));
         parentActionItemIDHash[parentItem->getProperty("ID").toInt()] = parentItem;
         itemToolbarHash[item] = toolbar;
         mainLayout->addWidget(toolbar);
@@ -324,11 +325,11 @@ void DockWidget::setupHeaderLayout()
     backButton = new QToolButton(this);
     backButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     backButton->setToolTip("Go back to the parts list");
-    backButton->setFixedHeight(23);
     connect(backButton, SIGNAL(clicked(bool)), this, SIGNAL(backButtonClicked()));
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->addWidget(backButton);
+    toolbar->setIconSize(QSize(16,16));
 
     QLabel* descriptionLabel = new QLabel("Select to construct", this);
     descriptionLabel->setWordWrap(true);

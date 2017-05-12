@@ -25,7 +25,6 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     setEnabled(true);
     setLayoutDirection(Qt::RightToLeft);
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    setIconSize(ARROW_SIZE, ARROW_SIZE);
     setFixedHeight(ITEM_HEIGHT);
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));

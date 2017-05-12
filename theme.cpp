@@ -634,7 +634,7 @@ QString Theme::getNodeViewStyleSheet(bool isActive)
 QString Theme::getDockWidgetStyleSheet()
 {
     return "QDockWidget {"
-           "border: 4px solid red;"
+           "border: 0px;"
            "margin: 3px;"
            "background:" % getBackgroundColorHex() % ";"
            "}";
