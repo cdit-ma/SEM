@@ -31,6 +31,13 @@ set(CMAKE_AUTORCC ON)
 add_subdirectory("ModelController")
 add_subdirectory("Test")
 
+#Pass Version info into cmakevars.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h
+)
+
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.cpp
@@ -194,6 +201,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
 )
+
+#set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/enumerations.cpp PROPERTIES COMPILE_FLAGS -DMEDEA_VERSION="${VERSION}" -DMEDEA_URL="${URL}" -DMEDEA_VERSION_NAME="${VERSION_NAME}")
 
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc

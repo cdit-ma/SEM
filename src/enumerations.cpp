@@ -4,12 +4,22 @@
 #include "ModelController/nodekinds.h"
 #define SHADE_AMOUNT 130
 
+//Auto Generated File
+#include "cmakevars.h"
 
 QString APP_URL(){
-    return "https://github.com/cdit-ma/MEDEA/";
+    #ifdef MEDEA_URL
+        return MEDEA_URL;
+    #else
+        return "?";
+    #endif
 }
 QString APP_VERSION(){
-    return "2.1.0-RE";
+    #ifdef MEDEA_VERSION
+        return MEDEA_VERSION;
+    #else
+        return "?";
+    #endif
 }
 
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
