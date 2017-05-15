@@ -3620,13 +3620,13 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
 
-                    bool addData = key->getName() != "index";
+                    //bool addData = key->getName() != "index";
 
-                    if(addData){
-                        Data* data = new Data(key, dataValue);
-                        currentEntity->addData(data);
-                    }else{
-                    }
+                    //if(addData){
+                    Data* data = new Data(key, dataValue);
+                    currentEntity->addData(data);
+                    //}else{
+                    //}
                 }
             }
         }
@@ -3785,34 +3785,40 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
+                        //Construct a new node if we haven't got one yet. This will attach default data
                         newNode = construct_node(parentNode, kind);
                     }
-                    
+
+                    //If construction worked, attach data 
                     if(newNode){
-                        auto data_list = entity->takeDataList();
-                        _attachData(newNode, data_list);
+                        bool got_parent = kind == NODE_KIND::MODEL || newNode->getParentNode() == parentNode;
+
+                        if(!got_parent){
+                            //If it's not already in the model, attach to parent
+                            got_parent = attachChildNode(parentNode, newNode);
+                        }
+
+                        if(got_parent){
+                            //Get the nodeID
+                            nodeID = newNode->getID();
+                            if(linkPreviousID && entity->hasPrevID()){
+                                //Link the old ID
+                                link_ids(entity->getPrevID(), nodeID);
+                            }
+
+                            //set the required ddata
+                            auto data_list = entity->takeDataList();
+                            _attachData(newNode, data_list);
+
+                            //if(set_parent){
+                            //    constructNodeGUI(newNode);
+                            //}
+                        }
                     }else{
                         QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        //NotificationManager::manager()->displayNotification(message, "", "", parentNode->getID(), NS_WARNING);
+                        qCritical() << message;
                         entity->setIgnoreConstruction();
                         continue;
-                    }
-                    bool attached = false;
-
-                    if(newNode->isInModel()){
-                        attached = true;
-                    }else{
-                        //Attach the node to the parentNode
-                        attached = attachChildNode(parentNode, newNode);
-                    }
-
-                    if(attached){
-                        nodeID = newNode->getID();
-                    }
-
-                    if(linkPreviousID && entity->hasPrevID()){
-                        //Link the old ID
-                        link_ids(entity->getPrevID(), nodeID);
                     }
                 }
             }

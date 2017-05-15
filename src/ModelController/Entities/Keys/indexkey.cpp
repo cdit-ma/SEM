@@ -7,6 +7,7 @@ IndexKey::IndexKey(): Key("index", QVariant::Int){
 }   
 
 QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){    
+    
     int new_index = data_value.toInt();
     Node* node = 0;
 
@@ -17,8 +18,8 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     }
     
     //If its not attached to a node, the value is invalid
-    if(!node){
-        return data_value;
+    if(!node || !node->getParentNode()){
+        return new_index;
     }
 
     //Siblings are already in Index'd order
@@ -30,16 +31,12 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     if(new_index < -1){
         new_index = 0;
     }
-
-    //If the new_index is -1 or is bigger than the max_index.
-    if(new_index > max_index || new_index == -1){
+    
+    //If the new_index is -1 or is bigger than the max_index, put it last
+    if(new_index == -1 || new_index > max_index){
         new_index = max_index;
     }
 
-    if(new_index == old_index){
-        return new_index;
-    }
-    
     //Insert the node into the correct position
     siblings.insert(new_index, node);
 

@@ -69,7 +69,7 @@ void Data::setParent(Entity *parent)
     _parent = parent;
     
     if(_parent){
-        //revalidateData();
+        revalidateData();
     }
 }
 
