@@ -34,8 +34,11 @@ add_subdirectory("Test")
 #Pass Version info into cmakevars.h
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
 )
+
+#Include the binary directory to include the generated cmakevars.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 set(SOURCE
@@ -202,7 +205,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
 )
 
-#set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/enumerations.cpp PROPERTIES COMPILE_FLAGS -DMEDEA_VERSION="${VERSION}" -DMEDEA_URL="${URL}" -DMEDEA_VERSION_NAME="${VERSION_NAME}")
+
 
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
