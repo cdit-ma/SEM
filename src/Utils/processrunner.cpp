@@ -78,9 +78,11 @@ ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QStri
         }
     }
 
-    //Set the result
-    result.error_code = process.exitCode();
-    result.success = process.exitStatus() == QProcess::NormalExit && result.error_code == 0;
+    if(started){
+        //Set the result
+        result.error_code = process.exitCode();
+        result.success = process.exitStatus() == QProcess::NormalExit && result.error_code == 0;
+    }
 
     return result;
 }

@@ -581,7 +581,9 @@ void NotificationDialog::initialisePanel()
     } else {
         NotificationManager::manager()->notificationSeen();
     }
+    updateSeverityActions(NotificationManager::getNotificationSeverities());
 }
+
 
 
 /**
