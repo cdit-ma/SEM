@@ -11,7 +11,7 @@
 ExecutionManager::ExecutionManager(ViewController *view_controller)
 {
     view_controller_ = view_controller;
-    transforms_path_ = QApplication::applicationDirPath() % "/resources/re_gen/";
+    transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
     saxon_jar_path_ = transforms_path_ % "saxon.jar";
     runner_ = new ProcessRunner(this);
     got_java_ = false;
@@ -158,7 +158,7 @@ QStringList ExecutionManager::GetMiddlewareArgs()
 bool ExecutionManager::GotJava_()
 {
     if(!got_java_){
-        QString program = "javaasd";
+        QString program = "java";
         QStringList args;
         args << "-version";
 

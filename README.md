@@ -9,13 +9,13 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 * C++11 Compiler
 
 # Building MEDEA binary from source
-* Set environment variable Qt5_DIR to point the installation of QT5.7
+* Set environment variable Qt5_DIR to point the installation of QT5.7 (ie /opt/Qt5.7.0/5.7/gcc_64)
 > ```
 > git clone https://github.com/cdit-ma/MEDEA --recursive
 > cd MEDEA
 > mkdir build
 > cd build
-> cmake ..
+> cmake ../src
 > make -j10
 > ```
 
