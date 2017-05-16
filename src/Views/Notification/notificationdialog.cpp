@@ -729,7 +729,7 @@ void NotificationDialog::setupLayout()
     filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
     filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
     filtersMenu->addAction("Scope")->setProperty(ROLE, IR_TYPE);
-    connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
+    //connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
     // initially check all of the filter groups in the menu
     foreach (QAction* action, filtersMenu->actions()) {
