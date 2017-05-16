@@ -8,7 +8,9 @@
 
 #include "../../Utils/actiongroup.h"
 #include "nodeviewitemaction.h"
-#include "../../Model/edgefactory.h"
+
+
+#include "../../ModelController/nodekinds.h"
 
 class ViewController;
 class SelectionController;
@@ -20,17 +22,17 @@ public:
 
     ToolbarController(ViewController* viewController);
 
-    QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
+    QList<NodeViewItemAction*> getDefinitionNodeActions(NODE_KIND node_kind);
     QList<NodeViewItemAction*> getWorkerFunctions();
 
     NodeViewItemAction* getNodeAction(int ID);
 
+    EDGE_KIND getNodesEdgeKind(NODE_KIND kind);
+    QList<NodeViewItemAction*> getEdgeActionsOfKind(EDGE_KIND kind);
+    QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(EDGE_KIND kind);
 
-    QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_KIND kind);
-    QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind);
-
-    RootAction* getConnectEdgeActionOfKind(Edge::EDGE_KIND kind);
-    RootAction* getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind);
+    RootAction* getConnectEdgeActionOfKind(EDGE_KIND kind);
+    RootAction* getDisconnectEdgeActionOfKind(EDGE_KIND kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -45,18 +47,20 @@ public:
     
     QString getInfoActionKeyForAdoptableKind(QString kind);
 
-    void addChildNode(QString kind, QPointF position);
-    void addEdge(int dstID, Edge::EDGE_KIND edgeKind=Edge::EC_UNDEFINED);
-    void removeEdge(int dstID, Edge::EDGE_KIND edgeKind=Edge::EC_UNDEFINED);
-    void addConnectedChildNode(int dstID, QString kind, QPointF position);
+    void addChildNode(NODE_KIND kind, QPointF position);
+    void addEdge(int dstID, EDGE_KIND edgeKind);
+    void removeEdge(int dstID, EDGE_KIND edgeKind);
+    void removeAllEdges(EDGE_KIND edgeKind);
+    void addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 
+    bool requiresSubAction(NODE_KIND kind);
 signals:
     void hardwareCreated(int ID);
     void hardwareDestructed(int ID);
     void workerProcessCreated(int ID);
     void workerProcessDestructed(int ID);
-
+    void workerWorkloadCreated(int ID);
 public slots:
     void actionHoverEnter(int ID);
     void actionHoverLeave(int ID);
@@ -78,10 +82,10 @@ private:
     RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
 
     QHash<QString, RootAction*> toolActions;
-    QHash<QString, RootAction*> nodeKindActions;
-    QHash<Edge::EDGE_KIND, RootAction*> connectEdgeKindActions;
-    QHash<Edge::EDGE_KIND, RootAction*> disconnectEdgeKindActions;
-
+    QHash<NODE_KIND, RootAction*> nodeKindActions;
+    QHash<EDGE_KIND, RootAction*> connectEdgeKindActions;
+    QHash<EDGE_KIND, RootAction*> disconnectEdgeKindActions;
+    QHash<NODE_KIND, EDGE_KIND> connectedNodeEdgeKinds;
     QList<int> hardwareIDs;
     QList<int> workerProcessIDs;
 

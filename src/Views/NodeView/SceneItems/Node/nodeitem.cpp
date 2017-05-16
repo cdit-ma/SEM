@@ -4,6 +4,8 @@
 #include <QStyleOptionGraphicsItem>
 
 #include "../entityitem.h"
+#include "../../../../ModelController/entityfactory.h"
+#include <algorithm>
 
 
 #define RESIZE_RECT_SIZE 4
@@ -26,12 +28,12 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     resizeEnabled = false;
     ignorePosition = false;
     _rightJustified = false;
-    aspect = VA_NONE;
+    aspect = VIEW_ASPECT::NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
     readState = NodeItem::NORMAL;
 
-    visualEdgeKind = Edge::EC_NONE;
+    visualEdgeKind = EDGE_KIND::NONE;
 
 
     nodeViewItem = viewItem;
@@ -108,7 +110,7 @@ NodeViewItem *NodeItem::getNodeViewItem() const
     return nodeViewItem;
 }
 
-Node::NODE_KIND NodeItem::getNodeKind() const
+NODE_KIND NodeItem::getNodeKind() const
 {
     return nodeViewItem->getNodeKind();
 }
@@ -165,7 +167,9 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 
 int NodeItem::getSortOrder() const
 {
-    if(hasData("sortOrder")){
+    if(hasData("index")){
+        return getData("index").toInt();
+    }else if(hasData("sortOrder")){
         return getData("sortOrder").toInt();
     }
     return -1;
@@ -181,19 +185,6 @@ QList<NodeItem *> NodeItem::getChildNodes() const
     return childNodes.values();
 }
 
-QList<NodeItem *> NodeItem::getOrderedChildNodes() const
-{
-    QMap<int, NodeItem*> items;
-
-    foreach(NodeItem* child, getChildNodes()){
-        int position = items.size();
-        if(child->hasData("sortOrder")){
-            position = child->getData("sortOrder").toInt();
-        }
-        items.insertMulti(position, child);
-    }
-    return items.values();
-}
 
 QList<EntityItem *> NodeItem::getChildEntities() const
 {
@@ -648,22 +639,60 @@ void NodeItem::setSecondaryTextKey(QString key)
 
 
 
-void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
+void NodeItem::setVisualEdgeKind(EDGE_KIND kind)
 {
     visualEdgeKind = kind;
-    visualEdgeIcon = EdgeFactory::getEdgeKindString(kind);
+    visualEntityIcon = EntityFactory::getEdgeKindString(kind);
     update();
 }
 
-Edge::EDGE_KIND NodeItem::getVisualEdgeKind() const
+void NodeItem::setVisualNodeKind(NODE_KIND kind)
+{
+    visualNodeKind = kind;
+    visualEntityIcon = "ComponentImpl";
+    update();
+}
+
+EDGE_KIND NodeItem::getVisualEdgeKind() const
 {
     return visualEdgeKind;
 }
+
+NODE_KIND NodeItem::getVisualNodeKind() const
+{
+    return visualNodeKind;
+}
+
+bool NodeItem::gotVisualNodeKind() const
+{
+    return visualNodeKind != NODE_KIND::NONE;
+}
+
+bool NodeItem::gotVisualEdgeKind() const
+{
+    return visualEdgeKind != EDGE_KIND::NONE;
+}
+
+bool NodeItem::gotVisualButton() const
+{
+    return gotVisualNodeKind() || gotVisualEdgeKind();
+}
+
 
 QString NodeItem::getPrimaryTextKey() const
 {
     return primaryTextKey;
 }
+
+QPair<QString, QString> NodeItem::getSecondaryIconPath() const{
+    return secondary_icon;
+}
+
+void NodeItem::setSecondaryIconPath(QPair<QString, QString> pair){
+    secondary_icon = pair;
+}
+
+
 
 QString NodeItem::getSecondaryTextKey() const
 {
@@ -720,7 +749,7 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
             updateReadState();
         }else if(keyName == "readOnly"){
             update();
-        }else if(keyName == "key" && getNodeKind() == Node::NK_MEMBER){
+        }else if(keyName == "key" && getNodeKind() == NODE_KIND::MEMBER){
             bool boolData = data.toBool();
             setIconOverlayVisible(boolData);
         }
@@ -760,11 +789,11 @@ void NodeItem::childPosChanged()
     resizeToChildren();
 }
 
-void NodeItem::edgeAdded(Edge::EDGE_KIND kind)
+void NodeItem::edgeAdded(EDGE_KIND kind)
 {
     switch(kind){
-        case Edge::EC_DEPLOYMENT:
-        case Edge::EC_QOS:
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::QOS:
             update();
             break;
     default:
@@ -772,11 +801,11 @@ void NodeItem::edgeAdded(Edge::EDGE_KIND kind)
     }
 }
 
-void NodeItem::edgeRemoved(Edge::EDGE_KIND kind)
+void NodeItem::edgeRemoved(EDGE_KIND kind)
 {
     switch(kind){
-        case Edge::EC_DEPLOYMENT:
-        case Edge::EC_QOS:
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::QOS:
             update();
             break;
     default:
@@ -939,43 +968,32 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     if(state > RS_MINIMAL){
-        if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
-            paintPixmap(painter, lod, ER_CONNECT_ICON, "Actions", "ConnectTo");
+        if(gotVisualButton()){
+            if(isSelected() && gotVisualEdgeKind()){
+                paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "connect");
+            }else if(gotVisualNodeKind()){
+                paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "popOut");
+            }
         }
 
-        if(getNodeViewItem()->gotEdge(Edge::EC_DEPLOYMENT)){
-            paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "HardwareNode");
+        if(getNodeViewItem()->gotEdge(EDGE_KIND::DEPLOYMENT)){
+            paintPixmap(painter, lod, ER_DEPLOYED, "Icons", "screen");
         }
 
-        if(getNodeViewItem()->gotEdge(Edge::EC_QOS)){
-            paintPixmap(painter, lod, ER_QOS, "Actions", "QOS");
+        if(getNodeViewItem()->gotEdge(EDGE_KIND::QOS)){
+            paintPixmap(painter, lod, ER_QOS, "Icons", "speedGauge");
         }
 
         if(isExpandEnabled() && hasChildNodes()){
-            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
+            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Icons", isExpanded() ? "triangleNorthWest" : "triangleSouthEast");
         }
 
         if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", getSecondaryTextKey());
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
         }
     }
 
-    if(state > RS_BLOCK){
-        if(isSelected() && hoveredConnect){
-            painter->save();
 
-            QColor resizeColor(255, 255, 255, 130);
-
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(resizeColor);
-            painter->drawRect(getElementRect(ER_CONNECT));
-
-            if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
-                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "Items", visualEdgeIcon);
-            }
-            painter->restore();
-        }
-    }
 
     if(state > RS_BLOCK){
         painter->save();
@@ -1010,7 +1028,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->translate(-arrowRect.center());
 
                 //Paint the resize section
-                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Actions", "Resize");
+                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Icons", "triangleSouth");
                 painter->restore();
             }
         }
@@ -1024,6 +1042,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(gotSecondaryTextKey()){
         renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
+    }
+
+    if(state > RS_BLOCK){
+        if(hoveredConnect){
+            painter->save();
+
+            QColor resizeColor(255, 255, 255, 130);
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(resizeColor);
+            painter->drawRect(getElementRect(ER_CONNECT));
+
+            if(gotVisualButton()){
+                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "EntityIcons", visualEntityIcon);
+            }
+            painter->restore();
+        }
     }
 }
 
@@ -1114,7 +1149,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool caughtResize = false;
 
-    if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE && event->button() == Qt::LeftButton){
+    if(gotVisualEdgeKind() && isSelected() && event->button() == Qt::LeftButton){
         if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
             caughtResize = true;
             emit req_connectMode(this);
@@ -1172,12 +1207,14 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(isSelected() && visualEdgeKind != Edge::EC_NONE){
-        bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
+    if(gotVisualButton()){
+        if(gotVisualNodeKind() || (gotVisualEdgeKind() && isSelected())){
+            bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
 
-        if(showHover != hoveredConnect){
-            hoveredConnect = showHover;
-            update();
+            if(showHover != hoveredConnect){
+                hoveredConnect = showHover;
+                update();
+            }
         }
     }
 
@@ -1212,6 +1249,12 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+    if(getVisualNodeKind() != NODE_KIND::NONE && event->button() == Qt::LeftButton){
+        if(getElementPath(ER_CONNECT).contains(event->pos())){
+            emit req_popOutRelatedNode(getNodeViewItem(), visualNodeKind);
+        }
+    }
+
     if(!getPrimaryTextKey().isEmpty()){
         if(event->button() == Qt::LeftButton && getElementPath(ER_PRIMARY_TEXT).contains(event->pos())){
             emit req_editData(getViewItem(), getPrimaryTextKey());
@@ -1222,6 +1265,8 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             emit req_editData(getViewItem(), getSecondaryTextKey());
         }
     }
+
+
     EntityItem::mouseDoubleClickEvent(event);
 }
 

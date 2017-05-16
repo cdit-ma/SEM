@@ -2,8 +2,6 @@
 #define XMIIMPORTER_H
 #include <QObject>
 #include "xmitreemodel.h"
-#include "../CUTS/cutsmanager.h"
-
 
 
 class XMIImporter: public QObject{

@@ -1,18 +1,37 @@
 #include "enumerations.h"
 #include <QDebug>
-
+#include <QColor>
+#include "ModelController/nodekinds.h"
 #define SHADE_AMOUNT 130
+
+//Auto Generated File
+#include "cmakevars.h"
+
+QString APP_URL(){
+    #ifdef MEDEA_URL
+        return MEDEA_URL;
+    #else
+        return "?";
+    #endif
+}
+QString APP_VERSION(){
+    #ifdef MEDEA_VERSION
+        return MEDEA_VERSION;
+    #else
+        return "?";
+    #endif
+}
 
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return VAP_TOPLEFT;
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return VAP_TOPRIGHT;
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return VAP_BOTTOMLEFT;
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return VAP_BOTTOMRIGHT;
     default:
         break;
@@ -23,13 +42,13 @@ VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return "Interfaces";
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return "Behaviour";
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return "Assemblies";
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return "Hardware";
     default:
         break;
@@ -40,15 +59,15 @@ QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
 VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
 {
     if(aspectKind == "InterfaceDefinitions"){
-        return VA_INTERFACES;
+        return VIEW_ASPECT::INTERFACES;
     }else if(aspectKind == "BehaviourDefinitions"){
-        return VA_BEHAVIOUR;
+        return VIEW_ASPECT::BEHAVIOUR;
     }else if(aspectKind == "HardwareDefinitions"){
-        return VA_HARDWARE;
+        return VIEW_ASPECT::HARDWARE;
     }else if(aspectKind == "AssemblyDefinitions"){
-        return VA_ASSEMBLIES;
+        return VIEW_ASPECT::ASSEMBLIES;
     }
-    return VA_NONE;
+    return VIEW_ASPECT::NONE;
 }
 
 QStringList GET_ASPECT_NAMES()
@@ -60,19 +79,19 @@ QStringList GET_ASPECT_NAMES()
     return list;
 }
 
+/*
+
 QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
-    /*
-     * THESE ARE THE ORIGINAL COLOURS
-     */
+    
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return QColor(110,210,210);
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return QColor(254,184,126);
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return QColor(255,160,160);
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return QColor(110,170,220);
     default:
         return Qt::white;
@@ -125,13 +144,13 @@ QColor GET_INVERT_COLOR(VIEW_THEME theme){
         return Qt::white;
     }
 }
-
+*/
 
 
 QList<VIEW_ASPECT> GET_VIEW_ASPECTS()
 {
     QList<VIEW_ASPECT> list;
-    list << VA_INTERFACES << VA_BEHAVIOUR << VA_ASSEMBLIES << VA_HARDWARE;
+    list << VIEW_ASPECT::INTERFACES << VIEW_ASPECT::BEHAVIOUR << VIEW_ASPECT::ASSEMBLIES << VIEW_ASPECT::HARDWARE;
     return list;
 }
 
@@ -152,7 +171,7 @@ QString GET_DOCK_LABEL(DOCK_TYPE type)
     }
 }
 
-
+/*
 QString GET_COLOR_STRING(QColor color, COLOR_SHADE shade)
 {
     if (!color.isValid()) {
@@ -189,17 +208,7 @@ QString GET_VIEW_COLOR_STRING(VIEW_THEME theme, COLOR_SHADE shade)
 QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert)
 {
     if (invert) {
-        /*
-        switch (theme) {
-        case VT_LIGHT_THEME:
-        case VT_NORMAL_THEME:
-            return Qt::white;
-        case VT_DARK_THEME:
-            return Qt::black;
-        default:
-            return Qt::blue;
-        }
-        */
+
         return Qt::black;
     } else {
         switch (theme) {
@@ -212,7 +221,7 @@ QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert)
             return Qt::red;
         }
     }
-}
+}*/
 
 QHash<QString, QString> GET_SETTINGS_TOOLTIPS_HASH()
 {
@@ -361,7 +370,7 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
     return groups;
 }
 
-
+/*
 QColor GET_HARDWARE_HIGHLIGHT_COLOR()
 {
     //return QColor(153,153,255);
@@ -369,19 +378,19 @@ QColor GET_HARDWARE_HIGHLIGHT_COLOR()
     //return QColor(0,76,153);
     //return QColor(102,0,51);
     return QColor(178,34,34);
-}
+}*/
 
 
 RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
 {
     switch(aspect){
-    case VA_INTERFACES:
+    case VIEW_ASPECT::INTERFACES:
         return RV_TOPLEFT;
-    case VA_BEHAVIOUR:
+    case VIEW_ASPECT::BEHAVIOUR:
         return RV_TOPRIGHT;
-    case VA_ASSEMBLIES:
+    case VIEW_ASPECT::ASSEMBLIES:
         return RV_BOTTOMLEFT;
-    case VA_HARDWARE:
+    case VIEW_ASPECT::HARDWARE:
         return RV_BOTTOMRIGHT;
     default:
         break;

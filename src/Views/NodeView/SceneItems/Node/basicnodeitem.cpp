@@ -30,12 +30,12 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
 
     setPrimaryTextKey("label");
 
-    addRequiredData("sortOrder");
+    addRequiredData("index");
     addRequiredData("x");
     addRequiredData("y");
 
 
-    if(viewItem->getNodeKind() == Node::NK_MEMBER){
+    if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
         addRequiredData("key");
     }
     reloadRequiredData();
@@ -87,7 +87,7 @@ void BasicNodeItem::dataChanged(QString keyName, QVariant data)
 {
     NodeItem::dataChanged(keyName, data);
 
-    if(keyName == "sortOrder" && getParentContainer() && getParentContainer()->isSortOrdered()){
+    if(keyName == "index" && getParentContainer() && getParentContainer()->isSortOrdered()){
         QPoint index = getIndexPosition();
         index.setY(getSortOrder());
         setIndexPosition(index);

@@ -1,6 +1,7 @@
 #include "windowitem.h"
 #include "dockitem.h"
 #include "../../theme.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 
 WindowItem::WindowItem(ViewManagerWidget *manager, BaseWindow *window)
 {
@@ -32,7 +33,7 @@ void WindowItem::themeChanged()
                                  "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
-    closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+    closeAction->setIcon(Theme::theme()->getIcon("Icons", "cross"));
 
 }
 
@@ -45,7 +46,14 @@ void WindowItem::titleChanged(QString)
 void WindowItem::dockWidgetAdded(BaseDockWidget *widget)
 {
     if(widget){
-        dockContainerLayout->addWidget(manager->getDockItem(widget->getID()));
+        if(widget->getDockType() == BaseDockWidget::MDW_VIEW){
+            ViewDockWidget* viewWidget = (ViewDockWidget*) widget;
+            if(viewWidget->isNodeViewDock()){
+                viewContainerLayout->addWidget(manager->getDockItem(widget->getID()));
+            }else{
+                toolContainerLayout->addWidget(manager->getDockItem(widget->getID()));
+            }
+        }
     }
 }
 
@@ -56,9 +64,12 @@ void WindowItem::setupLayout()
     layout->setSpacing(5);
     layout->setMargin(0);
 
-    dockContainerLayout = new QVBoxLayout();
-    dockContainerLayout->setContentsMargins(10,0,0,0);
-    dockContainerLayout->setSpacing(5);
+    viewContainerLayout = new QVBoxLayout();
+    viewContainerLayout->setContentsMargins(5,0,5,0);
+    viewContainerLayout->setSpacing(5);
+    toolContainerLayout = new QVBoxLayout();
+    toolContainerLayout->setContentsMargins(5,0,5,0);
+    toolContainerLayout->setSpacing(5);
     windowToolbar = new QToolBar(this);
     windowToolbar->setObjectName("WINDOW_TOOLBAR");
 
@@ -77,7 +88,13 @@ void WindowItem::setupLayout()
     windowToolbar->addWidget(labelWidget);
 
     dockContainer = new QWidget(this);
-    dockContainer->setLayout(dockContainerLayout);
+    QVBoxLayout* combineLayout = new QVBoxLayout();
+    combineLayout->setContentsMargins(0,0,0,0);
+    combineLayout->setSpacing(10);
+    combineLayout->addLayout(viewContainerLayout);
+    combineLayout->addLayout(toolContainerLayout);
+    dockContainer->setLayout(combineLayout);
+
 
 
     closeAction = 0;

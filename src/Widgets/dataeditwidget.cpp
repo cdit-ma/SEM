@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QColorDialog>
-
+#include <QPlainTextEdit>
 #include "../theme.h"
 
 #define SMALL_SQUARE 24
@@ -93,9 +93,9 @@ void DataEditWidget::setValue(QVariant data)
         break;
     }
     case ST_STRING:{
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        if(lineEdit){
-            lineEdit->setText(newData.toString());
+        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
+        if(textEdit){
+            textEdit->setPlainText(newData.toString());
         }
         break;
     }
@@ -117,6 +117,11 @@ void DataEditWidget::setValue(QVariant data)
     emit valueChanged(dataKey, newData);
 }
 
+QVariant DataEditWidget::getValue()
+{
+    return currentData;
+}
+
 void DataEditWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
@@ -127,11 +132,11 @@ void DataEditWidget::themeChanged()
         //QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
         switch(type){
         case ST_FILE:{
-            button->setIcon(Theme::theme()->getIcon("Actions", "New"));
+            button->setIcon(Theme::theme()->getIcon("Icons", "file"));
             break;
         }
         case ST_PATH:{
-            button->setIcon(Theme::theme()->getIcon("Actions", "Open"));
+            button->setIcon(Theme::theme()->getIcon("Icons", "folder"));
             break;
         }
         case ST_COLOR:{
@@ -169,11 +174,15 @@ void DataEditWidget::themeChanged()
         }
 
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
         QPushButton* button = qobject_cast<QPushButton*>(editWidget_1);
+
         if(lineEdit){
             lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
         }else if(button){
             button->setStyleSheet(theme->getPushButtonStyleSheet());
+        }else if(textEdit){
+            textEdit->setStyleSheet(theme->getTextEditStyleSheet());
         }else{
             editWidget_1->setStyleSheet(style);
         }
@@ -224,8 +233,8 @@ void DataEditWidget::editFinished()
         break;
     }
     case ST_STRING:{
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        dataChanged(lineEdit->text());
+        QPlainTextEdit* lineEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
+        dataChanged(lineEdit->toPlainText());
         break;
     }
     case ST_FILE:
@@ -298,23 +307,23 @@ void DataEditWidget::setupLayout()
 
     switch(type){
         case ST_STRING:{
-        QLineEdit* lineEdit = new QLineEdit(this);
-        lineEdit->setText(currentData.toString());
-        lineEdit->setFixedHeight(SMALL_SQUARE);
+        QPlainTextEdit* textEdit = new QPlainTextEdit(this);
+        textEdit->setPlainText(currentData.toString());
 
+        textEdit->setTabChangesFocus(true);
 
-        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
+        textEdit->setFixedHeight(SMALL_SQUARE);
 
-        editWidget_1 = lineEdit;
+        //Any CChange should change
+        connect(textEdit, &QPlainTextEdit::textChanged, this, [textEdit, this](){dataChanged(textEdit->toPlainText()); editFinished();});
+
+        editWidget_1 = textEdit;
         editLayout->addWidget(editWidget_1, 1);
         break;
     }
     case ST_BOOL:{
         QCheckBox* checkBox = new QCheckBox(label, this);
-
         checkBox->setChecked(currentData.toBool());
-
 
         connect(checkBox, &QCheckBox::clicked, this, &DataEditWidget::editFinished);
 
@@ -333,7 +342,7 @@ void DataEditWidget::setupLayout()
 
         editWidget_1 = spinBox;
 
-        connect(spinBox, &QSpinBox::editingFinished, this, &DataEditWidget::editFinished);
+        connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [spinBox, this](int value){editFinished();});
 
         editLayout->addWidget(editWidget_1, 1);
         break;
@@ -373,7 +382,7 @@ void DataEditWidget::setupLayout()
 
         connect(button, &QPushButton::pressed, this, &DataEditWidget::pickColor);
         connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
+        connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);
@@ -397,6 +406,10 @@ void DataEditWidget::setupLayout()
     }
 
     if(editWidget_1){
+        if(editLabel){
+            editLabel->setFocusPolicy(Qt::ClickFocus);
+            editLabel->setFocusProxy(editWidget_1);
+        }
         editWidget_1->setFixedHeight(SMALL_SQUARE);
     }
     if(editWidget_2){

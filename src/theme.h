@@ -6,10 +6,12 @@
 #include <QThread>
 #include <QColor>
 #include <QIcon>
+#include <QReadWriteLock>
 
 #include <QObject>
 #include <QFuture>
 
+#include "ModelController/nodekinds.h"
 #include "enumerations.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 
@@ -21,6 +23,7 @@
 #define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
 
 
+typedef QPair<QString, QString> IconPair;
 class Theme: public QObject
 {
 Q_OBJECT
@@ -71,16 +74,17 @@ public:
     QString getDefaultImageTintColorHex();
 
     QColor getMainImageColor(QString prefix, QString alias);
-    QColor getMainImageColor(QPair<QString, QString> path);
+    QColor getMainImageColor(IconPair path);
 
-    QIcon getIcon(QPair<QString, QString> icon);
+    QIcon getIcon(IconPair icon);
     QIcon getIcon(QString prefix, QString alias);
 
 private:
-    QPixmap _getImage(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
+    QPixmap _getPixmap(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
 public:
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 
+    QString getPixmapResourceName(QString resource_name, QSize size, QColor tintColor);
     QColor getAltTextColor();
     QString getAltTextColorHex();
     void setAltTextColor(QColor color);
@@ -93,16 +97,16 @@ public:
     void setTextColor(COLOR_ROLE role, QColor color);
     void setMenuIconColor(COLOR_ROLE role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
-    void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
+    void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias);
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
     void applyTheme();
+    void forceIconReload();
     bool isValid();
 
-    bool gotImage(QPair<QString, QString> icon) const;
+    bool gotImage(IconPair icon) const;
     bool gotImage(QString, QString) const;
-
 
     QString getBorderWidth();
     QString getCornerRadius();
@@ -129,39 +133,52 @@ public:
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getLineEditStyleSheet();
+    QString getTextEditStyleSheet();
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+    QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
 signals:
     void theme_Changed();
+    void refresh_Icons();
     void changeSetting(SETTING_KEY setting, QVariant value);
     void preloadFinished();
     void _preload();
 public slots:
     void preloadImages();
     void settingChanged(SETTING_KEY setting, QVariant value);
+    void clearIconMap();
 
 private:
     void calculateImageColor(QString resourceName);
     QString getResourceName(QString prefix, QString alias) const;
-    QString getResourceName(QPair<QString, QString> icon) const;
+    QString getResourceName(IconPair icon) const;
     void resetTheme(VIEW_THEME themePreset);
     void resetAspectTheme(bool colorBlind);
-    void setupIcons();
+    void setupToggledIcons();
     void updateValid();
+
+    QImage getImage(QString resource_name);
+    QPixmap setPixmap(QString resource_name, QPixmap pixmap);
+    QColor getTintColor(QString resource_name);
+    QSize getOriginalSize(QString resource_name);
+
+    IconPair splitImagePath(QString path);
 
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
     QHash<QString, bool> imageExistsHash;
+
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
-    QHash<QString, QString> iconToggledLookup;
+
+    QHash<QString, QPair<IconPair, IconPair> > iconToggledLookup;
     QHash<QString, QImage> imageLookup;
     QHash<QString, QColor> pixmapMainColorLookup;
 
@@ -181,7 +198,10 @@ private:
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
 
+    QReadWriteLock lock;
+
     QString slash;
+    QString underscore;
 
     bool themeChanged;
 
@@ -199,7 +219,7 @@ public:
     static Theme* theme();
     static void teardownTheme();
     static QSize roundQSize(QSize size);
-    static QPair<QString, QString> getIconPair(QString prefix, QString alias);
+    static IconPair getIconPair(QString prefix, QString alias);
 private:
     static Theme* themeSingleton;
 };

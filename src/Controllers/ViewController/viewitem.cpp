@@ -1,25 +1,9 @@
 #include "viewitem.h"
 #include "viewcontroller.h"
+#include "../../ModelController/modelcontroller.h"
 
 #include <QDebug>
 #include <QStack>
-
-ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
-{
-    this->controller = controller;
-    this->ID = ID;
-    this->kind = kind;
-    this->entityKind = entityKind;
-    _data = dataList;
-    _properties = properties;
-    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
-
-    //Set the default icon.
-    defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
-    currentIcon = defaultIcon;
-    _parent = 0 ;
-    tableModel = new DataTableModel(this);
-}
 
 ViewItem::ViewItem(ViewController *controller)
 {
@@ -27,6 +11,19 @@ ViewItem::ViewItem(ViewController *controller)
     this->ID = -2;
     _parent = 0 ;
     tableModel = 0;
+}
+
+ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
+{
+    this->controller = controller;
+    this->ID = ID;
+    this->entityKind = entity_kind;
+    //Add X/Y
+    
+
+    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
+    _parent = 0 ;
+    tableModel = new DataTableModel(this);;
 }
 
 ViewItem::~ViewItem()
@@ -43,65 +40,50 @@ DataTableModel *ViewItem::getTableModel()
     return tableModel;
 }
 
-ENTITY_KIND ViewItem::getEntityKind() const
+GRAPHML_KIND ViewItem::getEntityKind() const
 {
     return entityKind;
 }
 
 bool ViewItem::isNode() const
 {
-    return getEntityKind() == EK_NODE;
+    return getEntityKind() == GRAPHML_KIND::NODE;
 }
 
 bool ViewItem::isEdge() const
 {
-    return getEntityKind() == EK_EDGE;
+    return getEntityKind() == GRAPHML_KIND::EDGE;
 }
 
-bool ViewItem::isInModel() const
+bool ViewItem::isInModel()
 {
-    if(hasProperty("inModel")){
-        return getProperty("inModel").toBool();
-    }
     return false;
-
 }
 
-QVariant ViewItem::getData(QString keyName) const
+QVariant ViewItem::getData(QString key_name) const
 {
-    if(_data.contains(keyName)){
-        return _data[keyName];
-    }
-    return QVariant();
+    return _data.value(key_name);
 }
-
-QVariant ViewItem::getProperty(QString propertyName) const
-{
-    if(_properties.contains(propertyName)){
-        return _properties[propertyName];
-    }
-    return QVariant();
-}
-
 
 QStringList ViewItem::getKeys() const
 {
-    return _data.keys();
-}
-
-QStringList ViewItem::getProperties() const
-{
-    return _properties.keys();
+    QStringList keys;
+    if(controller){
+        keys = controller->getEntityKeys(ID);
+    }
+    return keys;
 }
 
 bool ViewItem::hasData(QString keyName) const
 {
-    return _data.contains(keyName);
-}
+    bool has_local = _data.contains(keyName);
 
-bool ViewItem::hasProperty(QString propertyName) const
-{
-    return _properties.contains(propertyName);
+    if(!has_local){
+        if(getKeys().contains(keyName)){
+            return true;
+        }    
+    }
+    return has_local;
 }
 
 bool ViewItem::isDataProtected(QString keyName) const
@@ -109,7 +91,6 @@ bool ViewItem::isDataProtected(QString keyName) const
     if(isReadOnly()){
         return true;
     }else{
-
         return getProtectedKeys().contains(keyName);
     }
 }
@@ -171,7 +152,7 @@ void ViewItem::destruct()
 void ViewItem::addChild(ViewItem *child)
 {
     if(child){
-        ENTITY_KIND ek = child->getEntityKind();
+        GRAPHML_KIND ek = child->getEntityKind();
         if(!children.contains(ek, child)){
             children.insertMulti(ek, child);
             child->setParentViewItem(this);
@@ -182,7 +163,7 @@ void ViewItem::addChild(ViewItem *child)
 void ViewItem::removeChild(ViewItem *child)
 {
     if(child){
-        ENTITY_KIND ek = child->getEntityKind();
+        GRAPHML_KIND ek = child->getEntityKind();
         children.remove(ek, child);
     }
 }
@@ -225,17 +206,25 @@ void ViewItem::setParentViewItem(ViewItem *item)
 
 QStringList ViewItem::getProtectedKeys() const
 {
-    return getProperty("protectedKeys").toStringList();
+    QStringList keys;
+    if(controller){
+        keys = controller->getModelController()->getProtectedEntityKeys(ID);
+    }
+    return keys;
 }
 
-QStringList ViewItem::getValidValuesForKey(QString keyName) const
+ViewController* ViewItem::getController(){
+    return controller;
+}
+
+
+QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
 {
-    //TODO
-    QStringList data;
+    QList<QVariant> valid_values;
     if(controller){
-        data = controller->getValidValuesForKey(ID, keyName);
+        valid_values = controller->getValidValuesForKey(ID, keyName);
     }
-    return data;
+    return valid_values;
 }
 
 void ViewItem::changeData(QString keyName, QVariant data)
@@ -259,26 +248,6 @@ void ViewItem::removeData(QString keyName)
     if(_data.contains(keyName)){
         _data.remove(keyName);
         emit dataRemoved(keyName);
-    }
-}
-
-void ViewItem::changeProperty(QString propertyName, QVariant data)
-{
-    bool addedProperty = !_properties.contains(propertyName);
-    _properties[propertyName] = data;
-
-    if(addedProperty){
-        emit propertyAdded(propertyName, data);
-    }else{
-        emit propertyChanged(propertyName, data);
-    }
-}
-
-void ViewItem::removeProperty(QString propertyName)
-{
-    if(_properties.contains(propertyName)){
-        _properties.remove(propertyName);
-        emit propertyRemoved(propertyName);
     }
 }
 

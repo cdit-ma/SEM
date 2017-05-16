@@ -4,7 +4,7 @@
 #include "../entityitem.h"
 #include "../../../../Controllers/ViewController/nodeviewitem.h"
 #include "../Edge/edgeitem.h"
-
+#include "../../../../ModelController/nodekinds.h"
 class NodeItem: public EntityItem
 {
     Q_OBJECT
@@ -17,7 +17,7 @@ public:
     KIND getNodeItemKind();
     NodeViewItem* getNodeViewItem() const;
 
-    Node::NODE_KIND getNodeKind() const;
+    NODE_KIND getNodeKind() const;
 
     NODE_READ_STATE getReadState() const;
 
@@ -35,7 +35,6 @@ public:
 
     bool hasChildNodes() const;
     QList<NodeItem*> getChildNodes() const;
-    QList<NodeItem*> getOrderedChildNodes() const;
     QList<EntityItem*> getChildEntities() const;
 
     QPainterPath getChildNodePath();
@@ -133,11 +132,20 @@ public:
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
 
-    void setVisualEdgeKind(Edge::EDGE_KIND kind);
-    Edge::EDGE_KIND getVisualEdgeKind() const;
+
+    void setVisualEdgeKind(EDGE_KIND kind);
+    void setVisualNodeKind(NODE_KIND kind);
+    EDGE_KIND getVisualEdgeKind() const;
+    NODE_KIND getVisualNodeKind() const;
+
+    bool gotVisualNodeKind() const;
+    bool gotVisualEdgeKind() const;
+    bool gotVisualButton() const;
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
+    QPair<QString, QString> getSecondaryIconPath() const;
+    void setSecondaryIconPath(QPair<QString, QString> pair);
     bool gotPrimaryTextKey() const;
     bool gotSecondaryTextKey() const;
 
@@ -153,6 +161,7 @@ public:
 signals:
     //Request changes
     void req_connectMode(NodeItem* item);
+    void req_popOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
 
     void req_StartResize();
     void req_Resize(NodeItem* item, QSizeF delta, RECT_VERTEX vert);
@@ -167,8 +176,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
-    void edgeAdded(Edge::EDGE_KIND kind);
-    void edgeRemoved(Edge::EDGE_KIND kind);
+    void edgeAdded(EDGE_KIND kind);
+    void edgeRemoved(EDGE_KIND kind);
 
 
     void updateReadState();
@@ -182,8 +191,9 @@ private:
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
-    Edge::EDGE_KIND visualEdgeKind;
-    QString visualEdgeIcon;
+    NODE_KIND visualNodeKind = NODE_KIND::NONE;
+    EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
+    QString visualEntityIcon;
 
     NODE_READ_STATE readState;
 
@@ -221,6 +231,8 @@ private:
 
     QHash<int, NodeItem*> childNodes;
     QHash<int, EdgeItem*> childEdges;
+
+    QPair<QString, QString> secondary_icon;
 
     QPainterPath gridLines;
 

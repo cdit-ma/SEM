@@ -1,7 +1,7 @@
 #ifndef NOTIFICATIONMANAGER_H
 #define NOTIFICATIONMANAGER_H
 
-#include "enumerations.h"
+#include "../../enumerations.h"
 //#include "../ViewController/viewcontroller.h"
 #include "../ActionController/actioncontroller.h"
 
@@ -16,7 +16,7 @@ enum NOTIFICATION_CATEGORY{NC_NOCATEGORY, NC_FILE, NC_JENKINS, NC_DEPLOYMENT, NC
 enum NOTIFICATION_SEVERITY{NS_INFO, NS_WARNING, NS_ERROR};
 enum NOTIFICATION_FILTER{NF_NOFILTER, NF_SEVERITY, NF_TYPE, NF_CATEGORY};
 
-enum BACKGROUND_PROCESS{BP_UNKNOWN, BP_VALIDATION, BP_IMPORT_JENKINS};
+enum BACKGROUND_PROCESS{BP_UNKNOWN, BP_VALIDATION, BP_IMPORT_JENKINS, BP_RUNNING_JOB};
 
 class NotificationManager : public QObject
 {
@@ -34,6 +34,7 @@ public:
     static QString getTypeString(NOTIFICATION_TYPE2 type);
     static QString getCategoryString(NOTIFICATION_CATEGORY category);
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
+    static QString getSeverityIcon2(NOTIFICATION_SEVERITY severity);
     static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
     static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
     static QPair<QString, QString> getSeverityIcon(NOTIFICATION_SEVERITY severity);
@@ -74,7 +75,7 @@ public slots:
     void setLastNotificationItem(int ID);
     void showLastNotification();
 
-    void modelValidated(QStringList report);
+    void modelValidated(QString report);
 
 private:
     void addNotification(QString description,

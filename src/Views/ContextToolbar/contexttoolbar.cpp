@@ -1,5 +1,7 @@
 #include "contexttoolbar.h"
 
+#include "../../ModelController/entityfactory.h"
+
 #include <QDebug>
 #include <QProxyStyle>
 #include <QShortcut>
@@ -75,12 +77,9 @@ void ContextToolbar::themeChanged()
 
     mainFrame->setStyleSheet("background:" + mainBackgroundColor + "; border-radius: 6px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
-    addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
-    connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
-    disconnectAction->setIcon(theme->getIcon("Actions", "Disconnect"));
-    //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
-    //instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
-    connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
+    addChildAction->setIcon(theme->getIcon("Icons", "plus"));
+    connectAction->setIcon(theme->getIcon("Icons", "connect"));
+    disconnectAction->setIcon(theme->getIcon("Icons", "connectStriked"));
 
     //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
     //applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
@@ -161,18 +160,19 @@ void ContextToolbar::populateDynamicMenu()
     bool isConnect = senderMenu->property("connect").toBool();
     QList<NodeViewItemAction*> actions;
 
-    Edge::EDGE_KIND edgeClass = EdgeFactory::getEdgeKind(kind);
-    if (edgeClass == Edge::EC_UNDEFINED) {
-        if (kind == "WorkerProcess") {
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
+    auto node_kind = EntityFactory::getNodeKind(kind);
+    if (node_kind != NODE_KIND::NONE) {
+        if(node_kind == NODE_KIND::WORKER_PROCESS){
             actions = toolbarController->getWorkerFunctions();
-        } else {
-            actions = toolbarController->getDefinitionNodeActions(kind);
+        }else{
+            actions = toolbarController->getDefinitionNodeActions(node_kind);
         }
     } else {
         if (isConnect) {
-            actions = toolbarController->getEdgeActionsOfKind(edgeClass);
+            actions = toolbarController->getEdgeActionsOfKind(edge_kind);
         } else {
-            actions = toolbarController->getExistingEdgeActionsOfKind(edgeClass);
+            actions = toolbarController->getExistingEdgeActionsOfKind(edge_kind);
         }
     }
 
@@ -214,16 +214,24 @@ void ContextToolbar::addChildNode(QAction* action)
         return;
     }
 
-    QString kind = action->property("kind").toString();
+    QString kind_str = action->property("kind").toString();
+    QString parentKind = action->property("parent-kind").toString();
+
+
 
     int ID = action->property("ID").toInt();
-    QString parentKind = action->property("parent-kind").toString();
+
+    NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
+    if(kind == NODE_KIND::NONE){
+        kind = EntityFactory::getNodeKind(parentKind);
+    }
 
     if (ID > 0 && !parentKind.isEmpty()) {
         if (parentKind == "WorkerProcess") {
             toolbarController->addWorkerProcess(ID, itemPos);
         } else {
-            toolbarController->addConnectedChildNode(ID, parentKind, itemPos);
+
+            toolbarController->addConnectedChildNode(ID, kind, itemPos);
         }
     } else {
         toolbarController->addChildNode(kind, itemPos);
@@ -243,9 +251,9 @@ void ContextToolbar::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = EdgeFactory::getEdgeKind(kind);
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
-    toolbarController->addEdge(ID, edgeKind);
+    toolbarController->addEdge(ID, edge_kind);
 }
 
 
@@ -261,9 +269,9 @@ void ContextToolbar::removeEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = EdgeFactory::getEdgeKind(kind);
+    auto edge_kind = EntityFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
-    toolbarController->removeEdge(ID, edgeKind);
+    toolbarController->removeEdge(ID, edge_kind);
 }
 
 
@@ -297,14 +305,14 @@ void ContextToolbar::setupActions()
     connectGroup = new ActionGroup(this);
     disconnectGroup = new ActionGroup(this);
 
-    foreach (Edge::EDGE_KIND edgeKind, EdgeFactory::getEdgeKinds()) {
+    foreach (EDGE_KIND edgeKind, EntityFactory::getEdgeKinds()) {
         bool constructConnectAction = true;
         bool constructDisconnectAction = true;
         switch (edgeKind) {
-            case Edge::EC_AGGREGATE:
+            case EDGE_KIND::AGGREGATE:
                 constructDisconnectAction = false;
                 break;
-            case Edge::EC_DEFINITION:
+            case EDGE_KIND::DEFINITION:
                 constructConnectAction = false;
                 constructDisconnectAction = false;
                 break;
@@ -313,13 +321,13 @@ void ContextToolbar::setupActions()
         }
         if (constructConnectAction) {
             QAction* cAction = toolbarController->getConnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
-            cAction->setProperty("kind", EdgeFactory::getEdgeKindString(edgeKind));
+            cAction->setProperty("kind", EntityFactory::getEdgeKindString(edgeKind));
             cAction->setProperty("connect", true);
             connectGroup->addAction(cAction);
         }
         if (constructDisconnectAction) {
             QAction* dAction = toolbarController->getDisconnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
-            dAction->setProperty("kind", EdgeFactory::getEdgeKindString(edgeKind));
+            dAction->setProperty("kind", EntityFactory::getEdgeKindString(edgeKind));
             dAction->setProperty("connect", false);
             disconnectGroup->addAction(dAction);
         }
@@ -338,10 +346,10 @@ void ContextToolbar::setupActions()
     //mainGroup->addSeperator();
     //mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
-    mainGroup->addSeperator();
-    mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
-    mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
-    mainGroup->addSeperator();
+    //mainGroup->addSeperator();
+    //mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
+    //mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
+    //mainGroup->addSeperator();
     definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
     //instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
@@ -353,7 +361,7 @@ void ContextToolbar::setupActions()
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
-    connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
+    //connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_wiki->constructSubAction(true));
@@ -656,6 +664,7 @@ QAction* ContextToolbar::getInfoAction(QString hashKey)
 QList<QAction*> ContextToolbar::constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind)
 {
     QHash<NodeViewItemAction*, QList<QAction*> > parentViewItemHash;
+
     foreach (NodeViewItemAction* viewItemAction, actions) {
         NodeViewItemAction* parentViewItemAction = viewItemAction->getParentViewItemAction();
         if (parentViewItemAction) {

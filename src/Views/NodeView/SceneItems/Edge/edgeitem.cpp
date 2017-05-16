@@ -1,6 +1,7 @@
 #include "edgeitem.h"
 #include "../Node/nodeitem.h"
 #include <QDebug>
+#include <math.h>
 
 #define ARROW_SIZE 4
 EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination):EntityItem(edgeViewItem, parent, EDGE)
@@ -46,10 +47,10 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     }
 
     switch(edgeViewItem->getEdgeKind()){
-        case Edge::EC_DATA:
+        case EDGE_KIND::DATA:
             pen.setStyle(Qt::DotLine);
         break;
-        case Edge::EC_ASSEMBLY:
+        case EDGE_KIND::ASSEMBLY:
             pen.setStyle(Qt::DashLine);
         break;
     default:
@@ -63,7 +64,8 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
 
-    setDefaultZValue(Edge::EC_UNDEFINED - edgeViewItem->getEdgeKind());
+    auto z_order = (int)EDGE_KIND::NONE - (int)edgeViewItem->getEdgeKind();
+    setDefaultZValue(z_order);
 
     //When ever the center point changes we should update the curves.
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
@@ -71,6 +73,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     //Listen to the X/Y data
     addRequiredData("x");
     addRequiredData("y");
+
     reloadRequiredData();
 }
 

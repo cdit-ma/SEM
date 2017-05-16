@@ -17,6 +17,7 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 NotificationManager* NotificationManager::manager()
 {
     if (!managerSingleton) {
+        qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
         managerSingleton = new NotificationManager();
         projectRunTime->start();
     }
@@ -104,6 +105,7 @@ QList<BACKGROUND_PROCESS> NotificationManager::getBackgroundProcesses()
     processes.append(BP_UNKNOWN);
     processes.append(BP_VALIDATION);
     processes.append(BP_IMPORT_JENKINS);
+    processes.append(BP_RUNNING_JOB);
     return processes;
 }
 
@@ -225,6 +227,21 @@ QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
     }
 }
 
+QString NotificationManager::getSeverityIcon2(NOTIFICATION_SEVERITY severity)
+{
+    switch (severity) {
+    case NS_INFO:
+        return "circleInfo";
+    case NS_WARNING:
+        return "triangleCritical";
+    case NS_ERROR:
+        return "circleCritical";
+    default:
+        return "Unknown Severity";
+    }
+
+}
+
 
 /**
  * @brief NotificationManager::getSeverityColor
@@ -274,20 +291,20 @@ QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERITY severity)
 {
     QPair<QString, QString> iconPath;
-    iconPath.first = "Actions";
+    iconPath.first = "Icons";
 
     switch (severity) {
     case NS_INFO:
-        iconPath.second = "Information";
+        iconPath.second = "circleInfo";
         break;
     case NS_WARNING:
-        iconPath.second = "Warning";
+        iconPath.second = "triangleCritical";
         break;
     case NS_ERROR:
-        iconPath.second = "Error";
+        iconPath.second = "circleCritical";
         break;
     default:
-        iconPath.second = "Help";
+        iconPath.second = "circleQuestion";
         break;
     }
 
@@ -311,7 +328,7 @@ void NotificationManager::showLastNotification()
  * @brief NotificationManager::modelValidated
  * @param report
  */
-void NotificationManager::modelValidated(QStringList report)
+void NotificationManager::modelValidated(QString report)
 {
     QString status = "Failed";
     if (report.isEmpty()) {
@@ -325,7 +342,7 @@ void NotificationManager::modelValidated(QStringList report)
         emit showNotificationPanel();
         emit updateNotificationToolbarSize();
     }
-    addNotification("Model Validation " + status, "Actions", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
+    addNotification("Model Validation " + status, "Icons", "shieldTick", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
 }
 
 

@@ -1,7 +1,7 @@
 #ifndef NOTIFICATIONTOOLBAR_H
 #define NOTIFICATIONTOOLBAR_H
 
-#include "enumerations.h"
+#include "../../enumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 

@@ -29,6 +29,7 @@ public slots:
     void onActionFinished();
 
 private:
+    void resetDocks(bool ready);
     void setupLayout();
     void setupConnections();
     void setupDocks();

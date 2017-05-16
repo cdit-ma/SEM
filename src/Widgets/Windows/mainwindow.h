@@ -23,9 +23,7 @@
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 
-#include "../../Plugins/CUTS/cutsmanager.h"
-#include "../../Plugins/Jenkins/jenkinsmanager.h"
-#include "../../Plugins/XMI/xmiimporter.h"
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 
 #include "../../Widgets/Dialogs/popupwidget.h"
 #include "../../Views/Notification/notificationtoolbar.h"
@@ -95,7 +93,6 @@ private:
     void setupDockablePanels();
 
     void setupJenkinsManager();
-    void setupCUTSManager();
     void setupXMIImporter();
 
     void resizeToolWidgets();
@@ -104,12 +101,12 @@ private:
     ViewController* viewController;
 
     BaseWindow* innerWindow;
+    BaseDockWidget *jenkinsDockWidget;
     BaseDockWidget* searchDockWidget;
     BaseDockWidget* notificationDockWidget;
 
-    JenkinsManager* jenkinsManager;
-    CUTSManager* cutsManager;
-    XMIImporter* xmiImporter;
+    //CUTSManager* cutsManager;
+    //XMIImporter* xmiImporter;
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;

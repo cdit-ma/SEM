@@ -7,29 +7,39 @@
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+#include "../ExecutionManager/executionmanager.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
+
+#include "../../ModelController/kinds.h"
+#include "../../ModelController/nodekinds.h"
+#include "../../ModelController/edgekinds.h"
 
 //class NotificationManager;
 class ModelController;
 class ContextToolbar;
 class NodeView;
+class JenkinsManager;
 class ViewController : public QObject
 {
     Q_OBJECT
+
 public:
     ViewController();
     ~ViewController();
 
-    QStringList getNodeKinds();
+    void connectModelController(ModelController* c);
+
+    JenkinsManager* getJenkinsManager();
+    ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
     ToolbarController* getToolbarController();
 
     QList<ViewItem*> getWorkerFunctions();
-    QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
-    QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
+    QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -37,14 +47,19 @@ public:
 
     NodeViewDockWidget* constructNodeViewDockWidget(QString label="");
 
-    QStringList getAdoptableNodeKinds();
+    QList<NODE_KIND> getAdoptableNodeKinds2();
+    QList<NodeViewItem*> getNodeKindItems();
+    QList<EdgeViewItem*> getEdgeKindItems();
 
-    QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
 
-    QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
+    ModelController* getModelController();
 
-    QStringList getValidValuesForKey(int ID, QString keyName);
+    QList<EDGE_KIND> getValidEdgeKindsForSelection();
+
+    QList<EDGE_KIND> getExistingEdgeKindsForSelection();
+    QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
+
+    QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
@@ -58,12 +73,22 @@ public:
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
     void setController(ModelController* c);
+
+
+    bool isNodeAncestor(int ID, int ID2);
+    VIEW_ASPECT getNodeViewAspect(int ID);
+    QStringList getEntityKeys(int ID);
+    QVariant getEntityDataValue(int ID, QString key_name);
+    bool isNodeOfType(int ID, NODE_TYPE type);
+    int getNodeParentID(int ID);
 signals:
     //TO OTHER VIEWS SIGNALS
 
     void vc_showWelcomeScreen(bool);
     void vc_JenkinsReady(bool);
+    void vc_JavaReady(bool);
     void vc_controllerReady(bool);
+    void vc_ProjectLoaded(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
@@ -71,22 +96,46 @@ signals:
 
     void vc_editTableCell(int ID, QString keyName);
 
-    void mc_showProgress(bool, QString);
-    void mc_progressChanged(int);
-
-
-
-
-    void mc_modelReady(bool);
-    void mc_projectModified(bool);
-    void mc_undoRedoUpdated();
-    void vc_actionFinished();
-
     void vc_projectClosed();
+    
+    void vc_setupModel();
+        void vc_undo();
+        void vc_redo();
+        void vc_triggerAction(QString);
+        void vc_setData(int, QString, QVariant);
+        void vc_removeData(int, QString);
+        void vc_deleteEntities(QList<int> IDs);
+        void vc_cutEntities(QList<int> IDs);
+        void vc_copyEntities(QList<int> IDs);
+        void vc_paste(QList<int> IDs, QString data);
+        void vc_replicateEntities(QList<int> IDs);
+        void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
 
+        void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+        void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+        void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
+        
+        void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+        void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
+        void vc_importProjects(QStringList fileData);
+        void vc_openProject(QString fileName, QString filePath);
+        void vc_projectSaved(QString filePath);
+        void vc_projectPathChanged(QString);
+        void vc_answerQuestion(bool);
+        void vc_exportSnippet(QList<int> IDs);
+        void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
+
+        void mc_showProgress(bool, QString);
+        void mc_progressChanged(int);
+        void mc_modelReady(bool);
+        void mc_projectModified(bool);
+        void mc_undoRedoUpdated();
+
+        void vc_actionFinished();
 
     //TO CONTROLLER SIGNALS
 
+/*
     void vc_setupModel();
     void vc_undo();
     void vc_redo();
@@ -99,13 +148,13 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
 
-    void vc_executeJenkinsJob(QString filePath);
+    
 
-    void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
-    void vc_destructEdges(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
+    void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+    void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+    void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
 
-    void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
+    void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
 
 
@@ -113,12 +162,12 @@ signals:
     void vc_openProject(QString fileName, QString filePath);
 
     void vc_projectSaved(QString filePath);
-    void vc_projectPathChanged(QString);
+    void vc_projectPathChanged(QString);*/
 
     //void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c);
     //void vc_showNotification(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
     //void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
-
+    void vc_executeJenkinsJob(QString filePath);
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
@@ -135,10 +184,6 @@ signals:
 
     void vc_importXMEProject(QString xmePath, QString graphmlPath);
     void vc_importXMIProject(QString XMIPath);
-
-    void vc_answerQuestion(bool);
-    void vc_exportSnippet(QList<int> IDs);
-    void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
 
     void vc_highlightItem(int ID, bool highlight);
 
@@ -157,7 +202,6 @@ public slots:
     void showCodeViewer(QString tabName, QString content);
 
 
-    void jenkinsManager_IsBusy(bool busy);
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
     void jenkinsManager_GotJava(bool java, QString javaVersion);
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
@@ -173,13 +217,12 @@ public slots:
 
 
     void actionFinished(bool success, QString gg);
-    void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
-    void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
+
+    void model_NodeConstructed(int parent_id, int id, NODE_KIND kind);
+    void model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
+    void controller_entityDestructed(int ID, GRAPHML_KIND eKind, QString kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
     void controller_dataRemoved(int ID, QString key);
-
-    void controller_propertyChanged(int ID, QString property, QVariant data);
-    void controller_propertyRemoved(int ID, QString property);
 
     void setClipboardData(QString data);
 
@@ -196,7 +239,8 @@ public slots:
     void closeProject();
     void closeMEDEA();
 
-    void importJenkinsNodes();
+    void generateWorkspace();
+
     void executeJenkinsJob();
 
     void fitView();
@@ -241,19 +285,21 @@ public slots:
 
     void setModelReady(bool okay);
     void setControllerReady(bool ready);
-
+    void openURL(QString url);
 
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+
+    void setupEntityKindItems();
     void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
     void _showWebpage(QString URL);
     void _showWiki(ViewItem* item=0);
     QString getTempFileForModel();
-    void spawnSubView(ViewItem *item );
+    void spawnSubView(ViewItem *item);
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;
@@ -282,10 +328,13 @@ private:
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
 
-    QList<ViewItem*> getItemsOfKind(Node::NODE_KIND kind);
-    QList<ViewItem*> getItemsOfKind(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getItemsOfKind(NODE_KIND kind);
+    QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
     bool _modelReady;
 
+
+    QList<NodeViewItem*> nodeKindItems;
+    QList<EdgeViewItem*> edgeKindItems;
 
     bool _controllerReady;
 
@@ -297,8 +346,8 @@ private:
     ViewItem* getViewItem(int ID);
 
     QHash<QString, int> treeLookup;
-    QMultiMap<Node::NODE_KIND, int> nodeKindLookups;
-    QMultiMap<Edge::EDGE_KIND, int> edgeKindLookups;
+    QMultiMap<NODE_KIND, int> nodeKindLookups;
+    QMultiMap<EDGE_KIND, int> edgeKindLookups;
 
     QHash<int, ViewItem*> viewItems;
     QList<int> topLevelItems;
@@ -309,6 +358,8 @@ private:
     SelectionController* selectionController;
     ActionController* actionController;
     ToolbarController* toolbarController;
+    ExecutionManager* execution_manager;
+    JenkinsManager* jenkins_manager;
 
     ContextToolbar* toolbar;
     ModelController* controller;

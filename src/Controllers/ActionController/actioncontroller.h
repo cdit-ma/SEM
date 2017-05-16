@@ -41,6 +41,7 @@ private slots:
     void updateRecentProjects(QString filePath);
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
+    void gotJava(bool java);
     void selectionChanged(int selectionSize);
     void actionFinished();
 
@@ -93,14 +94,14 @@ public:
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
     RootAction* file_importGraphML;
-    RootAction* file_importXME;
-    RootAction* file_importXMI;
+    //RootAction* file_importXME;
+    //RootAction* file_importXMI;
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
     RootAction* file_closeProject;
-    RootAction* file_importSnippet;
-    RootAction* file_exportSnippet;
+    //RootAction* file_importSnippet;
+    //RootAction* file_exportSnippet;
     RootAction* file_exit;
 
     RootAction* edit_undo;
@@ -111,7 +112,7 @@ public:
     RootAction* edit_replicate;
     RootAction* edit_delete;
     RootAction* edit_search;
-    RootAction* edit_sort;
+    //RootAction* edit_sort;
     RootAction* edit_clearSelection;
     RootAction* edit_selectAll;
     RootAction* edit_alignHorizontal;
@@ -138,7 +139,8 @@ public:
     RootAction* model_validateModel;
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
-    RootAction* model_executeLocalJob;
+    RootAction* model_generateModelWorkspace;
+    //RootAction* model_executeLocalJob;
 
     RootAction* options_settings;
 
@@ -152,14 +154,10 @@ public:
     RootAction* jenkins_executeJob;
 
 
-
-
     RootAction* toolbar_contextToolbar;
 
     RootAction* toolbar_addChild;
     RootAction* toolbar_connect;
-    RootAction* toolbar_hardware;
-    RootAction* toolbar_disconnectHardware;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
     RootAction* toolbar_setReadOnly;
@@ -176,6 +174,7 @@ public:
     bool _controllerReady;
     bool _modelReady;
     bool _jenkinsValidated;
+    bool _gotJava;
 
     QMenu* menu_file;
     QMenu* menu_file_recentProjects;

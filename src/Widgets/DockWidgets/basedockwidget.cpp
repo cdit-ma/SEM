@@ -148,7 +148,7 @@ void BaseDockWidget::setIcon(QString prefix, QString alias)
     if(titleBar){
         titleIcon.first = prefix;
         titleIcon.second = alias;
-        titleBar->setIcon(Theme::theme()->getImage(prefix, alias, QSize(16,16)));
+        titleBar->setIcon(Theme::theme()->getIcon(prefix, alias).pixmap(16,16));
         emit iconChanged();
     }
 

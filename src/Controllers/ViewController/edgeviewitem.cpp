@@ -2,7 +2,7 @@
 #include "nodeviewitem.h"
 
 
-EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src, NodeViewItem *dst, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, EK_EDGE, kind, data, properties)
+EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::EDGE)
 {
     sID = -1;
     dID = -1;
@@ -16,10 +16,18 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
         this->dID = dst->getID();
     }
 
-    edgeKind = Edge::EC_NONE;
-    if(properties.contains("kind")){
-        edgeKind = (Edge::EDGE_KIND) properties["kind"].toInt();
+    edgeKind = kind;
+}
+
+bool EdgeViewItem::isInModel(){
+    if(source && destination){
+        return source->isInModel() && destination->isInModel();
     }
+    return false;
+}
+EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind): ViewItem(controller)
+{
+    edgeKind = kind;
 }
 
 EdgeViewItem::~EdgeViewItem()
@@ -27,7 +35,7 @@ EdgeViewItem::~EdgeViewItem()
     disconnectEdge();
 }
 
-Edge::EDGE_KIND EdgeViewItem::getEdgeKind() const
+EDGE_KIND EdgeViewItem::getEdgeKind() const
 {
     return edgeKind;
 }

@@ -22,13 +22,14 @@ public:
     static QString getTempFileName(QString suffix);
     static QString sanitizeFilePath(QString filePath);
 
+    static bool ensureDirectory(QString path);
+    static bool removeDirectory(QString path);
 public:
     static FileHandler* getFileHandler();
 private:
 
     static void _notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName);
 
-    static bool ensureDirectory(QString path);
 
     static QString getTimestamp();
 

@@ -82,12 +82,9 @@ private:
     QAction* addChildAction;
     QAction* connectAction;
     QAction* disconnectAction;
-    QAction* hardwareAction;
-    QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
     //QAction* instancesAction;
-    QAction* connectionsAction;
     QAction* hardwareViewOptionAction;
 
     //QAction* replicateCountAction;

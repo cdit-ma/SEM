@@ -148,7 +148,7 @@ public:
     void setData(QString keyName, QVariant value);
     QVariant getData(QString keyName) const;
 
-    QVariant getProperty(QString propertyName) const;
+    // QVa/riant getProperty(QString propertyName) const;
     bool hasData(QString keyName) const;
 
     qreal getDefaultZValue() const;

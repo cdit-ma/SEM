@@ -2,27 +2,29 @@
 #define EDGEVIEWITEM_H
 
 #include "viewitem.h"
-#include "../../Model/edge.h"
+#include "../../ModelController/edgekinds.h"
 
 class NodeViewItem;
 class EdgeViewItem: public ViewItem
 {
     Q_OBJECT
 public:
-    EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
+    EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind);
+    EdgeViewItem(ViewController* controller, EDGE_KIND kind);
     ~EdgeViewItem();
 
-    Edge::EDGE_KIND getEdgeKind() const;
+    EDGE_KIND getEdgeKind() const;
     NodeViewItem* getSource();
     NodeViewItem* getDestination();
     NodeViewItem* getParentItem();
     int getSourceID();
     int getDestinationID();
     void disconnectEdge();
+    bool isInModel();
 private:
     NodeViewItem* source;
     NodeViewItem* destination;
-    Edge::EDGE_KIND edgeKind;
+    EDGE_KIND edgeKind;
 
     int sID;
     int dID;

@@ -8,6 +8,7 @@
 #include "../../Controllers/SettingsController/settingscontroller.h"
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
+#include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 
 #include "../../theme.h"
 
@@ -33,17 +34,12 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-
     initializeApplication();
-
-    jenkinsManager = 0;
-    cutsManager = 0;
     viewController = vc;
 
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
-    setupCUTSManager();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
@@ -103,8 +99,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
  */
 MainWindow::~MainWindow()
 {
-    cutsManager->deleteLater();
-
     saveSettings();
 
     SettingsController::teardownSettings();
@@ -124,7 +118,7 @@ void MainWindow::setViewController(ViewController *vc)
     ActionController* actionController = vc->getActionController();
 
     connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
-    connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
+    //connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
@@ -182,17 +176,19 @@ void MainWindow::searchEntered()
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
     notificationPopup->hide();
+
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
         notificationLabel->setText(description);
         QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
         if (pixmap.isNull()) {
-            pixmap = Theme::theme()->getIcon("Actions", "Information").pixmap(QSize(32,32));
+            pixmap = Theme::theme()->getIcon("Icons", "circleInfo").pixmap(QSize(32,32));
         }
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
         moveWidget(notificationPopup, 0, Qt::AlignBottom);
+
         notificationPopup->show();
         notificationPopup->raise();
         notificationTimer->start(5000);
@@ -317,7 +313,7 @@ void MainWindow::themeChanged()
     searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     searchToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
-    searchButton->setIcon(theme->getIcon("Actions", "Search"));
+    searchButton->setIcon(theme->getIcon("Icons", "zoom"));
 
     progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
@@ -326,8 +322,8 @@ void MainWindow::themeChanged()
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
-    restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
-    restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
+    restoreToolsButton->setIcon(theme->getIcon("Icons", "spanner"));
+    restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     minimap->setStyleSheet(theme->getNodeViewStyleSheet());
 }
@@ -456,10 +452,10 @@ void MainWindow::initializeApplication()
 
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
-    QApplication::setApplicationVersion(APP_VERSION);
+    QApplication::setApplicationVersion(APP_VERSION());
     QApplication::setOrganizationName("CDIT-MA");
     QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
-    QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+    QApplication::setWindowIcon(Theme::theme()->getIcon("Icons", "medeaLogo"));
 
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
@@ -575,47 +571,41 @@ void MainWindow::setupInnerWindow()
     setCentralWidget(innerWindow);
 
     //Construct dockWidgets.
-    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interface");
+    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
     NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
 
-    BaseDockWidget *dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
-    dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
-
     //Set each NodeView with there contained aspects
-    dwInterfaces->getNodeView()->setContainedViewAspect(VA_INTERFACES);
-    dwBehaviour->getNodeView()->setContainedViewAspect(VA_BEHAVIOUR);
-    dwAssemblies->getNodeView()->setContainedViewAspect(VA_ASSEMBLIES);
-    dwHardware->getNodeView()->setContainedViewAspect(VA_HARDWARE);
+    dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
+    dwBehaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
+    dwAssemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
+    dwHardware->getNodeView()->setContainedViewAspect(VIEW_ASPECT::HARDWARE);
 
     //Set allowed areas
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
-    dwInterfaces->setIcon("Items", "InterfaceDefinitions");
-    dwBehaviour->setIcon("Items", "BehaviourDefinitions");
-    dwAssemblies->setIcon("Items", "AssemblyDefinitions");
-    dwHardware->setIcon("Items", "HardwareDefinitions");
-    dwQOSBrowser->setIcon("Items", "QOSProfile");
+    dwInterfaces->setIcon("EntityIcons", "InterfaceDefinitions");
+    dwBehaviour->setIcon("EntityIcons", "BehaviourDefinitions");
+    dwAssemblies->setIcon("EntityIcons", "AssemblyDefinitions");
+    dwHardware->setIcon("EntityIcons", "HardwareDefinitions");
+
 
     //Set Icon Visibility
     dwInterfaces->setIconVisible(false);
     dwBehaviour->setIconVisible(false);
     dwAssemblies->setIconVisible(false);
     dwHardware->setIconVisible(false);
-    dwQOSBrowser->setIconVisible(true);
 
     //Protected from deletion
     dwInterfaces->setProtected(true);
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
-    dwQOSBrowser->setProtected(true);
 
     SettingsController* s = SettingsController::settings();
 
@@ -624,13 +614,11 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwQOSBrowser,  s->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
@@ -932,27 +920,80 @@ void MainWindow::setupMenuCornerWidget()
  */
 void MainWindow::setupDockablePanels()
 {
+    auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
+    dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
+    //dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
+    dwQOSBrowser->setIconVisible(true);
+    dwQOSBrowser->setProtected(true);
+
     searchPanel = new SearchDialog(this);
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
-    searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    searchDockWidget->setIcon("Actions", "Search_Icon");
+    searchDockWidget->setIcon("Icons", "zoom");
+    //searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
 
     notificationPanel = new NotificationDialog(this);
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
-    notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    notificationDockWidget->setIcon("Actions", "Notification");
+
+    //notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    notificationDockWidget->setIcon("Icons", "exclamation");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
+
+    jenkinsDockWidget = WindowManager::constructViewDockWidget("Jenkins");
+    jenkinsDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    jenkinsDockWidget->setIcon("Icons", "jenkins");
+    jenkinsDockWidget->setIconVisible(true);
+    jenkinsDockWidget->setProtected(true);
+
+
+
+    dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
+
+    // add tool dock widgets to the inner window
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, jenkinsDockWidget);
 
     // initially hide tool dock widgets
+    innerWindow->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
+    innerWindow->setDockWidgetVisibility(jenkinsDockWidget, false);
+    innerWindow->tabifyDockWidget(searchDockWidget, notificationDockWidget);
+
+    /**
+     * Initially have the search and notification panels and the QoS browser in a separate window
+     * NOTE: Need to add the dock widget to the inner window first before reparenting it so that it's protected from deletion
+     */
+    /*
+    BaseWindow* bw = WindowManager::constructSubWindow("Tool Dock Widgets");
+    bw->setWindowTitle("Sub Window #" + QString::number(bw->getID() - 2));
+
+    // remove tool dock widgets from the inner window
+    innerWindow->removeDockWidget(dwQOSBrowser);
+    innerWindow->removeDockWidget(searchDockWidget);
+    innerWindow->removeDockWidget(notificationDockWidget);
+
+    // reparent dock widgets
+    bw->addDockWidget(Qt::LeftDockWidgetArea, searchDockWidget);
+    bw->addDockWidget(Qt::LeftDockWidgetArea, notificationDockWidget);
+    bw->tabifyDockWidget(searchDockWidget, notificationDockWidget);
+    bw->addDockWidget(Qt::RightDockWidgetArea, dwQOSBrowser);
+
+    bw->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
+    bw->setDockWidgetVisibility(searchDockWidget, true);
+    bw->setDockWidgetVisibility(notificationDockWidget, true);
+
+    bw->show();
+    */
+
+
 
     if (viewController) {
         connect(viewController, &ViewController::vc_setupModel, searchPanel, &SearchDialog::resetPanel);
@@ -996,49 +1037,12 @@ void MainWindow::setupViewManager()
  */
 void MainWindow::setupJenkinsManager()
 {
-    if(!jenkinsManager){
-        jenkinsManager = new JenkinsManager(this);
-        connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
-        connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
-
-
-        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
-
-        connect(jenkinsManager, &JenkinsManager::gotJenkinsNodeGraphml, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
-        connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
-
-        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
-
-        jenkinsManager->validateSettings();
-    }
+    auto jenkinsManager = viewController->getJenkinsManager();
+    auto jmw = jenkinsManager->GetJobMonitorWidget();
+    jenkinsDockWidget->setWidget(jmw);
+    connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
 }
 
-
-/**
- * @brief MedeaMainWindow::setupCUTSManager
- */
-void MainWindow::setupCUTSManager()
-{
-    if(!cutsManager ){
-        cutsManager  = new CUTSManager();
-        xmiImporter = new XMIImporter(cutsManager, this);
-
-        //connect(cutsManager, &CUTSManager::localDeploymentOkay, viewController, &ViewController::cutsManager_DeploymentOkay);
-        connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
-        connect(viewController, &ViewController::vc_importXMEProject, cutsManager, &CUTSManager::executeXMETransform);
-
-        connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
-        connect(viewController, &ViewController::vc_launchLocalDeployment, cutsManager, &CUTSManager::showLocalDeploymentGUI, Qt::DirectConnection);
-
-        connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
-        connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
-        connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
-
-        connect(viewController, &ViewController::vc_importXMIProject, xmiImporter, &XMIImporter::importXMI);
-        connect(xmiImporter, &XMIImporter::loadingStatus, this, &MainWindow::showProgressBar);
-        connect(xmiImporter, &XMIImporter::gotXMIGraphML, viewController, &ViewController::importGraphMLExtract);
-    }
-}
 
 
 /**
@@ -1066,10 +1070,12 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
     QWidget* cw = parentWidget;
     QPointF widgetPos;
     if (cw == 0) {
+        //Check for active Window
         cw = QApplication::activeWindow();
-        if (!cw->isWindowType()) {
+        //Check
+        if (!cw || !cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
-            qDebug() << "NOT A WINDOW - " << cw;
+            //qDebug() << "NOT A WINDOW - " << cw;
         }
     }
     if (cw == innerWindow) {

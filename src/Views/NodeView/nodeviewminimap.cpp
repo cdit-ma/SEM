@@ -3,7 +3,7 @@
 #include <QMouseEvent>
 #include <QPen>
 #include <QDebug>
-#include "theme.h"
+#include "../../theme.h"
 #include <QTimer>
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
@@ -25,7 +25,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
-    zoomPixmap = Theme::theme()->getImage("Actions", "Search", QSize(16, 16), Qt::white);
+    zoomPixmap = Theme::theme()->getImage("Icons", "zoom", QSize(16, 16), Qt::white);
 }
 
 void NodeViewMinimap::centerView()

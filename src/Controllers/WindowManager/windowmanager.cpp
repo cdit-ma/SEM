@@ -296,6 +296,20 @@ QList<NodeViewDockWidget *> WindowManager::getNodeViewDockWidgets()
     return views;
 }
 
+NodeViewDockWidget *WindowManager::getNodeViewDockWidget(ViewItem *item)
+{
+    foreach(ViewDockWidget* dock, getViewDockWidgets()){
+        if(dock->isNodeViewDock()){
+            auto viewDock = (NodeViewDockWidget*) dock;
+
+            if(viewDock->getNodeView()->getContainedViewItem() == item){
+                return viewDock;
+            }
+        }
+    }
+    return 0;
+}
+
 void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
 {
     showPopOutDialog(dockWidget);
@@ -537,7 +551,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topLayout->addWidget(titleLabel, 1);
     topLayout->addWidget(topToolbar);
 
-    QAction* cancelAction = topToolbar->addAction(theme->getIcon("Actions", "Close"), "Cancel");
+    QAction* cancelAction = topToolbar->addAction(theme->getIcon("icons", "cross"), "Cancel");
 
     QWidget* toolbarContainer = new QWidget(widget);
     toolbarContainer->setMaximumWidth(1220);
@@ -605,7 +619,7 @@ QAction *WindowManager::constructPopOutWindowAction(QSignalMapper *mapper, BaseW
         action->setText(text);
         wID = window->getID();
     }else{
-        QPixmap image = Theme::theme()->getImage("Actions", "MEDEA");
+        QPixmap image = Theme::theme()->getImage("Icons", "medeaLogo");
         action->setIcon(QIcon(image.scaledToHeight(100)));
         action->setText("New Window");
     }

@@ -45,7 +45,7 @@ void ViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
 
 void ViewWindow::themeChanged()
 {
-    resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
+    resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Icons", "maximize"));
 }
 
 void ViewWindow::resetDockWidgets()

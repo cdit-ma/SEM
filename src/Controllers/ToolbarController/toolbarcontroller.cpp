@@ -2,13 +2,25 @@
 #include "../ViewController/viewcontroller.h"
 #include "../ViewController/nodeviewitem.h"
 #include "../SelectionController/selectioncontroller.h"
+#include "../../ModelController/entityfactory.h"
 #include "../../Utils/rootaction.h"
 
 #include <QDebug>
 
 ToolbarController::ToolbarController(ViewController *viewController):QObject(viewController)
 {
-    interfaceKinds << "BlackBox" << "Component" << "Aggregate" << "Vector" << "InEventPort" << "OutEventPort";
+    //Set the kind of edge that each of these nodes require
+    connectedNodeEdgeKinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
+
+    connectedNodeEdgeKinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+    connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
 
     kindsWithSubActions << "BlackBoxInstance" << "ComponentInstance" << "ComponentImpl";
     kindsWithSubActions << "AggregateInstance" << "VectorInstance" << "InEventPort";
@@ -40,8 +52,7 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     setupEdgeActions();
 
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(Theme::theme(), SIGNAL(preloadFinished()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), SIGNAL(refresh_Icons()), this, SLOT(themeChanged()));
 
     connect(selectionController, &SelectionController::selectionChanged, this, &ToolbarController::selectionChanged);
 
@@ -49,13 +60,17 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     connect(viewController, &ViewController::vc_actionFinished, this, &ToolbarController::actionFinished);
     connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolbarController::viewItem_Constructed);
     connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolbarController::viewItem_Destructed);
+
+
+    themeChanged();
 }
 
-QList<NodeViewItemAction *> ToolbarController::getDefinitionNodeActions(QString kind)
+QList<NodeViewItemAction *> ToolbarController::getDefinitionNodeActions(NODE_KIND node_kind)
 {
     QList<NodeViewItemAction*> list;
 
-    foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
+    auto edge_kind = getNodesEdgeKind(node_kind);
+    foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(node_kind, edge_kind)){
         NodeViewItemAction* action = getNodeViewItemAction(item->getID());
         if(action){
             list.append(action);
@@ -89,10 +104,10 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
 
         NodeViewItem* node = (NodeViewItem*)viewItem;
 
-        //VIEW_ASPECT aspect = node->getViewAspect();
-
         if(!actions.contains(ID)){
             NodeViewItemAction* action = new NodeViewItemAction(node);
+            viewController->getActionController()->updateIcon(action, Theme::theme());
+
 
             if(node->getParentItem() && node->getParentItem()->isNode()){
 
@@ -114,12 +129,17 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 actions[ID] = action;
                 actionGroup->addAction(action);
 
-                if (node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
+                if (node->getNodeKind() == NODE_KIND::HARDWARE_NODE || node->getNodeKind() == NODE_KIND::HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
-                } else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
-                    workerProcessIDs.append(ID);
-                    emit workerProcessCreated(ID);
+                }else if(node->getViewAspect() == VIEW_ASPECT::WORKERS){
+                    if(node->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+                        
+                        //emit workerProcessCreated(ID);
+                    }else if(node->getNodeKind() == NODE_KIND::WORKLOAD){
+                        //emit workerWorkloadCreated(ID);
+                    }
+                    //workerProcessIDs.append(ID);
                 }
             }
         }
@@ -146,24 +166,24 @@ void ToolbarController::viewItem_Destructed(int ID, ViewItem *)
 
 void ToolbarController::selectionChanged(int selected)
 {
-    QStringList validActions;
-
-    if(selected == 1){
-        validActions = viewController->getAdoptableNodeKinds();
+    
+    //Get the valid list of things to enable disable
+    QList<NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
+    QList<EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
+    QList<EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
+    //Disable the
+    foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
+        NodeViewItemAction* nodeAction = (NodeViewItemAction*) action;
+        auto kind = nodeAction->getNodeKind();
+        action->setEnabled(validNodes.contains(kind));
     }
 
-    foreach(QAction* action, adoptableKindsGroup->actions()){
-        action->setEnabled(validActions.contains(action->text()));
-    }
-
-    QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
-    QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
-
-    foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
+    foreach(EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
         RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
     }
-    foreach(Edge::EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
+
+    foreach(EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
         RootAction* action = disconnectEdgeKindActions[edgeKind];
         action->setEnabled(existingEdges.contains(edgeKind));
     }
@@ -176,17 +196,20 @@ void ToolbarController::actionFinished()
     }
 }
 
-void ToolbarController::addChildNode(QString kind, QPointF position)
+void ToolbarController::addChildNode(NODE_KIND kind, QPointF position)
 {
     ViewItem* item = selectionController->getActiveSelectedItem();
 
     if(item){
         int ID = item->getID();
+        //if()
+        //Expand!
+        emit viewController->vc_setData(ID, "isExpanded", true);
         emit viewController->vc_constructNode(ID, kind, position);
     }
 }
 
-void ToolbarController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
+void ToolbarController::addEdge(int dstID, EDGE_KIND edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
@@ -194,7 +217,7 @@ void ToolbarController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
-void ToolbarController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
+void ToolbarController::removeEdge(int dstID, EDGE_KIND edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
@@ -202,11 +225,20 @@ void ToolbarController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
-void ToolbarController::addConnectedChildNode(int dstID, QString kind, QPointF position)
+void ToolbarController::removeAllEdges(EDGE_KIND edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        emit viewController->vc_destructAllEdges(IDs, edgeKind);
+    }
+}
+
+void ToolbarController::addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
-        emit viewController->vc_constructConnectedNode(ID, kind,dstID, Edge::EC_UNDEFINED, position);
+        EDGE_KIND edge_kind = getNodesEdgeKind(kind);
+        emit viewController->vc_constructConnectedNode(ID, kind, dstID, edge_kind, position);
     }
 }
 
@@ -216,6 +248,11 @@ void ToolbarController::addWorkerProcess(int processID, QPointF position)
     if(ID != -1){
         emit viewController->vc_constructWorkerProcess(ID, processID, position);
     }
+}
+
+bool ToolbarController::requiresSubAction(NODE_KIND kind)
+{
+    return false;
 }
 
 void ToolbarController::actionHoverEnter(int ID)
@@ -230,23 +267,23 @@ void ToolbarController::actionHoverLeave(int ID)
 
 void ToolbarController::setupToolActions()
 {
-    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
-    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Icons", "screen");
+    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Icons", "screenStriked");
 
     // setup menu info actions here
-    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Actions", "Information");
-    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Actions", "Information");
-    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Actions", "Information");
-    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Actions", "Information");
-    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Actions", "Information");
-    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Actions", "Information");
-    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Actions", "Information");
-    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Actions", "Information");
-    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Actions", "Information");
-    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Actions", "Information");
+    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Icons", "circleInfo");
+    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Icons", "circleInfo");
+    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Icons", "circleInfo");
+    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Icons", "circleInfo");
 }
 
-QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
+QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
 
@@ -258,7 +295,7 @@ QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(Edge::EDGE_K
     return list;
 }
 
-QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
+QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
     foreach(ViewItem* item, viewController->getExistingEdgeEndPointsForSelection(kind)){
@@ -269,7 +306,7 @@ QList<NodeViewItemAction *> ToolbarController::getExistingEdgeActionsOfKind(Edge
     return list;
 }
 
-RootAction *ToolbarController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+RootAction *ToolbarController::getConnectEdgeActionOfKind(EDGE_KIND kind)
 {
     if(connectEdgeKindActions.contains(kind)){
         return connectEdgeKindActions[kind];
@@ -277,7 +314,7 @@ RootAction *ToolbarController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
     return 0;
 }
 
-RootAction *ToolbarController::getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+RootAction *ToolbarController::getDisconnectEdgeActionOfKind(EDGE_KIND kind)
 {
     if(disconnectEdgeKindActions.contains(kind)){
         return disconnectEdgeKindActions[kind];
@@ -340,7 +377,6 @@ void ToolbarController::themeChanged()
     foreach (RootAction* action, disconnectEdgeKindActions.values()) {
         viewController->getActionController()->updateIcon(action, theme);
     }
-
 }
 
 QStringList ToolbarController::getKindsRequiringSubActions()
@@ -348,28 +384,39 @@ QStringList ToolbarController::getKindsRequiringSubActions()
     return kindsWithSubActions;
 }
 
+EDGE_KIND ToolbarController::getNodesEdgeKind(NODE_KIND kind){
+    if(connectedNodeEdgeKinds.contains(kind)){
+        return connectedNodeEdgeKinds[kind];
+    }
+    return EDGE_KIND::NONE;
+}
 /**
  * @brief ToolActionController::setupNodeActions
  * Construct a RootAction for each node kind in the ViewController, it hashes them and puts them in adoptableKindsGroup
  */
 void ToolbarController::setupNodeActions()
 {
-    foreach(QString kind, viewController->getNodeKinds()){
-        RootAction* action = new RootAction("Node", kind);
-        action->setIconPath("Items", kind);
-        nodeKindActions[kind]= action;
+    auto theme = Theme::theme();
+    foreach(auto node, viewController->getNodeKindItems()){
+        auto nodeKind = node->getNodeKind();
+
+        NodeViewItemAction* action = new NodeViewItemAction(node);
+        viewController->getActionController()->updateIcon(action, theme);
+
+
+        nodeKindActions[nodeKind]= action;
         adoptableKindsGroup->addAction(action);
     }
 }
 
 void ToolbarController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_KIND kind, EdgeFactory::getEdgeKinds()){
-        QString edgeKind = EdgeFactory::getEdgeKindString(kind);
+    foreach(EDGE_KIND kind, EntityFactory::getEdgeKinds()){
+        QString edgeKind = EntityFactory::getEdgeKindString(kind);
         RootAction* connectAction = new RootAction("Edge", edgeKind);
         RootAction* disconnectAction = new RootAction("Edge", edgeKind);
-        connectAction->setIconPath("Items", edgeKind);
-        disconnectAction->setIconPath("Items", edgeKind);
+        connectAction->setIconPath("EntityIcons", edgeKind);
+        disconnectAction->setIconPath("EntityIcons", edgeKind);
         connectEdgeKindActions[kind] = connectAction;
         disconnectEdgeKindActions[kind] = disconnectAction;
     }

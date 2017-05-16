@@ -47,8 +47,8 @@ void NotificationToolbar::themeChanged()
     //defaultIcon = theme->getIcon("Actions", "Exclamation");
     //notificationIcon = theme->getIcon(lastNotification.iconPath, lastNotification.iconName);
 
-    defaultIcon = theme->getIcon("Actions", "Timer");
-    notificationIcon = theme->getIcon("Actions", "Exclamation");
+    defaultIcon = theme->getIcon("Icons", "clock");
+    notificationIcon = theme->getIcon("Icons", "exclamation");
     updateButtonIcon();
 }
 

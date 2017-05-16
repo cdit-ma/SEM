@@ -1,6 +1,6 @@
 #include "nodeviewitemaction.h"
 #include "../../theme.h"
-
+#include "../../ModelController/nodekinds.h"
 NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem", "")
 {
     nodeViewItem = item;
@@ -11,11 +11,11 @@ NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem"
         this->setToolTip(nodeViewItem->getData("description").toString());
     }
 
-    connect(nodeViewItem, SIGNAL(iconChanged()), this, SLOT(iconChanged()));
-    connect(nodeViewItem, SIGNAL(labelChanged(QString)), this, SLOT(labelChanged(QString)));
+    connect(nodeViewItem, SIGNAL(iconChanged()), this, SLOT(_iconChanged()));
+    connect(nodeViewItem, SIGNAL(labelChanged(QString)), this, SLOT(_labelChanged(QString)));
 
-    iconChanged();
-    labelChanged(nodeViewItem->getData("label").toString());
+    _iconChanged();
+    _labelChanged(nodeViewItem->getData("label").toString());
 
     parentViewItemAction = 0;
 }
@@ -52,6 +52,14 @@ QString NodeViewItemAction::getKind()
     return "";
 }
 
+NODE_KIND NodeViewItemAction::getNodeKind()
+{
+    if(nodeViewItem){
+        return nodeViewItem->getNodeKind();
+    }
+    return NODE_KIND::NONE;
+}
+
 QString NodeViewItemAction::getLabel()
 {
     if (nodeViewItem) {
@@ -65,13 +73,13 @@ NodeViewItem *NodeViewItemAction::getNodeViewItem()
     return nodeViewItem;
 }
 
-void NodeViewItemAction::iconChanged()
+void NodeViewItemAction::_iconChanged()
 {
-    //Update the icon.
-    setIcon(Theme::theme()->getIcon(nodeViewItem->getIcon()));
+    auto pair = nodeViewItem->getIcon();
+    setIconPath(pair.first, pair.second);
 }
 
-void NodeViewItemAction::labelChanged(QString label)
+void NodeViewItemAction::_labelChanged(QString label)
 {
     setText(label);
 }

@@ -6,8 +6,8 @@
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
 
-#include "../../Model/edgefactory.h"
-#include "../../Model/nodefactory.h"
+#include "../../ModelController/kinds.h"
+
 
 //Forward declaration.
 class ViewController;
@@ -18,24 +18,21 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
-    ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ViewItem(ViewController* controller);
+    ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind);
     ~ViewItem();
 
     DataTableModel* getTableModel();
 
     int getID() const;
-    ENTITY_KIND getEntityKind() const;
+    GRAPHML_KIND getEntityKind() const;
     bool isNode() const;
     bool isEdge() const;
-    bool isInModel() const;
+    virtual bool isInModel();
 
     QVariant getData(QString keyName) const;
-    QVariant getProperty(QString propertyName) const;
     QStringList getKeys() const;
-    QStringList getProperties() const;
     bool hasData(QString keyName) const;
-    bool hasProperty(QString propertyName) const;
 
     bool isDataProtected(QString keyName) const;
     bool isDataVisual(QString keyName) const;
@@ -57,7 +54,7 @@ public:
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
 
-    QStringList getValidValuesForKey(QString keyName) const;
+    QList<QVariant> getValidValuesForKey(QString keyName) const;
 signals:
     void labelChanged(QString label);
     void iconChanged();
@@ -71,29 +68,26 @@ signals:
     void propertyRemoved(QString propertyName);
 
     void destructing(int ID);
-private:
+protected:
     QStringList getProtectedKeys() const;
     void changeData(QString keyName, QVariant data);
     void removeData(QString keyName);
 
-    void changeProperty(QString propertyName, QVariant data);
-    void removeProperty(QString propertyName);
-
+    ViewController* getController();
 private:
     void destruct();
 
 private:
     ViewItem* _parent;
     DataTableModel* tableModel;
-    QMultiMap<ENTITY_KIND, ViewItem*> children;
+    QMultiMap<GRAPHML_KIND, ViewItem*> children;
     ViewController* controller;
 
     QHash<QString, QVariant> _data;
-    QHash<QString, QVariant> _properties;
 
     int ID;
     QString kind;
-    ENTITY_KIND entityKind;
+    GRAPHML_KIND entityKind;
 
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;

@@ -414,10 +414,6 @@ QPixmap EntityItem::getPixmap(QString imageAlias, QString imageName, QSize requi
 {
     Theme* theme = Theme::theme();
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
-//    if(image.isNull()){
-        //Return a default ? Icon
-//        image = theme->getImage("Actions", "Help", requiredSize, tintColor);
-//    }
     return image;
 }
 
@@ -470,9 +466,11 @@ QStringList EntityItem::getRequiredDataKeys()
 void EntityItem::reloadRequiredData()
 {
     foreach(QString keyName, requiredDataKeys){
-        QVariant dataValue = viewItem->getData(keyName);
-        if(!dataValue.isNull()){
-            dataChanged(keyName, dataValue);
+        if(viewItem->hasData(keyName)){
+            QVariant dataValue = viewItem->getData(keyName);
+            if(!dataValue.isNull()){
+                dataChanged(keyName, dataValue);
+            }
         }
     }
 }
@@ -600,10 +598,6 @@ QVariant EntityItem::getData(QString keyName) const
     return viewItem->getData(keyName);
 }
 
-QVariant EntityItem::getProperty(QString propertyName) const
-{
-    return viewItem->getProperty(propertyName);
-}
 
 bool EntityItem::hasData(QString keyName) const
 {
@@ -872,7 +866,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, lod, ER_TERTIARY_ICON, tertiaryIconPath);
         }
         if(isReadOnly()){
-            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Icons", "lockClosed");
         }
     }
 }

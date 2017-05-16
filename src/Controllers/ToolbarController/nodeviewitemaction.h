@@ -15,14 +15,15 @@ public:
 
     int getID();
     QString getKind();
+    NODE_KIND getNodeKind();
     QString getLabel();
 
     NodeViewItem* getNodeViewItem();
 
 
 private slots:
-    void iconChanged();
-    void labelChanged(QString label);
+    void _labelChanged(QString label);
+    void _iconChanged();
 private:
     NodeViewItem* nodeViewItem;
     NodeViewItemAction* parentViewItemAction;

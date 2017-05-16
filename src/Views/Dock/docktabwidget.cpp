@@ -2,6 +2,8 @@
 #include "dockwidgetactionitem.h"
 #include "dockwidgetparentactionitem.h"
 
+
+#include "../../ModelController/entityfactory.h"
 #include "../../Controllers/ToolbarController/nodeviewitemaction.h"
 #include "../../Utils/rootaction.h"
 #include "../../theme.h"
@@ -58,12 +60,12 @@ void DockTabWidget::themeChanged()
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
     QIcon partIcon;
-    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor()));
-    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
 
     QIcon hardwareIcon;
-    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor()));
-    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
 
     partsButton->setIcon(partIcon);
     hardwareButton->setIcon(hardwareIcon);
@@ -136,15 +138,17 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
                 openRequiredDock(definitionsDock);
             }
         } else {
-            toolActionController->addChildNode(triggeredAdoptableKind, QPoint(0,0));
+            NODE_KIND kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
+            toolActionController->addChildNode(kind, QPoint(0,0));
         }
         break;
     }
     case ToolbarController::DEFINITIONS:
     {
-        QVariant ID = action->getProperty("ID");
-        QVariant parentKind = action->getProperty("parent-kind");
-        toolActionController->addConnectedChildNode(ID.toInt(), parentKind.toString(), QPointF());
+        auto id = action->getProperty("ID").toInt();
+        auto kind_str = action->getProperty("parent-kind").toString();
+        NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
+        toolActionController->addConnectedChildNode(id, kind, QPointF());
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;
@@ -160,10 +164,12 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     case ToolbarController::HARDWARE:
     {
         int ID = action->getProperty("ID").toInt();
-        toolActionController->removeEdge(-1, Edge::EC_DEPLOYMENT);
+
+        //Disconnect all deployement edges from selection
+        toolActionController->removeAllEdges(EDGE_KIND::DEPLOYMENT);
 
         if(!action->isHighlighted()){
-            toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
+            toolActionController->addEdge(ID, EDGE_KIND::DEPLOYMENT);
         }
         break;
     }
@@ -278,9 +284,23 @@ void DockTabWidget::initialiseDocks()
         partsDock->addItem(dockItem);
     }
 
-    // get functions list from controller then populate the functions dock
+    // populate the functions dock - get functions list from controller
     QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-    populateDock(functionsDock, actions, true);
+    if (!actions.isEmpty()) {
+        functionsDock->displayInfoLabel(false);
+        populateDock(functionsDock, actions, true);
+    }
+}
+
+void DockTabWidget::resetDocks(bool ready){
+    if(ready){
+        // populate the functions dock - get functions list from controller
+        QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+        if (!actions.isEmpty()) {
+            functionsDock->displayInfoLabel(false);
+            populateDock(functionsDock, actions, true);
+        }
+    }
 }
 
 
@@ -292,6 +312,8 @@ void DockTabWidget::setupConnections()
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(viewController, SIGNAL(vc_actionFinished()), this, SLOT(onActionFinished()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
+
+    connect(viewController, &ViewController::vc_ProjectLoaded, this, &DockTabWidget::resetDocks);
 
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
@@ -306,8 +328,10 @@ void DockTabWidget::setupConnections()
 
     connect(toolActionController, SIGNAL(hardwareCreated(int)), hardwareDock, SLOT(viewItemConstructed(int)));
     connect(toolActionController, SIGNAL(hardwareDestructed(int)), hardwareDock, SLOT(viewItemDestructed(int)));
-    //connect(toolActionController, SIGNAL(workerProcessCreated(int)), functionsDock, SLOT(viewItemConstructed(int)));
-    //connect(toolActionController, SIGNAL(workerProcessDestructed(int)), functionsDock, SLOT(viewItemDestructed(int)));
+
+    connect(toolActionController, SIGNAL(workerProcessCreated(int)), functionsDock, SLOT(viewItemConstructed(int)));
+    connect(toolActionController, SIGNAL(workerWorkloadCreated(int)), functionsDock, SLOT(viewItemGroupConstructed(int)));
+    connect(toolActionController, SIGNAL(workerProcessDestructed(int)), functionsDock, SLOT(viewItemDestructed(int)));
 }
 
 
@@ -332,27 +356,34 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
             isDefinitionsDock = true;
+            NODE_KIND node_kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
             // get definitions list from controller
-            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
+            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(node_kind);
             populateDock(dockWidget, actions, true);
-            showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::FUNCTIONS:
         {
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            showInfoLabel = dockWidget->isEmpty();
+            if (dockWidget->isEmpty()) {
+                // get functions list from controller then populate the functions dock
+                QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+                populateDock(dockWidget, actions, true);
+            }
             break;
         }
         case ToolbarController::HARDWARE:
         {
-            showInfoLabel = dockWidget->isEmpty();
             refreshDock(hardwareDock);
             break;
         }
         default:
             break;
+        }
+
+        if (dockType != ToolbarController::PARTS) {
+            showInfoLabel = dockWidget->isEmpty();
         }
 
         // if the dock is empty, show its information label
@@ -441,7 +472,7 @@ void DockTabWidget::refreshDock(DockWidget* dockWidget)
         }
     } else {
         // update hardware dock; update highlighted dock item
-        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
+        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(EDGE_KIND::DEPLOYMENT);
         // clear previous highlighted item
         hardwareDock->highlightItem();
         if (connectedHardwareItems.count() == 1) {

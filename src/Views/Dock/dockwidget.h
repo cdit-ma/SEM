@@ -41,6 +41,7 @@ public slots:
     void highlightItem(int ID = -1);
 
     void viewItemConstructed(int ID);
+    void viewItemGroupConstructed(int ID);
     void viewItemDestructed(int ID);
 
 private:
