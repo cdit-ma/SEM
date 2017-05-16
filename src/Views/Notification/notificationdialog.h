@@ -64,7 +64,7 @@ public slots:
 private slots:
     void themeChanged();
 
-    //void filterMenuTriggered(QAction* action);
+    void filterMenuTriggered(QAction* action);
     void filterToggled(bool checked);
 
     void updateSelection(NotificationItem* item, bool selected, bool controlDown);

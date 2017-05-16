@@ -35,6 +35,7 @@ public:
     static QString getCategoryString(NOTIFICATION_CATEGORY category);
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
     static QString getSeverityIcon2(NOTIFICATION_SEVERITY severity);
+    static QString getCategoryIcon(NOTIFICATION_CATEGORY category);
     static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
     static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
     static QPair<QString, QString> getSeverityIcon(NOTIFICATION_SEVERITY severity);

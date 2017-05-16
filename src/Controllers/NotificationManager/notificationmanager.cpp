@@ -231,16 +231,34 @@ QString NotificationManager::getSeverityIcon2(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
     case NS_INFO:
-        return "circleInfo";
+        return "circleInfoDark";
     case NS_WARNING:
         return "triangleCritical";
     case NS_ERROR:
-        return "circleCritical";
+        return "circleCrossDark";
     default:
         return "Unknown Severity";
     }
 
 }
+
+QString NotificationManager::getCategoryIcon(NOTIFICATION_CATEGORY category)
+{
+    switch (category) {
+    case NC_DEPLOYMENT:
+        return "screen";
+    case NC_JENKINS:
+        return "jenkins";
+    case NC_FILE:
+        return "file";
+    case NC_VALIDATION:
+        return "shieldTick";
+    default:
+        return "tiles";
+    }
+
+}
+
 
 
 /**

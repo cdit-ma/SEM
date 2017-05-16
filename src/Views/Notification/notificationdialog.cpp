@@ -51,6 +51,48 @@ NotificationDialog::NotificationDialog(QWidget *parent)
 
 
 /**
+ * @brief NotificationDialog::filterMenuTriggered
+ * This is called when an action in the filter menu is triggered.
+ * It adds/removes filters from the filter panel.
+ * @param action
+ */
+void NotificationDialog::filterMenuTriggered(QAction* action)
+{
+    ITEM_ROLES role = (ITEM_ROLES) action->property(ROLE).toInt();
+    int index = indexMap.value(role, -1);
+    if (index == -1) {
+        return;
+    }
+
+    ActionGroup* group = actionGroups.value(index, 0);
+    QAction* separator = groupSeparators.value(index, 0);
+    QList<QAction*> groupActions;
+
+    // show/hide filter group
+    bool show = action->isChecked();
+    if (group) {
+        group->setVisible(show);
+        groupActions = group->actions();
+    }
+    if (separator) {
+        separator->setVisible(show);
+    }
+
+    // if a filter button/action is hidden, un-check it
+    if (!show) {
+        foreach (QAction* action, groupActions) {
+            if (checkedFilterActions.contains(action)) {
+                QToolButton* button = filterButtonHash.value(action, 0);
+                if (button) {
+                    button->click();
+                }
+            }
+        }
+    }
+}
+
+
+/**
  * @brief NotificationDialog::filterToggled
  * This slot is called when any of the filter buttons has been clicked/triggered.
  * @param checked
@@ -728,7 +770,7 @@ void NotificationDialog::setupLayout()
     filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
     filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
     filtersMenu->addAction("Scope")->setProperty(ROLE, IR_TYPE);
-    //connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
+    connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
     // initially check all of the filter groups in the menu
     foreach (QAction* action, filtersMenu->actions()) {
@@ -840,9 +882,9 @@ void NotificationDialog::setupLayout()
         constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Icons", iconName);
         severityCheckedStates[severity] = false;
     }
-    foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
-        //constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Data", "severity");
-        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Icons", "circleRadio");
+    foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()){
+        QString iconName = NotificationManager::getCategoryIcon(category);
+        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Icons", iconName);
         categoryCheckedStates[category] = false;
     }
     foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
@@ -994,6 +1036,7 @@ void NotificationDialog::setupBackgroundProcessItems()
  */
 QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITEM_ROLES role, int roleVal, QString label, QString iconPath, QString iconName, bool addToGroup)
 {
+    /*
     QToolButton* button = new QToolButton(this);
     button->setText(label);
     button->setProperty("iconPath", iconPath);
@@ -1004,8 +1047,9 @@ QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITE
     button->setChecked(false);
     filterButtonHash[new QAction(this)] = button;
     return 0;
+    */
 
-    /*
+    //*
     ActionGroup* group = 0;
 
     if (addToGroup) {
@@ -1060,7 +1104,8 @@ QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITE
     connect(action, SIGNAL(triggered(bool)), this, SLOT(filterToggled(bool)));
     connect(action, SIGNAL(triggered(bool)), button, SLOT(setChecked(bool)));
 
-    return action;*/
+    return action;
+    //*/
 }
 
 
