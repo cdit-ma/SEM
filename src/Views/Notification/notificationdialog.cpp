@@ -581,6 +581,7 @@ void NotificationDialog::initialisePanel()
     } else {
         NotificationManager::manager()->notificationSeen();
     }
+    //Update the count of number of notifications in each severity
     updateSeverityActions(NotificationManager::getNotificationSeverities());
 }
 
