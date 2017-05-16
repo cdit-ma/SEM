@@ -28,8 +28,10 @@ ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QStri
 
     //Start the program
     process.start(program, args);
-
-    while(true){
+    //Try and start
+    bool started = process.waitForStarted();
+    while(started){
+        //If started
         if(process.state() != QProcess::NotRunning){
             bool cancelled = false;
             //Construct a wait loop

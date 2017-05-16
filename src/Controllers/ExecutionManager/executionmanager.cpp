@@ -158,7 +158,7 @@ QStringList ExecutionManager::GetMiddlewareArgs()
 bool ExecutionManager::GotJava_()
 {
     if(!got_java_){
-        QString program = "java";
+        QString program = "javaasd";
         QStringList args;
         args << "-version";
 
