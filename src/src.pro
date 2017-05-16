@@ -186,7 +186,7 @@ HEADERS += \
 
 
 SOURCES += \
-	Controllers/ActionController/actioncontroller.cpp \
+        Controllers/ActionController/actioncontroller.cpp \
 	Controllers/SelectionController/selectioncontroller.cpp \
 	Controllers/SelectionController/selectionhandler.cpp \
 	Controllers/ToolbarController/nodeviewitemaction.cpp \

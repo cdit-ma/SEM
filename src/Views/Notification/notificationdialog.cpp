@@ -46,7 +46,7 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     initialisePanel();
     updateSelectionBasedButtons();
 
-    test();
+    //test();
 }
 
 
