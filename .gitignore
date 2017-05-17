@@ -2,4 +2,5 @@ build
 .vscode
 lib
 bin
+.sql
 
