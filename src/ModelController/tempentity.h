@@ -19,15 +19,20 @@ public:
     ~TempEntity();
     void setLineNumber(int lineNumber);
 
+    QList<TempEntity*> getChildren();
     void setResetPosition();
     bool shouldConstruct();
     bool ignoreConstruct();
     void setIgnoreConstruction(bool ignore=true);
+    void setIgnoreVisuals(bool ignore=true);
+    bool ignoreVisuals();
     bool isTop();
 
     int getRetryCount();
     void incrementRetryCount();
     void resetIncrementCount();
+
+    void addChild(TempEntity* child);
 
     void setSource(Node* src);
     void setDestination(Node* dst);
@@ -46,6 +51,7 @@ public:
     bool hasEdgeKind();
 
     QVariant getData(QString key);
+    bool gotData(QString key);
 
     TempEntity* getParentEntity();
     void setParentID(QString ID);
@@ -87,6 +93,8 @@ public:
 
 
 private:
+    QList<TempEntity*> children;
+
     ReadOnlyState readOnlyState;
     int lineNumber;
     TempEntity* parent;

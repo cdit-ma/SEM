@@ -26,6 +26,18 @@ TempEntity::TempEntity(GRAPHML_KIND entityKind, TempEntity *parent)
 
     retryCount = 0;
     this->entityKind = entityKind;
+    if(parent){
+        parent->addChild(this);
+    }
+}
+
+
+void TempEntity::addChild(TempEntity* child){
+    children.push_back(child);
+}
+
+QList<TempEntity*> TempEntity::getChildren(){
+    return children;
 }
 
 TempEntity::~TempEntity()
@@ -218,6 +230,15 @@ QVariant TempEntity::getData(QString key){
         }
     }
     return val;
+}
+
+bool TempEntity::gotData(QString key){
+    for(auto data: dataList){
+        if(data->getKeyName() == key){
+            return true;
+        }
+    }
+    return false;
 }
 
 void TempEntity::addData(Data *data)

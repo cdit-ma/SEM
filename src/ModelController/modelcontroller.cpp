@@ -92,26 +92,12 @@ ModelController::ModelController() :QObject(0)
     actionCount = 0;
     currentAction = "";
 
+    visual_keynames << "x" << "y" << "width" <<  "height" << "isExpanded";
+
 
     
     nonSnippetableKinds << NODE_KIND::OUTEVENTPORT_IMPL << NODE_KIND::INEVENTPORT_IMPL;
 }
-/*
-void ModelController::connectViewController(ViewController *view)
-{
-    
-}
-
-void ModelController::disconnectViewController(ViewController *view)
-{
-
-    view->disconnect(this);
-    this->disconnect(view);
-    emit initiateTeardown();
-}
-*/
-
-
 
 void ModelController::setupController()
 {
@@ -406,7 +392,11 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
             if(dataValue == -1){
                 return;
             }
+        }else if(keyName == "uuid"){
+            //Update the UUID Map
+            uuid_hash_[dataValue.toString()] = action.parentID;
         }
+
         parent->setDataValue(keyName, dataValue);
         
         action.Data.newValue = parent->getDataValue(keyName);
@@ -948,7 +938,23 @@ void ModelController::remove(QList<int> IDs)
 
 void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    lock_.lockForWrite();
+    QWriteLocker lock(&lock_);
+
+    //Get the timestamp
+    auto timestamp = getTimeStampEpoch();
+
+    
+    //Construct a list of Nodes to be snippeted
+    foreach(Entity* entity, getOrderedSelection(IDs)){
+        qCritical() << "Setting: " << entity->toString();
+        //Export time should be an integer
+        _attachData(entity, "export_time", timestamp, false);
+        _attachData(entity, "uuid", "", false);
+    }
+}
+/*
+
+
     Key* readOnlyKey = entity_factory->GetKey("readOnly", QVariant::Bool);
 
 
@@ -995,7 +1001,7 @@ void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
     }
     lock_.unlock();
     emit controller_ActionFinished(true);
-}
+}*/
 
 /**
  * @brief NewController::clear
@@ -1873,11 +1879,23 @@ void ModelController::storeEntity(Entity* item)
         if(entityKind == GRAPHML_KIND::NODE){
             node = (Node*)item;
             node_ids_.append(ID);
+
+
+
         }else if(entityKind == GRAPHML_KIND::EDGE){
             edge = (Edge*)item;
             edge_ids_.append(ID);
         }
 
+        if(item->gotData("uuid")){
+            auto uuid = item->getDataValue("uuid").toString();
+            int uuid_id = uuid_hash_.value(uuid, -1);
+            if(uuid_id == -1){
+                uuid_hash_[uuid] = ID;
+            }else{
+                qCritical() << node->toString() << " Has CONFLICT " << uuid;
+            }
+        }
         //Connect things!
         connect(item, &Entity::dataChanged, this, &ModelController::dataChanged);
         connect(item, &Entity::dataRemoved, this, &ModelController::dataRemoved);
@@ -1926,6 +1944,15 @@ Edge* ModelController::getEdge(int ID){
 }
 
 
+Entity* ModelController::getEntityByUUID(QString uuid){
+    Entity* entity = 0;
+    if(uuid_hash_.contains(uuid)){
+        auto id = uuid_hash_[uuid];
+        entity = getEntity(id);
+    }
+    return entity;
+}
+
 
 void ModelController::removeEntity(int ID)
 {
@@ -1936,6 +1963,15 @@ void ModelController::removeEntity(int ID)
 
             GRAPHML_KIND ek = item->getGraphMLKind();
             emit entityDestructed(ID, ek, "");
+
+            //Remove UUID
+            if(item->gotData("uuid")){
+                auto uuid = item->getDataValue("uuid").toString();
+
+                if(uuid_hash_.contains(uuid)){
+                    uuid_hash_.remove(uuid);
+                }
+            }
         }
     }
 
@@ -1948,6 +1984,8 @@ void ModelController::removeEntity(int ID)
         reverseReadOnlyLookup.remove(ID);
         readOnlyLookup.remove(originalID);
     }
+
+    
 
     entity_hash_.remove(ID);
 
@@ -2644,6 +2682,7 @@ void ModelController::setupModel()
     localhostNode->setDataValue("os", QSysInfo::productType());
     localhostNode->setDataValue("os_version", QSysInfo::productVersion());
     localhostNode->setDataValue("arch", QSysInfo::currentCpuArchitecture());
+    localhostNode->setDataValue("uuid", "localhost");
 
     //Protect the nodes
     protectedNodes << model;
@@ -3470,6 +3509,17 @@ Node *ModelController::getSingleNode(QList<int> IDs)
     return 0;
 
 }
+bool ModelController::isDataVisual(Data* data){
+    if(data){
+        return isKeyNameVisual(data->getKeyName());
+    }else{
+        return false;
+    }
+}
+
+bool ModelController::isKeyNameVisual(QString key_name){
+    return visual_keynames.contains(key_name);
+}
 
 bool ModelController::_newImportGraphML(QString document, Node *parent)
 {
@@ -3620,13 +3670,8 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
 
-                    //bool addData = key->getName() != "index";
-
-                    //if(addData){
                     Data* data = new Data(key, dataValue);
                     currentEntity->addData(data);
-                    //}else{
-                    //}
                 }
             }
         }
@@ -3639,85 +3684,62 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         }
     }
 
-    //Stores a list of all read only node states which are in the imported documents.
-    QList<ReadOnlyState> toImportReadOnlyStates;
+    QList<int> to_remove;
+    
+    //On Import, handle UUID duplication
+    if(IMPORTING_PROJECT){
+        for(auto ID : nodeIDStack){
+            auto entity = entityHash[ID];
+            if(entity && entity->gotData("uuid")){
+                auto uuid = entity->getData("uuid").toString();
 
-    //Stores a list of Node IDs which are Read-Only.
-    QList<int> existingReadOnlyIDs;
+                //If we have a uuid, we should set the entity as read-only
+                if(!entity->gotData("readOnly")){
+                    auto key = entity_factory->GetKey("readOnly", QVariant::Bool);
+                    auto data = new Data(key, true);
+                    entity->addData(data);
+                }
 
-    //Store a list of readOnlyStates which have been asked about.
-    QList<ReadOnlyState> olderSnippetsImported;
+                //Lookup the entity in the 
+                auto matched_entity = getEntityByUUID(uuid);
+                if(matched_entity){
+                    //Set the entity to use this.
+                    entity->setActualID(matched_entity->getID());
 
-    //Deal with read only objects first.
-    foreach(QString ID, nodeIDStack){
-        TempEntity *entity = entityHash[ID];
-        if(entity && entity->gotReadOnlyState()){
-            ReadOnlyState state = entity->getReadOnlyState();
-
-            //Check for existance of the read only items.
-            if(readOnlyHash.containsKey(state)){
-                int nodeID = readOnlyHash.value(state);
-                Node* node = getNode(nodeID);
-                if(node){
-                    ReadOnlyState oldState = getReadOnlyState(node);
-                    //If the current state is newer than the historic document, ask the user.
-                    if(state.isOlder(oldState)){
-                        bool askQ = true;
-                        bool importOlder = true;
-
-                        //Check to see if we have asked the question before.
-                        foreach(ReadOnlyState oState, olderSnippetsImported){
-                            if(state.isSimilar(oState)){
-                                askQ = false;
-                                importOlder = oState.imported;
-                                break;
+                    if(matched_entity->isNode()){
+                        auto matched_node = (Node*) matched_entity;
+                        
+                        //Create a list of all required uuids this entity we are loading requires
+                        QStringList required_uuids;
+                        for(auto child : entity->getChildren()){
+                            required_uuids << child->getData("uuid").toString();
+                        }
+                        
+                        //Take the data from the entity, to prune out the data we don't need
+                        for(auto data : entity->takeDataList()){
+                            if(isDataVisual(data)){
+                                delete data;
+                            }else{
+                                //Re-add back to the tempEntity
+                                entity->addData(data);
                             }
                         }
 
-                        if(askQ){
-                            importOlder = askQuestion("Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
-                            state.imported = importOlder;
-                            olderSnippetsImported << state;
+                        //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
+                        for(auto child : matched_node->getChildren(0)){
+                            auto child_uuid = child->getDataValue("uuid").toString();
+                            if(!required_uuids.contains(child_uuid)){
+                                to_remove.push_back(child->getID());
+                            }
                         }
-                        if(!importOlder){
-                            //Ignore construction.
-                            entity->setIgnoreConstruction(true);
-                            entityHash.remove(ID);
-                            continue;
-                        }
-                    }
-                }
-                existingReadOnlyIDs << readOnlyHash.value(state);
-            }
-            toImportReadOnlyStates.append(state);
-        }
-    }
-
-    
-    QList<int> nodeIDsToRemove;
-
-    //Go through each existing read-only nodes and remove the nodes which aren't in the list of toImportReadOnlyStates
-    foreach(int ID, existingReadOnlyIDs){
-        Node* node = getNode(ID);
-        if(node){
-            Node* parentNode = node->getParentNode();
-            //If the parent Node is a read-only node, go through its children.
-            if(parentNode && parentNode->isReadOnly()){
-                foreach(Node* child, parentNode->getChildren()){
-                    ReadOnlyState state = getReadOnlyState(child);
-
-                    //If we don't have to import this read-only state, we should remove it.
-                    if(!toImportReadOnlyStates.contains(state)){
-                        int childID = child->getID();
-                        nodeIDsToRemove.append(childID);
                     }
                 }
             }
         }
     }
 
-    //Remove the items we don't need anymore
-    _remove(nodeIDsToRemove, false);
+     //Remove the items we don't need anymore
+    _remove(to_remove, false);
 
     float totalEntities = entityHash.size();
     float entitiesMade = 0;
@@ -3726,117 +3748,79 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         emit showProgress(true, "Constructing Nodes");
     }
 
-
-
-    
-    //Now construct all Nodes.
-    while(!nodeIDStack.isEmpty()){
-        //Get the String ID of the node.
-        QString ID = nodeIDStack.takeFirst();
-        TempEntity *entity = entityHash[ID];
-
+    //Construct all nodes
+    for(auto ID : nodeIDStack){
         if(updateProgressNotification()){
             emit progressChanged((entitiesMade * 100) / totalEntities);
         }
 
+        auto entity = entityHash[ID];
         entitiesMade ++;
-
+        int node_id = -1;
         if(entity && entity->isNode() && entity->shouldConstruct()){
-            //Check the read only state.
-            ReadOnlyState readOnlyState = entity->getReadOnlyState();
+            auto parent_entity = entity->getParentEntity();
 
-            int nodeID = -1;
-
-            //If we have a read-only node, and we have already got a copy of the read-only state
-            if(readOnlyState.isValid() && readOnlyHash.containsKey(readOnlyState)){
-                //Update the actual ID of the item.
-                nodeID = readOnlyHash.value(readOnlyState);
-
-                //Update the data of the node to match what was imported.
-                Node* node = getNode(nodeID);
-                if(node){
-                    //Update Data.
-                    //TODO Check to see if all datas were added, if not delete them.
-                    _attachData(node, entity->takeDataList());
+            //Check if our parent_entity exists
+            if(parent_entity && parent_entity->gotActualID()){
+                auto parent_node = getNode(parent_entity->getActualID());
+                
+                NODE_KIND parent_kind = parent_node->getNodeKind();
+                NODE_KIND kind = entity_factory->getNodeKind(entity->getKind());
+                
+                Node* node = 0;
+                
+                //Don't attach model information for anything but Open
+                if(!OPENING_PROJECT && kind == NODE_KIND::MODEL){
+                    node = model;
+                    entity->clearData();
+                }else if(entity->gotActualID()){
+                    //if we already have a node, use it
+                    node = getNode(entity->getActualID());
                 }
-            }
 
-            //If we haven't seen this node, we need to construct it.
-            if(nodeID == -1){
-                TempEntity* parentEntity = entity->getParentEntity();
+                if(!node){
+                    //Construct a new node if we haven't got one yet. This will attach default data
+                    node = construct_node(parent_node, kind);
+                }
 
-                //If we have a parentEntity and it represents a preconstructed Node
-                if(parentEntity && parentEntity->gotActualID()){
-                    //Get the parentNode
-                    Node* parentNode = getNode(parentEntity->getActualID());
-                    
-                    NODE_KIND kind = entity_factory->getNodeKind(entity->getKind());
-                    Node* newNode = 0;
+                //If construction, or getting found a node, attach data 
+                if(node){
+                    //If we aren't the Model, check if we have a parent_node
+                    bool got_parent = node->getParentNode() || kind == NODE_KIND::MODEL;
 
-                        //Don't attach model information for anything but Open
-                    if(!OPENING_PROJECT && kind == NODE_KIND::MODEL){
-                        newNode = model;
-                        //Ignore the construction.
-                        entity->setIgnoreConstruction();
-                    }else if(kind == NODE_KIND::HARDWARE_NODE || kind == NODE_KIND::HARDWARE_CLUSTER){
-                        //If we have a url, use it to check for an existing node/cluster
-                        auto url = entity->getData("url").toString();
-                        newNode = get_hardware_by_url(parentNode, kind, url);
+                    if(!got_parent){
+                        //If it's not got a parent, set it.
+                        got_parent = attachChildNode(parent_node, node);
                     }
 
-                    if(!newNode){
-                        //Construct a new node if we haven't got one yet. This will attach default data
-                        newNode = construct_node(parentNode, kind);
-                    }
-
-                    //If construction worked, attach data 
-                    if(newNode){
-                        bool got_parent = kind == NODE_KIND::MODEL || newNode->getParentNode() == parentNode;
-
-                        if(!got_parent){
-                            //If it's not already in the model, attach to parent
-                            got_parent = attachChildNode(parentNode, newNode);
+                    if(got_parent){
+                        auto node_id = node->getID();
+                        
+                        if(linkPreviousID && entity->hasPrevID()){
+                            //Link the old ID
+                            link_ids(entity->getPrevID(), node_id);
                         }
 
-                        if(got_parent){
-                            //Get the nodeID
-                            nodeID = newNode->getID();
-                            if(linkPreviousID && entity->hasPrevID()){
-                                //Link the old ID
-                                link_ids(entity->getPrevID(), nodeID);
-                            }
-
-                            //set the required ddata
-                            auto data_list = entity->takeDataList();
-                            _attachData(newNode, data_list);
-
-                            //if(set_parent){
-                            //    constructNodeGUI(newNode);
-                            //}
-                        }
+                        //Attach the data
+                        _attachData(node, entity->takeDataList());
                     }else{
                         QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
                         qCritical() << message;
-                        entity->setIgnoreConstruction();
-                        continue;
+                        
+                        
+                        //Destroy!
+                        entity_factory->destructNode(node);
+                        node = 0;
                     }
                 }
-            }
 
-            //If we have a valid
-            if(readOnlyState.isValid()){
-                //Add a lookup into the readOnlyHash for this item.
-                if(!readOnlyHash.containsKey(readOnlyState)){
-                    readOnlyHash.insert(readOnlyState, nodeID);
+                if(node && !entity->gotActualID()){
+                    entity->setActualID(node->getID());
                 }
-            }
-
-            //if we have an ID which isn't yet attached to entity, update the Entity so children nodes can attach to this newly constructed node.
-            if(!entity->gotActualID() && nodeID > 0){
-                entity->setActualID(nodeID);
             }
         }
     }
+
 
 
     QMultiMap<int, TempEntity*> edgesMap;

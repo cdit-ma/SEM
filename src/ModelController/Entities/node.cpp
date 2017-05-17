@@ -50,6 +50,7 @@ Node::Node(EntityFactory* factory, NODE_KIND kind, QString kind_string):Entity(G
     RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
     RegisterDefaultData(factory, kind, "label", QVariant::String, false, kind_string);
     RegisterDefaultData(factory, kind, "index", QVariant::Int, true, -1);
+    
 }
 
 QString Node::toGraphML(int indentDepth)
@@ -425,6 +426,16 @@ bool Node::addChild(Node *child)
     if(child && !containsChild(child) && canAdoptChild(child)){
         children << child;
         child->setParentNode(this, childCount++);
+
+
+        if(gotData("uuid")){
+            auto data = getData("uuid");
+            auto key = data->getKey();
+            if(!child->gotData("uuid")){
+                auto child_data = new Data(key);
+                child->addData(child_data);
+            }
+        }
         emit childCountChanged();
         return true;
     }

@@ -117,7 +117,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.cpp
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/exportidkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
 )
 
 set(HEADERS

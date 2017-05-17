@@ -727,6 +727,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::IDL:
+            case NODE_KIND::SHARED_DATATYPES:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             case NODE_KIND::COMPONENT:

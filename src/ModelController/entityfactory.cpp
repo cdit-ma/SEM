@@ -1,11 +1,15 @@
 #include "entityfactory.h"
+
+#include <QDebug>
+
+
 #include "Entities/key.h"
 #include "Entities/data.h"
 
+//Keys
 #include "Entities/Keys/labelkey.h"
 #include "Entities/Keys/indexkey.h"
-#include <QDebug>
-
+#include "Entities/Keys/exportidkey.h"
 
 //Model Includes
 
@@ -75,6 +79,8 @@
 
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
+#include "Entities/InterfaceDefinitions/shareddatatypes.h"
+
 
 //QOS Elements
 #include "Entities/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h"
@@ -354,6 +360,7 @@ EntityFactory::EntityFactory()
 
     //Elements
     IDL(this);
+    SharedDatatypes(this);
 
     //Edges
     DefinitionEdge(this);
@@ -498,6 +505,8 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new LabelKey();
         }else if(key_name == "index"){
             key = new IndexKey();    
+        }else if(key_name == "uuid"){
+            key = new ExportIDKey();
         }else{
             key = new Key(key_name, type);
         }

@@ -299,7 +299,7 @@ public slots:
     void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
     void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
 
-
+    
     //Clipboard functionality
     void cut(QList<int> IDs);
     void copy(QList<int> IDs);
@@ -343,6 +343,10 @@ public slots:
     void _projectNameChanged();
 
 private:
+    bool isDataVisual(Data* data);
+    bool isKeyNameVisual(QString key_name);
+
+
     Node* construct_setter_node(Node* parent);
     Node* construct_dds_profile_node(Node* parent);
     Node* construct_for_condition_node(Node* parent);
@@ -521,6 +525,8 @@ private:
     QHash<int, int> id_hash_;
     QHash<int, Entity*> entity_hash_;
 
+    QHash<QString, int> uuid_hash_;
+
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QList<int> node_ids_;
     QList<int> edge_ids_;
@@ -567,6 +573,11 @@ private:
     int previousUndos;
 
     QString externalWorkerDefPath;
+
+    QStringList visual_keynames;
+
+
+    Entity* getEntityByUUID(QString uuid);
 
     //QList<int> connectedLinkedIDs;
 
