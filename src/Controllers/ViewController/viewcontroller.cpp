@@ -67,6 +67,8 @@ ViewController::ViewController() : QObject(){
 }
 
 void ViewController::connectModelController(ModelController* c){
+
+    qCritical() << c->thread() << " VS :" << thread();
     connect(controller, &ModelController::NodeConstructed, this, &ViewController::model_NodeConstructed);
     connect(controller, &ModelController::EdgeConstructed, this, &ViewController::model_EdgeConstructed);
     connect(controller, &ModelController::entityDestructed, this, &ViewController::controller_entityDestructed);

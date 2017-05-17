@@ -362,6 +362,27 @@ int ModelController::GetEdgeOrderIndex(EDGE_KIND kind){
     }
 }
 
+QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
+    QList<EDGE_KIND> indices;
+
+    indices << EDGE_KIND::DEFINITION;
+    indices << EDGE_KIND::AGGREGATE;
+    indices << EDGE_KIND::WORKFLOW;
+    indices << EDGE_KIND::DATA;
+    indices << EDGE_KIND::QOS;
+    indices << EDGE_KIND::ASSEMBLY;
+    indices << EDGE_KIND::DEPLOYMENT;
+
+    for(auto kind : entity_factory->getEdgeKinds()){
+        if(!indices.contains(kind)){
+            qCritical() << "Edge Kind: " << entity_factory->getEdgeKindString(kind) << "Not ordered";
+            indices << kind;
+        }
+    }
+    return indices;
+}
+
+
 
 void ModelController::_setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
 {
@@ -2603,7 +2624,7 @@ QList<EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node *dst)
 {
     QList<EDGE_KIND> edgeKinds;
 
-    foreach(EDGE_KIND edgeClass, entity_factory->getEdgeKinds()){
+    foreach(EDGE_KIND edgeClass, GetEdgeOrderIndexes()){
         if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass) && src->requiresEdgeKind(edgeClass)){
             edgeKinds << edgeClass;
         }
@@ -3524,61 +3545,33 @@ bool ModelController::isKeyNameVisual(QString key_name){
 bool ModelController::_newImportGraphML(QString document, Node *parent)
 {
     //Lookup for key's ID to Key* object
-    QHash <QString, Key*> keyHash;
+    QHash <QString, Key*> key_hash;
 
-    //Stacks to store the NodeIDs and EdgeIDs from the document.
-    QList<QString> nodeIDStack;
-    QList<QString> edgeIDStack;
+    QStack<QString> node_ids;
+    QStack<QString> edge_ids;
 
-    //Hash to store the TempEntities constructed from the document.
-    QHash <QString, TempEntity*> entityHash;
+    QHash<QString, TempEntity*> entity_hash;
 
-    //Use the Model as the parent if none provided.
     if(!parent){
         //Set parent as Model item.
         parent = model;
     }
 
-    if(!parent){
-        //If we still don't have a parent. Return
-        return false;
-    }
-
-    if(parent->isInstance() || parent->isImpl()){
-        if(!(UNDOING || REDOING)){
-            QString message =  "Cannot import/paste into an Instance.";
-            //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
-            return false;
-        }
-    }
-
     if(!isGraphMLValid(document)){
-        QString message =  "Invalid GraphML Project";
-        //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
+        emit controller_Notification("GraphML is invalid!");
         return false;
     }
+
+    int error_count = 0;
 
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
+    bool link_id = false;           //UNDOING || REDOING) || CUT_USED){
+    bool reset_position = false;    //(PASTE_USED && !CUT_USED) || IMPORTING_WORKERDEFINITIONS
 
-    bool linkPreviousID = false;
-    bool resetPosition = false;
-
-    if((UNDOING || REDOING) || CUT_USED){
-        linkPreviousID = true;
-    }
-
-    if((PASTE_USED && !CUT_USED) || IMPORTING_WORKERDEFINITIONS){
-        resetPosition = true;
-    }
-
-    //Construct a top level Entity
-    TempEntity* topEntity = new TempEntity(GRAPHML_KIND::NODE);
-    topEntity->setActualID(parent->getID());
-
-
-    TempEntity* currentEntity = topEntity;
+    auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
+    current_entity->setActualID(parent->getID());
 
 
     if(updateProgressNotification()){
@@ -3586,110 +3579,103 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         emit progressChanged(-1);
     }
 
+    while(xml.readNext() != QXmlStreamReader::EndDocument){
+        //Check what kind we are dealing with
+        GRAPHML_KIND kind = getGraphMLKindFromString(xml.name());
 
-    while(!xml.atEnd()){
-        
-        //Read each line of the xml document.
-        xml.readNext();
-
-        //Get the tagName
-        QStringRef tagName = xml.name();
-      
-        //Process the Tags
-        GRAPHML_KIND currentKind = GRAPHML_KIND::NONE;
-
-        if(tagName == "edge"){
-            currentKind = GRAPHML_KIND::EDGE;
-        }else if(tagName == "node"){
-            currentKind = GRAPHML_KIND::NODE;
-        }else if(tagName == "data"){
-            currentKind = GRAPHML_KIND::DATA;
-        }else if(tagName == "key"){
-            currentKind = GRAPHML_KIND::KEY;
-        }
-
-        bool is_entity = currentKind == GRAPHML_KIND::NODE || currentKind == GRAPHML_KIND::EDGE;
-
+        //Handle the elements
         if(xml.isStartElement()){
-            if(is_entity){
-                QString ID = getXMLAttribute(xml, "id");
-                int prevID = get_int_from_qstring(ID);
+            switch(kind){
+                case GRAPHML_KIND::KEY:{
+                    auto key_id = getXMLAttribute(xml, "id");
+                    auto key_name = getXMLAttribute(xml, "attr.name");
+                    auto key_type = Key::getTypeFromGraphML(getXMLAttribute(xml, "attr.type"));
 
-
-                TempEntity* entity = new TempEntity(currentKind, currentEntity);
-                entity->setID(ID);
-                entity->setPrevID(prevID);
-                entity->setLineNumber(xml.lineNumber());
-
-
-                if(currentKind == GRAPHML_KIND::EDGE){
-                    //Handle Source/Target for edges.
-                    QString srcID = getXMLAttribute(xml, "source");
-                    QString dstID = getXMLAttribute(xml, "target");
-
-                    entity->setSrcID(srcID);
-                    entity->setDstID(dstID);
-
-                    entity->setActualSrcID(get_int_from_qstring(srcID));
-                    entity->setActualDstID(get_int_from_qstring(dstID));
+                    auto key = entity_factory->GetKey(key_name, key_type);
+                    if(key){
+                        if(!key_hash.contains(key_id)){
+                            key_hash.insert(key_id, key);
+                        }else{
+                            qCritical() << "ImportGraphML: Duplicate key id '" << key_id << "'";
+                            error_count ++;
+                            continue;
+                        }
+                    }else{
+                        qCritical() << "ImportGraphML: Couldn't construct key id '" << key_id << "'";
+                        error_count ++;
+                        continue;
+                    }
+                    break;
                 }
+                case GRAPHML_KIND::DATA:{
+                    auto key_id = getXMLAttribute(xml, "key");
+                    auto key = key_hash.value(key_id, 0);
 
-                //Insert into the hash.
-                entityHash.insert(ID, entity);
-
-                //Add to the correct stack.
-                if(currentKind == GRAPHML_KIND::NODE){
-                    nodeIDStack.append(ID);
-                }else if(currentKind == GRAPHML_KIND::EDGE){
-                    edgeIDStack.append(ID);
+                    if(key){
+                        auto data = new Data(key, xml.readElementText());
+                        if(current_entity){
+                            current_entity->addData(data);
+                        }else{
+                            qCritical() << "ImportGraphML: Can't attach Data '" << data->toString() << "' to NULL entity";
+                            error_count ++;
+                            continue;
+                        }
+                    }else{
+                        qCritical() << "ImportGraphML: Couldn't find Key id '" << key_id << "' for Data";
+                        error_count ++;
+                        continue;
+                    }
+                    break;
                 }
+                case GRAPHML_KIND::EDGE:
+                case GRAPHML_KIND::NODE:{
+                    auto id = getXMLAttribute(xml, "id");
+                    auto entity = new TempEntity(kind, current_entity);
+                    entity->setID(id);
+                    entity->setLineNumber(xml.lineNumber());
 
-                //Set the Item as the current Entity.
-                currentEntity = entity;
+                    if(!entity_hash.contains(id)){
+                        //Insert into the hash.
+                        entity_hash.insert(id, entity);
+                    }else{
+                        qCritical() << "ImportGraphML: Duplicate Entity Ids found '" << id << "'";
+                        error_count ++;
+                        continue;
+                    }
 
-                if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
-                    //Reset the position of the first item, then clear reset position.
-                    currentEntity->setResetPosition();
+                    if(kind == GRAPHML_KIND::NODE){
+                        node_ids.push(id);
+                    }else if(kind == GRAPHML_KIND::EDGE){
+                        //Handle Source/Target for edges.
+                        entity->setSrcID(getXMLAttribute(xml, "source"));
+                        entity->setDstID(getXMLAttribute(xml, "target"));
+                        edge_ids.push(id);
+                    }
+                    //Set the Item as the current Entity.
+                    current_entity = entity;
+                    //TODO reset position
                 }
-            }else if(currentKind == GRAPHML_KIND::KEY){
-                QString ID = getXMLAttribute(xml, "id");
-
-                QString keyName = getXMLAttribute(xml, "attr.name");
-                QString keyTypeStr = getXMLAttribute(xml, "attr.type");
-
-                QVariant::Type keyType = Key::getTypeFromGraphML(keyTypeStr);
-
-                Key* key = entity_factory->GetKey(keyName, keyType);
-                keyHash.insert(ID, key);
-            }else if(currentKind == GRAPHML_KIND::DATA){
-                QString keyID = getXMLAttribute(xml, "key");
-                Key* key = keyHash[keyID];
-
-                //If we have a key and a current Entity
-                if(key && currentEntity){
-                    //Attach the data to the current entity.
-                    QString dataValue = xml.readElementText();
-
-                    Data* data = new Data(key, dataValue);
-                    currentEntity->addData(data);
-                }
+                default:
+                    break;
             }
         }
 
         if(xml.isEndElement()){
             //For Nodes/Edges, step up a parent.
-            if(is_entity){
-                currentEntity = currentEntity->getParentEntity();
+            if(kind == GRAPHML_KIND::NODE || kind == GRAPHML_KIND::EDGE){
+                current_entity = current_entity->getParentEntity();
             }
         }
     }
+
+    
 
     QList<int> to_remove;
     
     //On Import, handle UUID duplication
     if(IMPORTING_PROJECT){
-        for(auto ID : nodeIDStack){
-            auto entity = entityHash[ID];
+        for(auto id : node_ids){
+            auto entity = entity_hash.value(id, 0);
             if(entity && entity->gotData("uuid")){
                 auto uuid = entity->getData("uuid").toString();
 
@@ -3741,145 +3727,162 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
      //Remove the items we don't need anymore
     _remove(to_remove, false);
 
-    float totalEntities = entityHash.size();
-    float entitiesMade = 0;
+    //This is will update as a percentage
+    double entities_total_perc = entity_hash.size() / 100.0;
+    double entities_made = 0;
 
     if(updateProgressNotification()){
         emit showProgress(true, "Constructing Nodes");
     }
 
     //Construct all nodes
-    for(auto ID : nodeIDStack){
-        if(updateProgressNotification()){
-            emit progressChanged((entitiesMade * 100) / totalEntities);
+    for(auto id : node_ids){
+        auto entity = entity_hash.value(id, 0);
+
+        if(!entity || !entity->isNode()){
+            qCritical() << "ImportGraphML: Couldn't find Node with ID:" << id;
+            error_count ++;
+            continue;
         }
 
-        auto entity = entityHash[ID];
-        entitiesMade ++;
-        int node_id = -1;
-        if(entity && entity->isNode() && entity->shouldConstruct()){
-            auto parent_entity = entity->getParentEntity();
+        //Get the parent
+        auto parent_entity = entity->getParentEntity();
 
-            //Check if our parent_entity exists
-            if(parent_entity && parent_entity->gotActualID()){
-                auto parent_node = getNode(parent_entity->getActualID());
-                
-                NODE_KIND parent_kind = parent_node->getNodeKind();
-                NODE_KIND kind = entity_factory->getNodeKind(entity->getKind());
-                
-                Node* node = 0;
-                
-                //Don't attach model information for anything but Open
-                if(!OPENING_PROJECT && kind == NODE_KIND::MODEL){
-                    node = model;
-                    entity->clearData();
-                }else if(entity->gotActualID()){
-                    //if we already have a node, use it
-                    node = getNode(entity->getActualID());
-                }
+        //Check if our parent_entity exists
+        if(!parent_entity || !parent_entity->gotActualID()){
+            qCritical() << "ImportGraphML: Node with ID:" << id << "has no Parent Entity";
+            error_count ++;
+            continue;
+        }
+        
+        auto parent_node = getNode(parent_entity->getActualID());
+        auto parent_kind = parent_node->getNodeKind();
+        auto kind = entity_factory->getNodeKind(entity->getKind());
 
-                if(!node){
-                    //Construct a new node if we haven't got one yet. This will attach default data
-                    node = construct_node(parent_node, kind);
-                }
+        Node* node = 0;
 
-                //If construction, or getting found a node, attach data 
-                if(node){
-                    //If we aren't the Model, check if we have a parent_node
-                    bool got_parent = node->getParentNode() || kind == NODE_KIND::MODEL;
+        if(entity->gotActualID()){
+            //Get the already existant node.
+            node = getNode(entity->getActualID());
+        }else{
+            //Construct a new node if we haven't got one yet, this can return nodes which are already constructed.
+            node = construct_node(parent_node, kind);
 
-                    if(!got_parent){
-                        //If it's not got a parent, set it.
-                        got_parent = attachChildNode(parent_node, node);
-                    }
-
-                    if(got_parent){
-                        auto node_id = node->getID();
-                        
-                        if(linkPreviousID && entity->hasPrevID()){
-                            //Link the old ID
-                            link_ids(entity->getPrevID(), node_id);
-                        }
-
-                        //Attach the data
-                        _attachData(node, entity->takeDataList());
-                    }else{
-                        QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        qCritical() << message;
-                        
-                        
-                        //Destroy!
-                        entity_factory->destructNode(node);
-                        node = 0;
-                    }
-                }
-
-                if(node && !entity->gotActualID()){
-                    entity->setActualID(node->getID());
-                }
+            //If we have matched something which is already got a parent node we shouldn't overwrite its data
+            if(node && node->getParentNode() && IMPORTING_PROJECT){
+                //Ignore the data we are importing  ALL DATA!
+                entity->clearData();
             }
+        }
+
+        if(node){
+            //If we aren't the Model, check if we have a parent_node
+            bool got_parent = node->getParentNode() || kind == NODE_KIND::MODEL;
+
+            if(!got_parent){
+                //If it's not got a parent, set it.
+                got_parent = attachChildNode(parent_node, node);
+            }
+
+            if(got_parent){
+                auto node_id = node->getID();
+                
+                if(link_id && entity->hasPrevID()){
+                    //Link the old ID
+                    link_ids(entity->getPrevID(), node_id);
+                }
+
+                //Attach the data
+                _attachData(node, entity->takeDataList());
+
+                //Set Actual ID
+                entity->setActualID(node->getID());
+            }else{
+                //Destroy!
+                entity_factory->destructNode(node);
+                node = 0;
+            }
+        }
+        if(!node){
+            QString message = "Cannot create Node: '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
+            error_count ++;
+            emit controller_Notification(message);
+        }
+
+        if(updateProgressNotification()){
+            emit progressChanged(++entities_made / entities_total_perc);
         }
     }
 
 
+    QMultiMap<EDGE_KIND, TempEntity*> edge_map;
 
-    QMultiMap<int, TempEntity*> edgesMap;
 
-    while(!edgeIDStack.isEmpty()){
-        //Get the String ID of the node.
-        QString ID = edgeIDStack.takeFirst();
+    for(auto id : edge_ids){
+        auto entity = entity_hash.value(id, 0);
 
-        TempEntity* entity = entityHash.value(ID, 0);
-        if(entity && entity->isEdge()){
-            TempEntity* srcEntity = entityHash.value(entity->getSrcID(), 0);
-            TempEntity* dstEntity = entityHash.value(entity->getDstID(), 0);
+        if(!entity || !entity->isEdge()){
+            qCritical() << "ImportGraphML: Couldn't find Edge with ID:" << id;
+            error_count ++;
+            continue;
+        }
 
-            Node* src = 0;
-            Node* dst = 0;
+        auto src_entity = entity_hash.value(entity->getSrcID(), 0);
+        auto dst_entity = entity_hash.value(entity->getDstID(), 0);
 
-            if(srcEntity && srcEntity->gotActualID()){
-                src = getNode(srcEntity->getActualID());
-            }else if(entity->getActualSrcID() > 0){
-                src = getNode(entity->getActualSrcID());
-            }
+        if(!src_entity || !dst_entity){
+            qCritical() << "ImportGraphML: Cant get endpoint for edge with ID:" << id << " from document at line #" << entity->getLineNumber();
+            error_count ++;
+            continue;
+        }
 
-            if(dstEntity && dstEntity->gotActualID()){
-                dst = getNode(dstEntity->getActualID());
-            }else if(entity->getActualDstID() > 0){
-                dst = getNode(entity->getActualDstID());
-            }
+        Node* src_node = 0;
+        Node* dst_node = 0;
 
-            if(src && dst){
-                //Set destination.
-                entity->setSource(src);
-                entity->setDestination(dst);
+        if(src_entity->gotActualID()){
+            src_node = getNode(src_entity->getActualID());
+        }else{
+            //src = getNode(entity->getActualSrcID());
+            qCritical() << "ImportGraphML: Cant find source for edge ID:" << id << " from document at line #" << entity->getLineNumber();
+            error_count ++;
+            continue;
+        }
 
-                QString kind = entity->getKind();
-                EDGE_KIND edgeClass = entity_factory->getEdgeKind(kind);
+        if(dst_entity->gotActualID()){
+            dst_node = getNode(dst_entity->getActualID());
+        }else{
+            qCritical() << "ImportGraphML: Cant find target for edge ID:" << id << " from document at line #" << entity->getLineNumber();
+            error_count ++;
+            continue;
+        }
 
-                //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
-                if(edgeClass == EDGE_KIND::NONE){
-                    foreach(EDGE_KIND ec, getPotentialEdgeClasses(src, dst)){
-                        entity->appendEdgeKind(ec);
-                    }
-                }else{
-                    entity->appendEdgeKind(edgeClass);
-                }
+        if(src_node && dst_node){
+            //Set destination.
+            entity->setSource(src_node);
+            entity->setDestination(dst_node);
 
-				if(entity->hasEdgeKind()){
-                    int index = GetEdgeOrderIndex(entity->getEdgeKind());
-					//Insert the item in the lookup
-					edgesMap.insertMulti(index, entity);
-                }else{
-                    QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". NO MORE KINDS.";
-                    //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
-                }
+            EDGE_KIND edge_kind = entity_factory->getEdgeKind(entity->getKind());
+
+            if(edge_kind != EDGE_KIND::NONE){
+                entity->appendEdgeKind(edge_kind);
             }else{
-                //Don't construct if we have an error.
-				entity->setIgnoreConstruction();
-                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". Missing SRC/DST";
-                //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
-			}
+                //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
+                entity->appendEdgeKinds(getPotentialEdgeClasses(src_node, dst_node));
+            }
+
+            if(entity->hasEdgeKind()){
+                auto edge_kind = GetEdgeOrderIndex(entity->getEdgeKind());
+                //Insert the item in the lookup
+                edge_map.insertMulti(edge_kind, entity);
+            }else{
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge kinds.";
+                emit controller_Notification(message);
+                error_count ++;
+            }
+        }else{
+            QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". Missing Source or destination.";
+            emit controller_Notification(message);
+            error_count ++;
         }
     }
 
@@ -3887,114 +3890,111 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         emit showProgress(true, "Constructing Edges");
     }
 
-    int totalEdges = edgesMap.size();
-    int itterateCount = 0;
+    int edge_itterations = 0;
 
-    while(!edgesMap.isEmpty()){
-        QList<TempEntity*> currentEdges;
-        QList<TempEntity*> unconstructedEdges;
+    auto edge_kind_keys = GetEdgeOrderIndexes();
 
-        int current_kind_key = -1;
-        int constructedEdges = 0;
-
-        QList<int> edge_kind_keys = edgesMap.uniqueKeys();
-        std::sort(edge_kind_keys.begin(), edge_kind_keys.end());
-
-        //Get all the edges, of kind eK, (Break when we get any edges)
+    while(!edge_map.isEmpty()){
+        QList<TempEntity*> edges;
+        QList<TempEntity*> unconstructed_edges;
+        
+        int current_edge_kind_index = -1;
+        int constructed_edges = 0;
+        
+        //Find the first index which still has edges left
         for(auto key : edge_kind_keys){
-            if(edgesMap.contains(key)){
-                currentEdges = edgesMap.values(key);
-                current_kind_key = key;
+            if(edge_map.contains(key)){
+                edges = edge_map.values(key);
+                current_edge_kind_index = key;
                 break;
             }
         }
 
-        //If we have edges yet to go, yet we haven't gotten any items in out list to process.
-        if(currentEdges.size() == 0 && edgesMap.size() > 0){
-            break;
-        }
+        //Reverse the edges, (QMap inserts in a stack form LIFO)
+        std::reverse(edges.begin(), edges.end());
 
-        //Reverse itterate through the list of Entities (QMap inserts in a stack form LIFO)
-        for(int i = currentEdges.size() - 1; i >= 0; i --){
-            itterateCount ++;
-            TempEntity* entity = currentEdges[i];
+        for(auto entity : edges){
             entity->incrementRetryCount();
 
-            //Get the edgeKind
-            EDGE_KIND edgeKind = entity->getEdgeKind();
-            
-            //Remove it from the map!
-            edgesMap.remove(current_kind_key, entity);
+            auto edge_kind = entity->getEdgeKind();
 
-            Node* src = entity->getSource();
-            Node* dst = entity->getDestination();
+            //Remove this edge from the map of things to construct
+            edge_map.remove(current_edge_kind_index, entity);
 
-            if(src && dst){
-                Edge* edge = src->getEdgeTo(dst, edgeKind);
+            auto src_node = entity->getSource();
+            auto dst_node = entity->getDestination();
+
+            Edge* edge = 0;
+            if(src_node && dst_node){
+                //Check if we have an edge first
+                edge = src_node->getEdgeTo(dst_node, edge_kind);
 
                 if(!edge){
                     //If we don't have an edge, construct one
-                    edge = construct_edge(edgeKind, src, dst);
+                    edge = construct_edge(edge_kind, src_node, dst_node);
                 }
 
                 if(edge){
-                    //Attach the Data to the existing edge.
-                    _attachData(edge, entity->takeDataList());
-
-                    //Link the old ID to the new ID.
-                    if(linkPreviousID && entity->hasPrevID()){
+                    if(link_id && entity->hasPrevID()){
+                        //Link the old ID
                         link_ids(entity->getPrevID(), edge->getID());
                     }
 
-                    //Update the progress.
-                    if(updateProgressNotification()){
-                        emit progressChanged((entitiesMade * 100) / totalEntities);
-                        entitiesMade ++;
-                    }
-                    constructedEdges ++;
-                }else{
-                    //Append this item to the list of unconstructed items
-                    unconstructedEdges.append(entity);
+                    //Attach the data
+                    _attachData(edge, entity->takeDataList());
+
+                    //Set Actual ID
+                    entity->setActualID(edge->getID());
                 }
             }else{
-                qCritical() << "Cannot Find Src Dst: " << src << " " << dst;
+                //Can't find source/destination
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No endpoints.";
+                emit controller_Notification(message);
+                error_count ++;
+            }
+
+            if(edge){
+                if(updateProgressNotification()){
+                    emit progressChanged(++entities_made / entities_total_perc);
+                }
+                constructed_edges++;
+            }else{
+                //If we couldn't construct an edge, push it onto the list of edges we couldn't construct
+                unconstructed_edges.push_back(entity);
             }
         }
 
         //Go through the list of unconstructed edges and do things.
-        foreach(TempEntity* entity, unconstructedEdges){
-            //If no edges were constructed this pass, we by definition, can't construct any.
-            if(constructedEdges == 0){
+        for(auto entity : unconstructed_edges){
+
+            //If no edges were constructed this pass, it means no edges can be made of this EDGE_KIND
+            if(constructed_edges == 0){
                 //Remove the current edgeKind, so we can try the next (If it has one)
                 entity->removeEdgeKind(entity->getEdgeKind());
             }
 
             if(entity->hasEdgeKind()){
-                int new_index = GetEdgeOrderIndex(entity->getEdgeKind());
+                auto new_index = GetEdgeOrderIndex(entity->getEdgeKind());
                 //Reinsert back into the map (Goes to the start)
-                edgesMap.insertMulti(new_index, entity);
+                edge_map.insertMulti(new_index, entity);
             }else{
-                //This entity has no more edge kinds to try, therefore can never be constructed.
-                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
-                qCritical() << message;
-                //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
+                //Can't find source/destination
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge_kinds.";
+                emit controller_Notification(message);
+                error_count ++;
             }
         }
+        edge_itterations ++;
     }
 
-    if(totalEdges > 0){
-        qCritical() << "Imported: #" << totalEdges << " Edges in " << itterateCount << " Itterations.";
-    }
+    qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_itterations << " Itterations.";
 
-    //Clean up
-    foreach(TempEntity* entity, entityHash.values()){
+    for(auto entity : entity_hash){
         delete entity;
     }
 
-    entityHash.clear();
-
     //Clear the topEntity
-    delete topEntity;
+    delete current_entity;
 
     return true;
 }

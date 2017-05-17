@@ -1,6 +1,16 @@
 #include "tempentity.h"
 #include "Entities/data.h"
 
+
+int str_to_int(QString str){
+    bool ok;
+    int int_val = str.toInt(&ok, 10);
+
+    if(ok){
+        return int_val;
+    }
+    return -1;
+}
 TempEntity::TempEntity(GRAPHML_KIND entityKind, TempEntity *parent)
 {
     lineNumber = -1;
@@ -120,6 +130,9 @@ Node *TempEntity::getDestination()
 void TempEntity::setID(QString ID)
 {
     this->ID = ID;
+    //Set a previous ID
+    setPrevID(str_to_int(ID));
+    
 }
 
 void TempEntity::setPrevID(int ID)
@@ -142,10 +155,15 @@ void TempEntity::setActualID(int ID)
     actualID = ID;
 }
 
-void TempEntity::appendEdgeKind(EDGE_KIND edgeKind)
+void TempEntity::appendEdgeKinds(QList<EDGE_KIND> kinds){
+    for(auto kind: kinds){
+        appendEdgeKind(kind);
+    }
+}
+void TempEntity::appendEdgeKind(EDGE_KIND kind)
 {
-    if(!edgeKinds.contains(edgeKind)){
-        edgeKinds.append(edgeKind);
+    if(!edgeKinds.contains(kind)){
+        edgeKinds.append(kind);
     }
 }
 
@@ -313,11 +331,15 @@ bool TempEntity::isEdge()
 void TempEntity::setSrcID(QString ID)
 {
     srcID = ID;
+    //Set a previous ID
+    setActualSrcID(str_to_int(ID));
 }
 
 void TempEntity::setDstID(QString ID)
 {
     dstID = ID;
+    //Set a previous ID
+    setActualDstID(str_to_int(ID));
 }
 
 void TempEntity::setActualSrcID(int ID)

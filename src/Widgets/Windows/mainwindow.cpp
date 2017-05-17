@@ -258,9 +258,9 @@ void MainWindow::updateProgressBar(int value)
 {
     if (progressPopup->isVisible()) {
         if (value == -1) {
-            progressBar->setRange(0,0);
+            progressBar->setRange(0, 0);
         } else {
-            progressBar->setRange(0,100);
+            progressBar->setRange(0, 100);
             progressBar->setValue(value);
         }
     }

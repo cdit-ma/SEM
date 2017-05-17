@@ -45,6 +45,7 @@ public:
     int getPrevID();
     void setActualID(int ID);
 
+    void appendEdgeKinds(QList<EDGE_KIND> edgeKinds);
     void appendEdgeKind(EDGE_KIND edgeKind);
     void removeEdgeKind(EDGE_KIND edgeKind);
     EDGE_KIND getEdgeKind();

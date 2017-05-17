@@ -281,6 +281,8 @@ signals:
     void controller_SetClipboardBuffer(QString);
 
     void controller_SetViewEnabled(bool);
+
+    void controller_Notification(QString description, int entity_id = -1);
 public slots:
     void setupController();
     void setData(int parentID, QString keyName, QVariant dataValue);
@@ -294,6 +296,7 @@ private:
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
     Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
+    QList<EDGE_KIND> GetEdgeOrderIndexes();
 public slots:
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
