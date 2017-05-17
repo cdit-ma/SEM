@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 #Use C++11
 set(CMAKE_CXX_STANDARD 11)
 #get the cmake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}/cmake/modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
