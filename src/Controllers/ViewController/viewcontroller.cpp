@@ -100,19 +100,15 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::projectModified, this, &ViewController::mc_projectModified);
     connect(controller, &ModelController::controller_ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
     connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setModelReady);
+    connect(controller, &ModelController::controller_Notification, this, &ViewController::modelNotification);
+
+    
     
     connect(controller, &ModelController::controller_SetClipboardBuffer, this, &ViewController::setClipboardData);
     connect(controller, &ModelController::controller_ActionFinished, this, &ViewController::actionFinished);
     connect(controller, &ModelController::undoRedoChanged, this, &ViewController::mc_undoRedoUpdated);
     connect(controller, &ModelController::showProgress, this, &ViewController::mc_showProgress);
     connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
-    connect(controller, &ModelController::controller_AskQuestion, this, &ViewController::askQuestion);
-    connect(this, &ViewController::vc_answerQuestion, controller, &ModelController::gotQuestionAnswer);
-    connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
-    connect(this, &ViewController::vc_exportSnippet, controller, &ModelController::exportSnippet);
-    connect(controller, &ModelController::controller_ExportedSnippet, this, &ViewController::gotExportedSnippet);
-    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
-    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
     //Do this to reste dock
     connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::vc_ProjectLoaded);
     this->setController(controller);
@@ -272,7 +268,7 @@ QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
-        kinds = controller->getAdoptableNodeKinds2(ID);
+        kinds = controller->getAdoptableNodeKinds(ID);
     }
     return kinds;
 }
@@ -448,34 +444,6 @@ void ViewController::projectOpened(bool success)
     welcomeActionFinished();
 }
 
-void ViewController::gotExportedSnippet(QString snippetData)
-{
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-
-        if(item && item->getParentItem()){
-            QString itemKind = item->getParentItem()->getData("kind").toString();
-
-            QStringList files = FileHandler::selectFiles("Export " + itemKind + ".snippet", QFileDialog::AnyFile,true,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-            if(files.size() == 1){
-                QString snippetFilePath = files.first();
-                FileHandler::writeTextFile(snippetFilePath, snippetData);
-            }
-        }
-    }
-}
-
-void ViewController::askQuestion(QString title, QString message, int ID)
-{
-    if(ID != -1){
-        emit centerOnID(ID);
-    }
-
-    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No, WindowManager::manager()->getMainWindow());
-    msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "circleQuestion", QSize(50,50), Theme::theme()->getMenuIconColor()));
-    int reply = msgBox.exec();
-    emit vc_answerQuestion(reply == QMessageBox::Yes);
-}
 
 void ViewController::modelValidated(QString reportPath)
 {
@@ -735,22 +703,6 @@ bool ViewController::canRedo()
     return false;
 }
 
-bool ViewController::canExportSnippet()
-{
-    if(controller){
-        return controller->canExportSnippet(selectionController->getSelectionIDs());
-    }
-    return false;
-}
-
-bool ViewController::canImportSnippet()
-{
-    if(controller && selectionController){
-        return controller->canImportSnippet(selectionController->getSelectionIDs());
-    }
-    return false;
-}
-
 
 QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
 {
@@ -904,6 +856,25 @@ NodeView *ViewController::getActiveNodeView()
         return nodeView;
     }
     return 0;
+}
+
+void ViewController::modelNotification(MODEL_SEVERITY severity, QString description, int ID){
+    NOTIFICATION_SEVERITY ns = NS_INFO;
+    switch(severity){
+        case MODEL_SEVERITY::ERROR:
+            ns = NS_ERROR;
+            break;
+        case MODEL_SEVERITY::WARNING:
+            ns = NS_WARNING;
+            break;
+        case MODEL_SEVERITY::INFO:
+            ns = NS_INFO;
+            break;
+        default:
+            break;
+    }
+
+    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NT_MODEL, NC_NOCATEGORY);
 }
 
 void ViewController::setModelReady(bool okay)
@@ -1342,27 +1313,6 @@ void ViewController::importXMIProject()
     }
 }
 
-void ViewController::importSnippet()
-{
-    ViewItem* item = getActiveSelectedItem();
-    if(item && canImportSnippet()){
-        QString itemKind = item->getData("kind").toString();
-        QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-        if(files.size() == 1){
-            QString filePath = files.at(0);
-            QString fileData = FileHandler::readTextFile(filePath);
-            emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
-        }
-    }
-}
-
-void ViewController::exportSnippet()
-{
-    if(canExportSnippet() && selectionController){
-        emit vc_exportSnippet(selectionController->getSelectionIDs());
-    }
-
-}
 
 void ViewController::closeProject()
 {
@@ -1475,13 +1425,6 @@ void ViewController::selectAndCenterConnectedEntities()
     }
 }
 
-void ViewController::setSelectionReadOnly(bool locked)
-{
-    if(controller && selectionController){
-        emit vc_triggerAction("Set Selection Locked");
-        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
-    }
-}
 
 void ViewController::centerOnID(int ID)
 {

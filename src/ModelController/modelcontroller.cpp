@@ -2,13 +2,13 @@
 #include <QDebug>
 #include <algorithm>
 #include <QDateTime>
-#include <QEventLoop>
 #include <QSysInfo>
 #include <QDir>
 #include <QStringBuilder>
 #include <QNetworkInterface>
 #include <QThread>
 #include <QFile>
+
 
 #include "entityfactory.h"
 #include "tempentity.h"
@@ -23,19 +23,6 @@
 #include "Entities/InterfaceDefinitions/datanode.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/DeploymentDefinitions/eventportdelegate.h"
-
-
-
-int get_int_from_qstring(QString ID, int default_value = -1){
-    bool okay;
-    auto val = ID.toInt(&okay);
-    if(okay){
-        return val;
-    }else{
-        return default_value;
-    }
-}
-
 
 bool UNDO = true;
 bool REDO = false;
@@ -59,7 +46,8 @@ ModelController::ModelController() :QObject(0)
     qRegisterMetaType<EDGE_KIND>("EDGE_KIND");
     qRegisterMetaType<NODE_KIND>("NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
-    qRegisterMetaType<ReadOnlyState>("ReadOnlyState");
+    qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
+    
 
     Node::resetID();
 
@@ -75,7 +63,6 @@ ModelController::ModelController() :QObject(0)
     REDOING = false;
     DESTRUCTING_CONTROLLER = false;
     CUT_USED = false;
-    IMPORTING_SNIPPET = false;
     model = 0;
     //Construct
     behaviourDefinitions = 0;
@@ -95,8 +82,6 @@ ModelController::ModelController() :QObject(0)
     visual_keynames << "x" << "y" << "width" <<  "height" << "isExpanded";
 
 
-    
-    nonSnippetableKinds << NODE_KIND::OUTEVENTPORT_IMPL << NODE_KIND::INEVENTPORT_IMPL;
 }
 
 void ModelController::setupController()
@@ -146,21 +131,18 @@ void ModelController::loadWorkerDefinitions()
         }
 
         IMPORTING_WORKERDEFINITIONS = true;
-        foreach(QString file, filesToLoad){
-            QPair<bool, QString> data = readFile(file);
+        for(QString file : filesToLoad){
+            auto data = readFile(file);
+            
+            bool loaded = false;
             //If the file was read.
             if(data.first){
-                bool success = _newImportGraphML(data.second, workerDefinitions);
+                loaded = importGraphML(MODEL_ACTION::IMPORT, data.second, workerDefinitions);
+            }
 
-                if(!success){
-                    QString message = "Cannot import worker definition '" + file +"'";
-                    //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
-                }else{
-                    //qCritical() << "Loaded Worker Definition: " << file;
-                }
-            }else{
-                QString message = "Cannot read worker definition '" + file +"'";
-                //NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
+            if(!loaded){
+                QString message = "Error Importing Worker Definition '" + file + "'";
+                emit controller_Notification(MODEL_SEVERITY::WARNING, message);
             }
         }
         IMPORTING_WORKERDEFINITIONS = false;
@@ -291,53 +273,50 @@ QString ModelController::_exportGraphMLDocument(Node *node, bool allEdges, bool 
 
 bool ModelController::_clear()
 {
-    bool reply = askQuestion("Clear Model?", "Are you sure you want to clear the model? You cannot undo this action.");
-    if(reply){
-        triggerAction("Clearing Model");
+    triggerAction("Clearing Model");
 
-        emit controller_ActionProgressChanged(0,"Clearing model");
-        QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
-        // while(!childNodes.isEmpty())
-        for(int i=0; i < childNodes.size(); i++){
-            Node* child = childNodes[i];
-            destructNode(child);
-        }
-        childNodes.clear();
-
-        childNodes = behaviourDefinitions->getChildren(0);
-        for(int i=0; i < childNodes.size(); i++){
-            Node* child = childNodes[i];
-            destructNode(child);
-        }
-        childNodes.clear();
-
-        childNodes = hardwareDefinitions->getChildren(0);
-        for(int i=0; i < childNodes.size(); i++){
-            Node* child = childNodes[i];
-
-            // don't delete Localhost Nodes
-            if (child->getDataValue("kind") != "HardwareNode") {
-                destructNode(child);
-            }
-        }
-        childNodes.clear();
-        childNodes = assemblyDefinitions->getChildren(0);
-        for(int i=0; i < childNodes.size(); i++){
-            Node* child = childNodes[i];
-
-            // don't delete ManagementComponents
-            if (child->getDataValue("kind") != "ManagementComponent") {
-                destructNode(child);
-            }
-        }
-        childNodes.clear();
-
-        clearHistory();
-
-        emit controller_ActionProgressChanged(100);
-        return true;
+    emit controller_ActionProgressChanged(0,"Clearing model");
+    QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
+    // while(!childNodes.isEmpty())
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+        destructNode(child);
     }
-    return reply;
+    childNodes.clear();
+
+    childNodes = behaviourDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+        destructNode(child);
+    }
+    childNodes.clear();
+
+    childNodes = hardwareDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+
+        // don't delete Localhost Nodes
+        if (child->getDataValue("kind") != "HardwareNode") {
+            destructNode(child);
+        }
+    }
+    childNodes.clear();
+    childNodes = assemblyDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+
+        // don't delete ManagementComponents
+        if (child->getDataValue("kind") != "ManagementComponent") {
+            destructNode(child);
+        }
+    }
+    childNodes.clear();
+
+    clearHistory();
+
+    emit controller_ActionProgressChanged(100);
+    return true;
+
 }
 
 
@@ -894,7 +873,7 @@ void ModelController::openProject(QString filePath, QString xmlData)
     lock_.lockForWrite();
     OPENING_PROJECT = true;
     emit showProgress(true, "Opening Project");
-    bool result = _newImportGraphML(xmlData, model);
+    bool result = importGraphML(MODEL_ACTION::OPEN, xmlData, model);
     OPENING_PROJECT = false;
     lock_.unlock();
 
@@ -956,73 +935,6 @@ void ModelController::remove(QList<int> IDs)
     }
     lock_.unlock();
 }
-
-void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
-{
-    QWriteLocker lock(&lock_);
-
-    //Get the timestamp
-    auto timestamp = getTimeStampEpoch();
-
-    
-    //Construct a list of Nodes to be snippeted
-    foreach(Entity* entity, getOrderedSelection(IDs)){
-        qCritical() << "Setting: " << entity->toString();
-        //Export time should be an integer
-        _attachData(entity, "export_time", timestamp, false);
-        _attachData(entity, "uuid", "", false);
-    }
-}
-/*
-
-
-    Key* readOnlyKey = entity_factory->GetKey("readOnly", QVariant::Bool);
-
-
-    QList<Entity*> items;
-    //Construct a list of Nodes to be snippeted
-    foreach(Entity* item, getOrderedSelection(IDs)){
-        if(!items.contains(item)){
-            items.append(item);
-            if(item->isNode()){
-                Node* node = (Node*) item;
-                foreach(Node* child, node->getChildren()){
-                    if(!items.contains(child)){
-                        items += child;
-                    }
-                }
-                foreach(Edge* edge, node->getEdges(-1, EDGE_KIND::NONE)){
-                    if(!items.contains(edge)){
-                        items += edge;
-                    }
-                }
-            }
-        }
-    }
-    //Attach read Only Data to the top.
-
-    bool displayWarning = true;
-    //Attach read only Data.
-    foreach(Entity* item, items){
-        if(item->isSnippetReadOnly() || item->gotData("readOnlyDefinition")){
-            if(displayWarning){
-                displayWarning = false;
-                //NotificationManager::manager()->displayNotification("Entity in selection is a read-only snippet. Cannot modify read-only state.", "", "", item->getID(), NS_WARNING);
-            }
-            continue;
-        }
-        Data* readOnlyData = item->getData(readOnlyKey);
-
-        if(!readOnlyData){
-            readOnlyData = new Data(readOnlyKey, readOnly);
-            attachData(item, readOnlyData);
-        }else{
-            _setData(item, "readOnly", readOnly);
-        }
-    }
-    lock_.unlock();
-    emit controller_ActionFinished(true);
-}*/
 
 /**
  * @brief NewController::clear
@@ -1105,7 +1017,7 @@ bool ModelController::_paste(int ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNode(ID);
     if(!parentNode){
-        //NotificationManager::manager()->displayNotification("No entity selected to paste into.");
+        emit controller_Notification(MODEL_SEVERITY::WARNING, "No entity selected to paste into.");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -1116,7 +1028,7 @@ bool ModelController::_paste(int ID, QString xmlData, bool addAction)
             }
 
             //Paste it into the current Selected Node,
-            success = _newImportGraphML(xmlData, parentNode);
+            success = importGraphML(MODEL_ACTION::PASTE, xmlData, parentNode);
             CUT_USED = false;
             PASTE_USED = false;
         }
@@ -1169,7 +1081,7 @@ bool ModelController::_copy(QList<int> IDs)
 
         success = true;
     } else {
-        //NotificationManager::manager()->displayNotification("Cannot copy selection.");
+        emit controller_Notification(MODEL_SEVERITY::WARNING, "Cannot copy selection.");
     }
     return success;
 }
@@ -1305,11 +1217,10 @@ bool ModelController::_importProjects(QStringList xmlDataList, bool addAction)
             emit controller_ActionProgressChanged(0, "Importing GraphML files");
         }
 
-        foreach(QString xmlData, xmlDataList){
-            //bool result = _importGraphMLXML(xmlData, model);
-            bool result = _newImportGraphML(xmlData, model);
+        for(auto data : xmlDataList){
+            bool result = importGraphML(MODEL_ACTION::IMPORT, data, model);
             if(!result){
-                ////NotificationManager::manager()->displayNotification("Cannot import project.", "", "", -1, NS_ERROR);
+                emit controller_Notification(MODEL_SEVERITY::ERROR, "Cannot import Project.");
                 success = false;
             }
         }
@@ -1319,194 +1230,6 @@ bool ModelController::_importProjects(QStringList xmlDataList, bool addAction)
     return success;
 }
 
-/**
- * @brief NewController::_importSelectionSnippet Imports a Snippet into a selection.
- * @param IDs The selected ID to import into.
- * @param fileName The name of the snippet filename.
- * @param fileData The GraphML data in the snippet.
- * @param addAction - Adds a Action in the Undo/Redo Stack
- * @return Action successful.
- */
-bool ModelController::_importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction)
-{
-    bool success = false;
-    if(canImportSnippet(IDs)){
-        Node* parent = getSingleNode(IDs);
-        if(parent){
-            QStringList fileNameSplit = fileName.split('.');
-            if(fileNameSplit.length() != 3){
-                return false;
-            }
-
-            QString userFileName = fileNameSplit[0];
-            QString fileParentKind = fileNameSplit[1];
-            QString fileFormat = fileNameSplit[2];
-
-
-            //Valide the fileParentKind
-            if(fileParentKind != parent->getDataValue("kind")){
-                return false;
-            }
-
-            //Validate fileFormat
-            if(fileFormat != "graphml" && fileFormat != "snippet"){
-                return false;
-            }
-
-            if(addAction){
-                triggerAction("Importing Snippet: " + userFileName);
-                emit controller_ActionProgressChanged(0,"Importing snippets");
-            }
-            IMPORTING_SNIPPET = true;
-            success = _newImportGraphML(fileData, parent);//, false, false);
-            if(!success){
-
-            }
-            IMPORTING_SNIPPET = false;
-        }
-    }
-    return success;
-}
-
-/**
- * @brief NewController::_exportSnippet Exports a selection of GraphML entities.
- * @param IDs - The IDs of the entities to try and export.
- * @return Action successful.
- */
-QString ModelController::_exportSnippet(QList<int> IDs)
-{
-    QString snippetData;
-    if(canExportSnippet(IDs)){
-        CUT_USED = false;
-
-        QString parentNodeKind = "";
-
-        Node* node = getFirstNodeFromList(IDs);
-        if(node && node->getParentNode()){
-            parentNodeKind = node->getParentNode()->getNodeKindStr();
-        }
-
-        bool readOnly = false;
-
-        //Check if read only.
-        if(parentNodeKind == "InterfaceDefinitions"){
-            readOnly = askQuestion("Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
-        }
-
-
-        //Construct the Keys to attach to the nodes to export.
-        QList<Node*> nodeList;
-
-        if(readOnly){
-            //Get the information about this machine/time
-            uint exportTimeStamp = getTimeStampEpoch();
-            long long machineID = getMACAddress();
-
-            //Construct the Keys for the data we need to attach.
-            Key* readOnlyDefinitionKey = entity_factory->GetKey("readOnlyDefinition", QVariant::Bool);
-            Key* readOnlyKey = entity_factory->GetKey("readOnly", QVariant::Bool);
-            Key* IDKey = entity_factory->GetKey("snippetID", QVariant::Int);
-
-            Key* timeKey = entity_factory->GetKey("snippetTime", QVariant::LongLong);
-            Key* exportTimeKey = entity_factory->GetKey("exportTime", QVariant::LongLong);
-            Key* macKey = entity_factory->GetKey("snippetMAC", QVariant::LongLong);
-
-
-            //Construct a list of Nodes to be snippeted
-            foreach(int ID, IDs){
-                Node* node = getNode(ID);
-                if(node && !nodeList.contains(node)){
-                    nodeList += node;
-
-                    //Add all the children (recursively) to the list of nodes to set as read-only
-                    foreach(Node* child, node->getChildren()){
-                        if(!nodeList.contains(child)){
-                            nodeList += child;
-                        }
-                    }
-                }
-            }
-
-            long long historicSnippetTime = exportTimeStamp;
-            //Attach read only Data to all nodes in list.
-            foreach(Node* node, nodeList){
-                Data* readOnlyData = node->getData(readOnlyKey);
-                Data* idData = node->getData(IDKey);
-                Data* timeData = node->getData(timeKey);
-                Data* macData = node->getData(macKey);
-                Data* exportTimeData = node->getData(exportTimeKey);
-
-                //Remove stuff.
-                node->removeData(readOnlyDefinitionKey);
-
-                //If node doesn't have snippetTime data, create and set one.
-                if(!timeData){
-                    timeData = new Data(timeKey, historicSnippetTime);
-                    node->addData(timeData);
-                }else{
-                    //If we have a timestamp value which is different to the export time stamp, update.
-                    if(historicSnippetTime == exportTimeStamp){
-                        historicSnippetTime = timeData->getValue().toLongLong();
-                    }
-                }
-
-                //If node doesn't have snippetMAC data, create and set one.
-                if(!macData){
-                    macData = new Data(macKey, machineID);
-                    node->addData(macData);
-                }
-
-                //If node doesn't have snippetMAC data, create one.
-                if(!exportTimeData){
-                    exportTimeData = new Data(exportTimeKey);
-                    node->addData(exportTimeData);
-                }
-                //Update exportTime so that the snippet loaded can be differentiated.
-                exportTimeData->setValue(exportTimeStamp);
-
-                //If node doesn't have readOnly data, create one.
-                if(!readOnlyData){
-                    readOnlyData = new Data(readOnlyKey);
-                    node->addData(readOnlyData);
-                }
-
-
-                //Set Node as Read Only.
-                readOnlyData->setValue(true);
-
-                //If node doesn't have snippetID data, create and set one.
-                if(!idData){
-                    idData = new Data(IDKey);
-                    node->addData(idData);
-                    idData->setValue(node->getID());
-                }
-            }
-        }
-
-        //Export the GraphML for those Nodes.
-        snippetData = _exportGraphMLDocument(IDs, false, false, true);
-
-        if(readOnly){
-            Key* readOnlyDefinitionKey = entity_factory->GetKey("readOnlyDefinition", QVariant::Bool);
-            Key* readOnlyKey = entity_factory->GetKey("readOnly", QVariant::Bool);
-
-            //Remove attached Data.
-            foreach(Node* node, nodeList){
-                //Remove the read-only data
-                node->removeData(readOnlyKey);
-
-                //Get existing readOnlyDefinition data, if not create one.
-                Data* readOnlyDefData = node->getData(readOnlyDefinitionKey);
-                if(!readOnlyDefData){
-                    readOnlyDefData = new Data(readOnlyDefinitionKey);
-                    node->addData(readOnlyDefData);
-                }
-                readOnlyDefData->setValue(true);
-            }
-        }
-    }
-    return snippetData;
-}
 
 long long ModelController::getMACAddress()
 {
@@ -1996,9 +1719,6 @@ void ModelController::removeEntity(int ID)
         }
     }
 
-    if(readOnlyHash.containsValue(ID)){
-        readOnlyHash.removeValue(ID);
-    }
 
     if(reverseReadOnlyLookup.contains(ID)){
         int originalID = reverseReadOnlyLookup[ID];
@@ -2029,27 +1749,16 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
             constructNodeGUI(node);
         }
 
-         if(isUserAction()){
-            ReadOnlyState nodeState = getReadOnlyState(node);
-
-            //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
-            foreach(Node* dependant, parentNode->getDependants()){
-                ReadOnlyState dependantState = getReadOnlyState(dependant);
-                if(nodeState.isValid() && dependantState.isValid()){
-                    if(nodeState.snippetMAC == dependantState.snippetMAC && nodeState.snippetTime == dependantState.snippetTime){
-                        //If we have to construct into a read-only node which shares the same MAC and Time, assume the read only snippet contains an item in document, so don't autoconstruct.
-                        continue;
-                    }
-                }
-                //Setup dependant
+        if(isUserAction()){
+            for(auto dependant : parentNode->getDependants()){
+                //Setup dependant relationship only for user functions
                 constructDependantRelative(dependant, node);
             }
-         }
-         return true;
+        }
+        return true;
     }
     return false;
 }
-
 
 bool ModelController::updateProgressNotification()
 {
@@ -2329,12 +2038,6 @@ bool ModelController::destructEdge(Edge *edge)
         }
         break;
     }
-    case EDGE_KIND::DEPLOYMENT:{
-        if(isUserAction()){
-            QString message = "Disconnected '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            //NotificationManager::manager()->displayNotification(message, "Icons", "cross", src->getID());
-        }
-    }
     default:
         break;
     }
@@ -2376,7 +2079,7 @@ bool ModelController::reverseAction(EventAction action)
         }else if(action.Action.type == DESTRUCTED){
             Node* parentNode = getNode(action.parentID);
             if(parentNode){
-                success = _newImportGraphML(action.Entity.XML, parentNode);
+                success = importGraphML(MODEL_ACTION::UNDO, action.Entity.XML, parentNode);
             }
         }
     }else if(action.Action.kind == GRAPHML_KIND::DATA){
@@ -2558,15 +2261,31 @@ bool ModelController::canDeleteNode(Node *node)
     if(!node){
         return false;
     }
-    // Added this here to stop the user from being able to cut or delete the model
-    if(model == node){
-        return false;
-    }
 
     if(protectedNodes.contains(node)){
         return false;
     }
+    auto node_kind = node->getNodeKind();
 
+    switch(node_kind){
+        case NODE_KIND::INPUT_PARAMETER:
+        case NODE_KIND::RETURN_PARAMETER:
+            return false;
+        default:
+            break;
+    }
+
+    if(node->isInstanceImpl()){
+        if(node->getDefinition()){
+             switch(node_kind){
+                case NODE_KIND::OUTEVENTPORT_IMPL:
+                case NODE_KIND::COMPONENT_INSTANCE:
+                    break;
+                default:
+                    return false;
+             }
+        }
+    }
 
     return true;
 }
@@ -3209,23 +2928,11 @@ void ModelController::constructEdgeGUI(Edge *edge)
         if(srcTopicName && dstTopicName){
             dstTopicName->setParentData(srcTopicName);
         }
-
-        if(!edge->getData(descriptionKey)){
-            Data* label = new Data(descriptionKey, "Connected To");
-            attachData(edge, label, false);
-        }
         break;
     }
     case EDGE_KIND::DATA:{
         if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
             setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
-        }
-        break;
-    }
-    case EDGE_KIND::DEPLOYMENT:{
-        if(isUserAction()){
-            QString message = "Deployed '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            //NotificationManager::manager()->displayNotification(message, "Icons", "connect", src->getID());
         }
         break;
     }
@@ -3309,14 +3016,6 @@ QString ModelController::getProjectAsGraphML()
     return data;
 }
 
-QString ModelController::getSelectionAsGraphMLSnippet(QList<int> IDs)
-{
-    lock_.lockForRead();
-    QList<int> orderedIDs = getOrderedSelectionIDs(IDs);
-    QString data = _exportSnippet(orderedIDs);
-    lock_.unlock();
-    return data;
-}
 
 QList<EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
 {
@@ -3371,7 +3070,7 @@ QList<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> ID
 
 }
 
-QList<NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
+QList<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
 {
     QReadLocker lock(&lock_);
     QList<NODE_KIND> kinds;
@@ -3408,20 +3107,6 @@ QStringList ModelController::getVisualKeys()
 }
 
 
-/**
- * @brief NewController::displayMessage Called by the Model when a message needs to be visualised
- * Emits controller_DisplayMessage
- * @param title - The title of the message
- * @param message - The message
- * @param ID - The entity ID of which the message relates to.
- */
-void ModelController::displayMessage(QString title, QString message, int ID)
-{
-    Q_UNUSED(title)
-
-    //Emit a signal to the view.
-    //NotificationManager::manager()->displayNotification(message, "", "", ID);
-}
 
 /**
  * @brief NewController::setData Sets the Value of the Data of an Entity.
@@ -3464,62 +3149,12 @@ void ModelController::importProjects(QStringList xmlDataList)
 }
 
 
-/**
- * @brief NewController::importSnippet Imports a Snippet of GraphML into the selection defined by ID provided
- * @param IDs - The list of entity IDs
- * @param fileName - The name of the Snippet imported LABEL.<PARENT_KIND>.snippet
- * @param fileData - The graphml data of the snippet.
- */
-void ModelController::importSnippet(QList<int> IDs, QString fileName, QString fileData)
-{
-    bool success = _importSnippet(IDs, fileName, fileData);
-    emit controller_ActionProgressChanged(100);
-    emit controller_ActionFinished(success);
-}
-
-/**
- * @brief NewController::exportSnippet Exports a Snippet of GraphML based on the selection defined by IDs provided
- * @param IDs - The list of entity IDs
- */
-void ModelController::exportSnippet(QList<int> IDs)
-{
-    QString data = _exportSnippet(IDs);
-    emit controller_ExportedSnippet(data);
-}
-
-/**
- * @brief NewController::gotQuestionAnswer Got an answer from the View about a question which was asked.
- * @param answer - The Boolean answer to the question
- */
-void ModelController::gotQuestionAnswer(bool answer)
-{
-    questionAnswer = answer;
-    emit controller_GotQuestionAnswer();
-}
-
 
 void ModelController::clearUndoHistory()
 {
     clearHistory();
 }
 
-bool ModelController::askQuestion(QString questionTitle, QString question, int ID)
-{
-    if(!INITIALIZING){
-        //Construct a EventLoop which waits for the View to answer the question.
-        QEventLoop waitLoop;
-        questionAnswer = false;
-
-
-        connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
-
-        emit controller_AskQuestion(questionTitle, question, ID);
-
-        waitLoop.exec();
-        return questionAnswer;
-    }
-    return false;
-}
 
 
 Node *ModelController::getSingleNode(QList<int> IDs)
@@ -3542,7 +3177,7 @@ bool ModelController::isKeyNameVisual(QString key_name){
     return visual_keynames.contains(key_name);
 }
 
-bool ModelController::_newImportGraphML(QString document, Node *parent)
+bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node *parent)
 {
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
@@ -3558,7 +3193,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     }
 
     if(!isGraphMLValid(document)){
-        emit controller_Notification("GraphML is invalid!");
+        emit controller_Notification(MODEL_SEVERITY::ERROR, "GraphML is invalid!");
         return false;
     }
 
@@ -3567,11 +3202,11 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
-    bool link_id = false;           //UNDOING || REDOING) || CUT_USED){
-    bool reset_position = false;    //(PASTE_USED && !CUT_USED) || IMPORTING_WORKERDEFINITIONS
-
+    bool link_id = action == MODEL_ACTION::UNDO || action == MODEL_ACTION::REDO;
+    bool reset_position = action == MODEL_ACTION::PASTE;
+    bool partial_import = action == MODEL_ACTION::PASTE || link_id;
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
-    current_entity->setActualID(parent->getID());
+    current_entity->setID(parent->getID());
 
 
     if(updateProgressNotification()){
@@ -3631,7 +3266,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 case GRAPHML_KIND::NODE:{
                     auto id = getXMLAttribute(xml, "id");
                     auto entity = new TempEntity(kind, current_entity);
-                    entity->setID(id);
+                    entity->setIDStr(id);
                     entity->setLineNumber(xml.lineNumber());
 
                     if(!entity_hash.contains(id)){
@@ -3647,8 +3282,9 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                         node_ids.push(id);
                     }else if(kind == GRAPHML_KIND::EDGE){
                         //Handle Source/Target for edges.
-                        entity->setSrcID(getXMLAttribute(xml, "source"));
-                        entity->setDstID(getXMLAttribute(xml, "target"));
+                        entity->setSourceIDStr(getXMLAttribute(xml, "source"));
+                        entity->setTargetIDStr(getXMLAttribute(xml, "target"));
+
                         edge_ids.push(id);
                     }
                     //Set the Item as the current Entity.
@@ -3663,21 +3299,19 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         if(xml.isEndElement()){
             //For Nodes/Edges, step up a parent.
             if(kind == GRAPHML_KIND::NODE || kind == GRAPHML_KIND::EDGE){
-                current_entity = current_entity->getParentEntity();
+                current_entity = current_entity->getParent();
             }
         }
     }
 
-    
-
     QList<int> to_remove;
     
     //On Import, handle UUID duplication
-    if(IMPORTING_PROJECT){
+    if(action == MODEL_ACTION::IMPORT){
         for(auto id : node_ids){
             auto entity = entity_hash.value(id, 0);
             if(entity && entity->gotData("uuid")){
-                auto uuid = entity->getData("uuid").toString();
+                auto uuid = entity->getDataValue("uuid").toString();
 
                 //If we have a uuid, we should set the entity as read-only
                 if(!entity->gotData("readOnly")){
@@ -3690,7 +3324,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 auto matched_entity = getEntityByUUID(uuid);
                 if(matched_entity){
                     //Set the entity to use this.
-                    entity->setActualID(matched_entity->getID());
+                    entity->setID(matched_entity->getID());
 
                     if(matched_entity->isNode()){
                         auto matched_node = (Node*) matched_entity;
@@ -3698,7 +3332,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                         //Create a list of all required uuids this entity we are loading requires
                         QStringList required_uuids;
                         for(auto child : entity->getChildren()){
-                            required_uuids << child->getData("uuid").toString();
+                            required_uuids << child->getDataValue("uuid").toString();
                         }
                         
                         //Take the data from the entity, to prune out the data we don't need
@@ -3746,31 +3380,45 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         }
 
         //Get the parent
-        auto parent_entity = entity->getParentEntity();
+        auto parent_entity = entity->getParent();
 
         //Check if our parent_entity exists
-        if(!parent_entity || !parent_entity->gotActualID()){
+        if(!parent_entity || !parent_entity->gotID()){
             qCritical() << "ImportGraphML: Node with ID:" << id << "has no Parent Entity";
             error_count ++;
             continue;
         }
+
+        //This is the top most element
+        if(parent_entity == current_entity && reset_position){
+            //Take the data from the entity, to prune out the data we don't need
+            for(auto data : entity->takeDataList()){
+                if(isDataVisual(data)){
+                    delete data;
+                }else{
+                    //Re-add back to the tempEntity
+                    entity->addData(data);
+                }
+            }
+        }
         
-        auto parent_node = getNode(parent_entity->getActualID());
+        auto parent_node = getNode(parent_entity->getID());
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
 
         Node* node = 0;
 
-        if(entity->gotActualID()){
+        if(entity->gotID()){
             //Get the already existant node.
-            node = getNode(entity->getActualID());
+            node = getNode(entity->getID());
         }else{
             //Construct a new node if we haven't got one yet, this can return nodes which are already constructed.
             node = construct_node(parent_node, kind);
 
             //If we have matched something which is already got a parent node we shouldn't overwrite its data
-            if(node && node->getParentNode() && IMPORTING_PROJECT){
-                //Ignore the data we are importing  ALL DATA!
+            //This will stop any data stored in the aspects getting overwritten
+            if(node && node->getParentNode() && action == MODEL_ACTION::IMPORT){
+                //Remove all data loaded from the model
                 entity->clearData();
             }
         }
@@ -3787,16 +3435,16 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
             if(got_parent){
                 auto node_id = node->getID();
                 
-                if(link_id && entity->hasPrevID()){
+                if(link_id && entity->gotPreviousID()){
                     //Link the old ID
-                    link_ids(entity->getPrevID(), node_id);
+                    link_ids(entity->getPreviousID(), node_id);
                 }
 
                 //Attach the data
                 _attachData(node, entity->takeDataList());
 
                 //Set Actual ID
-                entity->setActualID(node->getID());
+                entity->setID(node->getID());
             }else{
                 //Destroy!
                 entity_factory->destructNode(node);
@@ -3806,7 +3454,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         if(!node){
             QString message = "Cannot create Node: '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
             error_count ++;
-            emit controller_Notification(message);
+            emit controller_Notification(MODEL_SEVERITY::ERROR, message);
         }
 
         if(updateProgressNotification()){
@@ -3827,39 +3475,31 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
             continue;
         }
 
-        auto src_entity = entity_hash.value(entity->getSrcID(), 0);
-        auto dst_entity = entity_hash.value(entity->getDstID(), 0);
-
-        if(!src_entity || !dst_entity){
-            qCritical() << "ImportGraphML: Cant get endpoint for edge with ID:" << id << " from document at line #" << entity->getLineNumber();
-            error_count ++;
-            continue;
-        }
+        //Try find the Entity we should be creating.
+        auto src_entity = entity_hash.value(entity->getSourceIDStr(), 0);
+        auto dst_entity = entity_hash.value(entity->getTargetIDStr(), 0);
 
         Node* src_node = 0;
         Node* dst_node = 0;
 
-        if(src_entity->gotActualID()){
-            src_node = getNode(src_entity->getActualID());
-        }else{
-            //src = getNode(entity->getActualSrcID());
-            qCritical() << "ImportGraphML: Cant find source for edge ID:" << id << " from document at line #" << entity->getLineNumber();
-            error_count ++;
-            continue;
+        if(src_entity && src_entity->gotID()){
+            src_node = getNode(src_entity->getID());
+        }else if(partial_import){
+            //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
+            src_node = getNode(entity->getSourceIDInt());
         }
 
-        if(dst_entity->gotActualID()){
-            dst_node = getNode(dst_entity->getActualID());
-        }else{
-            qCritical() << "ImportGraphML: Cant find target for edge ID:" << id << " from document at line #" << entity->getLineNumber();
-            error_count ++;
-            continue;
+        if(dst_entity && dst_entity->gotID()){
+            dst_node = getNode(dst_entity->getID());
+        }else if(partial_import){
+            //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
+            dst_node = getNode(entity->getTargetIDInt());
         }
 
         if(src_node && dst_node){
             //Set destination.
-            entity->setSource(src_node);
-            entity->setDestination(dst_node);
+            entity->setSourceID(src_node->getID());
+            entity->setTargetID(dst_node->getID());
 
             EDGE_KIND edge_kind = entity_factory->getEdgeKind(entity->getKind());
 
@@ -3870,18 +3510,18 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 entity->appendEdgeKinds(getPotentialEdgeClasses(src_node, dst_node));
             }
 
-            if(entity->hasEdgeKind()){
-                auto edge_kind = GetEdgeOrderIndex(entity->getEdgeKind());
+            if(entity->gotEdgeKind()){
+                auto next_edge_kind = entity->getEdgeKind();
                 //Insert the item in the lookup
-                edge_map.insertMulti(edge_kind, entity);
+                edge_map.insertMulti(next_edge_kind, entity);
             }else{
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge kinds.";
-                emit controller_Notification(message);
+                emit controller_Notification(MODEL_SEVERITY::ERROR, message);
                 error_count ++;
             }
         }else{
             QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". Missing Source or destination.";
-            emit controller_Notification(message);
+            emit controller_Notification(MODEL_SEVERITY::ERROR, message);
             error_count ++;
         }
     }
@@ -3891,21 +3531,20 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     }
 
     int edge_itterations = 0;
-
     auto edge_kind_keys = GetEdgeOrderIndexes();
 
     while(!edge_map.isEmpty()){
         QList<TempEntity*> edges;
         QList<TempEntity*> unconstructed_edges;
         
-        int current_edge_kind_index = -1;
         int constructed_edges = 0;
+        EDGE_KIND edge_kind = EDGE_KIND::NONE;
         
         //Find the first index which still has edges left
-        for(auto key : edge_kind_keys){
-            if(edge_map.contains(key)){
-                edges = edge_map.values(key);
-                current_edge_kind_index = key;
+        for(auto kind : edge_kind_keys){
+            if(edge_map.contains(kind)){
+                edges = edge_map.values(kind);
+                edge_kind = kind;
                 break;
             }
         }
@@ -3914,15 +3553,12 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         std::reverse(edges.begin(), edges.end());
 
         for(auto entity : edges){
-            entity->incrementRetryCount();
-
-            auto edge_kind = entity->getEdgeKind();
-
-            //Remove this edge from the map of things to construct
-            edge_map.remove(current_edge_kind_index, entity);
-
-            auto src_node = entity->getSource();
-            auto dst_node = entity->getDestination();
+            //Remove this edge from the map
+            edge_map.remove(edge_kind, entity);
+            
+            //Get the src/dst node from the edge
+            auto src_node = getNode(entity->getSourceID());
+            auto dst_node = getNode(entity->getTargetID());
 
             Edge* edge = 0;
             if(src_node && dst_node){
@@ -3935,21 +3571,21 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 }
 
                 if(edge){
-                    if(link_id && entity->hasPrevID()){
+                    if(link_id && entity->gotPreviousID()){
                         //Link the old ID
-                        link_ids(entity->getPrevID(), edge->getID());
+                        link_ids(entity->getPreviousID(), edge->getID());
                     }
 
                     //Attach the data
                     _attachData(edge, entity->takeDataList());
 
                     //Set Actual ID
-                    entity->setActualID(edge->getID());
+                    entity->setID(edge->getID());
                 }
             }else{
                 //Can't find source/destination
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No endpoints.";
-                emit controller_Notification(message);
+                emit controller_Notification(MODEL_SEVERITY::ERROR, message);
                 error_count ++;
             }
 
@@ -3964,23 +3600,22 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
             }
         }
 
-        //Go through the list of unconstructed edges and do things.
+        //Go through the list of unconstructed edges.
         for(auto entity : unconstructed_edges){
-
             //If no edges were constructed this pass, it means no edges can be made of this EDGE_KIND
             if(constructed_edges == 0){
                 //Remove the current edgeKind, so we can try the next (If it has one)
                 entity->removeEdgeKind(entity->getEdgeKind());
             }
 
-            if(entity->hasEdgeKind()){
-                auto new_index = GetEdgeOrderIndex(entity->getEdgeKind());
+            if(entity->gotEdgeKind()){
+                auto next_edge_kind = entity->getEdgeKind();
                 //Reinsert back into the map (Goes to the start)
-                edge_map.insertMulti(new_index, entity);
+                edge_map.insertMulti(next_edge_kind, entity);
             }else{
                 //Can't find source/destination
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge_kinds.";
-                emit controller_Notification(message);
+                emit controller_Notification(MODEL_SEVERITY::ERROR, message);
                 error_count ++;
             }
         }
@@ -3996,42 +3631,9 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     //Clear the topEntity
     delete current_entity;
 
-    return true;
+    return error_count == 0;
 }
 
-ReadOnlyState ModelController::getReadOnlyState(Node *node)
-{
-    ReadOnlyState state;
-
-    state.snippetID = -1;
-    state.snippetMAC = -1;
-    state.snippetTime = -1;
-    state.exportTime = -1;
-    state.isDefinition = false;
-    if(node){
-        Data* snippetID = node->getData("snippetID");
-        Data* snippetMAC = node->getData("snippetMAC");
-        Data* snippetTime = node->getData("snippetTime");
-        Data* exportTime = node->getData("exportTime");
-        Data* readOnlyDefinition = node->getData("readOnlyDefinition");
-        if(snippetID){
-            state.snippetID = snippetID->getValue().toInt();
-        }
-        if(snippetMAC){
-            state.snippetMAC = snippetMAC->getValue().toLongLong();
-        }
-        if(snippetTime){
-            state.snippetTime = snippetTime->getValue().toInt();
-        }
-        if(exportTime){
-            state.exportTime = exportTime->getValue().toInt();
-        }
-        if(readOnlyDefinition){
-            state.isDefinition = readOnlyDefinition->getValue().toBool();
-        }
-    }
-    return state;
-}
 
 EventAction ModelController::getEventAction()
 {
@@ -4062,29 +3664,23 @@ void ModelController::setProjectPath(QString path)
 
 bool ModelController::canCopy(QList<int> selection)
 {
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canCopy(items);
-    lock_.unlock();
-    return result;
+    QReadLocker lock(&lock_);
+    auto items = getOrderedSelection(selection);
+    return canCopy(items);
 }
 
 bool ModelController::canReplicate(QList<int> selection)
 {
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canReplicate(items);
-    lock_.unlock();
-    return result;
+    QReadLocker lock(&lock_);
+    auto items = getOrderedSelection(selection);
+    return canReplicate(items);
 }
 
 bool ModelController::canCut(QList<int> selection)
 {
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canCopy(items) && canCopy(items);
-    lock_.unlock();
-    return result;
+    QReadLocker lock(&lock_);
+    auto items = getOrderedSelection(selection);
+    return canCopy(items) && canRemove(items);
 }
 
 bool ModelController::canReplicate(QList<Entity *> selection)
@@ -4120,9 +3716,8 @@ bool ModelController::canCut(QList<Entity *> selection)
     return canCopy(selection) && canRemove(selection);
 }
 
-bool ModelController::canCopy(QList<Entity *> selection)
+bool ModelController::canCut(QList<Entity *> selection)
 {
-
     bool valid = !selection.isEmpty();
     Node* parent = 0;
 
@@ -4130,14 +3725,67 @@ bool ModelController::canCopy(QList<Entity *> selection)
         if(item->isNode()){
             Node* node = (Node*) item;
             if(!canDeleteNode(node)){
-                valid = false;
-                break;
+                return false;
             }
+
+            auto current_parent = node->getParentNode();
+
+            //Dont allow copy from any definitions, except 
+            if(node->isDefinition()){
+                switch(node->getNodeKind()){
+                    case NODE_KIND::AGGREGATE:
+                    case NODE_KIND::COMPONENT:
+                        break;
+                    default:
+                        return false;
+                }
+            }
+
+
+            //Don't allow selection from different parents to be copyable
             if(!parent){
-                parent = node->getParentNode();
-            }else if(node->getParentNode() != parent){
-                valid = false;
-                break;
+                parent = current_parent;
+            }else if(parent != current_parent){
+                return false;
+            }
+        }
+    }
+
+    return valid;
+}
+
+
+bool ModelController::canCopy(QList<Entity *> selection)
+{
+    bool valid = !selection.isEmpty();
+    Node* parent = 0;
+
+    foreach(Entity* item, selection){
+        if(item->isNode()){
+            Node* node = (Node*) item;
+            if(!canDeleteNode(node)){
+                return false;
+            }
+
+            auto current_parent = node->getParentNode();
+
+            //Dont allow copy from any definitions, except 
+            if(node->isDefinition()){
+                switch(node->getNodeKind()){
+                    case NODE_KIND::AGGREGATE:
+                    case NODE_KIND::COMPONENT:
+                        break;
+                    default:
+                        return false;
+                }
+            }
+
+
+            //Don't allow selection from different parents to be copyable
+            if(!parent){
+                parent = current_parent;
+            }else if(parent != current_parent){
+                return false;
             }
         }
     }
@@ -4150,11 +3798,19 @@ bool ModelController::canPaste(QList<Entity *> selection)
     if(selection.size() == 1){
         Entity* item = selection.first();
 
-        if(item && item->isNode() && !item->isReadOnly() && item != model){
-            Node* node = (Node*) item;
-            if(!node->isInstance() && !node->isImpl()){
-                return true;
+        if(item && item->isNode()){
+            auto node = (Node*) item;
+
+            if(!node->isReadOnly()){
+                if(node->isInstanceImpl() && node->getNodeKind() != NODE_KIND::COMPONENT_IMPL){
+                    return false;
+                }
+
+                if(node->isDefinition()){
+                    return false;
+                }
             }
+            return true;
         }
     }
     return false;
@@ -4166,36 +3822,16 @@ bool ModelController::canRemove(QList<Entity *> selection)
         return false;
     }
 
-    foreach(Entity* entity, selection){
+    for(auto entity : selection){
         if(entity->isNode()){
-            Node* node = (Node*) entity;
-            Node* parentNode = node->getParentNode();
+            auto node = (Node*) entity;
+            auto parent_node = node->getParentNode();
 
             if(!canDeleteNode(node)){
                 return false;
             }
-            if(parentNode){
-                switch(node->getNodeKind()){
-                    case NODE_KIND::VARIABLE:{
-                        if(node->isInstance()){
-                            return false;
-                        }
-                        break;
-                    }
-                    case NODE_KIND::INPUT_PARAMETER:{
-                        if(!node->getDataValue("is_variadic").toBool()){
-                            return false;
-                        }
-                        break;
-                    }
-                    case NODE_KIND::RETURN_PARAMETER:{
-                        return false;
-                        break;
-                    }
-                    default:
-                        break;
-                }
 
+            if(parent_node){
                 if(node->isImpl() && node->getDefinition()){
                     //Only allowed to delete OutEventPortImpls
                     if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
@@ -4203,11 +3839,11 @@ bool ModelController::canRemove(QList<Entity *> selection)
                     }
                 }
 
-                if(node->isInstance() && parentNode->isInstance()){
+                if(node->isInstance() && parent_node->isInstance()){
                     return false;
                 }
 
-                if(node->isReadOnly() && parentNode->isReadOnly()){
+                if(node->isReadOnly() && parent_node->isReadOnly()){
                     return false;
                 }
             }
@@ -4220,283 +3856,82 @@ bool ModelController::canRemove(QList<Entity *> selection)
         }
     }
     return true;
-
-
-
-}
-
-bool ModelController::canSetReadOnly(QList<Entity *> selection)
-{
-    foreach(Entity* item, selection){
-        if(!item->isReadOnly()){
-            return true;
-        }
-    }
-    return false;
-}
-
-bool ModelController::canUnsetReadOnly(QList<Entity *> selection)
-{
-    foreach(Entity* item, selection){
-        if(item->isReadOnly()){
-            return true;
-        }
-    }
-    return false;
-}
-
-bool ModelController::canExportSnippet(QList<Entity *> selection)
-{
-    if(selection.isEmpty()){
-        return false;
-    }
-
-    Node* parent = 0;
-    foreach(Entity* item, selection){
-        if(item->isNode()){
-            Node* node = (Node*) item;
-
-            if(nonSnippetableKinds.contains(node->getNodeKind())){
-                return false;
-            }
-
-            if(node->gotData("readOnly") && node->getDataValue("readOnly").toBool()){
-                //Can't Export Read-Only Stuffs.
-                return false;
-            }
-
-            if(!parent){
-                parent = node->getParentNode();
-
-                if(!parent || !snippetableParentKinds.contains(parent->getNodeKind())){
-                    return false;
-                }
-            }else{
-                if(node->getParentNode() != parent){
-                    //Must share parents.
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
-}
-
-bool ModelController::canImportSnippet(QList<Entity *> selection)
-{
-    if(selection.length() == 1){
-        Entity* item = selection.at(0);
-        if(item->isNode()){
-            Node* node = (Node*) item;
-            if(snippetableParentKinds.contains(node->getNodeKind())){
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 bool ModelController::canRemove(QList<int> selection)
 {
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canRemove(items);
-    lock_.unlock();
-    return result;
+    QReadLocker lock(&lock_);
+    auto items = getOrderedSelection(selection);
+    return canRemove(items);
 }
 
 bool ModelController::canPaste(QList<int> selection)
 {
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canPaste(items);
-    lock_.unlock();
-    return result;
-}
-
-bool ModelController::canExportSnippet(QList<int> selection)
-{
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canExportSnippet(items);
-    lock_.unlock();
-    return result;
-}
-
-bool ModelController::canImportSnippet(QList<int> selection)
-{
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canImportSnippet(items);
-    lock_.unlock();
-    return result;
-}
-
-bool ModelController::canSetReadOnly(QList<int> selection)
-{
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canSetReadOnly(items);
-    lock_.unlock();
-    return result;
-}
-
-bool ModelController::canUnsetReadOnly(QList<int> selection)
-{
-    lock_.lockForRead();
-    QList<Entity*> items = getOrderedSelection(selection);
-    bool result = canUnsetReadOnly(items);
-    lock_.unlock();
-    return result;
+    QReadLocker lock(&lock_);
+    auto items = getOrderedSelection(selection);
+    return canPaste(items);
 }
 
 bool ModelController::canUndo()
 {
+    QReadLocker lock(&lock_);
     return !undoActionStack.isEmpty();
 }
 
 bool ModelController::canRedo()
 {
-
+    QReadLocker lock(&lock_);
     return !redoActionStack.isEmpty();
 }
 
-/**
- * @brief NewController::canLocalDeploy Checks to see if Model only contains deployment edges to the local node.
- * @return
- */
-bool ModelController::canLocalDeploy()
+QString ModelController::getProjectPath()
 {
-    lock_.lockForRead();
-
-    bool result = true;
-    if(assemblyDefinitions){
-        int count = 0;
-        //Check to see if all nodes in the assembly definitions are deployed to the localhost node.
-        foreach(Edge* edge, assemblyDefinitions->getEdges(-1, EDGE_KIND::DEPLOYMENT)){
-            if(edge->isConnected(localhostNode)){
-                count ++;
-            }else{
-                count = 0;
-                break;
-            }
-        }
-        result = count > 0;
-    }
-    lock_.unlock();
-    return result;
-}
-
-QString ModelController::getProjectPath() const
-{
+    QReadLocker lock(&lock_);
     return projectPath;
 }
 
-
-
-bool ModelController::isProjectSaved() const
+bool ModelController::isProjectSaved()
 {
+    QReadLocker lock(&lock_);
     return projectDirty;
 }
 
-
 int ModelController::getDefinition(int ID)
 {
-    lock_.lockForRead();
-    Node* original = getNode(ID);
-    int defID = -1;
-    if(original){
-        Node* node = original->getDefinition(true);
-        if(node && node != original){
-            defID = node->getID();
+    QReadLocker lock(&lock_);
+
+    int def_id = -1;
+    auto node = getNode(ID);
+    if(node){
+        //Set our node to it's definition
+        if(node->getDefinition()){
+            auto def = node->getDefinition(true);
+            def_id = def->getID();
         }
     }
-    lock_.unlock();
-    return defID;
+    return def_id;
 }
 
-int ModelController::getImplementation(int ID)
+int ModelController::getImplementation(int id)
 {
-    lock_.lockForRead();
-    int implID = -1;
-    Node* original = getNode(ID);
-    if(original){
-        int definitionID = getDefinition(ID);
-        if(definitionID == -1){
-            definitionID = ID;
-        }
-        Node* node = getNode(definitionID);
+    QReadLocker lock(&lock_);
 
-        if (node && node->getImplementations().size() > 0) {
-            Node* impl = node->getImplementations().at(0);
-            if (impl != original) {
-                implID = impl->getID();
-            }
+    int impl_id = -1;
+    auto node = getNode(id);
+    if(node){
+        //Set our node to it's definition
+        if(node->getDefinition()){
+            node = node->getDefinition(true);
         }
-    }
-    lock_.unlock();
-    return implID;
-}
+        auto impls = node->getImplementations();
 
-Node* ModelController::getSharedParent(QList<int> IDs)
-{
-    Node* parent = 0;
-
-    foreach(int ID, IDs){
-        Node* node = getNode(ID);
-        if(!node){
-            continue;
-        }
-        if(!parent){
-            //Set the firstParent to the first Nodes parent.
-            parent = node->getParentNode();
-        }else if(node->getParentNode() != parent){
-            return 0;
+        for(auto impl : impls){
+            impl_id = impl->getID();
+            break;
         }
     }
-    return parent;
+    return impl_id;
 }
-
-
-
-QString ModelController::getDataValueFromKeyName(QList<Data *> dataList, QString keyName)
-{
-    foreach(Data* data, dataList){
-        if(data && data->getKeyName() == keyName){
-            return data->getValue().toString();
-        }
-    }
-    return "";
-}
-
-void ModelController::setDataValueFromKeyName(QList<Data *> dataList, QString keyName, QString value)
-{
-    foreach(Data* data, dataList){
-        if(data && data->getKeyName() == keyName){
-            data->setValue(value);
-            return;
-        }
-    }
-}
-
-/**
- * @brief NewController::getProcessName Gets the long name used to store Process definitions in the workerProcesses map.
- * @param process The Process
- * @return worker_operation
- */
-QString ModelController::getWorkerProcessName(WorkerProcess *process)
-{
-    if(process){
-        QString workerName = process->getDataValue("worker").toString();
-        QString operationName = process->getDataValue("operation").toString();
-        if(workerName != "" && operationName != ""){
-            return workerName + "_" + operationName;
-        }
-
-    }
-    return "";
-}
-
 
 bool ModelController::isUserAction()
 {
@@ -4505,17 +3940,4 @@ bool ModelController::isUserAction()
     }else{
         return true;
     }
-}
-
-
-Node* ModelController::get_hardware_by_url(Node* parent_node, NODE_KIND kind, QString url){
-    if(parent_node){
-        for(auto node : parent_node->getChildrenOfKind(kind)){
-            auto node_url = node->getDataValue("url");
-            if(node_url == url){
-                return node;
-            }
-        }
-    }
-    return 0;
 }

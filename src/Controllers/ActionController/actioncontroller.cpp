@@ -5,7 +5,7 @@
 #include "../../Utils/rootaction.h"
 #include <QDebug>
 #include "../../ModelController/nodekinds.h"
-
+#include "../../ModelController/modelcontroller.h"
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
 
@@ -116,18 +116,9 @@ void ActionController::connectViewController(ViewController *controller)
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
         //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
-        //connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
-        //connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
-
-
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
-
-        connect(readOnlyMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),viewController, &ViewController::setSelectionReadOnly);
-
-
-        //connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
 
 
 
@@ -262,11 +253,13 @@ void ActionController::selectionChanged(int selectionSize)
         if(selectionSize == -1){
             selectionSize = selectionController->getSelectionCount();
         }
+        auto selection = selectionController->getSelectionIDs();
 
         bool controllerReady = viewController->isControllerReady();
         bool modelReady = viewController->isModelReady();
 
         bool modelActions = controllerReady && modelReady;
+        auto model_controller = viewController->getModelController();
 
         bool gotSingleSelection = modelActions && (selectionSize == 1);
         bool gotSelection = modelActions && (selectionSize > 0);
@@ -293,16 +286,12 @@ void ActionController::selectionChanged(int selectionSize)
             hasComponentAssembly = kind == NODE_KIND::COMPONENT_ASSEMBLY;
         }
 
+        
+
         toolbar_wiki->setEnabled(gotSelection);
 
         edit_expand->setEnabled(gotSelection);
         edit_contract->setEnabled(gotSelection);
-
-        toolbar_setReadOnly->setEnabled(!canLock);
-        toolbar_unsetReadOnly->setEnabled(canLock);
-
-        //file_importSnippet->setEnabled(viewController->canImportSnippet());
-        //file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
 
         model_getCodeForComponent->setEnabled(_gotJava && hasCode);
@@ -313,14 +302,15 @@ void ActionController::selectionChanged(int selectionSize)
         view_centerOnImpl->setEnabled(hasImpl);
         view_viewImplInNewWindow->setEnabled(hasImpl);
 
+        auto mc = model_controller;
 
-
-        edit_cut->setEnabled(gotSelection);
-        edit_copy->setEnabled(gotSelection);
-        edit_paste->setEnabled(gotSingleSelection);
+        edit_cut->setEnabled(mc && mc->canCut(selection));
+        edit_copy->setEnabled(mc && mc->canCopy(selection));
+        edit_paste->setEnabled(mc && mc->canPaste(selection));
+        edit_delete->setEnabled(mc && mc->canRemove(selection));
 
         edit_replicate->setEnabled(gotSelection);
-        edit_delete->setEnabled(gotSelection);
+        
         //edit_sort->setEnabled(gotSelection);
         edit_renameActiveSelection->setEnabled(gotSelection);
         edit_clearSelection->setEnabled(gotMultipleSelection);
@@ -347,8 +337,7 @@ void ActionController::selectionChanged(int selectionSize)
 
 
 
-        toolbar_setReadOnly->setEnabled(gotSelection);
-        toolbar_unsetReadOnly->setEnabled(gotSelection);
+        
 
 
         applicationToolbar->updateSpacers();
@@ -642,11 +631,7 @@ void ActionController::setupActions()
     //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
     //file_importXMI->setToolTip("Import XMI Project into current project.");
 
-    //file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
-    //file_importSnippet->setToolTip("Import Snippet into selection.");
-    //file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
-    //file_exportSnippet->setToolTip("Export Snippet of selection.");
-
+  
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
     edit_undo->setToolTip("Undo last model change.");
     edit_undo->setShortcutContext(Qt::ApplicationShortcut);
@@ -839,18 +824,9 @@ void ActionController::setupActions()
     toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
     toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
     toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
-    toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Icons", "lockClosed");
-    toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Icons", "lockOpened");
+   
 
 
-    readOnlyMapper = new QSignalMapper(this);
-
-
-    connect(toolbar_setReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-    connect(toolbar_unsetReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-
-    readOnlyMapper->setMapping(toolbar_setReadOnly, 1);
-    readOnlyMapper->setMapping(toolbar_unsetReadOnly, 0);
 
 
     toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Icons", "book");
@@ -889,8 +865,7 @@ void ActionController::setupMainMenu()
     //menu_file->addAction(file_importXME);
     //menu_file->addAction(file_importXMI);
     //menu_file->addSeparator();
-    //menu_file->addAction(file_importSnippet);
-    //menu_file->addAction(file_exportSnippet);
+
     menu_file->addSeparator();
     menu_file->addAction(file_exit);
 
@@ -1010,16 +985,13 @@ void ActionController::setupContextToolbar()
     //contextToolbar->addAction(toolbar_hardware);
     //contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
-    //contextToolbar->addAction(file_importSnippet->constructSubAction());
-    //contextToolbar->addAction(file_exportSnippet->constructSubAction());
     //contextToolbar->addSeperator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
     contextToolbar->addSeperator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
-    contextToolbar->addAction(toolbar_setReadOnly);
-    contextToolbar->addAction(toolbar_unsetReadOnly);
+    
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());

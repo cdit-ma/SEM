@@ -16,6 +16,7 @@
 #include "../../ModelController/nodekinds.h"
 #include "../../ModelController/edgekinds.h"
 
+enum class MODEL_SEVERITY;
 //class NotificationManager;
 class ModelController;
 class ContextToolbar;
@@ -67,8 +68,6 @@ public:
 
     bool canUndo();
     bool canRedo();
-    bool canExportSnippet();
-    bool canImportSnippet();
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
@@ -122,9 +121,7 @@ signals:
         void vc_projectSaved(QString filePath);
         void vc_projectPathChanged(QString);
         void vc_answerQuestion(bool);
-        void vc_exportSnippet(QList<int> IDs);
-        void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
-
+      
         void mc_showProgress(bool, QString);
         void mc_progressChanged(int);
         void mc_modelReady(bool);
@@ -191,8 +188,6 @@ public slots:
 
     void projectOpened(bool success);
 
-    void gotExportedSnippet(QString snippetData);
-    void askQuestion(QString title, QString message, int ID);
 
 
 
@@ -232,8 +227,7 @@ public slots:
     void importProjects();
     void importXMEProject();
     void importXMIProject();
-    void importSnippet();
-    void exportSnippet();
+   
     void saveProject();
     void saveAsProject();
     void closeProject();
@@ -277,8 +271,6 @@ public slots:
     void editLabel();
     void editReplicationCount();
 
-    void setSelectionReadOnly(bool locked);
-
     void constructDDSQOSProfile();
     void requestSearchSuggestions();
 
@@ -290,6 +282,8 @@ public slots:
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
+
+    void modelNotification(MODEL_SEVERITY severity, QString description, int ID);
 
 private:
 

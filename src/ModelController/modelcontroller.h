@@ -1,8 +1,7 @@
-#ifndef NEWCONTROLLER_H
-#define NEWCONTROLLER_H
+#ifndef MODELCONTROLLER_H
+#define MODELCONTROLLER_H
 
 #include <QObject>
-
 #include <QStack>
 #include <QPointF>
 #include <QXmlStreamReader>
@@ -12,9 +11,6 @@
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
-
-
-
 
 class Entity;
 class Node;
@@ -36,59 +32,7 @@ class DataNode;
 #define DDS_LOGGING_SERVER "DDS_LOGGING_SERVER"
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
-
-struct EdgeTemp
-{
-    QString id;
-    qint64 lineNumber;
-    QString source;
-    QString target;
-    QList<Data *> data;
-};
-
-struct ReadOnlyState{
-    long long snippetMAC;
-    long long snippetTime;
-    long long exportTime;
-    bool isDefinition;
-    int snippetID;
-
-    bool imported;
-
-    bool operator==(const ReadOnlyState &other) const{
-        return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC) && (isDefinition == other.isDefinition);
-    }
-    bool isValid(){
-        return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0) && (!isDefinition);
-    }
-    bool isOlder(const ReadOnlyState &other) const{
-        if(this->operator ==(other)){
-            if(exportTime < other.exportTime){
-                return true;
-            }
-        }
-        return false;
-    }
-    bool isSimilar(const ReadOnlyState &other) const{
-        if((snippetMAC == other.snippetMAC) && (snippetTime == other.snippetTime)){
-            return true;
-        }
-        return false;
-    }
-};
-
-
-inline uint qHash(const ReadOnlyState& key)
-{
-    uint hash = (uint(key.snippetMAC ^ (key.snippetMAC >> 32))) ^ key.snippetTime ^ key.snippetID;
-    return hash;
-}
-
-
-
-
-
-
+enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
 struct EventAction{
     struct _Action{
         int ID;
@@ -124,35 +68,34 @@ struct EventAction{
     } Data;
 };
 
+
+enum class MODEL_ACTION{OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
 class ModelController: public QObject
 {
     Q_OBJECT
 public:
+    
     static QStringList getVisualKeys();
 
     ModelController();
     ~ModelController();
 
 
-    QString getProjectPath() const;
+    QString getProjectPath();
     void setProjectPath(QString path);
 
-    bool isProjectSaved() const;
+    bool isProjectSaved();
     void setProjectSaved(QString path="");
 
 
-
-    void setReadOnly(QList<int> IDs, bool readOnly);
-    //Public Read/Write Locked Functions
-
     //READ
     QString getProjectAsGraphML();
-    QString getSelectionAsGraphMLSnippet(QList<int> IDs);
+    
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
 
-    QList<NODE_KIND> getAdoptableNodeKinds2(int ID);
+    QList<NODE_KIND> getAdoptableNodeKinds(int ID);
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
@@ -195,11 +138,6 @@ public:
     bool canRemove(QList<int> selection);
     bool canPaste(QList<int> selection);
 
-    bool canSetReadOnly(QList<int> selection);
-    bool canUnsetReadOnly(QList<int> selection);
-
-    bool canExportSnippet(QList<int> selection);
-    bool canImportSnippet(QList<int> selection);
 
     int getDefinition(int ID);
     int getImplementation(int ID);
@@ -215,11 +153,7 @@ private:
     bool canCopy(QList<Entity*> selection);
     bool canPaste(QList<Entity*> selection);
     bool canRemove(QList<Entity *> selection);
-    bool canSetReadOnly(QList<Entity* > selection);
-    bool canUnsetReadOnly(QList<Entity* > selection);
-
-    bool canExportSnippet(QList<Entity*> selection);
-    bool canImportSnippet(QList<Entity*> selection);
+  
 
 
 
@@ -266,7 +200,6 @@ signals:
 
     void controller_ExportedProject(QString);
 
-    void controller_ExportedSnippet(QString snippetXMLData);
 
     void controller_GraphMLConstructed(Entity*);
 
@@ -282,7 +215,7 @@ signals:
 
     void controller_SetViewEnabled(bool);
 
-    void controller_Notification(QString description, int entity_id = -1);
+    void controller_Notification(MODEL_SEVERITY severity, QString description, int entity_id = -1);
 public slots:
     void setupController();
     void setData(int parentID, QString keyName, QVariant dataValue);
@@ -318,10 +251,6 @@ public slots:
     void importProjects(QStringList xmlDataList);
 
 
-    void importSnippet(QList<int> IDs, QString fileName, QString fileData);
-    void exportSnippet(QList<int> IDs);
-
-
     //Toolbar/Dock Functionality
     void clear();
 
@@ -337,10 +266,6 @@ public slots:
 
 
 
-
-    //MODEL Functionality
-    void displayMessage(QString title, QString message, int ID);
-    void gotQuestionAnswer(bool answer);
 
 
     void _projectNameChanged();
@@ -373,8 +298,7 @@ private:
     bool _replicate(QList<Entity*> items);
     bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
-    bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
-    QString _exportSnippet(QList<int> IDs);
+ 
 
     long long getMACAddress();
 
@@ -385,16 +309,12 @@ private:
     void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
-    bool askQuestion(QString questionTitle, QString question, int ID=-1);
     Node* getSingleNode(QList<int> IDs);
 
 
-    bool _newImportGraphML(QString document, Node* parent = 0);
+    bool importGraphML(MODEL_ACTION action, QString document, Node* parent = 0);
 
     
-
-
-    ReadOnlyState getReadOnlyState(Node* node);
 
     EventAction getEventAction();
 
@@ -538,21 +458,19 @@ private:
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
 
-    DoubleHash<ReadOnlyState, int> readOnlyHash;
     DoubleHash<QString, int> treeHash;
 
 
     QString getWorkerProcessName(WorkerProcess* process);
 
-    QList<NODE_KIND> snippetableParentKinds;
-    QList<NODE_KIND> nonSnippetableKinds;
+  
 
 
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
     bool REDOING;
     bool INITIALIZING;
-    bool IMPORTING_SNIPPET;
+   
 
     Node* model = 0;
     Node* workerDefinitions = 0;
@@ -615,6 +533,5 @@ private:
     EntityFactory* entity_factory = 0;
 
 };
- QDataStream &operator<<(QDataStream &out, const EventAction &action);
 
-#endif // NEWCONTROLLER_H
+#endif // MODELCONTROLLER_H
