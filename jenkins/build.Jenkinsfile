@@ -8,6 +8,9 @@ node('test_env'){
     }
 
     stage('Build'){
+        environment{
+            CMAKE_MODULE_PATH = pwd() + 'logan/cmake_modules'
+        }
         dir('logan/build'){
             sh 'cmake ..'
             sh 'make -j6'
