@@ -49,12 +49,14 @@ stage('Build'){
         builders[node_name] = {
             node(node_name){
                 dir('logan/build'){
-                    environment{
-                        CMAKE_MODULE_PATH = pwd() + 'logan/cmake_modules'
-                    }
+                environment{
+                    CMAKE_MODULE_PATH = pwd() + 'logan/cmake_modules'
+                }
+                withEnv(['MYTOOL_HOME=' + pwd() + 'logan/cmake_modules']) {
                     print("${CMAKE_MODULE_PATH}")
                     sh 'cmake ..'
                     sh 'make -j6'
+                }
                 }
             }
         }
