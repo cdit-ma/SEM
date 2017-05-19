@@ -22,6 +22,9 @@ for(n in names){
     }
 }
 
+if(filtered_names.empty()){
+    print("###### Error: No valid nodes found ######")
+}
 
 
 stage('Checkout'){
