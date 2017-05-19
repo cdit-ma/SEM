@@ -98,6 +98,14 @@ ViewItem *SelectionController::getActiveSelectedItem()
     return item;
 }
 
+int SelectionController::getActiveSelectedID(){
+    int id = -1;
+    auto active = getActiveSelectedItem();
+    if(active){
+        id = active->getID();
+    }
+    return id;
+}
 int SelectionController::getFirstSelectedItemID()
 {
     int ID = -1;

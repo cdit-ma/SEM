@@ -32,6 +32,8 @@ public:
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
 
+    
+
 
 
 signals:

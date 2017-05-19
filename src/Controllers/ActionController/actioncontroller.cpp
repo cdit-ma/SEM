@@ -247,100 +247,73 @@ void ActionController::gotJava(bool java)
     }
 }
 
-void ActionController::selectionChanged(int selectionSize)
+void ActionController::selectionChanged(int selection_size)
 {
     if(selectionController){
-        if(selectionSize == -1){
-            selectionSize = selectionController->getSelectionCount();
-        }
+        QSet<SELECTION_PROPERTIES> selection_properties;
         auto selection = selectionController->getSelectionIDs();
+        selection_size = selection.size();
 
-        bool controllerReady = viewController->isControllerReady();
-        bool modelReady = viewController->isModelReady();
-
-        bool modelActions = controllerReady && modelReady;
+        
         auto model_controller = viewController->getModelController();
-
-        bool gotSingleSelection = modelActions && (selectionSize == 1);
-        bool gotSelection = modelActions && (selectionSize > 0);
-        bool gotMultipleSelection = modelActions && (selectionSize > 1);
-
-
-        ViewItem* singleItem = selectionController->getActiveSelectedItem();
-
-        bool hasDefn = false;
-        bool hasImpl = false;
-        bool hasCode = false;
-        bool hasComponentAssembly = false;
-        bool canLock = false;
-
-        if(gotSingleSelection && singleItem && singleItem->isNode()){
-            NodeViewItem* node = (NodeViewItem*) singleItem;
-            NODE_KIND kind = node->getNodeKind();
-
-            hasDefn = node->isNodeOfType(NODE_TYPE::INSTANCE) || node->isNodeOfType(NODE_TYPE::IMPLEMENTATION);
-            hasImpl = hasDefn || node->isNodeOfType(NODE_TYPE::DEFINITION);
-            canLock = !(node->isNodeOfType(NODE_TYPE::ASPECT) || kind == NODE_KIND::MODEL);
-
-            hasCode = kind == NODE_KIND::COMPONENT || kind == NODE_KIND::COMPONENT_INSTANCE || kind == NODE_KIND::COMPONENT_IMPL;
-            hasComponentAssembly = kind == NODE_KIND::COMPONENT_ASSEMBLY;
+        if(model_controller){
+            auto id = selectionController->getActiveSelectedID();
+            selection_properties = model_controller->getSelectionProperties(id, selection);
         }
 
+        bool controller_ready = viewController->isControllerReady();
+        bool model_ready = viewController->isModelReady();
+        bool model_actions = controller_ready && model_ready;
+
+
+        bool got_selection = selection_size > 0;
+        bool got_single_selection = selection_size == 1;
+        bool got_multi_selection = selection_size > 1;
+
+        //New checks
+        edit_cut->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CUT));
+        edit_copy->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_COPY));
+        edit_paste->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_PASTE));
+        edit_replicate->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REPLICATE));
+        edit_delete->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REMOVE));
+        edit_renameActiveSelection->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_RENAME));
+
+        //Active selection based.
+        view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
+        view_viewDefnInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
+        view_centerOnImpl->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
+        view_viewImplInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
+        view_viewConnections->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
+
+    
+        //Selection based.
+        toolbar_wiki->setEnabled(got_selection);
+        edit_expand->setEnabled(got_selection);
+        edit_contract->setEnabled(got_selection);
+
+
+        edit_clearSelection->setEnabled(got_selection);
+        view_centerOn->setEnabled(got_selection);
         
+        //Single Selection
+        edit_selectAll->setEnabled(got_single_selection);
+        view_viewInNewWindow->setEnabled(got_single_selection);
 
-        toolbar_wiki->setEnabled(gotSelection);
-
-        edit_expand->setEnabled(gotSelection);
-        edit_contract->setEnabled(gotSelection);
-
-
-        model_getCodeForComponent->setEnabled(_gotJava && hasCode);
-
-        view_centerOnDefn->setEnabled(hasDefn);
-        view_viewDefnInNewWindow->setEnabled(hasDefn);
-
-        view_centerOnImpl->setEnabled(hasImpl);
-        view_viewImplInNewWindow->setEnabled(hasImpl);
-
-        auto mc = model_controller;
-
-        edit_cut->setEnabled(mc && mc->canCut(selection));
-        edit_copy->setEnabled(mc && mc->canCopy(selection));
-        edit_paste->setEnabled(mc && mc->canPaste(selection));
-        edit_delete->setEnabled(mc && mc->canRemove(selection));
-
-        edit_replicate->setEnabled(gotSelection);
-        
-        //edit_sort->setEnabled(gotSelection);
-        edit_renameActiveSelection->setEnabled(gotSelection);
-        edit_clearSelection->setEnabled(gotMultipleSelection);
-        edit_selectAll->setEnabled(gotSingleSelection);
-
-
-        edit_alignHorizontal->setEnabled(gotMultipleSelection);
-        edit_alignVertical->setEnabled(gotMultipleSelection);
-
-        edit_CycleActiveSelectionForward->setEnabled(gotMultipleSelection);
-        edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
-
-        toolbar_replicateCount->setEnabled(hasComponentAssembly);
-
-        view_fitView->setEnabled(modelActions);
-        view_fitAllViews->setEnabled(modelActions);
-
-
-        view_centerOn->setEnabled(gotSelection);
-
-        view_viewInNewWindow->setEnabled(gotSingleSelection);
-
-        view_viewConnections->setEnabled(gotSelection);
-
-
+        //Multi Selection
+        edit_alignHorizontal->setEnabled(got_multi_selection);
+        edit_alignVertical->setEnabled(got_multi_selection);
+        edit_CycleActiveSelectionForward->setEnabled(got_multi_selection);
+        edit_CycleActiveSelectionBackward->setEnabled(got_multi_selection);
 
         
+        view_fitView->setEnabled(controller_ready);
+        view_fitAllViews->setEnabled(controller_ready);
 
+        //
+        //model_getCodeForComponent->setEnabled(_gotJava && hasCode);
+        //toolbar_replicateCount->setEnabled(hasComponentAssembly);
 
-        applicationToolbar->updateSpacers();
+        //applicationToolbar->updateSpacers();
     }
 }
 

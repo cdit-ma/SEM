@@ -1,12 +1,14 @@
 #ifndef MODELCONTROLLER_H
 #define MODELCONTROLLER_H
 
+#include <QHash>
 #include <QObject>
 #include <QStack>
 #include <QPointF>
 #include <QXmlStreamReader>
 #include <QReadWriteLock>
 #include <QVariant>
+#include <QSet>
 
 #include "kinds.h"
 #include "nodekinds.h"
@@ -46,8 +48,6 @@ struct EventAction{
     int ID;
     int parentID;
 
-    bool projectDirty;
-
     struct _Entity{
         QString XML;
         QString nodeKind;
@@ -68,8 +68,22 @@ struct EventAction{
     } Data;
 };
 
+enum class SELECTION_PROPERTIES{CAN_CUT, CAN_COPY, CAN_PASTE, CAN_REPLICATE, CAN_REMOVE, CAN_RENAME, GOT_IMPLEMENTATION, GOT_DEFINITION, GOT_INSTANCES, GOT_EDGES};
 
-enum class MODEL_ACTION{OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
+enum class MODEL_ACTION{NONE, OPEN, IMPORT, REPLICATE, PASTE, UNDO, REDO};
+inline uint qHash(SELECTION_PROPERTIES key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+};
+Q_DECLARE_METATYPE(SELECTION_PROPERTIES);
+
+inline uint qHash(MODEL_ACTION key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+};
+Q_DECLARE_METATYPE(MODEL_ACTION);
+
+
 class ModelController: public QObject
 {
     Q_OBJECT
@@ -90,7 +104,6 @@ public:
 
     //READ
     QString getProjectAsGraphML();
-    
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
@@ -127,22 +140,14 @@ private:
     QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
     QList<Entity *> getOrderedSelection(QList<int> selection);
 public:
+    QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
+
     bool canUndo();
     bool canRedo();
-    bool canLocalDeploy();
-
-
-    bool canCut(QList<int> selection);
-    bool canCopy(QList<int> selection);
-    bool canReplicate(QList<int> selection);
-    bool canRemove(QList<int> selection);
-    bool canPaste(QList<int> selection);
-
 
     int getDefinition(int ID);
     int getImplementation(int ID);
     QList<int> getInstances(int ID);
-
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
 
@@ -153,14 +158,6 @@ private:
     bool canCopy(QList<Entity*> selection);
     bool canPaste(QList<Entity*> selection);
     bool canRemove(QList<Entity *> selection);
-  
-
-
-
-
-
-
-
 
 
 signals:
@@ -170,7 +167,7 @@ signals:
     
     void projectModified(bool modified);
     void initiateTeardown();
-    void controller_dead();
+
 
     void entityConstructed(int ID, GRAPHML_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, GRAPHML_KIND eKind, QString kind);
@@ -178,42 +175,22 @@ signals:
 
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
+    
+    //DO I NEED?
     void propertyChanged(int ID, QString propertyName, QVariant data);
     void propertyRemoved(int ID, QString propertyName);
 
 
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
-
     void undoRedoChanged();
     void controller_IsModelReady(bool ready);
     void progressChanged(int);
     void showProgress(bool, QString = "");
-    void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");
     void controller_OpenFinished(bool success);
 
-    void controller_AskQuestion(QString title, QString message, int ID=-1);
-    void controller_GotQuestionAnswer();
-
-    void controller_SavedProject(QString filePath, QString dat);
-
-    void controller_ExportedProject(QString);
-
-
-    void controller_GraphMLConstructed(Entity*);
-
-    void controller_GraphMLDestructed(int ID, GRAPHML_KIND kind);
-    void test_destruct(int ID);
-
-
-
-
-    void controller_ProjectRequiresSave(bool requiresSave);
-
     void controller_SetClipboardBuffer(QString);
-
-    void controller_SetViewEnabled(bool);
 
     void controller_Notification(MODEL_SEVERITY severity, QString description, int entity_id = -1);
 public slots:
@@ -272,7 +249,7 @@ public slots:
 
 private:
     bool isDataVisual(Data* data);
-    bool isKeyNameVisual(QString key_name);
+    static bool isKeyNameVisual(QString key_name);
 
 
     Node* construct_setter_node(Node* parent);
@@ -288,19 +265,13 @@ private:
     QString _copy(QList<Entity*> selection);
 
     //Helper functions.
-    bool _paste(int ID, QString xmlData, bool addAction = true);
-    bool _cut(QList<int> IDs, bool addAction = true);
+    bool _paste(int ID, QString xmlData);
+    bool _cut(QList<int> IDs);
     bool _clear();
     bool _copy(QList<int> IDs);
     bool _remove(QList<int> IDs, bool addAction = true);
-    bool _remove(QList<Entity*> items);
-    bool _remove(int ID, bool addAction = true);
     bool _replicate(QList<Entity*> items);
     bool _replicate(QList<int> IDs, bool addAction = true);
-    bool _importProjects(QStringList xmlDataList, bool addAction = true);
- 
-
-    long long getMACAddress();
 
     void attachData(Entity* parent, Data* data, bool addAction = true);
     bool destructData(Entity* parent, QString keyName, bool addAction = true);
@@ -309,24 +280,23 @@ private:
     void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
-    Node* getSingleNode(QList<int> IDs);
-
-
     bool importGraphML(MODEL_ACTION action, QString document, Node* parent = 0);
+    //Exports a Selection of Containers to export into GraphML
+    QString exportGraphML(QList<int> ids, bool all_edges = false);
+    QString exportGraphML(QList<Entity*> entities, bool all_edges = false);
+    QString exportGraphML(Entity* entity);
 
     
 
     EventAction getEventAction();
 
-    void setProjectDirty(bool dirty);
+    void setProjectModified(bool modified);
 
     Node* getSharedParent(QList<int> IDs);
 
 
 
-    //Exports a Selection of Containers to export into GraphML
-    QString _exportGraphMLDocument(QList<int> entityIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
-    QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
+
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     int constructDependantRelative(Node* parent, Node* definition);
@@ -350,7 +320,6 @@ private:
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
-    bool updateProgressNotification();
     QList<int> getIDs(QList<Entity*> items);
     QList<Entity*> getEntities(QList<int> IDs);
 
@@ -405,7 +374,7 @@ private:
     void addActionToStack(EventAction action, bool addAction=true);
 
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
-    void undoRedo(bool undo, bool updateProgess = false);
+    void undoRedo();
 
 
     bool canDeleteNode(Node* node);
@@ -422,6 +391,9 @@ private:
     
 
 
+    void setModelAction(MODEL_ACTION action);
+    bool isModelAction(MODEL_ACTION action);
+    void unsetModelAction(MODEL_ACTION action);
 
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     Node* getFirstNodeFromList(QList<int> ID);
@@ -431,12 +403,12 @@ private:
     int get_linked_ids(int ID);
     void link_ids(int oldID, int newID);
 
-
+    bool isUserAction();
     
 
-    //Stack of ActionItems in the Undo/Redo Stack.
-    QStack<EventAction> undoActionStack;
-    QStack<EventAction> redoActionStack;
+  
+
+    Entity* getEntityByUUID(QString uuid);
 
     QString getTimeStamp();
     uint getTimeStampEpoch();
@@ -444,94 +416,58 @@ private:
     QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
     void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);
 
+    Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
+
+    QList<Node*> getNodes();
+    QList<Node*> getNodes(QList<int> IDs);
+
+private:
+    //List of undeleteable nodes
+    QList<Node*> protected_nodes;
+
     //Provides a lookup for IDs.
     QHash<int, int> id_hash_;
+    QHash<QString, int> uuid_hash_;
     QHash<int, Entity*> entity_hash_;
 
-    QHash<QString, int> uuid_hash_;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QList<int> node_ids_;
     QList<int> edge_ids_;
 
+    //Stack of ActionItems in the Undo/Redo Stack.
+    QStack<EventAction> undo_stack;
+    QStack<EventAction> redo_stack;
 
-    QHash<int, int> readOnlyLookup;
-    QHash<int, int> reverseReadOnlyLookup;
+    //Used to tell if we are currently Undo-ing/Redo-ing in the system. 
+    bool INITIALIZING = true;
+    bool DESTRUCTING_CONTROLLER = false;
 
-    DoubleHash<QString, int> treeHash;
+    bool project_modified = false;   
 
+    QString project_path;
 
-    QString getWorkerProcessName(WorkerProcess* process);
-
-  
-
-
-    //Used to tell if we are currently Undo-ing/Redo-ing in the system.
-    bool UNDOING;
-    bool REDOING;
-    bool INITIALIZING;
-   
-
+    //Model and Aspect pointers
     Node* model = 0;
-    Node* workerDefinitions = 0;
+    Node* interfaceDefinitions = 0;
     Node* behaviourDefinitions = 0;
     Node* deploymentDefinitions = 0;
-    Node* interfaceDefinitions = 0;
-    Node* hardwareDefinitions = 0;
     Node* assemblyDefinitions = 0;
-    Node* localhostNode = 0;
-
-    Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
-    Node* get_hardware_by_url(Node* parent_node, NODE_KIND kind, QString url);
-
-    //List of undeleteable nodes
-    QList<Node*> protectedNodes;
-
-    QList<Node*> getNodes();
-    QList<Node*> getNodes(QList<int> IDs);
+    Node* hardwareDefinitions = 0;
+    Node* workerDefinitions = 0;
 
 
-    int previousUndos;
-
-    QString externalWorkerDefPath;
-
-    QStringList visual_keynames;
-
-
-    Entity* getEntityByUUID(QString uuid);
-
-    //QList<int> connectedLinkedIDs;
-
-    bool isUserAction();
-
-    bool CUT_USED;
-    bool REPLICATE_USED;
-    bool OPENING_PROJECT;
-    bool IMPORTING_PROJECT;
-    bool PASTE_USED;
-    bool IMPORTING_WORKERDEFINITIONS;
-    bool CONSTRUCTING_WORKERFUNCTION;
-
-    int actionCount;
+    int actionCount = 0;
+    int currentActionID = 0;
+    int currentActionItemID = 0;
     QString currentAction;
-    int currentActionID;
-    int currentActionItemID;
+   
 
-    bool questionAnswer;
-
-    bool DESTRUCTING_CONTROLLER;
-
-
-    QString projectPath;
-    bool projectFilePathSet;
-
-    bool projectDirty;
-
-    QThread* controllerThread;
+    QThread* controller_thread = 0;
+    EntityFactory* entity_factory = 0;
     QReadWriteLock lock_;
 
-    EntityFactory* entity_factory = 0;
-
+    QSet<MODEL_ACTION> model_actions;
 };
 
 #endif // MODELCONTROLLER_H
