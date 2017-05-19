@@ -52,7 +52,7 @@ stage('Build'){
                 environment{
                     CMAKE_MODULE_PATH = pwd() + 'logan/cmake_modules'
                 }
-                withEnv(['MYTOOL_HOME=' + pwd() + 'logan/cmake_modules']) {
+                withEnv(['CMAKE_MODULE_PATH=' + pwd() + 'logan/cmake_modules']) {
                     print("${CMAKE_MODULE_PATH}")
                     sh 'cmake ..'
                     sh 'make -j6'
