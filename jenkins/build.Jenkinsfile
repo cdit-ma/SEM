@@ -34,7 +34,7 @@ stage('Checkout'){
             node(node_name){
                 dir('logan'){
                     deleteDir()
-                    checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'WipeWorkspace'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '1f1e1fcb-b84a-48a4-be37-0aac3118caa0', url: 'https://github.com/cdit-ma/logan']]])
+                    checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '1f1e1fcb-b84a-48a4-be37-0aac3118caa0', url: 'https://github.com/cdit-ma/logan']]])
                 }
             }
         }
