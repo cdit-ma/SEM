@@ -25,13 +25,6 @@ class WorkerProcess;
 class EntityFactory;
 class DataNode;
 
-#include "../Utils/doublehash.h"
-
-
-#define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
-#define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
-#define QPID_BROKER "QPID_BROKER"
-#define DDS_LOGGING_SERVER "DDS_LOGGING_SERVER"
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
