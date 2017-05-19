@@ -22,7 +22,7 @@ for(n in names){
     }
 }
 
-if(filtered_names.empty()){
+if(filtered_names.isEmpty()){
     print("###### Error: No valid nodes found ######")
 }
 
