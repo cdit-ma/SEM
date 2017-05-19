@@ -52,7 +52,7 @@ stage('Build'){
                     CMAKE_MODULE_PATH = pwd() + 'logan/cmake_modules'
                 }
                 dir('logan/build'){
-                    print(${CMAKE_MODULE_PATH})
+                    print("${CMAKE_MODULE_PATH}")
                     sh 'cmake ..'
                     sh 'make -j6'
                 }
