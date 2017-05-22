@@ -304,14 +304,18 @@ void ActionController::selectionChanged(int selection_size)
         edit_alignVertical->setEnabled(got_multi_selection);
         edit_CycleActiveSelectionForward->setEnabled(got_multi_selection);
         edit_CycleActiveSelectionBackward->setEnabled(got_multi_selection);
-
         
         view_fitView->setEnabled(controller_ready);
         view_fitAllViews->setEnabled(controller_ready);
 
-        //
-        //model_getCodeForComponent->setEnabled(_gotJava && hasCode);
-        //toolbar_replicateCount->setEnabled(hasComponentAssembly);
+        auto active_item = selectionController->getActiveSelectedItem();
+        
+        if(active_item && active_item->isNode()){
+            auto node_item = (NodeViewItem*) active_item;
+            auto node_kind = node_item->getNodeKind();
+            toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
+            model_getCodeForComponent->setEnabled(_gotJava && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
+        }
 
         //applicationToolbar->updateSpacers();
     }

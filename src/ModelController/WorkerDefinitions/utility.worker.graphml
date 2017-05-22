@@ -103,7 +103,6 @@
                         <node id="n0::n2:n0">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
-                            <data key="sortOrder">0</data>
                             <data key="type">String</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
@@ -114,7 +113,6 @@
                 <node id="n0::n3">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">GetTimeOfDay</data>
-                    <data key="sortOrder">1</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
@@ -127,7 +125,6 @@
                         <node id="n0::n3:n0">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
-                            <data key="sortOrder">0</data>
                             <data key="type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">numberOne</data>

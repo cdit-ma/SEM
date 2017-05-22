@@ -727,8 +727,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::IDL:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                break;
             case NODE_KIND::SHARED_DATATYPES:
                 nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("version");
+                secondary_icon.second = "tag";
+                nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -736,7 +741,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
@@ -746,6 +750,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                secondary_icon.second = "copyX";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->setSecondaryTextKey("replicate_count");
+                break;
             case NODE_KIND::BLACKBOX:
             case NODE_KIND::BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -766,7 +775,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
@@ -790,6 +799,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                //Don't show icon
+                //secondary_icon.second = "tiles";
+                //nodeItem->setSecondaryIconPath(secondary_icon);
+                //nodeItem->setSecondaryTextKey("namespace");
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -828,7 +841,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::MEMBER:
@@ -844,7 +857,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::ATTRIBUTE:
@@ -881,7 +894,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:

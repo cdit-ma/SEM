@@ -7,6 +7,7 @@ SharedDatatypes::SharedDatatypes(EntityFactory* factory) : Node(factory, NODE_KI
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new SharedDatatypes();});
 
     RegisterDefaultData(factory, node_kind, "uuid", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "version", QVariant::String, false, "v1.0");
 };
 
 SharedDatatypes::SharedDatatypes(): Node(NODE_KIND::SHARED_DATATYPES)

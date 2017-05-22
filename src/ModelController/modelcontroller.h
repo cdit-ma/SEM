@@ -100,7 +100,6 @@ public:
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
-
     QList<NODE_KIND> getAdoptableNodeKinds(int ID);
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
@@ -112,15 +111,13 @@ public:
 
 
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
+    
     //NEW FUNCTIONS FRESHLY IMPLEMENTED WITH QREADLOCKER
     bool isNodeOfType(int ID, NODE_TYPE type);
     int getNodeParentID(int ID);
     VIEW_ASPECT getNodeViewAspect(int ID);
     int getSharedParent(int ID, int ID2);
     bool isNodeAncestor(int ID, int ID2);
-
-
-
 
     //UNSURE IF NEEDED
     QStringList getProtectedEntityKeys(int ID);
@@ -151,8 +148,6 @@ private:
     bool canCopy(QList<Entity*> selection);
     bool canPaste(QList<Entity*> selection);
     bool canRemove(QList<Entity *> selection);
-
-
 signals:
     //New SIGNAL
     void NodeConstructed(int parent_id, int id, NODE_KIND kind);
@@ -259,12 +254,11 @@ private:
 
     //Helper functions.
     bool _paste(int ID, QString xmlData);
-    bool _cut(QList<int> IDs);
+  
     bool _clear();
-    bool _copy(QList<int> IDs);
+    
     bool _remove(QList<int> IDs, bool addAction = true);
     bool _replicate(QList<Entity*> items);
-    bool _replicate(QList<int> IDs, bool addAction = true);
 
     void attachData(Entity* parent, Data* data, bool addAction = true);
     bool destructData(Entity* parent, QString keyName, bool addAction = true);
@@ -286,6 +280,10 @@ private:
     void setProjectModified(bool modified);
 
     Node* getSharedParent(QList<int> IDs);
+
+    Node* getImplementation(Node* node);
+    Node* getDefinition(Node* node);
+    QList<Node*> getInstances(Node* node);
 
 
 

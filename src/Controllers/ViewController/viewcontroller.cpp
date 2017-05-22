@@ -515,14 +515,16 @@ void ViewController::getCodeForComponent()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item && item->isNode()){
-        NodeViewItem* node = (NodeViewItem*) item;
-
-        if(node->getNodeKind() == NODE_KIND::COMPONENT_IMPL || node->getNodeKind() == NODE_KIND::COMPONENT || node->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE){
-            QString componentName = node->getData("label").toString();
+        auto def = (NodeViewItem*)item;
+        if(def->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE || def->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
+            int id = controller->getDefinition(item->getID());
+            def = getNodeViewItem(id);
+        }
+        if(def){
+            QString componentName = def->getData("label").toString();
             QString filePath = getTempFileForModel();
             if(!componentName.isEmpty() && !filePath.isEmpty()){
                 execution_manager->GenerateCodeForComponent(filePath, componentName);
-                //emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -551,7 +553,7 @@ void ViewController::launchLocalDeployment()
     }
 }
 
-void ViewController::actionFinished(bool, QString)
+void ViewController::actionFinished(bool, QString status)
 {
     setControllerReady(true);
     emit vc_actionFinished();

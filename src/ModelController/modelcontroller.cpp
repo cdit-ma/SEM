@@ -88,7 +88,7 @@ void ModelController::loadWorkerDefinitions()
             for(auto file : dir.entryList(extensions)){
                 auto file_path = dir.absolutePath() + "/" + file;
                 auto data = readFile(file_path);
-                bool success = importGraphML(MODEL_ACTION::IMPORT, data.second, workerDefinitions);
+                bool success = importGraphML(MODEL_ACTION::NONE, data.second, workerDefinitions);
                 if(!success){
                     emit controller_Notification(MODEL_SEVERITY::WARNING, "Error Importing Worker Definition '" + file_path + "'");
                 }
@@ -105,21 +105,26 @@ QString ModelController::exportGraphML(Entity* entity){
     return exportGraphML(QList<Entity*>{entity}, true);
 }
 
-QString ModelController::exportGraphML(QList<Entity*> entities, bool all_edges){
+QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges){
     QSet<Key*> keys;
-    QSet<Node*> nodes;
+
+    QSet<Entity*> entities;
+    QSet<Node*> top_nodes;
     QSet<Edge*> edges;
     
     //Get the entities
-    for(auto entity : entities){
+    for(auto entity : selection){
         if(entity->isNode()){
             auto node = (Node*) entity;
-            nodes.insert(node);
+            top_nodes.insert(node);
+            entities.insert(node);
 
             for(auto child : node->getChildren()){
-                nodes.insert(node);
+                entities.insert(child);
             }
+
             for(auto edge : node->getAllEdges()){
+                entities.insert(edge);
                 edges.insert(edge);
             }
         }else if(entity->isEdge()){
@@ -129,13 +134,7 @@ QString ModelController::exportGraphML(QList<Entity*> entities, bool all_edges){
     }
 
     //Get the Keys
-    for(auto entity : nodes){
-        for(auto key : entity->getKeys()){
-            keys.insert(key);
-        }
-    }
-
-    for(auto entity : edges){
+    for(auto entity : entities){
         for(auto key : entity->getKeys()){
             keys.insert(key);
         }
@@ -150,7 +149,7 @@ QString ModelController::exportGraphML(QList<Entity*> entities, bool all_edges){
     }
     {
         xml +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
-        for(auto entity : nodes){
+        for(auto entity : top_nodes){
             xml += entity->toGraphML(2);
         }
         
@@ -159,16 +158,23 @@ QString ModelController::exportGraphML(QList<Entity*> entities, bool all_edges){
             auto dst = edge->getDestination();
             //Only export the edge if we contain both sides, unless we should export all
             bool export_edge = all_edges;
+            
             if(!export_edge){
-                if(nodes.contains(src) && nodes.contains(dst)){
+                bool contains_src = entities.contains(src);
+                bool contains_dst = entities.contains(dst);
+                if(contains_src && contains_dst){
                     export_edge = true;
                 }else{
+                    //If we don't contain both
                     switch(edge->getEdgeKind()){
                         case EDGE_KIND::AGGREGATE:
                         case EDGE_KIND::ASSEMBLY:
-                        case EDGE_KIND::DEPLOYMENT:
-                        case EDGE_KIND::DEFINITION:{
+                        case EDGE_KIND::DEPLOYMENT:{
                             export_edge = true;
+                            break;
+                        }
+                        case EDGE_KIND::DEFINITION:{
+                            export_edge = contains_src;
                             break;
                         }
                         default:
@@ -176,7 +182,9 @@ QString ModelController::exportGraphML(QList<Entity*> entities, bool all_edges){
                     }
                 }
             }
-            xml += edge->toGraphML(2);
+            if(export_edge){
+                xml += edge->toGraphML(2);
+            }
         }
         xml += "\t</graph>\n";
     }
@@ -868,10 +876,11 @@ void ModelController::replicate(QList<int> IDs)
     auto selection = getOrderedSelection(IDs);
     bool success = false;
 
-    //if(canReplicate(selection)){
+    if(canReplicate(selection)){
         success = _replicate(selection);
-   // }
-
+    }
+    qCritical() << "replicated";
+    
     emit controller_ActionFinished(success, "Cannot Replicate selection.");
 }
 
@@ -882,7 +891,7 @@ void ModelController::cut(QList<int> ids)
     auto selection = getOrderedSelection(ids);
     bool success = false;
     if(canCut(selection)){
-        QString data = _copy(selection);
+        QString data = exportGraphML(selection, true);
         emit controller_SetClipboardBuffer(data);
         emit triggerAction("Cutting Selection");
         success = _remove(ids);
@@ -916,23 +925,6 @@ bool ModelController::_paste(int ID, QString xml)
     return false;
 }
 
-bool ModelController::_cut(QList<int> IDs)
-{
-    if(_copy(IDs)){
-        triggerAction("Cutting selection");
-        return _remove(IDs, false);
-    }
-    return false;
-}
-
-bool ModelController::_copy(QList<int> IDs)
-{
-    auto xml = exportGraphML(IDs, false);
-    //Tell the view to place the resulting GraphML String into the Copy buffer.
-    emit controller_SetClipboardBuffer(xml);
-    return true;
-}
-
 /**
  * @brief NewController::_remove - Removes the selection of GraphML Entities from their IDs
  * @param IDs - The ID's of the entities to remove.
@@ -964,7 +956,7 @@ bool ModelController::_remove(QList<int> ids, bool addAction)
 
 bool ModelController::_replicate(QList<Entity *> items)
 {
-    QString data = _copy(items);
+    QString data = exportGraphML(items, true);
 
     Entity* item = items.first();
     if(item->isNode()){
@@ -976,36 +968,6 @@ bool ModelController::_replicate(QList<Entity *> items)
     return false;
 }
 
-/**
- * @brief NewController::_replicate
- * @param IDs
- * @param addAction - Adds a Action in the Undo/Redo Stack
- * @return Action successful.
- */
-bool ModelController::_replicate(QList<int> ids, bool addAction)
-{
-    bool success = false;
-
-    /*
-    if(canCopy(ids)){
-        Node* node = getFirstNodeFromList(ids);
-        if(node && node->getParentNode()){
-            emit showProgress(0,"Replicating selection");
-            //Export the GraphML
-            QString graphml = exportGraphML(ids, false);
-            if(addAction){
-                triggerAction("Replicating Selection");
-            }
-            //Import the GraphML
-            if(node->getParentNode()){
-
-                success = _paste(node->getParentNodeID(),graphml, false);
-            }
-            emit showProgress(100);
-        }
-    }*/
-    return success;
-}
 
 QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind)
 {
@@ -1290,14 +1252,11 @@ bool ModelController::isNodeOfType(int ID, NODE_TYPE type){
 
 QList<int> ModelController::getInstances(int ID)
 {
+    QReadLocker lock(&lock_);
     QList<int> instances;
-    Node* node = getNode(ID);
-    if(node){
-        foreach(Node* instance, node->getInstances()){
-            if(instance){
-                instances << instance->getID();
-            }
-        }
+
+    for(auto node : getInstances(getNode(ID))){
+        instances.push_back(node->getID());
     }
     return instances;
 }
@@ -2928,7 +2887,7 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
     bool reset_position = action == MODEL_ACTION::PASTE;
     bool partial_import = action == MODEL_ACTION::PASTE || link_id;
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
-    bool show_progress = true;
+    bool show_progress = action != MODEL_ACTION::NONE;
     current_entity->setID(parent->getID());
 
 
@@ -3345,6 +3304,10 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
         edge_itterations ++;
     }
 
+    if(show_progress){
+        emit progressChanged(100);
+    }
+
     qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_itterations << " Itterations.";
 
     for(auto entity : entity_hash){
@@ -3388,7 +3351,12 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     QReadLocker lock(&lock_);
     QSet<SELECTION_PROPERTIES> properties;
 
+    auto item = getEntity(active_id);
     auto items = getOrderedSelection(ids);
+
+    if(canCut(items)){
+        properties.insert(SELECTION_PROPERTIES::CAN_CUT);
+    }
 
     if(canCopy(items)){
         properties.insert(SELECTION_PROPERTIES::CAN_COPY);
@@ -3398,14 +3366,61 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
         properties.insert(SELECTION_PROPERTIES::CAN_REMOVE);
     }
 
+    if(canPaste(items)){
+        properties.insert(SELECTION_PROPERTIES::CAN_PASTE);
+    }
 
-    
+    if(canReplicate(items)){
+        properties.insert(SELECTION_PROPERTIES::CAN_REPLICATE);
+    }
+
+    //Check Active Selection
+    if(item){
+        auto label = item->getData("label");
+        if(label && !item->isReadOnly() && !label->isProtected()){
+            properties.insert(SELECTION_PROPERTIES::CAN_RENAME);
+        }
+
+        if(item->isNode()){
+            auto node = (Node*) item;
+
+            if(getDefinition(node)){
+                properties.insert(SELECTION_PROPERTIES::GOT_DEFINITION);
+            }
+
+            if(getImplementation(node)){
+                properties.insert(SELECTION_PROPERTIES::GOT_IMPLEMENTATION);
+            }
+
+            if(getInstances(node).size() > 0){
+                properties.insert(SELECTION_PROPERTIES::GOT_INSTANCES);
+            }
+
+            if(node->getEdges(0, EDGE_KIND::NONE).size() > 0){
+                properties.insert(SELECTION_PROPERTIES::GOT_EDGES);
+            }
+        }
+    }
+
     return properties;
 }
 
 bool ModelController::canCut(QList<Entity *> selection)
 {
-    return canCopy(selection) && canRemove(selection);
+    if(canRemove(selection)){
+        for(auto item : selection){
+            if(item->isNode()){
+                Node* node = (Node*) item;
+               
+                //Dont allow copy from any definitions, except 
+                if(node->isDefinition()){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 
@@ -3415,7 +3430,7 @@ bool ModelController::canCopy(QList<Entity *> selection)
     bool valid = !selection.isEmpty();
     Node* parent = 0;
 
-    foreach(Entity* item, selection){
+    for(auto item : selection){
         if(item->isNode()){
             Node* node = (Node*) item;
             if(!canDeleteNode(node)){
@@ -3467,6 +3482,17 @@ bool ModelController::canPaste(QList<Entity *> selection)
             }
             return true;
         }
+    }
+    return false;
+}
+
+
+bool ModelController::canReplicate(QList<Entity *> selection)
+{
+    if(canCopy(selection)){
+        //Get the first item, check if we can paste into it
+        auto first = selection.first();
+        return canPaste(QList<Entity*>{first});
     }
     return false;
 }
@@ -3537,41 +3563,54 @@ bool ModelController::isProjectSaved()
     return project_modified;
 }
 
-int ModelController::getDefinition(int ID)
-{
-    QReadLocker lock(&lock_);
-
-    int def_id = -1;
-    auto node = getNode(ID);
+Node* ModelController::getImplementation(Node* node){
+    
+    auto def = getDefinition(node);
     if(node){
-        //Set our node to it's definition
-        if(node->getDefinition()){
-            auto def = node->getDefinition(true);
-            def_id = def->getID();
+        //If we have a Definition (And the node isn't an Impl), use it to check for impls, else use the node
+        node = (def && !node->isImpl()) ? def : node;
+        for(auto impl : node->getImplementations()){
+            return impl;
         }
     }
-    return def_id;
+    return 0;
+}
+
+Node* ModelController::getDefinition(Node* node){
+    if(node){
+        return node->getDefinition(true);
+    }
+    return 0;
+}
+
+QList<Node*> ModelController::getInstances(Node* node){
+    QList<Node*> instances;
+    if(node){
+        if(node->isImpl()){
+            //Impls have instances 
+            node = getDefinition(node);
+        }
+        
+        if(node){
+            instances = node->getInstances();
+        }
+    }
+    return instances;
+}
+
+
+int ModelController::getDefinition(int id)
+{
+    QReadLocker lock(&lock_);
+    auto def = getDefinition(getNode(id));
+    return def ? def->getID() : -1;
 }
 
 int ModelController::getImplementation(int id)
 {
     QReadLocker lock(&lock_);
-
-    int impl_id = -1;
-    auto node = getNode(id);
-    if(node){
-        //Set our node to it's definition
-        if(node->getDefinition()){
-            node = node->getDefinition(true);
-        }
-        auto impls = node->getImplementations();
-
-        for(auto impl : impls){
-            impl_id = impl->getID();
-            break;
-        }
-    }
-    return impl_id;
+    auto impl = getImplementation(getNode(id));
+    return impl ? impl->getID() : -1;
 }
 
 bool ModelController::isUserAction()

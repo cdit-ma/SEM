@@ -262,6 +262,10 @@ void MainWindow::updateProgressBar(int value)
         } else {
             progressBar->setRange(0, 100);
             progressBar->setValue(value);
+            if(value >= 100){
+                //Hide the progress popup
+                progressPopup->setVisible(false);
+            }
         }
     }
 }

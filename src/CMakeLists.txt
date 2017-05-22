@@ -187,7 +187,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/doublehash.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
