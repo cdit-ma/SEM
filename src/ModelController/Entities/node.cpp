@@ -427,7 +427,6 @@ bool Node::addChild(Node *child)
         children << child;
         child->setParentNode(this, childCount++);
 
-
         if(gotData("uuid")){
             auto data = getData("uuid");
             auto key = data->getKey();

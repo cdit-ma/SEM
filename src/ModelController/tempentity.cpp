@@ -24,7 +24,6 @@ TempEntity::TempEntity(GRAPHML_KIND kind, TempEntity* parent)
 
 TempEntity::~TempEntity()
 {
-    clearData();
 }
 
 bool TempEntity::isNode()
@@ -69,6 +68,10 @@ int TempEntity::getSourceIDInt(){
 
 int TempEntity::getTargetIDInt(){
     return str_to_int(target_id_str);
+}
+
+QString TempEntity::getIDStr(){
+    return id_str;
 }
 
 bool TempEntity::gotPreviousID()
@@ -211,14 +214,4 @@ QList<Data *> TempEntity::takeDataList()
     QList<Data*> data;
     data.swap(data_list);
     return data;
-}
-
-void TempEntity::clearData()
-{
-    for(auto data : data_list){
-        if(!data->getParent()){
-            delete data;
-        }
-    }
-    data_list.clear();
 }

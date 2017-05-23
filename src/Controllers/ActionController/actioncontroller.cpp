@@ -367,12 +367,9 @@ void ActionController::updateJenkinsActions()
 void ActionController::updateUndoRedo()
 {
     if(viewController){
-        bool controllerReady = viewController->isControllerReady();
-        bool modelReady = viewController->isModelReady();
-
-        bool modelActions = controllerReady && modelReady;
-        edit_undo->setEnabled(modelActions && viewController->canUndo());
-        edit_redo->setEnabled(modelActions && viewController->canRedo());
+        bool model_ready = viewController->isModelReady();
+        edit_undo->setEnabled(model_ready && viewController->canUndo());
+        edit_redo->setEnabled(model_ready && viewController->canRedo());
     }
 }
 
@@ -436,23 +433,15 @@ void ActionController::updateActions()
     file_saveAsProject->setEnabled(modelActions);
     file_closeProject->setEnabled(modelActions);
 
-    edit_undo->setEnabled(modelActions);
-    edit_redo->setEnabled(modelActions);
-
     model_selectModel->setEnabled(modelActions);
     model_validateModel->setEnabled(modelActions);
     model_generateModelWorkspace->setEnabled(modelActions);
-    //model_executeLocalJob->setEnabled(modelActions);
 
     edit_search->setEnabled(modelActions);
     view_fitView->setEnabled(modelActions);
     view_fitAllViews->setEnabled(modelActions);
 
-
-    //jenkins_importNodes->setEnabled(modelActions);
-    //jenkins_executeJob->setEnabled(modelActions);
     toolbar_contextToolbar->setEnabled(modelActions);
-
     toolbar_addDDSQOSProfile->setEnabled(modelActions);
 
     //Update the selection changed with a special thing.

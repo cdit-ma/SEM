@@ -24,6 +24,7 @@ public:
     QString getKind();
 
     void setIDStr(QString id_str);
+    QString getIDStr();
     bool gotPreviousID();
     int getPreviousID();
 
@@ -60,7 +61,6 @@ public:
     void addData(Data* data);
     QList<Data*> getData();
     QList<Data*> takeDataList();
-    void clearData();
 private:
     void addChild(TempEntity* child);
 

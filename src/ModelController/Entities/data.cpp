@@ -25,7 +25,9 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GRAPHML_KIND::DATA)
 Data::~Data()
 {
     //Unset the parent
-    //setParent(0);
+    if(_parent){
+        _parent->removeData(this);
+    }
 
     if(_parentData){
         //Unset Parent Data.
@@ -61,14 +63,9 @@ void Data::setParent(Entity *parent)
     }
 
     if(parent){
-        setID();
+        _parent = parent;
         parent->_dataChanged(this);
         parent->_dataProtected(this);
-        
-    }
-    _parent = parent;
-    
-    if(_parent){
         revalidateData();
     }
 }

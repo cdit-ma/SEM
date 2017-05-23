@@ -1215,13 +1215,10 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     emit vc_viewItemConstructed(item);
 }
 
-void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND eKind, QString kind)
+void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
-    Q_UNUSED(eKind);
-    Q_UNUSED(kind);
-
-    ViewItem* viewItem = getViewItem(ID);
-    destructViewItem(viewItem);
+    auto view_item = getViewItem(ID);
+    destructViewItem(view_item);
 }
 
 void ViewController::controller_dataChanged(int ID, QString key, QVariant data)

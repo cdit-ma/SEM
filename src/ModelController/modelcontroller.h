@@ -158,7 +158,7 @@ signals:
 
 
     void entityConstructed(int ID, GRAPHML_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
-    void entityDestructed(int ID, GRAPHML_KIND eKind, QString kind);
+    void entityDestructed(int ID, GRAPHML_KIND kind);
 
 
     void dataChanged(int ID, QString keyName, QVariant data);
@@ -296,15 +296,6 @@ private:
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-   
-    
-
-    //Stores/Gets/Removes items/IDs from the GraphML Hash
-    
-    Entity* getEntity(int ID);
-    Node* getNode(int ID);
-    Edge* getEdge(int ID);   
-    
     void storeEntity(Entity* item);
     void removeEntity(int ID);
 
@@ -398,9 +389,6 @@ private:
     
 
   
-
-    Entity* getEntityByUUID(QString uuid);
-
     QString getTimeStamp();
     uint getTimeStampEpoch();
 
@@ -409,22 +397,21 @@ private:
 
     Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
 
-    QList<Node*> getNodes();
     QList<Node*> getNodes(QList<int> IDs);
-
 private:
+
+    Entity* getEntity(int id);
+    Node* getNode(int id);
+    Edge* getEdge(int id);
     //List of undeleteable nodes
     QList<Node*> protected_nodes;
 
     //Provides a lookup for IDs.
     QHash<int, int> id_hash_;
-    QHash<QString, int> uuid_hash_;
-    QHash<int, Entity*> entity_hash_;
-
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
-    QList<int> node_ids_;
-    QList<int> edge_ids_;
+    QSet<int> node_ids_;
+    QSet<int> edge_ids_;
 
     //Stack of ActionItems in the Undo/Redo Stack.
     QStack<EventAction> undo_stack;

@@ -2,14 +2,20 @@
 #define DATA_H
 #include "key.h"
 #include "entity.h"
+class EntityFactory; 
 class Data : public GraphML
 {
     Q_OBJECT
+    friend class Entity;
+    friend class EntityFactory;
     friend class Key;
-public:
+    friend class Node;
+    friend class Edge;
+protected:
     Data(Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
     static Data* clone(Data* data);
+public:
 
     void setParent(Entity* parent);
     Entity* getParent();

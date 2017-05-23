@@ -4,7 +4,6 @@
 #include <QVariant>
 #include <QDebug>
 
-
 Entity::Entity(GRAPHML_KIND kind):GraphML(kind)
 {
 }
@@ -168,6 +167,13 @@ bool Entity::gotData(QString keyName) const
     }else{
         return getData(keyName);
     }
+}
+
+bool Entity::gotData(Key* key) const{
+    if(key){
+        return getData(key->getName());
+    }
+    return false;
 }
 
 bool Entity::isNode() const

@@ -1,25 +1,15 @@
 #include "graphml.h"
-int GraphML::_IDCounter = 0;
-
-/**
- * @brief GraphML::GraphML
- * The GraphML class is the lightest weight element in the Model. It is used to ensure that every item has an unique ID and can be used to up cast.
- * @param kind The kind of this element.
- */
-
-void GraphML::resetID()
-{
-      GraphML::_IDCounter = 0;
-}
+#include "../entityfactory.h"
 
 GraphML::GraphML(GRAPHML_KIND kind):QObject(0)
 {
-    this->id = -1;
-
-    if(kind != GRAPHML_KIND::DATA){
-        setID();
-    }
     this->kind = kind;
+}
+
+GraphML::~GraphML(){
+    if(factory_){
+        factory_->DeregisterEntity(this);
+    }
 }
 
 /**
@@ -32,10 +22,10 @@ GRAPHML_KIND GraphML::getGraphMLKind() const
     return kind;
 }
 
-void GraphML::setID()
-{
-    if(id < 0){
-        this->id = ++_IDCounter;
+void GraphML::setID(int id){
+    //Only allow setting once
+    if(this->id < 0){
+        this->id = id;
     }
 }
 
@@ -47,4 +37,16 @@ void GraphML::setID()
 int GraphML::getID() const
 {
     return id;
+}
+
+void GraphML::setFactory(EntityFactory* factory){
+    factory_ = factory;
+
+    if(factory_){
+        factory_->RegisterEntity(this);
+    }
+}
+
+EntityFactory* GraphML::getFactory(){
+    return factory_;
 }

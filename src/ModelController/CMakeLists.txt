@@ -118,6 +118,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/exportidkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
 )
 
@@ -227,6 +228,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.h
 )
 
 set(RESOURCES
