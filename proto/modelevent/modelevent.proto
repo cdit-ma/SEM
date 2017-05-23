@@ -55,6 +55,7 @@ message LifecycleEvent{
         ACTIVATED = 1;
         PASSIVATED = 2;
         TERMINATED = 3;
+        FAILED = 4;
     }
     Info info = 1;
     Type type = 2;
