@@ -112,7 +112,6 @@ int main(int argc, char **argv){
         std::cout << "* Slave:" << std::endl;    
         std::cout << "** Endpoint: " << slave_endpoint << std::endl;    
         std::cout << "** Library Path: " << dll_path << std::endl;    
-        
     }
 
     zmq::Registrar* master = 0;
