@@ -25,7 +25,6 @@ public:
 protected:
     void _dataChanged(Data* data);
     void _dataRemoved(Data* data);
-    void _dataProtected(Data* data);
 public:
     Data* getData(QString keyName) const;
     Data* getData(Key* key) const;
@@ -65,9 +64,6 @@ public:
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
-
-    void propertyChanged(int ID, QString propertyName, QVariant data);
-    void propertyRemoved(int ID, QString propertyName);
 
     void terminating();
 private:

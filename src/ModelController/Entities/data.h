@@ -55,7 +55,6 @@ private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
     bool _setValue(QVariant value, bool validate = true);
-    void updateProtected();
     void updateChildren(bool changed = true);
     Entity* _parent;
     Key* _key;

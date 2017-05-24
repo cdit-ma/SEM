@@ -1,5 +1,4 @@
 #include "tempentity.h"
-#include "Entities/data.h"
 
 int str_to_int(QString str){
     bool ok;
@@ -174,44 +173,28 @@ bool TempEntity::gotEdgeKind()
 }
 
 QVariant TempEntity::getDataValue(QString key_name){
-    QVariant value;
-    for(auto data : data_list){
-        if(data->getKeyName() == key_name){
-            value = data->getValue();
-            break;
-        }
-    }
-    return value;
+    return data.value(key_name, QVariant());
 }
 
 bool TempEntity::gotData(QString key_name){
-    for(auto data: data_list){
-        if(data->getKeyName() == key_name){
-            return true;
-        }
-    }
-    return false;
+    return data.contains(key_name);
 }
 
-void TempEntity::addData(Data *data)
-{
-    if(data){
-        QString key_name = data->getKeyName();
-        if(key_name == "kind"){
-            kind_str = data->getValue().toString();
-        }
-        data_list.append(data);
+void TempEntity::addData(QString key_name, QVariant value){
+    data[key_name] = value;
+    if(key_name == "kind"){
+        kind_str = value.toString();
     }
 }
 
-QList<Data *> TempEntity::getData()
-{
-    return data_list;
+void TempEntity::removeData(QString key_name){
+    data.remove(key_name);
 }
 
-QList<Data *> TempEntity::takeDataList()
-{
-    QList<Data*> data;
-    data.swap(data_list);
-    return data;
+void TempEntity::clearData(){
+    data.clear();
+}
+
+QList<QString> TempEntity::getKeys(){
+    return data.keys();
 }

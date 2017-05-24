@@ -25,39 +25,28 @@ class WorkerProcess;
 class EntityFactory;
 class DataNode;
 
-
-enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum class MODEL_SEVERITY{ERROR, WARNING, INFO};
-struct EventAction{
-    struct _Action{
-        int ID;
-        int actionID;
+
+enum class ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
+struct HistoryAction{
+
+    struct Action{
+        int id;
+        int action_id;
         ACTION_TYPE type;
         GRAPHML_KIND kind;
         QString name;
-        uint timestamp;
     } Action;
 
-    int ID;
-    int parentID;
+    int entity_id;
+    int parent_id;
 
-    struct _Entity{
-        QString XML;
-        QString nodeKind;
-        GRAPHML_KIND kind;
-        EDGE_KIND edgeClass;
-    } Entity;
+    QString xml;
 
-    struct _Key{
-        QString name;
-        QVariant::Type type;
-    } Key;
-
-    struct _Data{
-        QString keyName;
-        QVariant oldValue;
-        QVariant newValue;
-        bool isProtected;
+    struct Data{
+        QString key_name;
+        QVariant old_value;
+        QVariant new_value;
     } Data;
 };
 
@@ -164,11 +153,6 @@ signals:
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
     
-    //DO I NEED?
-    void propertyChanged(int ID, QString propertyName, QVariant data);
-    void propertyRemoved(int ID, QString propertyName);
-
-
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
     void undoRedoChanged();
@@ -183,16 +167,15 @@ signals:
     void controller_Notification(MODEL_SEVERITY severity, QString description, int entity_id = -1);
 public slots:
     void setupController();
-    void setData(int parentID, QString keyName, QVariant dataValue);
+    void setDataValue(int parentID, QString keyName, QVariant dataValue);
     void removeData(int parentID, QString keyName);
 
 private:
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
-
-    Node* construct_node(Node* parent_node, NODE_KIND kind);
+    Node* construct_node(Node* parent_node, NODE_KIND kind, int id = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
-    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
+    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, int id = -1, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
 public slots:
@@ -260,11 +243,10 @@ private:
     bool _remove(QList<int> IDs, bool addAction = true);
     bool _replicate(QList<Entity*> items);
 
-    void attachData(Entity* parent, Data* data, bool addAction = true);
-    bool destructData(Entity* parent, QString keyName, bool addAction = true);
+    
 
     void updateUndoRedoState();
-    void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
+    bool setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
     bool importGraphML(MODEL_ACTION action, QString document, Node* parent = 0);
@@ -275,7 +257,7 @@ private:
 
     
 
-    EventAction getEventAction();
+    HistoryAction getNewAction(GRAPHML_KIND kind);
 
     void setProjectModified(bool modified);
 
@@ -350,13 +332,13 @@ private:
 
 
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.4
-    bool reverseAction(EventAction action);
+    bool reverseAction(HistoryAction action);
 
     //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.
-    void addActionToStack(EventAction action, bool addAction=true);
+    void addActionToStack(HistoryAction action, bool addAction=true);
 
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
-    void undoRedo();
+    bool undoRedo();
 
 
     bool canDeleteNode(Node* node);
@@ -364,11 +346,7 @@ private:
 
     QPair<bool, QString> readFile(QString filePath);
     
-    //Attach Data('s) to the GraphML item.
-    bool _attachData(Entity* item, Data* data, bool addAction = true);
-    //bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
-    bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
-    bool _attachData(Entity *item, QString keyName, QVariant value, bool addAction = true);
+    bool destructData(Entity* parent, QString key_name, bool add_action = true);
 
     
 
@@ -379,11 +357,6 @@ private:
 
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     Node* getFirstNodeFromList(QList<int> ID);
-    
-
-    //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
-    int get_linked_ids(int ID);
-    void link_ids(int oldID, int newID);
 
     bool isUserAction();
     
@@ -399,27 +372,16 @@ private:
 
     QList<Node*> getNodes(QList<int> IDs);
 private:
-
-    Entity* getEntity(int id);
-    Node* getNode(int id);
-    Edge* getEdge(int id);
     //List of undeleteable nodes
     QList<Node*> protected_nodes;
-
-    //Provides a lookup for IDs.
-    QHash<int, int> id_hash_;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QSet<int> node_ids_;
     QSet<int> edge_ids_;
 
     //Stack of ActionItems in the Undo/Redo Stack.
-    QStack<EventAction> undo_stack;
-    QStack<EventAction> redo_stack;
-
-    //Used to tell if we are currently Undo-ing/Redo-ing in the system. 
-    bool INITIALIZING = true;
-    bool DESTRUCTING_CONTROLLER = false;
+    QStack<HistoryAction> undo_stack;
+    QStack<HistoryAction> redo_stack;
 
     bool project_modified = false;   
 

@@ -68,9 +68,10 @@ protected:
     static EntityFactory* getNewFactory();
 
     //Constructors
-    Node* CreateNode(NODE_KIND node_kind);
+    Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind, int id = -1);
+    Node* CreateNode(NODE_KIND node_kind, int id = -1);
     Node* CreateTempNode(NODE_KIND node_kind);
-    Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
+    
     Data* CreateData(Key* key, QVariant value = QVariant(), bool is_protected = false);
     
     //Destructor
@@ -98,7 +99,7 @@ protected:
     void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
     //Called after a GraphML has an EntityFactory Set    
-    void RegisterEntity(GraphML* graphml);
+    void RegisterEntity(GraphML* graphml, int id = -1);
     //Called during the destructor of a GraphML entity
     void DeregisterEntity(GraphML* graphml);
 
@@ -112,11 +113,11 @@ private:
     QList<Data*> getDefaultData(QList<DefaultDataStruct*> data);
     
     GraphML* getGraphML(int id);
-    void StoreEntity(GraphML* graphml);
+    void StoreEntity(GraphML* graphml, int id = -1);
 
     
-    Node* _createNode(NODE_KIND kind, bool is_temporary = false);
-    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
+    Node* _createNode(NODE_KIND kind, bool is_temporary = false, int id = -1);
+    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind, int id = -1);
 
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);

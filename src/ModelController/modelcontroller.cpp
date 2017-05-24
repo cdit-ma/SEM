@@ -24,12 +24,7 @@
 #include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/DeploymentDefinitions/eventportdelegate.h"
 
-bool UNDO = true;
-bool REDO = false;
-bool SETUP_AS_INSTANCE = true;
-bool SETUP_AS_IMPL = false;
-
-ModelController::ModelController() :QObject(0)
+ModelController::ModelController():QObject(0)
 {
     controller_thread = new QThread();
     moveToThread(controller_thread);
@@ -40,22 +35,20 @@ ModelController::ModelController() :QObject(0)
 
     entity_factory = EntityFactory::getNewFactory();
 
-
+    //Register meta types
     qRegisterMetaType<GRAPHML_KIND>("GRAPHML_KIND");
     qRegisterMetaType<EDGE_KIND>("EDGE_KIND");
     qRegisterMetaType<NODE_KIND>("NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
-
 }
 
 void ModelController::setupController()
 {
     QWriteLocker lock(&lock_);
     setupModel();
-    //oadWorkerDefinitions();
+    loadWorkerDefinitions();
     clearHistory();
-    INITIALIZING = false;
 
     emit controller_ProjectFileChanged("Untitled Project");
     emit projectModified(true);
@@ -65,8 +58,7 @@ void ModelController::setupController()
 
 ModelController::~ModelController()
 {
-    DESTRUCTING_CONTROLLER = true;
-
+    //Destruct all elements
     destructNode(workerDefinitions);
     destructNode(model); 
 }
@@ -84,7 +76,7 @@ void ModelController::loadWorkerDefinitions()
             for(auto file : dir.entryList(extensions)){
                 auto file_path = dir.absolutePath() + "/" + file;
                 auto data = readFile(file_path);
-                bool success = importGraphML(MODEL_ACTION::NONE, data.second, workerDefinitions);
+                bool success = importGraphML(MODEL_ACTION::IMPORT, data.second, workerDefinitions);
                 if(!success){
                     emit controller_Notification(MODEL_SEVERITY::WARNING, "Error Importing Worker Definition '" + file_path + "'");
                 }
@@ -110,15 +102,18 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges)
     
     //Get the entities
     for(auto entity : selection){
+        //Insert into the list of entities
+        entities.insert(entity);
         if(entity->isNode()){
             auto node = (Node*) entity;
             top_nodes.insert(node);
-            entities.insert(node);
 
+            //Add all the children to the list of entities (So we can check if we own all edges) 
             for(auto child : node->getChildren()){
                 entities.insert(child);
             }
 
+            //Add all of the edges
             for(auto edge : node->getAllEdges()){
                 entities.insert(edge);
                 edges.insert(edge);
@@ -281,84 +276,41 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
 
 
 
-void ModelController::_setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
+bool ModelController::setData(Entity *entity, QString key_name, QVariant value, bool add_action)
 {
-    if(DESTRUCTING_CONTROLLER){
-        //Ignore any calls to set whilst deleting.
-        return;
-    }
+    if(entity){
+        //Get an undo action
+        auto action = getNewAction(GRAPHML_KIND::DATA);
+        action.entity_id = entity->getID();
+        action.Data.key_name = key_name;
 
-    if(!parent){
-        qCritical() << "view_UpdateData() Cannot Update Data for NULL GraphML object.";
-        return;
-    }
-
-    //Construct an Action to reverse the update
-    EventAction action = getEventAction();
-    action.parentID = parent->getID();
-    action.Action.type = MODIFIED;
-    action.Action.kind = GRAPHML_KIND::DATA;
-    action.Data.keyName = keyName;
-
-    Node* node = (Node*) parent;
-    if(parent->gotData(keyName)){
-        action.ID = parent->getID();
-        action.Data.oldValue = parent->getDataValue(keyName);
-
-        if(keyName == "x" || keyName == "y"){
-            //Changing to -1?
-            if(dataValue == -1){
-                return;
+        if(entity->gotData(key_name)){
+            //Set the type
+            action.Action.type = ACTION_TYPE::MODIFIED;
+            //Store the old value
+            action.Data.old_value = entity->getDataValue(key_name);
+            //Update the new value
+            entity->setDataValue(key_name, value);
+        }else{
+            //Set the type
+            action.Action.type = ACTION_TYPE::CONSTRUCTED;
+            auto key = entity_factory->GetKey(key_name, value.type());
+            auto data = entity_factory->CreateData(key, value);
+            
+            if(data){
+                //Attach the Data to the parent
+                entity->addData(data);
             }
-        }else if(keyName == "uuid"){
-            //Update the UUID Map
-             //dataValue.toString() = action.parentID;
         }
 
-        parent->setDataValue(keyName, dataValue);
-        
-        action.Data.newValue = parent->getDataValue(keyName);
-    }else{
-        _attachData(parent, keyName, dataValue, true);
-        return;
+        if(entity->gotData(key_name)){
+            //Set the new value
+            action.Data.new_value = entity->getDataValue(key_name);
+            addActionToStack(action, true);
+            return true;
+        }
     }
-    if(addAction){
-        addActionToStack(action, addAction);
-    }
-}
-
-/**
- * @brief NewController::attachData - Attaches a Data to a Entity
- * @param parent - The Entity to attach the Data to.
- * @param data - The Data to attach
- * @param addAction - Add an undo state
- */
-void ModelController::attachData(Entity *parent, Data *data, bool addAction)
-{
-    if(parent && data){
-        QString key_name = data->getKeyName();
-
-        //Construct an Action to reverse the action
-        EventAction action = getEventAction();
-        action.ID = data->getID();
-        action.parentID = parent->getID();
-        action.Action.type = CONSTRUCTED;
-        action.Action.kind = GRAPHML_KIND::DATA;
-        action.Data.keyName = key_name;
-        action.Data.oldValue = data->getValue();
-
-        //Attach the Data to the parent
-        parent->addData(data);
-
-        //Set the New value of the undo action
-        action.Data.newValue = parent->getDataValue(key_name);
-
-
-        //Add an action to the stack.
-        addActionToStack(action, addAction);
-    }else{
-        qCritical() << "attachData() parent or data is NULL!";
-    }
+    return false;
 }
 
 /**
@@ -367,37 +319,28 @@ void ModelController::attachData(Entity *parent, Data *data, bool addAction)
  * @param keyName - The Name of the Key of the Data
  * @param addAction - Add an undo state
  */
-bool ModelController::destructData(Entity *parent, QString keyName, bool addAction)
+bool ModelController::destructData(Entity* entity, QString key_name, bool addAction)
 {  
-    if(!parent){
-        qCritical() << "destructData() parent is NULL!";
-        return false;
+    if(entity){
+        //Get the data
+        auto data = entity->getData(key_name);
+        if(data){
+            //Get an undo action
+            auto action = getNewAction(GRAPHML_KIND::DATA);
+            action.entity_id = entity->getID();
+            action.Action.kind = GRAPHML_KIND::DATA;
+            action.Action.type = ACTION_TYPE::DESTRUCTED;
+            action.Data.key_name = key_name;
+            action.Data.old_value = data->getValue();
+
+            //Destroy the data
+            entity_factory->DestructEntity(data);
+
+            addActionToStack(action, true);
+            return true;
+        }
     }
-
-    //Get the Data from the GraphML
-    Data* data = parent->getData(keyName);
-
-    if(!data){
-        qCritical() << "destructData(): " + parent->toString() + " does not contain Data for key: " + keyName;
-        return false;
-    }
-
-    //Construct an Action to reverse the update
-    EventAction action = getEventAction();
-    action.ID = data->getID();
-    action.parentID = parent->getID();
-    action.Action.type = DESTRUCTED;
-    action.Action.kind = GRAPHML_KIND::DATA;
-    action.Data.keyName = keyName;
-    action.Data.oldValue = data->getValue();
-
-    //Remove the Data to the parent
-
-    entity_factory->DestructEntity(data);
-
-    //Add an action to the stack.
-    addActionToStack(action, addAction);
-    return true;
+    return false;
 }
 
 
@@ -417,6 +360,7 @@ Node* ModelController::construct_temp_node(Node* parent_node, NODE_KIND node_kin
         if(node){
             if(!parent_node->addChild(node)){
                 //Free memory
+                entity_factory->DestructEntity(node);
                 node = 0;
             }
         }
@@ -452,12 +396,12 @@ Node* ModelController::check_for_existing_node(Node* parent_node, NODE_KIND node
     }
 }
 
-Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind){
+Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, int id){
     Node* node = 0;
     node = check_for_existing_node(parent_node, node_kind);
     if(!node){ 
         //Construct node with default data
-        node = entity_factory->CreateNode(node_kind);   
+        node = entity_factory->CreateNode(node_kind, id);   
     }
     return node;
 }
@@ -491,7 +435,7 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
     Node* source = construct_child_node(parent_node, node_kind, false);
     if(source){
-        auto edge = construct_edge(edge_kind, source, destination, false);
+        auto edge = construct_edge(edge_kind, source, destination, -1, false);
         
         if(!edge){
             //Free the memory
@@ -511,7 +455,7 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
     //Add undo step
     triggerAction("Constructing Child Node");
     
-    auto parent_node = getNode(parent_id);
+    auto parent_node = entity_factory->GetNode(parent_id);
 
     Node* node = 0;
     switch(kind){
@@ -533,8 +477,8 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
 
     if(node){
         //Use position?
-        _attachData(node, "x", pos.x());
-        _attachData(node, "y", pos.y());
+        setData(node, "x", pos.x());
+        setData(node, "y", pos.y());
     }
 }
 
@@ -542,15 +486,15 @@ void ModelController::constructWorkerProcess(int parent_id, int dst_id, QPointF 
     //Add undo step
     triggerAction("Constructing Worker Process");
     
-    auto parent_node = getNode(parent_id);
-    auto worker_node = getNode(dst_id);
+    auto parent_node = entity_factory->GetNode(parent_id);
+    auto worker_node = entity_factory->GetNode(dst_id);
     if(parent_node && worker_node && worker_node->getNodeKind() == NODE_KIND::WORKER_PROCESS){
         //clone the worker into the parent
         auto node = cloneNode(worker_node, parent_node);
         if(node){
             //Use position?
-            _attachData(node, "x", pos.x());
-            _attachData(node, "y", pos.y());
+            setData(node, "x", pos.x());
+            setData(node, "y", pos.y());
         }
     }
 }
@@ -560,11 +504,11 @@ void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND ed
     QWriteLocker lock(&lock_);
 
     auto valid_dsts = _getConnectableNodes(getNodes(src_ids), edge_kind);
-    auto dst = getNode(dst_id);
+    auto dst = entity_factory->GetNode(dst_id);
     if(dst && valid_dsts.contains(dst)){
         triggerAction("Constructing child edge");
         for(auto src_id : src_ids){
-            auto src = getNode(src_id);
+            auto src = entity_factory->GetNode(src_id);
             auto edge = construct_edge(edge_kind, src, dst);
             
             if(!edge){
@@ -581,9 +525,9 @@ void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND ed
     QWriteLocker lock(&lock_);
 
     triggerAction("Destructing edges");
-    auto dst = getNode(dst_id);
+    auto dst = entity_factory->GetNode(dst_id);
     for(auto src_id : src_ids){
-        auto src = getNode(src_id);
+        auto src = entity_factory->GetNode(src_id);
 
         auto edge = src->getEdgeTo(dst, edge_kind);
         if(edge){
@@ -599,7 +543,7 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
 
     triggerAction("Destructing All edges");
     for(auto src_id : src_ids){
-        auto src = getNode(src_id);
+        auto src = entity_factory->GetNode(src_id);
         for(auto edge: src->getEdges(0, edge_kind)){
             if(edge){
                 destructEdge(edge);
@@ -619,9 +563,9 @@ Node* ModelController::construct_setter_node(Node* parent)
             auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto value = construct_child_node(node, NODE_KIND::VARIADIC_PARAMETER);
 
-            variable->setDataValue("icon", "Variable");
-            variable->setDataValue("icon_prefix", "EntityIcons");
-            variable->setDataValue("label", "Variable");
+            setData(variable, "icon", "Variable");
+            setData(variable, "icon_prefix", "EntityIcons");
+            setData(variable, "label", "Variable");
 
             value->setDataValue("icon", "Variable");
             value->setDataValue("icon_prefix", "EntityIcons");
@@ -708,16 +652,16 @@ void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, i
 {
     QWriteLocker lock(&lock_);
 
-    Node* parent = getNode(parentID);
-    Node* dst = getNode(dstID);
+    Node* parent = entity_factory->GetNode(parentID);
+    Node* dst = entity_factory->GetNode(dstID);
 
     if(parent && dst){
         triggerAction("Constructed Connected Node");
         auto node = construct_connected_node(parent, nodeKind, dst, edgeKind);
         if(node){
             //Use position?
-            _attachData(node, "x", pos.x());
-            _attachData(node, "y", pos.y());
+            setData(node, "x", pos.x());
+            setData(node, "y", pos.y());
         }
     }
     emit controller_ActionFinished();
@@ -727,9 +671,9 @@ void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, i
 
 
 
-Edge* ModelController::construct_edge(EDGE_KIND edgeClass, Node *src, Node *dst, bool notify_view)
+Edge* ModelController::construct_edge(EDGE_KIND edge_kind, Node *src, Node *dst, int id, bool notify_view)
 {
-    Edge* edge = entity_factory->CreateEdge(src, dst, edgeClass);
+    Edge* edge = entity_factory->CreateEdge(src, dst, edge_kind, id);
 
     if(edge && notify_view){
         constructEdgeGUI(edge);
@@ -742,7 +686,7 @@ QList<Node *> ModelController::getNodes(QList<int> ids)
 {
     QList<Node* > nodes;
     for(auto id : ids){
-        auto node = getNode(id);
+        auto node = entity_factory->GetNode(id);
         if(node){
             nodes << node;
         }
@@ -761,13 +705,15 @@ void ModelController::triggerAction(QString actionName)
 
 void ModelController::undo()
 {
+
     if(canUndo()){
         emit showProgress(true, "Undoing");
         setModelAction(MODEL_ACTION::UNDO);
-        undoRedo();
+        qCritical() << "UNDO FINISHED: " << (undoRedo() ? "true" : "false");
         unsetModelAction(MODEL_ACTION::UNDO);
         emit showProgress(false);
     }
+    
     emit controller_ActionFinished();
 }
 
@@ -776,7 +722,7 @@ void ModelController::redo()
     if(canRedo()){
         emit showProgress(true, "Redoing");
         setModelAction(MODEL_ACTION::REDO);
-        undoRedo();
+        qCritical() << "REDO FINISHED: " << (undoRedo() ? "true" : "false");
         unsetModelAction(MODEL_ACTION::REDO);
         emit showProgress(false);
     }
@@ -841,9 +787,10 @@ void ModelController::remove(QList<int> IDs)
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     if(canRemove(selection)){
-
+        qCritical() << "REMOVING";
         triggerAction("Removing Selection");
         bool success = _remove(IDs);
+        qCritical() << "REMOVED";
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
         emit controller_ActionFinished();
@@ -908,7 +855,7 @@ void ModelController::paste(QList<int> ids, QString xml)
 
 bool ModelController::_paste(int ID, QString xml)
 {
-    auto parent_node = getNode(ID);
+    auto parent_node = entity_factory->GetNode(ID);
     if(parent_node){
         triggerAction("Pasting Selection.");
         //Paste it into the current Selected Node,
@@ -936,8 +883,10 @@ bool ModelController::_remove(QList<int> ids, bool addAction)
         double id_count_perc = id_count / 100.0;
         double count = 0; 
         for(auto id : ids){
+            qCritical() << "Removing: " << id;
             if(!destructEntity(id)){
                 success = false;
+                break;
             }
             emit progressChanged(++count / id_count_perc);
         }
@@ -978,7 +927,7 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_
     QList<int> dst_ids;
 
     QWriteLocker lock(&lock_);
-    auto parent_node = getNode(parentID);
+    auto parent_node = entity_factory->GetNode(parentID);
     auto temp_node = construct_temp_node(parent_node, kind);
     if(temp_node){
         for(auto dst : _getConnectableNodes(QList<Node*>{temp_node}, edge_kind)){
@@ -1006,7 +955,7 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> sourceNodes, E
 
     if(!sourceNodes.isEmpty()){
         for(auto id : node_ids_){
-            auto dst = getNode(id);
+            auto dst = entity_factory->GetNode(id);
             if(dst && dst->acceptsEdgeKind(edgeKind)){
                 //Ignore nodes which can't take this edge class.
                 bool accepted = true;
@@ -1058,7 +1007,7 @@ QList<Entity*> ModelController::getOrderedSelection(QList<int> selection)
     QList<Entity*> orderedSelection;
 
     foreach(int ID, selection){
-        Entity* entity = getEntity(ID);
+        Entity* entity = entity_factory->GetEntity(ID);
         if(!entity){
             continue;
         }
@@ -1134,7 +1083,7 @@ QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
     
     Key* key = entity_factory->GetKey(key_name);
     if(key){
-        auto node = getNode(id);
+        auto node = entity_factory->GetNode(id);
         if(node){
             valid_values = key->getValidValues(node->getNodeKind());
         }
@@ -1145,8 +1094,8 @@ QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
 int ModelController::getSharedParent(int ID, int ID2){
     QReadLocker lock(&lock_);
     int parent_id = -1;
-    auto node_1 = getNode(ID);
-    auto node_2 = getNode(ID2);
+    auto node_1 = entity_factory->GetNode(ID);
+    auto node_2 = entity_factory->GetNode(ID2);
     if(node_1 && node_2){
         auto parent = node_1->getCommonAncestor(node_2);
         if(parent){
@@ -1159,8 +1108,8 @@ int ModelController::getSharedParent(int ID, int ID2){
 bool ModelController::isNodeAncestor(int ID, int ID2){
     QReadLocker lock(&lock_);
     bool is_ancestor = false;
-    auto node_1 = getNode(ID);
-    auto node_2 = getNode(ID2);
+    auto node_1 = entity_factory->GetNode(ID);
+    auto node_2 = entity_factory->GetNode(ID2);
     if(node_1 && node_2){
         is_ancestor = node_1->isAncestorOf(node_2);
     }
@@ -1170,7 +1119,7 @@ bool ModelController::isNodeAncestor(int ID, int ID2){
 int ModelController::getNodeParentID(int ID){
     QReadLocker lock(&lock_);
     int parent_id = -1;
-    auto node = getNode(ID);
+    auto node = entity_factory->GetNode(ID);
     
     if(node){
         auto parent = node->getParentNode();
@@ -1184,7 +1133,7 @@ int ModelController::getNodeParentID(int ID){
 VIEW_ASPECT ModelController::getNodeViewAspect(int ID){
     QReadLocker lock(&lock_);
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
-    auto node = getNode(ID);
+    auto node = entity_factory->GetNode(ID);
     
     if(node){
         aspect = node->getViewAspect();
@@ -1196,7 +1145,7 @@ QStringList ModelController::getEntityKeys(int ID){
     QReadLocker lock(&lock_);
     QStringList keys;
 
-    auto entity = getEntity(ID);
+    auto entity = entity_factory->GetEntity(ID);
     if(entity){
         keys = entity->getKeyNames();
     }
@@ -1207,7 +1156,7 @@ QStringList ModelController::getProtectedEntityKeys(int ID){
     QReadLocker lock(&lock_);
     QStringList keys;
 
-    auto entity = getEntity(ID);
+    auto entity = entity_factory->GetEntity(ID);
     if(entity){
         for(auto data: entity->getData()){
             if(data->isProtected()){
@@ -1224,7 +1173,7 @@ QVariant ModelController::getEntityDataValue(int ID, QString key_name){
     QReadLocker lock(&lock_);
     QVariant value;
 
-    auto entity = getEntity(ID);
+    auto entity = entity_factory->GetEntity(ID);
     if(entity){
         value = entity->getDataValue(key_name);
     }
@@ -1235,7 +1184,7 @@ QVariant ModelController::getEntityDataValue(int ID, QString key_name){
 bool ModelController::isNodeOfType(int ID, NODE_TYPE type){
     QReadLocker lock(&lock_);
     bool is_type = false;
-    auto node = getNode(ID);
+    auto node = entity_factory->GetNode(ID);
     if(node){
         is_type = node->isNodeOfType(type);
     }
@@ -1247,7 +1196,7 @@ QList<int> ModelController::getInstances(int ID)
     QReadLocker lock(&lock_);
     QList<int> instances;
 
-    for(auto node : getInstances(getNode(ID))){
+    for(auto node : getInstances(entity_factory->GetNode(ID))){
         instances.push_back(node->getID());
     }
     return instances;
@@ -1256,7 +1205,7 @@ QList<int> ModelController::getInstances(int ID)
 int ModelController::getAggregate(int ID)
 {
     int aggrID = -1;
-    Node* node = getNode(ID);
+    Node* node = entity_factory->GetNode(ID);
     if(node){
         if(node->isNodeOfType(NODE_TYPE::EVENTPORT)){
             EventPort* eventPort = (EventPort*)node;
@@ -1273,7 +1222,7 @@ int ModelController::getAggregate(int ID)
 int ModelController::getDeployedHardwareID(int ID)
 {
     int hw_id = -1;
-    Node* node = getNode(ID);
+    Node* node = entity_factory->GetNode(ID);
     if(node){
         for(auto edge : node->getEdges(0, EDGE_KIND::DEPLOYMENT)){
             hw_id = edge->getDestinationID();
@@ -1340,7 +1289,7 @@ void ModelController::storeEntity(Entity* item)
 
 void ModelController::removeEntity(int ID)
 {
-    auto item = getEntity(ID);
+    auto item = entity_factory->GetEntity(ID);
     if(item){
         auto kind = item->getGraphMLKind();
         emit entityDestructed(ID, kind);
@@ -1390,7 +1339,7 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
         if(node){
             //Get the data
             for(auto data : original->getData()){
-                _attachData(node, data->getKeyName(), data->getValue());
+                setData(node, data->getKeyName(), data->getValue());
             }
 
             for(auto child : original->getChildren(0)){
@@ -1486,32 +1435,44 @@ bool ModelController::destructNode(Node *node)
     }
 
 
-    if(DESTRUCTING_CONTROLLER){
-        //If we are destructing the controller; Don't add an undo state.
-        addAction = false;
-    }else if(!node->isInModel()){
+    if(!node->isInModel()){
         //If the item isn't in the Model; Don't add an undo state.
         addAction = false;
     }
 
-    if(addAction && !canDeleteNode(node)){
-        //If the item is reverseable action, check if we can actually remove the node.
-        return false;
-    }
-
-
-
-
     //Get Dependants first.
     QList<Node*> dependants = node->getNestedDependants();
 
-    QList<Edge*> edges = node->getAllEdges();
-    //Remove all Edges.
+    //Have to order these in reverse
+    QMultiMap<EDGE_KIND, Edge*> edges;
+
+
+    for(auto edge : node->getAllEdges()){
+        qCritical() << "Adding Edge: " << edge;
+        edges.insert(edge->getEdgeKind(), edge);
+    }
+    
+    auto edge_kind_keys = GetEdgeOrderIndexes();
     while(!edges.isEmpty()){
-        //Go backwards to ensure that we can reconstruct the edges.
-        Edge* edge = edges.takeLast();
-        //qCritical() << "Destructing Edge: " << edge->toString();
-        destructEdge(edge);
+        QList<Edge*> to_delete;
+        
+        //Find the first index which still has edges left
+        for(auto kind : edge_kind_keys){
+            if(edges.contains(kind)){
+                to_delete = edges.values(kind);
+                break;
+            }
+        }
+
+        std::reverse(to_delete.begin(), to_delete.end());
+
+        //Remove all nodes which depend on this.
+        while(!to_delete.isEmpty()){
+            auto edge = to_delete.takeFirst();
+            qCritical() << "Deleting: " << edge;
+            //qCritical(    ) << "Tearing down Dependants: " << dependant;
+            destructEdge(edge);
+        }
     }
 
 
@@ -1529,19 +1490,15 @@ bool ModelController::destructNode(Node *node)
         destructNode(child);
     }
 
-    if(addAction){
+    {
         //Add an action to reverse this action.
-        EventAction action = getEventAction();
-        action.ID = ID;
-        action.parentID = parentID;
-        action.Action.type = DESTRUCTED;
-        action.Action.kind = node->getGraphMLKind();
-        action.Entity.kind = node->getGraphMLKind();
-        action.Entity.nodeKind = node->getNodeKindStr();
-        action.Entity.XML = exportGraphML(node);
-        addActionToStack(action);
+        auto action = getNewAction(GRAPHML_KIND::NODE);
+        action.entity_id = ID;
+        action.parent_id = parentID;
+        action.Action.type = ACTION_TYPE::DESTRUCTED;
+        action.xml = exportGraphML(node);
+        addActionToStack(action, addAction);
     }
-
 
     if(parentNode){
         //Put this item last to fix the sort order of it's siblings.
@@ -1557,8 +1514,6 @@ bool ModelController::destructNode(Node *node)
     }
 
     entity_factory->DestructEntity(node);
-    //TODO DELETE FREE
-    //delete node;
     return true;
 }
 
@@ -1571,14 +1526,6 @@ bool ModelController::destructEdge(Edge *edge)
         return true;
     }
 
-
-    bool addAction = true;
-
-    if(DESTRUCTING_CONTROLLER){
-        //If we are destructing the controller; Don't add an undo state.
-        addAction = false;
-    }
-
     int ID = edge->getID();
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
@@ -1588,26 +1535,17 @@ bool ModelController::destructEdge(Edge *edge)
         return false;
     }
 
-    if(addAction){
-        //Add an action to reverse this action.
-        EventAction action = getEventAction();
-        action.ID = ID;
-        action.parentID = model->getID();
-        action.Action.type = DESTRUCTED;
-        action.Action.kind = edge->getGraphMLKind();
-        action.Entity.kind = edge->getGraphMLKind();
-        QList<int> IDs;
-        IDs << ID;
-        action.Entity.XML = exportGraphML(edge);
-        //action.Entity.XML = exportGraphML(IDs, true);
-        action.Entity.edgeClass = edge->getEdgeKind();
-        addActionToStack(action);
-    }
+    //Add an action to reverse this action.
+    auto action = getNewAction(GRAPHML_KIND::EDGE);
+    action.entity_id = ID;
+    action.Action.type = ACTION_TYPE::DESTRUCTED;
+    action.xml = exportGraphML(edge);
+    addActionToStack(action);
 
     //Teardown specific edge classes.
-    EDGE_KIND edgeClass = edge->getEdgeKind();
+    auto edge_kind = edge->getEdgeKind();
 
-    switch(edgeClass){
+    switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         teardownDependantRelationship(dst, src);
         break;
@@ -1652,7 +1590,7 @@ bool ModelController::destructEdge(Edge *edge)
 
 bool ModelController::destructEntity(int ID)
 {
-    Entity* entity = getEntity(ID);
+    Entity* entity = entity_factory->GetEntity(ID);
     return destructEntity(entity);
 }
 
@@ -1670,89 +1608,58 @@ bool ModelController::destructEntity(Entity *item)
 
 
 
-bool ModelController::reverseAction(EventAction action)
-{
-    bool success = false;
-
+bool ModelController::reverseAction(HistoryAction action)
+{   
     
-    if(action.Action.kind == GRAPHML_KIND::NODE || action.Action.kind == GRAPHML_KIND::EDGE){
-
-        if(action.Action.type == CONSTRUCTED){
-            success = destructEntity(action.ID);
-        }else if(action.Action.type == DESTRUCTED){
-            auto parentNode = getNode(action.parentID);
-            if(parentNode){
-                success = importGraphML(MODEL_ACTION::UNDO, action.Entity.XML, parentNode);
-            }
+    switch(action.Action.type){
+    case ACTION_TYPE::CONSTRUCTED:{
+        switch(action.Action.kind){
+        case GRAPHML_KIND::NODE:
+        case GRAPHML_KIND::EDGE:{
+            return destructEntity(action.entity_id);
         }
-    }else if(action.Action.kind == GRAPHML_KIND::DATA){
-        if(action.Action.type == CONSTRUCTED){
-            auto entity = getEntity(action.parentID);
-            if(entity){
-                success = destructData(entity, action.Data.keyName);
-            }
-        }else if(action.Action.type == MODIFIED){
-            auto entity = getEntity(action.parentID);
-
-            if(entity){
-                _setData(entity, action.Data.keyName, action.Data.oldValue);
-                success = true;
-            }
-        }else if(action.Action.type == DESTRUCTED){
-            auto entity = getEntity(action.parentID);
-            if(entity){
-                success = _attachData(entity, action.Data.keyName, action.Data.oldValue);
-            }
+        case GRAPHML_KIND::DATA:{
+            auto entity = entity_factory->GetEntity(action.entity_id);
+            return destructData(entity, action.Data.key_name);
         }
+        default:
+            break;
+        }
+        break;
     }
-    return success;
-}
-
-//Attachs a list of data
-bool ModelController::_attachData(Entity *item, QList<Data *> data_list, bool addAction)
-{
-    if(item){
-        for(auto data : data_list){
-            auto key = data->getKey();
-
-            //Check if item has data
-            if(item->gotData(key)){
-                //Set the value
-                _setData(item, key->getName(), data->getValue(), addAction);
-            }else{
-                //Atach our new data
-                attachData(item, data, addAction);
-            }
+    case ACTION_TYPE::DESTRUCTED:{
+        switch(action.Action.kind){
+        case GRAPHML_KIND::NODE:
+        case GRAPHML_KIND::EDGE:{
+            auto parent_node = entity_factory->GetNode(action.parent_id);
+            return importGraphML(MODEL_ACTION::UNDO, action.xml, parent_node);
         }
-        return true;
-    }else{
-        return false;
+        case GRAPHML_KIND::DATA:{
+            auto entity = entity_factory->GetEntity(action.entity_id);
+            return setData(entity, action.Data.key_name, action.Data.old_value);
+        }
+        default:
+            break;
+        }
+        break;
     }
-}
-
-bool ModelController::_attachData(Entity *item, QString key_name, QVariant value, bool addAction)
-{
-    //Try get the key
-    Key* key = entity_factory->GetKey(key_name, value.type());
-    if(key){
-        //Create a data
-        auto data = entity_factory->CreateData(key, value);
-        if(data){
-            return _attachData(item, data, addAction);
+    case ACTION_TYPE::MODIFIED:{
+        switch(action.Action.kind){
+        case GRAPHML_KIND::DATA:{
+            auto entity = entity_factory->GetEntity(action.entity_id);
+            return setData(entity, action.Data.key_name, action.Data.old_value);
         }
+        default:
+            break;
+        }
+        break;
+    }
     }
     return false;
 }
 
 
-bool ModelController::_attachData(Entity *item, Data *data, bool addAction)
-{
-    QList<Data *> dataList;
-    dataList.append(data);
-    return _attachData(item, dataList, addAction);
-}
-
-void ModelController::addActionToStack(EventAction action, bool useAction)
+void ModelController::addActionToStack(HistoryAction action, bool useAction)
 {
     //Change made, make dirty the project
     setProjectModified(true);
@@ -1767,84 +1674,66 @@ void ModelController::addActionToStack(EventAction action, bool useAction)
     }
 }
 
-void ModelController::undoRedo()
+bool ModelController::undoRedo()
 {
-    //Used to store the stack of actions we are to use.
-    QStack<EventAction> actionStack = undo_stack;
+    QStack<HistoryAction> action_stack;
 
-    if(isModelAction(MODEL_ACTION::REDO)){
-        //Set to the use the stack.
-        actionStack = redo_stack;
+    //replace the stacks
+    if(isModelAction(MODEL_ACTION::UNDO)){
+        undo_stack.swap(action_stack);
+    }else if(isModelAction(MODEL_ACTION::REDO)){
+        redo_stack.swap(action_stack);
     }
 
-    //Get the total number of actions in the history stack.
-    float actionCount = actionStack.size();
+    auto action_id = action_stack.top().Action.id;
+    auto action_name = action_stack.top().Action.name;
 
-    if(actionCount == 0){
-        //qCritical () << "No Actions in Undo/Redo Buffer.";
-        return;
-    }
+    triggerAction(action_name);
 
-
-
-    //Get the ID and Name of the top-most action.
-    int topActionID = actionStack.top().Action.ID;
-    QString topActionName = actionStack.top().Action.name;
-    //Emit a new action so this Undo/Redo operation can be reverted.
-    triggerAction(topActionName);
-
-    //This vector will store all ActionItems which match topActionID
-    QList<EventAction> toReverse;
-    while(!actionStack.isEmpty()){
-        //Get the top-most action.
-        EventAction action = actionStack.top();
-
-
-        //If this action has the same ID, we should undo it.
-        if(action.Action.ID == topActionID){
-            toReverse.append(action);
-            //Remove if from the action stack.
-            actionStack.pop();
+    QList<HistoryAction> reverse_actions;
+    
+    while(!action_stack.empty()){
+        auto action = action_stack.top();
+        if(action.Action.id == action_id){
+            action_stack.pop();
+            //If the action has the same id as the top, it's part of the same state.
+            reverse_actions.push_back(action);
         }else{
-            //If we don't match, it must be a new actionID, so we are done.
             break;
         }
     }
 
-
-    actionCount = toReverse.size();
-
-
-    int maxRetry = 3;
-    QHash<int, int> retryCount;
-
-
-    int actionsReversed = 0;
-    while(!toReverse.isEmpty()){
-        EventAction reverseState = toReverse.takeFirst();
-        bool success = reverseAction(reverseState);
-        if(!success){
-            retryCount[reverseState.Action.actionID] +=1;
-            if(retryCount[reverseState.Action.actionID] <= maxRetry){
-                toReverse.append(reverseState);
-            }
-
+    double action_count = reverse_actions.size() / 100.0;
+    int actions_reversed = 0;
+    
+    bool success = true;
+    for(auto action : reverse_actions){
+        if(reverseAction(action)){
+            actions_reversed ++;
+            emit progressChanged(++actions_reversed / action_count);
         }else{
-            actionsReversed ++;
-            emit progressChanged((actionsReversed * 100) / actionCount);
+            success = false;
+            qCritical() << "FAILED TO UNDO";
+
+            qCritical() << entity_factory->GetEntity(action.entity_id);
+            qCritical() << "ENTITY ID: " << action.entity_id;
+            qCritical() << "GRAPHML_KIND:" << ((uint)action.Action.kind);
+            qCritical() << "TYPE:" << ((uint)action.Action.type);
+            qCritical() << "action.Data.key_name:" << action.Data.key_name;
+            qCritical() << "action.Data.old_value:" << action.Data.old_value;
+            qCritical() << "action.Data.new_value:" << action.Data.new_value;
         }
     }
-    retryCount.clear();
 
-
-    
-    if(isModelAction(MODEL_ACTION::REDO)){
-        redo_stack = actionStack;
-    }else if(isModelAction(MODEL_ACTION::UNDO)){
-        undo_stack = actionStack;
+    //replace the stacks
+    if(isModelAction(MODEL_ACTION::UNDO)){
+        undo_stack.swap(action_stack);
+    }else if(isModelAction(MODEL_ACTION::REDO)){
+        redo_stack.swap(action_stack);
     }
 
     updateUndoRedoState();
+    return success;
 }
 
 bool ModelController::canDeleteNode(Node *node)
@@ -1955,13 +1844,12 @@ void ModelController::constructNodeGUI(Node *node)
     }
 
     //Construct an ActionItem to reverse Node Construction.
-    EventAction action = getEventAction();
-    action.Action.type = CONSTRUCTED;
-    action.Action.kind = node->getGraphMLKind();
-    action.ID = node->getID();
-    action.parentID = node->getParentNodeID();
-    action.Entity.kind = node->getGraphMLKind();
-    action.Entity.nodeKind = node->getNodeKindStr();
+    auto action = getNewAction(GRAPHML_KIND::NODE);
+    action.Action.type = ACTION_TYPE::CONSTRUCTED;
+    action.entity_id = node->getID();
+    action.parent_id = node->getParentNodeID();
+    //Add Action to the Undo/Redo Stack.
+    addActionToStack(action);
 
     if(node->getParentNode()){
         //Variable.
@@ -1975,9 +1863,6 @@ void ModelController::constructNodeGUI(Node *node)
 
     //Add the node to the list of nodes constructed.
     storeEntity(node);
-
-    //Add Action to the Undo/Redo Stack.
-    addActionToStack(action);
 }
 
 void ModelController::setupModel()
@@ -2022,7 +1907,6 @@ void ModelController::setupModel()
 
     //construct the GUI
     for(auto node : protected_nodes){
-        qCritical() << node;
         constructNodeGUI(node);
     }
 }
@@ -2456,15 +2340,11 @@ bool ModelController::isGraphMLValid(QString inputGraphML)
 void ModelController::constructEdgeGUI(Edge *edge)
 {
     //Construct an ActionItem to reverse an Edge Construction.
-    EventAction action = getEventAction();
+    HistoryAction action = getNewAction(GRAPHML_KIND::EDGE);
 
-    action.Action.type = CONSTRUCTED;
+    action.Action.type = ACTION_TYPE::CONSTRUCTED;
     action.Action.kind = edge->getGraphMLKind();
-    action.ID = edge->getID();
-    action.Entity.kind = edge->getGraphMLKind();
-
-    Key* descriptionKey = entity_factory->GetKey("description", QVariant::String);
-
+    action.entity_id = edge->getID();
 
     //Get Source and Destination of the Edge.
     Node* src = edge->getSource();
@@ -2527,45 +2407,13 @@ Node *ModelController::getFirstNodeFromList(QList<int> IDs)
 {
     Node* node = 0;
     foreach(int ID, IDs){
-        Entity* graphML = getEntity(ID);
+        Entity* graphML = entity_factory->GetEntity(ID);
         if(graphML && graphML->isNode()){
             node = (Node*)graphML;
         }
     }
     return node;
 }
-
-int ModelController::get_linked_ids(int id)
-{
-    auto original_id = id;
-    auto new_id = id;
-    while(true){
-        if(id_hash_.contains(id)){
-            auto temp_id = id_hash_[id];
-            if(temp_id == -1){
-                return id;
-            }else{
-                id = temp_id;
-            }
-        }else{
-            return original_id;
-        }
-    }
-}
-
-
-
-
-void ModelController::link_ids(int old_id, int new_id)
-{
-    //Point the ID Hash for the oldID to the newID
-    id_hash_[old_id] = new_id;
-    if(!id_hash_.contains(new_id)){
-        //Set the ID Hash for the newID to -1
-        id_hash_[new_id] = -1;
-    }
-}
-
 
 QString ModelController::getTimeStamp()
 {
@@ -2646,7 +2494,7 @@ QList<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
     QReadLocker lock(&lock_);
     QList<NODE_KIND> kinds;
 
-    Node* parent = getNode(ID);
+    Node* parent = entity_factory->GetNode(ID);
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
@@ -2685,17 +2533,17 @@ QStringList ModelController::getVisualKeys()
  * @param keyName - The name of the Key
  * @param dataValue - The new value of the Data.
  */
-void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
+void ModelController::setDataValue(int parentID, QString keyName, QVariant dataValue)
 {
-    Entity* graphML = getEntity(parentID);
+    Entity* graphML = entity_factory->GetEntity(parentID);
     if(graphML){
-        _setData(graphML, keyName, dataValue, true);
+        setData(graphML, keyName, dataValue, true);
     }
 }
 
 void ModelController::removeData(int parentID, QString keyName)
 {
-    Entity* entity = getEntity(parentID);
+    Entity* entity = entity_factory->GetEntity(parentID);
     if(entity){
         destructData(entity, keyName, true);
     }
@@ -2820,23 +2668,19 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
                     auto key_id = getXMLAttribute(xml, "key");
                     auto key = key_hash.value(key_id, 0);
 
-                    if(key){
-                        auto data = entity_factory->CreateData(key, xml.readElementText());
-                        if(current_entity){
-                            current_entity->addData(data);
+                    if(current_entity && key){
+                        auto key_name = key->getName();
+                        auto value = xml.readElementText();
+                        
+                        //Add the data to the entity
+                        current_entity->addData(key_name, value);
                             
-                            //Push the current_entities ID onto a stack to handle uuid
-                            if(key->getName() == "uuid"){
-                                unique_entity_ids.push_back(current_entity->getIDStr());
-                            }
-                        }else{
-                            qCritical() << "ImportGraphML: Can't attach Data '" << data->toString() << "' to NULL entity";
-                            error_count ++;
-                            continue;
+                        //Push the current_entities ID onto a stack to handle uuid
+                        if(key_name == "uuid"){
+                            unique_entity_ids.push_back(current_entity->getIDStr());
                         }
                     }else{
-                        qCritical() << document;
-                        qCritical() << "ImportGraphML: Couldn't find Key id '" << key_id << "' for Data";
+                        qCritical() << "ImportGraphML: Couldn't attach Data with key id: '" << key_id << "'";
                         error_count ++;
                         continue;
                     }
@@ -2886,8 +2730,7 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 
     QList<int> to_remove;
     
-    //On Import, handle UUID duplication
-    
+    //Handle unique ids
     for(auto id : unique_entity_ids){
         auto entity = entity_hash.value(id, 0);
         //Get the UUID
@@ -2911,19 +2754,12 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 
         //Handle UUIDS
         if(export_uuid){
-            qCritical() << kind << " = " << export_uuid;
-
-            qCritical() << "UUID: " << uuid;
             //If we have a uuid, we should set the entity as read-only
-            if(!entity->gotData("readOnly")){
-                auto key = entity_factory->GetKey("readOnly", QVariant::Bool);
-                auto data = entity_factory->CreateData(key, true);
-                entity->addData(data);
-            }
+            entity->addData("readOnly", true);
 
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
-            qCritical() << " GOOT MATCH? " << matched_entity;
+            
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatyesp
@@ -2948,13 +2784,10 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
                         required_uuids << child->getDataValue("uuid").toString();
                     }
                     
-                    //Take the data from the entity, to prune out the data we don't need
-                    for(auto data : entity->takeDataList()){
-                        if(isDataVisual(data)){
-                            entity_factory->DestructEntity(data);
-                        }else{
-                            //Re-add back to the tempEntity
-                            entity->addData(data);
+                    //Remove all visual data.
+                    for(auto key_name : entity->getKeys()){
+                        if(isKeyNameVisual(key_name)){
+                            entity->removeData(key_name);
                         }
                     }
 
@@ -3003,18 +2836,15 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 
         //This is the top most element
         if(parent_entity == current_entity && reset_position){
-            //Take the data from the entity, to prune out the data we don't need
-            for(auto data : entity->takeDataList()){
-                if(isDataVisual(data)){
-                    entity_factory->DestructEntity(data);
-                }else{
-                    //Re-add back to the tempEntity
-                    entity->addData(data);
+            //Remove all visual data.
+            for(auto key_name : entity->getKeys()){
+                if(isKeyNameVisual(key_name)){
+                    entity->removeData(key_name);
                 }
             }
         }
         
-        auto parent_node = getNode(parent_entity->getID());
+        auto parent_node = entity_factory->GetNode(parent_entity->getID());
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
 
@@ -3022,42 +2852,47 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 
         if(entity->gotID()){
             //Get the already existant node.
-            node = getNode(entity->getID());
+            node = entity_factory->GetNode(entity->getID());
         }else{
+
             //Construct a new node if we haven't got one yet, this can return nodes which are already constructed.
-            node = construct_node(parent_node, kind);
+            if(link_id && entity->gotPreviousID()){
+                node = construct_node(parent_node, kind, entity->getPreviousID());
+            }else{
+                node = construct_node(parent_node, kind);
+            }
 
             //If we have matched something which is already got a parent node we shouldn't overwrite its data
             //This will stop any data stored in the aspects getting overwritten
             if(node && node->getParentNode() && action == MODEL_ACTION::IMPORT){
-                for(auto data : entity->takeDataList()){
-                    entity_factory->DestructEntity(data);
-                }
+                entity->clearData();
             }
         }
 
         if(node){
             //If we aren't the Model, check if we have a parent_node
             bool got_parent = node->getParentNode() || kind == NODE_KIND::MODEL;
-
+            bool need_to_gui = false;
             if(!got_parent){
                 //If it's not got a parent, set it.
-                got_parent = attachChildNode(parent_node, node);
+                got_parent = attachChildNode(parent_node, node, false);
+                need_to_gui = true;
             }
 
             if(got_parent){
                 auto node_id = node->getID();
-                
-                if(link_id && entity->gotPreviousID()){
-                    //Link the old ID
-                    link_ids(entity->getPreviousID(), node_id);
-                }
 
-                //Attach the data
-                _attachData(node, entity->takeDataList());
+                if(need_to_gui){
+                    constructNodeGUI(node);
+                }
+                for(auto key_name : entity->getKeys()){
+                    auto value = entity->getDataValue(key_name);
+                    setData(node, key_name, value, true);
+                }
 
                 //Set Actual ID
                 entity->setID(node->getID());
+
             }else{
                 //Destroy!
                 entity_factory->DestructEntity(node);
@@ -3096,17 +2931,17 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
         Node* dst_node = 0;
 
         if(src_entity && src_entity->gotID()){
-            src_node = getNode(src_entity->getID());
+            src_node = entity_factory->GetNode(src_entity->getID());
         }else if(partial_import){
             //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
-            src_node = getNode(entity->getSourceIDInt());
+            src_node = entity_factory->GetNode(entity->getSourceIDInt());
         }
 
         if(dst_entity && dst_entity->gotID()){
-            dst_node = getNode(dst_entity->getID());
+            dst_node = entity_factory->GetNode(dst_entity->getID());
         }else if(partial_import){
             //Try and see if the integer version of the ID stored in the GraphML Still exists in the model.
-            dst_node = getNode(entity->getTargetIDInt());
+            dst_node = entity_factory->GetNode(entity->getTargetIDInt());
         }
 
         if(src_node && dst_node){
@@ -3170,8 +3005,8 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
             edge_map.remove(edge_kind, entity);
             
             //Get the src/dst node from the edge
-            auto src_node = getNode(entity->getSourceID());
-            auto dst_node = getNode(entity->getTargetID());
+            auto src_node = entity_factory->GetNode(entity->getSourceID());
+            auto dst_node = entity_factory->GetNode(entity->getTargetID());
 
             Edge* edge = 0;
             if(src_node && dst_node){
@@ -3179,18 +3014,20 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
                 edge = src_node->getEdgeTo(dst_node, edge_kind);
 
                 if(!edge){
-                    //If we don't have an edge, construct one
-                    edge = construct_edge(edge_kind, src_node, dst_node);
+                    //Do some checks
+                    //Construct a new node if we haven't got one yet, this can return nodes which are already constructed.
+                    if(link_id && entity->gotPreviousID()){
+                        edge = construct_edge(edge_kind, src_node, dst_node, entity->getPreviousID());
+                    }else{
+                        edge = construct_edge(edge_kind, src_node, dst_node);
+                    }
                 }
 
                 if(edge){
-                    if(link_id && entity->gotPreviousID()){
-                        //Link the old ID
-                        link_ids(entity->getPreviousID(), edge->getID());
+                    for(auto key_name : entity->getKeys()){
+                        auto value = entity->getDataValue(key_name);
+                        setData(edge, key_name, value, true);
                     }
-
-                    //Attach the data
-                    _attachData(edge, entity->takeDataList());
 
                     //Set Actual ID
                     entity->setID(edge->getID());
@@ -3239,14 +3076,11 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
         emit progressChanged(100);
     }
 
-    qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_itterations << " Itterations.";
+    if(edge_ids.size() > 0){
+        //qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_itterations << " Itterations.";
+    }
 
     for(auto entity : entity_hash){
-        for(auto data : entity->takeDataList()){
-            if(!data->getParent()){
-                entity_factory->DestructEntity(data);
-            }
-        }
         delete entity;
     }
 
@@ -3257,12 +3091,13 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 }
 
 
-EventAction ModelController::getEventAction()
+HistoryAction ModelController::getNewAction(GRAPHML_KIND kind)
 {
-    EventAction action;
-    action.Action.ID = currentActionID;
+    HistoryAction action;
+    action.Action.id = currentActionID;
     action.Action.name = currentAction;
-    action.Action.actionID = currentActionItemID++;
+    action.Action.action_id = currentActionItemID++;
+    action.Action.kind = kind;
     return action;
 }
 
@@ -3287,7 +3122,7 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     QReadLocker lock(&lock_);
     QSet<SELECTION_PROPERTIES> properties;
 
-    auto item = getEntity(active_id);
+    auto item = entity_factory->GetEntity(active_id);
     auto items = getOrderedSelection(ids);
 
     if(canCut(items)){
@@ -3538,14 +3373,14 @@ QList<Node*> ModelController::getInstances(Node* node){
 int ModelController::getDefinition(int id)
 {
     QReadLocker lock(&lock_);
-    auto def = getDefinition(getNode(id));
+    auto def = getDefinition(entity_factory->GetNode(id));
     return def ? def->getID() : -1;
 }
 
 int ModelController::getImplementation(int id)
 {
     QReadLocker lock(&lock_);
-    auto impl = getImplementation(getNode(id));
+    auto impl = getImplementation(entity_factory->GetNode(id));
     return impl ? impl->getID() : -1;
 }
 
@@ -3554,7 +3389,6 @@ bool ModelController::isUserAction()
     if(isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO) || isModelAction(MODEL_ACTION::IMPORT) || isModelAction(MODEL_ACTION::OPEN)){
         return false;
     }else{
-        qCritical() << "NOT USER ACTION";
         return true;
     }
 }
@@ -3569,36 +3403,4 @@ void ModelController::unsetModelAction(MODEL_ACTION action){
 
 bool ModelController::isModelAction(MODEL_ACTION action){
     return model_actions.contains(action);
-}
-
-Entity* ModelController::getEntity(int id){
-    auto entity = entity_factory->GetEntity(id);
-
-    if(entity){
-        return entity;
-    }else{
-        auto linked_id = get_linked_ids(id);
-        if(linked_id != id){
-            return getEntity(linked_id);
-        }else{
-            return 0;
-        }
-    }
-}
-
-Node* ModelController::getNode(int id){
-    auto entity = getEntity(id);
-    if(entity && entity->isNode()){
-        return (Node*) entity;
-    }else{
-        return 0;
-    }
-}
-Edge* ModelController::getEdge(int id){
-    auto entity = getEntity(id);
-    if(entity && entity->isEdge()){
-        return (Edge*) entity;
-    }else{
-        return 0;
-    }
 }

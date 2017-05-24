@@ -22,11 +22,12 @@ GRAPHML_KIND GraphML::getGraphMLKind() const
     return kind;
 }
 
-void GraphML::setID(int id){
+int GraphML::setID(int id){
     //Only allow setting once
     if(this->id < 0){
         this->id = id;
     }
+    return this->id;
 }
 
 /**
@@ -41,10 +42,6 @@ int GraphML::getID() const
 
 void GraphML::setFactory(EntityFactory* factory){
     factory_ = factory;
-
-    if(factory_){
-        factory_->RegisterEntity(this);
-    }
 }
 
 EntityFactory* GraphML::getFactory(){

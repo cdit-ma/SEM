@@ -59,6 +59,8 @@ bool Entity::addData(Data *data)
         dataLookup.insert(key, data);
     }
 
+
+
     //Attach this.
     data->setParent(this);
     return true;
@@ -84,7 +86,10 @@ bool Entity::addData(QList<Data *> dataList)
 void Entity::_dataChanged(Data *data)
 {
     if(data){
-        emit dataChanged(getID(), data->getKeyName(), data->getValue());
+        auto value = data->getValue();
+        if(value.isValid()){
+            emit dataChanged(getID(), data->getKeyName(), value);
+        }
     }
 }
 
@@ -95,13 +100,6 @@ void Entity::_dataRemoved(Data *data)
         QString keyName = data->getKeyName();
         keyLookup.remove(keyName);
         emit dataRemoved(getID(), data->getKeyName());
-    }
-}
-
-void Entity::_dataProtected(Data *data)
-{
-    if(data){
-        emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
     }
 }
 

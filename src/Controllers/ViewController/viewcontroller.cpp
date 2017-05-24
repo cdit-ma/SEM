@@ -80,7 +80,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
     connect(this, &ViewController::vc_openProject, controller, &ModelController::openProject);
     connect(controller, &ModelController::controller_OpenFinished, this, &ViewController::projectOpened);
-    connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
+    connect(this, &ViewController::vc_setData, controller, &ModelController::setDataValue);
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
     connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);

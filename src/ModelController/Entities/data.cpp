@@ -60,12 +60,13 @@ void Data::setParent(Entity *parent)
 {
     if(_parent){
         _parent->_dataRemoved(this);
+
+
     }
 
     if(parent){
         _parent = parent;
         parent->_dataChanged(this);
-        parent->_dataProtected(this);
         revalidateData();
     }
 }
@@ -78,14 +79,8 @@ Entity *Data::getParent()
 void Data::setProtected(bool protect)
 {
     _isProtected = protect;
-    updateProtected();
 }
 
-void Data::updateProtected(){
-    if(getParent()){
-        _parent->_dataProtected(this);
-    }
-}
 
 bool Data::isProtected() const
 {
@@ -103,7 +98,7 @@ bool Data::_setValue(QVariant value, bool validate){
     //Check if the data changed
     bool data_changed = new_value != _value;
     _value = new_value;
-
+    
     updateChildren(data_changed);
     return data_changed;
 }
@@ -126,8 +121,9 @@ void Data::setParentData(Data *parentData)
         parentData->addChildData(this);
         _parentData = parentData;
         _parentDataID = parentData->getID();
+        //Force and update
+        
         _isDataLinked = true;
-        updateProtected();
     }
 }
 
@@ -143,8 +139,6 @@ void Data::unsetParentData()
         _parentData = 0;
         _parentDataID = -1;
         _isDataLinked = false;
-        //Update to use the parents protected status.
-        updateProtected();
     }
 }
 
@@ -225,7 +219,7 @@ void Data::addChildData(Data *childData)
             _childData[ID] = childData;
         }
         //Update.
-        childData->forceValue(getValue());
+        childData->setValue(getValue());
     }
 }
 
@@ -256,12 +250,15 @@ void Data::updateChildren(bool changed)
 {
     //Send a signal saying the data changed, regardless of whether it did.
     if(changed){
-        foreach(Data* data, _childData.values()){
-            data->forceValue(getValue());
+        for(auto data: _childData){
+            data->setValue(getValue());
         }
     }
     if(getParent()){
         _parent->_dataChanged(this);
     }
-    emit dataChanged(getValue());
+
+    if(_value.isValid()){
+        emit dataChanged(getValue());
+    }
 }

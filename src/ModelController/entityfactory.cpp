@@ -127,14 +127,14 @@ Node *EntityFactory::CreateTempNode(NODE_KIND nodeKind)
     return _createNode(nodeKind, true);
 }
 
-Node *EntityFactory::CreateNode(NODE_KIND nodeKind)
+Node *EntityFactory::CreateNode(NODE_KIND nodeKind, int id)
 {
-    return _createNode(nodeKind, false);
+    return _createNode(nodeKind, false, id);
 }
 
-Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
+Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_kind, int id)
 {
-    return _createEdge(source, destination, edge_kind);
+    return _createEdge(source, destination, edge_kind, id);
 }
 
 
@@ -449,7 +449,7 @@ QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data){
     return data_list;
 }
 
-Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind)
+Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind, int id)
 {
     Edge* edge = 0;
 
@@ -463,18 +463,19 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
         }
     }
 
-    StoreEntity(edge);
+    StoreEntity(edge, id);
 
     return edge;
 }
 
-void EntityFactory::StoreEntity(GraphML* graphml){
+void EntityFactory::StoreEntity(GraphML* graphml, int id){
     if(graphml){
         graphml->setFactory(this);
+        RegisterEntity(graphml, id);
     }
 }
 
-Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary)
+Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, int id)
 {
     Node* node = 0;
     auto node_struct = getNodeStruct(kind);
@@ -493,7 +494,7 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary)
 
     //Only store 
     if(!is_temporary){
-        StoreEntity(node);
+        StoreEntity(node, id);
     }
     return node;
 }
@@ -603,22 +604,22 @@ Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
     }
     return 0;
 }
-void EntityFactory::RegisterEntity(GraphML* graphml){
+void EntityFactory::RegisterEntity(GraphML* graphml, int id){
     if(graphml){
-        //Set the ID
-        auto id = graphml->getID();
-
-        if(id == -1){
+        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+        if(id == -1 || hash_.contains(id)){
             id = ++id_counter_;
-            //Set a new ID
-            graphml->setID(id);
-        }else{
-            qCritical() << "GOT ID ALREADY!" << id;
         }
+
+        //Get the id, post set
+        id = graphml->setID(id);
 
         if(id > -1){
             if(!hash_.contains(id)){
+                //qCritical() << "HASH: " << id << graphml->toString();
                 hash_.insert(id, graphml);
+            }else{
+                qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
             }
         }
     }

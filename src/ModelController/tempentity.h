@@ -2,11 +2,11 @@
 #define TEMPENTITY_H
 
 #include <QObject>
+#include <QVariant>
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
 
-class Data;
 class TempEntity
 {
 public:
@@ -57,17 +57,19 @@ public:
     bool gotEdgeKind();
     
     QVariant getDataValue(QString key);
-    bool gotData(QString key);
-    void addData(Data* data);
-    QList<Data*> getData();
-    QList<Data*> takeDataList();
+    bool gotData(QString key_name);
+    void addData(QString key_name, QVariant value);
+    QList<QString> getKeys();
+    void removeData(QString key_name);
+    void clearData();
 private:
     void addChild(TempEntity* child);
 
     TempEntity* parent = 0;
     
+
+    QHash<QString, QVariant> data;
     QList<TempEntity*> children;
-    QList<Data*> data_list;
     QList<EDGE_KIND> edge_kinds;
     
     int line_number = -1;
