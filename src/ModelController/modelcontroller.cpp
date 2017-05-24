@@ -1446,19 +1446,35 @@ bool ModelController::destructNode(Node *node)
     //Have to order these in reverse
     QMultiMap<EDGE_KIND, Edge*> edges;
 
-
     for(auto edge : node->getAllEdges()){
-        qCritical() << "Adding Edge: " << edge;
-        edges.insert(edge->getEdgeKind(), edge);
+        auto kind = edge->getEdgeKind();
+        if(!edges.contains(kind, edge)){
+            edges.insert(edge->getEdgeKind(), edge);
+        }
     }
+
+    for(auto n : dependants){
+        for(auto edge : n->getAllEdges()){
+            auto kind = edge->getEdgeKind();
+            if(!edges.contains(kind, edge)){
+                edges.insert(edge->getEdgeKind(), edge);
+            }
+        }
+    }
+
+
     
     auto edge_kind_keys = GetEdgeOrderIndexes();
+    //Reverse construction order for deletion order
+    std::reverse(edge_kind_keys.begin(), edge_kind_keys.end());
+
     while(!edges.isEmpty()){
         QList<Edge*> to_delete;
-        
+        EDGE_KIND edge_kind = EDGE_KIND::NONE;
         //Find the first index which still has edges left
         for(auto kind : edge_kind_keys){
             if(edges.contains(kind)){
+                edge_kind = kind;
                 to_delete = edges.values(kind);
                 break;
             }
@@ -1469,12 +1485,11 @@ bool ModelController::destructNode(Node *node)
         //Remove all nodes which depend on this.
         while(!to_delete.isEmpty()){
             auto edge = to_delete.takeFirst();
-            qCritical() << "Deleting: " << edge;
+            edges.remove(edge_kind, edge);
             //qCritical(    ) << "Tearing down Dependants: " << dependant;
             destructEdge(edge);
         }
     }
-
 
     //Remove all nodes which depend on this.
     while(!dependants.isEmpty()){
@@ -2986,7 +3001,7 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
         QList<TempEntity*> unconstructed_edges;
         
         int constructed_edges = 0;
-        EDGE_KIND edge_kind = EDGE_KIND::NONE;
+      EDGE_KIND edge_kind = EDGE_KIND::NONE;
         
         //Find the first index which still has edges left
         for(auto kind : edge_kind_keys){
