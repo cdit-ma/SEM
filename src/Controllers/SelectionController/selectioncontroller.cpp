@@ -185,14 +185,7 @@ void SelectionController::removeSelectionHandler()
     }
 }
 
-QVector<ViewItem *> SelectionController::getOrderedSelection(QList<int> selection)
-{
-    QVector<ViewItem*> items;
-    if(viewController){
-        items = viewController->getOrderedSelection(selection);
-    }
-    return items;
-}
+
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {

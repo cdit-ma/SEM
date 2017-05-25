@@ -185,7 +185,7 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
 public slots:
-
+    void highlight(QList<int> ids);
     void projectOpened(bool success);
 
 

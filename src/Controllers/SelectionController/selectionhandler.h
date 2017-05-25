@@ -25,7 +25,6 @@ public:
     void cycleActiveSelectedItem(bool forward = true);
 
     QVector<ViewItem*> getSelection() const;
-    QVector<ViewItem*> getOrderedSelection();
     QVector<int> getSelectionIDs();
     int getSelectionCount();
 

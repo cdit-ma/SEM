@@ -262,7 +262,7 @@ void NodeView::alignHorizontal()
 {
     emit triggerAction("Aligning Selection Horizontally");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -290,7 +290,7 @@ void NodeView::alignVertical()
 {
     emit triggerAction("Aligning Selection Vertically");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -486,7 +486,7 @@ void NodeView::item_MoveSelection(QPointF delta)
         if(selectionHandler){
 
             //Validate the move for the entire selection.
-            foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                 EntityItem* item = getEntityItem(viewItem);
                 if(item){
                     delta = item->validateMove(delta);
@@ -498,7 +498,7 @@ void NodeView::item_MoveSelection(QPointF delta)
             }
 
             if(!delta.isNull()){
-                foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+                foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                     EntityItem* item = getEntityItem(viewItem);
                     if(item){
                         //Move!
@@ -1040,19 +1040,6 @@ QList<EntityItem *> NodeView::getSelectedItems() const
     return items;
 }
 
-QList<EntityItem *> NodeView::getOrderedSelectedItems() const
-{
-    QList<EntityItem*> items;
-    foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
-        EntityItem* eItem = getEntityItem(item);
-        if(eItem){
-            items.append(eItem);
-        }
-    }
-    return items;
-
-}
-
 NodeItem *NodeView::getParentNodeItem(NodeViewItem *item)
 {
      while(item){
@@ -1268,7 +1255,7 @@ void NodeView::state_Moving_Entered()
 {
     setCursor(Qt::SizeAllCursor);
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItem* item = getEntityItem(viewItem);
             if(item){
                 item->setMoveStarted();
@@ -1282,7 +1269,7 @@ void NodeView::state_Moving_Exited()
     if(selectionHandler){
         bool anyMoved = false;
 
-        QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
+        QVector<ViewItem*> selection = selectionHandler->getSelection();
 
         foreach(ViewItem* viewItem, selection){
             EntityItem* item = getEntityItem(viewItem);
@@ -1315,7 +1302,7 @@ void NodeView::state_Resizing_Entered()
             return;
         }
 
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
             if(item){
                 item->setResizeStarted();
@@ -1328,7 +1315,7 @@ void NodeView::state_Resizing_Entered()
 void NodeView::state_Resizing_Exited()
 {
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
 
             if(item && item->setResizeFinished()){

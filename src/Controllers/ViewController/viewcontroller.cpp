@@ -102,6 +102,10 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setModelReady);
     connect(controller, &ModelController::controller_Notification, this, &ViewController::modelNotification);
 
+    connect(controller, &ModelController::highlight, this, &ViewController::highlight);
+
+    
+
     
     
     connect(controller, &ModelController::controller_SetClipboardBuffer, this, &ViewController::setClipboardData);
@@ -706,17 +710,6 @@ bool ViewController::canRedo()
 }
 
 
-QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
-{
-    QVector<ViewItem *> items;
-    if(controller){
-        foreach(int ID, controller->getOrderedSelectionIDs(selection)){
-            items.append(getViewItem(ID));
-        }
-    }
-    return items;
-}
-
 bool ViewController::destructViewItem(ViewItem *item)
 {
     if(!item){
@@ -1183,6 +1176,12 @@ void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, i
         connect(edge->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
         //Tell Views
         emit vc_viewItemConstructed(edge);
+    }
+}
+
+void ViewController::highlight(QList<int> ids){
+    for(auto id : ids){
+        emit vc_highlightItem(id, true);
     }
 }
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){

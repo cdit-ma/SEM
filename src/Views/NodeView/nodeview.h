@@ -118,7 +118,6 @@ private:
     QList<ViewItem*> getTopLevelViewItems() const;
     QList<EntityItem*> getTopLevelEntityItems() const;
     QList<EntityItem*> getSelectedItems() const;
-    QList<EntityItem*> getOrderedSelectedItems() const;
 
 
     NodeItem* getParentNodeItem(NodeViewItem* item);

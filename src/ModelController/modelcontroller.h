@@ -117,7 +117,14 @@ private:
     void loadWorkerDefinitions();
     //Gets the Model Node.
     QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
-    QList<Entity *> getOrderedSelection(QList<int> selection);
+    
+    
+    QList<Entity *> getOrderedEntities(QList<int> ids);
+    QList<Entity *> getOrderedEntities(QList<Entity *> entities);
+    QList<Entity*> getUnorderedEntities(QList<int> IDs);
+
+
+    
 public:
     QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
 
@@ -138,6 +145,7 @@ private:
     bool canPaste(QList<Entity*> selection);
     bool canRemove(QList<Entity *> selection);
 signals:
+    void highlight(QList<int> ids);
     //New SIGNAL
     void NodeConstructed(int parent_id, int id, NODE_KIND kind);
     void EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
@@ -285,7 +293,8 @@ private:
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
     QList<int> getIDs(QList<Entity*> items);
-    QList<Entity*> getEntities(QList<int> IDs);
+    
+    
 
 
     Node* cloneNode(Node* original, Node* parent);
@@ -295,6 +304,7 @@ private:
 
     bool destructEntity(int ID);
     bool destructEntity(Entity* item);
+    bool destructEntities(QList<Entity*> entities);
     bool destructNode(Node* node);
     bool destructEdge(Edge* edge);
 
