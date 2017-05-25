@@ -52,5 +52,6 @@ void ModelControllerTests::load_helloworld()
     QCOMPARE(action_success, true);
     
     //Setup Controller
-    emit teardown_controller();
+    //emit teardown_controller();
+    delete mc;
 }

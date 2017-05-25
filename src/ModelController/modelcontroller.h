@@ -94,7 +94,7 @@ public:
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
 
-    QList<int> getOrderedSelectionIDs(QList<int> selection);
+   
 
     QList<int> getWorkerFunctions();
 
@@ -206,12 +206,6 @@ public slots:
     void openProject(QString filepath, QString xmlData);
     void importProjects(QStringList xmlDataList);
 
-
-    //Toolbar/Dock Functionality
-    void clear();
-
-
-
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
 
@@ -305,7 +299,6 @@ private:
     bool destructEntity(int ID);
     bool destructEntity(Entity* item);
     bool destructEntities(QList<Entity*> entities);
-    bool destructNode(Node* node);
     bool destructEdge(Edge* edge);
 
 

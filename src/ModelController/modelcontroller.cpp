@@ -59,9 +59,10 @@ void ModelController::setupController()
 
 ModelController::~ModelController()
 {
-    //Destruct all elements
-    destructNode(workerDefinitions);
-    destructNode(model); 
+    QList<Entity*> entities;
+    entities << workerDefinitions << model;
+    destructEntities(entities);
+    delete entity_factory;
 }
 
 /**
@@ -184,54 +185,6 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges)
     return xml;
 }
 
-
-bool ModelController::_clear()
-{
-    triggerAction("Clearing Model");
-
-    emit showProgress(0,"Clearing model");
-    QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
-    // while(!childNodes.isEmpty())
-    for(int i=0; i < childNodes.size(); i++){
-        Node* child = childNodes[i];
-        destructNode(child);
-    }
-    childNodes.clear();
-
-    childNodes = behaviourDefinitions->getChildren(0);
-    for(int i=0; i < childNodes.size(); i++){
-        Node* child = childNodes[i];
-        destructNode(child);
-    }
-    childNodes.clear();
-
-    childNodes = hardwareDefinitions->getChildren(0);
-    for(int i=0; i < childNodes.size(); i++){
-        Node* child = childNodes[i];
-
-        // don't delete Localhost Nodes
-        if (child->getDataValue("kind") != "HardwareNode") {
-            destructNode(child);
-        }
-    }
-    childNodes.clear();
-    childNodes = assemblyDefinitions->getChildren(0);
-    for(int i=0; i < childNodes.size(); i++){
-        Node* child = childNodes[i];
-
-        // don't delete ManagementComponents
-        if (child->getDataValue("kind") != "ManagementComponent") {
-            destructNode(child);
-        }
-    }
-    childNodes.clear();
-
-    clearHistory();
-
-    emit showProgress(100);
-    return true;
-
-}
 
 
 int ModelController::GetEdgeOrderIndex(EDGE_KIND kind){
@@ -526,15 +479,18 @@ void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND ed
     QWriteLocker lock(&lock_);
 
     triggerAction("Destructing edges");
+
+    QList<Entity*> edges;
     auto dst = entity_factory->GetNode(dst_id);
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
 
         auto edge = src->getEdgeTo(dst, edge_kind);
         if(edge){
-            destructEdge(edge);
+            edges << edge;
         }
     }
+    destructEntities(edges);
     emit controller_ActionFinished();
 }
 
@@ -543,14 +499,18 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
     QWriteLocker lock(&lock_);
 
     triggerAction("Destructing All edges");
+
+    QList<Entity*> edges;
+
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
         for(auto edge: src->getEdges(0, edge_kind)){
             if(edge){
-                destructEdge(edge);
+                edges << edge;
             }
         }
     }
+    destructEntities(edges);
     emit controller_ActionFinished();
 }
 
@@ -799,15 +759,6 @@ void ModelController::remove(QList<int> IDs)
     lock_.unlock();
 }
 
-/**
- * @brief NewController::clear
- */
-void ModelController::clear()
-{
-    bool success = _clear();
-    emit showProgress(100);
-    emit controller_ActionFinished(success);
-}
 
 void ModelController::replicate(QList<int> IDs)
 {
@@ -1281,7 +1232,10 @@ QList<int> ModelController::getIDs(QList<Entity *> items)
 QList<Entity *> ModelController::getUnorderedEntities(QList<int> ids){
     QList<Entity*> entities;
     for(auto id : ids){
-        entities << entity_factory->GetEntity(id);
+        auto entity = entity_factory->GetEntity(id);
+        if(entity){
+            entities << entity;
+        }
     }
     return entities;
 }
@@ -1365,244 +1319,58 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
 }
 
 
+bool ModelController::destructEdge(Edge *edge){
+    if(edge){
+        auto id = edge->getID();
+        auto src = edge->getSource();
+        auto dst = edge->getDestination();
+        if(src && dst){
+            //Teardown specific edge classes.
+            auto edge_kind = edge->getEdgeKind();
 
-
-/**
- * @brief NewController::destructNode Fully deletes a Node; Including all of it's dependants and Edges etc.
- * @param node The Node to Delete.
- * @return Success
- */
-bool ModelController::destructNode(Node *node)
-{
-    if(!node){
-        return true;
-    }
-
-    bool addAction = true;
-
-
-    int ID = node->getID();
-    Node* parentNode = node->getParentNode();
-    int parentID = -1;
-    if(parentNode){
-        parentID = parentNode->getID();
-    }
-
-
-    if(!node->isInModel()){
-        //If the item isn't in the Model; Don't add an undo state.
-        addAction = false;
-    }
-    
-    //Get the list of dependants
-    auto dependants = node->getNestedDependants();
-    auto nodes = dependants;
-    nodes << node;
-
-
-    
-    QList<Entity*> all_nodes;
-    QSet<Entity*> edges;
-    
-    QSet<int> ids;
-    for(auto n : dependants){
-        for(auto c : n->getChildren()){
-            ids.insert(c->getID());    
-            all_nodes << c;
-        }
-        ids.insert(n->getID());
-        all_nodes << n;
-    }
-    all_nodes << node;
-    
-
-    //Get sorted orders
-    auto sorted_nodes = getOrderedEntities(all_nodes);
-
-    QList<int> ids2;
-    for(auto n : sorted_nodes){
-        ids2 << n->getID();
-    }
-
-    qCritical() << "Individual parents: " << sorted_nodes.size();
-
-
-
-    emit highlight(ids2);
-
-    //Get all the edges
-    for(auto n : sorted_nodes){
-        for(auto edge : ((Node*)n)->getAllEdges()){
-            edges.insert(edge);
-        }
-    }
-    qCritical() << "Nodes: " << sorted_nodes.size();
-    qCritical() << "Edges: " << edges.size();
-
-    auto all_edges = edges.toList();
-
-    auto action = getNewAction(GRAPHML_KIND::EDGE);
-    action.entity_id = ID;
-    action.Action.type = ACTION_TYPE::DESTRUCTED;
-    action.xml = exportGraphML(all_edges, true);
-    addActionToStack(action);
-
-
-    for(auto edge : edges){
-        destructEdge((Edge*)edge);
-    }
-
-
-
-    return true;
-    /*
-    //Add an action to reverse this action.
-    */
-    /*
-    auto edge_kind_keys = GetEdgeOrderIndexes();
-    //Reverse construction order for deletion order
-    std::reverse(edge_kind_keys.begin(), edge_kind_keys.end());
-
-    while(!edges.isEmpty()){
-        QList<Edge*> to_delete;
-        EDGE_KIND edge_kind = EDGE_KIND::NONE;
-        //Find the first index which still has edges left
-        for(auto kind : edge_kind_keys){
-            if(edges.contains(kind)){
-                edge_kind = kind;
-                to_delete = edges.values(kind);
+            switch(edge_kind){
+            case EDGE_KIND::DEFINITION:{
+                teardownDependantRelationship(dst, src);
                 break;
             }
-        }
-
-        std::reverse(to_delete.begin(), to_delete.end());
-
-        //Remove all nodes which depend on this.
-        while(!to_delete.isEmpty()){
-            auto edge = to_delete.takeFirst();
-            edges.remove(edge_kind, edge);
-            //qCritical(    ) << "Tearing down Dependants: " << dependant;
-            destructEdge(edge);
-        }
-    }*/
-
-    //Remove all nodes which depend on this.
-    //while(!dependants.isEmpty()){
-   //     Node* dependant = dependants.takeFirst();
-        //qCritical(    ) << "Tearing down Dependants: " << dependant;
-    //    destructNode(dependant);
-        
-    //}
-
-    
-    ///Remove all Children.
-    //while(node->hasChildren()){
-    //   Node* child = node->getFirstChild();
-    //    destructNode(child);
-    //}
-
-    {
-        //Add an action to reverse this action.
-        auto action = getNewAction(GRAPHML_KIND::NODE);
-        action.entity_id = ID;
-        action.parent_id = parentID;
-        action.Action.type = ACTION_TYPE::DESTRUCTED;
-        action.xml = exportGraphML(node);
-        addActionToStack(action, addAction);
-    }
-
-    auto children = node->getChildren();
-    
-    std::reverse(children.begin(), children.end());
-
-    for(auto child : children){
-        qCritical() << child;
-        auto child_id = child->getID();
-        removeEntity(child_id);
-        entity_factory->DestructEntity(child);
-    }
-
-    entity_factory->DestructEntity(node);
-
-    if(parentNode){
-        //Put this item last to fix the sort order of it's siblings.
-        node->setDataValue("index", parentNode->childrenCount());
-    }
-
-    removeEntity(ID);
-
-    if(model == node){
-        model = 0;
-    }else if(workerDefinitions == node){
-        workerDefinitions = 0;
-    }
-
-    entity_factory->DestructEntity(node);
-    return true;
-}
-
-
-
-bool ModelController::destructEdge(Edge *edge)
-{
-    if(!edge){
-        qCritical() << "destructEdge(): Edge is NULL";
-        return true;
-    }
-
-    int ID = edge->getID();
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
-
-    if(!(src && dst)){
-        qCritical() << "destructEdge(): Source and/or Destination are NULL.";
-        return false;
-    }
-
-    //Teardown specific edge classes.
-    auto edge_kind = edge->getEdgeKind();
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        teardownDependantRelationship(dst, src);
-        break;
-    }
-    case EDGE_KIND::AGGREGATE:{
-        Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
-        if(aggregate){
-            EventPort* eventPort = dynamic_cast<EventPort*>(src);
-            if(eventPort){
-                teardownEventPortAggregateRelationship(eventPort, aggregate);
-            }else{
-                teardownAggregateRelationship(src, aggregate);
+            case EDGE_KIND::AGGREGATE:{
+                Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
+                if(aggregate){
+                    EventPort* eventPort = dynamic_cast<EventPort*>(src);
+                    if(eventPort){
+                        teardownEventPortAggregateRelationship(eventPort, aggregate);
+                    }else{
+                        teardownAggregateRelationship(src, aggregate);
+                    }
+                }
+                break;
             }
-        }
-        break;
-    }
-    case EDGE_KIND::ASSEMBLY:{
-        // UnBind Topics Together.
-        Data* sourceTopicName = src->getData("topicName");
-        Data* destinationTopicName = dst->getData("topicName");
-        if(destinationTopicName && sourceTopicName ){
-            destinationTopicName->unsetParentData();
-        }
-        break;
-    }
-    case EDGE_KIND::DATA:{
-        if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
-            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
-        }
-        break;
-    }
-    default:
-        break;
-    }
+            case EDGE_KIND::ASSEMBLY:{
+                // UnBind Topics Together.
+                Data* sourceTopicName = src->getData("topicName");
+                Data* destinationTopicName = dst->getData("topicName");
+                if(destinationTopicName && sourceTopicName ){
+                    destinationTopicName->unsetParentData();
+                }
+                break;
+            }
+            case EDGE_KIND::DATA:{
+                if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
+                    setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
+                }
+                break;
+            }
+            default:
+                break;
+            }
 
-    //Remove it from the hash of GraphML
-    removeEntity(ID);
-
-    entity_factory->DestructEntity(edge);
-    return true;
+            //Remove it from the hash of GraphML
+            removeEntity(id);
+            entity_factory->DestructEntity(edge);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ModelController::destructEntity(int ID){
@@ -1650,14 +1418,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     for(auto n : sorted_nodes){
         node_ids << n->getID();
     }
-
-    qCritical() << "Individual parents: " << sorted_nodes.size();
-
     emit highlight(node_ids);
-
-    
-    qCritical() << "Nodes: " << sorted_nodes.size();
-    qCritical() << "Edges: " << edges.size();
 
     if(!edges.empty()){
         //Create an undo 
@@ -1669,8 +1430,6 @@ bool ModelController::destructEntities(QList<Entity*> entities)
 
         for(auto e : edges){
             auto edge = (Edge*)e;
-            qCritical() << edge;
-            removeEntity(edge->getID());
             destructEdge(edge);
         }
     }
@@ -1685,11 +1444,11 @@ bool ModelController::destructEntities(QList<Entity*> entities)
         action.xml = exportGraphML(entity);
         addActionToStack(action);
 
-        //Remove
+        //Remove children
         auto children = node->getChildren();
         while(!children.isEmpty()){
             auto child = children.takeLast();
-            
+
             removeEntity(child->getID());
             entity_factory->DestructEntity(child);
         }

@@ -373,13 +373,15 @@ EntityFactory::EntityFactory()
     DataEdge(this);
     DeploymentEdge(this);
     QosEdge(this);
-
-
 }
 
 EntityFactory::~EntityFactory()
 {
-    //TODO: Teardown objects
+    
+    //Delete the keys
+    for(auto key : key_lookup_.values()){
+        DestructEntity(key);
+    }
 }
 
 EntityFactory *EntityFactory::globalFactory()

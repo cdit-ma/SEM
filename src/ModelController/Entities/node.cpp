@@ -926,8 +926,12 @@ QSet<Node *> Node::getNestedDependants()
 {
     QSet<Node*> nodes;
 
+    //Get all our instances/Impls, get there 
     for(auto dependant : getDependants()){
         nodes.insert(dependant);
+        for(auto d_child : dependant->getNestedDependants()){
+            nodes.insert(d_child);
+        }
     }
 
     for(auto child : getChildren(0)){
