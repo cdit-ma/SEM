@@ -413,5 +413,3 @@ void NodeContainer:: AddComponentConstructor(std::string component_type, Compone
         component_constructors_[component_type] = constructor;
     }
 }
-
-

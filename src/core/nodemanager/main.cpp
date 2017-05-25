@@ -16,7 +16,7 @@
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
 
-Execution* exe = new Execution();
+Execution* exe = 0;
 
 void signal_handler(int sig)
 {
@@ -29,6 +29,8 @@ int main(int argc, char **argv){
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
+
+    exe = new Execution();
     //Get the library path from the argument variables
     std::string dll_path;
     std::string graphml_path;
@@ -140,8 +142,10 @@ int main(int argc, char **argv){
         delete slave;
     }
 
+
     if(is_master){
         delete master;
+        delete execution_manager;
     }
 
     delete exe;

@@ -383,9 +383,12 @@ void ExecutionManager::TerminateExecution(){
     //Set termination flag
     terminate_flag_ = true;
     //Obtain lock
-    std::unique_lock<std::mutex> lock(terminate_mutex_);
+    {
+        std::unique_lock<std::mutex> lock(terminate_mutex_);
+        terminate_lock_condition_.notify_all();
+    }
     //Notify
-    terminate_lock_condition_.notify_all();
+    execution_thread_->join();
 }
 
 bool ExecutionManager::Finished(){
@@ -431,5 +434,4 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     PushMessage("*", terminate);
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     finished_ = true;
-    execution_->Interrupt();
 }
