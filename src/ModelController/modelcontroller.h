@@ -281,7 +281,7 @@ private:
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
     void storeEntity(Entity* item);
-    void removeEntity(int ID);
+    void removeEntity(Entity* item);
 
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
@@ -299,7 +299,9 @@ private:
     bool destructEntity(int ID);
     bool destructEntity(Entity* item);
     bool destructEntities(QList<Entity*> entities);
-    bool destructEdge(Edge* edge);
+    
+    void destructEdge_(Edge* edge);
+    void destructNode_(Node* node);
 
 
     QString getNodeInstanceKind(Node* definition);
@@ -312,22 +314,14 @@ private:
     void bindData(Node* definition, Node* instance);
     void unbindData(Node* definition, Node* instance);
 
+
+    bool bindData_(Node* src, QString src_key, Node* dst, QString dst_key);
+    bool unbindData_(Node* src, QString src_key, Node* dst, QString dst_key);
+
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
-    bool setupDependantRelationship(Node* definition, Node* node);
-    bool teardownDependantRelationship(Node* definition, Node* node);
-
-
-
-
-    //Attaches an Aggregate Definition to an EventPort Definition.
-    bool setupEventPortAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
-    bool teardownEventPortAggregateRelationship(EventPort* EventPort, Aggregate* aggregate);
-
-
-    bool setupAggregateRelationship(Node* node, Aggregate* aggregate);
-    bool teardownAggregateRelationship(Node* node, Aggregate* aggregate);
-
-    bool setupDataEdgeRelationship(DataNode *outputNode, DataNode *inputNode, bool setup = true);
+    bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);
+    bool setupAggregateRelationship(Node* src, Node* dst, bool setup);
+    bool setupDataRelationship(Node *src, Node *dst, bool setup = true);
 
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
@@ -362,8 +356,6 @@ private:
     Node* getFirstNodeFromList(QList<int> ID);
 
     bool isUserAction();
-    
-
   
     QString getTimeStamp();
     uint getTimeStampEpoch();

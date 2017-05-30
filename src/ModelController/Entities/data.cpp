@@ -144,7 +144,7 @@ void Data::unsetParentData()
 
 void Data::clearValue()
 {
-    _value = QVariant();
+    setValue("");
     updateChildren();
 }
 
@@ -218,7 +218,8 @@ void Data::addChildData(Data *childData)
         if(!_childData.contains(ID)){
             _childData[ID] = childData;
         }
-        //Update.
+        //Store the old value
+        childData->store_value();
         childData->setValue(getValue());
     }
 }
@@ -230,7 +231,8 @@ void Data::removeChildData(Data *childData)
         if(_childData.contains(ID)){
             _childData.remove(ID);
         }
-        childData->clearValue();
+        //Store the old value
+        childData->restore_value();
     }
 }
 
@@ -261,4 +263,12 @@ void Data::updateChildren(bool changed)
     if(_value.isValid()){
         emit dataChanged(getValue());
     }
+}
+
+void Data::store_value(){
+    old_value = _value;
+}
+
+void Data::restore_value(){
+    setValue(old_value);
 }

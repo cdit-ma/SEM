@@ -45,6 +45,8 @@ public:
     QString toGraphML(int indentDepth);
     QString toString();
 protected:
+    void store_value();
+    void restore_value();
 
     bool forceValue(QVariant value);
     void addChildData(Data* childData);
@@ -65,6 +67,7 @@ private:
     bool _isProtected;
     bool _isDataLinked;
     QVariant _value;
+    QVariant old_value;
     QHash<int, Data*> _childData;
 
     // GraphML interface

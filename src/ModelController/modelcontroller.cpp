@@ -508,6 +508,10 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
             if(edge){
                 edges << edge;
             }
+
+
+
+            
         }
     }
     destructEntities(edges);
@@ -748,10 +752,8 @@ void ModelController::remove(QList<int> IDs)
     QList<Entity*> selection = getOrderedEntities(IDs);
 
     if(canRemove(selection)){
-        qCritical() << "REMOVING";
         triggerAction("Removing Selection");
         bool success = _remove(IDs);
-        qCritical() << "REMOVED";
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
         emit controller_ActionFinished();
@@ -1191,14 +1193,15 @@ void ModelController::storeEntity(Entity* item)
 }
 
 
-void ModelController::removeEntity(int ID)
+void ModelController::removeEntity(Entity* entity)
 {
-    auto item = entity_factory->GetEntity(ID);
-    if(item){
-        auto kind = item->getGraphMLKind();
-        emit entityDestructed(ID, kind);
-        node_ids_.remove(ID);
-        edge_ids_.remove(ID);
+    if(entity){
+        auto id = entity->getID();
+        auto kind = entity->getGraphMLKind();
+        emit entityDestructed(id, kind);
+        node_ids_.remove(id);
+        edge_ids_.remove(id);
+        entity_factory->DestructEntity(entity);
     }
 }
 
@@ -1263,63 +1266,44 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
 
 int ModelController::constructDependantRelative(Node *parent, Node *definition)
 {
-    bool isInstance = parent->isInstance();
-    int nodesMatched = 0;
+    int nodes_matched = 0;
+    
+    auto dependant_kind = NODE_KIND::NONE;
 
-    NODE_KIND dependant_kind = NODE_KIND::NONE;
-
-    if(isInstance){
+    if(parent->isInstance()){
         dependant_kind = definition->getInstanceKind();
     }else{
         dependant_kind = definition->getImplKind();
     }
 
     //For each child in parent, check to see if any Nodes match Label/Type
-    foreach(Node* child, parent->getChildrenOfKind(dependant_kind, 0)){        
-        Node* childDef = child->getDefinition();
+    for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
+        if(!child->getDefinition()){
+            auto labels_match = child->compareData(definition, "label");
+            auto types_match = child->compareData(definition, "type");
 
-        if(childDef){
-            if(childDef == definition){
-                nodesMatched ++;
-            }
-            //Move onto non-definition'd children.
-            continue;
-        }
-
-        bool labelMatched = child->compareData(definition, "label");
-        bool typeMatched = child->compareData(definition, "type");
-
-        if(!typeMatched){
-            if(child->getDataValue("type") == definition->getDataValue("label")){
-                typeMatched = true;
+            //If the labels and types match, we can construct an edge between them
+            if(types_match && labels_match){
+                construct_edge(EDGE_KIND::DEFINITION, child, definition);
             }
         }
-
-        if(typeMatched && labelMatched){
-            auto edge = construct_edge(EDGE_KIND::DEFINITION, child, definition);
-
-            if(!edge){
-                qCritical() << "constructDefinitionRelative(): Couldn't construct Edge between Relative Node and Definition Node.";
-                continue;
-            }
-            nodesMatched++;
+        if(child->getDefinition() == definition){
+            nodes_matched ++;    
         }
     }
 
-    //If we didn't find a match, we must create an Instance.
-    if(nodesMatched == 0){
-        Node* instance_node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
-        if(!instance_node){
-            return 0;
+    if(!nodes_matched){
+        //If we didn't find a match, we must create an Instance.
+        auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
+        if(node){
+            nodes_matched ++;
         }
-        nodesMatched ++;
     }
-
-    return nodesMatched;
+    return nodes_matched;
 }
 
 
-bool ModelController::destructEdge(Edge *edge){
+void ModelController::destructEdge_(Edge *edge){
     if(edge){
         auto id = edge->getID();
         auto src = edge->getSource();
@@ -1330,34 +1314,15 @@ bool ModelController::destructEdge(Edge *edge){
 
             switch(edge_kind){
             case EDGE_KIND::DEFINITION:{
-                teardownDependantRelationship(dst, src);
+                setupDefinitionRelationship(src, dst, false);
                 break;
             }
             case EDGE_KIND::AGGREGATE:{
-                Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
-                if(aggregate){
-                    EventPort* eventPort = dynamic_cast<EventPort*>(src);
-                    if(eventPort){
-                        teardownEventPortAggregateRelationship(eventPort, aggregate);
-                    }else{
-                        teardownAggregateRelationship(src, aggregate);
-                    }
-                }
-                break;
-            }
-            case EDGE_KIND::ASSEMBLY:{
-                // UnBind Topics Together.
-                Data* sourceTopicName = src->getData("topicName");
-                Data* destinationTopicName = dst->getData("topicName");
-                if(destinationTopicName && sourceTopicName ){
-                    destinationTopicName->unsetParentData();
-                }
+                setupAggregateRelationship(src, dst, false);
                 break;
             }
             case EDGE_KIND::DATA:{
-                if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
-                    setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
-                }
+                setupDataRelationship(src, dst, false);                
                 break;
             }
             default:
@@ -1365,12 +1330,9 @@ bool ModelController::destructEdge(Edge *edge){
             }
 
             //Remove it from the hash of GraphML
-            removeEntity(id);
-            entity_factory->DestructEntity(edge);
-            return true;
+            removeEntity(edge);
         }
     }
-    return false;
 }
 
 bool ModelController::destructEntity(int ID){
@@ -1421,22 +1383,23 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     emit highlight(node_ids);
 
     if(!edges.empty()){
-        //Create an undo 
+        //Create an undo state which groups all edges together
         auto action = getNewAction(GRAPHML_KIND::EDGE);
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(edges.toList(), true);
         addActionToStack(action);
 
-
+        //Destruct all the edges
         for(auto e : edges){
-            auto edge = (Edge*)e;
-            destructEdge(edge);
+            destructEdge_((Edge*)e);
         }
     }
 
     for(auto entity : sorted_nodes){
+        
         auto node = (Node*) entity;
 
+        //Create an undo state for each top level item
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.entity_id = entity->getID();
         action.parent_id = node->getParentNodeID();
@@ -1444,20 +1407,25 @@ bool ModelController::destructEntities(QList<Entity*> entities)
         action.xml = exportGraphML(entity);
         addActionToStack(action);
 
-        //Remove children
-        auto children = node->getChildren();
-        while(!children.isEmpty()){
-            auto child = children.takeLast();
-
-            removeEntity(child->getID());
-            entity_factory->DestructEntity(child);
-        }
-        removeEntity(node->getID());
-        entity_factory->DestructEntity(node);
+        destructNode_(node);
     }
     return true;
 }
 
+
+void ModelController::destructNode_(Node* node){
+    if(node){
+        //Remove children
+        auto children = node->getChildren();
+        while(!children.isEmpty()){
+            //delete from the end.
+            auto child = children.takeLast();
+
+            removeEntity(child);
+        }
+        removeEntity(node);
+    }
+}
 
 
 bool ModelController::reverseAction(HistoryAction action)
@@ -1809,6 +1777,8 @@ void ModelController::bindData(Node *defn, Node *child)
                 bind_labels = false;
             }
         }
+    }else if(child->isDefinition()){
+        bind_labels = false;
     }
 
     //Bind Type to either Type or Label
@@ -1859,48 +1829,48 @@ void ModelController::unbindData(Node *definition, Node *instance)
  * @param instance - Is this an Instance or Implementation Relationship.
  * @return true if Definition Relation was setup correctly.
  */
-bool ModelController::setupDependantRelationship(Node *definition, Node *node)
+bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
-    //Got Aggregate Edge.
-    if(!definition || !node){
-        return false;
-    }
-
-    auto node_kind = node->getNodeKind();
-    if(isUserAction()){
-        //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
-        foreach(Node* child, definition->getChildren(0)){
-            if(child && child->isNodeOfType(NODE_TYPE::DEFINITION)){
-                //Construct relationships between the children which matched the definitionChild.
-                int instancesConnected = constructDependantRelative(node, child);
-                
-                //Couldn't establish links
-                if(instancesConnected == 0){
-                    //To reduce links in Assembly, we don't care if they don't have AggregateInstances
-                    if(node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE){
-                        qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
+    if(src && dst){
+        auto node_kind = src->getNodeKind();
+        auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
+        
+        if(construct_dependant){
+            for(auto child : dst->getChildren(0)){
+                if(child->isNodeOfType(NODE_TYPE::DEFINITION)){
+                    if(!constructDependantRelative(src, child)){
+                        qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << src->toString();
                         return false;
                     }
                 }
             }
         }
+
+        //Check for an edge between the EventPort and the Aggregate
+        if(src->gotEdgeTo(dst, EDGE_KIND::DEFINITION)){
+            if(setup){
+                //Bind the un-protected Data attached to the Definition to the Instance.
+                bindData(dst, src);
+
+                if(src->isInstance()){
+                    dst->addInstance(src);
+                }else{
+                    dst->addImplementation(src);
+                }
+            }else{
+                //Bind the un-protected Data attached to the Definition to the Instance.
+                unbindData(dst, src);
+
+                if(src->isInstance()){
+                    dst->removeInstance(src);
+                }else{
+                    dst->removeImplementation(src);
+                }
+            }
+            return true;
+        }
     }
-
-    //Bind the un-protected Data attached to the Definition to the Instance.
-    bindData(definition, node);
-
-    if(!node->gotEdgeTo(definition, EDGE_KIND::DEFINITION)){
-        qCritical() << "setupDefinitionRelationship(): Cannot find connecting Edge.";
-        return false;
-    }
-
-    if(node->isInstance()){
-        definition->addInstance(node);
-    }else{
-        definition->addImplementation(node);
-    }
-
-    return true;
+    return false;
 }
 
 
@@ -1911,265 +1881,146 @@ bool ModelController::setupDependantRelationship(Node *definition, Node *node)
  * @param aggregate - the Aggregate to set.
  * @return true if Aggregate Relation was setup correctly.
  */
-bool ModelController::setupEventPortAggregateRelationship(EventPort *eventPort, Aggregate *aggregate)
+bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setup)
 {
-    //Got Aggregate Edge.
-    if(!(eventPort && aggregate)){
-        qCritical() << "setupAggregateRelationship(): EventPort or Aggregate is NULL.";
-        return false;
-    }
+    if(src && dst && src->isNodeOfType(NODE_TYPE::EVENTPORT) && dst->getNodeKind() == NODE_KIND::AGGREGATE){
+        auto eventport = (EventPort*) src;
+        auto aggregate = (Aggregate*) dst;
 
-    Node* aggregateInstance = 0;
-
-
-    //Only auto construct if we are processing a user action.
-    if(isUserAction()){
-        if(eventPort->getNodeKind() == NODE_KIND::INEVENTPORT || eventPort->getNodeKind() == NODE_KIND::OUTEVENTPORT){
-            //Check for an Existing AggregateInstance in the EventPort.
-            foreach(Node* child, eventPort->getChildrenOfKind(NODE_KIND::AGGREGATE_INSTANCE, 0)){
-                aggregateInstance = child;
+        bool construct_instance = setup && isUserAction() && (eventport->getNodeKind() == NODE_KIND::INEVENTPORT || eventport->getNodeKind() == NODE_KIND::OUTEVENTPORT);
+        //Only auto construct if we are processing a user action.
+        if(construct_instance){
+            Node* aggregate_instance = 0;
+            
+            //Check for a child of kind AggregateInstance
+            for(auto child : eventport->getChildrenOfKind(NODE_KIND::AGGREGATE_INSTANCE, 0)){
+                aggregate_instance = child;
+                break;
             }
 
-            //If we couldn't find an AggregateInstance in the EventPort, construct one.
-            if(!aggregateInstance){
-                aggregateInstance = construct_connected_node(eventPort, NODE_KIND::AGGREGATE_INSTANCE, aggregate, EDGE_KIND::DEFINITION);
+            if(!aggregate_instance){
+                //Construct a connected AggregateInstance inside the eventport, connected to the aggregate (The instance section will)
+                aggregate_instance = construct_connected_node(eventport, NODE_KIND::AGGREGATE_INSTANCE, aggregate, EDGE_KIND::DEFINITION);
+            }
+            
+            //If we have an aggregate instance
+            if(aggregate_instance){
+                if(!aggregate_instance->gotEdgeTo(aggregate, EDGE_KIND::DEFINITION)){
+                    //Try and construct an edge between the AggregateInstance and it's Instance
+                    construct_edge(EDGE_KIND::DEFINITION, aggregate_instance, aggregate);
+                }
+            }
+        }
+
+        //Check for an edge between the EventPort and the Aggregate
+        if(eventport->gotEdgeTo(aggregate, EDGE_KIND::AGGREGATE)){
+            if(setup){
+                //Edge Created Set Aggregate relation.
+                eventport->setAggregate(aggregate);
+                //Bind type to type
+                bindData_(aggregate, "type", eventport, "type");
             }else{
-                auto agg_defn = aggregateInstance->getDefinition();
-
-                if(agg_defn && agg_defn != aggregate){
-                    qCritical() << "setupAggregateRelationship(): EventPort already contains a defined AggregateInstance!";
-                    return false;
-                }
-
-                if(!aggregateInstance->gotEdgeTo(aggregate, EDGE_KIND::DEFINITION)){
-                    //Try connect
-                    auto edge = construct_edge(EDGE_KIND::DEFINITION, aggregateInstance, aggregate);
-                    if(!edge){
-                        qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
-                        return false;
-                    }
-                }
+                //Unset the Aggregate
+                eventport->unsetAggregate();
+                //unbind type to type
+                unbindData_(aggregate, "type", eventport, "type");
             }
+            return true;
         }
     }
-
-    if(eventPort->gotEdgeTo(aggregate, EDGE_KIND::AGGREGATE)){
-        //Edge Created Set Aggregate relation.
-        eventPort->setAggregate(aggregate);
-
-        //Set Type
-        Data* eventPortType = eventPort->getData("type");
-        Data* aggregateType = aggregate->getData("type");
-
-        if(eventPortType && aggregateType){
-            eventPortType->setParentData(aggregateType);
-            eventPortType->setValue(aggregateType->getValue());
-        }
-        return true;
-    }else{
-        return false;
-    }
+    return false;
 }
 
-bool ModelController::teardownEventPortAggregateRelationship(EventPort *eventPort, Aggregate *aggregate)
-{
-    if(!(eventPort && aggregate)){
-        qCritical() << "teardownAggregateRelationship(): EventPort or Aggregate is NULL.";
-        return false;
-    }
-
-    //Unset the Aggregate
-    eventPort->unsetAggregate();
-
-    //Unset Type information;
-    Data* eventPortType = eventPort->getData("type");
-    if(eventPortType){
-        eventPortType->unsetParentData();
-        eventPortType->clearValue();
-    }
-    return true;
-}
-
-bool ModelController::setupAggregateRelationship(Node *node, Aggregate *aggregate)
-{
-    if(!(node && aggregate)){
-        qCritical() << "setupVectorRelationship(): EventPort or Aggregate is NULL.";
-        return false;
-    }
-
-    //Check for a connecting Edge between the eventPort and aggregate.
-    Edge* edge = node->getEdgeTo(aggregate, EDGE_KIND::AGGREGATE);
-
-
-    Key* labelKey = entity_factory->GetKey("label", QVariant::String);
-
-    //Check for the existance of the Edge constructed.
-    if(!edge){
-        qCritical() << "setupVectorRelationship(): Edge between Vector and Aggregate doesn't exist!";
-        return false;
-    }
-
-    //Set Type
-    Data* nodeType = node->getData("type");
-    Data* aggregateLabel = aggregate->getData("label");
-
-    if(nodeType && aggregateLabel){
-        nodeType->setParentData(aggregateLabel);
-        nodeType->setValue(aggregateLabel->getValue());
-    }else{
-        return false;
-    }
-
-
-    EventPortAssembly* eventPortDelegate = dynamic_cast<EventPortAssembly*>(node);
-    if(eventPortDelegate){
-        eventPortDelegate->setAggregate(aggregate);
-    }
-
-    return true;
-
-}
-
-bool ModelController::teardownAggregateRelationship(Node *node, Aggregate *aggregate)
-{
-    if(!(node && aggregate)){
-        qCritical() << "teardownVectorRelationship(): EventPort or Aggregate is NULL.";
-        return false;
-    }
-
-    //Unset Type information;
-    Data* nodeType = node->getData("type");
-    if(nodeType){
-        nodeType->unsetParentData();
-        nodeType->clearValue();
-    }
-
-    if(node->isNodeOfType(NODE_TYPE::EVENTPORT_ASSEMBLY)){
-        EventPortAssembly* ep = (EventPortAssembly*) node;
-        ep->unsetAggregate();
-    }
-    return true;
-}
-
-bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *input, bool setup)
-{
-    Node* inputTopParent = input->getParentNode(input->getDepthFromAspect() - 2);
-    Node* outputTopParent = output->getParentNode(output->getDepthFromAspect() - 2);
-
-    if(inputTopParent){
-        //If we are connecting to an Variable, we don't want to bind.
-        if(inputTopParent->getNodeKind() == NODE_KIND::VARIABLE){
-            //return true;
+//Data binds the value of src->getData(src_key) into dst->getData(dst_key)
+bool ModelController::bindData_(Node* src, QString src_key, Node* dst, QString dst_key){
+    if(src && dst){
+        auto src_data = src->getData(src_key);
+        auto dst_data = dst->getData(dst_key);
+        if(src_data && dst_data && !dst_data->getParentData()){
+            dst_data->setParentData(src_data);
+            return true;
         }
     }
+    return false;
+}
 
-
-    Data* definitionData = output->getData("type");
-    Data* valueData = input->getData("value");
-
-    if(outputTopParent){
-        //Bind Parent Label if we are a variable.
-        if(outputTopParent->getNodeKind() == NODE_KIND::VARIABLE || outputTopParent->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
-            definitionData = outputTopParent->getData("label");
+//Data binds the value of src->getData(src_key) into dst->getData(dst_key)
+bool ModelController::unbindData_(Node* src, QString src_key, Node* dst, QString dst_key){
+    if(src && dst){
+        auto src_data = src->getData(src_key);
+        auto dst_data = dst->getData(dst_key);
+        if(src_data && dst_data && dst_data->getParentData() == src_data){
+            dst_data->unsetParentData();
+            return true;
         }
     }
+    return false;
+}
 
-    if(definitionData && valueData){
-        if(setup){
-            valueData->setParentData(definitionData);
-        }else{
-            valueData->unsetParentData();
-        }
-    }
+bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
+{
+   if(src && dst && src->isNodeOfType(NODE_TYPE::DATA) && dst->isNodeOfType(NODE_TYPE::DATA)){
+        auto src_parent = src->getParentNode();
+        auto dst_parent = dst->getParentNode();
 
-    //Bind special stuffs.
-    Node* inputParent = input->getParentNode();
-    if(inputParent){
-        if(inputParent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
-            QString workerName = inputParent->getDataValue("worker").toString();
-            QString parameterLabel = input->getDataValue("label").toString();
+        //Bind the special vector linking
+        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+            auto worker_name = dst_parent->getDataValue("worker").toString();
+            auto parameter_label = dst->getDataValue("label").toString();
 
-            if(workerName == "Vector_Operations"){
-                if(parameterLabel == "Vector" || parameterLabel == "VectorA"){
-                    Node* vector = output;
-                    Node* vector_child = 0;
+            //Check bindings
+            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
+                //Get the child type of the Vector
+                Node* vector = src;
+                Node* vector_child = src->getFirstChild();
 
-                    //If Vector has children
-                    if(vector->childrenCount() == 1){
-                        vector_child = vector->getChildren(0)[0];
-                    }
+                //Get the siblings of the parameter
+                for(auto param : dst_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        auto param_label = param->getDataValue("label").toString();
+                        Node* bind_src = 0;
 
-                    //Check the siblings of the input
-                    foreach(Node* child, input->getSiblings()){
+                        if(param_label.contains("Value")){
+                            //Bind the child type to the param
+                            bind_src = vector_child;
+                        }else if(param_label.contains("Vector")){
+                            //Bind the vector type to the param
+                            bind_src = vector;
+                        }
 
-                        if(child && child->isNodeOfType(NODE_TYPE::PARAMETER)){
-                            QString parameter_label = child->getDataValue("label").toString();
-
-                            Data* parameter_type = child->getData("type");
-                            Data* bind_type = 0;
-
-                            if(parameter_label == "Value" || parameter_label == "DefaultValue"){
-                                //Bind the Type of the child in the Vector
-                                bind_type = vector_child->getData("type");
-                            }else if(parameter_label == "VectorB"){
-                                //Bind the Type of the actual vector.
-                                bind_type = vector->getData("type");
-                            }
-
-                            if(parameter_type){
-                                if(setup){
-                                    if(bind_type){
-                                        parameter_type->setParentData(bind_type);
-                                    }
-                                }else{
-                                    parameter_type->unsetParentData();
-                                    parameter_type->clearValue();
-                                }
-                            }
+                        if(setup){
+                            bindData_(bind_src, "type", param, "type");
+                        }else{
+                            unbindData_(bind_src, "type", param, "type");
                         }
                     }
                 }
             }
         }
-    }
-    return true;
+
+        QString src_key = "type";
+        auto bind_src = src;
+        
+        //Data bind to the Variable, instead of the Member
+        if(src_parent && src_parent->getNodeKind() == NODE_KIND::VARIABLE){
+            bind_src = src_parent;
+        }
+
+        //If what we are binding to is a Variable/AttributeImpl, bind to the label
+        if(bind_src->getNodeKind() == NODE_KIND::VARIABLE || bind_src->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
+            src_key = "label";
+        }
+
+        if(setup){
+            bindData_(bind_src, src_key, dst, "value");
+        }else{
+            unbindData_(bind_src, src_key, dst, "value");
+        }
+        return true;
+   }
+   return false;
 }
 
-
-/**
- * @brief NewController::teardownDefinitionRelationship
- * Attempts to destruct the relationship between the Instance and definition provided.
- * Will remove *ALL* Instances of all Definitions contained by Definition provided. Unbinds relevant Data and will add Node to be removed.
- * @param definition - The Node which is the Definition of the relationship.
- * @param aggregate - The Node which is the Instance.
- * @param instance - Is this an Instance or Implementation Relationship.
- * @return true if Definition Relation was removed correctly.
- */
-bool ModelController:: teardownDependantRelationship(Node *definition, Node *node)
-{
-    //Got Aggregate Edge.
-    if(!(definition && node)){
-        qCritical() << "teardownDefinitionRelationship(): Definition or Node is NULL.";
-        return false;
-    }
-
-    //Unbind data.
-    unbindData(definition, node);
-
-    if(!definition->gotEdgeTo(node, EDGE_KIND::DEFINITION)){
-        qCritical() << "teardownDefinitionRelationship(): No Edge between Definition and Node.";
-        return false;
-    }
-
-    //Unset the Relationship between Definition and Instance/Impl
-    if(node->isInstance()){
-        definition->removeInstance(node);
-    }else{
-        definition->removeImplementation(node);
-    }
-
-    return true;
-}
 
 bool ModelController::isGraphMLValid(QString inputGraphML)
 {
@@ -2191,67 +2042,43 @@ bool ModelController::isGraphMLValid(QString inputGraphML)
 
 void ModelController::constructEdgeGUI(Edge *edge)
 {
-    //Construct an ActionItem to reverse an Edge Construction.
-    HistoryAction action = getNewAction(GRAPHML_KIND::EDGE);
+    if(edge){
+        //Construct an ActionItem to reverse an Edge Construction.
+        auto action = getNewAction(GRAPHML_KIND::EDGE);
 
-    action.Action.type = ACTION_TYPE::CONSTRUCTED;
-    action.Action.kind = edge->getGraphMLKind();
-    action.entity_id = edge->getID();
+        action.Action.type = ACTION_TYPE::CONSTRUCTED;
+        action.Action.kind = edge->getGraphMLKind();
+        action.entity_id = edge->getID();
+        auto src = edge->getSource();
+        auto dst = edge->getDestination();
 
-    //Get Source and Destination of the Edge.
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
+        //Add Action to the Undo/Redo Stack
+        addActionToStack(action);
 
-    //Add Action to the Undo/Redo Stack
-    addActionToStack(action);
-
-    if(!src || !dst){
-        qCritical() << "Source and Desitnation null";
-    }
-    EDGE_KIND edgeClass = edge->getEdgeKind();
+        auto edge_kind = edge->getEdgeKind();
 
 
-    switch(edgeClass){
-    case EDGE_KIND::DEFINITION:{
-        setupDependantRelationship(dst, src);
-        //DefinitionEdge is either an Instance or an Impl
-        break;
-    }
-    case EDGE_KIND::AGGREGATE:{
-        if(dst->getNodeKind() == NODE_KIND::AGGREGATE){
-            Aggregate* aggregate = (Aggregate*) dst;
-
-            if(src->isNodeOfType(NODE_TYPE::EVENTPORT)){
-                EventPort* eventPort = (EventPort*) src;
-                setupEventPortAggregateRelationship(eventPort, aggregate);
-            }else{
-                setupAggregateRelationship(src, aggregate);
-            }
+        //Do Special GUI related things
+        switch(edge_kind){
+        case EDGE_KIND::DEFINITION:{
+            setupDefinitionRelationship(src, dst, true);
+            break;
         }
-        break;
-    }
-    case EDGE_KIND::ASSEMBLY:{
-        //Bind Topics Together, if they contain.
-        Data* srcTopicName = src->getData("topicName");
-        Data* dstTopicName = dst->getData("topicName");
-
-        if(srcTopicName && dstTopicName){
-            dstTopicName->setParentData(srcTopicName);
+        case EDGE_KIND::AGGREGATE:{
+            setupAggregateRelationship(src, dst, true);
+            break;
         }
-        break;
-    }
-    case EDGE_KIND::DATA:{
-        if(dst->isNodeOfType(NODE_TYPE::DATA) && src->isNodeOfType(NODE_TYPE::DATA)){
-            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
+        case EDGE_KIND::DATA:{
+            setupDataRelationship(src, dst, true);
+            break;
         }
-        break;
-    }
-    default:
-        break;
-    }
-    
+        default:
+            break;
+        }
+        
 
-    storeEntity(edge);
+        storeEntity(edge);
+    }
 }
 
 
