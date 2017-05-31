@@ -18,7 +18,7 @@ set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION "2.1.1-RE")
+SET(VERSION "2.1.2-RE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
 
