@@ -44,9 +44,8 @@ private slots:
     void gotJava(bool java);
     void selectionChanged(int selectionSize);
     void actionFinished();
-
-    void controllerReady(bool);
-    void modelReady(bool ready);
+    
+    void ModelControllerReady(bool ready);
     void themeChanged();
 
     void updateJenkinsActions();

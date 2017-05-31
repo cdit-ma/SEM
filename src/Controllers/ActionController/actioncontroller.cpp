@@ -43,9 +43,8 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, &ViewController::vc_actionFinished, this, &ActionController::actionFinished);
-        connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
-        connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
+        connect(controller, &ViewController::vc_ActionFinished, this, &ActionController::actionFinished);
+        connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
 
@@ -54,7 +53,8 @@ void ActionController::connectViewController(ViewController *controller)
 
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
-        connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
+    
+        connect(file_openProject, &QAction::triggered, viewController, &ViewController::OpenProject);
         connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
         connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
@@ -262,8 +262,7 @@ void ActionController::selectionChanged(int selection_size)
         }
 
         bool controller_ready = viewController->isControllerReady();
-        bool model_ready = viewController->isModelReady();
-        bool model_actions = controller_ready && model_ready;
+        bool model_actions = controller_ready;
 
 
         bool got_selection = selection_size > 0;
@@ -326,13 +325,7 @@ void ActionController::actionFinished()
     selectionChanged(-1);
 }
 
-void ActionController::controllerReady(bool)
-{
-    //Do we need to do this?
-    //updateActions();
-}
-
-void ActionController::modelReady(bool)
+void ActionController::ModelControllerReady(bool)
 {
     updateActions();
 }
@@ -355,21 +348,20 @@ void ActionController::themeChanged()
 
 void ActionController::updateJenkinsActions()
 {
-    bool modelReady = viewController->isModelReady();
+    bool controller_ready = viewController->isControllerReady();
 
-    jenkins_importNodes->setEnabled(modelReady && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(modelReady && _jenkinsValidated);
-
-    model_generateModelWorkspace->setEnabled(modelReady && _gotJava);
-    model_validateModel->setEnabled(modelReady && _gotJava);
+    jenkins_importNodes->setEnabled(controller_ready && _jenkinsValidated);
+    jenkins_executeJob->setEnabled(controller_ready && _jenkinsValidated);
+    model_generateModelWorkspace->setEnabled(controller_ready && _gotJava);
+    model_validateModel->setEnabled(controller_ready && _gotJava);
 }
 
 void ActionController::updateUndoRedo()
 {
     if(viewController){
-        bool model_ready = viewController->isModelReady();
-        edit_undo->setEnabled(model_ready && viewController->canUndo());
-        edit_redo->setEnabled(model_ready && viewController->canRedo());
+        bool controller_ready = viewController->isControllerReady();
+        edit_undo->setEnabled(controller_ready && viewController->canUndo());
+        edit_redo->setEnabled(controller_ready && viewController->canRedo());
     }
 }
 
@@ -415,34 +407,31 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
 
 void ActionController::updateActions()
 {
-    bool controllerReady = viewController->isControllerReady();
-    bool modelReady = viewController->isModelReady();
+    bool controller_ready = viewController->isControllerReady();
 
-    bool modelActions = controllerReady && modelReady;
+    //Always Enabled
+    file_newProject->setEnabled(true);
+    file_openProject->setEnabled(true);
+    file_closeProject->setEnabled(true);
 
-    file_newProject->setEnabled(controllerReady);
-    file_openProject->setEnabled(controllerReady);
-    file_closeProject->setEnabled(controllerReady);
-
-
-
-    file_importGraphML->setEnabled(modelActions);
+    file_importGraphML->setEnabled(controller_ready);
+    
     //file_importXME->setEnabled(modelActions);
     //file_importXMI->setEnabled(modelActions);
-    file_saveProject->setEnabled(modelActions);
-    file_saveAsProject->setEnabled(modelActions);
-    file_closeProject->setEnabled(modelActions);
+    file_saveProject->setEnabled(controller_ready);
+    file_saveAsProject->setEnabled(controller_ready);
+    file_closeProject->setEnabled(controller_ready);
 
-    model_selectModel->setEnabled(modelActions);
-    model_validateModel->setEnabled(modelActions);
-    model_generateModelWorkspace->setEnabled(modelActions);
+    model_selectModel->setEnabled(controller_ready);
+    model_validateModel->setEnabled(controller_ready);
+    model_generateModelWorkspace->setEnabled(controller_ready);
 
-    edit_search->setEnabled(modelActions);
-    view_fitView->setEnabled(modelActions);
-    view_fitAllViews->setEnabled(modelActions);
+    edit_search->setEnabled(controller_ready);
+    view_fitView->setEnabled(controller_ready);
+    view_fitAllViews->setEnabled(controller_ready);
 
-    toolbar_contextToolbar->setEnabled(modelActions);
-    toolbar_addDDSQOSProfile->setEnabled(modelActions);
+    toolbar_contextToolbar->setEnabled(controller_ready);
+    toolbar_addDDSQOSProfile->setEnabled(controller_ready);
 
     //Update the selection changed with a special thing.
     selectionChanged(-1);
@@ -467,7 +456,7 @@ void ActionController::recentProjectsChanged()
 {
     if(!recentProjectMapper){
         recentProjectMapper = new QSignalMapper(this);
-        connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped),viewController, &ViewController::openExistingProject);
+        connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped), viewController, &ViewController::OpenExistingProject);
     }
 
     //Load in the defaults.

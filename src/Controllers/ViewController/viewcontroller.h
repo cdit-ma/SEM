@@ -63,7 +63,6 @@ public:
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
-    bool isModelReady();
     bool isControllerReady();
 
     bool canUndo();
@@ -93,43 +92,42 @@ signals:
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
 
+    void vc_ActionFinished();
+
     void vc_editTableCell(int ID, QString keyName);
 
     void vc_projectClosed();
     
-    void vc_setupModel();
-        void vc_undo();
-        void vc_redo();
-        void vc_triggerAction(QString);
-        void vc_setData(int, QString, QVariant);
-        void vc_removeData(int, QString);
-        void vc_deleteEntities(QList<int> IDs);
-        void vc_cutEntities(QList<int> IDs);
-        void vc_copyEntities(QList<int> IDs);
-        void vc_paste(QList<int> IDs, QString data);
-        void vc_replicateEntities(QList<int> IDs);
-        void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+    void vc_SetupModelController(QString file_path);
 
-        void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
-        void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
-        void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
-        
-        void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
-        void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
-        void vc_importProjects(QStringList fileData);
-        void vc_openProject(QString fileName, QString filePath);
-        void vc_projectSaved(QString filePath);
-        void vc_projectPathChanged(QString);
-        void vc_answerQuestion(bool);
-      
-        void mc_showProgress(bool, QString);
-        void mc_progressChanged(int);
-        void mc_modelReady(bool);
-        void mc_projectModified(bool);
-        void mc_undoRedoUpdated();
+    void vc_undo();
+    void vc_redo();
+    void vc_triggerAction(QString);
+    void vc_setData(int, QString, QVariant);
+    void vc_removeData(int, QString);
+    void vc_deleteEntities(QList<int> IDs);
+    void vc_cutEntities(QList<int> IDs);
+    void vc_copyEntities(QList<int> IDs);
+    void vc_paste(QList<int> IDs, QString data);
+    void vc_replicateEntities(QList<int> IDs);
+    void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
 
-        void vc_actionFinished();
-
+    void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+    void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
+    void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
+    
+    void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+    void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
+    void vc_importProjects(QStringList fileData);
+    void vc_projectSaved(QString filePath);
+    void vc_projectPathChanged(QString);
+    void vc_answerQuestion(bool);
+    
+    void mc_showProgress(bool, QString);
+    void mc_progressChanged(int);
+    void mc_modelReady(bool);
+    void mc_projectModified(bool);
+    void mc_undoRedoUpdated();
     //TO CONTROLLER SIGNALS
 
 /*
@@ -185,10 +183,8 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
 public slots:
+    
     void highlight(QList<int> ids);
-    void projectOpened(bool success);
-
-
 
 
     void modelValidated(QString reportPath);
@@ -207,13 +203,6 @@ public slots:
     void selectModel();
     void launchLocalDeployment();
 
-
-
-
-
-
-    void actionFinished(bool success, QString gg);
-
     void model_NodeConstructed(int parent_id, int id, NODE_KIND kind);
     void model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
     void controller_entityDestructed(int ID, GRAPHML_KIND kind);
@@ -223,8 +212,9 @@ public slots:
     void setClipboardData(QString data);
 
     void newProject();
-    void openProject();
-    void openExistingProject(QString file);
+    bool OpenProject();
+    bool OpenExistingProject(QString file_path);
+
     void importProjects();
     void importXMEProject();
     void importXMIProject();
@@ -275,12 +265,11 @@ public slots:
     void constructDDSQOSProfile();
     void requestSearchSuggestions();
 
-
-    void setModelReady(bool okay);
     void setControllerReady(bool ready);
     void openURL(QString url);
 
 private slots:
+    void ModelControllerReady(bool ready);
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
 
@@ -289,7 +278,6 @@ private slots:
 private:
 
     void setupEntityKindItems();
-    void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
     void _showWebpage(QString URL);
     void _showWiki(ViewItem* item=0);
@@ -309,29 +297,28 @@ private:
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 
     NodeView* getActiveNodeView();
-    void _teardownProject();
+    void TeardownController();
 
 
     bool newProjectUsed;
 
 
-    bool _newProject();
+    bool _newProject(QString file_path="");
     bool _saveProject();
     bool _saveAsProject();
-    bool _closeProject(bool showWelcome=false);
+    bool _closeProject(bool show_welcome=false);
     void _importProjects();
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
 
     QList<ViewItem*> getItemsOfKind(NODE_KIND kind);
     QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
-    bool _modelReady;
 
 
     QList<NodeViewItem*> nodeKindItems;
     QList<EdgeViewItem*> edgeKindItems;
 
-    bool _controllerReady;
+    bool _controllerReady = false;
 
 
     bool destructChildItems(ViewItem* parent);

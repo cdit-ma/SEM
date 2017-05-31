@@ -1431,7 +1431,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 void NodeView::wheelEvent(QWheelEvent *event)
 {
     //Call Zoom
-    if(viewController->isModelReady()){
+    if(viewController->isControllerReady()){
         zoom(event->delta(), event->pos());
     }
 }
