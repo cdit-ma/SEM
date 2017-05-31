@@ -44,9 +44,8 @@ private slots:
     void gotJava(bool java);
     void selectionChanged(int selectionSize);
     void actionFinished();
-
-    void controllerReady(bool);
-    void modelReady(bool ready);
+    
+    void ModelControllerReady(bool ready);
     void themeChanged();
 
     void updateJenkinsActions();
@@ -100,8 +99,6 @@ public:
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
     RootAction* file_closeProject;
-    //RootAction* file_importSnippet;
-    //RootAction* file_exportSnippet;
     RootAction* file_exit;
 
     RootAction* edit_undo;
@@ -160,9 +157,7 @@ public:
     RootAction* toolbar_connect;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
-    RootAction* toolbar_setReadOnly;
-    RootAction* toolbar_unsetReadOnly;
-
+    
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;

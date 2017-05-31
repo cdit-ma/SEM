@@ -98,6 +98,14 @@ ViewItem *SelectionController::getActiveSelectedItem()
     return item;
 }
 
+int SelectionController::getActiveSelectedID(){
+    int id = -1;
+    auto active = getActiveSelectedItem();
+    if(active){
+        id = active->getID();
+    }
+    return id;
+}
 int SelectionController::getFirstSelectedItemID()
 {
     int ID = -1;
@@ -177,14 +185,7 @@ void SelectionController::removeSelectionHandler()
     }
 }
 
-QVector<ViewItem *> SelectionController::getOrderedSelection(QList<int> selection)
-{
-    QVector<ViewItem*> items;
-    if(viewController){
-        items = viewController->getOrderedSelection(selection);
-    }
-    return items;
-}
+
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {

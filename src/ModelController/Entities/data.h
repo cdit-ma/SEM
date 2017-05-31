@@ -2,14 +2,20 @@
 #define DATA_H
 #include "key.h"
 #include "entity.h"
+class EntityFactory; 
 class Data : public GraphML
 {
     Q_OBJECT
+    friend class Entity;
+    friend class EntityFactory;
     friend class Key;
-public:
+    friend class Node;
+    friend class Edge;
+protected:
     Data(Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
     static Data* clone(Data* data);
+public:
 
     void setParent(Entity* parent);
     Entity* getParent();
@@ -39,6 +45,8 @@ public:
     QString toGraphML(int indentDepth);
     QString toString();
 protected:
+    void store_value();
+    void restore_value();
 
     bool forceValue(QVariant value);
     void addChildData(Data* childData);
@@ -49,7 +57,6 @@ private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
     bool _setValue(QVariant value, bool validate = true);
-    void updateProtected();
     void updateChildren(bool changed = true);
     Entity* _parent;
     Key* _key;
@@ -60,6 +67,7 @@ private:
     bool _isProtected;
     bool _isDataLinked;
     QVariant _value;
+    QVariant old_value;
     QHash<int, Data*> _childData;
 
     // GraphML interface

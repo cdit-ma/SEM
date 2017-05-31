@@ -262,7 +262,7 @@ void NodeView::alignHorizontal()
 {
     emit triggerAction("Aligning Selection Horizontally");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -290,7 +290,7 @@ void NodeView::alignVertical()
 {
     emit triggerAction("Aligning Selection Vertically");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -486,7 +486,7 @@ void NodeView::item_MoveSelection(QPointF delta)
         if(selectionHandler){
 
             //Validate the move for the entire selection.
-            foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                 EntityItem* item = getEntityItem(viewItem);
                 if(item){
                     delta = item->validateMove(delta);
@@ -498,7 +498,7 @@ void NodeView::item_MoveSelection(QPointF delta)
             }
 
             if(!delta.isNull()){
-                foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+                foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                     EntityItem* item = getEntityItem(viewItem);
                     if(item){
                         //Move!
@@ -727,8 +727,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::IDL:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                break;
             case NODE_KIND::SHARED_DATATYPES:
                 nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("version");
+                secondary_icon.second = "tag";
+                nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -736,7 +741,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
@@ -746,6 +750,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                secondary_icon.second = "copyX";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->setSecondaryTextKey("replicate_count");
+                break;
             case NODE_KIND::BLACKBOX:
             case NODE_KIND::BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -766,7 +775,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
@@ -790,6 +799,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                //Don't show icon
+                //secondary_icon.second = "tiles";
+                //nodeItem->setSecondaryIconPath(secondary_icon);
+                //nodeItem->setSecondaryTextKey("namespace");
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -828,7 +841,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::MEMBER:
@@ -844,7 +857,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::ATTRIBUTE:
@@ -881,7 +894,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:
@@ -1025,19 +1038,6 @@ QList<EntityItem *> NodeView::getSelectedItems() const
         }
     }
     return items;
-}
-
-QList<EntityItem *> NodeView::getOrderedSelectedItems() const
-{
-    QList<EntityItem*> items;
-    foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
-        EntityItem* eItem = getEntityItem(item);
-        if(eItem){
-            items.append(eItem);
-        }
-    }
-    return items;
-
 }
 
 NodeItem *NodeView::getParentNodeItem(NodeViewItem *item)
@@ -1255,7 +1255,7 @@ void NodeView::state_Moving_Entered()
 {
     setCursor(Qt::SizeAllCursor);
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItem* item = getEntityItem(viewItem);
             if(item){
                 item->setMoveStarted();
@@ -1269,7 +1269,7 @@ void NodeView::state_Moving_Exited()
     if(selectionHandler){
         bool anyMoved = false;
 
-        QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
+        QVector<ViewItem*> selection = selectionHandler->getSelection();
 
         foreach(ViewItem* viewItem, selection){
             EntityItem* item = getEntityItem(viewItem);
@@ -1302,7 +1302,7 @@ void NodeView::state_Resizing_Entered()
             return;
         }
 
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
             if(item){
                 item->setResizeStarted();
@@ -1315,7 +1315,7 @@ void NodeView::state_Resizing_Entered()
 void NodeView::state_Resizing_Exited()
 {
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
 
             if(item && item->setResizeFinished()){
@@ -1431,7 +1431,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 void NodeView::wheelEvent(QWheelEvent *event)
 {
     //Call Zoom
-    if(viewController->isModelReady()){
+    if(viewController->isControllerReady()){
         zoom(event->delta(), event->pos());
     }
 }

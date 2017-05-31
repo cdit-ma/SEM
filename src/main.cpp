@@ -29,7 +29,7 @@ int launchMEDEA(int argc, char *argv[]){
     if (argc == 2) {
         QString projectPath = QString::fromUtf8(argv[1]);
         if(!projectPath.isEmpty()){
-            view_controller->openExistingProject(projectPath);
+            view_controller->OpenExistingProject(projectPath);
         }
     }
     a.setActiveWindow(window);

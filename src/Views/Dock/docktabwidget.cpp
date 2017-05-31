@@ -310,7 +310,7 @@ void DockTabWidget::resetDocks(bool ready){
 void DockTabWidget::setupConnections()
 {
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(viewController, SIGNAL(vc_actionFinished()), this, SLOT(onActionFinished()));
+    connect(viewController, &ViewController::vc_ActionFinished, this, &DockTabWidget::onActionFinished);
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
 
     connect(viewController, &ViewController::vc_ProjectLoaded, this, &DockTabWidget::resetDocks);

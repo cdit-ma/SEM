@@ -11,7 +11,7 @@ public:
     ModelControllerTests(){};
 
 signals:
-    void setup_controller();
+    void setup_controller(QString file_path="");
     void teardown_controller();
     void open_project(QString file_name, QString file_data);
 private slots:

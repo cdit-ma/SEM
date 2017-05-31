@@ -5,7 +5,7 @@
 #include "../../Utils/rootaction.h"
 #include <QDebug>
 #include "../../ModelController/nodekinds.h"
-
+#include "../../ModelController/modelcontroller.h"
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
 
@@ -43,9 +43,8 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, &ViewController::vc_actionFinished, this, &ActionController::actionFinished);
-        connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
-        connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
+        connect(controller, &ViewController::vc_ActionFinished, this, &ActionController::actionFinished);
+        connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
 
@@ -54,7 +53,8 @@ void ActionController::connectViewController(ViewController *controller)
 
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
-        connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
+    
+        connect(file_openProject, &QAction::triggered, viewController, &ViewController::OpenProject);
         connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
         connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
@@ -116,18 +116,9 @@ void ActionController::connectViewController(ViewController *controller)
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
         //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
-        //connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
-        //connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
-
-
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
-
-        connect(readOnlyMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),viewController, &ViewController::setSelectionReadOnly);
-
-
-        //connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
 
 
 
@@ -256,102 +247,76 @@ void ActionController::gotJava(bool java)
     }
 }
 
-void ActionController::selectionChanged(int selectionSize)
+void ActionController::selectionChanged(int selection_size)
 {
     if(selectionController){
-        if(selectionSize == -1){
-            selectionSize = selectionController->getSelectionCount();
+        QSet<SELECTION_PROPERTIES> selection_properties;
+        auto selection = selectionController->getSelectionIDs();
+        selection_size = selection.size();
+
+        
+        auto model_controller = viewController->getModelController();
+        if(model_controller){
+            auto id = selectionController->getActiveSelectedID();
+            selection_properties = model_controller->getSelectionProperties(id, selection);
         }
 
-        bool controllerReady = viewController->isControllerReady();
-        bool modelReady = viewController->isModelReady();
-
-        bool modelActions = controllerReady && modelReady;
-
-        bool gotSingleSelection = modelActions && (selectionSize == 1);
-        bool gotSelection = modelActions && (selectionSize > 0);
-        bool gotMultipleSelection = modelActions && (selectionSize > 1);
+        bool controller_ready = viewController->isControllerReady();
+        bool model_actions = controller_ready;
 
 
-        ViewItem* singleItem = selectionController->getActiveSelectedItem();
+        bool got_selection = selection_size > 0;
+        bool got_single_selection = selection_size == 1;
+        bool got_multi_selection = selection_size > 1;
 
-        bool hasDefn = false;
-        bool hasImpl = false;
-        bool hasCode = false;
-        bool hasComponentAssembly = false;
-        bool canLock = false;
+        //New checks
+        edit_cut->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CUT));
+        edit_copy->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_COPY));
+        edit_paste->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_PASTE));
+        edit_replicate->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REPLICATE));
+        edit_delete->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REMOVE));
+        edit_renameActiveSelection->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_RENAME));
 
-        if(gotSingleSelection && singleItem && singleItem->isNode()){
-            NodeViewItem* node = (NodeViewItem*) singleItem;
-            NODE_KIND kind = node->getNodeKind();
+        //Active selection based.
+        view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
+        view_viewDefnInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
+        view_centerOnImpl->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
+        view_viewImplInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_IMPLEMENTATION));
+        view_viewConnections->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
 
-            hasDefn = node->isNodeOfType(NODE_TYPE::INSTANCE) || node->isNodeOfType(NODE_TYPE::IMPLEMENTATION);
-            hasImpl = hasDefn || node->isNodeOfType(NODE_TYPE::DEFINITION);
-            canLock = !(node->isNodeOfType(NODE_TYPE::ASPECT) || kind == NODE_KIND::MODEL);
+    
+        //Selection based.
+        toolbar_wiki->setEnabled(got_selection);
+        edit_expand->setEnabled(got_selection);
+        edit_contract->setEnabled(got_selection);
 
-            hasCode = kind == NODE_KIND::COMPONENT || kind == NODE_KIND::COMPONENT_INSTANCE || kind == NODE_KIND::COMPONENT_IMPL;
-            hasComponentAssembly = kind == NODE_KIND::COMPONENT_ASSEMBLY;
+
+        edit_clearSelection->setEnabled(got_selection);
+        view_centerOn->setEnabled(got_selection);
+        
+        //Single Selection
+        edit_selectAll->setEnabled(got_single_selection);
+        view_viewInNewWindow->setEnabled(got_single_selection);
+
+        //Multi Selection
+        edit_alignHorizontal->setEnabled(got_multi_selection);
+        edit_alignVertical->setEnabled(got_multi_selection);
+        edit_CycleActiveSelectionForward->setEnabled(got_multi_selection);
+        edit_CycleActiveSelectionBackward->setEnabled(got_multi_selection);
+        
+        view_fitView->setEnabled(controller_ready);
+        view_fitAllViews->setEnabled(controller_ready);
+
+        auto active_item = selectionController->getActiveSelectedItem();
+        
+        if(active_item && active_item->isNode()){
+            auto node_item = (NodeViewItem*) active_item;
+            auto node_kind = node_item->getNodeKind();
+            toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
+            model_getCodeForComponent->setEnabled(_gotJava && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
         }
 
-        toolbar_wiki->setEnabled(gotSelection);
-
-        edit_expand->setEnabled(gotSelection);
-        edit_contract->setEnabled(gotSelection);
-
-        toolbar_setReadOnly->setEnabled(!canLock);
-        toolbar_unsetReadOnly->setEnabled(canLock);
-
-        //file_importSnippet->setEnabled(viewController->canImportSnippet());
-        //file_exportSnippet->setEnabled(viewController->canExportSnippet());
-
-
-        model_getCodeForComponent->setEnabled(_gotJava && hasCode);
-
-        view_centerOnDefn->setEnabled(hasDefn);
-        view_viewDefnInNewWindow->setEnabled(hasDefn);
-
-        view_centerOnImpl->setEnabled(hasImpl);
-        view_viewImplInNewWindow->setEnabled(hasImpl);
-
-
-
-        edit_cut->setEnabled(gotSelection);
-        edit_copy->setEnabled(gotSelection);
-        edit_paste->setEnabled(gotSingleSelection);
-
-        edit_replicate->setEnabled(gotSelection);
-        edit_delete->setEnabled(gotSelection);
-        //edit_sort->setEnabled(gotSelection);
-        edit_renameActiveSelection->setEnabled(gotSelection);
-        edit_clearSelection->setEnabled(gotMultipleSelection);
-        edit_selectAll->setEnabled(gotSingleSelection);
-
-
-        edit_alignHorizontal->setEnabled(gotMultipleSelection);
-        edit_alignVertical->setEnabled(gotMultipleSelection);
-
-        edit_CycleActiveSelectionForward->setEnabled(gotMultipleSelection);
-        edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
-
-        toolbar_replicateCount->setEnabled(hasComponentAssembly);
-
-        view_fitView->setEnabled(modelActions);
-        view_fitAllViews->setEnabled(modelActions);
-
-
-        view_centerOn->setEnabled(gotSelection);
-
-        view_viewInNewWindow->setEnabled(gotSingleSelection);
-
-        view_viewConnections->setEnabled(gotSelection);
-
-
-
-        toolbar_setReadOnly->setEnabled(gotSelection);
-        toolbar_unsetReadOnly->setEnabled(gotSelection);
-
-
-        applicationToolbar->updateSpacers();
+        //applicationToolbar->updateSpacers();
     }
 }
 
@@ -360,13 +325,7 @@ void ActionController::actionFinished()
     selectionChanged(-1);
 }
 
-void ActionController::controllerReady(bool)
-{
-    //Do we need to do this?
-    //updateActions();
-}
-
-void ActionController::modelReady(bool)
+void ActionController::ModelControllerReady(bool)
 {
     updateActions();
 }
@@ -389,24 +348,20 @@ void ActionController::themeChanged()
 
 void ActionController::updateJenkinsActions()
 {
-    bool modelReady = viewController->isModelReady();
+    bool controller_ready = viewController->isControllerReady();
 
-    jenkins_importNodes->setEnabled(modelReady && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(modelReady && _jenkinsValidated);
-
-    model_generateModelWorkspace->setEnabled(modelReady && _gotJava);
-    model_validateModel->setEnabled(modelReady && _gotJava);
+    jenkins_importNodes->setEnabled(controller_ready && _jenkinsValidated);
+    jenkins_executeJob->setEnabled(controller_ready && _jenkinsValidated);
+    model_generateModelWorkspace->setEnabled(controller_ready && _gotJava);
+    model_validateModel->setEnabled(controller_ready && _gotJava);
 }
 
 void ActionController::updateUndoRedo()
 {
     if(viewController){
-        bool controllerReady = viewController->isControllerReady();
-        bool modelReady = viewController->isModelReady();
-
-        bool modelActions = controllerReady && modelReady;
-        edit_undo->setEnabled(modelActions && viewController->canUndo());
-        edit_redo->setEnabled(modelActions && viewController->canRedo());
+        bool controller_ready = viewController->isControllerReady();
+        edit_undo->setEnabled(controller_ready && viewController->canUndo());
+        edit_redo->setEnabled(controller_ready && viewController->canRedo());
     }
 }
 
@@ -452,42 +407,31 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
 
 void ActionController::updateActions()
 {
-    bool controllerReady = viewController->isControllerReady();
-    bool modelReady = viewController->isModelReady();
+    bool controller_ready = viewController->isControllerReady();
 
-    bool modelActions = controllerReady && modelReady;
+    //Always Enabled
+    file_newProject->setEnabled(true);
+    file_openProject->setEnabled(true);
+    file_closeProject->setEnabled(true);
 
-    file_newProject->setEnabled(controllerReady);
-    file_openProject->setEnabled(controllerReady);
-    file_closeProject->setEnabled(controllerReady);
-
-
-
-    file_importGraphML->setEnabled(modelActions);
+    file_importGraphML->setEnabled(controller_ready);
+    
     //file_importXME->setEnabled(modelActions);
     //file_importXMI->setEnabled(modelActions);
-    file_saveProject->setEnabled(modelActions);
-    file_saveAsProject->setEnabled(modelActions);
-    file_closeProject->setEnabled(modelActions);
+    file_saveProject->setEnabled(controller_ready);
+    file_saveAsProject->setEnabled(controller_ready);
+    file_closeProject->setEnabled(controller_ready);
 
-    edit_undo->setEnabled(modelActions);
-    edit_redo->setEnabled(modelActions);
+    model_selectModel->setEnabled(controller_ready);
+    model_validateModel->setEnabled(controller_ready);
+    model_generateModelWorkspace->setEnabled(controller_ready);
 
-    model_selectModel->setEnabled(modelActions);
-    model_validateModel->setEnabled(modelActions);
-    model_generateModelWorkspace->setEnabled(modelActions);
-    //model_executeLocalJob->setEnabled(modelActions);
+    edit_search->setEnabled(controller_ready);
+    view_fitView->setEnabled(controller_ready);
+    view_fitAllViews->setEnabled(controller_ready);
 
-    edit_search->setEnabled(modelActions);
-    view_fitView->setEnabled(modelActions);
-    view_fitAllViews->setEnabled(modelActions);
-
-
-    //jenkins_importNodes->setEnabled(modelActions);
-    //jenkins_executeJob->setEnabled(modelActions);
-    toolbar_contextToolbar->setEnabled(modelActions);
-
-    toolbar_addDDSQOSProfile->setEnabled(modelActions);
+    toolbar_contextToolbar->setEnabled(controller_ready);
+    toolbar_addDDSQOSProfile->setEnabled(controller_ready);
 
     //Update the selection changed with a special thing.
     selectionChanged(-1);
@@ -512,7 +456,7 @@ void ActionController::recentProjectsChanged()
 {
     if(!recentProjectMapper){
         recentProjectMapper = new QSignalMapper(this);
-        connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped),viewController, &ViewController::openExistingProject);
+        connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped), viewController, &ViewController::OpenExistingProject);
     }
 
     //Load in the defaults.
@@ -642,11 +586,7 @@ void ActionController::setupActions()
     //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
     //file_importXMI->setToolTip("Import XMI Project into current project.");
 
-    //file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
-    //file_importSnippet->setToolTip("Import Snippet into selection.");
-    //file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
-    //file_exportSnippet->setToolTip("Export Snippet of selection.");
-
+  
     edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
     edit_undo->setToolTip("Undo last model change.");
     edit_undo->setShortcutContext(Qt::ApplicationShortcut);
@@ -839,18 +779,9 @@ void ActionController::setupActions()
     toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
     toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
     toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
-    toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Icons", "lockClosed");
-    toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Icons", "lockOpened");
+   
 
 
-    readOnlyMapper = new QSignalMapper(this);
-
-
-    connect(toolbar_setReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-    connect(toolbar_unsetReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-
-    readOnlyMapper->setMapping(toolbar_setReadOnly, 1);
-    readOnlyMapper->setMapping(toolbar_unsetReadOnly, 0);
 
 
     toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Icons", "book");
@@ -889,8 +820,7 @@ void ActionController::setupMainMenu()
     //menu_file->addAction(file_importXME);
     //menu_file->addAction(file_importXMI);
     //menu_file->addSeparator();
-    //menu_file->addAction(file_importSnippet);
-    //menu_file->addAction(file_exportSnippet);
+
     menu_file->addSeparator();
     menu_file->addAction(file_exit);
 
@@ -1010,16 +940,13 @@ void ActionController::setupContextToolbar()
     //contextToolbar->addAction(toolbar_hardware);
     //contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
-    //contextToolbar->addAction(file_importSnippet->constructSubAction());
-    //contextToolbar->addAction(file_exportSnippet->constructSubAction());
     //contextToolbar->addSeperator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
     contextToolbar->addSeperator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
-    contextToolbar->addAction(toolbar_setReadOnly);
-    contextToolbar->addAction(toolbar_unsetReadOnly);
+    
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());

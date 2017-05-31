@@ -52,6 +52,7 @@ class Node : public Entity
     virtual VIEW_ASPECT getViewAspect() const;
     
 
+    int getDepth() const;
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();
 
@@ -131,8 +132,8 @@ class Node : public Entity
 
     void addImplementation(Node* impl);
     QList<Node*> getImplementations() const;
-    QList<Node*> getNestedDependants();
-    QList<Node*> getDependants() const;
+    QSet<Node*> getNestedDependants();
+    QSet<Node*> getDependants() const;
 
     void removeImplementation(Node* impl);
 

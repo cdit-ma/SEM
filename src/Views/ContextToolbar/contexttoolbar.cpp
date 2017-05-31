@@ -347,8 +347,6 @@ void ContextToolbar::setupActions()
     //mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
     //mainGroup->addSeperator();
-    //mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
-    //mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
     //mainGroup->addSeperator();
     definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
@@ -357,9 +355,6 @@ void ContextToolbar::setupActions()
     //hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
-
-    mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
     //connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));

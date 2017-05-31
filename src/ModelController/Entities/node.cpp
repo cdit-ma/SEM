@@ -64,6 +64,10 @@ QString Node::toGraphMLNoVisualData(int indentDepth)
 }
 
 
+int Node::getDepth() const{
+    return treeIndex.size();
+}
+
 QList<int> Node::getTreeIndex()
 {
     return treeIndex;
@@ -427,7 +431,6 @@ bool Node::addChild(Node *child)
         children << child;
         child->setParentNode(this, childCount++);
 
-
         if(gotData("uuid")){
             auto data = getData("uuid");
             auto key = data->getKey();
@@ -670,18 +673,25 @@ QList<QVariant> Node::getValidValues(QString key_name){
 
 bool Node::ancestorOf(Node *node)
 {
-    QList<int> otherTree = node->getTreeIndex();
+    auto b_tree_index = node->getTreeIndex();
 
+    //Not an ancestor of ourselves
     if(this == node){
         return true;
     }
 
-    if(this->treeIndex.size() > otherTree.size()){
+    //If either of tree's aren't setup, we can't be an ancestor
+    if(treeIndex.size() == 0 || b_tree_index.size() == 0){
         return false;
     }
 
-    for(int i=0; i<treeIndex.size(); i++){
-        if(treeIndex.at(i) != otherTree.at(i)){
+    //If this node is shallower than the comparison, has to be false
+    if(this->treeIndex.size() > b_tree_index.size()){
+        return false;
+    }
+
+    for(int i = 0; i < treeIndex.size(); i++){
+        if(treeIndex.at(i) != b_tree_index.at(i)){
             return false;
         }
     }
@@ -690,36 +700,52 @@ bool Node::ancestorOf(Node *node)
 
 bool Node::ancestorOf(Edge *edge)
 {
+    auto src = edge->getSource();
+    if(ancestorOf(src)){
+        return true;
+    }
+    auto dst = edge->getDestination();
+    if(ancestorOf(dst)){
+        return true;
+    }
+    return false;
+
     return getAllEdges().contains(edge);
 }
 
 bool Node::isAncestorOf(GraphML *item)
 {
-    Node* node = dynamic_cast<Node*>(item);
-    Edge* edge = dynamic_cast<Edge*>(item);
-    if(edge){
-        return ancestorOf(edge);
+    switch(item->getGraphMLKind()){
+    case GRAPHML_KIND::NODE:
+        return ancestorOf((Node*)item);
+    case GRAPHML_KIND::EDGE:
+        return ancestorOf((Edge*)item);
+    default:
+        return false;
     }
-    if(node){
-        return ancestorOf(node);
-    }
-    return false;
 }
 
 
-bool Node::isDescendantOf(Node *node)
-{
-    QList<int> otherTree = node->getTreeIndex();
+bool Node::isDescendantOf(Node *b)
+{   
+    auto b_tree_index = b->getTreeIndex();
 
-    if(this == node){
-        return false;
-    }
-    if(this->treeIndex.size() > otherTree.size()){
+    //Not an Ancestor of ourselves
+    if(this == b){
         return false;
     }
 
-    for(int i=0; i< otherTree.size(); i++){
-        if(treeIndex.at(i) != otherTree.at(i)){
+    //If either of tree's aren't setup, we can't be an ancestor
+    if(treeIndex.size() == 0 || b_tree_index.size() == 0){
+        return false;
+    }
+
+    if(this->treeIndex.size() < b_tree_index.size()){
+        return false;
+    }
+
+    for(int i = 0; i < b_tree_index.size(); i++){
+        if(treeIndex.at(i) != b_tree_index.at(i)){
             return false;
         }
     }
@@ -896,27 +922,41 @@ QList<Node *> Node::getImplementations() const
     return implementations;
 }
 
-QList<Node *> Node::getNestedDependants()
+QSet<Node *> Node::getNestedDependants()
 {
-    QList<Node*> nodes;
-    foreach(Node* child, getChildren(0)){
-        nodes += child->getDependants();
-    }
-    nodes += implementations;
-    nodes += instances;
+    QSet<Node*> nodes;
 
-    return nodes;
+    //Get all our instances/Impls, get there 
+    for(auto dependant : getDependants()){
+        nodes.insert(dependant);
+        for(auto d_child : dependant->getNestedDependants()){
+            nodes.insert(d_child);
+        }
+    }
+
+    for(auto child : getChildren(0)){
+        nodes.insert(child);
+        for(auto dependant : child->getNestedDependants()){
+            nodes.insert(dependant);
+        }
+    }
+
+    return nodes;//.toList();
 }
 
 /**
  * @brief Node::getDependants - Gets the Dependants.
  * @return
  */
-QList<Node *> Node::getDependants() const
+QSet<Node *> Node::getDependants() const
 {
-    QList<Node*> nodes;
-    nodes += implementations;
-    nodes += instances;
+    QSet<Node*> nodes;
+    for(auto i : implementations){
+        nodes.insert(i);
+    }
+    for(auto i : instances){
+        nodes.insert(i);
+    }
     return nodes;
 }
 

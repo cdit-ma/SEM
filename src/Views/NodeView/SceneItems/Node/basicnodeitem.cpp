@@ -154,6 +154,9 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    //if(getParent() && getParent()->isMoving()){
+    //    return;
+    //}
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 

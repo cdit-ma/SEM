@@ -1,6 +1,7 @@
 #include "exportidkey.h"
 #include "../data.h"
 #include "../node.h"
+#include "../../entityfactory.h"
 #include <QUuid>
 #include <QCryptographicHash>
 #include <QDebug>
@@ -40,5 +41,15 @@ QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
             uuid = QUuid::createUuid();
         }
     }
-    return uuid.toString();
+
+    auto uuid_str = uuid.toString();
+
+    auto entity_factory = getFactory();
+
+    if(entity_factory){
+        if(data->getParent()){
+            entity_factory->EntityUUIDChanged(data->getParent(), uuid_str);
+        }
+    }
+    return uuid_str;
 }

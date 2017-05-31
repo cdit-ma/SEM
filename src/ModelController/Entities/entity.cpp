@@ -4,7 +4,6 @@
 #include <QVariant>
 #include <QDebug>
 
-
 Entity::Entity(GRAPHML_KIND kind):GraphML(kind)
 {
 }
@@ -60,6 +59,8 @@ bool Entity::addData(Data *data)
         dataLookup.insert(key, data);
     }
 
+
+
     //Attach this.
     data->setParent(this);
     return true;
@@ -85,7 +86,10 @@ bool Entity::addData(QList<Data *> dataList)
 void Entity::_dataChanged(Data *data)
 {
     if(data){
-        emit dataChanged(getID(), data->getKeyName(), data->getValue());
+        auto value = data->getValue();
+        if(value.isValid()){
+            emit dataChanged(getID(), data->getKeyName(), value);
+        }
     }
 }
 
@@ -96,13 +100,6 @@ void Entity::_dataRemoved(Data *data)
         QString keyName = data->getKeyName();
         keyLookup.remove(keyName);
         emit dataRemoved(getID(), data->getKeyName());
-    }
-}
-
-void Entity::_dataProtected(Data *data)
-{
-    if(data){
-        emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
     }
 }
 
@@ -168,6 +165,13 @@ bool Entity::gotData(QString keyName) const
     }else{
         return getData(keyName);
     }
+}
+
+bool Entity::gotData(Key* key) const{
+    if(key){
+        return getData(key->getName());
+    }
+    return false;
 }
 
 bool Entity::isNode() const

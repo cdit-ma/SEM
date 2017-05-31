@@ -1,5 +1,7 @@
 #include "entityfactory.h"
 
+
+
 #include <QDebug>
 
 
@@ -10,6 +12,7 @@
 #include "Entities/Keys/labelkey.h"
 #include "Entities/Keys/indexkey.h"
 #include "Entities/Keys/exportidkey.h"
+#include "Entities/Keys/replicatecountkey.h"
 
 //Model Includes
 
@@ -119,19 +122,19 @@
 EntityFactory* EntityFactory::global_factory = 0;
 
 
-Node *EntityFactory::createTempNode(NODE_KIND nodeKind)
-{
-    return _createNode(nodeKind, false);
-}
-
-Node *EntityFactory::createNode(NODE_KIND nodeKind)
+Node *EntityFactory::CreateTempNode(NODE_KIND nodeKind)
 {
     return _createNode(nodeKind, true);
 }
 
-Edge *EntityFactory::createEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
+Node *EntityFactory::CreateNode(NODE_KIND nodeKind, int id)
 {
-    return _createEdge(source, destination, edge_kind, true);
+    return _createNode(nodeKind, false, id);
+}
+
+Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_kind, int id)
+{
+    return _createEdge(source, destination, edge_kind, id);
 }
 
 
@@ -374,7 +377,11 @@ EntityFactory::EntityFactory()
 
 EntityFactory::~EntityFactory()
 {
-    //TODO: Teardown objects
+    
+    //Delete the keys
+    for(auto key : key_lookup_.values()){
+        DestructEntity(key);
+    }
 }
 
 EntityFactory *EntityFactory::globalFactory()
@@ -436,13 +443,15 @@ QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data){
     QList<Data*> data_list;
     foreach(auto data_struct, data){
         auto key = GetKey(data_struct->key_name, data_struct->type);
-        auto data = new Data(key, data_struct->value, data_struct->is_protected);
-        data_list << data;
+        auto data = CreateData(key, data_struct->value, data_struct->is_protected);
+        if(data){
+            data_list << data;
+        }
     }
     return data_list;
 }
 
-Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind, bool attach_data)
+Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind, int id)
 {
     Edge* edge = 0;
 
@@ -450,23 +459,32 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
   
     if(edge_struct && edge_struct->constructor){
         edge = edge_struct->constructor(source, destination);
-        if(edge && attach_data){
+        if(edge){
             auto data = getDefaultData(edge_struct->default_data.values());
             edge->addData(data);
         }
     }
 
+    StoreEntity(edge, id);
+
     return edge;
 }
 
-Node *EntityFactory::_createNode(NODE_KIND kind, bool attach_data)
+void EntityFactory::StoreEntity(GraphML* graphml, int id){
+    if(graphml){
+        graphml->setFactory(this);
+        RegisterEntity(graphml, id);
+    }
+}
+
+Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, int id)
 {
     Node* node = 0;
     auto node_struct = getNodeStruct(kind);
 
     if(node_struct && node_struct->constructor){
         node = node_struct->constructor();
-        if(node && attach_data){
+        if(node && !is_temporary){
             auto data = getDefaultData(node_struct->default_data.values());
             node->addData(data);
         }
@@ -476,29 +494,23 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool attach_data)
         qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
     }
 
+    //Only store 
+    if(!is_temporary){
+        StoreEntity(node, id);
+    }
     return node;
 }
 
 
 Key *EntityFactory::GetKey(QString key_name)
 {
-    return keyLookup_.value(key_name, 0);
-}
-
-Key *EntityFactory::GetKey(int key_id)
-{
-    foreach(Key* key, keyLookup_.values()){
-        if(key->getID() == key_id){
-            return key;
-        }
-    }
-    return 0;
+    return key_lookup_.value(key_name, 0);
 }
 
 Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
 {
-    if(keyLookup_.contains(key_name)){
-        return keyLookup_[key_name];
+    if(key_lookup_.contains(key_name)){
+        return key_lookup_[key_name];
     }else{
         Key* key = 0;
         if(key_name == "label"){
@@ -507,25 +519,131 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new IndexKey();    
         }else if(key_name == "uuid"){
             key = new ExportIDKey();
+        }else if(key_name == "replicate_count"){
+            key = new ReplicateCountKey();    
         }else{
             key = new Key(key_name, type);
         }
-        keyLookup_[key_name] = key;
+        key_lookup_[key_name] = key;
+        StoreEntity(key);
         return key;
     }
 }
 
 QList<Key*> EntityFactory::GetKeys(){
-    return keyLookup_.values();
+    return key_lookup_.values();
 }
 
-void EntityFactory::destructNode(Node* node){
-    if(node){
-        delete node;
+void EntityFactory::DestructEntity(GraphML* graphml){
+    if(graphml){
+        //This will deregister
+        delete graphml;
     }
 }
-void EntityFactory::destructEdge(Edge* edge){
-    if(edge){
-        delete edge;
+
+
+GraphML* EntityFactory::getGraphML(int id){
+    return hash_.value(id, 0);
+}
+
+Entity* EntityFactory::GetEntity(int id){
+    auto item = getGraphML(id);
+    if(item){
+        switch(item->getGraphMLKind()){
+            case GRAPHML_KIND::NODE:
+            case GRAPHML_KIND::EDGE:
+                return (Entity*) item;
+            default:
+                break;
+        }
+    }
+    return 0;
+}
+
+Entity* EntityFactory::GetEntityByUUID(QString uuid){
+    auto id = uuid_lookup_.value(uuid, -1);
+    return GetEntity(id);
+}
+
+Node* EntityFactory::GetNode(int id){
+    auto item = getGraphML(id);
+    if(item && item->getGraphMLKind() == GRAPHML_KIND::NODE){
+        return (Node*) item;
+    }
+    return 0;
+}
+
+Edge* EntityFactory::GetEdge(int id){
+    auto item = getGraphML(id);
+    if(item && item->getGraphMLKind() == GRAPHML_KIND::EDGE){
+        return (Edge*) item;
+    }
+    return 0;
+}
+
+Data* EntityFactory::GetData(int id){
+    auto item = getGraphML(id);
+    if(item && item->getGraphMLKind() == GRAPHML_KIND::DATA){
+        return (Data*) item;
+    }
+    return 0;
+}
+
+Key* EntityFactory::GetKey(int id){
+    auto item = getGraphML(id);
+    if(item && item->getGraphMLKind() == GRAPHML_KIND::KEY){
+        return (Key*) item;
+    }
+    return 0;
+}
+
+Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
+    if(key){
+        //Check if the key is in our list 
+        auto data = new Data(key, value, is_protected);
+        StoreEntity(data);
+        return data;
+    }
+    return 0;
+}
+void EntityFactory::RegisterEntity(GraphML* graphml, int id){
+    if(graphml){
+        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+        if(id == -1 || hash_.contains(id)){
+            id = ++id_counter_;
+        }
+
+        //Get the id, post set
+        id = graphml->setID(id);
+
+        if(id > -1){
+            if(!hash_.contains(id)){
+                //qCritical() << "HASH: " << id << graphml->toString();
+                hash_.insert(id, graphml);
+            }else{
+                qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
+            }
+        }
+    }
+}
+
+void EntityFactory::DeregisterEntity(GraphML* graphml){
+    if(graphml){
+        auto id = graphml->getID();
+        hash_.remove(id);
+    }
+}
+
+
+void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
+    if(entity){
+        //Check for the old UUID
+        auto old_uuid = entity->getDataValue("uuid").toString();
+        uuid_lookup_.remove(old_uuid);
+
+        if(!uuid.isEmpty()){
+            uuid_lookup_.insert(uuid, entity->getID());
+            qCritical() << "UUID[" << uuid_lookup_.size() << "]: " << uuid << " -> " << entity->toString();
+        }
     }
 }

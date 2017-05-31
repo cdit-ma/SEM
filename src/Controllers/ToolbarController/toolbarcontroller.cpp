@@ -57,7 +57,7 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     connect(selectionController, &SelectionController::selectionChanged, this, &ToolbarController::selectionChanged);
 
     //Connect to the view controller
-    connect(viewController, &ViewController::vc_actionFinished, this, &ToolbarController::actionFinished);
+    connect(viewController, &ViewController::vc_ActionFinished, this, &ToolbarController::actionFinished);
     connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolbarController::viewItem_Constructed);
     connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolbarController::viewItem_Destructed);
 
