@@ -79,7 +79,7 @@ void NotificationToolbar::notificationReceived()
 
 /**
  * @brief NotificationToolbar::notificationsSeen
- * This slot is called when either the showMostRecentActionn is triggered or when the dialog is opened.
+ * This slot is called when either the showMostRecentAction is triggered, the dialog is opened or the most recent notification is deleted.
  * It removes the highlight from the showMostRecentAction.
  */
 void NotificationToolbar::notificationsSeen()
@@ -139,6 +139,7 @@ void NotificationToolbar::updateIconFrame(int)
  */
 void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, int count)
 {
+    //if ()
     QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
         countLabel->setText(QString::number(count));

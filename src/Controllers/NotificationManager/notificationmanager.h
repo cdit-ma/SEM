@@ -59,6 +59,8 @@ signals:
     void notificationItemAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
 
+    //void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
+
     void lastNotificationDeleted();
     void req_lastNotificationID();
 
