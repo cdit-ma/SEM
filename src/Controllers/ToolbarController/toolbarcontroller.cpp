@@ -51,9 +51,7 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     setupToolActions();
     setupEdgeActions();
 
-
-    connect(Theme::theme(), SIGNAL(refresh_Icons()), this, SLOT(themeChanged()));
-
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ToolbarController::themeChanged);
     connect(selectionController, &SelectionController::selectionChanged, this, &ToolbarController::selectionChanged);
 
     //Connect to the view controller

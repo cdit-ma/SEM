@@ -52,9 +52,6 @@ public:
     QColor getPressedColor();
     QString getPressedColorHex();
 
-    QColor getDeployColor();
-    QString getDeployColorHex();
-
     QColor getSelectedItemBorderColor();
     QString getSelectedItemBorderColorHex();
 
@@ -102,11 +99,10 @@ public:
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
     void applyTheme();
-    void forceIconReload();
-    bool isValid();
+    bool isValid() const;
 
-    bool gotImage(IconPair icon) const;
-    bool gotImage(QString, QString) const;
+    bool gotImage(IconPair icon);
+    bool gotImage(QString, QString);
 
     QString getBorderWidth();
     QString getCornerRadius();
@@ -144,17 +140,13 @@ public:
 
 signals:
     void theme_Changed();
-    void refresh_Icons();
     void changeSetting(SETTING_KEY setting, QVariant value);
-    void preloadFinished();
-    void _preload();
 public slots:
-    void preloadImages();
     void settingChanged(SETTING_KEY setting, QVariant value);
-    void clearIconMap();
-
 private:
-    void calculateImageColor(QString resourceName);
+    void clearIconMap();
+    void preloadImages();
+    QColor calculateImageColor(QImage image);
     QString getResourceName(QString prefix, QString alias) const;
     QString getResourceName(IconPair icon) const;
     void resetTheme(VIEW_THEME themePreset);
@@ -163,7 +155,6 @@ private:
     void updateValid();
 
     QImage getImage(QString resource_name);
-    QPixmap setPixmap(QString resource_name, QPixmap pixmap);
     QColor getTintColor(QString resource_name);
     QSize getOriginalSize(QString resource_name);
 
@@ -171,15 +162,16 @@ private:
 
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
-    QHash<QString, bool> imageExistsHash;
 
+
+    QHash<QString, QImage> imageLookup;
     QHash<QString, QPixmap> pixmapLookup;
-    QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;
+
+    QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QColor> pixmapTintLookup;
 
     QHash<QString, QPair<IconPair, IconPair> > iconToggledLookup;
-    QHash<QString, QImage> imageLookup;
     QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
@@ -187,8 +179,6 @@ private:
     QHash<COLOR_ROLE, QColor> textColor;
     QHash<COLOR_ROLE, QColor> menuIconColor;
 
-
-    QColor deployColor;
     QColor highlightColor;
     QColor backgroundColor;
     QColor altBackgroundColor;
@@ -198,21 +188,13 @@ private:
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
 
-    QReadWriteLock lock;
+    QReadWriteLock lock_;
 
-    QString slash;
-    QString underscore;
 
-    bool themeChanged;
-
-    int readCount;
-    bool valid;
-
-    bool preloadedImages;
-    bool terminating;
+    bool themeChanged = false;
+    bool valid = false;
 
     QFuture<void> preloadThread;
-
 public:
     static QColor blendColors(const QColor color1, const QColor color2, qreal blendRatio=0.5);
     static QString QColorToHex(const QColor color);

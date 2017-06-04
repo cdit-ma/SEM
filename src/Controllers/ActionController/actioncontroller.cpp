@@ -29,8 +29,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
 
     connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(Theme::theme(), SIGNAL(refresh_Icons()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ActionController::themeChanged);
+
 
     themeChanged();
     connectViewController(vc);

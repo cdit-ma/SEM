@@ -192,8 +192,7 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
         if(!node_kind_lookup.contains(kind_string)){
             node_kind_lookup.insert(kind_string, kind);
         }
-        
-        qCritical() << "EntityFactory: Registered Node #" << node_kind_lookup.size() << kind_string;
+        //qCritical() << "EntityFactory: Registered Node #" << node_kind_lookup.size() << kind_string;
     }
 }
 
@@ -208,7 +207,7 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
         if(!edge_kind_lookup.contains(kind_string)){
             edge_kind_lookup.insert(kind_string, kind);
         }
-        qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
+        //qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
     }
 }
 
@@ -599,9 +598,9 @@ Key* EntityFactory::GetKey(int id){
 
 Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
     if(key){
-        //Check if the key is in our list 
+        //Don't keep ID's for data
         auto data = new Data(key, value, is_protected);
-        StoreEntity(data);
+        //StoreEntity(data);
         return data;
     }
     return 0;
@@ -643,7 +642,7 @@ void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
 
         if(!uuid.isEmpty()){
             uuid_lookup_.insert(uuid, entity->getID());
-            qCritical() << "UUID[" << uuid_lookup_.size() << "]: " << uuid << " -> " << entity->toString();
+            //qCritical() << "UUID[" << uuid_lookup_.size() << "]: " << uuid << " -> " << entity->toString();
         }
     }
 }
