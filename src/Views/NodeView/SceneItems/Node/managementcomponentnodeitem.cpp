@@ -38,7 +38,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
 
     painter->setClipRect(option->exposedRect);
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->save();
         painter->setPen(Qt::NoPen);
 

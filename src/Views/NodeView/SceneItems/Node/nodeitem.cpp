@@ -967,7 +967,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->restore();
     }
 
-    if(state > RS_MINIMAL){
+    if(state > RENDER_STATE::MINIMAL){
         if(gotVisualButton()){
             if(isSelected() && gotVisualEdgeKind()){
                 paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "connect");
@@ -995,7 +995,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->save();
 
         //Paint the selection path.
@@ -1036,15 +1036,20 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     EntityItem::paint(painter, option, widget);
-    if(gotPrimaryTextKey()){
-        renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
+    {
+        painter->save();
+        painter->setPen(getDefaultPen());
+        if(gotPrimaryTextKey()){
+            renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
+        }
+
+        if(gotSecondaryTextKey()){
+            renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
+        }
+        painter->restore();
     }
 
-    if(gotSecondaryTextKey()){
-        renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
-    }
-
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         if(hoveredConnect){
             painter->save();
 

@@ -162,7 +162,7 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
     painter->setClipRect(option->exposedRect);
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->setPen(Qt::NoPen);
 
         //Paint the Body

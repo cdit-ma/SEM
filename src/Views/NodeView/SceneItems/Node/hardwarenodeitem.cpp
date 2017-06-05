@@ -113,7 +113,7 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     painter->setClipRect(option->exposedRect);
     //Set Clip Rectangle
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->setPen(Qt::NoPen);
         painter->setBrush(getBodyColor());
 
