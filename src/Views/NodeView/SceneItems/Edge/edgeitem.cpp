@@ -155,7 +155,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     QPen pen = getPen();
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
 
@@ -171,7 +171,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawPath(dstArrow);
     }
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         painter->setBrush(getBodyColor());
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
@@ -196,12 +196,12 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
     //Draw the icons.
-    if(state == RS_BLOCK){
+    if(state == RENDER_STATE::BLOCK){
         painter->setClipPath(getElementPath(ER_SELECTION));
     }
 
     paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
-    if(state > RS_BLOCK && isSelected()){
+    if(state > RENDER_STATE::BLOCK && isSelected()){
         paintPixmap(painter, lod, ER_MAIN_ICON, src->getIconPath());
         paintPixmap(painter, lod, ER_SECONDARY_ICON, dst->getIconPath());
     }
