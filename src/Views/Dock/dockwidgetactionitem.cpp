@@ -266,7 +266,7 @@ void DockWidgetActionItem::updateStyleSheet()
         borderStr = "0px";
     }
 
-    /*
+    ///*
     setStyleSheet("QToolButton {"
                   "background:" + backgroundColorHex + ";"
                   //"border:" + borderStr + ";"
@@ -276,8 +276,8 @@ void DockWidgetActionItem::updateStyleSheet()
                   "background: rgba(0,0,0,0);"
                   "border: 3px solid " + theme->getHighlightColorHex() + ";"
                   "}");
-    */
+    //*/
 
-    setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
+    //setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
     textLabel->setStyleSheet("color:" + colorHex + ";");
 }

@@ -20,8 +20,10 @@ Theme::Theme() : QObject(0)
     setupToggledIcons();
     updateValid();
 
+
     //Preload images on a background thread.
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
+    //preloadImages();
 }
 
 Theme::~Theme()
@@ -1060,6 +1062,7 @@ void Theme::preloadImages()
     auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "Preloaded #" << load_count << " Images in: " <<  time_finish - time_start << "MS";
     clearIconMap();
+    emit theme_Changed();
 }
 
 void Theme::settingChanged(SETTING_KEY setting, QVariant value)
@@ -1170,7 +1173,7 @@ QColor Theme::calculateImageColor(QImage image)
 
         QHash<QRgb, int> colorCount;
         int max = 0;
-        QRgb frequentColor;
+        QRgb frequentColor = QColor(Qt::black).rgb();
 
         int f = 25;
 
@@ -1334,6 +1337,7 @@ QImage Theme::getImage(QString resource_name)
     }
     //Else load the image
     QImage image(":/" % resource_name);
+    //qCritical() << resource_name;
     auto color = calculateImageColor(image);
 
     QWriteLocker lock(&lock_);
