@@ -139,8 +139,6 @@ bool DockWidgetActionItem::isHighlighted()
 void DockWidgetActionItem::actionChanged()
 {
     if (dockAction) {
-
-
         QPixmap iconPixmap = dockAction->icon().pixmap(ICON_SIZE);
         if (!iconPixmap.isNull()) {
             iconLabel->setPixmap(iconPixmap);
@@ -161,6 +159,10 @@ void DockWidgetActionItem::actionChanged()
  */
 void DockWidgetActionItem::themeChanged()
 {
+    /*
+    setStyleSheet("QToolButton:hover {"
+                  "border: 1px solid " + theme->getHighlightColorHex() + ";"
+                  "}");*/
     arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(16,16), theme->getTextColor()));
     updateStyleSheet();
 }
@@ -182,11 +184,12 @@ void DockWidgetActionItem::updateDisplayedText(QString text)
  */
 void DockWidgetActionItem::enterEvent(QEvent* event)
 {
-
+    /*
     if (theme) {
         textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
         arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH, ARROW_WIDTH), theme->getTextColor(theme->CR_SELECTED)));
     }
+    */
     emit hoverEnter(dockActionID);
     QToolButton::enterEvent(event);
 }
@@ -198,10 +201,12 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
  */
 void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
+    /*
     if (theme) {
         textLabel->setStyleSheet("color:" + colorHex + ";");
         arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH,ARROW_WIDTH), theme->getTextColor()));
     }
+    */
     emit hoverLeave(dockActionID);
     QToolButton::leaveEvent(event);
 }
@@ -260,7 +265,19 @@ void DockWidgetActionItem::updateStyleSheet()
         colorHex = theme->getTextColorHex();
         borderStr = "0px";
     }
+
+    /*
+    setStyleSheet("QToolButton {"
+                  "background:" + backgroundColorHex + ";"
+                  //"border:" + borderStr + ";"
+                  "border: 0px;"
+                  "}"
+                  "QToolButton:hover {"
+                  "background: rgba(0,0,0,0);"
+                  "border: 3px solid " + theme->getHighlightColorHex() + ";"
+                  "}");
+    */
+
     setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
     textLabel->setStyleSheet("color:" + colorHex + ";");
-
 }
