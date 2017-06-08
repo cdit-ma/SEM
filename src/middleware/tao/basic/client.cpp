@@ -2,8 +2,8 @@
 #include "messageS.h"
 
 int main(int argc, char** argv){
-
-    ::CORBA::Object_var obj = this->orb_->resolve_initial_references ("RootPOA");
+    auto orb = CORBA::ORB_init (argc, argv);
+    ::CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
     ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow (obj.in ());
 
     // Activate the RootPOA's manager.
