@@ -5,7 +5,8 @@ int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
 
     // Convert the string to an object.
-    ::CORBA::Object_var obj = orb->string_to_object (client);
+    
+    ::CORBA::Object_var obj = orb->string_to_object ("corbaloc:iiop:iiop://192.168.111.90:50001/LoggingServer");
 
     if (::CORBA::is_nil (obj.in ()))
       ACE_ERROR_RETURN ((LM_ERROR,
