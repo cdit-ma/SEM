@@ -60,7 +60,7 @@ int main(int argc, char ** argv){
     lifespan->destroy ();
 
         
-    Hello hello_impl;
+    Hello* hello_impl = 0;
     
 
     // Get the Object ID.
@@ -69,7 +69,7 @@ int main(int argc, char ** argv){
 
     // Activate the Stock_Factory object.
     child_poa->activate_object_with_id (oid.in (),
-                                        &hello_impl);
+                                        hello_impl);
 
     // Get the object reference.
     CORBA::Object_var stock_factory =
