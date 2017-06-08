@@ -59,8 +59,8 @@ int main(int argc, char ** argv){
     child_poa->run ();
 
     ACE_DEBUG ((LM_DEBUG, "(%P|%t) server - event loop finished\n"));
-    root_poa->destroy (1, 1);
-    child_poa->destroy ();
+    root_poa_->destroy (1, 1);
+    //child_poa->destroy ();
 
     return 0;
 
