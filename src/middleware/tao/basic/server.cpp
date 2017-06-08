@@ -75,6 +75,8 @@ int main(int argc, char ** argv){
 
     child_poa->activate_object(hello_impl);
 
+    std::cout << "Acrtivated Impl:" << std::endl;
+
      // Locate the IORTable for the application.
     ::CORBA::Object_var temp = orb->resolve_initial_references ("IORTable");
     ::IORTable::Table_var ior_table = IORTable::Table::_narrow (temp.in ());
@@ -84,8 +86,10 @@ int main(int argc, char ** argv){
                         ACE_TEXT ("%T (%t) - %M - failed to resolve IOR table\n")),
                         1);
 
+    
+    std::cout << "Acrtivated Impl:" << std::endl;
     // Get the IOR string for the object reference.
-    ::CORBA::String_var str  = orb->object_to_string (obj);
+    ::CORBA::String_var str  = orb->object_to_string (hello_impl.in());
 
 
     ior_table->bind ("LoggingServer", str.in ());
