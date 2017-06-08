@@ -21,7 +21,7 @@ int main(int argc, char** argv){
                        -1);
 
     std::cout << "Connecting to server" << std::endl;
-    auto sender = Test::Hello::_narrow(obj.in());
+    auto sender = Test::Hello::_narrow(obj2.in());
 
     Test::Hello_var sender_var = sender;
 

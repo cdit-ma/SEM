@@ -54,7 +54,6 @@ int main(int argc, char ** argv){
 
     auto mgr = child_poa->the_POAManager ();
     mgr->activate ();
-
         
     Hello *hello_impl = 0;
     ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
@@ -68,7 +67,7 @@ int main(int argc, char ** argv){
     // Stringify all the object referencs.
     //CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
     // Print them out !
-//    std::cout << ior.in () << std::endl;
+    std::cout << "RUNNING ORB:" << std::endl;
 
     orb-> run ();
 
