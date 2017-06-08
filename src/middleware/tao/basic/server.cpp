@@ -65,7 +65,7 @@ int main(int argc, char ** argv){
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
-      root_poa->create_POA ("LoggingServerPOA",
+      root_poa->create_POA ("LoggingServer2POA",
                                    poa_manager.in (), /*::PortableServer::POAManager::_nil (),*/
                                    policies);
 
