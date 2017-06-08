@@ -51,7 +51,7 @@ int main(int argc, char ** argv){
 
     // Create the childPOA under the RootPOA.
     PortableServer::POA_var child_poa =
-      root_poa->create_POA ("asd",
+      root_poa->create_POA ("LoggingServerPOA",
                             poa_manager.in (),
                             policies);
 
@@ -65,13 +65,15 @@ int main(int argc, char ** argv){
     
 
     // Get the Object ID.
-    PortableServer::ObjectId_var oid =
-      PortableServer::string_to_ObjectId ("asd");
+    //PortableServer::ObjectId_var oid =
+    //  PortableServer::string_to_ObjectId ("asd");
 
 
     // Activate the Stock_Factory object.
-    child_poa->activate_object_with_id (oid.in (),
-                                        hello_impl);
+    //child_poa->activate_object_with_id (oid.in (),
+    //                                    hello_impl);
+
+    child_poa->activate_object(oid.in (), hello_impl);
 
     // Get the object reference.
     CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
