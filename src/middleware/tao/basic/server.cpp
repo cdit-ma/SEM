@@ -32,6 +32,7 @@ int main(int argc, char ** argv){
 
     poa_manager->activate ();
 
+    /*
      // Construct the policy list for the LoggingServerPOA.
     CORBA::PolicyList policies (6);
     policies.length (6);
@@ -39,8 +40,10 @@ int main(int argc, char ** argv){
     policies[1] = root_poa->create_servant_retention_policy (PortableServer::RETAIN);
     policies[2] = root_poa->create_id_assignment_policy (PortableServer::SYSTEM_ID);
     policies[3] = root_poa->create_id_uniqueness_policy (PortableServer::UNIQUE_ID);
-    policies[4] = root_poa->create_lifespan_policy (PortableServer::TRANSIENT);
+    policies[4] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
     policies[5] = root_poa->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
+
+    USER_ID
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
@@ -51,12 +54,31 @@ int main(int argc, char ** argv){
      // Destroy the POA policies
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
       policies[i]->destroy ();
+      */
+
+      
+     // Construct the policy list for the LoggingServerPOA.
+    CORBA::PolicyList policies (2);
+    policies.length (2);
+    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+
+    // Create the child POA for the test logger factory servants.
+    ::PortableServer::POA_var child_poa =
+      root_poa->create_POA ("LoggingServerPOA",
+                                   ::PortableServer::POAManager::_nil (),
+                                   policies);
+
+     // Destroy the POA policies
+    for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
+      policies[i]->destroy ();
+      
 
     auto mgr = child_poa->the_POAManager ();
     mgr->activate ();
         
     Hello *hello_impl = 0;
-    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
+    ACE_NEW_RETURN (hello_impl, Hello (child_poa.in ()), 1);
 
     child_poa->activate_object(hello_impl);
 
