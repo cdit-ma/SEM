@@ -78,7 +78,7 @@ int main(int argc, char ** argv){
     mgr->activate ();
         
     Hello *hello_impl = 0;
-    ACE_NEW_RETURN (hello_impl, Hello (child_poa.in ()), 1);
+    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
 
     child_poa->activate_object(hello_impl);
 
