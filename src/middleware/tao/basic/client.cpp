@@ -12,7 +12,7 @@ int main(int argc, char** argv){
 
 
     Test::Hello *sender = 0;
-    ACE_NEW_RETURN (sender, Hello (root_poa.in ()), 1);
+    ACE_NEW_RETURN (sender, Test::Hello (root_poa.in ()), 1);
     Test::Hello_var sender_var = sender;
 
     if(CORBA::is_nil (sender_var.in())){
