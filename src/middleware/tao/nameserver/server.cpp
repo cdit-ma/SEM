@@ -73,7 +73,7 @@ int main(int argc, char ** argv){
     //child_poa->activate_object_with_id (oid.in (),
     //                                    hello_impl);
 
-    child_poa->activate_object(oid.in (), hello_impl);
+    child_poa->activate_object(hello_impl);
 
     // Get the object reference.
     CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
