@@ -4,7 +4,7 @@
 #include "messageS.h"
 
 
-char* get_ior(std::string ip, int port, std::string poa_name, std::string obj_name){
+const char* get_ior(std::string ip, int port, std::string poa_name, std::string obj_name){
     //corbaloc:iiop:192.168.111.90:12345/%14%01%0f%00NUP%00%00%00%1b%00%00%00%00%01%00%00%00RootPOA%00WHATISTHIS%00%00%00%00%00%01%00%00%00HelloSender
     std::stringstream ior;
     ior << "corbaloc:iiop:";
