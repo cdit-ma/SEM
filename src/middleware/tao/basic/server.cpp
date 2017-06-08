@@ -89,7 +89,7 @@ int main(int argc, char ** argv){
     
     std::cout << "Acrtivated Impl:" << std::endl;
     // Get the IOR string for the object reference.
-    ::CORBA::String_var str  = orb->object_to_string (id);
+    ::CORBA::String_var str  = orb->object_to_string (hello_impl->in());
 
 
     ior_table->bind ("LoggingServer", str.in ());
