@@ -25,10 +25,10 @@ int main(int argc, char ** argv){
     PortableServer::POA_var root_poa = PortableServer::POA::_narrow (obj.in());
 
     // Construct the policy list for the LoggingServerPOA.
-    CORBA::PolicyList policies (1);
-    policies.length (1);
-    //policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
-    policies[0] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+    CORBA::PolicyList policies (2);
+    policies.length (2);
+    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
      // Get the POAManager of the RootPOA.
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
@@ -43,8 +43,11 @@ int main(int argc, char ** argv){
     }
       
     auto hello_impl = new Hello(orb);
+
+    PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId ("Stock_Factory");
     // Activate object
-    PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
+    //PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
+    PortableServer::ObjectId_var myObjID = child_poa->activate_object_with_id(oid.in(), hello_impl);
     // Get a CORBA reference with the POA through the servant
     CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
     // The reference is converted to a character string
