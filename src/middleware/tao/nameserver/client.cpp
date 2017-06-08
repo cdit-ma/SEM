@@ -16,7 +16,7 @@ char* get_ior(std::string ip, int port, std::string poa_name, std::string obj_na
     ior << poa_name;
     ior << "%00%00%00%00%00%01%00%00%00";
     ior << obj_name;
-    return sstream.str().c_str();
+    return ior.str().c_str();
 }
 
 int main(int argc, char** argv){
