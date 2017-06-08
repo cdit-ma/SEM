@@ -4,16 +4,14 @@
 int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
 
-    // Convert the string to an object.
+    ::CORBA::Object_var obj = this->orb_->resolve_initial_references ("RootPOA");
+    ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow (obj.in ());
+
+    // Activate the RootPOA's manager.
+    ::PortableServer::POAManager_var mgr = root_poa->the_POAManager ();
+    mgr->activate ();
+
     
-    ::CORBA::Object_var obj = orb->string_to_object ("corbaloc:iiop://192.168.111.90:50001/LoggingServer");
-
-    if (::CORBA::is_nil (obj.in ()))
-      ACE_ERROR_RETURN ((LM_ERROR,
-                         ACE_TEXT ("%T (%t) - %M - failed to convert string to object\n")),
-                         -1);
-
-                         /*
     std::cout << "Resolving LoggingServer" << std::endl;
     ::CORBA::Object_var obj = orb->resolve_initial_references ("LoggingServer");
     std::cout << "Resolved LoggingServer" << std::endl;
@@ -22,14 +20,6 @@ int main(int argc, char** argv){
                        ACE_TEXT ("%T (%t) - %M - failed to resolve LoggingServer\n")),
                        -1);
 
-    // Convert the string to an object.
-    ::CORBA::Object_var obj = this->orb_->string_to_object (client);
-
-    if (::CORBA::is_nil (obj.in ()))
-      ACE_ERROR_RETURN ((LM_ERROR,
-                         ACE_TEXT ("%T (%t) - %M - failed to convert string to object\n")),
-                         -1);
-*/
     std::cout << "Connecting to server" << std::endl;
     auto sender = Test::Hello::_narrow(obj.in());
 
@@ -45,7 +35,6 @@ int main(int argc, char** argv){
     message.time = argc;
 
     while(true){
-        std::cout << "SendINg message" << std::endl;
         sender->send(message);
     }
 
