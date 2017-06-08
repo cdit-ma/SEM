@@ -4,8 +4,8 @@ cmake_minimum_required (VERSION 2.6)
 set(CMAKE_CXX_STANDARD 11)
 
 set(PROJ_NAME tao_test)
-set(SEND_NAME snd)
-set(RECV_NAME rcv)
+set(SEND_NAME snd2)
+set(RECV_NAME rcv2)
 
 project (${PROJ_NAME})
 
