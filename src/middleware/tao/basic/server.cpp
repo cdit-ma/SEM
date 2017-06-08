@@ -16,7 +16,7 @@ void Hello::send(const Test::Message& message){
 
 int main(int argc, char ** argv){
     //Initialize the orb
-    auto orb = CORBA::ORB_init (argc, argv);
+    CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
 
     // Get a reference to the RootPOA.
     CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
