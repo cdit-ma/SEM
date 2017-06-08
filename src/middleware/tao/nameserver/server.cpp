@@ -22,8 +22,7 @@ int main(int argc, char ** argv){
     CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
 
     // Get the POA_var object from Object_var.
-    PortableServer::POA_var root_poa =
-      PortableServer::POA::_narrow (obj.in ());
+    PortableServer::POA_var root_poa = PortableServer::POA::_narrow (obj.in ());
 
     // Get the POAManager of the RootPOA.
     PortableServer::POAManager_var poa_manager =
@@ -51,7 +50,7 @@ int main(int argc, char ** argv){
 
     // Create the childPOA under the RootPOA.
     PortableServer::POA_var child_poa =
-      root_poa->create_POA ("asd",
+      root_poa->create_POA ("LoggingServerPOA",
                             poa_manager.in (),
                             policies);
 

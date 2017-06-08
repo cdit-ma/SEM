@@ -31,54 +31,43 @@ int main(int argc, char ** argv){
 
     poa_manager->activate ();
 
-    // Create a USER_ID IdAssignmentpolicy object.
-    PortableServer::IdAssignmentPolicy_var idassignment =
-      root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+     // Construct the policy list for the LoggingServerPOA.
+    CORBA::PolicyList policies (6);
+    policies.length (6);
+    policies[0] = this->root_poa_->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
+    policies[1] = this->root_poa_->create_servant_retention_policy (PortableServer::RETAIN);
+    policies[2] = this->root_poa_->create_id_assignment_policy (PortableServer::SYSTEM_ID);
+    policies[3] = this->root_poa_->create_id_uniqueness_policy (PortableServer::UNIQUE_ID);
+    policies[4] = this->root_poa_->create_lifespan_policy (PortableServer::TRANSIENT);
+    policies[5] = this->root_poa_->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
 
-    // Create a PERSISTENT LifespanPolicy object.
-    PortableServer::LifespanPolicy_var lifespan =
-      root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+    // Create the child POA for the test logger factory servants.
+    ::PortableServer::POA_var child_poa =
+      this->root_poa_->create_POA ("LoggingServerPOA",
+                                   ::PortableServer::POAManager::_nil (),
+                                   policies);
 
-    // Policies for the childPOA to be created.
-    CORBA::PolicyList policies;
-    policies.length (2);
+     // Destroy the POA policies
+    for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
+      policies[i]->destroy ();
 
-    policies[0] =
-      PortableServer::IdAssignmentPolicy::_duplicate (idassignment.in ());
-
-    policies[1] =
-      PortableServer::LifespanPolicy::_duplicate (lifespan.in ());
-
-    // Create the childPOA under the RootPOA.
-    PortableServer::POA_var child_poa =
-      root_poa->create_POA ("asd",
-                            poa_manager.in (),
-                            policies);
-
-    // Destroy policy objects.
-    idassignment->destroy ();
-    lifespan->destroy ();
+    mgr = child_poa->the_POAManager ();
+    mgr->activate ();
 
         
     Hello *hello_impl = 0;
     ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
-    
 
-    // Get the Object ID.
-    PortableServer::ObjectId_var oid =
-      PortableServer::string_to_ObjectId ("asd");
+    child_poa->activate_object(hello_impl);
 
-
-    // Activate the Stock_Factory object.
-    child_poa->activate_object_with_id (oid.in (), hello_impl);
 
     // Get the object reference.
-    CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
+    //CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
 
     // Stringify all the object referencs.
-    CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
+    //CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
     // Print them out !
-    std::cout << ior.in () << std::endl;
+//    std::cout << ior.in () << std::endl;
 
     orb-> run ();
 
