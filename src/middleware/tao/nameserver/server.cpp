@@ -60,7 +60,8 @@ int main(int argc, char ** argv){
     lifespan->destroy ();
 
         
-    Hello* hello_impl = 0;
+    Hello *hello_impl = 0;
+    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
     
 
     // Get the Object ID.
@@ -69,7 +70,7 @@ int main(int argc, char ** argv){
 
     // Activate the Stock_Factory object.
     child_poa->activate_object_with_id (oid.in (),
-                                        hello_impl);
+                                        *hello_impl);
 
     // Get the object reference.
     CORBA::Object_var stock_factory =
@@ -78,7 +79,7 @@ int main(int argc, char ** argv){
     // Stringify all the object referencs.
     CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
     // Print them out !
-    cout << ior.in () << endl;
+    std::cout << ior.in () << std::endl;
 
     orb-> run ();
 
