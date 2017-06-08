@@ -13,15 +13,15 @@ int main(int argc, char** argv){
 
 
     std::cout << "Resolving LoggingServer" << std::endl;
-    ::CORBA::Object_var obj = orb->resolve_initial_references ("LoggingServer");
+    ::CORBA::Object_var obj2 = orb->resolve_initial_references ("LoggingServer");
     std::cout << "Resolved LoggingServer" << std::endl;
-  if (::CORBA::is_nil (obj.in ()))
+  if (::CORBA::is_nil (obj2.in ()))
     ACE_ERROR_RETURN ((LM_ERROR,
                        ACE_TEXT ("%T (%t) - %M - failed to resolve LoggingServer\n")),
                        -1);
 
     std::cout << "Connecting to server" << std::endl;
-    auto sender = Test::Hello::_narrow(obj.in());
+    auto sender = Test::Hello::_narrow(obj2.in());
 
     Test::Hello_var sender_var = sender;
 
