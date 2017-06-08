@@ -10,8 +10,9 @@ int main(int argc, char** argv){
     ::PortableServer::POAManager_var mgr = root_poa->the_POAManager ();
     mgr->activate ();
 
-    auto sender = Test::Hello::_narrow(root_poa.in());
 
+    Hello *sender = 0;
+    ACE_NEW_RETURN (sender, Hello (root_poa.in ()), 1);
     Test::Hello_var sender_var = sender;
 
     if(CORBA::is_nil (sender_var.in())){
