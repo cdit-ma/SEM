@@ -68,8 +68,6 @@ int main(int argc, char ** argv){
     PortableServer::ObjectId_var oid =
       PortableServer::string_to_ObjectId ("HelloSender");
 
-      std::cout << oid.in() << std::endl;
-      std::cout << orb->object_to_string(oid.in()) << std::endl;
 
     // Activate the Stock_Factory object.
     child_poa->activate_object_with_id (oid.in (),
