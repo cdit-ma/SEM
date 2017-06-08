@@ -42,7 +42,7 @@ int main(int argc, char ** argv){
         policies[i]->destroy ();
     }
       
-    auto hello_impl = new Hello(orb);
+    Hello* hello_impl = new Hello(orb);
 
     PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId ("Stock_Factory");
     // Activate object
