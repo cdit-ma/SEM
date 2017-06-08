@@ -44,7 +44,7 @@ int main(int argc, char ** argv){
     policies[5] = root_poa->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
 
   
-
+/*
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
       root_poa->create_POA ("LoggingServerPOA",
@@ -55,7 +55,7 @@ int main(int argc, char ** argv){
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
       policies[i]->destroy ();
       
-
+*/
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
       root_poa->create_POA ("LoggingServerPOA",
