@@ -15,44 +15,74 @@ void Hello::send(const Test::Message& message){
 
 
 int main(int argc, char ** argv){
+    // Initialze the ORB.
     CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
-    CORBA::Object_var poa_object = orb->resolve_initial_references("RootPOA");
-    PortableServer::POA_var root_poa = PortableServer::POA::_narrow (poa_object.in ());
-    if (CORBA::is_nil (root_poa.in ())){
-        std::cerr << "PANIC" << std::endl;
-    }
 
+    // Get a reference to the RootPOA.
+    CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
 
-    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
-    
-    Hello *hello_impl = 0;
-    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
+    // Get the POA_var object from Object_var.
+    PortableServer::POA_var root_poa =
+      PortableServer::POA::_narrow (obj.in ());
 
+    // Get the POAManager of the RootPOA.
+    PortableServer::POAManager_var poa_manager =
+      root_poa->the_POAManager ();
 
-
-    PortableServer::ServantBase_var owner_transfer(hello_impl);
-    PortableServer::ObjectId_var id = root_poa->activate_object (hello_impl);
-    CORBA::Object_var object = root_poa->id_to_reference (id.in ());
-    Test::Hello_var hello = Test::Hello::_narrow (object.in ());
-    
-
-
-    CORBA::String_var ior = orb->object_to_string (hello.in ());
-    // Output the IOR to the ior_output_file
-    FILE *output_file= ACE_OS::fopen ("server.ior", "w");
-    if (output_file == 0)
-    ACE_ERROR_RETURN ((LM_ERROR, "Cannot open output file for writing IOR: %s\n", output_file), 1);
-    ACE_OS::fprintf (output_file, "%s", ior.in ());
-    ACE_OS::fclose (output_file);
-    
     poa_manager->activate ();
-    orb->run ();
 
-    ACE_DEBUG ((LM_DEBUG, "(%P|%t) server - event loop finished\n"));
+    // Create a USER_ID IdAssignmentpolicy object.
+    PortableServer::IdAssignmentPolicy_var idassignment =
+      root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+
+    // Create a PERSISTENT LifespanPolicy object.
+    PortableServer::LifespanPolicy_var lifespan =
+      root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+
+    // Policies for the childPOA to be created.
+    CORBA::PolicyList policies;
+    policies.length (2);
+
+    policies[0] =
+      PortableServer::IdAssignmentPolicy::_duplicate (idassignment.in ());
+
+    policies[1] =
+      PortableServer::LifespanPolicy::_duplicate (lifespan.in ());
+
+    // Create the childPOA under the RootPOA.
+    PortableServer::POA_var child_poa =
+      root_poa->create_POA ("childPOA",
+                            poa_manager.in (),
+                            policies);
+
+    // Destroy policy objects.
+    idassignment->destroy ();
+    lifespan->destroy ();
+
+        
+    Hello hello_impl;
+    
+
+    // Get the Object ID.
+    PortableServer::ObjectId_var oid =
+      PortableServer::string_to_ObjectId ("Stock_Factory");
+
+    // Activate the Stock_Factory object.
+    child_poa->activate_object_with_id (oid.in (),
+                                        &hello_impl);
+
+    // Get the object reference.
+    CORBA::Object_var stock_factory =
+    child_poa->id_to_reference (oid.in ());
+
+    // Stringify all the object referencs.
+    CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
+    // Print them out !
+    cout << ior.in () << endl;
+
+    orb-> run ();
+
+    // Destroy POA, waiting until the destruction terminates.
     root_poa->destroy (1, 1);
     orb->destroy ();
-
-    return 0;
-
-
 }
