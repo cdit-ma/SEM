@@ -24,9 +24,9 @@ int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
     //CORBA::Object_var ior = orb->string_to_object("corbaloc:iiop:1.2@192.168.111.90:12345/%14%01%0f%00NUP%00%00%00%19%00%00%00%00%01%00%00%00RootPOA%00childPOA%00%00%00%00%00%01%00%00%00Stock_Factory");
 
-    auto ior = get_ior("192.168.111.90", 12345, "Test", "HelloSender");
-    std::cout << ior << std::endl;
-    CORBA::Object_var ior = orb->string_to_object(ior);
+    auto ior_c = get_ior("192.168.111.90", 12345, "Test", "HelloSender");
+    std::cout << ior_c << std::endl;
+    CORBA::Object_var ior = orb->string_to_object(ior_c);
     auto sender = Test::Hello::_narrow(ior.in());
 
     Test::Hello_var sender_var = sender;
