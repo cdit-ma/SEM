@@ -15,7 +15,10 @@ void Hello::send(const Test::Message& message){
 
 
 int main(int argc, char ** argv){
-    ::CORBA::Object_var obj = this->orb_->resolve_initial_references ("RootPOA");
+    // Initialze the ORB.
+    CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
+
+    ::CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
     auto root_poa_ = ::PortableServer::POA::_narrow (obj.in ());
 
     // Activate the RootPOA's manager.
