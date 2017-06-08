@@ -22,7 +22,7 @@ int main(int argc, char ** argv){
     auto root_poa_ = ::PortableServer::POA::_narrow (obj.in ());
 
     // Activate the RootPOA's manager.
-    ::PortableServer::POAManager_var mgr = this->root_poa_->the_POAManager ();
+    ::PortableServer::POAManager_var mgr = root_poa_->the_POAManager ();
     mgr->activate ();
 
     // Construct the policy list for the LoggingServerPOA.
