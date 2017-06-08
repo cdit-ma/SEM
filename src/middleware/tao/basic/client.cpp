@@ -26,6 +26,7 @@ int main(int argc, char** argv){
     message.time = argc;
 
     while(true){
+        std::cout << "SendINg message" << std::endl;
         sender->send(message);
     }
 
