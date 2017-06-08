@@ -28,7 +28,7 @@ int main(int argc, char ** argv){
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
 
     //Activate the POA manager
-    poa_manager->activate ();
+    
     
     // Construct the policy list for the LoggingServerPOA.
     CORBA::PolicyList policies (2);
@@ -37,17 +37,13 @@ int main(int argc, char ** argv){
     policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
     // Create the child POA for the test logger factory servants.
-    ::PortableServer::POA_var child_poa = root_poa->create_POA ("LoggingServerPOA", poa_manager.in (), policies);
+    ::PortableServer::POA_var child_poa = root_poa->create_POA ("LoggingServerPOA", poa_manager, policies);
 
      // Destroy the POA policies
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
         policies[i]->destroy ();
     }
       
-    auto mgr = child_poa->the_POAManager ();
-    mgr->activate ();
-    
-    
     auto hello_impl = new Hello(orb);
     // Activate object
     PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
@@ -76,6 +72,7 @@ int main(int argc, char ** argv){
 
     ior_table->bind ("LoggingServer", ior.in ());
 
+    poa_manager->activate ();
 
     // Get the object reference.
     //CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
