@@ -15,42 +15,49 @@ void Hello::send(const Test::Message& message){
 
 
 int main(int argc, char ** argv){
-    CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
-    CORBA::Object_var poa_object = orb->resolve_initial_references("RootPOA");
-    PortableServer::POA_var root_poa = PortableServer::POA::_narrow (poa_object.in ());
-    if (CORBA::is_nil (root_poa.in ())){
-        std::cerr << "PANIC" << std::endl;
-    }
+    ::CORBA::Object_var obj = this->orb_->resolve_initial_references ("RootPOA");
+    auto root_poa_ = ::PortableServer::POA::_narrow (obj.in ());
 
+    // Activate the RootPOA's manager.
+    ::PortableServer::POAManager_var mgr = this->root_poa_->the_POAManager ();
+    mgr->activate ();
 
-    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
-    
+    // Construct the policy list for the LoggingServerPOA.
+    CORBA::PolicyList policies (6);
+    policies.length (6);
+
+    policies[0] = root_poa_->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
+    policies[1] = root_poa_->create_servant_retention_policy (PortableServer::RETAIN);
+    policies[2] = root_poa_->create_id_assignment_policy (PortableServer::SYSTEM_ID);
+    policies[3] = root_poa_->create_id_uniqueness_policy (PortableServer::UNIQUE_ID);
+    policies[4] = root_poa_->create_lifespan_policy (PortableServer::TRANSIENT);
+    policies[5] = root_poa_->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
+
+    // Create the child POA for the test logger factory servants.
+    ::PortableServer::POA_var child_poa =
+      this->root_poa_->create_POA ("LoggingServerPOA",
+                                   ::PortableServer::POAManager::_nil (),
+                                   policies);
+
+    // Destroy the POA policies
+    for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
+      policies[i]->destroy ();
+
+    mgr = child_poa->the_POAManager ();
+    mgr->activate ();
+
+    // Activate the servant.
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%T (%t) - %M - activating logger server servant\n")));
+
     Hello *hello_impl = 0;
-    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
+    ACE_NEW_RETURN (hello_impl, Hello (child_poa.in ()), 1);
 
-
-
-    PortableServer::ServantBase_var owner_transfer(hello_impl);
-    PortableServer::ObjectId_var id = root_poa->activate_object (hello_impl);
-    CORBA::Object_var object = root_poa->id_to_reference (id.in ());
-    Test::Hello_var hello = Test::Hello::_narrow (object.in ());
-    
-
-
-    CORBA::String_var ior = orb->object_to_string (hello.in ());
-    // Output the IOR to the ior_output_file
-    FILE *output_file= ACE_OS::fopen ("server.ior", "w");
-    if (output_file == 0)
-    ACE_ERROR_RETURN ((LM_ERROR, "Cannot open output file for writing IOR: %s\n", output_file), 1);
-    ACE_OS::fprintf (output_file, "%s", ior.in ());
-    ACE_OS::fclose (output_file);
-    
-    poa_manager->activate ();
-    orb->run ();
+    child_poa->run ();
 
     ACE_DEBUG ((LM_DEBUG, "(%P|%t) server - event loop finished\n"));
     root_poa->destroy (1, 1);
-    orb->destroy ();
+    child_poa->destroy ();
 
     return 0;
 
