@@ -56,7 +56,7 @@ int main(int argc, char ** argv){
     Hello *hello_impl = 0;
     ACE_NEW_RETURN (hello_impl, Hello (child_poa.in ()), 1);
 
-    child_poa->run ();
+    orb->run ();
 
     ACE_DEBUG ((LM_DEBUG, "(%P|%t) server - event loop finished\n"));
     root_poa_->destroy (1, 1);
