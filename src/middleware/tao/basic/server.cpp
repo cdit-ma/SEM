@@ -29,6 +29,7 @@ int main(int argc, char ** argv){
     PortableServer::POAManager_var poa_manager =
       root_poa->the_POAManager ();
 
+
     poa_manager->activate ();
 
      // Construct the policy list for the LoggingServerPOA.
@@ -51,7 +52,7 @@ int main(int argc, char ** argv){
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
       policies[i]->destroy ();
 
-    mgr = child_poa->the_POAManager ();
+    auto mgr = child_poa->the_POAManager ();
     mgr->activate ();
 
         
