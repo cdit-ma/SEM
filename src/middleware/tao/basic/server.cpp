@@ -52,7 +52,7 @@ int main(int argc, char ** argv){
     // Activate object
     PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
     // Get a CORBA reference with the POA through the servant
-    CORBA::Object_var o = myPOA->servant_to_reference(hello_impl);
+    CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
     // The reference is converted to a character string
     CORBA::String_var ior = orb->object_to_string(o);
 
