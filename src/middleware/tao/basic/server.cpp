@@ -32,7 +32,7 @@ int main(int argc, char ** argv){
 
     poa_manager->activate ();
 
-    /*
+    
      // Construct the policy list for the LoggingServerPOA.
     CORBA::PolicyList policies (6);
     policies.length (6);
@@ -54,18 +54,11 @@ int main(int argc, char ** argv){
      // Destroy the POA policies
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i)
       policies[i]->destroy ();
-      */
-
       
-     // Construct the policy list for the LoggingServerPOA.
-    CORBA::PolicyList policies (2);
-    policies.length (2);
-    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
-    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
-      root_poa->create_POA ("LoggingServer2POA",
+      root_poa->create_POA ("LoggingServerPOA",
                                    poa_manager.in (), /*::PortableServer::POAManager::_nil (),*/
                                    policies);
 
