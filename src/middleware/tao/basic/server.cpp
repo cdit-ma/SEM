@@ -87,11 +87,8 @@ int main(int argc, char ** argv){
     // Get the IOR string for the object reference.
     ::CORBA::String_var str  = orb->object_to_string (obj);
 
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("%T (%t) - %M - registering object with IORTable (%s)\n"),
-                value.c_str ()));
 
-    ior_table->bind (value.c_str (), str.in ());
+    ior_table->bind ("LoggingServer", str.in ());
 
 
     // Get the object reference.
