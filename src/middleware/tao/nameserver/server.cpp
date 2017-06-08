@@ -68,7 +68,7 @@ int main(int argc, char ** argv){
     PortableServer::ObjectId_var oid =
       PortableServer::string_to_ObjectId ("asd");
 
-obj
+
     // Activate the Stock_Factory object.
     child_poa->activate_object_with_id (oid.in (),
                                         hello_impl);
