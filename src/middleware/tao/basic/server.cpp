@@ -69,11 +69,23 @@ int main(int argc, char ** argv){
 
     auto mgr = child_poa->the_POAManager ();
     mgr->activate ();
-        
+    /*
     Hello *hello_impl = 0;
     ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
 
     PortableServer::ObjectId_var id = child_poa->activate_object(hello_impl);
+    */
+
+    Hello *hello_impl = 0;
+    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
+
+    PortableServer::ServantBase_var owner_transfer(hello_impl);
+    PortableServer::ObjectId_var id = root_poa->activate_object (hello_impl);
+    CORBA::Object_var object = root_poa->id_to_reference (id.in ());
+    Test::Hello_var hello = Test::Hello::_narrow (object.in ());
+    
+
+    CORBA::String_var ior = orb->object_to_string (hello.in ());
 
     std::cout << "Acrtivated Impl:" << std::endl;
 
@@ -88,11 +100,12 @@ int main(int argc, char ** argv){
 
     
     std::cout << "Acrtivated Impl:" << std::endl;
-    // Get the IOR string for the object reference.
-    ::CORBA::String_var str  = orb->object_to_string (hello_impl->in());
+    
+
+    
 
 
-    ior_table->bind ("LoggingServer", str.in ());
+    ior_table->bind ("LoggingServer", ior.in ());
 
 
     // Get the object reference.
