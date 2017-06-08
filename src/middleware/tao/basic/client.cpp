@@ -4,14 +4,14 @@
 int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
 
-    ::CORBA::Object_var obj = this->orb_->resolve_initial_references ("RootPOA");
+    ::CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
     ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow (obj.in ());
 
     // Activate the RootPOA's manager.
     ::PortableServer::POAManager_var mgr = root_poa->the_POAManager ();
     mgr->activate ();
 
-    
+
     std::cout << "Resolving LoggingServer" << std::endl;
     ::CORBA::Object_var obj = orb->resolve_initial_references ("LoggingServer");
     std::cout << "Resolved LoggingServer" << std::endl;
