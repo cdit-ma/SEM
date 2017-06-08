@@ -38,7 +38,7 @@ int main(int argc, char ** argv){
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
-      this->root_poa_->create_POA ("LoggingServerPOA",
+    root_poa_->create_POA ("LoggingServerPOA",
                                    ::PortableServer::POAManager::_nil (),
                                    policies);
 
