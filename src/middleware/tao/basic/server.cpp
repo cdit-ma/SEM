@@ -25,10 +25,10 @@ int main(int argc, char ** argv){
     PortableServer::POA_var root_poa = PortableServer::POA::_narrow (obj.in());
 
     // Construct the policy list for the LoggingServerPOA.
-    CORBA::PolicyList policies (0);
-    policies.length (0);
+    CORBA::PolicyList policies (1);
+    policies.length (1);
     //policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
-    //policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+    policies[0] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
      // Get the POAManager of the RootPOA.
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
