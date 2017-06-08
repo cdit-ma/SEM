@@ -10,7 +10,7 @@ std::string get_ior(std::string ip, int port, std::string poa_name, std::string 
     ior << "corbaloc:iiop:";
     ior << ip << ":" << port;
     ior << "/%14%01%0f%00NUP%00%00%00";
-    int size = 16 + poa_name.size();
+    int size = 15 + poa_name.size();
     //Append magic size
     ior << "%" << std::hex << size;
     ior << "%00%00%00%00%01%00%00%00RootPOA%00";
