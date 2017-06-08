@@ -76,12 +76,12 @@ int main(int argc, char ** argv){
     child_poa->activate_object(hello_impl);
 
     // Get the object reference.
-    CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
+    //CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
 
     // Stringify all the object referencs.
-    CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
+    //CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
     // Print them out !
-    std::cout << ior.in () << std::endl;
+    //std::cout << ior.in () << std::endl;
 
     orb-> run ();
 
