@@ -1,6 +1,6 @@
 #include <iostream>
 #include "server.h"
-
+#include "tao/IORTable/IORTable.h"
 
 Hello::Hello (CORBA::ORB_ptr orb)
 : orb_ (CORBA::ORB::_duplicate (orb))
@@ -74,6 +74,24 @@ int main(int argc, char ** argv){
     ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
 
     child_poa->activate_object(hello_impl);
+
+     // Locate the IORTable for the application.
+    ::CORBA::Object_var temp = orb->resolve_initial_references ("IORTable");
+    ::IORTable::Table_var ior_table = IORTable::Table::_narrow (temp.in ());
+
+    if (::CORBA::is_nil (ior_table.in ()))
+        ACE_ERROR_RETURN ((LM_ERROR,
+                        ACE_TEXT ("%T (%t) - %M - failed to resolve IOR table\n")),
+                        1);
+
+    // Get the IOR string for the object reference.
+    ::CORBA::String_var str  = orb->object_to_string (obj);
+
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("%T (%t) - %M - registering object with IORTable (%s)\n"),
+                value.c_str ()));
+
+    ior_table->bind (value.c_str (), str.in ());
 
 
     // Get the object reference.
