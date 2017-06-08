@@ -45,13 +45,18 @@ int main(int argc, char ** argv){
     Hello* hello_impl = new Hello(orb);
 
     PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId ("Stock_Factory");
-    // Activate object
+    // Activate object WITH OUT ID
     //PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
-    PortableServer::ObjectId_var myObjID = child_poa->activate_object_with_id(oid.in(), hello_impl);
     // Get a CORBA reference with the POA through the servant
-    CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
+    //CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
     // The reference is converted to a character string
-    CORBA::String_var ior = orb->object_to_string(o);
+    //CORBA::String_var ior = orb->object_to_string(o);
+
+    //Acitivate WITH ID    
+    child_poa->activate_object_with_id(oid.in(), hello_impl);
+    CORBA::Object_var obj_ref = child_poa->id_to_reference (oid.in ());
+    CORBA::String_var ior = orb->object_to_string (obj_ref.in ());
+
 
     std::cout << "Acrtivated Impl:" << std::endl;
 
