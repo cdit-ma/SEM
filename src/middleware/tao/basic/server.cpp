@@ -73,7 +73,7 @@ int main(int argc, char ** argv){
     Hello *hello_impl = 0;
     ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
 
-    child_poa->activate_object(hello_impl);
+    PortableServer::ObjectId_var id = child_poa->activate_object(hello_impl);
 
     std::cout << "Acrtivated Impl:" << std::endl;
 
@@ -89,7 +89,7 @@ int main(int argc, char ** argv){
     
     std::cout << "Acrtivated Impl:" << std::endl;
     // Get the IOR string for the object reference.
-    ::CORBA::String_var str  = orb->object_to_string (hello_impl.in());
+    ::CORBA::String_var str  = orb->object_to_string (id);
 
 
     ior_table->bind ("LoggingServer", str.in ());
