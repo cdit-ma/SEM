@@ -19,6 +19,8 @@ FIND_LIBRARY(TAO_LIBS NAMES TAO PATHS ${ACE_ROOT}/lib)
 FIND_LIBRARY(ACE_LIBS NAMES ACE PATHS ${ACE_ROOT}/lib)
 FIND_LIBRARY(TAO_PS_LIBS NAMES TAO_PortableServer PATHS ${ACE_ROOT}/lib)
 FIND_LIBRARY(TAO_ATC_LIBS NAMES TAO_AnyTypeCode PATHS ${ACE_ROOT}/lib)
+FIND_LIBRARY(TAO_IORTable_LIBS NAMES TAO_IORTable PATHS ${ACE_ROOT}/lib)
+
 
 
 #Link our Logger against all the Cpps
@@ -49,3 +51,5 @@ target_link_libraries(${RECV_NAME} ${TAO_LIBS})
 target_link_libraries(${RECV_NAME} ${ACE_LIBS})
 target_link_libraries(${RECV_NAME} ${TAO_ATC_LIBS})
 target_link_libraries(${RECV_NAME} ${TAO_PS_LIBS})
+target_link_libraries(${RECV_NAME} ${TAO_IORTable_LIBS})
+
