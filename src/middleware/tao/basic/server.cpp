@@ -48,21 +48,13 @@ int main(int argc, char ** argv){
     mgr->activate ();
     
     
-    Hello *hello_impl = 0;
-    ACE_NEW_RETURN (hello_impl, Hello (orb.in ()), 1);
-    Test::Hello_var hello = hello_impl;
-    //Transfer ownership
-    PortableServer::ServantBase_var owner_transfer(hello_impl);
-    //Get the ID
-    PortableServer::ObjectId_var id = root_poa->activate_object (hello_impl);
-    //Get the object
-    
-    CORBA::Object_var object = root_poa->id_to_reference (id.in ());
-    //Construct a narrow?
-    //Test::Hello_var hello = Test::Hello::_narrow (object.in ());
-    
-    //Construct 
-    CORBA::String_var ior = orb->object_to_string (hello.in ());
+    auto hello_impl = new Hello(orb);
+    // Activate object
+    PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
+    // Get a CORBA reference with the POA through the servant
+    CORBA::Object_var o = myPOA->servant_to_reference(hello_impl);
+    // The reference is converted to a character string
+    CORBA::String_var ior = orb->object_to_string(o);
 
     std::cout << "Acrtivated Impl:" << std::endl;
 
