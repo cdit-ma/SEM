@@ -24,17 +24,15 @@ int main(int argc, char ** argv){
     // Get the POA_var object from Object_var.
     PortableServer::POA_var root_poa = PortableServer::POA::_narrow (obj.in());
 
-    // Get the POAManager of the RootPOA.
+    // Construct the policy list for the LoggingServerPOA.
+    CORBA::PolicyList policies (0);
+    policies.length (0);
+    //policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+    //policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+
+     // Get the POAManager of the RootPOA.
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
 
-    //Activate the POA manager
-    
-    
-    // Construct the policy list for the LoggingServerPOA.
-    CORBA::PolicyList policies (2);
-    policies.length (2);
-    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
-    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa = root_poa->create_POA ("LoggingServerPOA", poa_manager, policies);
