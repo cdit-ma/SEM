@@ -3,14 +3,14 @@
 
 int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
-    ::CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
-    ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow (obj.in ());
+    ::CORBA::Object_var obj = orb->resolve_initial_references ("LoggingServer");
 
-    // Activate the RootPOA's manager.
-    ::PortableServer::POAManager_var mgr = root_poa->the_POAManager ();
-    mgr->activate ();
+  if (::CORBA::is_nil (obj.in ()))
+    ACE_ERROR_RETURN ((LM_ERROR,
+                       ACE_TEXT ("%T (%t) - %M - failed to resolve LoggingServer\n")),
+                       -1);
 
-    auto sender = Test::Hello::_narrow(root_poa.in());
+    auto sender = Test::Hello::_narrow(obj.in());
 
     Test::Hello_var sender_var = sender;
 
@@ -29,5 +29,5 @@ int main(int argc, char** argv){
 
 
     orb->destroy();
-    return 0;
+    return 0;∂∂
 }
