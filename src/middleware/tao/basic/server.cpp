@@ -34,16 +34,16 @@ int main(int argc, char ** argv){
      // Construct the policy list for the LoggingServerPOA.
     CORBA::PolicyList policies (6);
     policies.length (6);
-    policies[0] = this->root_poa_->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
-    policies[1] = this->root_poa_->create_servant_retention_policy (PortableServer::RETAIN);
-    policies[2] = this->root_poa_->create_id_assignment_policy (PortableServer::SYSTEM_ID);
-    policies[3] = this->root_poa_->create_id_uniqueness_policy (PortableServer::UNIQUE_ID);
-    policies[4] = this->root_poa_->create_lifespan_policy (PortableServer::TRANSIENT);
-    policies[5] = this->root_poa_->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
+    policies[0] = root_poa->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
+    policies[1] = root_poa->create_servant_retention_policy (PortableServer::RETAIN);
+    policies[2] = root_poa->create_id_assignment_policy (PortableServer::SYSTEM_ID);
+    policies[3] = root_poa->create_id_uniqueness_policy (PortableServer::UNIQUE_ID);
+    policies[4] = root_poa->create_lifespan_policy (PortableServer::TRANSIENT);
+    policies[5] = root_poa->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
-      this->root_poa_->create_POA ("LoggingServerPOA",
+      root_poa->create_POA ("LoggingServerPOA",
                                    ::PortableServer::POAManager::_nil (),
                                    policies);
 
