@@ -43,7 +43,7 @@ int main(int argc, char ** argv){
     policies[4] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
     policies[5] = root_poa->create_request_processing_policy (PortableServer::USE_ACTIVE_OBJECT_MAP_ONLY);
 
-    USER_ID
+  
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa =
