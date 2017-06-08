@@ -13,7 +13,9 @@ void Hello::send(const Test::Message& message){
     std::cout << "\tinst_name: " << message.inst_name << std::endl;
 }
 
-
+//TODO, look at how we can bind without passing parameters to the ORB!
+//Clean Client and server
+//Test multithreadedly
 int main(int argc, char ** argv){
     //Initialize the orb
     CORBA::ORB_var orb = CORBA::ORB_init (argc, argv);
@@ -31,8 +33,7 @@ int main(int argc, char ** argv){
     policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
 
      // Get the POAManager of the RootPOA.
-    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager ();
-
+    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager();
 
     // Create the child POA for the test logger factory servants.
     ::PortableServer::POA_var child_poa = root_poa->create_POA ("LoggingServerPOA", poa_manager, policies);
@@ -41,27 +42,33 @@ int main(int argc, char ** argv){
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
         policies[i]->destroy ();
     }
-      
+
+    //Construct a sender
     Hello* hello_impl = new Hello(orb);
 
-    PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId ("Stock_Factory");
+    /*
     // Activate object WITH OUT ID
-    //PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
+    PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
     // Get a CORBA reference with the POA through the servant
-    //CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
+    CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
     // The reference is converted to a character string
-    //CORBA::String_var ior = orb->object_to_string(o);
+    CORBA::String_var ior = orb->object_to_string(o);
+    */
 
-    //Acitivate WITH ID    
-    child_poa->activate_object_with_id(oid.in(), hello_impl);
-    CORBA::Object_var obj_ref = child_poa->id_to_reference (oid.in ());
+    //Acitivate WITH ID
+    //Convert our string into an object_id
+    PortableServer::ObjectId_var obj_id = PortableServer::string_to_ObjectId ("Stock_Factory");
+    //Activate the object with the obj_id
+    child_poa->activate_object_with_id(obj_id.in(), hello_impl);
+    //Get the reference to the obj, using the obj_id
+    CORBA::Object_var obj_ref = child_poa->id_to_reference (obj_id.in ());
+    //Get the IOR from the object
     CORBA::String_var ior = orb->object_to_string (obj_ref.in ());
 
-
-    std::cout << "Acrtivated Impl:" << std::endl;
-
-     // Locate the IORTable for the application.
+    //Register with the IOR Table
+    //Get the IORTable for the application
     ::CORBA::Object_var temp = orb->resolve_initial_references ("IORTable");
+    //Cast into concrete class
     ::IORTable::Table_var ior_table = IORTable::Table::_narrow (temp.in ());
 
     if (::CORBA::is_nil (ior_table.in ()))
@@ -69,26 +76,14 @@ int main(int argc, char ** argv){
                         ACE_TEXT ("%T (%t) - %M - failed to resolve IOR table\n")),
                         1);
 
-    
-    std::cout << "Acrtivated Impl:" << std::endl;
-    
-
-    
-
-
+    //Bind the IOR file into the IOR table
     ior_table->bind ("LoggingServer", ior.in ());
 
+    //Activate the POA
     poa_manager->activate ();
 
-    // Get the object reference.
-    //CORBA::Object_var stock_factory = child_poa->id_to_reference (oid.in ());
-
-    // Stringify all the object referencs.
-    //CORBA::String_var ior = orb->object_to_string (stock_factory.in ());
-    // Print them out !
-    std::cout << "RUNNING ORB:" << std::endl;
-
-    orb-> run ();
+    //Run the ORB
+    orb->run ();
 
     // Destroy POA, waiting until the destruction terminates.
     root_poa->destroy (1, 1);
