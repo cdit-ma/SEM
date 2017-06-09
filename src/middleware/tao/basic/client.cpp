@@ -15,14 +15,14 @@ int main(int argc, char** argv){
     mgr->activate ();
 
     std::string reference_str = "LoggingServer";
-    ::CORBA::Object_var ref_obj = orb->resolve_initial_references (reference_str.c_str());
+    auto ref_obj = orb->resolve_initial_references (reference_str.c_str());
 
     if(::CORBA::is_nil(ref_obj)){
         std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
     }
 
     //Narrow the
-    auto sender = Test::Hello::_narrow(ref_obj.in());
+    auto sender = Test::Hello::_narrow(ref_obj);
 
     if(CORBA::is_nil(sender)){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
