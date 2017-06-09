@@ -7,8 +7,8 @@ int main(int argc, char** argv){
     auto orb = CORBA::ORB_init (argc, argv);
 
     //Get the reference to the RootPOA
-    ::CORBA::Object_var obj = orb->resolve_initial_references("RootPOA");
-    ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow(obj.in());
+    auto obj = orb->resolve_initial_references("RootPOA");
+    auto root_poa = ::PortableServer::POA::_narrow(obj.in());
 
     // Activate the RootPOA's manager.
     auto mgr = root_poa->the_POAManager();
