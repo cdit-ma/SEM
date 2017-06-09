@@ -71,10 +71,10 @@ int main(int argc, char ** argv){
     //Cast into concrete class
     ::IORTable::Table_var ior_table = IORTable::Table::_narrow (temp.in ());
 
-    if (::CORBA::is_nil (ior_table.in ()))
-        ACE_ERROR_RETURN ((LM_ERROR,
-                        ACE_TEXT ("%T (%t) - %M - failed to resolve IOR table\n")),
-                        1);
+
+    if (::CORBA::is_nil(ior_table.in ())){
+        std::cerr << "Failed to resolve IOR Table" << std::endl;
+    }
 
     //Bind the IOR file into the IOR table
     ior_table->bind ("LoggingServer", ior.in ());
@@ -86,6 +86,6 @@ int main(int argc, char ** argv){
     orb->run ();
 
     // Destroy POA, waiting until the destruction terminates.
-    root_poa->destroy (1, 1);
-    orb->destroy ();
+    root_poa->destroy(1, 1);
+    orb->destroy();
 }

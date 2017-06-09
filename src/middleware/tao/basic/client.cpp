@@ -2,20 +2,23 @@
 #include "messageS.h"
 
 int main(int argc, char** argv){
+
+    //Get a pointer to the orb
     auto orb = CORBA::ORB_init (argc, argv);
 
-    ::CORBA::Object_var obj = orb->resolve_initial_references ("RootPOA");
-    ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow (obj.in ());
+    //Get the reference to the RootPOA
+    ::CORBA::Object_var obj = orb->resolve_initial_references("RootPOA");
+    ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow(obj.in());
 
     // Activate the RootPOA's manager.
-    ::PortableServer::POAManager_var mgr = root_poa->the_POAManager ();
+    ::PortableServer::POAManager_var mgr = root_poa->the_POAManager();
     mgr->activate ();
 
-
-    std::cout << "Resolving LoggingServer" << std::endl;
     ::CORBA::Object_var obj2 = orb->resolve_initial_references ("LoggingServer");
-    std::cout << "Resolved LoggingServer" << std::endl;
-  if (::CORBA::is_nil (obj2.in ()))
+
+    if(::CORBA::is_nil(obj2.in ())){
+        std::cerr << ""
+    }
     ACE_ERROR_RETURN ((LM_ERROR,
                        ACE_TEXT ("%T (%t) - %M - failed to resolve LoggingServer\n")),
                        -1);
