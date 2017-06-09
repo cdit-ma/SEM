@@ -29,7 +29,7 @@ int main(int argc, char** argv){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
         return 0;
     }
-    if(CORBA::is_nil(sender){
+    if(CORBA::is_nil(sender)){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
         return 0;
     }
