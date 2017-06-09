@@ -1,0 +1,37 @@
+#include <iostream>
+#include "messageS.h"
+
+int main(int argc, char** argv){
+    //Get a pointer to the orb
+    auto orb = CORBA::ORB_init (argc, argv);
+
+    //Get the reference to the RootPOA
+    auto obj = orb->resolve_initial_references("RootPOA");
+    auto root_poa = ::PortableServer::POA::_narrow(obj);
+
+    std::string reference_str = "LoggingServer";
+    auto ref_obj = orb->resolve_initial_references(reference_str.c_str());
+
+    if(!ref_obj){
+        std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
+    }
+
+    //Convert the ref_obj into a typed writer
+    auto sender = Test::Hello::_narrow(ref_obj);
+
+    if(!sender){
+        std::cerr << "NILL REFERENCE Y'AL" << std::endl;
+    }
+
+    Test::Message message;
+    message.inst_name = "=D";
+    message.time = argc;
+
+    while(true){
+        sender->send(message);
+        message.time++;
+    }
+
+    orb->destroy();
+    return 0;
+}

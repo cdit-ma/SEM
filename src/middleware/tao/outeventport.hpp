@@ -5,9 +5,7 @@
 #include "../../core/modellogger.h"
 #include <string>
 #include <mutex>
-
-
-#include "helper.hpp"
+#include <iostream>
 
 namespace tao{
      template <class T, class S, class R> class OutEventPort: public ::OutEventPort<T>{
@@ -65,6 +63,9 @@ bool tao::OutEventPort<T, S, R>::Teardown(){
 template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+    char *argv[] = {"program name", "-ORBInitRef", "LoggingServer=corbaloc:iiop:192.168.111.90:50001/LoggingServer", NULL};
+    int argc = sizeof(argv) / sizeof(char*) - 1;
+
 
     //Get a pointer to the orb
     auto orb = CORBA::ORB_init (argc, argv);
@@ -72,8 +73,6 @@ bool tao::OutEventPort<T, S, R>::Activate(){
     //Get the reference to the RootPOA
     auto obj = orb->resolve_initial_references("RootPOA");
     auto root_poa = ::PortableServer::POA::_narrow(obj);
-
-    R::_narrow(ref_obj);
 
     std::string reference_str = "LoggingServer";
     auto ref_obj = orb->resolve_initial_references(reference_str.c_str());
@@ -83,7 +82,7 @@ bool tao::OutEventPort<T, S, R>::Activate(){
     }
 
     //Convert the ref_obj into a typed writer
-    writer_ = Test::Hello::_narrow(ref_obj);
+    writer_ = R::_narrow(ref_obj);
 
     if(!writer_){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
