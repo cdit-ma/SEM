@@ -11,7 +11,7 @@ int main(int argc, char** argv){
     ::PortableServer::POA_var root_poa = ::PortableServer::POA::_narrow(obj.in());
 
     // Activate the RootPOA's manager.
-    ::PortableServer::POAManager_var mgr = root_poa->the_POAManager();
+    auto mgr = root_poa->the_POAManager();
     mgr->activate ();
 
     std::string reference_str = "LoggingServer";
