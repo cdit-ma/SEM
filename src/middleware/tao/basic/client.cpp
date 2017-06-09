@@ -8,7 +8,7 @@ int main(int argc, char** argv){
 
     //Get the reference to the RootPOA
     auto obj = orb->resolve_initial_references("RootPOA");
-    auto root_poa = ::PortableServer::POA::_narrow(obj.in());
+    auto root_poa = ::PortableServer::POA::_narrow(obj);
 
     // Activate the RootPOA's manager.
     auto mgr = root_poa->the_POAManager();
