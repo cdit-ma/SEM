@@ -17,12 +17,12 @@ int main(int argc, char** argv){
     std::string reference_str = "LoggingServer";
     ::CORBA::Object_var ref_obj = orb->resolve_initial_references (reference_str.c_str());
 
-    if(::CORBA::is_nil(ref_obj.in())){
+    if(::CORBA::is_nil(ref_obj)){
         std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
     }
 
-    //Narrow the 
-    auto sender = Test::Hello::_narrow(ref_obj.in());
+    //Narrow the
+    auto sender = Test::Hello::_narrow(obj.in());
 
     if(CORBA::is_nil(sender)){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
