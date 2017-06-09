@@ -14,21 +14,22 @@ int main(int argc, char** argv){
     ::PortableServer::POAManager_var mgr = root_poa->the_POAManager();
     mgr->activate ();
 
-    ::CORBA::Object_var obj2 = orb->resolve_initial_references ("LoggingServer");
+    std::string reference_str = "LoggingServer";
+    ::CORBA::Object_var ref_obj = orb->resolve_initial_references (reference_str.c_str());
 
-    if(::CORBA::is_nil(obj2.in ())){
-        std::cerr << ""
+    if(::CORBA::is_nil(ref_obj.in())){
+        std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
     }
-    ACE_ERROR_RETURN ((LM_ERROR,
-                       ACE_TEXT ("%T (%t) - %M - failed to resolve LoggingServer\n")),
-                       -1);
 
-    std::cout << "Connecting to server" << std::endl;
-    auto sender = Test::Hello::_narrow(obj2.in());
-
+    //Narrow the 
+    auto sender = Test::Hello::_narrow(ref_obj.in());
     Test::Hello_var sender_var = sender;
 
-    if(CORBA::is_nil (sender_var.in())){
+    if(CORBA::is_nil(sender_var.in())){
+        std::cerr << "NILL REFERENCE Y'AL" << std::endl;
+        return 0;
+    }
+    if(CORBA::is_nil(sender){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
         return 0;
     }
