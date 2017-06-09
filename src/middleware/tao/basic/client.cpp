@@ -22,7 +22,7 @@ int main(int argc, char** argv){
     }
 
     //Narrow the
-    auto sender = Test::Hello::_narrow(obj.in());
+    auto sender = Test::Hello::_narrow(ref_obj.in());
 
     if(CORBA::is_nil(sender)){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
