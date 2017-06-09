@@ -22,13 +22,8 @@ int main(int argc, char** argv){
     }
 
     //Narrow the 
-    auto sender = Test::Hello::_narrow(ref_obj.in());
-    Test::Hello_var sender_var = sender;
+    auto sender = Test::Hello::_narrow(obj.in());
 
-    if(CORBA::is_nil(sender_var.in())){
-        std::cerr << "NILL REFERENCE Y'AL" << std::endl;
-        return 0;
-    }
     if(CORBA::is_nil(sender)){
         std::cerr << "NILL REFERENCE Y'AL" << std::endl;
         return 0;
