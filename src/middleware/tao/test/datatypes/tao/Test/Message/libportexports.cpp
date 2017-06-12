@@ -5,6 +5,7 @@
 #include "messageS.h"
 
 #include <middleware/tao/outeventport.hpp>
+#include <middleware/tao/ineventport.hpp>
 
 EventPort* ConstructRx(std::string port_name, Component* component){
 	EventPort* p = 0;
@@ -26,16 +27,22 @@ EventPort* ConstructTx(std::string port_name, Component* component){
 int main(int argc, char** argv){
 	std::cout << "TESTING!" << std::endl;
 
-	//auto p = ConstructTx("TestPort", 0);
+	auto fn = [](Base::Aggregate* m) {std::cout << "LOL " << std::endl;};
 
 	auto p = new tao::OutEventPort<Base::Aggregate, Test::Message, Test::Hello>(0, "TEST");
+	
+	auto p2 = new tao::InEventPort<Base::Aggregate, Test::Message, POA_Test::Hello>(0, "TEST2", fn);
 
 	p->Activate();
+	
+	p2->Activate();
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
 	while(true){
 		auto message = new Base::Aggregate();
 		message->set_Member("HELLO FROM CUTS");
 		p->tx(message);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	return 0;

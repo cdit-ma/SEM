@@ -1,5 +1,5 @@
-#ifndef RTI_INEVENTPORT_H
-#define RTI_INEVENTPORT_H
+#ifndef TAO_INEVENTPORT_H
+#define TAO_INEVENTPORT_H
 
 #include "../../core/eventports/ineventport.hpp"
 
@@ -7,14 +7,21 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
-#include "helper.hpp"
-#include "datareaderlistener.hpp"
+#include "tao/IORTable/IORTable.h"
 
 
+namespace tao{
 
-namespace rti{
-     template <class T, class S> class InEventPort: public ::InEventPort<T>{
+    template <class S, class R> class Receiver: public virtual R{
+        public:
+            Receiver(CORBA::ORB_ptr orb);
+            void send(const S& message);
+        private:
+        // Use an ORB reference to shutdown the application.
+        CORBA::ORB_var orb_;
+    };
+
+     template <class T, class S, class R> class InEventPort: public ::InEventPort<T>{
         public:
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
             void notify();
@@ -24,11 +31,9 @@ namespace rti{
 
             bool Activate();
             bool Passivate();
-
-
+            void send(const S& message);
         private:
             void receive_loop();
-            
             
             std::thread* rec_thread_ = 0;
 
@@ -37,71 +42,50 @@ namespace rti{
 
             std::condition_variable notify_lock_condition_;
 
-            std::string topic_name_;
-            std::string qos_profile_path_;
-            std::string qos_profile_name_;
-            int domain_id_ = 0;
-            std::string subscriber_name_;
+            Receiver<S, R>* receiver_;
 
-            bool passivate_ = false;
             bool configured_ = false;
+            bool passivate_ = false;
+
+            std::string object_key_;
+            std::vector<std::string> end_points_;
     }; 
 };
 
-template <class T, class S>
-void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
-    {std::lock_guard<std::mutex> lock(control_mutex_);
-
-    if(attributes.count("topic_name")){
-        topic_name_ = attributes["topic_name"]->get_String();
-    }
-
-    if(attributes.count("subscriber_name")){
-        subscriber_name_ = attributes["subscriber_name"]->get_String();
-    }else{
-        subscriber_name_ = "In_" + this->get_name();
-    }
-
-    if(attributes.count("domain_id")){
-        domain_id_ = attributes["domain_id"]->get_Integer();
-    }
-
-    if(attributes.count("qos_profile_name")){
-        qos_profile_name_ = attributes["qos_profile_name"]->get_String();
-    }
-    if(attributes.count("qos_profile_path")){
-        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
-    }
-
-    std::cout << "rti::InEventPort" << std::endl;
-    std::cout << "**domain_id_: " << domain_id_ << std::endl;
-    std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
-    std::cout << "**topic_name_: "<< topic_name_ << std::endl;
-    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
-    std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
 
-    if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
-        configured_ = true;
-    }else{
-        std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
-    }
+template <class S, class R>
+tao::Receiver<S, R>::Receiver(CORBA::ORB_ptr orb): orb_(CORBA::ORB::_duplicate (orb))
+{
+};
+
+template <class S, class R>
+void tao::Receiver<S, R>::send(const S& message){
+    std::cout << "GOT MESSAGE" << std::endl;
+};
+
+
+
+template <class T, class S, class R>
+void tao::InEventPort<T, S, R>::Startup(std::map<std::string, ::Attribute*> attributes){
+    {
+        std::lock_guard<std::mutex> lock(control_mutex_);
     }
 };
 
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::Activate(){
+template <class T, class S, class R>
+bool tao::InEventPort<T, S, R>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     passivate_ = false;
-    if(configured_){
-        rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
-    }
+    //if(configured_){
+    rec_thread_ = new std::thread(&tao::InEventPort<T, S, R>::receive_loop, this);
+    //}
     return ::InEventPort<T>::Activate();
 };
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::Passivate(){
+template <class T, class S, class R>
+bool tao::InEventPort<T, S, R>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     passivate_ = true;
     if(rec_thread_){
@@ -118,8 +102,8 @@ bool rti::InEventPort<T, S>::Passivate(){
 };
 
 
-template <class T, class S>
-bool rti::InEventPort<T, S>::Teardown(){
+template <class T, class S, class R>
+bool tao::InEventPort<T, S, R>::Teardown(){
     Passivate();
 
     std::lock_guard<std::mutex> lock(control_mutex_);
@@ -128,59 +112,101 @@ bool rti::InEventPort<T, S>::Teardown(){
 };
 
 
-template <class T, class S>
-void rti::InEventPort<T, S>::notify(){
+template <class T, class S, class R>
+void tao::InEventPort<T, S, R>::notify(){
     //Called by the DataReaderListener to notify our InEventPort thread to get new data
     std::unique_lock<std::mutex> lock(notify_mutex_);
     notify_lock_condition_.notify_all();
 };
 
 
-template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
-::InEventPort<T>(component, name, callback_function, "rti"){
+template <class T, class S, class R>
+tao::InEventPort<T, S, R>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
+::InEventPort<T>(component, name, callback_function, "tao"){
 };
 
-template <class T, class S>
-void rti::InEventPort<T, S>::receive_loop(){ 
-    //Construct a DDS Participant, Subscriber, Topic and Reader
-    auto helper = DdsHelper::get_dds_helper();    
-    auto participant = helper->get_participant(domain_id_);
-    auto topic = get_topic<S>(participant, topic_name_);
-
-    auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-    auto reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
+template <class T, class S, class R>
+void tao::InEventPort<T, S, R>::receive_loop(){
+    //"-ORBInitRef", "LoggingServer=corbaloc:iiop:192.168.111.90:50001/LoggingServer"
     
-    //Construct a DDS Listener, designed to call back into the receive thread
-    auto listener_ = new rti::DataReaderListener<T, S>(this);
-    //Attach listener to only respond to data_available()
-    reader_.listener(listener_, dds::core::status::StatusMask::data_available());
+    char *argv[] = {"program name", "-ORBEndpoint", "iiop://192.168.111.90:50002", NULL};
+    int argc = sizeof(argv) / sizeof(char*) - 1;
 
-    while(true){
-        {
-            //Wait for next message
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock);
+    std::cout << "INIT" << std::endl;
+    
+    //Initialize the orb
+    auto orb = CORBA::ORB_init (argc, argv, "qweqsadsdsd");
 
-            if(passivate_){
-                break;
-            }
-        }
-        ///Read all our samples
-        try{
-            auto samples = reader_.take();
-            for(auto sample : samples){
-                //Translate and callback into the component for each valid message we receive
-                if(sample->info().valid()){
-                    auto m = rti::translate(&sample->data());
-                    this->EnqueueMessage(m);
-                }
-            }
-        }catch(...){//dds::core::PreconditionNotMetError e){
-            std::cout << "ERROR" << std::endl;
-        }
-        
+    //Get the reference to the RootPOA
+    auto obj = orb->resolve_initial_references("RootPOA");
+    auto root_poa = ::PortableServer::POA::_narrow(obj);
+
+    std::cout << "ROOT" << std::endl;
+
+    // Construct the policy list for the LoggingServerPOA.
+    CORBA::PolicyList policies (2);
+    policies.length (2);
+    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
+    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+
+    // Get the POAManager of the RootPOA.
+    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager();
+
+    // Create the child POA for the test logger factory servants.
+    auto child_poa = root_poa->create_POA("LoggingServerPOA", root_poa->the_POAManager(), policies);
+
+     // Destroy the POA policies
+    for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
+        policies[i]->destroy();
     }
+
+    receiver_ = new Receiver<S, R>(orb);
+
+    /*
+    // Activate object WITH OUT ID
+    PortableServer::ObjectId_var myObjID = child_poa->activate_object(hello_impl);
+    // Get a CORBA reference with the POA through the servant
+    CORBA::Object_var o = child_poa->servant_to_reference(hello_impl);
+    // The reference is converted to a character string
+    CORBA::String_var ior = orb->object_to_string(o);
+    */
+
+    //Activate WITH ID
+    //Convert our string into an object_id
+    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId ("Stock_Factory");
+    //Activate the object with the obj_id
+    child_poa->activate_object_with_id(obj_id, receiver_);
+    //Get the reference to the obj, using the obj_id
+    auto obj_ref = child_poa->id_to_reference (obj_id);
+    //Get the IOR from the object
+    auto ior = orb->object_to_string (obj_ref);
+
+    //Register with the IOR Table
+    //Get the IORTable for the application
+    auto temp = orb->resolve_initial_references ("IORTable");
+    //Cast into concrete class
+    auto ior_table = IORTable::Table::_narrow (temp);
+
+    if(!ior_table){
+        std::cerr << "Failed to resolve IOR Table" << std::endl;
+    }
+
+    std::cout << ior << std::endl;
+
+    //Bind the IOR file into the IOR table
+    ior_table->bind("LoggingServer", ior);
+
+    //Activate the POA
+    poa_manager->activate();
+    std::cout << "ACTIVATED?!" << std::endl;
+
+
+    std::cout << "RUNNING!" << std::endl;
+    //Run the ORB
+    orb->run();
+    orb->destroy();
+    std::cout << "END!" << std::endl;
+
 };
 
-#endif //RTI_INEVENTPORT_H
+#endif //tao_INEVENTPORT_H

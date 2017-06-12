@@ -47,6 +47,7 @@ target_link_libraries(${SHARED_LIB_NAME} base_aggregate)
 #@add_library(${PROJ_NAME} MODULE ${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp)
 add_executable(${PROJ_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp)
 
+target_link_libraries(${PROJ_NAME} pthread)
 
 # Link the shared library.
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
