@@ -156,15 +156,9 @@ void tao::InEventPort<T, S, R>::receive_loop(){
     //Initialize the orb
     auto orb = CORBA::ORB_init(argc, argv, unique_id.c_str());
 
-    //for(auto &endpoint : endpoints_){
-    //    std::cout << endpoint << std::endl;
-    //}
-
     //Get the reference to the RootPOA
     auto obj = orb->resolve_initial_references("RootPOA");
     auto root_poa = ::PortableServer::POA::_narrow(obj);
-
-    std::cout << "ROOT" << std::endl;
 
     // Construct the policy list for the LoggingServerPOA.
     CORBA::PolicyList policies (2);
@@ -179,7 +173,7 @@ void tao::InEventPort<T, S, R>::receive_loop(){
     auto child_poa = root_poa->create_POA("LoggingServerPOA", root_poa->the_POAManager(), policies);
 
      // Destroy the POA policies
-    for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
+    for (auto i = 0; i < policies.length (); i ++){
         policies[i]->destroy();
     }
 
