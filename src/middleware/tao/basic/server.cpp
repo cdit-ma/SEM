@@ -74,7 +74,7 @@ int main(int argc, char ** argv){
     }
 
     //Bind the IOR file into the IOR table
-    ior_table->bind("LoggingServer", ior);
+    ior_table->bind("LoggingServer2", ior);
 
     //Activate the POA
     poa_manager->activate();

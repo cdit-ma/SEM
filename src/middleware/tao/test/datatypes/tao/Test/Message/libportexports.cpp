@@ -23,11 +23,10 @@ EventPort* ConstructTx(std::string port_name, Component* component){
 	return new tao::OutEventPort<Base::Aggregate, Test::Message, Test::Hello>(component, port_name);
 };
 
-
 int main(int argc, char** argv){
 	std::cout << "TESTING!" << std::endl;
 
-	auto fn = [](Base::Aggregate* m) {std::cout << "LOL " << std::endl;};
+	auto fn = [](Base::Aggregate* m) {std::cout << "LOL: " << m->Member() << std::endl;};
 
 	auto p = new tao::OutEventPort<Base::Aggregate, Test::Message, Test::Hello>(0, "TEST");
 	
@@ -38,12 +37,23 @@ int main(int argc, char** argv){
 	p2->Activate();
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-	while(true){
+	int i = 10;
+	while(i-- > 0){
 		auto message = new Base::Aggregate();
 		message->set_Member("HELLO FROM CUTS");
 		p->tx(message);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
+	
+	
+	std::cout << "IN: Passivate" << std::endl;
+	p2->Passivate();
+	std::cout << "IN: Passivated" << std::endl;
+
+	std::cout << "Out: Passivate" << std::endl;
+	p->Passivate();
+	std::cout << "Out: Passivated" << std::endl;
+
 
 	return 0;
 };

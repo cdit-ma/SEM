@@ -7,6 +7,7 @@
 #include <mutex>
 #include <iostream>
 #include <thread>
+#include <list>
 
 namespace tao{
      template <class T, class S, class R> class OutEventPort: public ::OutEventPort<T>{
@@ -31,19 +32,29 @@ namespace tao{
             std::string object_key_;
             std::vector<std::string> end_points_;
 
+
+            std::list<R*> writers_;
             R* writer_ = 0;
     }; 
 };
 
 template <class T, class S, class R>
 void tao::OutEventPort<T, S, R>::tx(T* message){
-    if(this->is_active() && writer_ != 0){
-        auto m = tao::translate(message);
+    //if(this->is_active() && writer_ != 0){
+        
         //De-reference the message and send
-        writer_->send(*m);
-        delete m;
+        for(auto writer : writers_){
+            try{
+                auto m = tao::translate(message);
+                writer->send(*m);
+                delete m;
+            }catch(...){
+                //Exception!
+            }
+        }
+        
         ::OutEventPort<T>::tx(message);
-    }
+    //}
 };
 
 template <class T, class S, class R>
@@ -69,13 +80,18 @@ template <class T, class S, class R>
 void tao::OutEventPort<T, S, R>::setup_loop(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     //Magic setup
-    char *argv[] = {"program name2", "-ORBInitRef", "LoggingServer=corbaloc:iiop:192.168.111.90:50002/LoggingServer", NULL};
+    
+
+    //char * arg[size * 2 + 1];
+
+    char *argv[] = {"-ORBInitRef", "LoggingServer=corbaloc:iiop:192.168.111.90:50002/LoggingServer", "-ORBInitRef", "LoggingServer2=corbaloc:iiop:192.168.111.90:50003/LoggingServer2"};
     int argc = sizeof(argv) / sizeof(char*) - 1;
 
 
     //Get a pointer to the orb
     auto orb = CORBA::ORB_init (argc, argv, "UNIUQUE");
 
+    std::cout <<"ARGC: " << argc << std::endl;;
     std::cout << "RESOLVE?" << std::endl;
 
     //Keep trying
@@ -91,21 +107,28 @@ void tao::OutEventPort<T, S, R>::setup_loop(){
 
     std::cout << "RESOLVE2?" << std::endl;
 
+    std::list<std::string> references = {"LoggingServer", "LoggingServer2"};
     
+
     
     while(true){
         try{
-            CORBA::Object_var ref_obj = orb->resolve_initial_references(reference_str.c_str());
-            if(!ref_obj){
-                std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
-            }else{
-                //Convert the ref_obj into a typed writer
-                writer_ = R::_narrow(ref_obj);
-                if(writer_){
-                    break;
+            for(auto r : references){
+                std::cout << "Resolving: " << r << std::endl;
+                CORBA::Object_var ref_obj = orb->resolve_initial_references(r.c_str());
+                if(!ref_obj){
+                    std::cerr << "Failed to resolve Reference '" << r << "'" << std::endl;
+                }else{
+                    //Convert the ref_obj into a typed writer
+                    auto writer_ = R::_narrow(ref_obj);
+                    if(writer_){
+                        std::cout << "FOT REFERENCE: "  << r << std::endl;
+                        writers_.push_back(writer_);
+                        references.remove(r);
+                        break;
+                    }
                 }
             }
-            //}
         }
         catch(...){
             std::cout << "Exception:" << std::endl;
