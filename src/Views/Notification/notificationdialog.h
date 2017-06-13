@@ -57,7 +57,12 @@ public slots:
     void initialisePanel();
     void resetPanel();
 
+    void notificationAdded(NotificationObject* obj);
+    void notificationDeleted(int ID);
+
     void getLastNotificationID();
+
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
     void testSlot(QStringList checkedList);
 
@@ -73,11 +78,6 @@ private slots:
     void clearSelected();
     void clearVisible();
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
-
-    void notificationAdded(NotificationObject* obj);
-    void notificationDeleted(int ID);
-
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
     void intervalTimeout();
 

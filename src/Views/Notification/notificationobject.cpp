@@ -17,6 +17,7 @@ int NotificationObject::_NotificationID  = 0;
  * @param parent
  */
 NotificationObject::NotificationObject(QString title, QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE2 type, NOTIFICATION_CATEGORY category, QObject *parent)
+    : QObject(parent)
 {
     _ID = ++_NotificationID;
     _entityID = entityID;

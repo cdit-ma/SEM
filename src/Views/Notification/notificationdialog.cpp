@@ -35,12 +35,6 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     setupBackgroundProcessItems();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
-    connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationDialog::backgroundProcess);
-    connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationAdded);
-    connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &NotificationDialog::notificationDeleted);
-    connect(this, &NotificationDialog::deleteNotification, NotificationManager::manager(), &NotificationManager::deleteNotification);
-    connect(this, &NotificationDialog::lastNotificationID, NotificationManager::manager(), &NotificationManager::setLastNotificationItem);
 
     themeChanged();
     initialisePanel();
@@ -576,13 +570,8 @@ void NotificationDialog::initialisePanel()
         foreach (NotificationObject* item, notifications) {
             notificationAdded(item);
         }
-        NotificationManager::manager()->notificationAlert();
         NotificationManager::manager()->showLastNotification();
-    } else {
-        NotificationManager::manager()->notificationSeen();
     }
-    //Update the count of number of notifications in each severity
-    updateSeverityActions(NotificationManager::getNotificationSeverities());
 }
 
 
@@ -881,7 +870,7 @@ void NotificationDialog::setupLayout()
     // setup the SEVERITY, TYPE, and CATEGORY filter actions/buttons in that order
     NotificationManager* manager = NotificationManager::manager();
     foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
-        QString iconName = manager->getSeverityIcon2(severity);
+        QString iconName = manager->getSeverityIcon(severity);
         constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Icons", iconName);
         severityCheckedStates[severity] = false;
     }

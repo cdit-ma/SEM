@@ -474,7 +474,6 @@ void WindowManager::reparentDockWidgetAction(int wID)
 
 void WindowManager::activeDockWidgetVisibilityChanged()
 {
-
     if(activeViewDockWidget && !activeViewDockWidget->isVisible()){
         //Look for next widget.
         BaseWindow* parent = activeViewDockWidget->getCurrentWindow();
@@ -551,7 +550,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topLayout->addWidget(titleLabel, 1);
     topLayout->addWidget(topToolbar);
 
-    QAction* cancelAction = topToolbar->addAction(theme->getIcon("icons", "cross"), "Cancel");
+    QAction* cancelAction = topToolbar->addAction(theme->getIcon("Icons", "cross"), "Cancel");
 
     QWidget* toolbarContainer = new QWidget(widget);
     toolbarContainer->setMaximumWidth(1220);

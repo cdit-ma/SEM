@@ -10,21 +10,20 @@
 NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     : QFrame(parent)
 {
-    notificationObject = obj;
-    selected = true;
-    setSelected(false);
-
     if (!obj) {
         qWarning() << "NotificationItem::NotificationItem - Notification object is null.";
         return;
     }
 
+    notificationObject = obj;
+    selected = true;
+    setSelected(false);
+
     iconPath = obj->iconPath();
     iconName = obj->iconName();
     if (iconPath.isEmpty() || iconName.isEmpty()) {
-        QPair<QString, QString> severityIcon = NotificationManager::getSeverityIcon(getSeverity());
-        iconPath = severityIcon.first;
-        iconName = severityIcon.second;
+        iconPath = "Icons";
+        iconName = NotificationManager::getSeverityIcon(obj->severity());
     }
 
     descriptionLabel = new QLabel(obj->description(), this);

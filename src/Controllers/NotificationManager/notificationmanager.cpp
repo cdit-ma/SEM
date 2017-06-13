@@ -1,13 +1,15 @@
 #include "notificationmanager.h"
 #include "../WindowManager/windowmanager.h"
+#include "../ViewController/viewcontroller.h"
 #include "../../Widgets/Windows/mainwindow.h"
 #include "../../Views/Notification/notificationobject.h"
-#include "../ViewController/viewcontroller.h"
+#include "../../Views/Notification/notificationdialog.h"
+#include "../../Views/Notification/notificationtoolbar.h"
+#include "../../Widgets/Dialogs/popupwidget.h"
 
 NotificationManager* NotificationManager::managerSingleton = 0;
 NotificationObject* NotificationManager::lastNotificationObject = 0;
 
-QTime* NotificationManager::projectRunTime = new QTime();
 QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 
 /**
@@ -19,19 +21,41 @@ NotificationManager* NotificationManager::manager()
     if (!managerSingleton) {
         qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
         managerSingleton = new NotificationManager();
-        projectRunTime->start();
     }
     return managerSingleton;
 }
 
 
 /**
- * @brief NotificationManager::projectTime
+ * @brief NotificationManager::displayPanel
  * @return
  */
-QTime* NotificationManager::projectTime()
+NotificationDialog* NotificationManager::displayPanel()
 {
-    return projectRunTime;
+    NotificationDialog* panel = new NotificationDialog();
+    connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
+    connect(manager(), &NotificationManager::backgroundProcess, panel, &NotificationDialog::backgroundProcess);
+    connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
+    connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
+    connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
+    connect(panel, &NotificationDialog::lastNotificationID, manager(), &NotificationManager::setLastNotificationItem);
+    connect(panel, &NotificationDialog::mouseEntered, manager(), &NotificationManager::notificationSeen);
+    return panel;
+}
+
+
+/**
+ * @brief NotificationManager::displayToolbar
+ * @return
+ */
+NotificationToolbar* NotificationManager::displayToolbar()
+{
+    NotificationToolbar* toolbar = new NotificationToolbar();
+    connect(manager(), &NotificationManager::backgroundProcess, toolbar, &NotificationToolbar::displayLoadingGif);
+    connect(manager(), &NotificationManager::notificationAlert, toolbar, &NotificationToolbar::notificationReceived);
+    connect(manager(), &NotificationManager::notificationSeen, toolbar, &NotificationToolbar::notificationsSeen);
+    connect(manager(), &NotificationManager::lastNotificationDeleted, toolbar, &NotificationToolbar::lastNotificationDeleted);
+    return toolbar;
 }
 
 
@@ -51,8 +75,6 @@ void NotificationManager::resetManager()
     foreach (NotificationObject* m_obj, modelNotifications) {
         deleteNotification(m_obj->ID());
     }
-
-    projectRunTime->restart();
 }
 
 
@@ -227,7 +249,13 @@ QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
     }
 }
 
-QString NotificationManager::getSeverityIcon2(NOTIFICATION_SEVERITY severity)
+
+/**
+ * @brief NotificationManager::getSeverityIcon
+ * @param severity
+ * @return
+ */
+QString NotificationManager::getSeverityIcon(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
     case NS_INFO:
@@ -237,11 +265,16 @@ QString NotificationManager::getSeverityIcon2(NOTIFICATION_SEVERITY severity)
     case NS_ERROR:
         return "circleCrossDark";
     default:
-        return "Unknown Severity";
+        return "circleQuestion";
     }
-
 }
 
+
+/**
+ * @brief NotificationManager::getCategoryIcon
+ * @param category
+ * @return
+ */
 QString NotificationManager::getCategoryIcon(NOTIFICATION_CATEGORY category)
 {
     switch (category) {
@@ -256,9 +289,7 @@ QString NotificationManager::getCategoryIcon(NOTIFICATION_CATEGORY category)
     default:
         return "tiles";
     }
-
 }
-
 
 
 /**
@@ -302,37 +333,8 @@ QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 
 
 /**
- * @brief NotificationManager::getSeverityIcon
- * @param severity
- * @return
- */
-QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERITY severity)
-{
-    QPair<QString, QString> iconPath;
-    iconPath.first = "Icons";
-
-    switch (severity) {
-    case NS_INFO:
-        iconPath.second = "circleInfo";
-        break;
-    case NS_WARNING:
-        iconPath.second = "triangleCritical";
-        break;
-    case NS_ERROR:
-        iconPath.second = "circleCritical";
-        break;
-    default:
-        iconPath.second = "circleQuestion";
-        break;
-    }
-
-    return iconPath;
-}
-
-
-/**
  * @brief NotificationManager::showLastNotification
- * Send a signal to the main window to show the last notification (last item in the dialog's list).
+ * Send a signal to the main window to toast the last notification (last item in the dialog's list).
  */
 void NotificationManager::showLastNotification()
 {
@@ -348,6 +350,7 @@ void NotificationManager::showLastNotification()
  */
 void NotificationManager::modelValidated(QString report)
 {
+    // TODO - Clear previous model validation items before re-validating
     QString status = "Failed";
     if (report.isEmpty()) {
         status = "Succeeded";
@@ -373,8 +376,10 @@ void NotificationManager::modelValidated(QString report)
  * @param s
  * @param t
  * @param c
+ * @param toast
+ * @return
  */
-void NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, bool toast)
+int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, bool toast)
 {
     // construct notification item
     NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
@@ -391,13 +396,20 @@ void NotificationManager::addNotification(QString description, QString iconPath,
     if (toast) {
         emit notificationAdded(iconPath, iconName, description);
     }
+
+    // update severity count hash and send a signal to update the displayed severity count in the notification display toolbar(s)
+    int count = severityCount.value(s, 0);
+    severityCount[s] = count + 1;
+    emit updateSeverityCount(s, count);
+
+    return item->ID();
 }
 
 
 /**
  * @brief NotificationManager::deleteNotification
  * Remove notification with the provided ID from the hash and the notification dialog.
- * Send a signal to update the warning/error counbt in the notification toolbar.
+ * Send a signal to update the warning/error count in the notification toolbar.
  * @param ID
  */
 void NotificationManager::deleteNotification(int ID)
@@ -444,5 +456,3 @@ void NotificationManager::setLastNotificationItem(int ID)
         emit lastNotificationDeleted();
     }
 }
-
-

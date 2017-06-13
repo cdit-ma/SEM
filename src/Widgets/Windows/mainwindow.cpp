@@ -40,12 +40,10 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
+    setViewController(vc);
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
-    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
-
-    setViewController(vc);
 
     themeChanged();
 
@@ -64,33 +62,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     }
 
     toggleWelcomeScreen(true);
-
-    /*
-    QToolButton* tb1 = new QToolButton(this);
-    QToolButton* tb2 = new QToolButton(this);
-    QToolButton* tb3 = new QToolButton(this);
-    QToolButton* tb4 = new QToolButton(this);
-    tb1->setText("ONE");
-    tb2->setText("TWO");
-    tb3->setText("THREE");
-    tb4->setText("ALL");
-
-    FilterGroup* fg = new FilterGroup("TEST", this);
-    fg->addToFilterGroup("one", tb1);
-    fg->addToFilterGroup("two", tb2);
-    fg->addToFilterGroup("three", tb3);
-    fg->addToFilterGroup("", tb4, true);
-    fg->setExclusive(true);
-
-    QToolBar* tb = new QToolBar();
-    tb->addWidget(tb1);
-    tb->addWidget(tb2);
-    tb->addWidget(tb3);
-    tb->addWidget(tb4);
-    tb->setMinimumWidth(300);
-    tb->show();
-    tb->raise();
-    */
 }
 
 
@@ -118,19 +89,15 @@ void MainWindow::setViewController(ViewController *vc)
     ActionController* actionController = vc->getActionController();
 
     connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
-    //connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
+    connect(viewController, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
+    connect(viewController, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
+    connect(viewController, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
-    connect(vc, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
-    connect(vc, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
-
-    connect(vc, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
-    connect(vc, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
-    connect(actionController, &ActionController::recentProjectsUpdated, this, &MainWindow::recentProjectsUpdated);
-
-    if (vc->getActionController()) {
-        connect(vc->getActionController()->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
+    if (actionController) {
+        connect(actionController, &ActionController::recentProjectsUpdated, this, &MainWindow::recentProjectsUpdated);
+        connect(actionController->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
     }
 }
 
@@ -176,7 +143,6 @@ void MainWindow::searchEntered()
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
     notificationPopup->hide();
-
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
@@ -199,7 +165,8 @@ void MainWindow::popupNotification(QString iconPath, QString iconName, QString d
 /**
  * @brief MainWindow::toggleNotificationPanel
  * This toggles the visibility of the notification panel dock widget.
- * If it's already visible but its parent window is not active, activate the window instead of hiding it.
+ * If it's already visible but its parent window is not active, activate
+ * the window instead of hiding it. Otherwise, hide the dock widget.
  */
 void MainWindow::toggleNotificationPanel()
 {
@@ -252,6 +219,7 @@ void MainWindow::showProgressBar(bool show, QString description)
 
 /**
  * @brief MedeaMainWindow::updateProgressBar
+ * This updates the value in the progress bar and hides it when 100% is reached.
  * @param value
  */
 void MainWindow::updateProgressBar(int value)
@@ -262,8 +230,7 @@ void MainWindow::updateProgressBar(int value)
         } else {
             progressBar->setRange(0, 100);
             progressBar->setValue(value);
-            if(value >= 100){
-                //Hide the progress popup
+            if (value >= 100) {
                 progressPopup->setVisible(false);
             }
         }
@@ -274,6 +241,7 @@ void MainWindow::updateProgressBar(int value)
 /**
  * @brief MainWindow::updateMenuBarSize
  * This is called when the displayed notification count is updated in the menu corner widget.
+ * It updates the menubar's size if necessary.
  */
 void MainWindow::updateMenuBarSize()
 {
@@ -380,6 +348,7 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
 
 /**
  * @brief MedeaMainWindow::popupSearch
+ * This pops up and brings the search bar in focus.
  */
 void MainWindow::popupSearch()
 {
@@ -442,8 +411,6 @@ void MainWindow::setModelTitle(QString modelTitle)
     QString title = "MEDEA " % modelTitle % "[*]";
     setWindowTitle(title);
 }
-
-
 
 
 /**
@@ -626,7 +593,7 @@ void MainWindow::setupInnerWindow()
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
-    // This function needs to be called after the code above and before the connections below
+    // This function needs to be called after the code above
     setupMenuCornerWidget();
     setupDockablePanels();
 }
@@ -670,6 +637,10 @@ void MainWindow::setupMenuBar()
     menuBar->addMenu(ac->menu_window);
     menuBar->addMenu(ac->menu_options);
     menuBar->addMenu(ac->menu_help);
+
+    // moved the connection here otherwise this action won't be connected unless there's a notification toolbar
+    QAction* showNotificationPanel = ac->window_showNotifications;
+    connect(showNotificationPanel, &QAction::triggered, this, &MainWindow::ensureNotificationPanelVisible);
 }
 
 
@@ -815,6 +786,7 @@ void MainWindow::setupNotificationBar()
     notificationPopup = new PopupWidget(PopupWidget::TOOL, 0);
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
 
     notificationTimer = new QTimer(this);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
@@ -889,6 +861,7 @@ void MainWindow::setupMenuCornerWidget()
 {
     QMenu* menu = createPopupMenu();
     restoreToolsAction = menu->addAction("Show All Tool Widgets");
+    connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 
     restoreToolsButton = new QToolButton(this);
     restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
@@ -897,7 +870,12 @@ void MainWindow::setupMenuCornerWidget()
     restoreToolsButton->setStyleSheet("QToolButton{ border-radius: 4px; }"
                                       "QToolButton::menu-indicator{ image: none; }");
 
-    notificationToolbar = new NotificationToolbar(viewController, this);
+    //notificationToolbar = new NotificationToolbar(viewController, this);
+    notificationToolbar = NotificationManager::displayToolbar();
+    notificationToolbar->setParent(this);
+    connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
+    connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
+    connect(NotificationManager::manager(), &NotificationManager::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
 
     QToolBar* tb = new QToolBar(this);
     tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
@@ -912,9 +890,6 @@ void MainWindow::setupMenuCornerWidget()
     hLayout->addWidget(notificationToolbar);
     hLayout->addSpacerItem(new QSpacerItem(3,0));
     hLayout->addWidget(tb);
-
-    connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
-    connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 }
 
 
@@ -935,15 +910,16 @@ void MainWindow::setupDockablePanels()
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
     searchDockWidget->setIcon("Icons", "zoom");
-    //searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
 
-    notificationPanel = new NotificationDialog(this);
+    //notificationPanel = new NotificationDialog(this);
+    notificationPanel = NotificationManager::displayPanel();
+    notificationPanel->setParent(this);
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
+
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
-
-    //notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     notificationDockWidget->setIcon("Icons", "exclamation");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
@@ -953,8 +929,6 @@ void MainWindow::setupDockablePanels()
     jenkinsDockWidget->setIcon("Icons", "jenkins");
     jenkinsDockWidget->setIconVisible(true);
     jenkinsDockWidget->setProtected(true);
-
-
 
     dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
 
@@ -997,8 +971,6 @@ void MainWindow::setupDockablePanels()
     bw->show();
     */
 
-
-
     if (viewController) {
         connect(viewController, &ViewController::vc_SetupModelController, searchPanel, &SearchDialog::resetPanel);
         connect(searchPanel, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
@@ -1008,14 +980,11 @@ void MainWindow::setupDockablePanels()
         connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
         connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
     }
-    if (notificationToolbar) {
+    /*if (notificationToolbar) {
         connect(notificationPanel, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
-        connect(notificationPanel, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
-        connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
-    }
+    }*/
     connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
     connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
 }
 
 
