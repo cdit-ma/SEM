@@ -4,10 +4,11 @@
 #include "../../core/eventports/outeventport.hpp"
 #include "../../core/modellogger.h"
 #include <string>
+#include <sstream>
 #include <mutex>
 #include <iostream>
-#include <thread>
 #include <list>
+#include <thread>
 
 namespace tao{
      template <class T, class S, class R> class OutEventPort: public ::OutEventPort<T>{
@@ -25,47 +26,62 @@ namespace tao{
             std::thread* setup_thread_ = 0;
 
             std::mutex control_mutex_;
+            std::mutex writers_mutex_;
 
             bool configured_ = false;
             bool activated_ = false;
 
-            std::string object_key_;
             std::vector<std::string> end_points_;
-
+            std::list<std::string> references_;
 
             std::list<R*> writers_;
-            R* writer_ = 0;
+            CORBA::ORB_var orb_;
     }; 
 };
 
 template <class T, class S, class R>
 void tao::OutEventPort<T, S, R>::tx(T* message){
-    //if(this->is_active() && writer_ != 0){
-        
-        //De-reference the message and send
+    if(this->is_active()){
+        //Try and write message to each writer
         for(auto writer : writers_){
             try{
-                auto m = tao::translate(message);
-                writer->send(*m);
-                delete m;
+                //Send the mesasge 
+                auto tao_message = translate(message);
+                writer->send(*tao_message);
+                delete tao_message;
             }catch(...){
-                //Exception!
+                //Probably a non-connected writer
             }
         }
-        
         ::OutEventPort<T>::tx(message);
-    //}
+    }
 };
 
 template <class T, class S, class R>
 tao::OutEventPort<T, S, R>::OutEventPort(Component* component, std::string name):
-::OutEventPort<T>(component, name, "tao"){};
+::OutEventPort<T>(component, name, "tao"){
+    //end_points_ = {"TestServer=corbaloc:iiop:192.168.111.90:50002/TestServer", "LoggingServer2=corbaloc:iiop:192.168.111.90:50003/LoggingServer2"};
+    //references_ = {"TestServer", "LoggingServer2"};
+};
 
 template <class T, class S, class R>
 void tao::OutEventPort<T, S, R>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    std::cout << "tao::OutEventPort" << std::endl;
+    references_.clear();
+    end_points_.clear();
+
+    if(attributes.count("publisher_address")){
+        for(auto s : attributes["publisher_address"]->StringList()){
+            end_points_.push_back(s);
+        }
+    }
+
+    if(attributes.count("publisher_references")){
+        for(auto s : attributes["publisher_references"]->StringList()){
+            references_.push_back(s);
+        }
+    }
 };
 
 template <class T, class S, class R>
@@ -78,86 +94,79 @@ bool tao::OutEventPort<T, S, R>::Teardown(){
 
 template <class T, class S, class R>
 void tao::OutEventPort<T, S, R>::setup_loop(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    //Magic setup
-    
+    //Construct a unique ID
+    std::stringstream ss;
+    ss << "tao::OutEventPort" << "_" << std::this_thread::get_id();
+    auto unique_id = ss.str();
 
-    //char * arg[size * 2 + 1];
+    //Construct the args for the TAO orb
+    int orb_argc = 0;
+    auto orb_argv = new char*[end_points_.size() * 2];
 
-    char *argv[] = {"-ORBInitRef", "LoggingServer=corbaloc:iiop:192.168.111.90:50002/LoggingServer", "-ORBInitRef", "LoggingServer2=corbaloc:iiop:192.168.111.90:50003/LoggingServer2"};
-    int argc = sizeof(argv) / sizeof(char*) - 1;
+    for(auto &end_point : end_points_){
+        orb_argv[orb_argc++] = (char *) "-ORBInitRef";
+        orb_argv[orb_argc++] = &(end_point[0]);
+    }
 
-
-    //Get a pointer to the orb
-    auto orb = CORBA::ORB_init (argc, argv, "UNIUQUE");
-
-    std::cout <<"ARGC: " << argc << std::endl;;
-    std::cout << "RESOLVE?" << std::endl;
-
-    //Keep trying
+    //Initialize the orb with our custom endpoints
+    orb_ = CORBA::ORB_init (orb_argc, orb_argv, unique_id.c_str());
 
     //Get the reference to the RootPOA
-    auto obj = orb->resolve_initial_references("RootPOA");
-
-    std::cout << "RESOLVED" << std::endl;
-    
-    auto root_poa = ::PortableServer::POA::_narrow(obj);
-
-    std::string reference_str = "LoggingServer";
-
-    std::cout << "RESOLVE2?" << std::endl;
-
-    std::list<std::string> references = {"LoggingServer", "LoggingServer2"};
-    
-
-    
+    auto root_poa_ref = orb_->resolve_initial_references("RootPOA");
+    auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
+  
     while(true){
-        try{
-            for(auto r : references){
-                std::cout << "Resolving: " << r << std::endl;
-                CORBA::Object_var ref_obj = orb->resolve_initial_references(r.c_str());
-                if(!ref_obj){
-                    std::cerr << "Failed to resolve Reference '" << r << "'" << std::endl;
-                }else{
+        for(auto reference : references_){
+            try{
+                //Get a reference
+                auto ref_obj = orb_->resolve_initial_references(reference.c_str());
+                if(ref_obj){
                     //Convert the ref_obj into a typed writer
                     auto writer_ = R::_narrow(ref_obj);
                     if(writer_){
-                        std::cout << "FOT REFERENCE: "  << r << std::endl;
+                        //Gain the mutex and push back onto the queue of writers
+                        std::lock_guard<std::mutex> lock(writers_mutex_);
                         writers_.push_back(writer_);
-                        references.remove(r);
+                        //Remove the 
+                        references_.remove(reference);
                         break;
                     }
                 }
             }
+            catch(...){
+                //Got an exception means we are probably trying to connect to a not yet existant end point.
+            }
         }
-        catch(...){
-            std::cout << "Exception:" << std::endl;
-        }
+        //Sleep for a while
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    std::cout << "RESOLVED2" << std::endl;
-    ::OutEventPort<T>::Activate();
-    activated_ = true;
 }
 
 template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::Activate(){
-    {
-        std::lock_guard<std::mutex> lock(control_mutex_);
-        if(activated_){
-            return true;
-        }
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::OutEventPort<T>::Activate()){
+        //Only construct if we aren't activated.
+        setup_thread_ = new std::thread(&tao::OutEventPort<T, S, R>::setup_loop, this);
+        return true;
     }
-    //Only construct if we aren't activated.
-    setup_thread_ = new std::thread(&tao::OutEventPort<T, S, R>::setup_loop, this);
+    return false;
 };
 
 template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::OutEventPort<T>::Passivate()){
+        //Gain the writers mutex.
+        std::lock_guard<std::mutex> lock(writers_mutex_);
 
-    writer_ = 0;
-    return ::OutEventPort<T>::Passivate();
+        writers_.clear();
+        //Destroying the orb will free the writers
+        orb_->destroy();
+
+        return true;
+    }
+    return false;
 };
 
 #endif //TAO_OUTEVENTPORT_H

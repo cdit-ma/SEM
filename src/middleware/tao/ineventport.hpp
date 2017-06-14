@@ -83,8 +83,14 @@ void tao::InEventPort<T, S, R>::enqueue(const S* message){
 
 template <class T, class S, class R>
 void tao::InEventPort<T, S, R>::Startup(std::map<std::string, ::Attribute*> attributes){
-    {
-        std::lock_guard<std::mutex> lock(control_mutex_);
+    std::lock_guard<std::mutex> lock(control_mutex_);
+
+    if(attributes.count("publisher_address")){
+        end_point_ = attributes["publisher_address"]->String();
+    }
+
+    if(attributes.count("publisher_name")){
+        object_key_ = attributes["publisher_name"]->String();
     }
 };
 
@@ -132,21 +138,19 @@ bool tao::InEventPort<T, S, R>::Teardown(){
 template <class T, class S, class R>
 tao::InEventPort<T, S, R>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
 ::InEventPort<T>(component, name, callback_function, "tao"){
-    object_key_ = "TestServer";
-    end_point_ = "iiop://192.168.111.90:50002";
 };
 
 template <class T, class S, class R>
 void tao::InEventPort<T, S, R>::receive_loop(){
     //Construct a unique ID
     std::stringstream ss;
-    ss << "TAO_INEVENTPORT_" << "_" << std::this_thread::get_id();
+    ss << "tao::InEventPort" << "_" << std::this_thread::get_id();
     auto unique_id = ss.str();
 
     //Construct the args for the TAO orb
     int orb_argc = 0;
     auto orb_argv = new char*[2];
-    orb_argv[orb_argc++] = (char*)"-ORBEndpoint";
+    orb_argv[orb_argc++] = (char*) "-ORBEndpoint";
     orb_argv[orb_argc++] = &(end_point_[0]);
     
     //Initialize the orb with our custom endpoints
