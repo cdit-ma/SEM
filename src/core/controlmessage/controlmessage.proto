@@ -53,6 +53,7 @@ message EventPort{
         RTI = 2;
         OSPL = 3;
         QPID = 4;
+        TAO = 5;
     }
 
     Info info = 1;

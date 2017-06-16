@@ -48,7 +48,7 @@ namespace Graphml{
             Graphml::Edge* GetEdge(std::string id);
             std::string GetAttribute(std::string id, std::string attr_name);
             std::string GetDataValue(std::string id, std::string key_name);
-            
+
             std::string GetDeploymentJSON();
         private:
             std::string to_lower(std::string str);
@@ -56,6 +56,9 @@ namespace Graphml{
             GraphmlParser* graphml_parser_;
 
             std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
+            std::string GetIiopAddress(const std::string ip, const unsigned int port_number);
+            std::string GetNamedIiopAddress(const std::string ip, const unsigned int port_number, const std::string name);
+            
             std::string GetDefinitionId(std::string id);
             std::string GetAggregateID(std::string id);
             std::string GetDeployedID(std::string id);

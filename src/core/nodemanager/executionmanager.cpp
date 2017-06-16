@@ -241,6 +241,7 @@ bool ExecutionManager::ConstructControlMessages(){
                         bool is_ospl = mw == NodeManager::EventPort::OSPL;
                         bool is_qpid = mw == NodeManager::EventPort::QPID;
                         bool is_zmq = mw == NodeManager::EventPort::ZMQ;
+                        bool is_tao = mw == NodeManager::EventPort::TAO;
 
                         bool is_outport = k == NodeManager::EventPort::OUT_PORT;
                         bool is_inport = k == NodeManager::EventPort::IN_PORT;
@@ -326,6 +327,42 @@ bool ExecutionManager::ConstructControlMessages(){
                                     auto outeventport = model_parser_->GetEventPort(port_id);
                                     if(outeventport && outeventport->port_number > 0){
                                         set_attr_string(pub_addr_pb, outeventport->port_address);
+                                    }
+                                }
+                            }
+                        }
+
+                        if(is_tao){
+                            if(is_inport){
+                                auto pub_name_pb = port_pb->add_attributes();
+                                auto pub_name_info_pb = pub_name_pb->mutable_info();
+                                pub_name_info_pb->set_name("publisher_name");
+                                pub_name_pb->set_kind(NodeManager::Attribute::STRING);
+                                set_attr_string(pub_name_pb, event_port->name);
+
+                                auto pub_addr_pb = port_pb->add_attributes();
+                                auto pub_addr_info_pb = pub_addr_pb->mutable_info();
+                                pub_addr_info_pb->set_name("publisher_address");
+                                pub_addr_pb->set_kind(NodeManager::Attribute::STRING);
+                                set_attr_string(pub_addr_pb, event_port->port_address);
+                            }
+                            if(is_outport){
+                                auto pub_name_pb = port_pb->add_attributes();
+                                auto pub_name_info_pb = pub_name_pb->mutable_info();
+                                pub_name_info_pb->set_name("publisher_names");
+                                pub_name_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+
+                                auto pub_addr_pb = port_pb->add_attributes();
+                                auto pub_addr_info_pb = pub_addr_pb->mutable_info();
+                                pub_addr_info_pb->set_name("publisher_address");
+                                pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+
+                                //Find endpoints and push them onto address list
+                                for(auto port_id : event_port->connected_port_ids){
+                                    auto ineventport = model_parser_->GetEventPort(port_id);
+                                    if(ineventport && ineventport->port_number > 0){
+                                        set_attr_string(pub_name_pb, ineventport->name);
+                                        set_attr_string(pub_addr_pb, ineventport->named_port_address);
                                     }
                                 }
                             }
