@@ -106,7 +106,7 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
  * @brief NotificationItem::getType
  * @return
  */
-NOTIFICATION_TYPE2 NotificationItem::getType()
+NOTIFICATION_TYPE NotificationItem::getType()
 {
     if (notificationObject) {
         return notificationObject->type();
@@ -190,7 +190,7 @@ void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> 
  * It updates this item's visibility based on that change.
  * @param checkedStates
  */
-void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates)
+void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates)
 {
     bool visible = checkedStates.value(getType(), false);
     updateVisibility(NF_TYPE, visible);

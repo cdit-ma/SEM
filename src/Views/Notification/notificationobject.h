@@ -15,7 +15,7 @@ public:
                                 QString iconName,
                                 int entityID,
                                 NOTIFICATION_SEVERITY severity = NS_INFO,
-                                NOTIFICATION_TYPE2 type = NT_MODEL,
+                                NOTIFICATION_TYPE type = NT_MODEL,
                                 NOTIFICATION_CATEGORY category = NC_NOCATEGORY,
                                 QObject *parent = 0);
 
@@ -27,7 +27,7 @@ public:
     QString iconPath();
     QString iconName();
 
-    NOTIFICATION_TYPE2 type();
+    NOTIFICATION_TYPE type();
     NOTIFICATION_CATEGORY category();
     NOTIFICATION_SEVERITY severity();
 
@@ -45,7 +45,7 @@ private:
     QString _iconPath;
     QString _iconName;
 
-    NOTIFICATION_TYPE2 _type;
+    NOTIFICATION_TYPE _type;
     NOTIFICATION_CATEGORY _category;
     NOTIFICATION_SEVERITY _severity;
 

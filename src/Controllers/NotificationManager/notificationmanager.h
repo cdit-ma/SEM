@@ -13,7 +13,7 @@ class NotificationToolbar;
 class NotificationObject;
 class PopupWidget;
 
-enum NOTIFICATION_TYPE2{NT_APPLICATION, NT_MODEL};
+enum NOTIFICATION_TYPE{NT_APPLICATION, NT_MODEL};
 enum NOTIFICATION_CATEGORY{NC_NOCATEGORY, NC_FILE, NC_JENKINS, NC_DEPLOYMENT, NC_VALIDATION};
 enum NOTIFICATION_SEVERITY{NS_INFO, NS_WARNING, NS_ERROR};
 enum NOTIFICATION_FILTER{NF_NOFILTER, NF_SEVERITY, NF_TYPE, NF_CATEGORY};
@@ -31,12 +31,16 @@ public:
     static PopupWidget* displayToast();
 
     static QList<NotificationObject*> getNotificationItems();
+    static QList<int> getNotificationsOfType(NOTIFICATION_TYPE type);
+    static QList<int> getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
+    static QList<int> getNotificationsOfCategory(NOTIFICATION_CATEGORY category);
+
     static QList<BACKGROUND_PROCESS> getBackgroundProcesses();
     static QList<NOTIFICATION_FILTER> getNotificationFilters();
-    static QList<NOTIFICATION_TYPE2> getNotificationTypes();
+    static QList<NOTIFICATION_TYPE> getNotificationTypes();
     static QList<NOTIFICATION_CATEGORY> getNotificationCategories();
     static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
-    static QString getTypeString(NOTIFICATION_TYPE2 type);
+    static QString getTypeString(NOTIFICATION_TYPE type);
     static QString getCategoryString(NOTIFICATION_CATEGORY category);
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
     static QString getSeverityIcon(NOTIFICATION_SEVERITY severity);
@@ -52,7 +56,7 @@ public:
                              QString iconName = "",
                              int entityID = -1,
                              NOTIFICATION_SEVERITY s = NS_INFO,
-                             NOTIFICATION_TYPE2 t = NT_MODEL,
+                             NOTIFICATION_TYPE t = NT_MODEL,
                              NOTIFICATION_CATEGORY c = NC_NOCATEGORY);
 
 signals:
@@ -90,11 +94,12 @@ private:
                          QString iconName,
                          int entityID,
                          NOTIFICATION_SEVERITY s,
-                         NOTIFICATION_TYPE2 t,
+                         NOTIFICATION_TYPE t,
                          NOTIFICATION_CATEGORY c,
                          bool toast = true);
 
-    //bool updateNotification(int ID, modifiable params);
+    bool updateNotification(int ID);
+    void updateSeverityCountHash(NOTIFICATION_SEVERITY severity, bool increment);
 
     QHash<NOTIFICATION_SEVERITY, int> severityCount;
 

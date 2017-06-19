@@ -315,16 +315,34 @@ void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
     showPopOutDialog(dockWidget);
 }
 
-void WindowManager::focusChanged(QWidget*, QWidget* now)
+void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
+    qCritical() << "FOCUS CHANGE: " << prev << " TO : " << now;
     if(now){
+        //bool okay;
+        //int ID = now->property("ID").toInt(&okay);
+        //if(okay){
+        //    setActiveDockWidget(ID);
+        //    return;
+        //}
+
         bool okay;
-        int ID = now->property("ID").toInt(&okay);
-        if(okay){
-            setActiveDockWidget(ID);
-            return;
+        int ID = -1;
+        auto p = now;
+        while(p){
+            if(p){
+                ID = p->property("ID").toInt(&okay);
+                if(okay){
+                    qCritical() << "FOUND ID: " << ID;
+                    setActiveDockWidget(ID);
+                    return;
+                }
+                p = p->parentWidget();
+            }
         }
-        QWidget* parent = now->parentWidget();
+
+        auto parent = now->window();
+        qCritical() << "WINDOW PARENT: " << parent;
         if(parent){
             ID = parent->property("ID").toInt(&okay);
             if(okay){

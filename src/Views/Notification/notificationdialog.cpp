@@ -155,7 +155,7 @@ void NotificationDialog::filterToggled(bool checked)
         }
         case NF_TYPE:
         {
-            NOTIFICATION_TYPE2 t = (NOTIFICATION_TYPE2)action->property(ROLE_VAL).toInt();
+            NOTIFICATION_TYPE t = (NOTIFICATION_TYPE)action->property(ROLE_VAL).toInt();
             typeCheckedStates[t] = checked;
             emit typeFiltersChanged(typeCheckedStates);
             break;
@@ -188,7 +188,7 @@ void NotificationDialog::clearFilter(NOTIFICATION_FILTER filter)
         }
         break;
     case NF_TYPE:
-        foreach (NOTIFICATION_TYPE2 t, typeCheckedStates.keys()) {
+        foreach (NOTIFICATION_TYPE t, typeCheckedStates.keys()) {
             typeCheckedStates[t] = false;
         }
         break;
@@ -430,7 +430,7 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
         }
         case NF_TYPE:
         {
-            if (item->getType() == (NOTIFICATION_TYPE2)filterVal) {
+            if (item->getType() == (NOTIFICATION_TYPE)filterVal) {
                 itemsToDelete.append(item);
             }
             break;
@@ -469,7 +469,6 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
     itemsLayout->insertWidget(0, item);
     notificationItems[obj->ID()] = item;
     severityItemsCount[severity]++;
-    updateSeverityAction(severity);
 
     connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::updateSelection);
     connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::showItem);
@@ -490,7 +489,6 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
 /**
  * @brief NotificationDialog::notificationDeleted
  * Delete notification item with the provided ID from the hash and the items layout.
- * Send a signal to the notification toolbar to update the item's severity's count.
  * @param ID
  */
 void NotificationDialog::notificationDeleted(int ID)
@@ -504,7 +502,6 @@ void NotificationDialog::notificationDeleted(int ID)
         selectedItems.removeAll(item);
         itemsLayout->removeWidget(item);
         updateSelectionBasedButtons();
-        updateSeverityAction(severity);
         delete item;
     }
 }
@@ -538,8 +535,6 @@ void NotificationDialog::clearAll()
 
     // reset checked filter buttons and checked filter lists
     clearFilters();
-
-    updateSeverityActions(NotificationManager::getNotificationSeverities());
     updateSelectionBasedButtons();
 }
 
@@ -730,29 +725,6 @@ void NotificationDialog::test()
 
 
 /**
- * @brief NotificationDialog::updateSeverityActions
- * @param severities
- */
-void NotificationDialog::updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities)
-{
-    foreach (NOTIFICATION_SEVERITY severity, severities) {
-        updateSeverityAction(severity);
-    }
-}
-
-
-/**
- * @brief NotificationDialog::updateSeverityAction
- * This updates the text (displaying the items count) in the button for the particular severity.
- * @param severity
- */
-void NotificationDialog::updateSeverityAction(NOTIFICATION_SEVERITY severity)
-{
-    emit updateSeverityCount(severity, severityItemsCount.value(severity, 0));
-}
-
-
-/**
  * @brief NotificationDialog::setupLayout
  */
 void NotificationDialog::setupLayout()
@@ -879,7 +851,7 @@ void NotificationDialog::setupLayout()
         constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Icons", iconName);
         categoryCheckedStates[category] = false;
     }
-    foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
+    foreach (NOTIFICATION_TYPE type, manager->getNotificationTypes()) {
         QString iconName;
         if (type == NT_MODEL) {
             iconName = "dotsInRectangle";

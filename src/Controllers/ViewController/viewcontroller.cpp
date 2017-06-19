@@ -35,7 +35,7 @@
 #define XMI_FILE_SUFFIX ".xml"
 
 ViewController::ViewController() : QObject(){
-    qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
+    //qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
     controller = 0;
 
     codeViewer = 0;

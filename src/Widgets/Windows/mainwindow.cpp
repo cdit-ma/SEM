@@ -34,8 +34,9 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    initializeApplication();
     viewController = vc;
+    initializeApplication();
+    setContextMenuPolicy(Qt::NoContextMenu);
 
     setupTools();
     setupInnerWindow();
@@ -45,8 +46,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
 
-    themeChanged();
-
     SettingsController* s = SettingsController::settings();
 
     int width = s->getSetting(SK_GENERAL_WIDTH).toInt();
@@ -54,13 +53,14 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     resize(width, height);
     resizeToolWidgets();
 
-    setModelTitle();
-    if(s->getSetting(SK_GENERAL_MAXIMIZED).toBool()){
+    if (s->getSetting(SK_GENERAL_MAXIMIZED).toBool()) {
         showMaximized();
-    }else{
+    } else {
         showNormal();
     }
 
+    setModelTitle();
+    themeChanged();
     toggleWelcomeScreen(true);
 }
 
@@ -449,6 +449,8 @@ void MainWindow::toggleWelcomeScreen(bool on)
         return;
     }
 
+    welcomeScreenOn = on;
+
     // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
     setDockWidgetsVisible(!on);
@@ -457,13 +459,16 @@ void MainWindow::toggleWelcomeScreen(bool on)
         holderLayout->removeWidget(welcomeScreen);
         holderLayout->addWidget(innerWindow);
         setCentralWidget(welcomeScreen);
+        // hide notification toast
+        notificationPopup->hide();
+        notificationTimer->stop();
     } else {
         holderLayout->removeWidget(innerWindow);
         holderLayout->addWidget(welcomeScreen);
         setCentralWidget(innerWindow);
+        // show top-most notification; if there are any
+        NotificationManager::manager()->showLastNotification();
     }
-
-    welcomeScreenOn = on;
 }
 
 
@@ -875,7 +880,6 @@ void MainWindow::setupMenuCornerWidget()
     notificationToolbar->setParent(this);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
     connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
-    connect(NotificationManager::manager(), &NotificationManager::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
 
     QToolBar* tb = new QToolBar(this);
     tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
@@ -980,9 +984,6 @@ void MainWindow::setupDockablePanels()
         connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
         connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
     }
-    /*if (notificationToolbar) {
-        connect(notificationPanel, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
-    }*/
     connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
     connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
 }
@@ -1048,7 +1049,10 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         //Check
         if (!cw || !cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
-            //qDebug() << "NOT A WINDOW - " << cw;
+            cw = QApplication::activeWindow();
+            qDebug() << "NOT A WINDOW - " << cw;
+        } else {
+            qDebug() << "WINDOW";
         }
     }
     if (cw == innerWindow) {
