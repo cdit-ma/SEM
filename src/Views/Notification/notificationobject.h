@@ -7,8 +7,10 @@
 
 class NotificationObject : public QObject
 {
+    friend class NotificationManager;
     Q_OBJECT
-public:
+
+protected:
     explicit NotificationObject(QString title,
                                 QString description,
                                 QString iconPath,
@@ -18,7 +20,14 @@ public:
                                 NOTIFICATION_TYPE type = NT_MODEL,
                                 NOTIFICATION_CATEGORY category = NC_NOCATEGORY,
                                 QObject *parent = 0);
+    ~NotificationObject();
 
+    void setTitle(QString title);
+    void setDescription(QString description);
+    void setIconPath(QString path);
+    void setIconName(QString name);
+
+public:
     int ID();
     int entityID();
 
@@ -30,10 +39,12 @@ public:
     NOTIFICATION_TYPE type();
     NOTIFICATION_CATEGORY category();
     NOTIFICATION_SEVERITY severity();
-
+ 
 signals:
-
-public slots:
+    void titleChanged(QString title);
+    void descriptionChanged(QString description);
+    void iconPathChanged(QString path);
+    void iconNameChanged(QString name);
 
 private:
     static int _NotificationID;

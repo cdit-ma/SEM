@@ -558,9 +558,7 @@ void NotificationDialog::clearSelection()
  */
 void NotificationDialog::initialisePanel()
 {
-    //resetDialog();
-
-    QList<NotificationObject*> notifications = NotificationManager::getNotificationItems();
+    QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
     if (!notifications.isEmpty()) {
         foreach (NotificationObject* item, notifications) {
             notificationAdded(item);

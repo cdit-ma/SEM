@@ -131,8 +131,6 @@ public:
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
 
-    RootAction* window_showNotifications;
-
     RootAction* model_validateModel;
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
@@ -178,7 +176,6 @@ public:
     QMenu* menu_model;
     QMenu* menu_jenkins;
     QMenu* menu_help;
-    QMenu* menu_window;
     QMenu* menu_options;
 
     ShortcutDialog* shortcutDialog;

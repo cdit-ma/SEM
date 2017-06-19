@@ -209,7 +209,7 @@ void NotificationToolbar::setupLayout()
  */
 void NotificationToolbar::initialiseToolbar()
 {
-    QList<NotificationObject*> notifications = NotificationManager::getNotificationItems();
+    QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
     if (!notifications.isEmpty()) {
         QHash<NOTIFICATION_SEVERITY, int> severityCount;
         foreach (NotificationObject* obj, notifications) {

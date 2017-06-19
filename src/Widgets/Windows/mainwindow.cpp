@@ -278,7 +278,6 @@ void MainWindow::themeChanged()
     actionController->menu_model->setStyleSheet(menuStyle);
     actionController->menu_jenkins->setStyleSheet(menuStyle);
     actionController->menu_help->setStyleSheet(menuStyle);
-    actionController->menu_window->setStyleSheet(menuStyle);
     actionController->menu_options->setStyleSheet(menuStyle);
 
     searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
@@ -639,13 +638,12 @@ void MainWindow::setupMenuBar()
     menuBar->addMenu(ac->menu_view);
     menuBar->addMenu(ac->menu_model);
     menuBar->addMenu(ac->menu_jenkins);
-    menuBar->addMenu(ac->menu_window);
     menuBar->addMenu(ac->menu_options);
     menuBar->addMenu(ac->menu_help);
 
     // moved the connection here otherwise this action won't be connected unless there's a notification toolbar
-    QAction* showNotificationPanel = ac->window_showNotifications;
-    connect(showNotificationPanel, &QAction::triggered, this, &MainWindow::ensureNotificationPanelVisible);
+    //QAction* showNotificationPanel = ac->window_showNotifications;
+    //connect(showNotificationPanel, &QAction::triggered, this, &MainWindow::ensureNotificationPanelVisible);
 }
 
 
@@ -876,7 +874,7 @@ void MainWindow::setupMenuCornerWidget()
                                       "QToolButton::menu-indicator{ image: none; }");
 
     //notificationToolbar = new NotificationToolbar(viewController, this);
-    notificationToolbar = NotificationManager::displayToolbar();
+    notificationToolbar = NotificationManager::constructToolbar();
     notificationToolbar->setParent(this);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
     connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
@@ -918,7 +916,7 @@ void MainWindow::setupDockablePanels()
     searchDockWidget->setProtected(true);
 
     //notificationPanel = new NotificationDialog(this);
-    notificationPanel = NotificationManager::displayPanel();
+    notificationPanel = NotificationManager::constructPanel();
     notificationPanel->setParent(this);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
 
@@ -1049,10 +1047,10 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         //Check
         if (!cw || !cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
-            cw = QApplication::activeWindow();
-            qDebug() << "NOT A WINDOW - " << cw;
+            //cw = QApplication::activeWindow();
+            //qDebug() << "NOT A WINDOW - " << cw;
         } else {
-            qDebug() << "WINDOW";
+            //qDebug() << "WINDOW";
         }
     }
     if (cw == innerWindow) {

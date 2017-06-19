@@ -45,7 +45,7 @@ void ExecutionManager::ValidateModel(QString model_path)
     if(results.success){
 
         // Clear previous validation notification items
-        foreach (int ID, NotificationManager::getNotificationsOfCategory(NC_VALIDATION)) {
+        foreach (int ID, NotificationManager::manager()->getNotificationsOfCategory(NC_VALIDATION)) {
             NotificationManager::manager()->deleteNotification(ID);
         }
 

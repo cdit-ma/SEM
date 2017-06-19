@@ -317,7 +317,7 @@ void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
 
 void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
-    qCritical() << "FOCUS CHANGE: " << prev << " TO : " << now;
+    //qCritical() << "FOCUS CHANGE: " << prev << " TO : " << now;
     if(now){
         //bool okay;
         //int ID = now->property("ID").toInt(&okay);
@@ -333,7 +333,7 @@ void WindowManager::focusChanged(QWidget* prev, QWidget* now)
             if(p){
                 ID = p->property("ID").toInt(&okay);
                 if(okay){
-                    qCritical() << "FOUND ID: " << ID;
+                    //qCritical() << "FOUND ID: " << ID;
                     setActiveDockWidget(ID);
                     return;
                 }
@@ -342,7 +342,7 @@ void WindowManager::focusChanged(QWidget* prev, QWidget* now)
         }
 
         auto parent = now->window();
-        qCritical() << "WINDOW PARENT: " << parent;
+        //qCritical() << "WINDOW PARENT: " << parent;
         if(parent){
             ID = parent->property("ID").toInt(&okay);
             if(okay){

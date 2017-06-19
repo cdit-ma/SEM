@@ -34,6 +34,64 @@ NotificationObject::NotificationObject(QString title, QString description, QStri
 
 
 /**
+ * @brief NotificationObject::~NotificationObject
+ */
+NotificationObject::~NotificationObject() {}
+
+
+/**
+ * @brief NotificationObject::setTitle
+ * @param title
+ */
+void NotificationObject::setTitle(QString title)
+{
+    if (!title.isEmpty()) {
+        _title = title;
+        emit titleChanged(title);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setDescription
+ * @param description
+ */
+void NotificationObject::setDescription(QString description)
+{
+    if (!description.isEmpty()) {
+        _description = description;
+        emit descriptionChanged(description);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setIconPath
+ * @param path
+ */
+void NotificationObject::setIconPath(QString path)
+{
+    if (!path.isEmpty()) {
+        _iconPath = path;
+        emit iconPathChanged(path);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setIconName
+ * @param name
+ */
+void NotificationObject::setIconName(QString name)
+{
+    if (!name.isEmpty()) {
+        _iconName = name;
+        emit iconNameChanged(name);
+    }
+}
+
+
+/**
  * @brief NotificationObject::ID
  * @return
  */

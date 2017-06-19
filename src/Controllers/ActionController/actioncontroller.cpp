@@ -702,13 +702,6 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-    window_showNotifications = createRootAction("View", "Show Notifications", "", "Icons", "popOut");
-    window_showNotifications->setToolTip("Show Notifications Panel");
-    window_showNotifications->setShortcutContext(Qt::ApplicationShortcut);
-    window_showNotifications->setShortcut(QKeySequence(Qt::Key_F11));
-    //window_showNotifications->setCheckable(true);
-    //window_showNotifications->setChecked(false);
-
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
@@ -802,7 +795,6 @@ void ActionController::setupMainMenu()
     menu_view = new QMenu("View");
     menu_model = new QMenu("Model");
     menu_jenkins = new QMenu("Jenkins");
-    menu_window = new QMenu("Window");
     menu_options = new QMenu("Options");
     menu_help = new QMenu("Help");
 
@@ -873,10 +865,6 @@ void ActionController::setupMainMenu()
 
     menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
-
-
-    // Window Menu
-    menu_window->addAction(window_showNotifications);
 
     // Options Menu
     menu_options->addAction(options_settings);

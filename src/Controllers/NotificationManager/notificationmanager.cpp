@@ -9,8 +9,52 @@
 
 NotificationManager* NotificationManager::managerSingleton = 0;
 NotificationObject* NotificationManager::lastNotificationObject = 0;
-
 QHash<int, NotificationObject*> NotificationManager::notificationObjects;
+
+
+/**
+ * @brief NotificationManager::NotificationManager
+ * @param controller
+ */
+NotificationManager::NotificationManager(ViewController* controller)
+{
+    qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
+    viewController = controller;
+}
+
+
+/**
+ * @brief NotificationManager::~NotificationManager
+ */
+NotificationManager::~NotificationManager() {}
+
+
+/**
+ * @brief NotificationManager::construct_singleton
+ * @param controller
+ * @return
+ */
+bool NotificationManager::construct_singleton(ViewController* controller)
+{
+    if (!managerSingleton) {
+        managerSingleton = new NotificationManager(controller);
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ * @brief NotificationManager::destruct_singleton
+ */
+void NotificationManager::destruct_singleton()
+{
+    if (managerSingleton) {
+        delete managerSingleton;
+    }
+    managerSingleton = 0;
+}
+
 
 /**
  * @brief NotificationManager::manager
@@ -18,19 +62,15 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
  */
 NotificationManager* NotificationManager::manager()
 {
-    if (!managerSingleton) {
-        qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
-        managerSingleton = new NotificationManager();
-    }
     return managerSingleton;
 }
 
 
 /**
- * @brief NotificationManager::displayPanel
+ * @brief NotificationManager::constructPanel
  * @return
  */
-NotificationDialog* NotificationManager::displayPanel()
+NotificationDialog* NotificationManager::constructPanel()
 {
     NotificationDialog* panel = new NotificationDialog();
     connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
@@ -45,10 +85,10 @@ NotificationDialog* NotificationManager::displayPanel()
 
 
 /**
- * @brief NotificationManager::displayToolbar
+ * @brief NotificationManager::constructToolbar
  * @return
  */
-NotificationToolbar* NotificationManager::displayToolbar()
+NotificationToolbar* NotificationManager::constructToolbar()
 {
     NotificationToolbar* toolbar = new NotificationToolbar();
     connect(manager(), &NotificationManager::backgroundProcess, toolbar, &NotificationToolbar::displayLoadingGif);
@@ -337,10 +377,11 @@ QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 
 
 /**
- * @brief NotificationManager::resetManager
+ * @brief NotificationManager::clearModelNotifications
  */
-void NotificationManager::resetManager()
+void NotificationManager::clearModelNotifications()
 {
+    // TODO - Optimise
     // only clear NT_MODEL notifications
     QList<NotificationObject*> modelNotifications;
     foreach (NotificationObject* obj, getNotificationItems()) {
@@ -356,19 +397,6 @@ void NotificationManager::resetManager()
 
 
 /**
- * @brief NotificationManager::tearDown
- */
-void NotificationManager::tearDown()
-{
-    if (managerSingleton) {
-        delete managerSingleton;
-    }
-    managerSingleton = 0;
-    resetManager();
-}
-
-
-/**
  * @brief NotificationManager::displayNotification
  * @param description
  * @param iconPath
@@ -377,10 +405,40 @@ void NotificationManager::tearDown()
  * @param s
  * @param t
  * @param c
+ * @return
  */
-void NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
+int NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
 {
-    addNotification(description, iconPath, iconName, entityID, s, t, c);
+    if (managerSingleton) {
+        return managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c);
+    }
+    return -1;
+}
+
+
+/**
+ * @brief NotificationManager::updateNotification
+ * @param ID
+ * @param iconPath
+ * @param iconName
+ * @param description
+ * @return
+ */
+bool NotificationManager::updateNotification(int ID, QString iconPath, QString iconName, QString description)
+{
+    // TODO - add modifiable parameters
+    // allow change of icon and change of text
+
+    if (!notificationObjects.contains(ID)) {
+        return false;
+    }
+
+    NotificationObject* obj = notificationObjects.value(ID);
+    obj->setIconPath(iconPath);
+    obj->setIconName(iconName);
+    obj->setDescription(description);
+
+    return true;
 }
 
 
@@ -452,37 +510,6 @@ void NotificationManager::showLastNotification()
 
 
 /**
- * @brief NotificationManager::modelValidated
- * @param report
- */
-void NotificationManager::modelValidated(QString report)
-{
-    // Clear previous model validation items before re-validating
-    QListIterator<NotificationObject*> it(notificationObjects.values());
-    while (it.hasNext()) {
-        NotificationObject* obj = it.next();
-        if (obj->category() == NC_VALIDATION) {
-            deleteNotification(obj->ID());
-        }
-    }
-
-    QString status = "Failed";
-    if (report.isEmpty()) {
-        status = "Succeeded";
-    } else {
-        foreach (QString message, report) {
-            QString description = message.split(']').last().trimmed();
-            QString eID = message.split('[').last().split(']').first();
-            addNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION, false);
-        }
-        emit showNotificationPanel();
-        emit updateNotificationToolbarSize();
-    }
-    addNotification("Model Validation " + status, "Icons", "shieldTick", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
-}
-
-
-/**
  * @brief NotificationManager::addNotification
  * @param description
  * @param iconPath
@@ -515,18 +542,6 @@ int NotificationManager::addNotification(QString description, QString iconPath, 
     // update severity count
     updateSeverityCountHash(s, true);
     return item->ID();
-}
-
-
-/**
- * @brief NotificationManager::updateNotification
- * @param ID
- * @return
- */
-bool NotificationManager::updateNotification(int ID /*, modifiable params*/)
-{
-    // TODO - add modifiable parameters
-    return true;
 }
 
 
