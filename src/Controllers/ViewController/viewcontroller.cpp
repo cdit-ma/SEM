@@ -476,16 +476,16 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
 {
     emit vc_JenkinsReady(success);
     QString message = success ? "Settings validated successfully" : errorString;
-    NOTIFICATION_SEVERITY severity = success ? NS_INFO : NS_ERROR;
-    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NT_APPLICATION, NC_JENKINS);
+    NOTIFICATION_SEVERITY severity = success ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
+    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     emit vc_JavaReady(java);
-    NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
+    NOTIFICATION_SEVERITY severity = java ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
     QString message = java ? "Found java: " + javaVersion: "Cannot find java";
-    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NT_APPLICATION);
+    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NOTIFICATION_TYPE::APPLICATION);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -826,22 +826,22 @@ NodeView *ViewController::getActiveNodeView()
 }
 
 void ViewController::modelNotification(MODEL_SEVERITY severity, QString description, int ID){
-    NOTIFICATION_SEVERITY ns = NS_INFO;
+    NOTIFICATION_SEVERITY ns = NOTIFICATION_SEVERITY::INFO;
     switch(severity){
         case MODEL_SEVERITY::ERROR:
-            ns = NS_ERROR;
+            ns = NOTIFICATION_SEVERITY::ERROR;
             break;
         case MODEL_SEVERITY::WARNING:
-            ns = NS_WARNING;
+            ns = NOTIFICATION_SEVERITY::WARNING;
             break;
         case MODEL_SEVERITY::INFO:
-            ns = NS_INFO;
+            ns = NOTIFICATION_SEVERITY::INFO;
             break;
         default:
             break;
     }
 
-    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NT_MODEL, NC_NOCATEGORY);
+    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
 }
 
 void ViewController::setControllerReady(bool ready)

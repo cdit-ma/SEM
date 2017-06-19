@@ -170,9 +170,9 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
 
     if(success){
         emit GotJenkinsNodes(data);
-        NotificationManager::manager()->displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+        NotificationManager::manager()->displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NC_INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
     }else{
-        NotificationManager::manager()->displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NS_ERROR, NT_MODEL, NC_JENKINS);
+        NotificationManager::manager()->displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NC_ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
     }
 }
 
@@ -181,19 +181,19 @@ void JenkinsManager::SettingChanged(SETTING_KEY key, QVariant value)
     QString strValue = value.toString();
 
     switch(key){
-    case SK_JENKINS_API:{
+    case SK_JENKINC_API:{
         SetApiToken(strValue);
         break;
     }
-    case SK_JENKINS_JOBNAME:{
+    case SK_JENKINC_JOBNAME:{
         SetJobName(strValue);
         break;
     }
-    case SK_JENKINS_USER:{
+    case SK_JENKINC_USER:{
         SetUser(strValue);
         break;
     }
-    case SK_JENKINS_URL:{
+    case SK_JENKINC_URL:{
         SetUrl(strValue);
         break;
     }

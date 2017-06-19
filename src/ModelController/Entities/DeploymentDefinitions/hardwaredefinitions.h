@@ -1,5 +1,5 @@
-#ifndef HARDWAREDEFINITIONS_H
-#define HARDWAREDEFINITIONS_H
+#ifndef HARDWAREDEFINITIONC_H
+#define HARDWAREDEFINITIONC_H
 
 #include "../node.h"
 
@@ -16,4 +16,4 @@ public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
-#endif // HARDWAREDEFINITIONS_H
+#endif // HARDWAREDEFINITIONC_H

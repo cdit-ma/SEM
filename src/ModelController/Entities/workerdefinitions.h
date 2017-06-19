@@ -1,5 +1,5 @@
-#ifndef WORKERDEFINITIONS_H
-#define WORKERDEFINITIONS_H
+#ifndef WORKERDEFINITIONC_H
+#define WORKERDEFINITIONC_H
 #include "node.h"
 
 class EntityFactory;
@@ -18,4 +18,4 @@ public:
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
-#endif // WORKERDEFINITIONS_H
+#endif // WORKERDEFINITIONC_H

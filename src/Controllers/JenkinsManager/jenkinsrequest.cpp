@@ -304,7 +304,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
         }
 
         if(build_number > 0){
-            NotificationManager::manager()->displayNotification("Started Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+            NotificationManager::manager()->displayNotification("Started Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
             //If the build started, monitor the job, this will call Finished() once complete
             GetJobConsoleOutput(job_name, build_number);
         }
@@ -316,7 +316,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
     if(build_number == -1){
         emit Finished();
     }else{
-        NotificationManager::manager()->displayNotification("Jenkins Job: " + job_name + " #" + QString::number(build_number) + " Finished!" , "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+        NotificationManager::manager()->displayNotification("Jenkins Job: " + job_name + " #" + QString::number(build_number) + " Finished!" , "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
     }
 }
 
@@ -326,10 +326,10 @@ void JenkinsRequest::StopJob(QString job_name, int build_number, QString configu
         auto stop_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/stop";
         auto stop_request = getAuthenticatedRequest(stop_url);
 
-        NotificationManager::manager()->displayNotification("Stopping Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+        NotificationManager::manager()->displayNotification("Stopping Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
         auto stop_result = GetRunner()->HTTPPost(stop_request);
         if(stop_result.success){
-            NotificationManager::manager()->displayNotification("Stopped Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NS_INFO, NT_MODEL, NC_JENKINS);
+            NotificationManager::manager()->displayNotification("Stopped Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
         }
     }
 

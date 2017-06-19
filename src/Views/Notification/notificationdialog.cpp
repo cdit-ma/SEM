@@ -666,7 +666,7 @@ void NotificationDialog::removeItem(NotificationItem* item)
 {
     if (item) {
         NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (severity != NS_ERROR) {
+        if (severity != NOTIFICATION_SEVERITY::ERROR) {
             emit deleteNotification(item->getID());
         }
     }
@@ -851,9 +851,9 @@ void NotificationDialog::setupLayout()
     }
     foreach (NOTIFICATION_TYPE type, manager->getNotificationTypes()) {
         QString iconName;
-        if (type == NT_MODEL) {
+        if (type == NOTIFICATION_TYPE::MODEL) {
             iconName = "dotsInRectangle";
-        } else if (type == NT_APPLICATION) {
+        } else if (type == NOTIFICATION_TYPE::APPLICATION) {
             iconName = "pencil";
         }
         constructFilterButtonAction(IR_TYPE, type, manager->getTypeString(type), "Icons", iconName);

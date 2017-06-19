@@ -150,8 +150,8 @@ void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, in
 void NotificationToolbar::setupLayout()
 {
     // create a label for the following severities of notifications
-    severityCount[NS_WARNING] = new QLabel("0", this);
-    severityCount[NS_ERROR] = new QLabel("0", this);
+    severityCount[NOTIFICATION_SEVERITY::WARNING] = new QLabel("0", this);
+    severityCount[NOTIFICATION_SEVERITY::ERROR] = new QLabel("0", this);
 
     showMostRecentAction = addAction("");
     showMostRecentAction->setToolTip("Show Most Recent Notification");

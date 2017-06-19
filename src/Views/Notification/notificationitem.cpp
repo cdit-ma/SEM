@@ -98,7 +98,7 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
     if (notificationObject) {
         return notificationObject->severity();
     }
-    return NS_INFO;
+    return NOTIFICATION_SEVERITY::INFO;
 }
 
 
@@ -111,7 +111,7 @@ NOTIFICATION_TYPE NotificationItem::getType()
     if (notificationObject) {
         return notificationObject->type();
     }
-    return NT_MODEL;
+    return NOTIFICATION_TYPE::MODEL;
 }
 
 
@@ -124,7 +124,7 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
     if (notificationObject) {
         return notificationObject->category();
     }
-    return NC_NOCATEGORY;
+    return NOTIFICATION_CATEGORY::NOCATEGORY;
 }
 
 
