@@ -2164,6 +2164,7 @@ bool ModelController::isKeyNameVisual(QString key_name){
 
 bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node *parent)
 {
+    setModelAction(action);
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
 
@@ -2652,7 +2653,11 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
     }
 
     //Clear the topEntity
+
+    
     delete current_entity;
+
+    unsetModelAction(action);
 
     return error_count == 0;
 }
