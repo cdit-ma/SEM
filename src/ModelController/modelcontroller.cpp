@@ -1327,6 +1327,8 @@ bool ModelController::destructEntities(QList<Entity*> entities)
             }
         }
     }
+
+  
     //Get sorted orders
     auto sorted_nodes = getOrderedEntities(nodes.toList());
 
@@ -1352,7 +1354,6 @@ bool ModelController::destructEntities(QList<Entity*> entities)
     }
 
     for(auto entity : sorted_nodes){
-        
         auto node = (Node*) entity;
 
         //Create an undo state for each top level item
@@ -1362,7 +1363,6 @@ bool ModelController::destructEntities(QList<Entity*> entities)
         action.Action.type = ACTION_TYPE::DESTRUCTED;
         action.xml = exportGraphML(entity);
         addActionToStack(action);
-
         destructNode_(node);
     }
     return true;
@@ -1376,8 +1376,8 @@ void ModelController::destructNode_(Node* node){
         while(!children.isEmpty()){
             //delete from the end.
             auto child = children.takeLast();
-
             removeEntity(child);
+
         }
         removeEntity(node);
     }
@@ -1713,25 +1713,25 @@ void ModelController::bindData(Node *defn, Node *child)
     
     if(bind_types){
         if(defn_type){
-            child_type->setParentData(defn_type);
+            defn_type->bindData(child_type);
         }else if(defn_label){
-            child_type->setParentData(defn_label);
+            defn_label->bindData(child_type);
         }
     }
 
     //Bind label
     if(bind_labels){
-        child_label->setParentData(defn_label);
+        defn_label->bindData(child_label);
     }
 
     //Bind Keys
     if(bind_keys){
-        child_key->setParentData(defn_key);
+        defn_key->bindData(child_key);
     }
 
     //Bind Index
     if(bind_index){
-        child_index->setParentData(defn_index);
+        defn_index->bindData(child_index);
     }
 }
 
@@ -1741,9 +1741,7 @@ void ModelController::unbindData(Node *definition, Node *instance)
         Data* newData = 0;
         newData = instance->getData(attachedData->getKey());
         if(newData){
-            if(newData->getParentData() == attachedData){
-                newData->unsetParentData();
-            }
+            attachedData->unbindData(newData);
         }
     }
 }
@@ -1865,7 +1863,7 @@ bool ModelController::bindData_(Node* src, QString src_key, Node* dst, QString d
         auto src_data = src->getData(src_key);
         auto dst_data = dst->getData(dst_key);
         if(src_data && dst_data && !dst_data->getParentData()){
-            dst_data->setParentData(src_data);
+            src_data->bindData(dst_data);
             return true;
         }
     }
@@ -1878,7 +1876,7 @@ bool ModelController::unbindData_(Node* src, QString src_key, Node* dst, QString
         auto src_data = src->getData(src_key);
         auto dst_data = dst->getData(dst_key);
         if(src_data && dst_data && dst_data->getParentData() == src_data){
-            dst_data->unsetParentData();
+            dst_data->unbindData(src_data);
             return true;
         }
     }

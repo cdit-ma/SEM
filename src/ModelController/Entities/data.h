@@ -2,6 +2,8 @@
 #define DATA_H
 #include "key.h"
 #include "entity.h"
+#include <QSet>
+
 class EntityFactory; 
 class Data : public GraphML
 {
@@ -16,8 +18,6 @@ protected:
     ~Data();
     static Data* clone(Data* data);
 public:
-
-    void setParent(Entity* parent);
     Entity* getParent();
 
     void setProtected(bool protect);
@@ -27,16 +27,17 @@ public:
 
     bool setValue(QVariant value);
     
-    void setParentData(Data* parentData);
+
+    bool bindData(Data* data);
+    bool unbindData(Data* data);
+    void registerParent(Entity* parent);
+
     Data* getParentData();
-    void unsetParentData();
+    
     void revalidateData();
     void clearValue();
     bool compare(const Data* data) const;
 
-    QList<Data*> getChildData();
-
-    bool isVisualData();
 
     Key* getKey();
     QString getKeyName() const;
@@ -49,8 +50,12 @@ protected:
     void restore_value();
 
     bool forceValue(QVariant value);
-    void addChildData(Data* childData);
-    void removeChildData(Data* childData);
+
+    void setParentData(Data* data);
+    void setParent(Entity* parent);
+private:
+    bool addChildData(Data* data);
+    bool removeChildData(Data* data);
 signals:
     void dataChanged(QVariant data);
 private slots:
@@ -58,20 +63,22 @@ private slots:
 private:
     bool _setValue(QVariant value, bool validate = true);
     void updateChildren(bool changed = true);
-    Entity* _parent;
-    Key* _key;
-    Data* _parentData;
-    int _parentDataID;
-    QString _keyName;
+    
+    Entity* parent = 0;
+    Key* key = 0;
+    Data* parent_data = 0;
+    int parent_data_id = -1;
+    
+    QString key_name;
 
-    bool _isProtected;
-    bool _isDataLinked;
-    QVariant _value;
+    bool is_protected = false;
+    bool is_data_linked = false;
+    
+    
+    QVariant value;
     QVariant old_value;
-    QHash<int, Data*> _childData;
 
-    // GraphML interface
-
+    QSet<Data*> child_data;
 };
 
 #endif // DATA_H
