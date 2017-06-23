@@ -116,6 +116,8 @@ void ActionController::connectViewController(ViewController *controller)
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
         //connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
+        connect(file_importIdl, &QAction::triggered, viewController, &ViewController::importIdlFile);
+        
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
@@ -416,6 +418,7 @@ void ActionController::updateActions()
 
     file_importGraphML->setEnabled(controller_ready);
     
+    file_importIdl->setEnabled(controller_ready);
     //file_importXME->setEnabled(modelActions);
     //file_importXMI->setEnabled(modelActions);
     file_saveProject->setEnabled(controller_ready);
@@ -581,6 +584,9 @@ void ActionController::setupActions()
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 
 
+    
+    file_importIdl = createRootAction("Project", "Import IDL File", "", "Icons", "clipboardDown");
+    file_importIdl->setToolTip("Import IDL file into current project.");
     //file_importXME = createRootAction("Project", "Import XME Project", "", "Icons", "gme");
     //file_importXME->setToolTip("Import XME Project into current project.");
     //file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
@@ -817,6 +823,8 @@ void ActionController::setupMainMenu()
     menu_file->addAction(file_closeProject);
     menu_file->addSeparator();
     menu_file->addAction(file_importGraphML);
+    menu_file->addAction(file_importIdl);
+    
     //menu_file->addAction(file_importXME);
     //menu_file->addAction(file_importXMI);
     //menu_file->addSeparator();

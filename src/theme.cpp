@@ -1060,6 +1060,7 @@ void Theme::preloadImages()
     auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "Preloaded #" << load_count << " Images in: " <<  time_finish - time_start << "MS";
     clearIconMap();
+    emit theme_Changed();
 }
 
 void Theme::settingChanged(SETTING_KEY setting, QVariant value)

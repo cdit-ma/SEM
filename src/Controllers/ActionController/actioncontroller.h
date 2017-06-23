@@ -95,6 +95,7 @@ public:
     RootAction* file_importGraphML;
     //RootAction* file_importXME;
     //RootAction* file_importXMI;
+    RootAction* file_importIdl;
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
