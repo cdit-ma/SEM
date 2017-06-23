@@ -14,7 +14,7 @@
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
 #include "../../Utils/filehandler.h"
-#include "../../Utils/IdlImporter/idlparser.h"
+#include "../../Utils/IdlParser/idlparser.h"
 
 #include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>

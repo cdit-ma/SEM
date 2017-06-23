@@ -123,8 +123,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlImporter/graphmlexporter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlImporter/idlparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
@@ -207,8 +207,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlImporter/graphmlexporter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlImporter/idlparser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
 )
 
