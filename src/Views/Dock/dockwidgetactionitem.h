@@ -50,9 +50,7 @@ private:
     QLabel* textLabel;
     QLabel* iconLabel;
     QLabel* arrowLabel;
-    QLabel* imageLabel;
 
-    Theme* theme;
     QString backgroundColorHex;
     QString colorHex;
     QString borderStr;

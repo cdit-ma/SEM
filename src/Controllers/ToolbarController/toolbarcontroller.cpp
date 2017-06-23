@@ -375,6 +375,12 @@ void ToolbarController::themeChanged()
     foreach (RootAction* action, disconnectEdgeKindActions.values()) {
         viewController->getActionController()->updateIcon(action, theme);
     }
+
+    foreach (RootAction* action, actions.values()) {
+        viewController->getActionController()->updateIcon(action, theme);
+    }
+
+
 }
 
 QStringList ToolbarController::getKindsRequiringSubActions()

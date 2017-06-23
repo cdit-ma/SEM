@@ -43,21 +43,24 @@ signals:
     void deleteNotification(int ID);
     void lastNotificationID(int ID);
 
-    void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
-
     void mouseEntered();
 
     void filtersCleared();
     void filterCleared(NOTIFICATION_FILTER filter);
     void severityFiltersChanged(QHash<NOTIFICATION_SEVERITY, bool> states);
-    void typeFiltersChanged(QHash<NOTIFICATION_TYPE2, bool> states);
+    void typeFiltersChanged(QHash<NOTIFICATION_TYPE, bool> states);
     void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
 
 public slots:
     void initialisePanel();
     void resetPanel();
 
+    void notificationAdded(NotificationObject* obj);
+    void notificationDeleted(int ID);
+
     void getLastNotificationID();
+
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
     void testSlot(QStringList checkedList);
 
@@ -73,11 +76,6 @@ private slots:
     void clearSelected();
     void clearVisible();
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
-
-    void notificationAdded(NotificationObject* obj);
-    void notificationDeleted(int ID);
-
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
     void intervalTimeout();
 
@@ -99,9 +97,6 @@ private:
 
     void clearFilter(NOTIFICATION_FILTER filter);
     void clearFilters();
-
-    void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
-    void updateSeverityAction(NOTIFICATION_SEVERITY severity);
 
     NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
 
@@ -142,7 +137,7 @@ private:
     QList<QAction*> checkedFilterActions;
     QList<NotificationItem*> selectedItems;
 
-    QHash<NOTIFICATION_TYPE2, bool> typeCheckedStates;
+    QHash<NOTIFICATION_TYPE, bool> typeCheckedStates;
     QHash<NOTIFICATION_CATEGORY, bool> categoryCheckedStates;
     QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
 

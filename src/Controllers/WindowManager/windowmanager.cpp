@@ -315,16 +315,34 @@ void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
     showPopOutDialog(dockWidget);
 }
 
-void WindowManager::focusChanged(QWidget*, QWidget* now)
+void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
+    //qCritical() << "FOCUS CHANGE: " << prev << " TO : " << now;
     if(now){
+        //bool okay;
+        //int ID = now->property("ID").toInt(&okay);
+        //if(okay){
+        //    setActiveDockWidget(ID);
+        //    return;
+        //}
+
         bool okay;
-        int ID = now->property("ID").toInt(&okay);
-        if(okay){
-            setActiveDockWidget(ID);
-            return;
+        int ID = -1;
+        auto p = now;
+        while(p){
+            if(p){
+                ID = p->property("ID").toInt(&okay);
+                if(okay){
+                    //qCritical() << "FOUND ID: " << ID;
+                    setActiveDockWidget(ID);
+                    return;
+                }
+                p = p->parentWidget();
+            }
         }
-        QWidget* parent = now->parentWidget();
+
+        auto parent = now->window();
+        //qCritical() << "WINDOW PARENT: " << parent;
         if(parent){
             ID = parent->property("ID").toInt(&okay);
             if(okay){
@@ -474,7 +492,6 @@ void WindowManager::reparentDockWidgetAction(int wID)
 
 void WindowManager::activeDockWidgetVisibilityChanged()
 {
-
     if(activeViewDockWidget && !activeViewDockWidget->isVisible()){
         //Look for next widget.
         BaseWindow* parent = activeViewDockWidget->getCurrentWindow();
@@ -551,7 +568,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topLayout->addWidget(titleLabel, 1);
     topLayout->addWidget(topToolbar);
 
-    QAction* cancelAction = topToolbar->addAction(theme->getIcon("icons", "cross"), "Cancel");
+    QAction* cancelAction = topToolbar->addAction(theme->getIcon("Icons", "cross"), "Cancel");
 
     QWidget* toolbarContainer = new QWidget(widget);
     toolbarContainer->setMaximumWidth(1220);

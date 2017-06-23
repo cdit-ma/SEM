@@ -14,14 +14,13 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     DockWidgetItem(action->text(), parent)
 {
     dockAction = action;
-
-    theme = Theme::theme();
-    highlighted = false;
-
     dockActionID = -1;
+
     if (action) {
         dockActionID = action->property("ID").toInt();
     }
+
+    highlighted = false;
 
     setupLayout();
     setSubActionRequired(false);
@@ -31,7 +30,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     updateDisplayedText(getDisplayedText());
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
-    connect(theme, SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
 
     actionChanged();
@@ -139,14 +138,10 @@ bool DockWidgetActionItem::isHighlighted()
 void DockWidgetActionItem::actionChanged()
 {
     if (dockAction) {
-
-
         QPixmap iconPixmap = dockAction->icon().pixmap(ICON_SIZE);
         if (!iconPixmap.isNull()) {
             iconLabel->setPixmap(iconPixmap);
-        }// else {
-         //   iconLabel->setPixmap(theme->getImage("Icons", "circleQuestion", QSize(ICON_SIZE, ICON_SIZE)));
-        //}
+        }
         QString actionText = dockAction->text();
         if (actionText != getText()) {
             setText(actionText);
@@ -161,6 +156,7 @@ void DockWidgetActionItem::actionChanged()
  */
 void DockWidgetActionItem::themeChanged()
 {
+    Theme* theme = Theme::theme();
     arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(16,16), theme->getTextColor()));
     updateStyleSheet();
 }
@@ -182,11 +178,6 @@ void DockWidgetActionItem::updateDisplayedText(QString text)
  */
 void DockWidgetActionItem::enterEvent(QEvent* event)
 {
-
-    if (theme) {
-        textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
-        arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH, ARROW_WIDTH), theme->getTextColor(theme->CR_SELECTED)));
-    }
     emit hoverEnter(dockActionID);
     QToolButton::enterEvent(event);
 }
@@ -198,10 +189,6 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
  */
 void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
-    if (theme) {
-        textLabel->setStyleSheet("color:" + colorHex + ";");
-        arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH,ARROW_WIDTH), theme->getTextColor()));
-    }
     emit hoverLeave(dockActionID);
     QToolButton::leaveEvent(event);
 }
@@ -219,7 +206,6 @@ void DockWidgetActionItem::setupLayout()
     textLabel->setFont(QFont(font().family(), 8));
 
     arrowLabel = new QLabel(this);
-    //arrowLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     arrowLabel->setFixedWidth(ARROW_WIDTH);
     arrowLabel->hide();
 
@@ -251,6 +237,7 @@ void DockWidgetActionItem::setupLayout()
  */
 void DockWidgetActionItem::updateStyleSheet()
 {
+    Theme* theme = Theme::theme();
     if (highlighted) {
         backgroundColorHex = theme->getHighlightColorHex();
         colorHex = theme->getTextColorHex(Theme::CR_SELECTED);
@@ -260,7 +247,15 @@ void DockWidgetActionItem::updateStyleSheet()
         colorHex = theme->getTextColorHex();
         borderStr = "0px";
     }
-    setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
-    textLabel->setStyleSheet("color:" + colorHex + ";");
 
+    setStyleSheet("QToolButton {"
+                  "background:" + backgroundColorHex + ";"
+                  "border:" + borderStr + ";"
+                  "border-radius:" + theme->getCornerRadius() + ";"
+                  "}"
+                  "QToolButton:hover {"
+                  "border: 3px solid " + theme->getHighlightColorHex() + ";"
+                  "}");
+
+    textLabel->setStyleSheet("color:" + colorHex + ";");
 }

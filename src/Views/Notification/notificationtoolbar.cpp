@@ -1,4 +1,5 @@
 #include "notificationtoolbar.h"
+#include "notificationobject.h"
 #include "../../theme.h"
 
 #include <QGraphicsDropShadowEffect>
@@ -8,23 +9,19 @@
  * @param vc
  * @param parent
  */
-NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
+NotificationToolbar::NotificationToolbar(QWidget *parent) :
     QToolBar(parent)
 {
-    toggleNotificationsDialog = vc->getActionController()->window_showNotifications;
+    //toggleNotificationsDialog = vc->getActionController()->window_showNotifications;
     loadingGifDisplayed = false;
 
     setupLayout();
     themeChanged();
+    initialiseToolbar();
 
     //connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
-    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
-
+    //connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
-    connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationToolbar::displayLoadingGif);
-    connect(NotificationManager::manager(), &NotificationManager::notificationAlert, this, &NotificationToolbar::notificationReceived);
-    connect(NotificationManager::manager(), &NotificationManager::notificationSeen, this, &NotificationToolbar::notificationsSeen);
-    connect(NotificationManager::manager(), &NotificationManager::lastNotificationDeleted, this, &NotificationToolbar::lastNotificationDeleted);
 }
 
 
@@ -42,13 +39,13 @@ void NotificationToolbar::themeChanged()
                   "QToolButton{ padding: 2px; }"
                   "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
                   "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}");
-                  //"QLabel{ background: rgba(0,0,0,0); }");
 
     //defaultIcon = theme->getIcon("Actions", "Exclamation");
     //notificationIcon = theme->getIcon(lastNotification.iconPath, lastNotification.iconName);
 
     defaultIcon = theme->getIcon("Icons", "clock");
     notificationIcon = theme->getIcon("Icons", "exclamation");
+    toggleNotificationsDialog->setIcon(theme->getIcon("Icons", "popOut"));
     updateButtonIcon();
 }
 
@@ -139,7 +136,6 @@ void NotificationToolbar::updateIconFrame(int)
  */
 void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, int count)
 {
-    //if ()
     QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
         countLabel->setText(QString::number(count));
@@ -190,6 +186,10 @@ void NotificationToolbar::setupLayout()
         }
     }
 
+    toggleNotificationsDialog = new QAction(this);
+    toggleNotificationsDialog->setToolTip("Show Notifications Panel");
+    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
+    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
     addAction(toggleNotificationsDialog);
 
     // set object names for the two actions - used in the stylesheet
@@ -199,6 +199,31 @@ void NotificationToolbar::setupLayout()
     loadingGif = new QMovie(this);
     loadingGif->setFileName(":/Actions/Waiting");
     loadingGif->start();
+}
+
+
+/**
+ * @brief NotificationToolbar::initialiseToolbar
+ * Check if any notifications were received before this toolbar was constructed.
+ * Update the displayed warning/error count and highlight showMostRecent button if necessary.
+ */
+void NotificationToolbar::initialiseToolbar()
+{
+    QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
+    if (!notifications.isEmpty()) {
+        QHash<NOTIFICATION_SEVERITY, int> severityCount;
+        foreach (NotificationObject* obj, notifications) {
+            NOTIFICATION_SEVERITY s = obj->severity();
+            int count = severityCount.value(s,0);
+            severityCount[s] = count + 1;
+        }
+        foreach (NOTIFICATION_SEVERITY s, severityCount.keys()) {
+            updateSeverityCount(s, severityCount.value(s));
+        }
+        notificationReceived();
+    } else {
+        notificationsSeen();
+    }
 }
 
 
@@ -217,4 +242,3 @@ void NotificationToolbar::updateButtonIcon()
         }
     }
 }
-

@@ -41,7 +41,7 @@
 
 
 ViewController::ViewController() : QObject(){
-    qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
+    //qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
     controller = 0;
 
     codeViewer = 0;
@@ -54,6 +54,8 @@ ViewController::ViewController() : QObject(){
 
     //Initialize Settings
     SettingsController::initializeSettings();
+
+    NotificationManager::construct_singleton(this);
 
     //notificationManager = new NotificationManager(this, this);
     selectionController = new SelectionController(this);
@@ -943,7 +945,7 @@ void ViewController::TeardownController()
         emit controller->InitiateTeardown();
         controller = 0;
         // reset the notification manager
-        NotificationManager::manager()->resetManager();
+        NotificationManager::manager()->clearModelNotifications();
     }
 }
 

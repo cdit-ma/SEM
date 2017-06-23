@@ -17,11 +17,12 @@
 #include "../../ModelController/edgekinds.h"
 
 enum class MODEL_SEVERITY;
-//class NotificationManager;
+class NotificationManager;
 class ModelController;
 class ContextToolbar;
 class NodeView;
 class JenkinsManager;
+
 class ViewController : public QObject
 {
     Q_OBJECT

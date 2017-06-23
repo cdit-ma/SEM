@@ -43,6 +43,12 @@ void ExecutionManager::ValidateModel(QString model_path)
     emit NotificationManager::manager()->backgroundProcess(false, BP_VALIDATION);
 
     if(results.success){
+
+        // Clear previous validation notification items
+        foreach (int ID, NotificationManager::manager()->getNotificationsOfCategory(NC_VALIDATION)) {
+            NotificationManager::manager()->deleteNotification(ID);
+        }
+
         int count = 0;
         int success_count = 0;
 
@@ -80,9 +86,9 @@ void ExecutionManager::ValidateModel(QString model_path)
         if(success_count < count){
             NotificationManager::manager()->showNotificationPanel();
         }
-        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_WARNING, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_WARNING, NT_MODEL, NC_VALIDATION);
     }else{
-        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NS_ERROR, NT_MODEL, NC_VALIDATION);
     }
 }
 
