@@ -16,9 +16,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Charts REQUIRED)
 
-SET(VERSION "2.1.2-RE")
+SET(VERSION "2.1.2-RE-CACHE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
 
@@ -122,7 +122,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -159,7 +159,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.h
@@ -275,6 +275,7 @@ endif()
 
 #Link against things
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} Qt5::Charts)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller)
 
 #Install should copy the MEDEA app into a MEDEA folder

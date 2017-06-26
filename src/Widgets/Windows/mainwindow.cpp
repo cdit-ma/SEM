@@ -250,6 +250,35 @@ void MainWindow::updateMenuBarSize()
 }
 
 
+void MainWindow::updateGraph(QString name, double value){
+
+    if(name != ""){
+        if(!series_hash.contains(name)){
+            auto series = new QLineSeries(chart);
+            chart->addSeries(series);
+            series->setName(name);
+
+            series->attachAxis(axisX);
+            series->attachAxis(axisY);
+
+            series_hash[name] = series;
+        }
+        auto series = series_hash[name];
+        auto pos = series->count();
+        series->append(pos, value);
+
+        if(value > max_y_range){
+            max_y_range = value;
+            axisY->setRange(0, max_y_range);    
+        }
+
+        axisX->setRange(0, pos);
+
+        //chart->axisX()->setRange(0, pos);
+
+    }
+
+}
 /**
  * @brief MedeaMainWindow::resetToolDockWidgets
  */
@@ -545,11 +574,37 @@ void MainWindow::setupInnerWindow()
     innerWindow = WindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
+    BaseDockWidget* graphWidget = WindowManager::constructViewDockWidget("Graph");
+    
+    chart = new QChart();
+    chart->setTitle("Render Times");
+
+    axisX = new QValueAxis;
+    axisX->setTickCount(10);
+    axisX->setRange(0, 10);
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    axisY = new QValueAxis;
+    axisY->setTickCount(1);
+    axisY->setRange(0, 5);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    //chart->setAnimationOptions(QChart::AllAnimations);
+
+    QChartView *chartView = new QChartView(chart);
+    graphWidget->setWidget(chartView);
+
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, graphWidget);
+
     //Construct dockWidgets.
     NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
     NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
+
+    connect(dwInterfaces->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
+    connect(dwBehaviour->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
+    connect(dwAssemblies->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
+    connect(dwHardware->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
 
     //Set each NodeView with there contained aspects
     dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);

@@ -39,6 +39,7 @@ public:
 
     QList<int> getIDsInView();
 signals:
+    void benchmark(QString view, double ms);
     void trans_InActive2Moving();
     void trans_Moving2InActive();
 
@@ -154,6 +155,8 @@ private:
 
 
     QPointF viewportCenter_Scene;
+    
+    QList<double> render_times;
 
 
     bool isAspectView;
@@ -184,6 +187,8 @@ private:
     QLineF connectLine;
 
 private slots:
+    void time_repaint();
+    void time_print();
     void state_Moving_Entered();
     void state_Moving_Exited();
 
