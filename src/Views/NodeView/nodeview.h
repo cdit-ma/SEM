@@ -10,6 +10,7 @@
 #include "SceneItems/Edge/edgeitem.h"
 
 #include <QStateMachine>
+#include <QStaticText>
 
 
 class NodeView : public QGraphicsView
@@ -39,7 +40,6 @@ public:
 
     QList<int> getIDsInView();
 signals:
-    void benchmark(QString view, double ms);
     void trans_InActive2Moving();
     void trans_Moving2InActive();
 
@@ -166,11 +166,12 @@ private:
 
     bool isPanning;
 
-    QColor backgroundColor;
-    QString backgroundText;
-    QFont backgroundFont;
-    QColor backgroundFontColor;
-    QColor selectedBackgroundFontColor;
+    QFont background_font;
+    QColor background_text_color;
+    QColor background_color;
+
+    QStaticText background_text;
+    QRectF background_text_rect;
 
 
     QStateMachine* viewStateMachine;
@@ -184,11 +185,10 @@ private:
     QState* state_Active_Connecting;
 
     QGraphicsLineItem* connectLineItem;
+
     QLineF connectLine;
 
 private slots:
-    void time_repaint();
-    void time_print();
     void state_Moving_Entered();
     void state_Moving_Exited();
 

@@ -149,13 +149,6 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
 }
 
-void NodeViewMinimap::drawBackground(QPainter *painter, const QRectF &rect)
-{
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(backgroundColor);
-    painter->drawRect(rect);
-}
-
 void NodeViewMinimap::setEnabled(bool enabled)
 {
     drawRect = enabled;
@@ -164,8 +157,7 @@ void NodeViewMinimap::setEnabled(bool enabled)
 
 void NodeViewMinimap::setBackgroundColor(QColor color)
 {
-    backgroundColor = color;
-    update();
+    setBackgroundBrush(color);
 }
 
 void NodeViewMinimap::setScene(QGraphicsScene *scene)

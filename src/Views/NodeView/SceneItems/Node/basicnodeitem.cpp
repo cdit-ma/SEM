@@ -23,10 +23,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     setExpandedWidth(width*2);
     setExpandedHeight(height);
 
-    QPen pen;
-    pen.setColor(QColor(50,50,50));
-    pen.setWidthF(.5);
-    setDefaultPen(pen);
+   
 
     setPrimaryTextKey("label");
 

@@ -9,12 +9,6 @@
 #include <QStringListModel>
 #include <QTimer>
 
-#include <QtCharts/QChartView>
-#include <QtCharts/QScatterSeries>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QValueAxis>
-QT_CHARTS_USE_NAMESPACE
-
 #include "basewindow.h"
 #include "welcomescreenwidget.h"
 
@@ -67,7 +61,6 @@ public slots:
     void resetToolDockWidgets();
 
 private slots:
-    void updateGraph(QString name, double value);
     void themeChanged();
     void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevDock);
 
@@ -148,13 +141,6 @@ private:
     WelcomeScreenWidget* welcomeScreen;
     QVBoxLayout* holderLayout;
     bool welcomeScreenOn;
-
-    QHash<QString, QLineSeries*> series_hash;
-    QChart* chart;
-    QValueAxis *axisX;
-    QValueAxis *axisY;
-
-    double max_y_range = 0;
 
 protected:
     void resizeEvent(QResizeEvent *);

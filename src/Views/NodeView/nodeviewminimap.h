@@ -44,7 +44,6 @@ private:
     QColor backgroundColor;
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
-    void drawBackground(QPainter *painter, const QRectF &rect);
 
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);

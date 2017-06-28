@@ -22,7 +22,9 @@ int launchMEDEA(int argc, char *argv[]){
 
     //Construct a SettingsController and ViewController
     auto settings_controller = SettingsController::settings();
+    
     auto view_controller = new ViewController();
+    
 
     auto window = WindowManager::constructMainWindow(view_controller);
 

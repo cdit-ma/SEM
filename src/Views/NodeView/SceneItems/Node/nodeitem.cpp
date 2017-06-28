@@ -45,6 +45,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     setResizeEnabled(true);
     setExpandEnabled(true);
 
+    //setDefaultPen(Qt::NoPen);
+
     setUpColors();
 
     addRequiredData("isExpanded");
@@ -64,6 +66,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
         parentItem->addChildNode(this);
         setPos(getNearestGridPoint());
     }
+
+   
 
 
     gridLinePen.setColor(getBaseBodyColor().darker(150));
@@ -955,7 +959,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
     //Clip yo!
-    //painter->setClipRect(option->exposedRect);
+    painter->setClipRect(option->exposedRect);
 
     RENDER_STATE state = getRenderState(lod);
 
@@ -971,7 +975,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         if(gotVisualButton()){
             if(isSelected() && gotVisualEdgeKind()){
                 paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "connect");
-            }else if(gotVisualNodeKind()){
+            }else if(isSelected() && gotVisualNodeKind()){
                 paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "popOut");
             }
         }
@@ -1039,6 +1043,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     {
         painter->save();
         painter->setPen(getDefaultPen());
+
         if(gotPrimaryTextKey()){
             renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
         }
@@ -1213,7 +1218,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(gotVisualButton()){
-        if(gotVisualNodeKind() || (gotVisualEdgeKind() && isSelected())){
+        if(isSelected() && (gotVisualNodeKind() || gotVisualEdgeKind())){
             bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
 
             if(showHover != hoveredConnect){
