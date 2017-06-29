@@ -151,15 +151,12 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //if(getParent() && getParent()->isMoving()){
-    //    return;
-    //}
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
     painter->setClipRect(option->exposedRect);
 
-    if(state > RENDER_STATE::BLOCK){
+    if(state >= RENDER_STATE::BLOCK){
         painter->setPen(Qt::NoPen);
 
         //Paint the Body
@@ -172,11 +169,14 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         painter->setBrush(getHeaderColor());
         painter->drawRect(headerRect());
 
-        //Paint the White Background for the text
-        if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
-            painter->setBrush(getBodyColor());
-            painter->drawRect(bottomTextOutlineRect());
+        if(state > RENDER_STATE::BLOCK){
+            //Paint the White Background for the text
+            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
+                painter->setBrush(getBodyColor());
+                painter->drawRect(bottomTextOutlineRect());
+            }
         }
+
     }
     NodeItem::paint(painter, option, widget);
 }

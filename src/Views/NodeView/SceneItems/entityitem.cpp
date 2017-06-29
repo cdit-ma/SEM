@@ -715,22 +715,23 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     if(state == RENDER_STATE::BLOCK){
         QBrush brush(Qt::SolidPattern);
+        painter->setPen(Qt::NoPen);
 
         if(isSelected()){
             brush.setColor(getPen().color());
+            painter->setBrush(brush);
+            painter->drawPath(getElementPath(ER_SELECTION));
         }else{
             brush.setColor(getBodyColor());
-            painter->setPen(Qt::NoPen);
         }
 
-        painter->setBrush(brush);
-        painter->drawPath(getElementPath(ER_SELECTION));
+        
     }
 
     //Paint the pixmap!
     paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
 
-    if(state >= RENDER_STATE::BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         if(paintIconOverlay){
             paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath);
         }

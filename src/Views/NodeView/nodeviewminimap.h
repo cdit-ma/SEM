@@ -1,50 +1,64 @@
 #ifndef NODEVIEWMINIMAP_H
 #define NODEVIEWMINIMAP_H
 
-#include <QGraphicsView>
+#include <QWidget>
+#include <QGraphicsScene>
 
 /**
  * @brief The NodeViewMinimap class
  */
-class NodeViewMinimap : public QGraphicsView
+class NodeViewMinimap : public QWidget
 {
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
-    void setEnabled(bool enabled);
     void setBackgroundColor(QColor color);
     void setScene(QGraphicsScene *scene);
-    bool isPanning();
-
 signals:
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
-
+    void minimap_CenterView();
 public slots:
-    void sceneRectChanged(QRectF sceneRect);
-
-
-    void viewportRectChanged(QRectF viewportRect, qreal zoom);
-
+    void viewport_changed(QRectF viewportRect, double zoom_factor);
 private:
-    QRectF zoomIcon() const;
-    QRectF zoomText() const;
-    QRectF infoBox() const;
-    void centerView();
+    void updateScene();
+    bool isPanning() const;
+    QPointF getScenePos(QPoint mouse_pos);
+    void updateViewport();
+
+    QRect renderArea() const;
+    QRect zoomIcon() const;
+    QRect zoomText() const;
+    QRect infoBox() const;
+
+
     void setMinimapPanning(bool pan);
 
-    bool viewportContainsPoint(QPointF localPos);
+    bool viewportContainsPoint(QPoint pos);
 
-    QPointF previousScenePos;
-    QRectF viewportRect;
-    QString zoomPercent;
-    bool _isPanning;
-    QPixmap zoomPixmap;
-    bool drawRect;
-    QColor backgroundColor;
+    QGraphicsScene* scene = 0;
+    
+    QRect translated_viewport_rect;
+    
+    QRectF scene_rect;
+    QRectF viewport_rect;
+    
+    QString zoom_str;
+
+    QPointF previous_pos;
+
+    bool is_panning = false;
+    
+    QPixmap zoom_icon;
+    
+    QColor background_color = Qt::darkGray;
+
+    QPixmap pixmap;
+
+    QFont zoom_font;
+
 protected:
-    void drawForeground(QPainter *painter, const QRectF &rect);
-
+    void paintEvent(QPaintEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);

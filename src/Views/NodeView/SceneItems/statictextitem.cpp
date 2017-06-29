@@ -16,6 +16,7 @@ void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF re
 
         switch(state){
         case RENDER_STATE::BLOCK:
+            break;
         case RENDER_STATE::MINIMAL:{
             painter->setPen(Qt::NoPen);
             painter->drawRect(text_rect);

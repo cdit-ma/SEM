@@ -29,14 +29,14 @@ public:
 
     QColor getBackgroundColor();
     QRectF getViewportRect();
-    void resetMinimap();
-    void forceViewportChange();
     SelectionHandler* getSelectionHandler();
     void fitToScreen();
     void alignHorizontal();
     void alignVertical();
 
     void centerSelection();
+
+    void update_minimap();
 
     QList<int> getIDsInView();
 signals:
@@ -57,9 +57,8 @@ signals:
 
 
 
-    void sceneRectChanged(QRectF sceneRect);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
-    void viewportChanged(QRectF rect, qreal zoom);
+    void viewport_changed(QRectF viewportRect, double zoom_factor);
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -68,8 +67,6 @@ signals:
     void editData(int, QString);
 
 private slots:
-
-    void test();
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -77,7 +74,6 @@ private slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
-    void itemsMoved();
     void themeChanged();
 
 public slots:
@@ -158,7 +154,7 @@ private:
     
     QList<double> render_times;
 
-
+    QTransform old_transform;
     bool isAspectView;
     bool isBackgroundSelected;
     VIEW_ASPECT containedAspect;
@@ -219,6 +215,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event);
 
     void drawBackground(QPainter *painter, const QRectF &rect);
+
+    void paintEvent(QPaintEvent *event);
 
     // QWidget interface
 protected:

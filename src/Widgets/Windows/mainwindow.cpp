@@ -320,10 +320,12 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
             NodeViewDockWidget* prevNodeViewDock = (NodeViewDockWidget*) prevDock;
             NodeView* prevView = prevNodeViewDock->getNodeView();
             if(prevView){
-                disconnect(minimap, &NodeViewMinimap::minimap_Pan, prevView, &NodeView::minimap_Pan);
-                disconnect(minimap, &NodeViewMinimap::minimap_Zoom, prevView, &NodeView::minimap_Zoom);
-                disconnect(prevView, &NodeView::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
-                disconnect(prevView, &NodeView::viewportChanged, minimap, &NodeViewMinimap::viewportRectChanged);
+                minimap->disconnect(prevView);
+                prevView->disconnect(minimap);
+                //disconnect(minimap, &NodeViewMinimap::minimap_Pan, prevView, &NodeView::minimap_Pan);
+                //disconnect(minimap, &NodeViewMinimap::minimap_Zoom, prevView, &NodeView::minimap_Zoom);
+
+                //disconnect(prevView, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
             }
         }
 
@@ -331,12 +333,12 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
             minimap->setBackgroundColor(view->getBackgroundColor());
             minimap->setScene(view->scene());
 
+            
+            connect(minimap, &NodeViewMinimap::minimap_CenterView, view, &NodeView::fitToScreen);
             connect(minimap, &NodeViewMinimap::minimap_Pan, view, &NodeView::minimap_Pan);
             connect(minimap, &NodeViewMinimap::minimap_Zoom, view, &NodeView::minimap_Zoom);
-            connect(view, &NodeView::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
-            connect(view, &NodeView::viewportChanged, minimap, &NodeViewMinimap::viewportRectChanged);
-
-            view->forceViewportChange();
+            connect(view, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
+            view->update_minimap();
         }else{
             minimap->setBackgroundColor(QColor(0,0,0));
             minimap->setScene(0);

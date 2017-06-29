@@ -122,14 +122,21 @@ void NodeView::setViewController(ViewController *viewController)
 void NodeView::translate(QPointF point)
 {
     QGraphicsView::translate(point.x(), point.y());
-    forceViewportChange();
+    //forceViewportChange();
 }
-
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
-        QGraphicsView::scale(sx, sy);
-        forceViewportChange();
+        auto t = transform();
+        auto zoom = t.m11() * sx;
+
+        //Limit to zoom 25% between 400%
+        zoom = qMax(0.25, zoom);
+        zoom = qMin(zoom, 4.0);
+
+        //m11 and m22 are x/y scaling respectively
+        t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
+        setTransform(t);
     }
 }
 
@@ -188,11 +195,6 @@ QRectF NodeView::getViewportRect()
     return viewportRect();
 }
 
-void NodeView::resetMinimap()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-    emit sceneRectChanged(currentSceneRect);
-}
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
@@ -255,14 +257,6 @@ void NodeView::selectAll()
     _selectAll();
 }
 
-void NodeView::itemsMoved()
-{
-    QRectF newSceneRect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
-    if(newSceneRect != currentSceneRect){
-        currentSceneRect = newSceneRect;
-        emit sceneRectChanged(currentSceneRect);
-    }
-}
 
 void NodeView::alignHorizontal()
 {
@@ -440,11 +434,6 @@ QList<int> NodeView::getIDsInView()
     return guiItems.keys();
 }
 
-void NodeView::test()
-{
-
-    //scene->setSceneRect(QRectF());
-}
 
 void NodeView::item_Selected(ViewItem *item, bool append)
 {
@@ -645,14 +634,25 @@ void NodeView::centerView(QPointF scenePos)
     viewportCenter_Scene = viewportRect().center();
 }
 
-void NodeView::forceViewportChange()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-}
 
 SelectionHandler *NodeView::getSelectionHandler()
 {
     return selectionHandler;
+}
+
+
+void NodeView::update_minimap(){
+    emit viewport_changed(viewportRect(), transform().m11());
+}
+
+void NodeView::paintEvent(QPaintEvent *event){
+    QGraphicsView::paintEvent(event);
+
+    auto new_transform = transform();
+    if(old_transform != new_transform){
+        old_transform = new_transform;
+        update_minimap();
+    }
 }
 
 void NodeView::viewItem_LabelChanged(QString label)
@@ -668,7 +668,6 @@ void NodeView::viewItem_LabelChanged(QString label)
 
 QRectF NodeView::viewportRect()
 {
-//    return mapToScene(rect()).boundingRect();
     return mapToScene(viewport()->rect()).boundingRect();
 }
 
@@ -948,10 +947,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
-
-                    connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(itemsMoved()));
-                    connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
-
                 }
 
 
@@ -1468,6 +1463,14 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }
 
+    if(event->button() == Qt::MiddleButton){
+        EntityItem* item = getEntityAtPos(scenePos);
+        if(!item){
+            handledEvent = true;
+            fitToScreen();
+        }
+    }
+
     if(!handledEvent){
         QGraphicsView::mousePressEvent(event);
     }
@@ -1572,6 +1575,6 @@ void NodeView::drawBackground(QPainter *painter, const QRectF & r)
 void NodeView::resizeEvent(QResizeEvent *event)
 {
     QGraphicsView::resizeEvent(event);
-    forceViewportChange();
+    update_minimap();
 }
 
