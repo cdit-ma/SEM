@@ -850,6 +850,7 @@ void EntityItem::setSelected(bool selected)
         _isSelected = selected;
 
         updateZValue();
+        update();
     }
 }
 

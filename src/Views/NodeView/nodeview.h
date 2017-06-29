@@ -30,7 +30,7 @@ public:
     QColor getBackgroundColor();
     QRectF getViewportRect();
     SelectionHandler* getSelectionHandler();
-    void fitToScreen();
+    
     void alignHorizontal();
     void alignVertical();
 
@@ -77,6 +77,7 @@ private slots:
     void themeChanged();
 
 public slots:
+    void fitToScreen();
     void selectAll();
     void clearSelection();
 
@@ -156,7 +157,6 @@ private:
 
     QTransform old_transform;
     bool isAspectView;
-    bool isBackgroundSelected;
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
 

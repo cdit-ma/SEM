@@ -234,10 +234,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem *item, bool select
         if(e){
             e->setSelected(selected);
         }
-        if(item == containedNodeViewItem){
-            isBackgroundSelected = selected;
-            //update();
-        }
     }
 }
 
