@@ -124,12 +124,19 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/medea.rc
+
+    
 )
+
+if(WIN32)
+    #Only add rc file for windows
+    SET(SOURCE ${SOURCE} 
+        ${CMAKE_CURRENT_SOURCE_DIR}/medea.rc
+    )
+endif()
 
 SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.h
