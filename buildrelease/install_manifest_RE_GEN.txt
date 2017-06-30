@@ -1,9 +1,0 @@
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/component_functions.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/functions.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/g2components.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/g2datatypes.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/g2qos.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/g2validate.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/qos_functions.xsl
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/saxon.jar
-C:/MEDEA/buildrelease/_CPack_Packages/win64/IFW/MEDEA-0.1.1-win64/packages/RE_GEN/data/MEDEA/Resources/re_gen/validate_functions.xsl
