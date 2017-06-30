@@ -128,6 +128,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/medea.rc
 )
 
 SET(HEADERS
@@ -268,7 +269,7 @@ else()
     file(COPY ${LIBS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${LIBS_DEST_DIR})
     file(COPY ${TRANSFORMS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TRANSFORM_DEST_DIR})
     #Construct the binary
-    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES})
+    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES} )
 endif()
 
 if(WIN32)
