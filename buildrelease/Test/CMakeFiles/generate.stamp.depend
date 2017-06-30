@@ -1,0 +1,9 @@
+# CMake generation dependency list for this directory.
+C:/MEDEA/src/Test/CMakeLists.txt
+C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake
+C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5Config.cmake
+C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfigVersion.cmake
+C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfig.cmake
+C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfigExtras.cmake
+C:/MEDEA/src/Test/models.qrc
+C:/Program Files/CMake/share/cmake-3.8/Modules/AutogenInfo.cmake.in

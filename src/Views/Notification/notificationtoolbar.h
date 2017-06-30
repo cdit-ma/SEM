@@ -4,6 +4,7 @@
 #include "../../enumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../Controllers/NotificationManager/notificationEnumerations.h"
 
 #include <QToolBar>
 #include <QLabel>

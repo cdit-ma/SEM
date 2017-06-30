@@ -16,9 +16,9 @@ protected:
                                 QString iconPath,
                                 QString iconName,
                                 int entityID,
-                                NOTIFICATION_SEVERITY severity = NS_INFO,
-                                NOTIFICATION_TYPE type = NT_MODEL,
-                                NOTIFICATION_CATEGORY category = NC_NOCATEGORY,
+                                NOTIFICATION_SEVERITY severity = NOTIFICATION_SEVERITY::INFO,
+                                NOTIFICATION_TYPE type = NOTIFICATION_TYPE::MODEL,
+                                NOTIFICATION_CATEGORY category = NOTIFICATION_CATEGORY::NOCATEGORY,
                                 QObject *parent = 0);
     ~NotificationObject();
 

@@ -1,5 +1,5 @@
-#ifndef BEHAVIOURDEFINITIONS_H
-#define BEHAVIOURDEFINITIONS_H
+#ifndef BEHAVIOURDEFINITIONC_H
+#define BEHAVIOURDEFINITIONC_H
 
 #include "../node.h"
 
@@ -18,4 +18,4 @@ public:
 
 };
 
-#endif // BEHAVIOURDEFINITIONS_H
+#endif // BEHAVIOURDEFINITIONC_H

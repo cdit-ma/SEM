@@ -1,0 +1,481 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{68DC5916-E642-3218-90EF-5A52B48AC781}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>medea_modelcontroller</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\MEDEA\build64\src\ModelController\Debug\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">medea_modelcontroller.dir\Debug\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">medea_modelcontroller</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\MEDEA\build64\src\ModelController\Release\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">medea_modelcontroller.dir\Release\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">medea_modelcontroller</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\MEDEA\build64\src\ModelController\MinSizeRel\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">medea_modelcontroller.dir\MinSizeRel\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">medea_modelcontroller</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\MEDEA\build64\src\ModelController\RelWithDebInfo\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">medea_modelcontroller.dir\RelWithDebInfo\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">medea_modelcontroller</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;QT_CORE_LIB;QT_NETWORK_LIB;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;QT_CORE_LIB;QT_NETWORK_LIB;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;QT_NETWORK_LIB;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Qt\Qt5.7.0\5.7\msvc2015_64\include;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtCore;C:\Qt\Qt5.7.0\5.7\msvc2015_64\.\mkspecs\win32-msvc2015;C:\Qt\Qt5.7.0\5.7\msvc2015_64\include\QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Lib>
+      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\MEDEA\src\ModelController\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build64 --check-stamp-file C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build64 --check-stamp-file C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build64 --check-stamp-file C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build64 --check-stamp-file C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\MEDEA\build64\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\MEDEA\src\ModelController\modelcontroller.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\entityfactory.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\tempentity.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\graphml.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\key.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\data.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\entity.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\node.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\edge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\model.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\workerdefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\attributeimpl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\behaviourdefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\behaviournode.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\branch.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\branchstate.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\componentimpl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\condition.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\eventportimpl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\ineventportimpl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\inputparameter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\outeventportimpl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\parameter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\periodicevent.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\process.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\returnparameter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\termination.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variable.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\whileloop.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\workerprocess.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\workload.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_deadlineqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_destinationorderqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_durabilityqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_durabilityserviceqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_entityfactoryqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_groupdataqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_historyqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_latencybudgetqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_lifespanqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_livelinessqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_ownershipqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_ownershipstrengthqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_partitionqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_presentationqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_qosprofile.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_readerdatalifecycleqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_reliabilityqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_resourcelimitsqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_timebasedfilterqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_topicdataqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_transportpriorityqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_userdataqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_writerdatalifecycleqospolicy.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\assemblydefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\attributeinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\blackboxinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\componentassembly.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\componentinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\deploymentdefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\eventportdelegate.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwarecluster.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwaredefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwarenode.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\ineventportdelegate.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\ineventportinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\managementcomponent.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\outeventportdelegate.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\outeventportinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\aggregateedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\assemblyedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\dataedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\definitionedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\deploymentedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\qosedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Edges\workflowedge.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\aggregate.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\aggregateinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\attribute.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\blackbox.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\component.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\datanode.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\eventport.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\idl.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\ineventport.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\interfacedefinitions.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\member.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\memberinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\outeventport.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\vector.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\vectorinstance.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variadicparameter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\code.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\header.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\forcondition.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\setter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variableparameter.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\loggingprofile.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\loggingserver.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Keys\labelkey.h" />
+    <ClInclude Include="C:\MEDEA\src\ModelController\Entities\Keys\indexkey.h" />
+    <ClCompile Include="C:\MEDEA\src\ModelController\modelcontroller.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\entityfactory.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\tempentity.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\graphml.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\key.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\data.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\entity.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\node.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\edge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\model.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\workerdefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\attributeimpl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\behaviourdefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\behaviournode.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\branch.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\branchstate.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\componentimpl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\condition.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\eventportimpl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\ineventportimpl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\inputparameter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\outeventportimpl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\parameter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\periodicevent.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\process.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\returnparameter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\termination.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variable.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\whileloop.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\workerprocess.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\workload.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_deadlineqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_destinationorderqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_durabilityqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_durabilityserviceqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_entityfactoryqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_groupdataqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_historyqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_latencybudgetqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_lifespanqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_livelinessqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_ownershipqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_ownershipstrengthqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_partitionqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_presentationqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_qosprofile.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_readerdatalifecycleqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_reliabilityqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_resourcelimitsqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_timebasedfilterqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_topicdataqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_transportpriorityqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_userdataqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\QOS\DDS\dds_writerdatalifecycleqospolicy.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\assemblydefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\attributeinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\blackboxinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\componentassembly.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\componentinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\deploymentdefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\eventportdelegate.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwarecluster.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwaredefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\hardwarenode.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\ineventportdelegate.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\ineventportinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\managementcomponent.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\outeventportdelegate.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\outeventportinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\aggregateedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\assemblyedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\dataedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\definitionedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\deploymentedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\qosedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Edges\workflowedge.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\aggregate.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\aggregateinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\attribute.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\blackbox.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\component.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\datanode.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\eventport.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\idl.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\ineventport.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\interfacedefinitions.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\member.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\memberinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\outeventport.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\vector.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\InterfaceDefinitions\vectorinstance.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variadicparameter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\code.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\header.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\forcondition.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\setter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\BehaviourDefinitions\variableparameter.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\loggingprofile.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\DeploymentDefinitions\loggingserver.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Keys\labelkey.cpp"  />
+    <ClCompile Include="C:\MEDEA\src\ModelController\Entities\Keys\indexkey.cpp"  />
+    <ClCompile Include="C:\MEDEA\build64\src\ModelController\medea_modelcontroller_automoc.cpp"  />
+    <ClCompile Include="C:\MEDEA\build64\src\ModelController\medea_modelcontroller_automoc.dir\qrc_workers_JKZ56KGMDRPXRG.cpp"  />
+    <None Include="C:\MEDEA\src\ModelController\workers.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:/MEDEA/build64/ZERO_CHECK.vcxproj">
+      <Project>563827B6-A777-37E2-9D94-1026E673BBED</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/MEDEA/build64/src/ModelController/medea_modelcontroller_automoc.vcxproj">
+      <Project>2A1DC932-849F-3E90-99D8-B1F9FCF94739</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

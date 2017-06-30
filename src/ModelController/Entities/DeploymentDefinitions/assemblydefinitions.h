@@ -1,5 +1,5 @@
-#ifndef ASSEMBLYDEFINITIONS_H
-#define ASSEMBLYDEFINITIONS_H
+#ifndef ASSEMBLYDEFINITIONC_H
+#define ASSEMBLYDEFINITIONC_H
 #include "../node.h"
 
 #include "../../edgekinds.h"

@@ -150,8 +150,8 @@ void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, in
 void NotificationToolbar::setupLayout()
 {
     // create a label for the following severities of notifications
-    severityCount[NS_WARNING] = new QLabel("0", this);
-    severityCount[NS_ERROR] = new QLabel("0", this);
+    severityCount[NOTIFICATION_SEVERITY::WARNING] = new QLabel("0", this);
+    severityCount[NOTIFICATION_SEVERITY::ERROR] = new QLabel("0", this);
 
     showMostRecentAction = addAction("");
     showMostRecentAction->setToolTip("Show Most Recent Notification");
@@ -166,14 +166,14 @@ void NotificationToolbar::setupLayout()
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    foreach (NOTIFICATION_SEVERITY s, NotificationManager::getNotificationSeverities()) {
+    foreach (NOTIFICATION_SEVERITY s, getNotificationSeverities()) {
         QLabel* label = severityCount.value(s, 0);
         if (label) {
             label->setFont(labelFont);
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(NotificationManager::getSeverityString(s) + " Count");
-            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + NotificationManager::getSeverityColorStr(s) + ";}");
+            label->setToolTip(getSeverityString(s) + " Count");
+            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + getSeverityColorStr(s) + ";}");
             addWidget(label);
             addSeparator();
 

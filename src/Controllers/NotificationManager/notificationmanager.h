@@ -2,6 +2,7 @@
 #define NOTIFICATIONMANAGER_H
 
 #include "../../enumerations.h"
+#include "notificationEnumerations.h"
 #include "../ActionController/actioncontroller.h"
 
 #include <QObject>
@@ -12,14 +13,6 @@ class NotificationDialog;
 class NotificationToolbar;
 class NotificationObject;
 class PopupWidget;
-
-enum NOTIFICATION_TYPE{NT_APPLICATION, NT_MODEL};
-enum NOTIFICATION_CATEGORY{NC_NOCATEGORY, NC_FILE, NC_JENKINS, NC_DEPLOYMENT, NC_VALIDATION};
-enum NOTIFICATION_SEVERITY{NS_INFO, NS_WARNING, NS_ERROR};
-enum NOTIFICATION_FILTER{NF_NOFILTER, NF_SEVERITY, NF_TYPE, NF_CATEGORY};
-
-enum BACKGROUND_PROCESS{BP_UNKNOWN, BP_VALIDATION, BP_IMPORT_JENKINS, BP_RUNNING_JOB};
-
 
 class NotificationManager : public QObject
 {
@@ -41,20 +34,6 @@ public:
     static NotificationToolbar* constructToolbar();
     //static PopupWidget* constructPopup();
 
-    //Helper functions for enums
-    static QList<BACKGROUND_PROCESS> getBackgroundProcesses();
-    static QList<NOTIFICATION_FILTER> getNotificationFilters();
-    static QList<NOTIFICATION_TYPE> getNotificationTypes();
-    static QList<NOTIFICATION_CATEGORY> getNotificationCategories();
-    static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
-    static QString getTypeString(NOTIFICATION_TYPE type);
-    static QString getSeverityString(NOTIFICATION_SEVERITY severity);
-    static QString getSeverityIcon(NOTIFICATION_SEVERITY severity);
-    static QString getCategoryString(NOTIFICATION_CATEGORY category);
-    static QString getCategoryIcon(NOTIFICATION_CATEGORY category);
-    static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
-    static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
-
     QList<NotificationObject*> getNotificationItems();
 
     QList<int> getNotificationsOfType(NOTIFICATION_TYPE type);
@@ -68,9 +47,9 @@ public:
                              QString iconPath = "",
                              QString iconName = "",
                              int entityID = -1,
-                             NOTIFICATION_SEVERITY s = NS_INFO,
-                             NOTIFICATION_TYPE t = NT_MODEL,
-                             NOTIFICATION_CATEGORY c = NC_NOCATEGORY);
+                             NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
+                             NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
+                             NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
 
     static bool updateNotification(int ID, QString iconPath, QString iconName, QString description);
 
@@ -90,9 +69,9 @@ signals:
 
     void showNotificationPanel(bool show = true);
 
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BACKGROUND_PROCESS::UNKNOWN);
 
-    void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
+    void clearNotifications(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, int filterVal = -1);
 
 public slots:
     void deleteNotification(int ID);

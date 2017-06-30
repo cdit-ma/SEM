@@ -160,9 +160,9 @@ QString GET_DOCK_LABEL(DOCK_TYPE type)
     switch (type) {
     case PARTS_DOCK:
         return "Parts";
-    case DEFINITIONS_DOCK:
+    case DEFINITIONC_DOCK:
         return "Definitions";
-    case FUNCTIONS_DOCK:
+    case FUNCTIONC_DOCK:
         return "Functions";
     case HARDWARE_DOCK:
         return "Nodes";
@@ -276,11 +276,11 @@ QHash<QString, QString> GET_SETTINGS_TOOLTIPS_HASH()
     tooltips[TOOLBAR_VERT_ALIGN] = "Sets the visibility of the vertical alignment toolbar toolbutton.";
     tooltips[TOOLBAR_HORIZ_ALIGN] = "Sets the visibility of the horizontal alignment toolbar toolbutton.";
 
-    tooltips[JENKINS_URL] = "Sets the URL of the Jenkins Server to use for Jenkins Deployment of Models.";
-    tooltips[JENKINS_USER] = "Set the username used to authenticate on the Jenkins server.";
-    tooltips[JENKINS_PASS] = "Sets the password used to authenticate on the Jenkins server.";
-    tooltips[JENKINS_JOB] = "Sets the jobname used by the Jenkins Server to execute Models.";
-    tooltips[JENKINS_TOKEN] = "Sets the API token used to authenticate API calls on the Jenkins Server.";
+    tooltips[JENKINC_URL] = "Sets the URL of the Jenkins Server to use for Jenkins Deployment of Models.";
+    tooltips[JENKINC_USER] = "Set the username used to authenticate on the Jenkins server.";
+    tooltips[JENKINC_PASS] = "Sets the password used to authenticate on the Jenkins server.";
+    tooltips[JENKINC_JOB] = "Sets the jobname used by the Jenkins Server to execute Models.";
+    tooltips[JENKINC_TOKEN] = "Sets the API token used to authenticate API calls on the Jenkins Server.";
 
 
     tooltips[THEME_BG_COLOR] = "Sets the background color in MEDEA.";
@@ -314,12 +314,12 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
     groups[THEME_MENU_TEXT_SELECTED_COLOR] = "Selected_Colors";
 
 
-    groups[JENKINS_URL] = "Server";
-    groups[JENKINS_JOB] = "Server";
+    groups[JENKINC_URL] = "Server";
+    groups[JENKINC_JOB] = "Server";
 
-    groups[JENKINS_USER] = "User";
-    groups[JENKINS_PASS] = "User";
-    groups[JENKINS_TOKEN] = "User";
+    groups[JENKINC_USER] = "User";
+    groups[JENKINC_PASS] = "User";
+    groups[JENKINC_TOKEN] = "User";
 
     groups[TOOLBAR_VISIBLE] = "Visible_Buttons";
     groups[TOOLBAR_CONTEXT] = "Visible_Buttons";
