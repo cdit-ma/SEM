@@ -307,42 +307,35 @@ void MainWindow::themeChanged()
  */
 void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock)
 {
-    if(viewDock){
-        NodeViewDockWidget* nodeViewDock = 0;
-        NodeView* view = 0;
-
-        if(viewDock->isNodeViewDock()){
-            nodeViewDock = (NodeViewDockWidget*) viewDock;
-            view = nodeViewDock->getNodeView();
+    //Unattach old view
+    if(prevDock && prevDock->isNodeViewDock()){
+        auto prev_node_view = ((NodeViewDockWidget*) prevDock)->getNodeView();
+        
+        if(prev_node_view){
+            minimap->disconnect(prev_node_view);
+            prev_node_view->disconnect(minimap);
         }
+    }
 
-        if(prevDock && prevDock->isNodeViewDock()){
-            NodeViewDockWidget* prevNodeViewDock = (NodeViewDockWidget*) prevDock;
-            NodeView* prevView = prevNodeViewDock->getNodeView();
-            if(prevView){
-                minimap->disconnect(prevView);
-                prevView->disconnect(minimap);
-                //disconnect(minimap, &NodeViewMinimap::minimap_Pan, prevView, &NodeView::minimap_Pan);
-                //disconnect(minimap, &NodeViewMinimap::minimap_Zoom, prevView, &NodeView::minimap_Zoom);
+    NodeView* node_view = 0;
 
-                //disconnect(prevView, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
-            }
-        }
+    //Attach new view
+    if(viewDock && viewDock->isNodeViewDock()){
+        node_view = ((NodeViewDockWidget*) viewDock)->getNodeView();
+    }
 
-        if(view){
-            minimap->setBackgroundColor(view->getBackgroundColor());
-            minimap->setScene(view->scene());
-
-            
-            connect(minimap, &NodeViewMinimap::minimap_CenterView, view, &NodeView::fitToScreen);
-            connect(minimap, &NodeViewMinimap::minimap_Pan, view, &NodeView::minimap_Pan);
-            connect(minimap, &NodeViewMinimap::minimap_Zoom, view, &NodeView::minimap_Zoom);
-            connect(view, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
-            view->update_minimap();
-        }else{
-            minimap->setBackgroundColor(QColor(0,0,0));
-            minimap->setScene(0);
-        }
+    if(node_view){
+        minimap->setBackgroundColor(node_view->getBackgroundColor());
+        minimap->setScene(node_view->scene());
+        
+        connect(minimap, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::fitToScreen);
+        connect(minimap, &NodeViewMinimap::minimap_Pan, node_view, &NodeView::minimap_Pan);
+        connect(minimap, &NodeViewMinimap::minimap_Zoom, node_view, &NodeView::minimap_Zoom);
+        connect(node_view, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
+        node_view->update_minimap();
+    }else{
+        minimap->setBackgroundColor(QColor(0,0,0));
+        minimap->setScene(0);
     }
 }
 

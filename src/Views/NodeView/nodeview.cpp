@@ -25,18 +25,11 @@
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
     setupStateMachine();
+    
     QRectF sceneRect;
     sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
-
-    
-
-    connectLineItem = 0;
-    //OPENGL
-    //setViewport(new QOpenGLWidget());
-    //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-
 
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -54,18 +47,9 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-
-    isPanning = false;
-    viewController = 0;
-    selectionHandler = 0;
-    containedAspect = VIEW_ASPECT::NONE;
-    containedNodeViewItem = 0;
-    isAspectView = false;
-
     //set the background font
     background_font.setPixelSize(70);
     setFont(background_font);
-
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
 
@@ -73,9 +57,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 
     themeChanged();
 
-
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
-
 }
 
 
@@ -378,6 +360,7 @@ void NodeView::fitToScreen()
     centerOnItems(getTopLevelEntityItems());
 }
 
+
 void NodeView::centerSelection()
 {
 
@@ -626,6 +609,8 @@ void NodeView::centerRect(QRectF rectScene)
         //Change the scale.
         scale(scaleRatio, scaleRatio);
         centerView(rectScene.center());
+    }else{
+        resetMatrix();
     }
 }
 

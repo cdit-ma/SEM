@@ -141,8 +141,8 @@ private:
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItem*> guiItems;
 
-    ViewController* viewController;
-    SelectionHandler* selectionHandler;
+    ViewController* viewController = 0;
+    SelectionHandler* selectionHandler = 0;
 
     QRectF currentSceneRect;
     QPoint pan_lastPos;
@@ -150,19 +150,20 @@ private:
     qreal pan_distance;
 
     QPoint rubberband_lastPos;
-    QRubberBand* rubberband;
+
+    QRubberBand* rubberband = 0;
 
     bool is_active = false;
+    bool isPanning = false;
+    bool isAspectView = false;
     QPointF viewportCenter_Scene;
     
     QList<double> render_times;
 
     QTransform old_transform;
-    bool isAspectView;
-    VIEW_ASPECT containedAspect;
-    NodeViewItem* containedNodeViewItem;
+    VIEW_ASPECT containedAspect = VIEW_ASPECT::NONE;
+    NodeViewItem* containedNodeViewItem = 0;
 
-    bool isPanning;
 
     QFont background_font;
     QColor background_text_color;
@@ -172,17 +173,17 @@ private:
     QRectF background_text_rect;
 
 
-    QStateMachine* viewStateMachine;
-    QState* state_InActive;
+    QStateMachine* viewStateMachine = 0;
+    QState* state_InActive = 0;
 
-    QState* state_Active;
-    QState* state_Active_Moving;
-    QState* state_Active_Resizing;
-    QState* state_Active_RubberbandMode;
-    QState* state_Active_RubberbandMode_Selecting;
-    QState* state_Active_Connecting;
+    QState* state_Active = 0;
+    QState* state_Active_Moving = 0;
+    QState* state_Active_Resizing = 0;
+    QState* state_Active_RubberbandMode = 0;
+    QState* state_Active_RubberbandMode_Selecting = 0;
+    QState* state_Active_Connecting = 0;
 
-    QGraphicsLineItem* connectLineItem;
+    QGraphicsLineItem* connectLineItem = 0;
 
     QLineF connectLine;
 
