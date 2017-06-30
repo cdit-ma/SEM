@@ -23,7 +23,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     iconName = obj->iconName();
     if (iconPath.isEmpty() || iconName.isEmpty()) {
         iconPath = "Icons";
-        iconName = NotificationManager::getSeverityIcon(obj->severity());
+        iconName = getSeverityIcon(obj->severity());
     }
 
     descriptionLabel = new QLabel(obj->description(), this);
@@ -34,7 +34,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     layout->addWidget(descriptionLabel, 1);
 
     // this item is visible by default - initialise all filter visibility to true
-    foreach (NOTIFICATION_FILTER filter, NotificationManager::getNotificationFilters()) {
+    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
         filterVisibility[filter] = true;
     }
 
@@ -141,7 +141,7 @@ void NotificationItem::themeChanged()
     }
     updateStyleSheet();
 
-    QColor tintColor = NotificationManager::getSeverityColor(getSeverity());
+    QColor tintColor = getSeverityColor(getSeverity());
     iconLabel->setPixmap(theme->getImage(getIconPath(), getIconName(), QSize(28,28), tintColor));
 }
 
@@ -180,7 +180,7 @@ void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
 void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
 {
     bool visible = checkedStates.value(getSeverity(), false);
-    updateVisibility(NF_SEVERITY, visible);
+    updateVisibility(NOTIFICATION_FILTER::SEVERITY, visible);
 }
 
 
@@ -193,7 +193,7 @@ void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> 
 void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates)
 {
     bool visible = checkedStates.value(getType(), false);
-    updateVisibility(NF_TYPE, visible);
+    updateVisibility(NOTIFICATION_FILTER::TYPE, visible);
 }
 
 
@@ -206,7 +206,7 @@ void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedS
 void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
 {
     bool visible = checkedStates.value(getCategory(), false);
-    updateVisibility(NF_CATEGORY, visible);
+    updateVisibility(NOTIFICATION_FILTER::CATEGORY, visible);
 }
 
 

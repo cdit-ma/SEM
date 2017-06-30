@@ -14,7 +14,9 @@
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
 #include "../../Utils/filehandler.h"
+#include "../../Utils/IdlParser/idlparser.h"
 
+#include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
@@ -33,6 +35,10 @@
 
 #define XMI_FILE_EXT "UML XMI Documents (*.xml)"
 #define XMI_FILE_SUFFIX ".xml"
+
+#define IDL_FILE_EXT "IDL Documents (*.idl)"
+#define IDL_FILE_SUFFIX ".idl"
+
 
 ViewController::ViewController() : QObject(){
     //qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
@@ -1249,6 +1255,19 @@ void ViewController::importXMIProject()
     if(files.length() == 1){
         QString xmiPath = files.first();
         emit vc_importXMIProject(xmiPath);
+    }
+}
+
+void ViewController::importIdlFile()
+{
+    QStringList files = FileHandler::selectFiles("Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
+    if(files.length() == 1){
+        QString xmiPath = files.first();
+
+        QtConcurrent::run([this, xmiPath]{
+            QString data = QString::fromStdString(IdlParser::IdlParser::ParseIdl(xmiPath.toStdString(), true));
+            emit vc_importProjects(QStringList(data));
+        });
     }
 }
 

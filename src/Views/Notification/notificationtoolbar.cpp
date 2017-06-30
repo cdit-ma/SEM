@@ -166,14 +166,14 @@ void NotificationToolbar::setupLayout()
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    foreach (NOTIFICATION_SEVERITY s, NotificationManager::getNotificationSeverities()) {
+    foreach (NOTIFICATION_SEVERITY s, getNotificationSeverities()) {
         QLabel* label = severityCount.value(s, 0);
         if (label) {
             label->setFont(labelFont);
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(NotificationManager::getSeverityString(s) + " Count");
-            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + NotificationManager::getSeverityColorStr(s) + ";}");
+            label->setToolTip(getSeverityString(s) + " Count");
+            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + getSeverityColorStr(s) + ";}");
             addWidget(label);
             addSeparator();
 

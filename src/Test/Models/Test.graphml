@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+	<key attr.name="type" attr.type="string" id="4"/>
+	<key attr.name="ip_address" attr.type="string" id="21"/>
+	<key attr.name="label" attr.type="string" id="9"/>
+	<key attr.name="os_version" attr.type="string" id="20"/>
+	<key attr.name="isExpanded" attr.type="boolean" id="122"/>
+	<key attr.name="uuid" attr.type="string" id="23"/>
+	<key attr.name="index" attr.type="int" id="8"/>
+	<key attr.name="architecture" attr.type="string" id="19"/>
+	<key attr.name="os" attr.type="string" id="22"/>
+	<key attr.name="kind" attr.type="string" id="10"/>
+	<key attr.name="x" attr.type="double" id="125"/>
+	<key attr.name="replicate_count" attr.type="int" id="123"/>
+	<key attr.name="y" attr.type="double" id="126"/>
+	<key attr.name="url" attr.type="string" id="18"/>
+
+	<graph edgedefault="directed" id="parentGraph0">
+		<node id="11">
+			<data key="9">Model</data>
+			<data key="8">-1</data>
+			<data key="10">Model</data>
+			<graph id="g11">
+				<node id="13">
+					<data key="9">INTERFACES</data>
+					<data key="122">true</data>
+					<data key="8">0</data>
+					<data key="10">InterfaceDefinitions</data>
+					<graph id="g13">
+						<node id="127">
+							<data key="9">Component</data>
+							<data key="8">0</data>
+							<data key="10">Component</data>
+							<data key="125">0</data>
+							<data key="126">0</data>
+						</node>
+						<node id="128">
+							<data key="9">Component_1</data>
+							<data key="8">1</data>
+							<data key="10">Component</data>
+							<data key="125">0</data>
+							<data key="126">0</data>
+						</node>
+						<node id="129">
+							<data key="9">Component_2</data>
+							<data key="8">2</data>
+							<data key="10">Component</data>
+							<data key="125">0</data>
+							<data key="126">0</data>
+						</node>
+						<node id="130">
+							<data key="9">Component_3</data>
+							<data key="8">3</data>
+							<data key="10">Component</data>
+							<data key="125">0</data>
+							<data key="126">0</data>
+						</node>
+					</graph>
+				</node>
+				<node id="14">
+					<data key="9">BEHAVIOUR</data>
+					<data key="8">1</data>
+					<data key="10">BehaviourDefinitions</data>
+				</node>
+				<node id="15">
+					<data key="9">DEPLOYMENT</data>
+					<data key="8">2</data>
+					<data key="10">DeploymentDefinitions</data>
+					<graph id="g15">
+						<node id="16">
+							<data key="9">ASSEMBLIES</data>
+							<data key="122">true</data>
+							<data key="8">0</data>
+							<data key="10">AssemblyDefinitions</data>
+							<graph id="g16">
+								<node id="124">
+									<data key="9">ComponentAssembly</data>
+									<data key="8">0</data>
+									<data key="10">ComponentAssembly</data>
+									<data key="125">0</data>
+									<data key="123">1</data>
+									<data key="126">0</data>
+									<graph id="g124">
+										<node id="131">
+											<data key="4">Component</data>
+											<data key="9">ComponentInstance</data>
+											<data key="8">0</data>
+											<data key="10">ComponentInstance</data>
+											<data key="125">0</data>
+											<data key="126">0</data>
+										</node>
+										<node id="133">
+											<data key="4">Component_1</data>
+											<data key="9">ComponentInstance_1</data>
+											<data key="8">1</data>
+											<data key="10">ComponentInstance</data>
+											<data key="125">0</data>
+											<data key="126">0</data>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
+						<node id="17">
+							<data key="9">HARDWARE</data>
+							<data key="8">1</data>
+							<data key="10">HardwareDefinitions</data>
+							<graph id="g17">
+								<node id="24">
+									<data key="21">127.0.0.1</data>
+									<data key="9">localhost</data>
+									<data key="20">7sp1</data>
+									<data key="23">{421aa90e-079f-a326-b649-4f812ad13e79}</data>
+									<data key="8">0</data>
+									<data key="19">x86_64</data>
+									<data key="22">windows</data>
+									<data key="10">HardwareNode</data>
+									<data key="18"></data>
+								</node>
+							</graph>
+						</node>
+					</graph>
+				</node>
+			</graph>
+		</node>
+		<edge id="134" source="133" target="128">
+			<data key="10">Edge_Definition</data>
+		</edge>
+		<edge id="132" source="131" target="127">
+			<data key="10">Edge_Definition</data>
+		</edge>
+	</graph>
+</graphml>

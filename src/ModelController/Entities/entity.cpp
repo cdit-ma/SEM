@@ -10,10 +10,9 @@ Entity::Entity(GRAPHML_KIND kind):GraphML(kind)
 
 Entity::~Entity()
 {
-    //Clear data.
-    while(!getData().isEmpty()){
-        Data* data = getData().first();
-        removeData(data);
+    for(auto data : dataLookup){
+        //Unregister the data so we don't bother calling back into this class
+        data->setParent(0);
         delete data;
     }
 }
@@ -59,10 +58,8 @@ bool Entity::addData(Data *data)
         dataLookup.insert(key, data);
     }
 
-
-
     //Attach this.
-    data->setParent(this);
+    data->registerParent(this);
     return true;
 }
 
@@ -96,10 +93,9 @@ void Entity::_dataChanged(Data *data)
 void Entity::_dataRemoved(Data *data)
 {
     if(data){
-        //Remove Key.
-        QString keyName = data->getKeyName();
-        keyLookup.remove(keyName);
-        emit dataRemoved(getID(), data->getKeyName());
+        auto key_name = data->getKeyName();
+        keyLookup.remove(key_name);
+        emit dataRemoved(getID(), key_name);
     }
 }
 

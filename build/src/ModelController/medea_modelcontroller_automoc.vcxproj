@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|Win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|Win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{1EA14587-970E-3DE5-8840-CBAB01ECC4AD}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>medea_modelcontroller_automoc</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\MEDEA\src\ModelController\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build --check-stamp-file C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build --check-stamp-file C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build --check-stamp-file C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/MEDEA/src/ModelController/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -HC:/MEDEA -BC:/MEDEA/build --check-stamp-file C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/MEDEA/src/ModelController/CMakeLists.txt;C:\MEDEA\src\ModelController\CMakeLists.txt;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5ConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\Qt5Config.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\Qt5CoreConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfigVersion.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5NetworkConfig.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QGenericEnginePlugin.cmake;C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\Qt5Network_QNativeWifiEnginePlugin.cmake;C:\Program Files\CMake\share\cmake-3.7\Modules\AutogenInfo.cmake.in;C:\MEDEA\src\ModelController\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\MEDEA\build\CMakeFiles\d364718bee4528f9e4e256f4adefc70d\medea_modelcontroller_automoc.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Automatic moc and rcc for target medea_modelcontroller</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\MEDEA\build\src\ModelController
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/MEDEA/build/src/ModelController/CMakeFiles/medea_modelcontroller_automoc.dir/ Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/MEDEA/build/CMakeFiles/d364718bee4528f9e4e256f4adefc70d/medea_modelcontroller_automoc.rule;C:\MEDEA\src\ModelController\WorkerDefinitions\utility.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\vector.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\gpu.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\memory.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\cpu.worker.graphml;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\medea_modelcontroller_automoc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Automatic moc and rcc for target medea_modelcontroller</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\MEDEA\build\src\ModelController
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/MEDEA/build/src/ModelController/CMakeFiles/medea_modelcontroller_automoc.dir/ Release
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/MEDEA/build/CMakeFiles/d364718bee4528f9e4e256f4adefc70d/medea_modelcontroller_automoc.rule;C:\MEDEA\src\ModelController\WorkerDefinitions\utility.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\vector.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\gpu.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\memory.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\cpu.worker.graphml;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\medea_modelcontroller_automoc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Automatic moc and rcc for target medea_modelcontroller</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\MEDEA\build\src\ModelController
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/MEDEA/build/src/ModelController/CMakeFiles/medea_modelcontroller_automoc.dir/ MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/MEDEA/build/CMakeFiles/d364718bee4528f9e4e256f4adefc70d/medea_modelcontroller_automoc.rule;C:\MEDEA\src\ModelController\WorkerDefinitions\utility.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\vector.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\gpu.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\memory.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\cpu.worker.graphml;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\medea_modelcontroller_automoc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Automatic moc and rcc for target medea_modelcontroller</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\MEDEA\build\src\ModelController
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/MEDEA/build/src/ModelController/CMakeFiles/medea_modelcontroller_automoc.dir/ RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/MEDEA/build/CMakeFiles/d364718bee4528f9e4e256f4adefc70d/medea_modelcontroller_automoc.rule;C:\MEDEA\src\ModelController\WorkerDefinitions\utility.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\vector.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\gpu.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\memory.worker.graphml;C:\MEDEA\src\ModelController\WorkerDefinitions\cpu.worker.graphml;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\MEDEA\build\src\ModelController\CMakeFiles\medea_modelcontroller_automoc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\MEDEA\build\src\ModelController\CMakeFiles\medea_modelcontroller_automoc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:/MEDEA/build/ZERO_CHECK.vcxproj">
+      <Project>65A08FAA-460F-3678-96AC-47ACDF6E027C</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

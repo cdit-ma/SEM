@@ -15,6 +15,7 @@
 
 #include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../Controllers/NotificationManager/notificationEnumerations.h"
 #include "../../Utils/actiongroup.h"
 #include "notificationobject.h"
 

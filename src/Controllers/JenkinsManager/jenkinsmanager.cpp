@@ -166,13 +166,13 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
     QMutexLocker(&this->mutex_);
     requesting_nodes_ = false;
 
-    emit NotificationManager::manager()->backgroundProcess(false, BP_IMPORT_JENKINS);
+    emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::IMPORT_JENKINS);
 
     if(success){
         emit GotJenkinsNodes(data);
-        NotificationManager::manager()->displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NC_INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
+        NotificationManager::manager()->displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
     }else{
-        NotificationManager::manager()->displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NC_ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
+        NotificationManager::manager()->displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
     }
 }
 

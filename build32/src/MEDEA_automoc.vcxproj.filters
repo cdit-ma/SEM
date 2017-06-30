@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\MEDEA\src\CMakeLists.txt" />
+    <CustomBuild Include="C:\MEDEA\build32\CMakeFiles\004bade1959e79285f8c5e8699b46483\MEDEA_automoc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\MEDEA\build32\src\CMakeFiles\MEDEA_automoc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{9B7194FE-CF46-3831-8504-0BD4949C4563}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

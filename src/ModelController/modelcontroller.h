@@ -125,6 +125,7 @@ public slots:
 private slots:
     void ModelNameChanged();
 signals:
+    void highlight(QList<int> ids);
     void ActionProcessing(bool running, bool success = false, QString error_string= "");
     //New SIGNAL
     void NodeConstructed(int parent_id, int id, NODE_KIND kind);

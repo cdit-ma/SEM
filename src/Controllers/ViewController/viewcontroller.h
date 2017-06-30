@@ -225,6 +225,9 @@ public slots:
     void closeProject();
     void closeMEDEA();
 
+
+    void importIdlFile();
+
     void generateWorkspace();
 
     void executeJenkinsJob();

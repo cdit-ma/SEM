@@ -267,7 +267,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
 
     if(BlockUntilValidatedSettings()){
         //Emit a notification to say we are running a job
-        emit NotificationManager::manager()->backgroundProcess(true, BP_RUNNING_JOB);
+        emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::RUNNING_JOB);
 
         QUrlQuery query;
         //Add Parameters
@@ -310,7 +310,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
         }
     }
 
-    emit NotificationManager::manager()->backgroundProcess(false, BP_RUNNING_JOB);
+    emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::RUNNING_JOB);
 
     //Emit failures if the build job failed to get a build number!
     if(build_number == -1){

@@ -146,23 +146,26 @@ void NotificationDialog::filterToggled(bool checked)
         }
 
         switch (filter) {
-        case NF_SEVERITY:
+        case NOTIFICATION_FILTER::SEVERITY:
         {
-            NOTIFICATION_SEVERITY s = (NOTIFICATION_SEVERITY)action->property(ROLE_VAL).toInt();
+            //NOTIFICATION_SEVERITY s = (NOTIFICATION_SEVERITY)action->property(ROLE_VAL).toInt();
+            NOTIFICATION_SEVERITY s = action->property(ROLE_VAL).value<NOTIFICATION_SEVERITY>();
             severityCheckedStates[s] = checked;
             emit severityFiltersChanged(severityCheckedStates);
             break;
         }
-        case NF_TYPE:
+        case NOTIFICATION_FILTER::TYPE:
         {
-            NOTIFICATION_TYPE t = (NOTIFICATION_TYPE)action->property(ROLE_VAL).toInt();
+            //NOTIFICATION_TYPE t = (NOTIFICATION_TYPE)action->property(ROLE_VAL).toInt();
+            NOTIFICATION_TYPE t = action->property(ROLE_VAL).value<NOTIFICATION_TYPE>();
             typeCheckedStates[t] = checked;
             emit typeFiltersChanged(typeCheckedStates);
             break;
         }
-        case NF_CATEGORY:
+        case NOTIFICATION_FILTER::CATEGORY:
         {
-            NOTIFICATION_CATEGORY c = (NOTIFICATION_CATEGORY)action->property(ROLE_VAL).toInt();
+            //NOTIFICATION_CATEGORY c = (NOTIFICATION_CATEGORY)action->property(ROLE_VAL).toInt();
+            NOTIFICATION_CATEGORY c = action->property(ROLE_VAL).value<NOTIFICATION_CATEGORY>();
             categoryCheckedStates[c] = checked;
             emit categoryFiltersChanged(categoryCheckedStates);
             break;
@@ -182,17 +185,17 @@ void NotificationDialog::filterToggled(bool checked)
 void NotificationDialog::clearFilter(NOTIFICATION_FILTER filter)
 {
     switch (filter) {
-    case NF_SEVERITY:
+    case NOTIFICATION_FILTER::SEVERITY:
         foreach (NOTIFICATION_SEVERITY s, severityCheckedStates.keys()) {
             severityCheckedStates[s] = false;
         }
         break;
-    case NF_TYPE:
+    case NOTIFICATION_FILTER::TYPE:
         foreach (NOTIFICATION_TYPE t, typeCheckedStates.keys()) {
             typeCheckedStates[t] = false;
         }
         break;
-    case NF_CATEGORY:
+    case NOTIFICATION_FILTER::CATEGORY:
         foreach (NOTIFICATION_CATEGORY c, categoryCheckedStates.keys()) {
             categoryCheckedStates[c] = false;
         }
@@ -218,7 +221,7 @@ void NotificationDialog::clearFilters()
     }
 
     // reset checked-states lists
-    foreach (NOTIFICATION_FILTER filter, NotificationManager::getNotificationFilters()) {
+    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
         clearFilter(filter);
     }
 
@@ -421,21 +424,21 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
     QList<NotificationItem*> itemsToDelete;
     foreach (NotificationItem* item, notificationItems.values()) {
         switch (filter) {
-        case NF_SEVERITY:
+        case NOTIFICATION_FILTER::SEVERITY:
         {
             if (item->getSeverity() == (NOTIFICATION_SEVERITY)filterVal) {
                 itemsToDelete.append(item);
             }
             break;
         }
-        case NF_TYPE:
+        case NOTIFICATION_FILTER::TYPE:
         {
             if (item->getType() == (NOTIFICATION_TYPE)filterVal) {
                 itemsToDelete.append(item);
             }
             break;
         }
-        case NF_CATEGORY:
+        case NOTIFICATION_FILTER::CATEGORY:
         {
             if (item->getCategory() == (NOTIFICATION_CATEGORY)filterVal) {
                 itemsToDelete.append(item);
@@ -568,7 +571,6 @@ void NotificationDialog::initialisePanel()
 }
 
 
-
 /**
  * @brief NotificationDialog::getNotificationFilter
  * @param role
@@ -578,13 +580,13 @@ NOTIFICATION_FILTER NotificationDialog::getNotificationFilter(NotificationDialog
 {
     switch (role) {
     case IR_SEVERITY:
-        return NF_SEVERITY;
+        return NOTIFICATION_FILTER::SEVERITY;
     case IR_TYPE:
-        return NF_TYPE;
+        return NOTIFICATION_FILTER::TYPE;
     case IR_CATEGORY:
-        return NF_CATEGORY;
+        return NOTIFICATION_FILTER::CATEGORY;
     default:
-        return NF_NOFILTER;
+        return NOTIFICATION_FILTER::NOFILTER;
     }
 }
 
@@ -838,25 +840,27 @@ void NotificationDialog::setupLayout()
     setActionButtonChecked(allAction, true);
 
     // setup the SEVERITY, TYPE, and CATEGORY filter actions/buttons in that order
-    NotificationManager* manager = NotificationManager::manager();
-    foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
-        QString iconName = manager->getSeverityIcon(severity);
-        constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Icons", iconName);
+    foreach (NOTIFICATION_SEVERITY severity, getNotificationSeverities()) {
+        QString iconName = getSeverityIcon(severity);
+        int sInt = static_cast<int>(severity);
+        constructFilterButtonAction(IR_SEVERITY, sInt, getSeverityString(severity), "Icons", iconName);
         severityCheckedStates[severity] = false;
     }
-    foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()){
-        QString iconName = NotificationManager::getCategoryIcon(category);
-        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Icons", iconName);
+    foreach (NOTIFICATION_CATEGORY category, getNotificationCategories()){
+        QString iconName = getCategoryIcon(category);
+        int cInt = static_cast<int>(category);
+        constructFilterButtonAction(IR_CATEGORY, cInt, getCategoryString(category), "Icons", iconName);
         categoryCheckedStates[category] = false;
     }
-    foreach (NOTIFICATION_TYPE type, manager->getNotificationTypes()) {
+    foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
         QString iconName;
         if (type == NOTIFICATION_TYPE::MODEL) {
             iconName = "dotsInRectangle";
         } else if (type == NOTIFICATION_TYPE::APPLICATION) {
             iconName = "pencil";
         }
-        constructFilterButtonAction(IR_TYPE, type, manager->getTypeString(type), "Icons", iconName);
+        int tInt = static_cast<int>(type);
+        constructFilterButtonAction(IR_TYPE, tInt, getTypeString(type), "Icons", iconName);
         typeCheckedStates[type] = false;
     }
 
@@ -942,16 +946,16 @@ void NotificationDialog::setupLayout()
  */
 void NotificationDialog::setupBackgroundProcessItems()
 {
-    foreach (BACKGROUND_PROCESS process, NotificationManager::getBackgroundProcesses()) {
+    foreach (BACKGROUND_PROCESS process, getBackgroundProcesses()) {
         QString description;
         switch (process) {
-        case BP_VALIDATION:
+        case BACKGROUND_PROCESS::VALIDATION:
             description = "Validating Model ...";
             break;
-        case BP_IMPORT_JENKINS:
+        case BACKGROUND_PROCESS::IMPORT_JENKINS:
             description = "Importing Jenkins Nodes ...";
             break;
-        case BP_RUNNING_JOB:
+        case BACKGROUND_PROCESS::RUNNING_JOB:
             description = "Running Jenkins Job...";
             break;
         default:

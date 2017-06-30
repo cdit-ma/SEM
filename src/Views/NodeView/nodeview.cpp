@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QtMath>
+#include <QTimer>
 #include <QGraphicsItem>
 #include <QKeyEvent>
 #include <QDateTime>
@@ -40,7 +41,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setDragMode(NoDrag);
     setAcceptDrops(true);
     setTransformationAnchor(QGraphicsView::NoAnchor);
-    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
 
@@ -64,6 +65,38 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
+
+{
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(time_repaint()));
+    timer->start(100);
+}
+
+{
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(time_print()));
+    timer->start(2500);
+}
+}
+
+void NodeView::time_print(){
+    double time = 0;
+    for(auto d : render_times){
+        time += d;
+    }
+
+    emit benchmark(backgroundText,(time / ((double)render_times.size())) );
+}
+void NodeView::time_repaint(){
+
+    auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    this->repaint();
+    auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    render_times.push_back(time_finish - time_start);
+    while(render_times.size() > 50){
+        render_times.pop_front();
+    }
 
 }
 
@@ -228,7 +261,7 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem *item, bool select
         }
         if(item == containedNodeViewItem){
             isBackgroundSelected = selected;
-            update();
+            //update();
         }
     }
 }
@@ -338,7 +371,7 @@ void NodeView::themeChanged()
     selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + ((1 - ratio) * selectedColor.green()) ));
     selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + ((1 - ratio) * selectedColor.blue()) ));
 
-    update();
+    //update();
 }
 
 void NodeView::node_ConnectMode(NodeItem *item)
@@ -662,7 +695,7 @@ SelectionHandler *NodeView::getSelectionHandler()
 void NodeView::viewItem_LabelChanged(QString label)
 {
     backgroundText = label.toUpper();
-    update();
+    //update();
 }
 
 QRectF NodeView::viewportRect()

@@ -41,7 +41,7 @@ protected:
 
 private:
     void updateStyleSheet();
-    void updateVisibility(NOTIFICATION_FILTER filter = NF_NOFILTER, bool visible = false);
+    void updateVisibility(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, bool visible = false);
 
     NotificationObject* notificationObject;
 

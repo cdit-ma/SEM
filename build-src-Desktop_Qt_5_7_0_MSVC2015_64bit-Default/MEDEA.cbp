@@ -1,0 +1,1606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="MEDEA"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="msvc8"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\Qt\;CMake Files\..\..\Qt\Qt5.7.0\;CMake Files\..\..\Qt\Qt5.7.0\5.7\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\;CMake Files\ModelController\;CMake Files\Test\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 all"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 list_install_components"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin/MEDEA.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin"/>
+				<Option object_output="./"/>
+				<Option type="0"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_WIDGETS_LIB"/>
+					<Add option="-DQT_GUI_LIB"/>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_CHARTS_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/include"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 MEDEA"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA/fast">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin/MEDEA.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin"/>
+				<Option object_output="./"/>
+				<Option type="0"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_WIDGETS_LIB"/>
+					<Add option="-DQT_GUI_LIB"/>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_CHARTS_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/include"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 MEDEA/fast"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 edit_cache"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package_source">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 package_source"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="package">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 package"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 install"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 install/local"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA_autogen">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 MEDEA_autogen"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="medea_modelcontroller">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/lib/medea_modelcontroller.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController/medea_modelcontroller_autogen/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 medea_modelcontroller"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="medea_modelcontroller/fast">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/lib/medea_modelcontroller.lib" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController/medea_modelcontroller_autogen/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 medea_modelcontroller/fast"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="medea_modelcontroller_autogen">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 medea_modelcontroller_autogen"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\ModelController\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA_test">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin/MEDEA_test.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_TESTLIB_LIB"/>
+					<Add option="-DQT_TESTCASE_BUILDDIR=&quot;C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default&quot;"/>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/Test/MEDEA_test_autogen/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtTest"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 MEDEA_test"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA_test/fast">
+				<Option output="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin/MEDEA_test.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add option="-DQT_TESTLIB_LIB"/>
+					<Add option="-DQT_TESTCASE_BUILDDIR=&quot;C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default&quot;"/>
+					<Add option="-DQT_CORE_LIB"/>
+					<Add option="-DQT_NETWORK_LIB"/>
+					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/Test/MEDEA_test_autogen/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtTest"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
+					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\10\include\10.0.10240.0\ucrt"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\shared"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\um"/>
+					<Add directory="C:\Program Files (x86)\Windows Kits\8.1\include\\winrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 MEDEA_test/fast"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="MEDEA_test_autogen">
+				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/Test"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 MEDEA_test_autogen"/>
+					<CompileFile command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\Test\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/EWIEGA46WW/qrc_images.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/moc_compilation.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController/medea_modelcontroller_autogen/EWIEGA46WW/qrc_workers.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/ModelController/medea_modelcontroller_autogen/moc_compilation.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/Test/MEDEA_test_autogen/EWIEGA46WW/qrc_models.cpp">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/Test/MEDEA_test_autogen/moc_compilation.cpp">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ActionController/actioncontroller.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ActionController/actioncontroller.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ExecutionManager/executionmanager.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ExecutionManager/executionmanager.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/JenkinsManager/jenkinsmanager.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/JenkinsManager/jenkinsmanager.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/JenkinsManager/jenkinsrequest.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/JenkinsManager/jenkinsrequest.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/NotificationManager/notificationEnumerations.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/NotificationManager/notificationEnumerations.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/NotificationManager/notificationmanager.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/NotificationManager/notificationmanager.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SelectionController/selectioncontroller.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SelectionController/selectioncontroller.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SelectionController/selectionhandler.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SelectionController/selectionhandler.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SettingsController/setting.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SettingsController/setting.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SettingsController/settingscontroller.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/SettingsController/settingscontroller.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ToolbarController/nodeviewitemaction.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ToolbarController/nodeviewitemaction.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ToolbarController/toolbarcontroller.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ToolbarController/toolbarcontroller.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/edgeviewitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/edgeviewitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/nodeviewitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/nodeviewitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/viewcontroller.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/viewcontroller.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/viewitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/ViewController/viewitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/WindowManager/windowmanager.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Controllers/WindowManager/windowmanager.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/attributeimpl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/attributeimpl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/behaviourdefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/behaviourdefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/behaviournode.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/behaviournode.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/branch.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/branch.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/branchstate.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/branchstate.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/code.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/code.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/componentimpl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/componentimpl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/condition.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/condition.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/eventportimpl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/eventportimpl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/forcondition.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/forcondition.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/header.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/header.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/ineventportimpl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/ineventportimpl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/inputparameter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/inputparameter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/outeventportimpl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/outeventportimpl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/parameter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/parameter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/periodicevent.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/periodicevent.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/process.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/process.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/returnparameter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/returnparameter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/setter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/setter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/termination.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/termination.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variable.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variable.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variableparameter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variableparameter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variadicparameter.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/variadicparameter.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/whileloop.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/whileloop.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/workerprocess.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/workerprocess.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/workload.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/BehaviourDefinitions/workload.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/assemblydefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/assemblydefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/attributeinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/attributeinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/blackboxinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/blackboxinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/componentassembly.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/componentassembly.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/componentinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/componentinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/deploymentdefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/deploymentdefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/eventportdelegate.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/eventportdelegate.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwarecluster.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwarecluster.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwaredefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwaredefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwarenode.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/hardwarenode.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/ineventportdelegate.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/ineventportdelegate.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/ineventportinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/ineventportinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/loggingprofile.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/loggingprofile.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/loggingserver.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/loggingserver.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/managementcomponent.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/managementcomponent.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/outeventportdelegate.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/outeventportdelegate.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/outeventportinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/DeploymentDefinitions/outeventportinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/aggregateedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/aggregateedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/assemblyedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/assemblyedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/dataedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/dataedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/definitionedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/definitionedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/deploymentedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/deploymentedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/qosedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/qosedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/workflowedge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Edges/workflowedge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/aggregate.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/aggregate.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/aggregateinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/aggregateinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/attribute.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/attribute.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/blackbox.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/blackbox.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/component.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/component.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/datanode.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/datanode.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/eventport.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/eventport.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/idl.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/idl.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/ineventport.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/ineventport.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/interfacedefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/interfacedefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/member.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/member.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/memberinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/memberinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/outeventport.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/outeventport.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/shareddatatypes.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/shareddatatypes.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/vector.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/vector.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/vectorinstance.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/InterfaceDefinitions/vectorinstance.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/exportidkey.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/exportidkey.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/indexkey.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/indexkey.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/labelkey.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/labelkey.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/replicatecountkey.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/Keys/replicatecountkey.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/data.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/data.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/edge.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/edge.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/entity.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/entity.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/graphml.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/graphml.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/key.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/key.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/model.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/model.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/node.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/node.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/workerdefinitions.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/Entities/workerdefinitions.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/entityfactory.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/entityfactory.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/modelcontroller.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/modelcontroller.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/tempentity.cpp">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/tempentity.h">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/workers.qrc">
+			<Option target="medea_modelcontroller"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/main.cpp">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/modelcontrollertests.cpp">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/modelcontrollertests.h">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/models.qrc">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/utils.cpp">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/utils.h">
+			<Option target="MEDEA_test"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/IdlParser/graphmlexporter.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/IdlParser/graphmlexporter.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/IdlParser/idlparser.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/IdlParser/idlparser.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/actiongroup.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/actiongroup.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/filehandler.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/filehandler.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/filtergroup.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/filtergroup.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/processrunner.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/processrunner.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/qobjectregistrar.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/qobjectregistrar.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/rootaction.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Utils/rootaction.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/ContextToolbar/contexttoolbar.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/ContextToolbar/contexttoolbar.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/docktabwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/docktabwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetactionitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetactionitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetparentactionitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Dock/dockwidgetparentactionitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Edge/edgeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Edge/edgeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/basicnodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/basicnodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/defaultnodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/hardwarenodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/managementcomponentnodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/managementcomponentnodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/nodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/nodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/stacknodeitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/Node/stacknodeitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/entityitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/entityitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/statictextitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/SceneItems/statictextitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/nodeview.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/nodeview.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/nodeviewminimap.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/NodeView/nodeviewminimap.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationdialog.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationdialog.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationobject.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationobject.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationtoolbar.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Notification/notificationtoolbar.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/QOSBrowser/qosbrowser.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/QOSBrowser/qosbrowser.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/QOSBrowser/qosprofilemodel.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/QOSBrowser/qosprofilemodel.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Search/searchdialog.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Search/searchdialog.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Search/searchitemwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Search/searchitemwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatabledelegate.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatabledelegate.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatablemodel.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatablemodel.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatableview.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatableview.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatablewidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Views/Table/datatablewidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/codebrowser.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/codebrowser.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/codeeditor.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/codeeditor.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/syntaxhighlighter.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/CodeEditor/syntaxhighlighter.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/appsettings.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/appsettings.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/popupwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/popupwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/shortcutdialog.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Dialogs/shortcutdialog.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/basedockwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/basedockwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/docktitlebar.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/docktitlebar.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/nodeviewdockwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/nodeviewdockwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/tooldockwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/tooldockwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/viewdockwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/DockWidgets/viewdockwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Jenkins/jenkinsjobmonitorwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Jenkins/jenkinsstartjobwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Jenkins/jenkinsstartjobwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/dockitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/dockitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/viewmanagerwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/viewmanagerwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/windowitem.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/ViewManager/windowitem.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/basewindow.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/basewindow.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/centralwindow.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/centralwindow.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/mainwindow.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/mainwindow.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/subwindow.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/subwindow.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/viewwindow.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/viewwindow.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/welcomescreenwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/Windows/welcomescreenwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/dataeditwidget.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Widgets/dataeditwidget.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/enumerations.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/enumerations.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/images.qrc">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/main.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/theme.cpp">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/theme.h">
+			<Option target="MEDEA"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/cmakevars.h.in">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/images.qrc">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Widgets/Qt5WidgetsConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Widgets/Qt5WidgetsMacros.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5GuiConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QDDSPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QGifPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QICNSPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QICOPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QJpegPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QMinimalIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QOffscreenIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QTgaPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QTiffPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QTuioTouchPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QWbmpPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QWebpPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5Gui_QWindowsIntegrationPlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreMacros.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Network/Qt5NetworkConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Network/Qt5Network_QGenericEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Network/Qt5Network_QNativeWifiEnginePlugin.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Test/Qt5TestConfigExtras.cmake">
+			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\ModelController\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/ModelController/workers.qrc">
+			<Option virtualFolder="CMake Files\ModelController\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\Test\"/>
+		</Unit>
+		<Unit filename="C:/MEDEA/src/Test/models.qrc">
+			<Option virtualFolder="CMake Files\Test\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
