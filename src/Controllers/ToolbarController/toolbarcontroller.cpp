@@ -4,6 +4,8 @@
 #include "../SelectionController/selectioncontroller.h"
 #include "../../ModelController/entityfactory.h"
 #include "../../Utils/rootaction.h"
+#include "../WindowManager/windowmanager.h"
+#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
 
 #include <QDebug>
 
@@ -193,14 +195,27 @@ void ToolbarController::actionFinished()
         selectionChanged(selectionController->getSelectionCount());
     }
 }
+QPointF ToolbarController::getViewCenterPoint(){
+    auto active_dock = WindowManager::manager()->getActiveViewDockWidget();;
+
+    if(active_dock && active_dock->isNodeViewDock()){
+        auto node_view_dock = (NodeViewDockWidget*) active_dock;
+        return node_view_dock->getNodeView()->getTopLeftOfSelection();
+    }
+    return QPointF(0, 0);
+}
 
 void ToolbarController::addChildNode(NODE_KIND kind, QPointF position)
 {
     ViewItem* item = selectionController->getActiveSelectedItem();
 
+    
+
     if(item){
         int ID = item->getID();
-        //if()
+        if(position.isNull()){
+            position = getViewCenterPoint();
+        }
         //Expand!
         emit viewController->vc_setData(ID, "isExpanded", true);
         emit viewController->vc_constructNode(ID, kind, position);
@@ -235,6 +250,9 @@ void ToolbarController::addConnectedChildNode(int dstID, NODE_KIND kind, QPointF
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
+        if(position.isNull()){
+            position = getViewCenterPoint();
+        }
         EDGE_KIND edge_kind = getNodesEdgeKind(kind);
         emit viewController->vc_constructConnectedNode(ID, kind, dstID, edge_kind, position);
     }
@@ -244,6 +262,9 @@ void ToolbarController::addWorkerProcess(int processID, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
+        if(position.isNull()){
+            position = getViewCenterPoint();
+        }
         emit viewController->vc_constructWorkerProcess(ID, processID, position);
     }
 }

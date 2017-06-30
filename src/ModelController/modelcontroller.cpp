@@ -83,10 +83,14 @@ void ModelController::SetupController(QString file_path)
 
     bool modified = true;
     if(file.first){
-        bool success = importGraphML(MODEL_ACTION::OPEN, file.second, model);
+        setModelAction(MODEL_ACTION::OPEN);
+        bool success = importGraphML(file.second, model);
+        unsetModelAction(MODEL_ACTION::OPEN);
         
-        //Update the project filePath
-        setProjectPath(file_path);
+        if(success){
+            //Update the project filePath
+            setProjectPath(file_path);
+        }
 
         modified = !success;
     }else{
@@ -116,16 +120,18 @@ void ModelController::loadWorkerDefinitions()
         QList<QDir> worker_directories{QDir(":/WorkerDefinitions")};
         QStringList extensions{"*.worker"};
 
+        setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
                 auto file_path = dir.absolutePath() + "/" + file;
                 auto data = readFile(file_path);
-                bool success = importGraphML(MODEL_ACTION::IMPORT, data.second, workerDefinitions);
+                bool success = importGraphML(data.second, workerDefinitions);
                 if(!success){
                     emit Notification(MODEL_SEVERITY::WARNING, "Error Importing Worker Definition '" + file_path + "'");
                 }
             }
         }
+        unsetModelAction(MODEL_ACTION::IMPORT);
     }
 }
 
@@ -813,7 +819,10 @@ bool ModelController::_paste(Node* node, QString xml)
     if(node){
         triggerAction("Pasting Selection.");
         //Paste it into the current Selected Node,
-        return importGraphML(MODEL_ACTION::PASTE, xml, node);
+        setModelAction(MODEL_ACTION::PASTE);
+        bool success = importGraphML(xml, node);
+        unsetModelAction(MODEL_ACTION::PASTE);
+        return success;
     }
     return false;
 }
@@ -1386,7 +1395,6 @@ void ModelController::destructNode_(Node* node){
 
 bool ModelController::reverseAction(HistoryAction action)
 {   
-    
     switch(action.Action.type){
     case ACTION_TYPE::CONSTRUCTED:{
         switch(action.Action.kind){
@@ -1407,7 +1415,8 @@ bool ModelController::reverseAction(HistoryAction action)
         case GRAPHML_KIND::NODE:
         case GRAPHML_KIND::EDGE:{
             auto parent_node = entity_factory->GetNode(action.parent_id);
-            return importGraphML(MODEL_ACTION::UNDO, action.xml, parent_node);
+            //Don't pass a MODEL_ACTION
+            return importGraphML(action.xml, parent_node);
         }
         case GRAPHML_KIND::DATA:{
             auto entity = entity_factory->GetEntity(action.entity_id);
@@ -1477,7 +1486,7 @@ bool ModelController::undoRedo()
             break;
         }
     }
-
+    
     double action_count = reverse_actions.size() / 100.0;
     int actions_reversed = 0;
     
@@ -1506,6 +1515,7 @@ bool ModelController::undoRedo()
     }else if(isModelAction(MODEL_ACTION::REDO)){
         redo_stack.swap(action_stack);
     }
+
     emit UndoRedoUpdated();
     return success;
 }
@@ -2133,14 +2143,15 @@ void ModelController::importProjects(QStringList xml_list)
     emit ShowProgress(true, "Importing Projects");
     if(xml_list.length() > 0){
         triggerAction("Importing GraphML Projects.");
-        
+        setModelAction(MODEL_ACTION::IMPORT);
         for(auto xml : xml_list){
-            auto result = importGraphML(MODEL_ACTION::IMPORT, xml, model);
+            auto result = importGraphML(xml, model);
             if(!result){
                 emit Notification(MODEL_SEVERITY::ERROR, "Cannot import Project.");
                 success = false;
             }
         }
+        unsetModelAction(MODEL_ACTION::IMPORT);
     }
     emit ShowProgress(false);
     emit ActionFinished();
@@ -2160,9 +2171,8 @@ bool ModelController::isKeyNameVisual(QString key_name){
     return visual_keynames.contains(key_name);
 }
 
-bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node *parent)
+bool ModelController::importGraphML(QString document, Node *parent)
 {
-    setModelAction(action);
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> key_hash;
 
@@ -2187,12 +2197,13 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
-    bool link_id = action == MODEL_ACTION::UNDO || action == MODEL_ACTION::REDO;
-    bool reset_position = action == MODEL_ACTION::PASTE;
-    bool partial_import = action == MODEL_ACTION::PASTE || link_id;
+    bool link_id = isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO);
+    bool reset_position = isModelAction(MODEL_ACTION::PASTE);
+    bool partial_import = isModelAction(MODEL_ACTION::PASTE) || link_id;
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
-    bool show_progress = action != MODEL_ACTION::NONE;
-    bool process_uuids = action == MODEL_ACTION::IMPORT;
+    bool show_progress = !isModelAction(MODEL_ACTION::NONE);
+    bool process_uuids = isModelAction(MODEL_ACTION::IMPORT);
+
     current_entity->setID(parent->getID());
 
 
@@ -2430,7 +2441,7 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
 
             //If we have matched something which is already got a parent node we shouldn't overwrite its data
             //This will stop any data stored in the aspects getting overwritten
-            if(node && node->getParentNode() && action == MODEL_ACTION::IMPORT){
+            if(node && node->getParentNode() && isModelAction(MODEL_ACTION::IMPORT)){
                 entity->clearData();
             }
         }
@@ -2649,14 +2660,8 @@ bool ModelController::importGraphML(MODEL_ACTION action, QString document, Node 
     for(auto entity : entity_hash){
         delete entity;
     }
-
-    //Clear the topEntity
-
-    
     delete current_entity;
-
-    unsetModelAction(action);
-
+    
     return error_count == 0;
 }
 

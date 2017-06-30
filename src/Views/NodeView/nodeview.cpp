@@ -13,6 +13,8 @@
 #include "SceneItems/Node/managementcomponentnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 
+#include "../../Controllers/WindowManager/windowmanager.h"
+#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"
@@ -70,6 +72,10 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
+
+
+    connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
+
 }
 
 
@@ -660,6 +666,26 @@ void NodeView::viewItem_LabelChanged(QString label)
     auto fm = QFontMetrics(background_font);
     //Calculate the rectangle which contains the background test
     background_text_rect = fm.boundingRect(text);
+}
+
+void NodeView::activeViewDockChanged(ViewDockWidget* dw){
+
+    bool active = dw && dw->widget() == this;
+    if(active != is_active){
+        is_active = active;
+        update();
+    }
+}
+
+QPointF NodeView::getTopLeftOfSelection(){
+    auto vi = selectionHandler->getActiveSelectedItem();
+    auto item = getEntityItem(vi);
+
+    QPointF top_left = viewportRect().topLeft();
+    if(item){
+        top_left = item->mapFromScene(top_left);
+    }
+    return top_left;
 }
 
 QRectF NodeView::viewportRect()
@@ -1545,6 +1571,18 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         QGraphicsView::mouseReleaseEvent(event);
     }
 }
+
+void NodeView::drawForeground(QPainter *painter, const QRectF &r){
+    QGraphicsView::drawForeground(painter, r);
+
+    if(!is_active){
+        //painter->setBrush(QColor(255, 255, 255, 50));
+        painter->setBrush(QColor(0, 0, 0, 60));
+        painter->setPen(Qt::NoPen);
+        painter->drawRect(r);
+    }
+}
+
 
 void NodeView::drawBackground(QPainter *painter, const QRectF & r)
 {

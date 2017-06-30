@@ -195,7 +195,7 @@ private:
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
 
-    bool importGraphML(MODEL_ACTION action, QString document, Node* parent = 0);
+    bool importGraphML(QString document, Node* parent = 0);
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QList<int> ids, bool all_edges = false);
     QString exportGraphML(QList<Entity*> entities, bool all_edges = false);

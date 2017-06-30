@@ -139,7 +139,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
             }
         } else {
             NODE_KIND kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
-            toolActionController->addChildNode(kind, QPoint(0,0));
+            toolActionController->addChildNode(kind);
         }
         break;
     }
@@ -148,7 +148,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         auto id = action->getProperty("ID").toInt();
         auto kind_str = action->getProperty("parent-kind").toString();
         NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
-        toolActionController->addConnectedChildNode(id, kind, QPointF());
+        toolActionController->addConnectedChildNode(id, kind);
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;
@@ -156,7 +156,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     case ToolbarController::FUNCTIONS:{
         // construct WorkerProcess
         QVariant ID = action->getProperty("ID");
-        toolActionController->addWorkerProcess(ID.toInt(), QPointF());
+        toolActionController->addWorkerProcess(ID.toInt());
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;

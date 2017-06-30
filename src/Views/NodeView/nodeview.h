@@ -30,6 +30,8 @@ public:
     QColor getBackgroundColor();
     QRectF getViewportRect();
     SelectionHandler* getSelectionHandler();
+
+    QPointF getTopLeftOfSelection();
     
     void alignHorizontal();
     void alignVertical();
@@ -150,7 +152,7 @@ private:
     QPoint rubberband_lastPos;
     QRubberBand* rubberband;
 
-
+    bool is_active = false;
     QPointF viewportCenter_Scene;
     
     QList<double> render_times;
@@ -185,6 +187,7 @@ private:
     QLineF connectLine;
 
 private slots:
+    void activeViewDockChanged(ViewDockWidget* dw);
     void state_Moving_Entered();
     void state_Moving_Exited();
 
@@ -214,6 +217,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
 
+    void drawForeground(QPainter *painter, const QRectF &rect);
     void drawBackground(QPainter *painter, const QRectF &rect);
 
     void paintEvent(QPaintEvent *event);
