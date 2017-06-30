@@ -25,7 +25,6 @@ EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
     //Sets the default border to be dark gray
     QPen defaultPen(QColor(50, 50, 50));
     defaultPen.setCosmetic(true);
-
     setDefaultPen(defaultPen);
 
     _isHovered = false;
@@ -98,9 +97,7 @@ QPair<QString, QString> EntityItem::getTertiaryIcon() const
 
 RENDER_STATE EntityItem::getRenderState(qreal lod) const
 {
-    if(lod >= 2.0 && !_isMoving){
-        return RENDER_STATE::DOUBLE;
-    }else if(lod >= 1.0){
+    if(lod >= 1.0){
         return RENDER_STATE::FULL;
     }else if(lod >= .75){
         return RENDER_STATE::REDUCED;
@@ -195,9 +192,6 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
     if(!imageRect.isEmpty()){
         RENDER_STATE state = getRenderState(lod);
 
-        //Calculate the required size of the image.
-        
-
         if(state == RENDER_STATE::BLOCK){
             //Only allow the Main Icon/Secondary Icon and Edge Kind Icon to be drawn in block state.
             switch(pos){
@@ -211,27 +205,9 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 
             paintPixmapRect(painter, imagePath, imageName, imageRect);
         }else{
-            QSize requiredSize = getPixmapSize(imageRect, lod);
-            //paintPixmapRect(painter, imagePath, imageName, imageRect);
-            //Get the previousImage item out of the map.
-            auto pixmap = getPixmap(imagePath, imageName, requiredSize, tintColor);
+            auto required_size = getPixmapSize(imageRect, lod);
+            auto pixmap = getPixmap(imagePath, imageName, required_size, tintColor);
             paintPixmap(painter, imageRect, pixmap);
-            //If the image size, image location or tint is different we should update out cache.
-            /*
-            ImageMap image = imageMap[pos];
-            if(image.pixmap.isNull() || image.imageSize != requiredSize || image.imagePath != imagePath || image.imageName != imageName || image.tintColor != tintColor){
-                
-                image.imagePath = imagePath;
-                image.imageName = imageName;
-                image.imageSize = requiredSize;
-                image.tintColor = tintColor;
-
-                //Update the image into the map.
-                imageMap[pos] = image;
-            }*/
-
-            //Paint Pixmap
-            //paintPixmap(painter, imageRect, pixmap);
         }
     }
 }
@@ -243,8 +219,10 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 
 void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
 {
+    painter->setBrush(getBodyColor().darker(150));
     auto text_item = textMap.value(pos, 0);
     if(!text_item){
+        //If we haven't got one, construct a text tiem
         text_item = new StaticTextItem();
         textMap[pos] = text_item;
     }
@@ -263,17 +241,7 @@ void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCur
 void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
     if(imageRect.isValid()){
-        //Paint Bounding Rects!
-        //painter->setPen(Qt::black);
-        //painter->setBrush(Qt::NoBrush);
-        //painter->drawRect(imageRect);
-       // QRect exposedRect = painter->matrix().inverted()
-       //              .mapRect(event->rect())
-       //              .adjusted(-1, -1, 1, 1);
-        // the adjust is to account for half pixels along edges
-        
         painter->drawPixmap(imageRect, pixmap, pixmap.rect());
-        //painter->drawPixmap(imageRect, pixmap, imageRect);
     }
 }
 
@@ -306,6 +274,12 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
     requiredSize.setWidth(rect.width() * 2 * lod);
     requiredSize.setHeight(rect.height() * 2 * lod);
     requiredSize = Theme::roundQSize(requiredSize);
+    
+    //Max out at 128 pixels
+    if(requiredSize.width() > 128){
+        requiredSize.setWidth(128);
+        requiredSize.setHeight(128);
+    }
     return requiredSize;
 }
 
@@ -556,7 +530,6 @@ void EntityItem::handleHover(bool hovered)
     if(isHoverEnabled()){
         if(hovered != _isHovered){
             setHovered(hovered);
-            //emit req_hovered(this, hovered);
         }
     }
 }
@@ -742,16 +715,17 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     if(state == RENDER_STATE::BLOCK){
         QBrush brush(Qt::SolidPattern);
+        painter->setPen(Qt::NoPen);
 
         if(isSelected()){
             brush.setColor(getPen().color());
+            painter->setBrush(brush);
+            painter->drawPath(getElementPath(ER_SELECTION));
         }else{
             brush.setColor(getBodyColor());
         }
 
-        painter->setBrush(brush);
-        painter->setPen(Qt::NoPen);
-        painter->drawPath(getElementPath(ER_SELECTION));
+        
     }
 
     //Paint the pixmap!
@@ -778,7 +752,7 @@ QPen EntityItem::getPen()
 {
     QPen pen = defaultPen;
     pen.setJoinStyle(Qt::MiterJoin);
-    QColor penColor = defaultPen.color();
+    QColor penColor = QColor(115,115,115);//defaultPen.color();
 
     if(isSelected()){
         if(pen.style() == Qt::NoPen){
@@ -789,16 +763,10 @@ QPen EntityItem::getPen()
         penColor = Theme::theme()->getSelectedItemBorderColor();
     }
 
-    if(isHovered()){
-        if(!isSelected()){
-            //penColor = Qt::darkGray;
-            penColor = QColor(115,115,115);
+    if(!isHovered()){
+        if(!isSelected() || (isSelected() && !isActiveSelected())){
+            penColor = penColor.lighter(140);
         }
-        penColor = penColor.lighter(130);
-    }
-
-    if(!isActiveSelected()){
-        penColor = penColor.lighter();
     }
 
     pen.setColor(penColor);
@@ -861,6 +829,9 @@ void EntityItem::setHovered(bool isHovered)
 {
     if(_isHovered != isHovered){
         _isHovered = isHovered;
+        if(_isHovered && getParent()){
+            getParent()->setHovered(false);
+        }
         update();
     }
 }
@@ -879,6 +850,7 @@ void EntityItem::setSelected(bool selected)
         _isSelected = selected;
 
         updateZValue();
+        update();
     }
 }
 

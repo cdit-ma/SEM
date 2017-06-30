@@ -250,35 +250,6 @@ void MainWindow::updateMenuBarSize()
 }
 
 
-void MainWindow::updateGraph(QString name, double value){
-
-    if(name != ""){
-        if(!series_hash.contains(name)){
-            auto series = new QLineSeries(chart);
-            chart->addSeries(series);
-            series->setName(name);
-
-            series->attachAxis(axisX);
-            series->attachAxis(axisY);
-
-            series_hash[name] = series;
-        }
-        auto series = series_hash[name];
-        auto pos = series->count();
-        series->append(pos, value);
-
-        if(value > max_y_range){
-            max_y_range = value;
-            axisY->setRange(0, max_y_range);    
-        }
-
-        axisX->setRange(0, pos);
-
-        //chart->axisX()->setRange(0, pos);
-
-    }
-
-}
 /**
  * @brief MedeaMainWindow::resetToolDockWidgets
  */
@@ -349,10 +320,12 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
             NodeViewDockWidget* prevNodeViewDock = (NodeViewDockWidget*) prevDock;
             NodeView* prevView = prevNodeViewDock->getNodeView();
             if(prevView){
-                disconnect(minimap, &NodeViewMinimap::minimap_Pan, prevView, &NodeView::minimap_Pan);
-                disconnect(minimap, &NodeViewMinimap::minimap_Zoom, prevView, &NodeView::minimap_Zoom);
-                disconnect(prevView, &NodeView::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
-                disconnect(prevView, &NodeView::viewportChanged, minimap, &NodeViewMinimap::viewportRectChanged);
+                minimap->disconnect(prevView);
+                prevView->disconnect(minimap);
+                //disconnect(minimap, &NodeViewMinimap::minimap_Pan, prevView, &NodeView::minimap_Pan);
+                //disconnect(minimap, &NodeViewMinimap::minimap_Zoom, prevView, &NodeView::minimap_Zoom);
+
+                //disconnect(prevView, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
             }
         }
 
@@ -360,12 +333,12 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
             minimap->setBackgroundColor(view->getBackgroundColor());
             minimap->setScene(view->scene());
 
+            
+            connect(minimap, &NodeViewMinimap::minimap_CenterView, view, &NodeView::fitToScreen);
             connect(minimap, &NodeViewMinimap::minimap_Pan, view, &NodeView::minimap_Pan);
             connect(minimap, &NodeViewMinimap::minimap_Zoom, view, &NodeView::minimap_Zoom);
-            connect(view, &NodeView::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
-            connect(view, &NodeView::viewportChanged, minimap, &NodeViewMinimap::viewportRectChanged);
-
-            view->forceViewportChange();
+            connect(view, &NodeView::viewport_changed, minimap, &NodeViewMinimap::viewport_changed);
+            view->update_minimap();
         }else{
             minimap->setBackgroundColor(QColor(0,0,0));
             minimap->setScene(0);
@@ -574,37 +547,11 @@ void MainWindow::setupInnerWindow()
     innerWindow = WindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
-    BaseDockWidget* graphWidget = WindowManager::constructViewDockWidget("Graph");
-    
-    chart = new QChart();
-    chart->setTitle("Render Times");
-
-    axisX = new QValueAxis;
-    axisX->setTickCount(10);
-    axisX->setRange(0, 10);
-    chart->addAxis(axisX, Qt::AlignBottom);
-
-    axisY = new QValueAxis;
-    axisY->setTickCount(1);
-    axisY->setRange(0, 5);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    //chart->setAnimationOptions(QChart::AllAnimations);
-
-    QChartView *chartView = new QChartView(chart);
-    graphWidget->setWidget(chartView);
-
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, graphWidget);
-
     //Construct dockWidgets.
     NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
     NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
-
-    connect(dwInterfaces->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
-    connect(dwBehaviour->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
-    connect(dwAssemblies->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
-    connect(dwHardware->getNodeView(), &NodeView::benchmark, this,  &MainWindow::updateGraph);
 
     //Set each NodeView with there contained aspects
     dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);

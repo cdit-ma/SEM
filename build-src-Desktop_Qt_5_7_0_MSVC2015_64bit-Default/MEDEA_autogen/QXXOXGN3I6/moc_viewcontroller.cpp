@@ -790,6 +790,13 @@ void ViewController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
                 *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< ViewItem* >(); break;
             }
             break;
+        case 50:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 1:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< BACKGROUND_PROCESS >(); break;
+            }
+            break;
         case 55:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;

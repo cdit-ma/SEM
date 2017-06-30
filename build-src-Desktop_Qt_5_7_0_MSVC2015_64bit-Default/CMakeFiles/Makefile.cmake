@@ -42,8 +42,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "C:/Program Files/CMake/share/cmake-3.8/Templates/CPackConfig.cmake.in"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5Config.cmake"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake"
-  "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfig.cmake"
-  "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfigVersion.cmake"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigExtras.cmake"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake"

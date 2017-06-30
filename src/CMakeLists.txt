@@ -16,9 +16,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
-find_package(Qt5 COMPONENTS Widgets Charts REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION "2.1.2-RE-CACHE")
+SET(VERSION "2.1.2-RE💩")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
 
@@ -278,7 +278,6 @@ endif()
 
 #Link against things
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
-target_link_libraries(${PROJ_NAME} Qt5::Charts)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller)
 
 #Install should copy the MEDEA app into a MEDEA folder

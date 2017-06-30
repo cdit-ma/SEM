@@ -28,6 +28,8 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    
+
     connectLineItem = 0;
     //OPENGL
     //setViewport(new QOpenGLWidget());
@@ -41,7 +43,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setDragMode(NoDrag);
     setAcceptDrops(true);
     setTransformationAnchor(QGraphicsView::NoAnchor);
-    setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
 
@@ -58,47 +60,18 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     containedNodeViewItem = 0;
     isAspectView = false;
 
-    backgroundFont.setPixelSize(70);
+    //set the background font
+    background_font.setPixelSize(70);
+    setFont(background_font);
+
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
-
-{
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(time_repaint()));
-    timer->start(100);
 }
 
-{
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(time_print()));
-    timer->start(2500);
-}
-}
-
-void NodeView::time_print(){
-    double time = 0;
-    for(auto d : render_times){
-        time += d;
-    }
-
-    emit benchmark(backgroundText,(time / ((double)render_times.size())) );
-}
-void NodeView::time_repaint(){
-
-    auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    this->repaint();
-    auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-    render_times.push_back(time_finish - time_start);
-    while(render_times.size() > 50){
-        render_times.pop_front();
-    }
-
-}
 
 NodeView::~NodeView()
 {
@@ -149,14 +122,21 @@ void NodeView::setViewController(ViewController *viewController)
 void NodeView::translate(QPointF point)
 {
     QGraphicsView::translate(point.x(), point.y());
-    forceViewportChange();
+    //forceViewportChange();
 }
-
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
-        QGraphicsView::scale(sx, sy);
-        forceViewportChange();
+        auto t = transform();
+        auto zoom = t.m11() * sx;
+
+        //Limit to zoom 25% between 400%
+        zoom = qMax(0.25, zoom);
+        zoom = qMin(zoom, 4.0);
+
+        //m11 and m22 are x/y scaling respectively
+        t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
+        setTransform(t);
     }
 }
 
@@ -206,7 +186,7 @@ ViewItem *NodeView::getContainedViewItem()
 
 QColor NodeView::getBackgroundColor()
 {
-    return backgroundColor;
+    return background_color;
 }
 
 
@@ -215,11 +195,6 @@ QRectF NodeView::getViewportRect()
     return viewportRect();
 }
 
-void NodeView::resetMinimap()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-    emit sceneRectChanged(currentSceneRect);
-}
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
@@ -259,10 +234,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem *item, bool select
         if(e){
             e->setSelected(selected);
         }
-        if(item == containedNodeViewItem){
-            isBackgroundSelected = selected;
-            //update();
-        }
     }
 }
 
@@ -282,14 +253,6 @@ void NodeView::selectAll()
     _selectAll();
 }
 
-void NodeView::itemsMoved()
-{
-    QRectF newSceneRect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
-    if(newSceneRect != currentSceneRect){
-        currentSceneRect = newSceneRect;
-        emit sceneRectChanged(currentSceneRect);
-    }
-}
 
 void NodeView::alignHorizontal()
 {
@@ -356,22 +319,12 @@ void NodeView::themeChanged()
 {
 
     if(isAspectView){
-        backgroundColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
+        background_color = Theme::theme()->getAspectBackgroundColor(containedAspect);
     }else{
-        backgroundColor = Theme::theme()->getAltBackgroundColor();
+        background_color = Theme::theme()->getAltBackgroundColor();
     }
-    backgroundFontColor = backgroundColor.darker(110);
-
-
-    QColor selectedColor = Qt::blue;
-
-    //Merge to blue
-    qreal ratio = 1;
-    selectedBackgroundFontColor.setRed((ratio * backgroundFontColor.red() + ((1 - ratio) * selectedColor.red())));
-    selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + ((1 - ratio) * selectedColor.green()) ));
-    selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + ((1 - ratio) * selectedColor.blue()) ));
-
-    //update();
+    background_text_color = background_color.darker(110);
+    setBackgroundBrush(background_color);
 }
 
 void NodeView::node_ConnectMode(NodeItem *item)
@@ -477,11 +430,6 @@ QList<int> NodeView::getIDsInView()
     return guiItems.keys();
 }
 
-void NodeView::test()
-{
-
-    //scene->setSceneRect(QRectF());
-}
 
 void NodeView::item_Selected(ViewItem *item, bool append)
 {
@@ -682,25 +630,40 @@ void NodeView::centerView(QPointF scenePos)
     viewportCenter_Scene = viewportRect().center();
 }
 
-void NodeView::forceViewportChange()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-}
 
 SelectionHandler *NodeView::getSelectionHandler()
 {
     return selectionHandler;
 }
 
+
+void NodeView::update_minimap(){
+    emit viewport_changed(viewportRect(), transform().m11());
+}
+
+void NodeView::paintEvent(QPaintEvent *event){
+    QGraphicsView::paintEvent(event);
+
+    auto new_transform = transform();
+    if(old_transform != new_transform){
+        old_transform = new_transform;
+        update_minimap();
+    }
+}
+
 void NodeView::viewItem_LabelChanged(QString label)
 {
-    backgroundText = label.toUpper();
-    //update();
+    auto text = label.toUpper();
+    background_text.setText(text);
+
+
+    auto fm = QFontMetrics(background_font);
+    //Calculate the rectangle which contains the background test
+    background_text_rect = fm.boundingRect(text);
 }
 
 QRectF NodeView::viewportRect()
 {
-//    return mapToScene(rect()).boundingRect();
     return mapToScene(viewport()->rect()).boundingRect();
 }
 
@@ -980,10 +943,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
-
-                    connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(itemsMoved()));
-                    connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
-
                 }
 
 
@@ -1500,6 +1459,14 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }
 
+    if(event->button() == Qt::MiddleButton){
+        EntityItem* item = getEntityAtPos(scenePos);
+        if(!item){
+            handledEvent = true;
+            fitToScreen();
+        }
+    }
+
     if(!handledEvent){
         QGraphicsView::mousePressEvent(event);
     }
@@ -1579,27 +1546,31 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void NodeView::drawBackground(QPainter *painter, const QRectF &)
+void NodeView::drawBackground(QPainter *painter, const QRectF & r)
 {
-    painter->resetTransform();
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(backgroundColor);
-    painter->drawRect(rect());
+    //Paint the background
+    QGraphicsView::drawBackground(painter, r);
+    {
+        painter->save();
+        //Reset the transform to ignore zoom/view
+        painter->resetTransform();
+        //Set the Pen and font
+        painter->setPen(background_text_color);
+        painter->setFont(background_font);
 
-    if(backgroundText != ""){
-        painter->setFont(backgroundFont);
-        if(isBackgroundSelected){
-            painter->setPen(selectedBackgroundFontColor);
-        }else{
-            painter->setPen(backgroundFontColor);
-        }
-        painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
+        auto brect = rect();
+        //Calculate the top_left corner of the text rect.
+        QPointF point;
+        point.setX((brect.width() - background_text_rect.width()) / 2);
+        point.setY(brect.height() - background_text_rect.height());
+        painter->drawStaticText(point, background_text);
+        painter->restore();
     }
 }
 
 void NodeView::resizeEvent(QResizeEvent *event)
 {
     QGraphicsView::resizeEvent(event);
-    forceViewportChange();
+    update_minimap();
 }
 

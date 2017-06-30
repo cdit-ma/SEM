@@ -219,6 +219,13 @@ void NotificationDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
         switch (_id) {
         default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+        case 6:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 0:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NOTIFICATION_FILTER >(); break;
+            }
+            break;
         case 12:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;
@@ -226,11 +233,25 @@ void NotificationDialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
                 *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NotificationObject* >(); break;
             }
             break;
+        case 15:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 1:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< BACKGROUND_PROCESS >(); break;
+            }
+            break;
         case 18:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;
             case 0:
                 *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< QAction* >(); break;
+            }
+            break;
+        case 24:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 0:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NOTIFICATION_FILTER >(); break;
             }
             break;
         }

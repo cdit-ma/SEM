@@ -91,7 +91,6 @@ set(CMAKE_CXX_COMPILER_ID "MSVC")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX
-  "QT_CHARTS_LIB"
   "QT_CORE_LIB"
   "QT_GUI_LIB"
   "QT_NETWORK_LIB"
@@ -107,7 +106,6 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"
-  "C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts"
   "C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"
   )
 

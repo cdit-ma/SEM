@@ -5,7 +5,7 @@
 		<Option title="MEDEA"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="msvc8"/>
-		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\Qt\;CMake Files\..\..\Qt\Qt5.7.0\;CMake Files\..\..\Qt\Qt5.7.0\5.7\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\;CMake Files\ModelController\;CMake Files\Test\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\Qt\;CMake Files\..\..\Qt\Qt5.7.0\;CMake Files\..\..\Qt\Qt5.7.0\5.7\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Widgets\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Gui\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\;CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Test\;CMake Files\ModelController\;CMake Files\Test\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
@@ -37,7 +37,6 @@
 					<Add option="-DQT_WIDGETS_LIB"/>
 					<Add option="-DQT_GUI_LIB"/>
 					<Add option="-DQT_CORE_LIB"/>
-					<Add option="-DQT_CHARTS_LIB"/>
 					<Add option="-DQT_NETWORK_LIB"/>
 					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/include"/>
 					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
@@ -46,7 +45,6 @@
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
-					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
 					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
 					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
@@ -73,7 +71,6 @@
 					<Add option="-DQT_WIDGETS_LIB"/>
 					<Add option="-DQT_GUI_LIB"/>
 					<Add option="-DQT_CORE_LIB"/>
-					<Add option="-DQT_CHARTS_LIB"/>
 					<Add option="-DQT_NETWORK_LIB"/>
 					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/MEDEA_autogen/include"/>
 					<Add directory="C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default"/>
@@ -82,7 +79,6 @@
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/./mkspecs/win32-msvc2015"/>
-					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts"/>
 					<Add directory="C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtNetwork"/>
 					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\INCLUDE"/>
 					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\ATLMFC\INCLUDE"/>
@@ -1562,12 +1558,6 @@
 		</Unit>
 		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake">
 			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Core\"/>
-		</Unit>
-		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfigVersion.cmake">
-			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\"/>
-		</Unit>
-		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Charts/Qt5ChartsConfig.cmake">
-			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Charts\"/>
 		</Unit>
 		<Unit filename="C:/MEDEA/src/../../Qt/Qt5.7.0/5.7/msvc2015_64/lib/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake">
 			<Option virtualFolder="CMake Files\..\..\Qt\Qt5.7.0\5.7\msvc2015_64\lib\cmake\Qt5Network\"/>

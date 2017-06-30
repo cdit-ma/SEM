@@ -11,40 +11,10 @@
 #include "statictextitem.h"
 
 #define DEFAULT_SIZE 80
-#define MAX_FONT_SIZE (DEFAULT_SIZE / 8.0)
-#define MIN_FONT_SIZE (MAX_FONT_SIZE / 2.5)
 
 #define SELECTED_LINE_WIDTH 3
 
-struct ImageMap{
-    //QPixmap pixmap;
-    QString imagePath;
-    QString imageName;
-    QSizeF imageSize;
-    QColor tintColor;
-};
-
-struct TextMap{
-
-    QString text;
-    int textOptions;
-
-    QFont font;
-    QColor rectColor;
-    QSizeF boundingSize;
-    QRectF boundingRect;
-    QRectF textBoundingRect;
-
-    bool maximumSize;
-    
-    QStaticText static_txt;
-    QPixmap pixmap_DOUBLE;
-    QPixmap pixmap_FULL;
-    QPixmap pixmap_MINIMAL;
-    QPixmap pixmap_REDUCED;
-};
-
-enum class RENDER_STATE{NONE, BLOCK, MINIMAL, REDUCED, FULL, DOUBLE};
+enum class RENDER_STATE{NONE, BLOCK, MINIMAL, REDUCED, FULL};
 //Forward class definition
 class NodeItem;
 
@@ -264,7 +234,7 @@ private:
     bool paintTertiaryIcon;
 
 
-    QHash<ELEMENT_RECT, ImageMap> imageMap;
+    //QHash<ELEMENT_RECT, ImageMap> imageMap;
     QHash<ELEMENT_RECT, StaticTextItem*> textMap;
 
     QHash<ELEMENT_RECT, QString> tooltipMap;

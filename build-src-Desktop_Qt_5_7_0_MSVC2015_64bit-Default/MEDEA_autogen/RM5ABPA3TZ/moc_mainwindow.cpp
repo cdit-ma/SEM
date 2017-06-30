@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_MainWindow_t {
-    QByteArrayData data[36];
-    char stringdata0[506];
+    QByteArrayData data[34];
+    char stringdata0[489];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -49,22 +49,20 @@ QT_MOC_LITERAL(16, 234, 17), // "updateProgressBar"
 QT_MOC_LITERAL(17, 252, 5), // "value"
 QT_MOC_LITERAL(18, 258, 17), // "updateMenuBarSize"
 QT_MOC_LITERAL(19, 276, 20), // "resetToolDockWidgets"
-QT_MOC_LITERAL(20, 297, 11), // "updateGraph"
-QT_MOC_LITERAL(21, 309, 4), // "name"
-QT_MOC_LITERAL(22, 314, 12), // "themeChanged"
-QT_MOC_LITERAL(23, 327, 27), // "activeViewDockWidgetChanged"
-QT_MOC_LITERAL(24, 355, 15), // "ViewDockWidget*"
-QT_MOC_LITERAL(25, 371, 6), // "widget"
-QT_MOC_LITERAL(26, 378, 8), // "prevDock"
-QT_MOC_LITERAL(27, 387, 11), // "popupSearch"
-QT_MOC_LITERAL(28, 399, 23), // "updateSearchSuggestions"
-QT_MOC_LITERAL(29, 423, 4), // "list"
-QT_MOC_LITERAL(30, 428, 13), // "searchEntered"
-QT_MOC_LITERAL(31, 442, 14), // "toolbarChanged"
-QT_MOC_LITERAL(32, 457, 18), // "Qt::DockWidgetArea"
-QT_MOC_LITERAL(33, 476, 4), // "area"
-QT_MOC_LITERAL(34, 481, 22), // "toolbarTopLevelChanged"
-QT_MOC_LITERAL(35, 504, 1) // "a"
+QT_MOC_LITERAL(20, 297, 12), // "themeChanged"
+QT_MOC_LITERAL(21, 310, 27), // "activeViewDockWidgetChanged"
+QT_MOC_LITERAL(22, 338, 15), // "ViewDockWidget*"
+QT_MOC_LITERAL(23, 354, 6), // "widget"
+QT_MOC_LITERAL(24, 361, 8), // "prevDock"
+QT_MOC_LITERAL(25, 370, 11), // "popupSearch"
+QT_MOC_LITERAL(26, 382, 23), // "updateSearchSuggestions"
+QT_MOC_LITERAL(27, 406, 4), // "list"
+QT_MOC_LITERAL(28, 411, 13), // "searchEntered"
+QT_MOC_LITERAL(29, 425, 14), // "toolbarChanged"
+QT_MOC_LITERAL(30, 440, 18), // "Qt::DockWidgetArea"
+QT_MOC_LITERAL(31, 459, 4), // "area"
+QT_MOC_LITERAL(32, 464, 22), // "toolbarTopLevelChanged"
+QT_MOC_LITERAL(33, 487, 1) // "a"
 
     },
     "MainWindow\0requestSuggestions\0\0"
@@ -75,12 +73,12 @@ QT_MOC_LITERAL(35, 504, 1) // "a"
     "ensureNotificationPanelVisible\0"
     "showProgressBar\0show\0updateProgressBar\0"
     "value\0updateMenuBarSize\0resetToolDockWidgets\0"
-    "updateGraph\0name\0themeChanged\0"
-    "activeViewDockWidgetChanged\0ViewDockWidget*\0"
-    "widget\0prevDock\0popupSearch\0"
-    "updateSearchSuggestions\0list\0searchEntered\0"
-    "toolbarChanged\0Qt::DockWidgetArea\0"
-    "area\0toolbarTopLevelChanged\0a"
+    "themeChanged\0activeViewDockWidgetChanged\0"
+    "ViewDockWidget*\0widget\0prevDock\0"
+    "popupSearch\0updateSearchSuggestions\0"
+    "list\0searchEntered\0toolbarChanged\0"
+    "Qt::DockWidgetArea\0area\0toolbarTopLevelChanged\0"
+    "a"
 };
 #undef QT_MOC_LITERAL
 
@@ -90,7 +88,7 @@ static const uint qt_meta_data_MainWindow[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      22,   14, // methods
+      21,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -98,30 +96,29 @@ static const uint qt_meta_data_MainWindow[] = {
        4,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    0,  124,    2, 0x06 /* Public */,
-       3,    0,  125,    2, 0x06 /* Public */,
-       4,    1,  126,    2, 0x06 /* Public */,
-       5,    0,  129,    2, 0x06 /* Public */,
+       1,    0,  119,    2, 0x06 /* Public */,
+       3,    0,  120,    2, 0x06 /* Public */,
+       4,    1,  121,    2, 0x06 /* Public */,
+       5,    0,  124,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       6,    1,  130,    2, 0x0a /* Public */,
-       6,    0,  133,    2, 0x2a /* Public | MethodCloned */,
-       8,    3,  134,    2, 0x0a /* Public */,
-      12,    0,  141,    2, 0x0a /* Public */,
-      13,    0,  142,    2, 0x0a /* Public */,
-      14,    2,  143,    2, 0x0a /* Public */,
-      14,    1,  148,    2, 0x2a /* Public | MethodCloned */,
-      16,    1,  151,    2, 0x0a /* Public */,
-      18,    0,  154,    2, 0x0a /* Public */,
-      19,    0,  155,    2, 0x0a /* Public */,
-      20,    2,  156,    2, 0x08 /* Private */,
-      22,    0,  161,    2, 0x08 /* Private */,
-      23,    2,  162,    2, 0x08 /* Private */,
-      27,    0,  167,    2, 0x08 /* Private */,
-      28,    1,  168,    2, 0x08 /* Private */,
-      30,    0,  171,    2, 0x08 /* Private */,
-      31,    1,  172,    2, 0x08 /* Private */,
-      34,    1,  175,    2, 0x08 /* Private */,
+       6,    1,  125,    2, 0x0a /* Public */,
+       6,    0,  128,    2, 0x2a /* Public | MethodCloned */,
+       8,    3,  129,    2, 0x0a /* Public */,
+      12,    0,  136,    2, 0x0a /* Public */,
+      13,    0,  137,    2, 0x0a /* Public */,
+      14,    2,  138,    2, 0x0a /* Public */,
+      14,    1,  143,    2, 0x2a /* Public | MethodCloned */,
+      16,    1,  146,    2, 0x0a /* Public */,
+      18,    0,  149,    2, 0x0a /* Public */,
+      19,    0,  150,    2, 0x0a /* Public */,
+      20,    0,  151,    2, 0x08 /* Private */,
+      21,    2,  152,    2, 0x08 /* Private */,
+      25,    0,  157,    2, 0x08 /* Private */,
+      26,    1,  158,    2, 0x08 /* Private */,
+      28,    0,  161,    2, 0x08 /* Private */,
+      29,    1,  162,    2, 0x08 /* Private */,
+      32,    1,  165,    2, 0x08 /* Private */,
 
  // signals: parameters
     QMetaType::Void,
@@ -140,14 +137,13 @@ static const uint qt_meta_data_MainWindow[] = {
     QMetaType::Void, QMetaType::Int,   17,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QString, QMetaType::Double,   21,   17,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 24, 0x80000000 | 24,   25,   26,
+    QMetaType::Void, 0x80000000 | 22, 0x80000000 | 22,   23,   24,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QStringList,   29,
+    QMetaType::Void, QMetaType::QStringList,   27,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 32,   33,
-    QMetaType::Void, QMetaType::Bool,   35,
+    QMetaType::Void, 0x80000000 | 30,   31,
+    QMetaType::Void, QMetaType::Bool,   33,
 
        0        // eod
 };
@@ -172,14 +168,13 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 11: _t->updateProgressBar((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 12: _t->updateMenuBarSize(); break;
         case 13: _t->resetToolDockWidgets(); break;
-        case 14: _t->updateGraph((*reinterpret_cast< QString(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2]))); break;
-        case 15: _t->themeChanged(); break;
-        case 16: _t->activeViewDockWidgetChanged((*reinterpret_cast< ViewDockWidget*(*)>(_a[1])),(*reinterpret_cast< ViewDockWidget*(*)>(_a[2]))); break;
-        case 17: _t->popupSearch(); break;
-        case 18: _t->updateSearchSuggestions((*reinterpret_cast< QStringList(*)>(_a[1]))); break;
-        case 19: _t->searchEntered(); break;
-        case 20: _t->toolbarChanged((*reinterpret_cast< Qt::DockWidgetArea(*)>(_a[1]))); break;
-        case 21: _t->toolbarTopLevelChanged((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 14: _t->themeChanged(); break;
+        case 15: _t->activeViewDockWidgetChanged((*reinterpret_cast< ViewDockWidget*(*)>(_a[1])),(*reinterpret_cast< ViewDockWidget*(*)>(_a[2]))); break;
+        case 16: _t->popupSearch(); break;
+        case 17: _t->updateSearchSuggestions((*reinterpret_cast< QStringList(*)>(_a[1]))); break;
+        case 18: _t->searchEntered(); break;
+        case 19: _t->toolbarChanged((*reinterpret_cast< Qt::DockWidgetArea(*)>(_a[1]))); break;
+        case 20: _t->toolbarTopLevelChanged((*reinterpret_cast< bool(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -241,13 +236,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 22)
+        if (_id < 21)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 22;
+        _id -= 21;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 22)
+        if (_id < 21)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 22;
+        _id -= 21;
     }
     return _id;
 }

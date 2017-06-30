@@ -10,6 +10,7 @@
 #include "SceneItems/Edge/edgeitem.h"
 
 #include <QStateMachine>
+#include <QStaticText>
 
 
 class NodeView : public QGraphicsView
@@ -28,18 +29,17 @@ public:
 
     QColor getBackgroundColor();
     QRectF getViewportRect();
-    void resetMinimap();
-    void forceViewportChange();
     SelectionHandler* getSelectionHandler();
-    void fitToScreen();
+    
     void alignHorizontal();
     void alignVertical();
 
     void centerSelection();
 
+    void update_minimap();
+
     QList<int> getIDsInView();
 signals:
-    void benchmark(QString view, double ms);
     void trans_InActive2Moving();
     void trans_Moving2InActive();
 
@@ -57,9 +57,8 @@ signals:
 
 
 
-    void sceneRectChanged(QRectF sceneRect);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
-    void viewportChanged(QRectF rect, qreal zoom);
+    void viewport_changed(QRectF viewportRect, double zoom_factor);
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -68,8 +67,6 @@ signals:
     void editData(int, QString);
 
 private slots:
-
-    void test();
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -77,10 +74,10 @@ private slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
-    void itemsMoved();
     void themeChanged();
 
 public slots:
+    void fitToScreen();
     void selectAll();
     void clearSelection();
 
@@ -158,19 +155,19 @@ private:
     
     QList<double> render_times;
 
-
+    QTransform old_transform;
     bool isAspectView;
-    bool isBackgroundSelected;
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
 
     bool isPanning;
 
-    QColor backgroundColor;
-    QString backgroundText;
-    QFont backgroundFont;
-    QColor backgroundFontColor;
-    QColor selectedBackgroundFontColor;
+    QFont background_font;
+    QColor background_text_color;
+    QColor background_color;
+
+    QStaticText background_text;
+    QRectF background_text_rect;
 
 
     QStateMachine* viewStateMachine;
@@ -184,11 +181,10 @@ private:
     QState* state_Active_Connecting;
 
     QGraphicsLineItem* connectLineItem;
+
     QLineF connectLine;
 
 private slots:
-    void time_repaint();
-    void time_print();
     void state_Moving_Entered();
     void state_Moving_Exited();
 
@@ -219,6 +215,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event);
 
     void drawBackground(QPainter *painter, const QRectF &rect);
+
+    void paintEvent(QPaintEvent *event);
 
     // QWidget interface
 protected:

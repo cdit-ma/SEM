@@ -179,6 +179,27 @@ void NotificationManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
                 *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NOTIFICATION_SEVERITY >(); break;
             }
             break;
+        case 11:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 1:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< BACKGROUND_PROCESS >(); break;
+            }
+            break;
+        case 13:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 0:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NOTIFICATION_FILTER >(); break;
+            }
+            break;
+        case 14:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 0:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< NOTIFICATION_FILTER >(); break;
+            }
+            break;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);

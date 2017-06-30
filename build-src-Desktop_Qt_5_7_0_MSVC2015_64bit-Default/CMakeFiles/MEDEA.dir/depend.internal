@@ -1026,26 +1026,6 @@ CMakeFiles/MEDEA.dir/Controllers/NotificationManager/notificationmanager.cpp.obj
  C:/MEDEA/src/Widgets/Windows/welcomescreenwidget.h
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChart
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartGlobal
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLegend
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLineSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QScatterSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QValueAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QXYSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchart.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartglobal.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlegend.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlineseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qscatterseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qvalueaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qxyseries.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QAbstractTableModel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFlags
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFuture
@@ -1053,7 +1033,6 @@ CMakeFiles/MEDEA.dir/Controllers/NotificationManager/notificationmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QIODevice
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QJsonDocument
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMargins
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMetaType
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMutex
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QObject
@@ -1172,7 +1151,6 @@ CMakeFiles/MEDEA.dir/Controllers/NotificationManager/notificationmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvarlengtharray.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvector.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qversiontagging.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QBrush
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QColor
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QFont
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
@@ -1252,9 +1230,9 @@ CMakeFiles/MEDEA.dir/Controllers/NotificationManager/notificationmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QDockWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFrame
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsObject
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsSceneHoverEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHBoxLayout
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLabel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLineEdit
@@ -1295,11 +1273,9 @@ CMakeFiles/MEDEA.dir/Controllers/NotificationManager/notificationmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qdockwidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsitem.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicslayoutitem.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicssceneevent.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicswidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgridlayout.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlabel.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlayout.h
@@ -3148,26 +3124,6 @@ CMakeFiles/MEDEA.dir/Controllers/WindowManager/windowmanager.cpp.obj
  C:/MEDEA/src/Widgets/Windows/welcomescreenwidget.h
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChart
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartGlobal
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLegend
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLineSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QScatterSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QValueAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QXYSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchart.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartglobal.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlegend.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlineseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qscatterseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qvalueaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qxyseries.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QAbstractTableModel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QDebug
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFlags
@@ -3176,7 +3132,6 @@ CMakeFiles/MEDEA.dir/Controllers/WindowManager/windowmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QIODevice
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QJsonDocument
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMargins
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMetaType
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMutex
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QObject
@@ -3295,7 +3250,6 @@ CMakeFiles/MEDEA.dir/Controllers/WindowManager/windowmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvarlengtharray.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvector.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qversiontagging.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QBrush
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QColor
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QFont
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
@@ -3379,9 +3333,9 @@ CMakeFiles/MEDEA.dir/Controllers/WindowManager/windowmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QDockWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFrame
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsObject
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsSceneHoverEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHBoxLayout
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLabel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLineEdit
@@ -3424,11 +3378,9 @@ CMakeFiles/MEDEA.dir/Controllers/WindowManager/windowmanager.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qdockwidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsitem.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicslayoutitem.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicssceneevent.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicswidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgridlayout.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlabel.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlayout.h
@@ -3609,26 +3561,6 @@ CMakeFiles/MEDEA.dir/MEDEA_autogen/moc_compilation.cpp.obj
  C:/MEDEA/src/Widgets/dataeditwidget.h
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChart
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartGlobal
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLegend
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLineSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QScatterSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QValueAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QXYSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchart.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartglobal.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlegend.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlineseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qscatterseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qvalueaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qxyseries.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QAbstractTableModel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFlags
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFuture
@@ -3636,7 +3568,6 @@ CMakeFiles/MEDEA.dir/MEDEA_autogen/moc_compilation.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QIODevice
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QJsonDocument
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMargins
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMetaType
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMutex
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QObject
@@ -3757,7 +3688,6 @@ CMakeFiles/MEDEA.dir/MEDEA_autogen/moc_compilation.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvarlengtharray.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvector.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qversiontagging.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QBrush
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QColor
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QFont
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
@@ -3839,9 +3769,9 @@ CMakeFiles/MEDEA.dir/MEDEA_autogen/moc_compilation.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFileDialog
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFrame
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsObject
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsSceneHoverEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGroupBox
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHBoxLayout
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLabel
@@ -3890,11 +3820,9 @@ CMakeFiles/MEDEA.dir/MEDEA_autogen/moc_compilation.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qfiledialog.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsitem.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicslayoutitem.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicssceneevent.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicswidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgridlayout.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgroupbox.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlabel.h
@@ -7399,7 +7327,6 @@ CMakeFiles/MEDEA.dir/Views/NodeView/nodeviewminimap.cpp.obj
  C:/MEDEA/src/Views/NodeView/nodeviewminimap.h
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QDebug
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFuture
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QHash
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
@@ -7494,7 +7421,6 @@ CMakeFiles/MEDEA.dir/Views/NodeView/nodeviewminimap.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QMouseEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QPainter
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QPen
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QPixmap
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/qbrush.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/qcolor.h
@@ -7524,12 +7450,9 @@ CMakeFiles/MEDEA.dir/Views/NodeView/nodeviewminimap.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/qvector2d.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/qwindowdefs.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/qwindowdefs_win.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qabstractscrollarea.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qscrollarea.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qsizepolicy.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qwidget.h
 CMakeFiles/MEDEA.dir/Views/Notification/notificationdialog.cpp.obj
@@ -13105,26 +13028,6 @@ CMakeFiles/MEDEA.dir/Widgets/Windows/mainwindow.cpp.obj
  C:/MEDEA/src/Widgets/Windows/welcomescreenwidget.h
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChart
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartGlobal
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLegend
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLineSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QScatterSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QValueAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QXYSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchart.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartglobal.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlegend.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlineseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qscatterseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qvalueaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qxyseries.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QAbstractTableModel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QDateTime
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QDebug
@@ -13134,7 +13037,6 @@ CMakeFiles/MEDEA.dir/Widgets/Windows/mainwindow.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QIODevice
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QJsonDocument
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMargins
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMetaType
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMutex
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QObject
@@ -13254,7 +13156,6 @@ CMakeFiles/MEDEA.dir/Widgets/Windows/mainwindow.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvarlengtharray.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvector.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qversiontagging.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QBrush
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QColor
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QFont
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
@@ -13338,9 +13239,9 @@ CMakeFiles/MEDEA.dir/Widgets/Windows/mainwindow.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QDockWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFrame
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsObject
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsSceneHoverEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGroupBox
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHBoxLayout
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHeaderView
@@ -13389,11 +13290,9 @@ CMakeFiles/MEDEA.dir/Widgets/Windows/mainwindow.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qdockwidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsitem.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicslayoutitem.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicssceneevent.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicswidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgridlayout.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgroupbox.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qheaderview.h
@@ -14187,26 +14086,6 @@ CMakeFiles/MEDEA.dir/main.cpp.obj
  C:/MEDEA/src/enumerations.h
  C:/MEDEA/src/main.cpp
  C:/MEDEA/src/theme.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QAbstractSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChart
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartGlobal
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QChartView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLegend
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QLineSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QScatterSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QValueAxis
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/QXYSeries
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qabstractseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchart.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartglobal.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qchartview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlegend.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qlineseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qscatterseries.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qvalueaxis.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCharts/qxyseries.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QAbstractTableModel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFlags
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QFuture
@@ -14214,7 +14093,6 @@ CMakeFiles/MEDEA.dir/main.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QIODevice
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QJsonDocument
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QList
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMargins
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMetaType
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QMutex
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/QObject
@@ -14333,7 +14211,6 @@ CMakeFiles/MEDEA.dir/main.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvarlengtharray.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qvector.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtCore/qversiontagging.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QBrush
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QColor
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QFont
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtGui/QIcon
@@ -14416,9 +14293,9 @@ CMakeFiles/MEDEA.dir/main.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QDockWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QFrame
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsObject
+ C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsScene
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsSceneHoverEvent
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsView
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QGraphicsWidget
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QHBoxLayout
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLabel
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/QLineEdit
@@ -14461,11 +14338,9 @@ CMakeFiles/MEDEA.dir/main.cpp.obj
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qdockwidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qframe.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsitem.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicslayoutitem.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsscene.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicssceneevent.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicsview.h
- C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgraphicswidget.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qgridlayout.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlabel.h
  C:/Qt/Qt5.7.0/5.7/msvc2015_64/include/QtWidgets/qlayout.h

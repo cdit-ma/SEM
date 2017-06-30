@@ -2690,16 +2690,15 @@ bin\MEDEA.exe: CMakeFiles\MEDEA.dir\MEDEA_autogen\moc_compilation.cpp.obj
 bin\MEDEA.exe: CMakeFiles\MEDEA.dir\MEDEA_autogen\EWIEGA46WW\qrc_images.cpp.obj
 bin\MEDEA.exe: CMakeFiles\MEDEA.dir\build.make
 bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\qtmaind.lib
-bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Chartsd.lib
-bin\MEDEA.exe: lib\medea_modelcontroller.lib
 bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Widgetsd.lib
+bin\MEDEA.exe: lib\medea_modelcontroller.lib
 bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Guid.lib
 bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Networkd.lib
 bin\MEDEA.exe: C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Cored.lib
 bin\MEDEA.exe: CMakeFiles\MEDEA.dir\objects1.rsp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\CMakeFiles --progress-num=$(CMAKE_PROGRESS_83) "Linking CXX executable bin\MEDEA.exe"
 	"C:\Program Files\CMake\bin\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\MEDEA.dir --manifests  -- C:\PROGRA~2\MICROS~3.0\VC\bin\amd64\link.exe /nologo @CMakeFiles\MEDEA.dir\objects1.rsp @<<
- /out:bin\MEDEA.exe /implib:lib\MEDEA.lib /pdb:C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\bin\MEDEA.pdb /version:0.0  /machine:x64 /debug /INCREMENTAL /subsystem:windows C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\qtmaind.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Chartsd.lib lib\medea_modelcontroller.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Widgetsd.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Guid.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Networkd.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Cored.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib 
+ /out:bin\MEDEA.exe /implib:lib\MEDEA.lib /pdb:C:\MEDEA\build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default\bin\MEDEA.pdb /version:0.0  /machine:x64 /debug /INCREMENTAL /subsystem:windows C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\qtmaind.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Widgetsd.lib lib\medea_modelcontroller.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Guid.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Networkd.lib C:\Qt\Qt5.7.0\5.7\msvc2015_64\lib\Qt5Cored.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib 
 <<
 	C:\Qt\Qt5.7.0\5.7\msvc2015_64\bin\windeployqt C:/MEDEA/build-src-Desktop_Qt_5_7_0_MSVC2015_64bit-Default/bin/MEDEA.exe
 
