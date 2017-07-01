@@ -1,330 +1,200 @@
 #include "tempentity.h"
-#include "Entities/data.h"
 
-TempEntity::TempEntity(GRAPHML_KIND entityKind, TempEntity *parent)
+int str_to_int(QString str){
+    bool ok;
+    int int_val = str.toInt(&ok, 10);
+
+    if(ok){
+        return int_val;
+    }
+    return -1;
+}
+
+TempEntity::TempEntity(GRAPHML_KIND kind, TempEntity* parent)
 {
-    lineNumber = -1;
-    actualID = -1;
-    oldID = -1;
-    actualSrcID = -1;
-    actualDstID = -1;
-    src = 0;
-    dst = 0;
-
-    actualParentID = -1;
-    ignoreConstruction = false;
-    _resetPosition = false;
-    nodeKind = "";
+    
     this->parent = parent;
-
-    readOnlyState.snippetID = -1;
-    readOnlyState.snippetMAC = -1;
-    readOnlyState.snippetTime = -1;
-    readOnlyState.exportTime = -1;
-    readOnlyState.isDefinition = false;
-    isReadOnly = false;
-
-    retryCount = 0;
-    this->entityKind = entityKind;
+    this->graphml_kind = kind;
+    
+    if(parent){
+        parent->addChild(this);
+    }
 }
 
 TempEntity::~TempEntity()
 {
-    while(!dataList.isEmpty()){
-        Data* data = dataList.takeFirst();
-        if(!data->getParent()){
-            delete data;
-        }
-    }
-}
-
-void TempEntity::setLineNumber(int lineNumber)
-{
-    this->lineNumber = lineNumber;
-}
-
-void TempEntity::setResetPosition()
-{
-    _resetPosition = true;
-}
-
-bool TempEntity::shouldConstruct()
-{
-    return !ignoreConstruction;
-}
-
-bool TempEntity::ignoreConstruct()
-{
-    return ignoreConstruction;
-}
-
-void TempEntity::setIgnoreConstruction(bool ignore)
-{
-    ignoreConstruction = ignore;
-}
-
-bool TempEntity::isTop()
-{
-    return parent == 0;
-}
-
-int TempEntity::getRetryCount()
-{
-    return retryCount;
-}
-
-void TempEntity::incrementRetryCount()
-{
-    retryCount ++ ;
-}
-
-void TempEntity::resetIncrementCount()
-{
-    retryCount = 0;
-}
-
-void TempEntity::setSource(Node *src)
-{
-    this->src = src;
-}
-
-void TempEntity::setDestination(Node *dst)
-{
-    this->dst = dst;
-
-}
-
-Node *TempEntity::getSource()
-{
-    return src;
-}
-
-Node *TempEntity::getDestination()
-{
-    return dst;
-
-}
-
-void TempEntity::setID(QString ID)
-{
-    this->ID = ID;
-}
-
-void TempEntity::setPrevID(int ID)
-{
-    oldID = ID;
-}
-
-bool TempEntity::hasPrevID()
-{
-    return oldID > 0;
-}
-
-int TempEntity::getPrevID()
-{
-    return oldID;
-}
-
-void TempEntity::setActualID(int ID)
-{
-    actualID = ID;
-}
-
-void TempEntity::appendEdgeKind(EDGE_KIND edgeKind)
-{
-    if(!edgeKinds.contains(edgeKind)){
-        edgeKinds.append(edgeKind);
-    }
-}
-
-void TempEntity::removeEdgeKind(EDGE_KIND edgeKind)
-{
-    edgeKinds.removeAll(edgeKind);
-}
-
-EDGE_KIND TempEntity::getEdgeKind()
-{
-    return edgeKinds.first();
-}
-
-bool TempEntity::hasEdgeKind()
-{
-    return !edgeKinds.isEmpty();
-}
-
-TempEntity *TempEntity::getParentEntity()
-{
-
-    return parent;
-}
-
-void TempEntity::setParentID(QString ID)
-{
-    this->parentID = ID;
-}
-
-void TempEntity::setActualParentID(int ID)
-{
-    actualParentID = ID;
-}
-
-QString TempEntity::getKind()
-{
-    return nodeKind;
-}
-
-QString TempEntity::getParentID()
-{
-    return parentID;
-}
-
-int TempEntity::getActualParentID()
-{
-    return actualParentID;
-}
-
-bool TempEntity::gotActualID()
-{
-    return actualID > 0;
-}
-
-bool TempEntity::gotActualParentID()
-{
-    return actualParentID > 0;
-}
-
-ReadOnlyState TempEntity::getReadOnlyState()
-{
-    return readOnlyState;
-}
-
-bool TempEntity::gotReadOnlyState()
-{
-    return readOnlyState.isValid();
-}
-
-int TempEntity::getLineNumber()
-{
-    return lineNumber;
-}
-
-QVariant TempEntity::getData(QString key){
-
-    QVariant val;
-    for(auto data: dataList){
-        if(data->getKeyName() == key){
-            val = data->getValue();
-            break;
-        }
-    }
-    return val;
-}
-
-void TempEntity::addData(Data *data)
-{
-    if(data){
-        QString keyName = data->getKeyName();
-        if(keyName == "kind"){
-            nodeKind = data->getValue().toString();
-        }else if(keyName == "readOnly"){
-            isReadOnly = data->getValue().toBool();
-        }else if(keyName == "snippetID"){
-            readOnlyState.snippetID = data->getValue().toInt();
-        }else if(keyName == "snippetTime"){
-            readOnlyState.snippetTime = data->getValue().toLongLong();
-        }else if(keyName == "snippetMAC"){
-            readOnlyState.snippetMAC = data->getValue().toLongLong();
-        }else if(keyName == "exportTime"){
-            readOnlyState.exportTime = data->getValue().toLongLong();
-        }else if(keyName == "readOnlyDefinition"){
-            readOnlyState.isDefinition = data->getValue().toBool();
-        }else if(_resetPosition && (keyName == "x" || keyName == "y")){
-            data->setValue(-1);
-        }
-        dataList.append(data);
-    }
-}
-
-QList<Data *> TempEntity::getData()
-{
-    return dataList;
-}
-
-QList<Data *> TempEntity::takeDataList()
-{
-    QList<Data*> data = dataList;
-    dataList.clear();
-    return data;
-}
-
-void TempEntity::clearData()
-{
-    while(!dataList.isEmpty()){
-        Data* data = dataList.takeFirst();
-        if(data){
-            if(!data->getParent()){
-                delete data;
-            }
-        }
-    }
-}
-
-QString TempEntity::getOriginalID()
-{
-    return ID;
-}
-
-int TempEntity::getActualID()
-{
-    return actualID;
 }
 
 bool TempEntity::isNode()
 {
-    return entityKind == GRAPHML_KIND::NODE;
+    return graphml_kind == GRAPHML_KIND::NODE;
 }
 
 bool TempEntity::isEdge()
 {
-    return entityKind == GRAPHML_KIND::EDGE;
+    return graphml_kind == GRAPHML_KIND::EDGE;
 }
 
-void TempEntity::setSrcID(QString ID)
+int TempEntity::getLineNumber()
 {
-    srcID = ID;
+    return line_number;
 }
 
-void TempEntity::setDstID(QString ID)
+void TempEntity::setLineNumber(int line_number)
 {
-    dstID = ID;
+    this->line_number = line_number;
 }
 
-void TempEntity::setActualSrcID(int ID)
+TempEntity *TempEntity::getParent()
 {
-    actualSrcID = ID;
+    return parent;
 }
 
-void TempEntity::setActualDstID(int ID)
+QString TempEntity::getKind()
 {
-    actualDstID = ID;
+    return kind_str;
 }
 
-QString TempEntity::getSrcID()
-{
-    return srcID;
+void TempEntity::setIDStr(QString id_str){
+    this->id_str = id_str;
+    //Try and convert the id_str to int, -1 on fail
+    this->previous_id = str_to_int(id_str);
 }
 
-QString TempEntity::getDstID()
-{
-    return dstID;
+int TempEntity::getSourceIDInt(){
+    return str_to_int(source_id_str);
 }
 
-int TempEntity::getActualSrcID()
-{
-    return actualSrcID;
+int TempEntity::getTargetIDInt(){
+    return str_to_int(target_id_str);
 }
 
-int TempEntity::getActualDstID()
+QString TempEntity::getIDStr(){
+    return id_str;
+}
+
+bool TempEntity::gotPreviousID()
 {
-    return actualDstID;
+    return previous_id != -1;
+}
+
+int TempEntity::getPreviousID()
+{
+    return previous_id;
+}
+
+
+void TempEntity::setID(int id){
+    actual_id = id;
+}
+
+int TempEntity::getID(){
+    return actual_id;
+}
+
+bool TempEntity::gotID(){
+    return actual_id != -1;
+}
+
+QList<TempEntity*> TempEntity::getChildren(){
+    return children;
+}
+
+void TempEntity::addChild(TempEntity* child){
+    children.push_back(child);
+}
+
+void TempEntity::setSourceID(int id)
+{
+    source_id = id;
+}
+
+int TempEntity::getSourceID()
+{
+    return source_id;
+}
+
+void TempEntity::setTargetID(int id)
+{
+    target_id = id;
+}
+
+int TempEntity::getTargetID()
+{
+    return target_id;
+}
+
+void TempEntity::setSourceIDStr(QString id)
+{
+    source_id_str = id;
+}
+
+QString TempEntity::getSourceIDStr()
+{
+    return source_id_str;
+}
+
+void TempEntity::setTargetIDStr(QString id)
+{
+    target_id_str = id;
+}
+
+QString TempEntity::getTargetIDStr()
+{
+    return target_id_str;
+}
+
+void TempEntity::appendEdgeKinds(QList<EDGE_KIND> kinds){
+    for(auto kind: kinds){
+        appendEdgeKind(kind);
+    }
+}
+
+void TempEntity::appendEdgeKind(EDGE_KIND kind)
+{
+    if(!edge_kinds.contains(kind)){
+        edge_kinds.append(kind);
+    }
+}
+
+void TempEntity::removeEdgeKind(EDGE_KIND kind)
+{
+    edge_kinds.removeAll(kind);
+}
+
+EDGE_KIND TempEntity::getEdgeKind()
+{
+    return edge_kinds.first();
+}
+
+bool TempEntity::gotEdgeKind()
+{
+    return !edge_kinds.isEmpty();
+}
+
+QVariant TempEntity::getDataValue(QString key_name){
+    return data.value(key_name, QVariant());
+}
+
+bool TempEntity::gotData(QString key_name){
+    return data.contains(key_name);
+}
+
+void TempEntity::addData(QString key_name, QVariant value){
+    data[key_name] = value;
+    if(key_name == "kind"){
+        kind_str = value.toString();
+    }
+}
+
+void TempEntity::removeData(QString key_name){
+    data.remove(key_name);
+}
+
+void TempEntity::clearData(){
+    data.clear();
+}
+
+QList<QString> TempEntity::getKeys(){
+    return data.keys();
 }

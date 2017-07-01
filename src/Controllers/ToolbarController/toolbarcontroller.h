@@ -4,6 +4,7 @@
 #include <QToolBar>
 #include <QObject>
 
+
 #include "../ViewController/viewitem.h"
 
 #include "../../Utils/actiongroup.h"
@@ -47,12 +48,17 @@ public:
     
     QString getInfoActionKeyForAdoptableKind(QString kind);
 
-    void addChildNode(NODE_KIND kind, QPointF position);
+    void addChildNode(NODE_KIND kind, QPointF position = QPointF());
+
+    void addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position = QPointF());
+
+    void addWorkerProcess(int processID, QPointF position = QPointF());
+
     void addEdge(int dstID, EDGE_KIND edgeKind);
     void removeEdge(int dstID, EDGE_KIND edgeKind);
     void removeAllEdges(EDGE_KIND edgeKind);
-    void addConnectedChildNode(int dstID, NODE_KIND kind, QPointF position);
-    void addWorkerProcess(int processID, QPointF position);
+
+    
 
     bool requiresSubAction(NODE_KIND kind);
 signals:
@@ -74,6 +80,7 @@ private slots:
     void actionFinished();
 
 private:
+    QPointF getViewCenterPoint();
     void setupToolActions();
     void setupNodeActions();
     void setupEdgeActions();

@@ -44,9 +44,8 @@ private slots:
     void gotJava(bool java);
     void selectionChanged(int selectionSize);
     void actionFinished();
-
-    void controllerReady(bool);
-    void modelReady(bool ready);
+    
+    void ModelControllerReady(bool ready);
     void themeChanged();
 
     void updateJenkinsActions();
@@ -96,12 +95,11 @@ public:
     RootAction* file_importGraphML;
     //RootAction* file_importXME;
     //RootAction* file_importXMI;
+    RootAction* file_importIdl;
     RootAction* file_openProject;
     RootAction* file_saveProject;
     RootAction* file_saveAsProject;
     RootAction* file_closeProject;
-    //RootAction* file_importSnippet;
-    //RootAction* file_exportSnippet;
     RootAction* file_exit;
 
     RootAction* edit_undo;
@@ -134,8 +132,6 @@ public:
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
 
-    RootAction* window_showNotifications;
-
     RootAction* model_validateModel;
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
@@ -160,9 +156,7 @@ public:
     RootAction* toolbar_connect;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
-    RootAction* toolbar_setReadOnly;
-    RootAction* toolbar_unsetReadOnly;
-
+    
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
@@ -183,7 +177,6 @@ public:
     QMenu* menu_model;
     QMenu* menu_jenkins;
     QMenu* menu_help;
-    QMenu* menu_window;
     QMenu* menu_options;
 
     ShortcutDialog* shortcutDialog;

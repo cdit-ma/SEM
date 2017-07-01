@@ -73,6 +73,7 @@
         <file alias="Setter">Resources/EntityIcons/Setter.png</file>
         <file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
         <file alias="VariadicParameter">Resources/EntityIcons/VariadicParameter.png</file>
+        <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>

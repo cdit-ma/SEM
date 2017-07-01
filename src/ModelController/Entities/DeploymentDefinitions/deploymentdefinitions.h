@@ -1,5 +1,5 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
+#ifndef DEPLOYMENTDEFINITIONC_H
+#define DEPLOYMENTDEFINITIONC_H
 #include "../node.h"
 
 class EntityFactory;
@@ -14,4 +14,4 @@ public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+#endif // DEPLOYMENTDEFINITIONC_H

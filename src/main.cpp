@@ -22,14 +22,16 @@ int launchMEDEA(int argc, char *argv[]){
 
     //Construct a SettingsController and ViewController
     auto settings_controller = SettingsController::settings();
+    
     auto view_controller = new ViewController();
+    
 
     auto window = WindowManager::constructMainWindow(view_controller);
 
     if (argc == 2) {
         QString projectPath = QString::fromUtf8(argv[1]);
         if(!projectPath.isEmpty()){
-            view_controller->openExistingProject(projectPath);
+            view_controller->OpenExistingProject(projectPath);
         }
     }
     a.setActiveWindow(window);

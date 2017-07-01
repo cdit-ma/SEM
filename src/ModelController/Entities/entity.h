@@ -12,10 +12,10 @@ class Entity: public GraphML
     friend class Data;
     friend class EntityFactory;
     Q_OBJECT
-public:
+protected:
     Entity(GRAPHML_KIND kind);
     ~Entity();
-
+public:
     virtual bool isInModel() = 0;
 
     bool addData(Data* data);
@@ -25,7 +25,6 @@ public:
 protected:
     void _dataChanged(Data* data);
     void _dataRemoved(Data* data);
-    void _dataProtected(Data* data);
 public:
     Data* getData(QString keyName) const;
     Data* getData(Key* key) const;
@@ -38,6 +37,7 @@ public:
     QList<Key *> getKeys() const;
     QStringList getKeyNames() const;
     bool gotData(QString keyName = "") const;
+    bool gotData(Key* key) const;
 
     bool removeData(Key* key);
     bool removeData(Data* data);
@@ -64,9 +64,6 @@ public:
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
-
-    void propertyChanged(int ID, QString propertyName, QVariant data);
-    void propertyRemoved(int ID, QString propertyName);
 
     void terminating();
 private:

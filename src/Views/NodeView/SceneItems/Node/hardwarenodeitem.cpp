@@ -16,7 +16,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
     setExpanded(false);
 
 
-    setDefaultPen(Qt::NoPen);
+    //setDefaultPen(Qt::NoPen);
     setBodyPadding(QMarginsF(3, 3, 3, 3));
     setMargin(QMarginsF(5, 5, 5, 5));
     cornerRadius = 5;
@@ -24,7 +24,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 
     mainTextFont.setPixelSize(size / 3.5);
 
-    //setupBrushes();
+    setupBrushes();
 
     addRequiredData("x");
     addRequiredData("y");
@@ -113,15 +113,18 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     painter->setClipRect(option->exposedRect);
     //Set Clip Rectangle
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
+        painter->save();
         painter->setPen(Qt::NoPen);
         painter->setBrush(getBodyColor());
 
-        painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
+        painter->drawRoundedRect(rightRect(), cornerRadius, cornerRadius);
 
         painter->setBrush(getBodyColor().darker(120));
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
+        painter->restore();
     }
+
     //Call Base class
     NodeItem::paint(painter, option, widget);
 }

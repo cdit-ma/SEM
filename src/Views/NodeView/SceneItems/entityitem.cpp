@@ -25,7 +25,6 @@ EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
     //Sets the default border to be dark gray
     QPen defaultPen(QColor(50, 50, 50));
     defaultPen.setCosmetic(true);
-
     setDefaultPen(defaultPen);
 
     _isHovered = false;
@@ -96,18 +95,16 @@ QPair<QString, QString> EntityItem::getTertiaryIcon() const
     return tertiaryIconPath;
 }
 
-EntityItem::RENDER_STATE EntityItem::getRenderState(qreal lod) const
+RENDER_STATE EntityItem::getRenderState(qreal lod) const
 {
-    if(lod >= 2.0 && !_isMoving){
-        return RS_DOUBLE;
-    }else if(lod >= 1.0){
-        return RS_FULL;
+    if(lod >= 1.0){
+        return RENDER_STATE::FULL;
     }else if(lod >= .75){
-        return RS_REDUCED;
+        return RENDER_STATE::REDUCED;
     }else if(lod >= .5){
-        return RS_MINIMAL;
+        return RENDER_STATE::MINIMAL;
     }else{
-        return RS_BLOCK;
+        return RENDER_STATE::BLOCK;
     }
 }
 
@@ -195,10 +192,7 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
     if(!imageRect.isEmpty()){
         RENDER_STATE state = getRenderState(lod);
 
-        //Calculate the required size of the image.
-        QSize requiredSize = getPixmapSize(imageRect, lod);
-
-        if(state == RS_BLOCK){
+        if(state == RENDER_STATE::BLOCK){
             //Only allow the Main Icon/Secondary Icon and Edge Kind Icon to be drawn in block state.
             switch(pos){
             case ER_MAIN_ICON:
@@ -211,23 +205,9 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 
             paintPixmapRect(painter, imagePath, imageName, imageRect);
         }else{
-            //Get the previousImage item out of the map.
-            ImageMap image = imageMap[pos];
-
-            //If the image size, image location or tint is different we should update out cache.
-            if(image.pixmap.isNull() || image.imageSize != requiredSize || image.imagePath != imagePath || image.imageName != imageName || image.tintColor != tintColor){
-                image.pixmap = getPixmap(imagePath, imageName, requiredSize, tintColor);
-                image.imagePath = imagePath;
-                image.imageName = imageName;
-                image.imageSize = requiredSize;
-                image.tintColor = tintColor;
-
-                //Update the image into the map.
-                imageMap[pos] = image;
-            }
-
-            //Paint Pixmap
-            paintPixmap(painter, imageRect, image.pixmap);
+            auto required_size = getPixmapSize(imageRect, lod);
+            auto pixmap = getPixmap(imagePath, imageName, required_size, tintColor);
+            paintPixmap(painter, imageRect, pixmap);
         }
     }
 }
@@ -239,125 +219,16 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 
 void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
 {
-    TextMap textM = textMap[pos];
-    QRectF rect = getElementRect(pos);
-    QSizeF rectSize = rect.size();
-
-    RENDER_STATE state = getRenderState(lod);
-    if(textM.text != text || textM.textOptions != textOptions || (textM.maximumSize == false && textM.boundingSize != rectSize) || (textM.maximumSize == true && rectSize.width() < textM.boundingSize.width())){
-        textM.boundingRect = rect;
-        textM.boundingSize = rectSize;
-        textM.rectColor = getBodyColor().darker(130);
-        textM.textOptions = textOptions;
-        textM.text = text;
-        //Calculate size yo!
-
-        QFont font = textM.font;
-        //font.setFamily("Open Sans");
-        font.setPixelSize(MAX_FONT_SIZE);
-        painter->setFont(font);
-        QRect tR = painter->fontMetrics().boundingRect(textM.text + "W");
-
-        qreal width = tR.width();
-        qreal height = tR.height();
-
-        //Get the ratio for width
-        qreal widthRatio = rect.width() / width;
-        qreal heightRatio = rect.height() / height;
-
-        widthRatio = qMin(widthRatio, 1.0);
-        widthRatio = qMax(widthRatio, MIN_FONT_SIZE / MAX_FONT_SIZE);
-
-        heightRatio = qMin(heightRatio, 1.0);
-        heightRatio = qMax(heightRatio, MIN_FONT_SIZE / MAX_FONT_SIZE);
-
-        qreal ratio = qMin(widthRatio, heightRatio);
-
-        qreal fontSize = ratio * MAX_FONT_SIZE;
-        font.setPixelSize(fontSize);
-
-        textM.maximumSize = font.pixelSize() == MAX_FONT_SIZE;
-
-
-        textM.font = font;
-        painter->setFont(font);
-
-
-        QRectF textBR = painter->fontMetrics().boundingRect(rect.toRect(), textOptions, text);
-        textBR.moveCenter(rect.center());
-        textBR.moveLeft(rect.left());
-
-        textM.textBoundingRect = textBR;
-
-        QRect actualRect = rect.toRect();
-        actualRect.moveTopLeft(QPoint(0,0));
-
-
-        qreal doubleFactor = 4;
-        qreal fullFactor = 2;
-        qreal reducedFactor = 1;
-        qreal minimalFactor = .5;
-
-        QRect dblRect = actualRect;
-        dblRect.setSize(actualRect.size() * doubleFactor);
-
-        //Paint Full Factor
-        QPixmap dblPixmap(dblRect.size());
-        dblPixmap.fill(Qt::transparent);
-
-        QFont imageFont = font;
-        imageFont.setPixelSize(font.pixelSize() * doubleFactor);
-        QPainter pPainter(&dblPixmap);
-        pPainter.setPen(Qt::black);
-        pPainter.setRenderHints(QPainter::Antialiasing, true);
-        pPainter.setRenderHints(QPainter::SmoothPixmapTransform, true);
-        pPainter.setRenderHints(QPainter::HighQualityAntialiasing, true);
-        pPainter.setFont(imageFont);
-        pPainter.setClipRect(dblRect);
-        pPainter.drawText(dblRect, textM.textOptions, textM.text);
-        pPainter.end();
-
-        textM.pixmap_DOUBLE = dblPixmap;
-        textM.pixmap_FULL = dblPixmap.scaled(actualRect.size() * fullFactor, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        textM.pixmap_REDUCED = dblPixmap.scaled(actualRect.size() * reducedFactor, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        textM.pixmap_MINIMAL = dblPixmap.scaled(actualRect.size() * minimalFactor, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-        //Update the map
-        textMap[pos] = textM;
+    painter->setBrush(getBodyColor().darker(150));
+    auto text_item = textMap.value(pos, 0);
+    if(!text_item){
+        //If we haven't got one, construct a text tiem
+        text_item = new StaticTextItem();
+        textMap[pos] = text_item;
     }
 
-    if(state == RS_BLOCK){
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(textM.rectColor);
-        painter->drawRect(textM.textBoundingRect);
-    }else{
-        QPixmap pixmap;
-        switch(state){
-        case RS_MINIMAL:{
-            pixmap = textM.pixmap_MINIMAL;
-            break;
-        }
-        case RS_REDUCED:{
-            pixmap = textM.pixmap_REDUCED;
-            break;
-        }
-        case RS_FULL:{
-            pixmap = textM.pixmap_FULL;
-            break;
-        }
-        case RS_DOUBLE:{
-            pixmap = textM.pixmap_DOUBLE;
-            break;
-        }
-        default:
-            break;
-        }
-        if(!pixmap.isNull()){
-            QRectF targetRect = rect;
-            targetRect.setWidth(pixmap.width() * (rect.height() / pixmap.height()));
-            painter->drawPixmap(targetRect, pixmap, pixmap.rect());
-        }
-    }
+    text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
+    return;
 }
 
 void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
@@ -370,10 +241,6 @@ void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCur
 void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
     if(imageRect.isValid()){
-        //Paint Bounding Rects!
-        //painter->setPen(Qt::black);
-        //painter->setBrush(Qt::NoBrush);
-        //painter->drawRect(imageRect);
         painter->drawPixmap(imageRect, pixmap, pixmap.rect());
     }
 }
@@ -407,6 +274,12 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
     requiredSize.setWidth(rect.width() * 2 * lod);
     requiredSize.setHeight(rect.height() * 2 * lod);
     requiredSize = Theme::roundQSize(requiredSize);
+    
+    //Max out at 128 pixels
+    if(requiredSize.width() > 128){
+        requiredSize.setWidth(128);
+        requiredSize.setHeight(128);
+    }
     return requiredSize;
 }
 
@@ -657,7 +530,6 @@ void EntityItem::handleHover(bool hovered)
     if(isHoverEnabled()){
         if(hovered != _isHovered){
             setHovered(hovered);
-            //emit req_hovered(this, hovered);
         }
     }
 }
@@ -841,24 +713,25 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
-    if(state == RS_BLOCK){
+    if(state == RENDER_STATE::BLOCK){
         QBrush brush(Qt::SolidPattern);
+        painter->setPen(Qt::NoPen);
 
         if(isSelected()){
             brush.setColor(getPen().color());
+            painter->setBrush(brush);
+            painter->drawPath(getElementPath(ER_SELECTION));
         }else{
             brush.setColor(getBodyColor());
         }
 
-        painter->setBrush(brush);
-        painter->setPen(Qt::NoPen);
-        painter->drawPath(getElementPath(ER_SELECTION));
+        
     }
 
     //Paint the pixmap!
     paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
 
-    if(state > RS_BLOCK){
+    if(state > RENDER_STATE::BLOCK){
         if(paintIconOverlay){
             paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath);
         }
@@ -871,11 +744,15 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     }
 }
 
+QPen EntityItem::getDefaultPen() const{
+    return defaultPen;
+}
+
 QPen EntityItem::getPen()
 {
     QPen pen = defaultPen;
     pen.setJoinStyle(Qt::MiterJoin);
-    QColor penColor = defaultPen.color();
+    QColor penColor = QColor(115,115,115);//defaultPen.color();
 
     if(isSelected()){
         if(pen.style() == Qt::NoPen){
@@ -886,16 +763,10 @@ QPen EntityItem::getPen()
         penColor = Theme::theme()->getSelectedItemBorderColor();
     }
 
-    if(isHovered()){
-        if(!isSelected()){
-            //penColor = Qt::darkGray;
-            penColor = QColor(115,115,115);
+    if(!isHovered()){
+        if(!isSelected() || (isSelected() && !isActiveSelected())){
+            penColor = penColor.lighter(140);
         }
-        penColor = penColor.lighter(130);
-    }
-
-    if(!isActiveSelected()){
-        penColor = penColor.lighter();
     }
 
     pen.setColor(penColor);
@@ -958,6 +829,9 @@ void EntityItem::setHovered(bool isHovered)
 {
     if(_isHovered != isHovered){
         _isHovered = isHovered;
+        if(_isHovered && getParent()){
+            getParent()->setHovered(false);
+        }
         update();
     }
 }
@@ -976,6 +850,7 @@ void EntityItem::setSelected(bool selected)
         _isSelected = selected;
 
         updateZValue();
+        update();
     }
 }
 

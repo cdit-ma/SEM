@@ -38,11 +38,17 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 
 void ExecutionManager::ValidateModel(QString model_path)
 {
-    emit NotificationManager::manager()->backgroundProcess(true, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
-    emit NotificationManager::manager()->backgroundProcess(false, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
 
     if(results.success){
+
+        // Clear previous validation notification items
+        foreach (int ID, NotificationManager::manager()->getNotificationsOfCategory(NOTIFICATION_CATEGORY::VALIDATION)) {
+            NotificationManager::manager()->deleteNotification(ID);
+        }
+
         int count = 0;
         int success_count = 0;
 
@@ -69,7 +75,7 @@ void ExecutionManager::ValidateModel(QString model_path)
                         auto id = get_xml_attribute(xml, "id");
                         auto warning = get_xml_attribute(xml, "warning") == "true";
                         auto error_code = xml.readElementText();
-                        NotificationManager::manager()->displayNotification(error_code, "", "", id.toInt(), warning? NS_INFO : NS_WARNING, NT_MODEL, NC_VALIDATION);
+                        NotificationManager::manager()->displayNotification(error_code, "", "", id.toInt(), warning? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::WARNING, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
                     }else if(result == "true"){
                         success_count ++;
                     }
@@ -80,9 +86,9 @@ void ExecutionManager::ValidateModel(QString model_path)
         if(success_count < count){
             NotificationManager::manager()->showNotificationPanel();
         }
-        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NS_INFO : NS_WARNING, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::WARNING, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     }else{
-        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     }
 }
 
@@ -113,7 +119,7 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
     auto datatypes = GenerateDatatypes(document_path, output_directory);
 
     if(components && datatypes){
-        NotificationManager::manager()->displayNotification("Generated Model Workspace in '" + output_directory + "'", "Icons", "bracketsAngled", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
+        NotificationManager::manager()->displayNotification("Generated Model Workspace in '" + output_directory + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     }
 }
 
@@ -125,24 +131,24 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
         args << "preview=true";
     }
 
-    emit NotificationManager::manager()->backgroundProcess(true, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
-    emit NotificationManager::manager()->backgroundProcess(false, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
 
     if(!results.success){
-        NotificationManager::manager()->displayNotification("XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
     }
     return results.success;
 }
 
 bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory)
 {
-    emit NotificationManager::manager()->backgroundProcess(true, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-    emit NotificationManager::manager()->backgroundProcess(false, BP_VALIDATION);
+    emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
 
     if(!results.success){
-        NotificationManager::manager()->displayNotification("XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NS_ERROR, NT_MODEL, NC_NOCATEGORY);
+        NotificationManager::manager()->displayNotification("XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
     }
     return results.success;
 }

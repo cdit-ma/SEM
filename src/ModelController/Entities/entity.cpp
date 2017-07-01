@@ -4,17 +4,15 @@
 #include <QVariant>
 #include <QDebug>
 
-
 Entity::Entity(GRAPHML_KIND kind):GraphML(kind)
 {
 }
 
 Entity::~Entity()
 {
-    //Clear data.
-    while(!getData().isEmpty()){
-        Data* data = getData().first();
-        removeData(data);
+    for(auto data : dataLookup){
+        //Unregister the data so we don't bother calling back into this class
+        data->setParent(0);
         delete data;
     }
 }
@@ -61,7 +59,7 @@ bool Entity::addData(Data *data)
     }
 
     //Attach this.
-    data->setParent(this);
+    data->registerParent(this);
     return true;
 }
 
@@ -85,24 +83,19 @@ bool Entity::addData(QList<Data *> dataList)
 void Entity::_dataChanged(Data *data)
 {
     if(data){
-        emit dataChanged(getID(), data->getKeyName(), data->getValue());
+        auto value = data->getValue();
+        if(value.isValid()){
+            emit dataChanged(getID(), data->getKeyName(), value);
+        }
     }
 }
 
 void Entity::_dataRemoved(Data *data)
 {
     if(data){
-        //Remove Key.
-        QString keyName = data->getKeyName();
-        keyLookup.remove(keyName);
-        emit dataRemoved(getID(), data->getKeyName());
-    }
-}
-
-void Entity::_dataProtected(Data *data)
-{
-    if(data){
-        emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
+        auto key_name = data->getKeyName();
+        keyLookup.remove(key_name);
+        emit dataRemoved(getID(), key_name);
     }
 }
 
@@ -168,6 +161,13 @@ bool Entity::gotData(QString keyName) const
     }else{
         return getData(keyName);
     }
+}
+
+bool Entity::gotData(Key* key) const{
+    if(key){
+        return getData(key->getName());
+    }
+    return false;
 }
 
 bool Entity::isNode() const

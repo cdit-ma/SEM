@@ -97,6 +97,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     connect(leftToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
     connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
 
+    //setContextMenuPolicy(Qt::NoContextMenu);
     recentProjectsUpdated();
     themeChanged();
 }

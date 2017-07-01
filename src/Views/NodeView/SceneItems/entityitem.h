@@ -8,39 +8,13 @@
 #include <QPen>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
+#include "statictextitem.h"
 
 #define DEFAULT_SIZE 80
-#define MAX_FONT_SIZE (DEFAULT_SIZE / 8.0)
-#define MIN_FONT_SIZE (MAX_FONT_SIZE / 2.5)
 
 #define SELECTED_LINE_WIDTH 3
 
-struct ImageMap{
-    QPixmap pixmap;
-    QString imagePath;
-    QString imageName;
-    QSizeF imageSize;
-    QColor tintColor;
-};
-
-struct TextMap{
-    QString text;
-    int textOptions;
-
-    QFont font;
-    QColor rectColor;
-    QSizeF boundingSize;
-    QRectF boundingRect;
-    QRectF textBoundingRect;
-
-    bool maximumSize;
-
-    QPixmap pixmap_DOUBLE;
-    QPixmap pixmap_FULL;
-    QPixmap pixmap_MINIMAL;
-    QPixmap pixmap_REDUCED;
-};
-
+enum class RENDER_STATE{NONE, BLOCK, MINIMAL, REDUCED, FULL};
 //Forward class definition
 class NodeItem;
 
@@ -55,7 +29,7 @@ public:
         NODE,
     };
     enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW, ER_TERTIARY_ICON};
-    enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL, RS_DOUBLE};
+    
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
     ~EntityItem();
@@ -120,6 +94,7 @@ public:
     QStringList getRequiredDataKeys();
     void reloadRequiredData();
     QPen getPen();
+    QPen getDefaultPen() const;
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
 
@@ -259,8 +234,8 @@ private:
     bool paintTertiaryIcon;
 
 
-    QHash<ELEMENT_RECT, ImageMap> imageMap;
-    QHash<ELEMENT_RECT, TextMap> textMap;
+    //QHash<ELEMENT_RECT, ImageMap> imageMap;
+    QHash<ELEMENT_RECT, StaticTextItem*> textMap;
 
     QHash<ELEMENT_RECT, QString> tooltipMap;
     QHash<ELEMENT_RECT, QCursor> tooltipCursorMap;

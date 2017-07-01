@@ -18,7 +18,7 @@ public:
     QString getIconPath();
     QString getIconName();
     NOTIFICATION_SEVERITY getSeverity();
-    NOTIFICATION_TYPE2 getType();
+    NOTIFICATION_TYPE getType();
     NOTIFICATION_CATEGORY getCategory();
 
     void setSelected(bool select);
@@ -32,7 +32,7 @@ public slots:
     void showItem();
     void filterCleared(NOTIFICATION_FILTER filter);
     void severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates);
-    void typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates);
+    void typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates);
     void categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates);
 
 protected:
@@ -41,7 +41,7 @@ protected:
 
 private:
     void updateStyleSheet();
-    void updateVisibility(NOTIFICATION_FILTER filter = NF_NOFILTER, bool visible = false);
+    void updateVisibility(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, bool visible = false);
 
     NotificationObject* notificationObject;
 

@@ -37,7 +37,7 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
 
     #ifdef Q_OS_DARWIN
         //Replace shortcut with Command.
-        shortcut.replace("CTRL", "COMMAND");
+        shortcut.replace("Ctrl", "⌘");
     #endif
 
     QTableWidgetItem * shortcutR = new QTableWidgetItem(shortcut);

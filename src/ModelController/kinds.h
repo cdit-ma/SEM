@@ -11,4 +11,20 @@ enum class GRAPHML_KIND
     };
 Q_DECLARE_METATYPE(GRAPHML_KIND)
 
+
+inline GRAPHML_KIND getGraphMLKindFromString(const QStringRef str){
+    //Process the Tags
+    GRAPHML_KIND kind = GRAPHML_KIND::NONE;
+
+    if(str == "edge"){
+        kind = GRAPHML_KIND::EDGE;
+    }else if(str == "node"){
+        kind = GRAPHML_KIND::NODE;
+    }else if(str == "data"){
+        kind = GRAPHML_KIND::DATA;
+    }else if(str == "key"){
+        kind = GRAPHML_KIND::KEY;
+    }
+    return kind;
+};
 #endif

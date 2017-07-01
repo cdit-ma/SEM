@@ -10,6 +10,7 @@
 #include "SceneItems/Edge/edgeitem.h"
 
 #include <QStateMachine>
+#include <QStaticText>
 
 
 class NodeView : public QGraphicsView
@@ -28,14 +29,16 @@ public:
 
     QColor getBackgroundColor();
     QRectF getViewportRect();
-    void resetMinimap();
-    void forceViewportChange();
     SelectionHandler* getSelectionHandler();
-    void fitToScreen();
+
+    QPointF getTopLeftOfSelection();
+    
     void alignHorizontal();
     void alignVertical();
 
     void centerSelection();
+
+    void update_minimap();
 
     QList<int> getIDsInView();
 signals:
@@ -56,9 +59,8 @@ signals:
 
 
 
-    void sceneRectChanged(QRectF sceneRect);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
-    void viewportChanged(QRectF rect, qreal zoom);
+    void viewport_changed(QRectF viewportRect, double zoom_factor);
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -67,8 +69,6 @@ signals:
     void editData(int, QString);
 
 private slots:
-
-    void test();
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -76,10 +76,10 @@ private slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
-    void itemsMoved();
     void themeChanged();
 
 public slots:
+    void fitToScreen();
     void selectAll();
     void clearSelection();
 
@@ -118,7 +118,6 @@ private:
     QList<ViewItem*> getTopLevelViewItems() const;
     QList<EntityItem*> getTopLevelEntityItems() const;
     QList<EntityItem*> getSelectedItems() const;
-    QList<EntityItem*> getOrderedSelectedItems() const;
 
 
     NodeItem* getParentNodeItem(NodeViewItem* item);
@@ -142,8 +141,8 @@ private:
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItem*> guiItems;
 
-    ViewController* viewController;
-    SelectionHandler* selectionHandler;
+    ViewController* viewController = 0;
+    SelectionHandler* selectionHandler = 0;
 
     QRectF currentSceneRect;
     QPoint pan_lastPos;
@@ -151,40 +150,45 @@ private:
     qreal pan_distance;
 
     QPoint rubberband_lastPos;
-    QRubberBand* rubberband;
 
+    QRubberBand* rubberband = 0;
 
+    bool is_active = false;
+    bool isPanning = false;
+    bool isAspectView = false;
     QPointF viewportCenter_Scene;
+    
+    QList<double> render_times;
+
+    QTransform old_transform;
+    VIEW_ASPECT containedAspect = VIEW_ASPECT::NONE;
+    NodeViewItem* containedNodeViewItem = 0;
 
 
-    bool isAspectView;
-    bool isBackgroundSelected;
-    VIEW_ASPECT containedAspect;
-    NodeViewItem* containedNodeViewItem;
+    QFont background_font;
+    QColor background_text_color;
+    QColor background_color;
 
-    bool isPanning;
-
-    QColor backgroundColor;
-    QString backgroundText;
-    QFont backgroundFont;
-    QColor backgroundFontColor;
-    QColor selectedBackgroundFontColor;
+    QStaticText background_text;
+    QRectF background_text_rect;
 
 
-    QStateMachine* viewStateMachine;
-    QState* state_InActive;
+    QStateMachine* viewStateMachine = 0;
+    QState* state_InActive = 0;
 
-    QState* state_Active;
-    QState* state_Active_Moving;
-    QState* state_Active_Resizing;
-    QState* state_Active_RubberbandMode;
-    QState* state_Active_RubberbandMode_Selecting;
-    QState* state_Active_Connecting;
+    QState* state_Active = 0;
+    QState* state_Active_Moving = 0;
+    QState* state_Active_Resizing = 0;
+    QState* state_Active_RubberbandMode = 0;
+    QState* state_Active_RubberbandMode_Selecting = 0;
+    QState* state_Active_Connecting = 0;
 
-    QGraphicsLineItem* connectLineItem;
+    QGraphicsLineItem* connectLineItem = 0;
+
     QLineF connectLine;
 
 private slots:
+    void activeViewDockChanged(ViewDockWidget* dw);
     void state_Moving_Entered();
     void state_Moving_Exited();
 
@@ -214,7 +218,10 @@ protected:
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
 
+    void drawForeground(QPainter *painter, const QRectF &rect);
     void drawBackground(QPainter *painter, const QRectF &rect);
+
+    void paintEvent(QPaintEvent *event);
 
     // QWidget interface
 protected:

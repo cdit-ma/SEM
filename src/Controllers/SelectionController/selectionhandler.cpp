@@ -92,16 +92,6 @@ QVector<ViewItem *> SelectionHandler::getSelection() const
     return currentSelection;
 }
 
-QVector<ViewItem *> SelectionHandler::getOrderedSelection()
-{
-    if(!orderedSelectionValid && selectionController){
-        orderedSelection = selectionController->getOrderedSelection(getSelectionIDs().toList());
-        orderedSelectionValid = true;
-    }
-
-    return orderedSelection;
-}
-
 QVector<int> SelectionHandler::getSelectionIDs()
 {
     QVector<int> IDs;

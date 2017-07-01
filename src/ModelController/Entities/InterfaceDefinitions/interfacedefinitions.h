@@ -1,5 +1,5 @@
-#ifndef INTERFACEDEFINITIONS_H
-#define INTERFACEDEFINITIONS_H
+#ifndef INTERFACEDEFINITIONC_H
+#define INTERFACEDEFINITIONC_H
 #include "../node.h"
 
 class EntityFactory;
@@ -17,4 +17,4 @@ public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
-#endif // INTERFACEDEFINITIONS_H
+#endif // INTERFACEDEFINITIONC_H

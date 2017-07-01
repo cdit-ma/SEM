@@ -10,21 +10,20 @@
 NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     : QFrame(parent)
 {
-    notificationObject = obj;
-    selected = true;
-    setSelected(false);
-
     if (!obj) {
         qWarning() << "NotificationItem::NotificationItem - Notification object is null.";
         return;
     }
 
+    notificationObject = obj;
+    selected = true;
+    setSelected(false);
+
     iconPath = obj->iconPath();
     iconName = obj->iconName();
     if (iconPath.isEmpty() || iconName.isEmpty()) {
-        QPair<QString, QString> severityIcon = NotificationManager::getSeverityIcon(getSeverity());
-        iconPath = severityIcon.first;
-        iconName = severityIcon.second;
+        iconPath = "Icons";
+        iconName = getSeverityIcon(obj->severity());
     }
 
     descriptionLabel = new QLabel(obj->description(), this);
@@ -35,7 +34,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     layout->addWidget(descriptionLabel, 1);
 
     // this item is visible by default - initialise all filter visibility to true
-    foreach (NOTIFICATION_FILTER filter, NotificationManager::getNotificationFilters()) {
+    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
         filterVisibility[filter] = true;
     }
 
@@ -99,7 +98,7 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
     if (notificationObject) {
         return notificationObject->severity();
     }
-    return NS_INFO;
+    return NOTIFICATION_SEVERITY::INFO;
 }
 
 
@@ -107,12 +106,12 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
  * @brief NotificationItem::getType
  * @return
  */
-NOTIFICATION_TYPE2 NotificationItem::getType()
+NOTIFICATION_TYPE NotificationItem::getType()
 {
     if (notificationObject) {
         return notificationObject->type();
     }
-    return NT_MODEL;
+    return NOTIFICATION_TYPE::MODEL;
 }
 
 
@@ -125,7 +124,7 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
     if (notificationObject) {
         return notificationObject->category();
     }
-    return NC_NOCATEGORY;
+    return NOTIFICATION_CATEGORY::NOCATEGORY;
 }
 
 
@@ -142,7 +141,7 @@ void NotificationItem::themeChanged()
     }
     updateStyleSheet();
 
-    QColor tintColor = NotificationManager::getSeverityColor(getSeverity());
+    QColor tintColor = getSeverityColor(getSeverity());
     iconLabel->setPixmap(theme->getImage(getIconPath(), getIconName(), QSize(28,28), tintColor));
 }
 
@@ -181,7 +180,7 @@ void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
 void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
 {
     bool visible = checkedStates.value(getSeverity(), false);
-    updateVisibility(NF_SEVERITY, visible);
+    updateVisibility(NOTIFICATION_FILTER::SEVERITY, visible);
 }
 
 
@@ -191,10 +190,10 @@ void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> 
  * It updates this item's visibility based on that change.
  * @param checkedStates
  */
-void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates)
+void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates)
 {
     bool visible = checkedStates.value(getType(), false);
-    updateVisibility(NF_TYPE, visible);
+    updateVisibility(NOTIFICATION_FILTER::TYPE, visible);
 }
 
 
@@ -207,7 +206,7 @@ void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checked
 void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
 {
     bool visible = checkedStates.value(getCategory(), false);
-    updateVisibility(NF_CATEGORY, visible);
+    updateVisibility(NOTIFICATION_FILTER::CATEGORY, visible);
 }
 
 

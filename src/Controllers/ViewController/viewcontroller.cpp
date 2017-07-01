@@ -14,7 +14,9 @@
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
 #include "../../Utils/filehandler.h"
+#include "../../Utils/IdlParser/idlparser.h"
 
+#include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
@@ -34,15 +36,16 @@
 #define XMI_FILE_EXT "UML XMI Documents (*.xml)"
 #define XMI_FILE_SUFFIX ".xml"
 
+#define IDL_FILE_EXT "IDL Documents (*.idl)"
+#define IDL_FILE_SUFFIX ".idl"
+
+
 ViewController::ViewController() : QObject(){
-    qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
+    //qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
     controller = 0;
 
     codeViewer = 0;
 
-    newProjectUsed = false;
-    _modelReady = false;
-    _controllerReady = true;
 
     rootItem = new ViewItem(this);
 
@@ -51,6 +54,8 @@ ViewController::ViewController() : QObject(){
 
     //Initialize Settings
     SettingsController::initializeSettings();
+
+    NotificationManager::construct_singleton(this);
 
     //notificationManager = new NotificationManager(this, this);
     selectionController = new SelectionController(this);
@@ -69,15 +74,29 @@ ViewController::ViewController() : QObject(){
 void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::NodeConstructed, this, &ViewController::model_NodeConstructed);
     connect(controller, &ModelController::EdgeConstructed, this, &ViewController::model_EdgeConstructed);
-    connect(controller, &ModelController::entityDestructed, this, &ViewController::controller_entityDestructed);
-    connect(this, &ViewController::vc_setupModel, controller, &ModelController::setupController);
-    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setControllerReady);
+    connect(controller, &ModelController::EntityDestructed, this, &ViewController::controller_entityDestructed);
     
-    connect(controller, &ModelController::dataChanged, this, &ViewController::controller_dataChanged);
-    connect(controller, &ModelController::dataRemoved, this, &ViewController::controller_dataRemoved);
+    connect(controller, &ModelController::ModelReady, this, &ViewController::ModelControllerReady);
+    connect(controller, &ModelController::DataChanged, this, &ViewController::controller_dataChanged);
+    connect(controller, &ModelController::DataRemoved, this, &ViewController::controller_dataRemoved);
+    connect(controller, &ModelController::ProjectModified, this, &ViewController::mc_projectModified);
+    connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
+
+    
+    connect(controller, &ModelController::ActionFinished, this, &ViewController::vc_ActionFinished);
+    connect(controller, &ModelController::Notification, this, &ViewController::modelNotification);
+
+    connect(controller, &ModelController::SetClipboardData, this, &ViewController::setClipboardData);
+    connect(controller, &ModelController::UndoRedoUpdated, this, &ViewController::mc_undoRedoUpdated);
+    connect(controller, &ModelController::ShowProgress, this, &ViewController::mc_showProgress);
+    connect(controller, &ModelController::ProgressChanged, this, &ViewController::mc_progressChanged);
+    connect(controller, &ModelController::ModelReady, this, &ViewController::vc_ProjectLoaded);
+
+
+    connect(this, &ViewController::vc_SetupModelController, controller, &ModelController::SetupController);
     connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
-    connect(this, &ViewController::vc_openProject, controller, &ModelController::openProject);
-    connect(controller, &ModelController::controller_OpenFinished, this, &ViewController::projectOpened);
+   
+
     connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
@@ -95,24 +114,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_paste, controller, &ModelController::paste);
     connect(this, &ViewController::vc_replicateEntities, controller, &ModelController::replicate);
     connect(this, &ViewController::vc_deleteEntities, controller, &ModelController::remove);
-    connect(controller, &ModelController::projectModified, this, &ViewController::mc_projectModified);
-    connect(controller, &ModelController::controller_ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
-    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::setModelReady);
-    
-    connect(controller, &ModelController::controller_SetClipboardBuffer, this, &ViewController::setClipboardData);
-    connect(controller, &ModelController::controller_ActionFinished, this, &ViewController::actionFinished);
-    connect(controller, &ModelController::undoRedoChanged, this, &ViewController::mc_undoRedoUpdated);
-    connect(controller, &ModelController::showProgress, this, &ViewController::mc_showProgress);
-    connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
-    connect(controller, &ModelController::controller_AskQuestion, this, &ViewController::askQuestion);
-    connect(this, &ViewController::vc_answerQuestion, controller, &ModelController::gotQuestionAnswer);
-    connect(controller, &ModelController::progressChanged, this, &ViewController::mc_progressChanged);
-    connect(this, &ViewController::vc_exportSnippet, controller, &ModelController::exportSnippet);
-    connect(controller, &ModelController::controller_ExportedSnippet, this, &ViewController::gotExportedSnippet);
-    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
-    connect(this, &ViewController::vc_importSnippet, controller, &ModelController::importSnippet);
-    //Do this to reste dock
-    connect(controller, &ModelController::controller_IsModelReady, this, &ViewController::vc_ProjectLoaded);
+   
     this->setController(controller);
 }
 
@@ -270,7 +272,7 @@ QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
-        kinds = controller->getAdoptableNodeKinds2(ID);
+        kinds = controller->getAdoptableNodeKinds(ID);
     }
     return kinds;
 }
@@ -424,11 +426,6 @@ ViewItem *ViewController::getModel()
     return getViewItem(ID);
 }
 
-bool ViewController::isModelReady()
-{
-    return _modelReady;
-}
-
 
 void ViewController::requestSearchSuggestions()
 {
@@ -440,40 +437,6 @@ void ViewController::setController(ModelController *c)
     controller = c;
 }
 
-void ViewController::projectOpened(bool success)
-{
-    Q_UNUSED(success)
-    welcomeActionFinished();
-}
-
-void ViewController::gotExportedSnippet(QString snippetData)
-{
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-
-        if(item && item->getParentItem()){
-            QString itemKind = item->getParentItem()->getData("kind").toString();
-
-            QStringList files = FileHandler::selectFiles("Export " + itemKind + ".snippet", QFileDialog::AnyFile,true,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-            if(files.size() == 1){
-                QString snippetFilePath = files.first();
-                FileHandler::writeTextFile(snippetFilePath, snippetData);
-            }
-        }
-    }
-}
-
-void ViewController::askQuestion(QString title, QString message, int ID)
-{
-    if(ID != -1){
-        emit centerOnID(ID);
-    }
-
-    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No, WindowManager::manager()->getMainWindow());
-    msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "circleQuestion", QSize(50,50), Theme::theme()->getMenuIconColor()));
-    int reply = msgBox.exec();
-    emit vc_answerQuestion(reply == QMessageBox::Yes);
-}
 
 void ViewController::modelValidated(QString reportPath)
 {
@@ -519,16 +482,16 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
 {
     emit vc_JenkinsReady(success);
     QString message = success ? "Settings validated successfully" : errorString;
-    NOTIFICATION_SEVERITY severity = success ? NS_INFO : NS_ERROR;
-    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NT_APPLICATION, NC_JENKINS);
+    NOTIFICATION_SEVERITY severity = success ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
+    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     emit vc_JavaReady(java);
-    NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
+    NOTIFICATION_SEVERITY severity = java ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
     QString message = java ? "Found java: " + javaVersion: "Cannot find java";
-    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NT_APPLICATION);
+    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NOTIFICATION_TYPE::APPLICATION);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -545,14 +508,16 @@ void ViewController::getCodeForComponent()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item && item->isNode()){
-        NodeViewItem* node = (NodeViewItem*) item;
-
-        if(node->getNodeKind() == NODE_KIND::COMPONENT_IMPL || node->getNodeKind() == NODE_KIND::COMPONENT || node->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE){
-            QString componentName = node->getData("label").toString();
+        auto def = (NodeViewItem*)item;
+        if(def->getNodeKind() == NODE_KIND::COMPONENT_INSTANCE || def->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
+            int id = controller->getDefinition(item->getID());
+            def = getNodeViewItem(id);
+        }
+        if(def){
+            QString componentName = def->getData("label").toString();
             QString filePath = getTempFileForModel();
             if(!componentName.isEmpty() && !filePath.isEmpty()){
                 execution_manager->GenerateCodeForComponent(filePath, componentName);
-                //emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -581,11 +546,6 @@ void ViewController::launchLocalDeployment()
     }
 }
 
-void ViewController::actionFinished(bool, QString)
-{
-    setControllerReady(true);
-    emit vc_actionFinished();
-}
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
@@ -631,12 +591,6 @@ void ViewController::setupEntityKindItems()
     }
 }
 
-void ViewController::welcomeActionFinished()
-{
-     fitAllViews();
-     emit vc_showWelcomeScreen(false);
-     newProjectUsed = false;
-}
 
 void ViewController::_showGitHubPage(QString relURL)
 {
@@ -733,33 +687,6 @@ bool ViewController::canRedo()
     return false;
 }
 
-bool ViewController::canExportSnippet()
-{
-    if(controller){
-        return controller->canExportSnippet(selectionController->getSelectionIDs());
-    }
-    return false;
-}
-
-bool ViewController::canImportSnippet()
-{
-    if(controller && selectionController){
-        return controller->canImportSnippet(selectionController->getSelectionIDs());
-    }
-    return false;
-}
-
-
-QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
-{
-    QVector<ViewItem *> items;
-    if(controller){
-        foreach(int ID, controller->getOrderedSelectionIDs(selection)){
-            items.append(getViewItem(ID));
-        }
-    }
-    return items;
-}
 
 bool ViewController::destructViewItem(ViewItem *item)
 {
@@ -904,22 +831,41 @@ NodeView *ViewController::getActiveNodeView()
     return 0;
 }
 
-void ViewController::setModelReady(bool okay)
-{
-    if(okay != _modelReady){
-        _modelReady = okay;
-
-        emit mc_modelReady(okay);
-        if(_modelReady && newProjectUsed){
-            welcomeActionFinished();
-        }
+void ViewController::modelNotification(MODEL_SEVERITY severity, QString description, int ID){
+    NOTIFICATION_SEVERITY ns = NOTIFICATION_SEVERITY::INFO;
+    switch(severity){
+        case MODEL_SEVERITY::ERROR:
+            ns = NOTIFICATION_SEVERITY::ERROR;
+            break;
+        case MODEL_SEVERITY::WARNING:
+            ns = NOTIFICATION_SEVERITY::WARNING;
+            break;
+        case MODEL_SEVERITY::INFO:
+            ns = NOTIFICATION_SEVERITY::INFO;
+            break;
+        default:
+            break;
     }
+
+    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
 }
 
 void ViewController::setControllerReady(bool ready)
 {
-    _controllerReady = ready;
-    emit vc_controllerReady(ready);
+    if(_controllerReady != ready){
+        _controllerReady = ready;
+        emit vc_controllerReady(ready);
+        emit vc_ActionFinished();
+    }
+}
+
+void ViewController::ModelControllerReady(bool ready)
+{
+    setControllerReady(ready);
+    if(ready){
+        emit vc_showWelcomeScreen(false);
+        fitAllViews();
+    }
 }
 
 void ViewController::openURL(QString url)
@@ -981,42 +927,35 @@ void ViewController::constructDDSQOSProfile()
 }
 
 
-void ViewController::_teardownProject()
-{
-    if(isControllerReady()){
-        if (controller) {
-            setModelReady(false);
-            setControllerReady(false);
-            emit selectionController->clearSelection();
+void ViewController::TeardownController()
+{   
+    if (controller) {
+        setControllerReady(false);
+        emit selectionController->clearSelection();
 
-            emit vc_actionFinished();
-            emit vc_projectPathChanged("");
-            emit mc_projectModified(false);
-            destructViewItem(rootItem);
-            nodeKindLookups.clear();
-            edgeKindLookups.clear();
+        emit vc_projectPathChanged("");
+        emit mc_projectModified(false);
+        destructViewItem(rootItem);
+        nodeKindLookups.clear();
+        edgeKindLookups.clear();
 
-            //This will destruct!
-            disconnect(controller);
-            controller->disconnect(this);
-            emit controller->initiateTeardown();
-
-            controller = 0;
-            setControllerReady(true);
-        }
-
+        //This will destruct!
+        disconnect(controller);
+        controller->disconnect(this);
+        emit controller->InitiateTeardown();
+        controller = 0;
         // reset the notification manager
-        NotificationManager::manager()->resetManager();
+        NotificationManager::manager()->clearModelNotifications();
     }
 }
 
-bool ViewController::_newProject()
+
+bool ViewController::_newProject(QString file_path)
 {
     if(_closeProject()){
         if(!controller){
-
             initializeController();
-            emit vc_setupModel();
+            emit vc_SetupModelController(file_path);
             return true;
         }
     }
@@ -1055,64 +994,41 @@ bool ViewController::_saveAsProject()
     return false;
 }
 
-bool ViewController::_closeProject(bool showWelcome)
+bool ViewController::_closeProject(bool show_welcome)
 {
-    if(isControllerReady()){
-        if(controller && controller->isProjectSaved()){
-            QString filePath = controller->getProjectPath();
+    if(controller && controller->isProjectSaved()){
+        auto file_path = controller->getProjectPath();
 
-            if(filePath == ""){
-                filePath = "Untitled Project";
-            }
+        if(file_path == ""){
+            file_path = "Untitled Project";
+        }
 
-            //Ask User to confirm save?
-            QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                               "Do you want to save the changes made to '" + filePath + "' ?",
-                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
-                               WindowManager::manager()->getMainWindow());
-            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
-            msgBox.setButtonText(QMessageBox::Yes, "Save");
-            msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+        //Ask User to confirm save?
+        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                            "Do you want to save the changes made to '" + file_path + "'?",
+                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                            WindowManager::manager()->getMainWindow());
+        msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
+        msgBox.setButtonText(QMessageBox::Yes, "Save");
+        msgBox.setButtonText(QMessageBox::No, "Ignore");
 
-            int buttonPressed = msgBox.exec();
+        int buttonPressed = msgBox.exec();
 
-            if(buttonPressed & QMessageBox::Yes){
-                if(!_saveProject()){
-                    // if failed to save, don't exit!
-                    return false;
-                }
-            }else if(buttonPressed & QMessageBox::No){
-                //Do Nothing, and exit.
-            }else if(buttonPressed & QMessageBox::Cancel){
+        if(buttonPressed & QMessageBox::Yes){
+            if(!_saveProject()){
+                // if failed to save, don't exit!
                 return false;
             }
-        }
-        if(showWelcome){
-            emit vc_showWelcomeScreen(true);
-        }
-        _teardownProject();
-        return true;
-    }else{
-        return false;
-    }
-}
-
-bool ViewController::_openProject(QString filePath)
-{
-    if(_newProject()){
-        if(filePath.isEmpty()){
-            filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
-        }
-        if(!filePath.isEmpty()){
-            QString fileData = FileHandler::readTextFile(filePath);
-            emit vc_openProject(filePath, fileData);
-            emit vc_addProjectToRecentProjects(filePath);
-            return true;
+        }else if(buttonPressed & QMessageBox::Cancel){
+            return false;
         }
     }
-    return false;
+    if(show_welcome){
+        emit vc_showWelcomeScreen(true);
+    }
+    TeardownController();
+    return true;
 }
-
 QList<ViewItem *> ViewController::getItemsOfKind(EDGE_KIND kind)
 {
     QList<ViewItem*> items;
@@ -1210,6 +1126,12 @@ void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, i
         emit vc_viewItemConstructed(edge);
     }
 }
+
+void ViewController::highlight(QList<int> ids){
+    for(auto id : ids){
+        emit vc_highlightItem(id, true);
+    }
+}
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
@@ -1240,13 +1162,10 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     emit vc_viewItemConstructed(item);
 }
 
-void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND eKind, QString kind)
+void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
-    Q_UNUSED(eKind);
-    Q_UNUSED(kind);
-
-    ViewItem* viewItem = getViewItem(ID);
-    destructViewItem(viewItem);
+    auto view_item = getViewItem(ID);
+    destructViewItem(view_item);
 }
 
 void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
@@ -1293,24 +1212,23 @@ void ViewController::setClipboardData(QString data)
 
 void ViewController::newProject()
 {
-    newProjectUsed = true;
     _newProject();
 }
 
-void ViewController::openProject()
+bool ViewController::OpenProject()
 {
-    _openProject();
+    auto file_path = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);    
+    return OpenExistingProject(file_path);
 }
 
-void ViewController::openExistingProject(QString file)
+bool ViewController::OpenExistingProject(QString file_path)
 {
-    //Check for file first.
-    if(FileHandler::isFileReadable(file)){
-        _openProject(file);
-    }else{
-        qCritical() << file << "Not openable";
+    if(file_path != ""){
+        return _newProject(file_path);
     }
+    return false;
 }
+
 
 void ViewController::importProjects()
 {
@@ -1340,32 +1258,23 @@ void ViewController::importXMIProject()
     }
 }
 
-void ViewController::importSnippet()
+void ViewController::importIdlFile()
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item && canImportSnippet()){
-        QString itemKind = item->getData("kind").toString();
-        QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-        if(files.size() == 1){
-            QString filePath = files.at(0);
-            QString fileData = FileHandler::readTextFile(filePath);
-            emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
-        }
+    QStringList files = FileHandler::selectFiles("Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
+    if(files.length() == 1){
+        QString xmiPath = files.first();
+
+        QtConcurrent::run([this, xmiPath]{
+            QString data = QString::fromStdString(IdlParser::IdlParser::ParseIdl(xmiPath.toStdString(), true));
+            emit vc_importProjects(QStringList(data));
+        });
     }
 }
 
-void ViewController::exportSnippet()
-{
-    if(canExportSnippet() && selectionController){
-        emit vc_exportSnippet(selectionController->getSelectionIDs());
-    }
-
-}
 
 void ViewController::closeProject()
 {
     _closeProject(true);
-    emit vc_projectClosed();
 }
 
 void ViewController::closeMEDEA()
@@ -1473,13 +1382,6 @@ void ViewController::selectAndCenterConnectedEntities()
     }
 }
 
-void ViewController::setSelectionReadOnly(bool locked)
-{
-    if(controller && selectionController){
-        emit vc_triggerAction("Set Selection Locked");
-        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
-    }
-}
 
 void ViewController::centerOnID(int ID)
 {
@@ -1623,7 +1525,6 @@ void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-        setModelReady(false);
         controller = new ModelController();
         connectModelController(controller);
     }
@@ -1654,4 +1555,3 @@ ViewItem *ViewController::getViewItem(int ID)
     }
     return 0;
 }
-

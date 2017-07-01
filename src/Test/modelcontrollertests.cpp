@@ -9,8 +9,8 @@ void ModelControllerTests::test_controller()
     ModelController* mc = new ModelController();
 
     //Blocked queues will halt this thread's event loop until the target function is complete.
-    connect(this, &ModelControllerTests::setup_controller, mc, &ModelController::setupController, Qt::BlockingQueuedConnection);
-    connect(this, &ModelControllerTests::teardown_controller, mc, &ModelController::initiateTeardown, Qt::BlockingQueuedConnection);
+    connect(this, &ModelControllerTests::setup_controller, mc, &ModelController::SetupController, Qt::BlockingQueuedConnection);
+    connect(this, &ModelControllerTests::teardown_controller, mc, &ModelController::InitiateTeardown, Qt::BlockingQueuedConnection);
     
     //Setup the Controller (Will load work definitions and setup Base Model)
     emit setup_controller();
@@ -30,18 +30,18 @@ void ModelControllerTests::load_helloworld()
     
 
     ModelController* mc = new ModelController();
-    connect(this, &ModelControllerTests::setup_controller, mc, &ModelController::setupController, Qt::BlockingQueuedConnection);
-    connect(this, &ModelControllerTests::teardown_controller, mc, &ModelController::initiateTeardown, Qt::BlockingQueuedConnection);
-    connect(this, &ModelControllerTests::open_project, mc, &ModelController::openProject);
+    connect(this, &ModelControllerTests::setup_controller, mc, &ModelController::SetupController, Qt::BlockingQueuedConnection);
+    connect(this, &ModelControllerTests::teardown_controller, mc, &ModelController::InitiateTeardown, Qt::BlockingQueuedConnection);
+    
 
     QString file_name = ":/Models/HelloWorld.graphml";
     QString file_data = Utils::readTextFile(file_name);
     
     //Connect the finish signal to set action_success, action_result and terminate the wait loop
-    connect(mc, &ModelController::controller_ActionFinished, this, [&action_success, &action_result, &wait_loop](bool success, QString result){action_success = success;action_result = result;wait_loop.quit();});
+    connect(mc, &ModelController::ActionFinished, &wait_loop, &QEventLoop::quit);
 
     //Setup Controller
-    emit setup_controller();
+    emit setup_controller(file_name);
     
     //Load Model
     emit open_project(file_name, file_data);
@@ -52,5 +52,6 @@ void ModelControllerTests::load_helloworld()
     QCOMPARE(action_success, true);
     
     //Setup Controller
-    emit teardown_controller();
+    //emit teardown_controller();
+    delete mc;
 }

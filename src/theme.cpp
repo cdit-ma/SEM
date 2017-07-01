@@ -12,35 +12,23 @@ Theme* Theme::themeSingleton = 0;
 Theme::Theme() : QObject(0)
   //,lock(QReadWriteLock::Recursive)
 {
-    terminating = false;
-    preloadedImages = false;
-    themeChanged = false;
-    slash = "/";
-    underscore = "_";
-
-    //Cadet Blue
-    deployColor = QColor(95, 158, 160);
-    setDefaultImageTintColor(QColor(70,70,70));
-
+    //Set up the default colors
+    iconColor = QColor(70,70,70);
     selectedItemBorderColor = Qt::blue;
 
     //Get the original settings from the settings.
-
     setupToggledIcons();
     updateValid();
 
 
-    connect(this, &Theme::_preload, this, &Theme::preloadFinished, Qt::QueuedConnection);
-    connect(this, &Theme::preloadFinished, this, &Theme::clearIconMap, Qt::QueuedConnection);
-
-
+    //Preload images on a background thread.
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
+    //preloadImages();
 }
 
 Theme::~Theme()
 {
-    //Terminate!
-    terminating = true;
+    //Wait for the preloading to finish
     preloadThread.waitForFinished();
 }
 
@@ -109,16 +97,6 @@ QString Theme::getPressedColorHex()
 {
     QColor color = getPressedColor();
     return Theme::QColorToHex(color);
-}
-
-QColor Theme::getDeployColor()
-{
-    return deployColor;
-}
-
-QString Theme::getDeployColorHex()
-{
-    return Theme::QColorToHex(getDeployColor());
 }
 
 QColor Theme::getSelectedItemBorderColor()
@@ -326,25 +304,21 @@ void Theme::applyTheme()
     emit theme_Changed();
 }
 
-void Theme::forceIconReload()
-{
-    emit refresh_Icons();
-}
-
-bool Theme::isValid()
+bool Theme::isValid() const
 {
     return valid;
 }
 
-bool Theme::gotImage(IconPair icon) const
+bool Theme::gotImage(IconPair icon)
 {
     return gotImage(icon.first, icon.second);
 }
 
-bool Theme::gotImage(QString path, QString alias) const
+bool Theme::gotImage(QString path, QString alias)
 {
-    QString resourceName = getResourceName(path, alias);
-    return imageExistsHash.contains(resourceName);
+    auto resource_name = getResourceName(path, alias);
+    QReadLocker lock(&lock_);
+    return imageLookup.contains(resource_name);
 }
 
 QString Theme::getBorderWidth()
@@ -490,11 +464,11 @@ QString Theme::getPixmapResourceName(QString resource_name, QSize size, QColor t
 
     if(size.isValid() && size != original_size){
         size = roundQSize(size);
-        resource_name = resource_name % underscore % QString::number(size.width()) % underscore % QString::number(size.height());
+        resource_name = resource_name % '_' % QString::number(size.width()) % '_' % QString::number(size.height());
     }
 
     if(tintColor.isValid()){
-        resource_name = resource_name % underscore % QColorToHex(tintColor);
+        resource_name = resource_name % '_' % QColorToHex(tintColor);
     }
     return resource_name;
 }
@@ -1064,40 +1038,31 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
 }
 
 void Theme::preloadImages()
-{
-    if(!preloadedImages){
-        preloadedImages = true;
+{   
+    auto time_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    int load_count = 0;
 
-        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-        int load_count = 0;
-
-        //Recurse through all images!
-        QDirIterator it(":/Images/", QDirIterator::Subdirectories);
-        while (it.hasNext() && !terminating){
-            it.next();
-            if(it.fileInfo().isFile()){
-                //Trim the :/ from the path1
-                QString path = it.filePath().mid(2);
-
-
-                if(getImage(path).isNull()){
-                    qCritical() << "Image: " << path << " Is an null image";
-                }else{
-                    load_count ++;
-                }
+    //Recurse through all files in the image alias.
+    QDirIterator it(":/Images/", QDirIterator::Subdirectories);
+    while (it.hasNext()){
+        it.next();
+        if(it.fileInfo().isFile()){
+            //Trim the :/ from the path1
+            auto file_path = it.filePath().mid(2);
+            
+            //load the image
+            if(getImage(file_path).isNull()){
+                qCritical() << "Image: " << file_path << " Is an null image";
+            }else{
+                load_count ++;
             }
         }
-
-        qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-        if(!terminating){
-            qCritical() << "Preloaded #" << load_count << " Images in: " <<  timeFinish - timeStart << "MS";
-            emit _preload();
-        }
-
-
     }
+
+    auto time_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Preloaded #" << load_count << " Images in: " <<  time_finish - time_start << "MS";
+    clearIconMap();
+    emit theme_Changed();
 }
 
 void Theme::settingChanged(SETTING_KEY setting, QVariant value)
@@ -1195,68 +1160,62 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
 
 void Theme::clearIconMap()
 {
-    if(themeChanged && valid){
-        iconLookup.clear();
-        emit refresh_Icons();
-    }
+    QWriteLocker lock(&lock_);
+    iconLookup.clear();
 }
 
-void Theme::calculateImageColor(QString resourceName)
+QColor Theme::calculateImageColor(QImage image)
 {
-    if(imageLookup.contains(resourceName) && !pixmapMainColorLookup.contains(resourceName)){
-        QImage image = imageLookup[resourceName];
-        if(!image.isNull()){
-            int size = 32;
-            image = image.scaled(size, size);
+    QColor c;
+    if(!image.isNull()){
+        int size = 32;
+        image = image.scaled(size, size);
 
-            QHash<QRgb, int> colorCount;
-            int max = 0;
-            QRgb frequentColor;
+        QHash<QRgb, int> colorCount;
+        int max = 0;
+        QRgb frequentColor = QColor(Qt::black).rgb();
 
-            int f = 25;
+        int f = 25;
 
-            for(int i =0; i < size * size; i++){
-                int x = i % size;
-                int y = i / size;
-                QRgb pixel = image.pixel(x,y);
+        for(int i = 0; i < size * size; i++){
+            int x = i % size;
+            int y = i / size;
+            QRgb pixel = image.pixel(x,y);
 
-                int r = qRed(pixel);
-                int g = qGreen(pixel);
-                int b = qBlue(pixel);
+            int r = qRed(pixel);
+            int g = qGreen(pixel);
+            int b = qBlue(pixel);
 
-                //Ignore black
-                if(r < f && g < f && b < f){
-                    continue;
-                }
-
-                if(colorCount.contains(pixel)){
-                    colorCount[pixel] ++;
-                }else{
-                    colorCount[pixel] = 1;
-                }
-
-                int count = colorCount[pixel];
-                if(count > max){
-                    frequentColor = pixel;
-                    max = count;
-                }
+            //Ignore black
+            if(r < f && g < f && b < f){
+                continue;
             }
-            QColor c(frequentColor);
-            if(colorCount.isEmpty()){
-                c = iconColor;
+
+            if(colorCount.contains(pixel)){
+                colorCount[pixel] ++;
+            }else{
+                colorCount[pixel] = 1;
             }
-            pixmapMainColorLookup[resourceName] = c;
-        }else{
-            pixmapMainColorLookup[resourceName] = QColor(0,0,0,0);
+
+            int count = colorCount[pixel];
+            if(count > max){
+                frequentColor = pixel;
+                max = count;
+            }
+        }
+        c = QColor(frequentColor);
+        if(colorCount.isEmpty()){
+            c = iconColor;
         }
     }
+    return c;
 }
 
 QString Theme::getResourceName(QString prefix, QString alias) const
 {
     //Uncomment for bounding rects
     //return "Images/Icons/square";
-    return "Images/" % prefix % slash % alias;
+    return "Images/" % prefix % '/' % alias;
 }
 
 QString Theme::getResourceName(IconPair icon) const
@@ -1369,56 +1328,41 @@ void Theme::updateValid()
 
 QImage Theme::getImage(QString resource_name)
 {
-    QImage image;
-    lock.lockForRead();
-    if(imageLookup.contains(resource_name)){
-        image = imageLookup[resource_name];
-        lock.unlock();
-    }else{
-        lock.unlock();
-        //Lock the Mutex
-        lock.lockForWrite();
-        //Load the original Image
-        image.load(":/" % resource_name);
-
-        //Store the original Image
-        imageLookup[resource_name] = image;
-        //Store the Size
-        pixmapSizeLookup[resource_name] = image.size();
-        calculateImageColor(resource_name);
-        lock.unlock();
+    {
+        //Try load the image
+        QReadLocker lock(&lock_);
+        if(imageLookup.contains(resource_name)){
+            return imageLookup[resource_name];
+        }
     }
-    return image;
-}
+    //Else load the image
+    QImage image(":/" % resource_name);
+    //qCritical() << resource_name;
+    auto color = calculateImageColor(image);
 
-QPixmap Theme::setPixmap(QString resource_name, QPixmap pixmap)
-{
-    //Lock the Mutex
-    //lock.lockForWrite();
-    pixmapLookup.insert(resource_name, pixmap);
-    //lock.unlock();
-    return pixmap;
+    QWriteLocker lock(&lock_);
+    //Gain lock to write to the lookups
+    imageLookup[resource_name] = image;
+    pixmapSizeLookup[resource_name] = image.size();
+    pixmapMainColorLookup[resource_name] = color;
+    return image;
 }
 
 QColor Theme::getTintColor(QString resource_name)
 {
-    //lock.lockForRead();
-    QColor tint_color = pixmapTintLookup.value(resource_name, iconColor);
-    //lock.unlock();
-    return tint_color;
+    QReadLocker lock(&lock_);
+    return pixmapTintLookup.value(resource_name, iconColor);
 }
 
 QSize Theme::getOriginalSize(QString resource_name)
 {
-    //lock.lockForRead();
-    QSize size = pixmapSizeLookup.value(resource_name);
-    //lock.unlock();
-    return size;
+    QReadLocker lock(&lock_);
+    return pixmapSizeLookup.value(resource_name);
 }
 
 IconPair Theme::splitImagePath(QString path)
 {
-    int midSlash = path.lastIndexOf(slash);
+    int midSlash = path.lastIndexOf('/');
 
     IconPair pair;
     if(midSlash > 0){

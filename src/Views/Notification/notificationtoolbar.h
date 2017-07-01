@@ -4,6 +4,7 @@
 #include "../../enumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../Controllers/NotificationManager/notificationEnumerations.h"
 
 #include <QToolBar>
 #include <QLabel>
@@ -14,7 +15,7 @@ class NotificationToolbar : public QToolBar
 {
     Q_OBJECT
 public:
-    explicit NotificationToolbar(ViewController* vc, QWidget *parent = 0);
+    explicit NotificationToolbar(QWidget *parent = 0);
 
 signals:
     void toggleDialog();
@@ -33,6 +34,7 @@ public slots:
 
 private:
     void setupLayout();
+    void initialiseToolbar();
     void updateButtonIcon();
 
     QAction* toggleNotificationsDialog;

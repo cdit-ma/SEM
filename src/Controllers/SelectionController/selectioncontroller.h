@@ -18,6 +18,7 @@ public:
 
     QVector<ViewItem*> getSelection();
     QList<int> getSelectionIDs();
+    int getActiveSelectedID();
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
@@ -35,7 +36,6 @@ private slots:
     void cycleActiveSelectionForward();
     void removeSelectionHandler();
 private:
-    QVector<ViewItem *> getOrderedSelection(QList<int> selection);
     void cycleActiveSelectedItem(bool forward);
     void setCurrentViewDockWidget(ViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);

@@ -16,7 +16,8 @@ int NotificationObject::_NotificationID  = 0;
  * @param severity
  * @param parent
  */
-NotificationObject::NotificationObject(QString title, QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE2 type, NOTIFICATION_CATEGORY category, QObject *parent)
+NotificationObject::NotificationObject(QString title, QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE type, NOTIFICATION_CATEGORY category, QObject *parent)
+    : QObject(parent)
 {
     _ID = ++_NotificationID;
     _entityID = entityID;
@@ -29,6 +30,64 @@ NotificationObject::NotificationObject(QString title, QString description, QStri
     _severity = severity;
     _iconPath = iconPath;
     _iconName = iconName;
+}
+
+
+/**
+ * @brief NotificationObject::~NotificationObject
+ */
+NotificationObject::~NotificationObject() {}
+
+
+/**
+ * @brief NotificationObject::setTitle
+ * @param title
+ */
+void NotificationObject::setTitle(QString title)
+{
+    if (!title.isEmpty()) {
+        _title = title;
+        emit titleChanged(title);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setDescription
+ * @param description
+ */
+void NotificationObject::setDescription(QString description)
+{
+    if (!description.isEmpty()) {
+        _description = description;
+        emit descriptionChanged(description);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setIconPath
+ * @param path
+ */
+void NotificationObject::setIconPath(QString path)
+{
+    if (!path.isEmpty()) {
+        _iconPath = path;
+        emit iconPathChanged(path);
+    }
+}
+
+
+/**
+ * @brief NotificationObject::setIconName
+ * @param name
+ */
+void NotificationObject::setIconName(QString name)
+{
+    if (!name.isEmpty()) {
+        _iconName = name;
+        emit iconNameChanged(name);
+    }
 }
 
 
@@ -96,7 +155,7 @@ QString NotificationObject::iconName()
  * @brief NotificationObject::type
  * @return
  */
-NOTIFICATION_TYPE2 NotificationObject::type()
+NOTIFICATION_TYPE NotificationObject::type()
 {
     return _type;
 }

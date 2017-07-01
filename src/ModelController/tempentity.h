@@ -2,118 +2,90 @@
 #define TEMPENTITY_H
 
 #include <QObject>
-
-
+#include <QVariant>
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
-#include "modelcontroller.h"
-
-class Data;
-
 
 class TempEntity
 {
 public:
-    TempEntity(GRAPHML_KIND entityKind, TempEntity* parent=0);
+    TempEntity(GRAPHML_KIND kind, TempEntity* parent = 0);
     ~TempEntity();
-    void setLineNumber(int lineNumber);
-
-    void setResetPosition();
-    bool shouldConstruct();
-    bool ignoreConstruct();
-    void setIgnoreConstruction(bool ignore=true);
-    bool isTop();
-
-    int getRetryCount();
-    void incrementRetryCount();
-    void resetIncrementCount();
-
-    void setSource(Node* src);
-    void setDestination(Node* dst);
-    Node* getSource();
-    Node* getDestination();
-
-    void setID(QString ID);
-    void setPrevID(int ID);
-    bool hasPrevID();
-    int getPrevID();
-    void setActualID(int ID);
-
-    void appendEdgeKind(EDGE_KIND edgeKind);
-    void removeEdgeKind(EDGE_KIND edgeKind);
-    EDGE_KIND getEdgeKind();
-    bool hasEdgeKind();
-
-    QVariant getData(QString key);
-
-    TempEntity* getParentEntity();
-    void setParentID(QString ID);
-    void setActualParentID(int ID);
-    QString getKind();
-
-    QString getParentID();
-    int getActualParentID();
-    bool gotActualID();
-    bool gotActualParentID();
-
-    ReadOnlyState getReadOnlyState();
-    bool gotReadOnlyState();
-
-
-
-    int getLineNumber();
-    void addData(Data* data);
-    QList<Data*> getData();
-    QList<Data*> takeDataList();
-    void clearData();
-
-    QString getOriginalID();
-    int getActualID();
 
     bool isNode();
     bool isEdge();
+    
+    void setLineNumber(int line_number);
+    int getLineNumber();
+    
+    TempEntity* getParent();
+
+    QString getKind();
+
+    void setIDStr(QString id_str);
+    QString getIDStr();
+    bool gotPreviousID();
+    int getPreviousID();
+
+    void setID(int ID);
+    int getID();
+    bool gotID();
+
+    QList<TempEntity*> getChildren();
+
+    void setSourceIDStr(QString id);
+    QString getSourceIDStr();
+    int getSourceIDInt();
+    int getTargetIDInt();
+    
+    void setTargetIDStr(QString id);
+    QString getTargetIDStr();
+
+    void setSourceID(int id);
+    int getSourceID();
+    
+    void setTargetID(int id);
+    int getTargetID();
 
 
-    void setSrcID(QString ID);
-    void setDstID(QString ID);
-    void setActualSrcID(int ID);
-    void setActualDstID(int ID);
-    QString getSrcID();
-    QString getDstID();
-
-    int getActualSrcID();
-    int getActualDstID();
-
-
+    
+    void appendEdgeKinds(QList<EDGE_KIND> edgeKinds);
+    void appendEdgeKind(EDGE_KIND edgeKind);
+    void removeEdgeKind(EDGE_KIND edgeKind);
+    EDGE_KIND getEdgeKind();
+    bool gotEdgeKind();
+    
+    QVariant getDataValue(QString key);
+    bool gotData(QString key_name);
+    void addData(QString key_name, QVariant value);
+    QList<QString> getKeys();
+    void removeData(QString key_name);
+    void clearData();
 private:
-    ReadOnlyState readOnlyState;
-    int lineNumber;
-    TempEntity* parent;
-    QString ID;
-    QString nodeKind;
+    void addChild(TempEntity* child);
 
-    int actualID;
-    int oldID;
-    int actualParentID;
-    QString parentID;
-    QString srcID;
-    QString dstID;
-    int actualSrcID;
-    int actualDstID;
+    TempEntity* parent = 0;
+    
 
-    Node* src;
-    Node* dst;
+    QHash<QString, QVariant> data;
+    QList<TempEntity*> children;
+    QList<EDGE_KIND> edge_kinds;
+    
+    int line_number = -1;
+    QString id_str;
+    QString kind_str;
 
-    QList<EDGE_KIND> edgeKinds;
+    int previous_id = -1;
+    int actual_id = -1;
 
-    int retryCount;
-    bool ignoreConstruction;
+    QString source_id_str;
+    QString target_id_str;
 
-    bool _resetPosition;
-    bool isReadOnly;
-    QList<Data*> dataList;
-    GRAPHML_KIND entityKind;
+    int source_id = -1;
+    int target_id = -1;
+
+    GRAPHML_KIND graphml_kind = GRAPHML_KIND::NONE;
 };
 
 #endif // TEMPENTITY_H

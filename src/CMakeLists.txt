@@ -18,7 +18,7 @@ set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION "2.1.1-RE")
+SET(VERSION "2.1.2-RE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
 
@@ -122,10 +122,16 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 SET(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.h
@@ -156,6 +162,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
+    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.h
@@ -187,7 +194,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/doublehash.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
@@ -204,6 +210,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
 )
 

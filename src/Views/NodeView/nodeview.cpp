@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QtMath>
+#include <QTimer>
 #include <QGraphicsItem>
 #include <QKeyEvent>
 #include <QDateTime>
@@ -12,6 +13,8 @@
 #include "SceneItems/Node/managementcomponentnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 
+#include "../../Controllers/WindowManager/windowmanager.h"
+#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"
@@ -22,16 +25,11 @@
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
     setupStateMachine();
+    
     QRectF sceneRect;
     sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
-
-    connectLineItem = 0;
-    //OPENGL
-    //setViewport(new QOpenGLWidget());
-    //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-
 
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -49,15 +47,9 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-
-    isPanning = false;
-    viewController = 0;
-    selectionHandler = 0;
-    containedAspect = VIEW_ASPECT::NONE;
-    containedNodeViewItem = 0;
-    isAspectView = false;
-
-    backgroundFont.setPixelSize(70);
+    //set the background font
+    background_font.setPixelSize(70);
+    setFont(background_font);
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
 
@@ -65,7 +57,9 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 
     themeChanged();
 
+    connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
 }
+
 
 NodeView::~NodeView()
 {
@@ -116,14 +110,21 @@ void NodeView::setViewController(ViewController *viewController)
 void NodeView::translate(QPointF point)
 {
     QGraphicsView::translate(point.x(), point.y());
-    forceViewportChange();
+    //forceViewportChange();
 }
-
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
-        QGraphicsView::scale(sx, sy);
-        forceViewportChange();
+        auto t = transform();
+        auto zoom = t.m11() * sx;
+
+        //Limit to zoom 25% between 400%
+        zoom = qMax(0.25, zoom);
+        zoom = qMin(zoom, 4.0);
+
+        //m11 and m22 are x/y scaling respectively
+        t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
+        setTransform(t);
     }
 }
 
@@ -173,7 +174,7 @@ ViewItem *NodeView::getContainedViewItem()
 
 QColor NodeView::getBackgroundColor()
 {
-    return backgroundColor;
+    return background_color;
 }
 
 
@@ -182,11 +183,6 @@ QRectF NodeView::getViewportRect()
     return viewportRect();
 }
 
-void NodeView::resetMinimap()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-    emit sceneRectChanged(currentSceneRect);
-}
 
 void NodeView::viewItem_Constructed(ViewItem *item)
 {
@@ -226,10 +222,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem *item, bool select
         if(e){
             e->setSelected(selected);
         }
-        if(item == containedNodeViewItem){
-            isBackgroundSelected = selected;
-            update();
-        }
     }
 }
 
@@ -249,20 +241,12 @@ void NodeView::selectAll()
     _selectAll();
 }
 
-void NodeView::itemsMoved()
-{
-    QRectF newSceneRect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
-    if(newSceneRect != currentSceneRect){
-        currentSceneRect = newSceneRect;
-        emit sceneRectChanged(currentSceneRect);
-    }
-}
 
 void NodeView::alignHorizontal()
 {
     emit triggerAction("Aligning Selection Horizontally");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -290,7 +274,7 @@ void NodeView::alignVertical()
 {
     emit triggerAction("Aligning Selection Vertically");
 
-    QList<EntityItem*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
     foreach(EntityItem* item, selection){
@@ -323,22 +307,12 @@ void NodeView::themeChanged()
 {
 
     if(isAspectView){
-        backgroundColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
+        background_color = Theme::theme()->getAspectBackgroundColor(containedAspect);
     }else{
-        backgroundColor = Theme::theme()->getAltBackgroundColor();
+        background_color = Theme::theme()->getAltBackgroundColor();
     }
-    backgroundFontColor = backgroundColor.darker(110);
-
-
-    QColor selectedColor = Qt::blue;
-
-    //Merge to blue
-    qreal ratio = 1;
-    selectedBackgroundFontColor.setRed((ratio * backgroundFontColor.red() + ((1 - ratio) * selectedColor.red())));
-    selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + ((1 - ratio) * selectedColor.green()) ));
-    selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + ((1 - ratio) * selectedColor.blue()) ));
-
-    update();
+    background_text_color = background_color.darker(110);
+    setBackgroundBrush(background_color);
 }
 
 void NodeView::node_ConnectMode(NodeItem *item)
@@ -385,6 +359,7 @@ void NodeView::fitToScreen()
 {
     centerOnItems(getTopLevelEntityItems());
 }
+
 
 void NodeView::centerSelection()
 {
@@ -444,11 +419,6 @@ QList<int> NodeView::getIDsInView()
     return guiItems.keys();
 }
 
-void NodeView::test()
-{
-
-    //scene->setSceneRect(QRectF());
-}
 
 void NodeView::item_Selected(ViewItem *item, bool append)
 {
@@ -486,7 +456,7 @@ void NodeView::item_MoveSelection(QPointF delta)
         if(selectionHandler){
 
             //Validate the move for the entire selection.
-            foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                 EntityItem* item = getEntityItem(viewItem);
                 if(item){
                     delta = item->validateMove(delta);
@@ -498,7 +468,7 @@ void NodeView::item_MoveSelection(QPointF delta)
             }
 
             if(!delta.isNull()){
-                foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+                foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                     EntityItem* item = getEntityItem(viewItem);
                     if(item){
                         //Move!
@@ -639,6 +609,8 @@ void NodeView::centerRect(QRectF rectScene)
         //Change the scale.
         scale(scaleRatio, scaleRatio);
         centerView(rectScene.center());
+    }else{
+        resetMatrix();
     }
 }
 
@@ -649,25 +621,60 @@ void NodeView::centerView(QPointF scenePos)
     viewportCenter_Scene = viewportRect().center();
 }
 
-void NodeView::forceViewportChange()
-{
-    emit viewportChanged(viewportRect(), transform().m11());
-}
 
 SelectionHandler *NodeView::getSelectionHandler()
 {
     return selectionHandler;
 }
 
+
+void NodeView::update_minimap(){
+    emit viewport_changed(viewportRect(), transform().m11());
+}
+
+void NodeView::paintEvent(QPaintEvent *event){
+    QGraphicsView::paintEvent(event);
+
+    auto new_transform = transform();
+    if(old_transform != new_transform){
+        old_transform = new_transform;
+        update_minimap();
+    }
+}
+
 void NodeView::viewItem_LabelChanged(QString label)
 {
-    backgroundText = label.toUpper();
-    update();
+    auto text = label.toUpper();
+    background_text.setText(text);
+
+
+    auto fm = QFontMetrics(background_font);
+    //Calculate the rectangle which contains the background test
+    background_text_rect = fm.boundingRect(text);
+}
+
+void NodeView::activeViewDockChanged(ViewDockWidget* dw){
+
+    bool active = dw && dw->widget() == this;
+    if(active != is_active){
+        is_active = active;
+        update();
+    }
+}
+
+QPointF NodeView::getTopLeftOfSelection(){
+    auto vi = selectionHandler->getActiveSelectedItem();
+    auto item = getEntityItem(vi);
+
+    QPointF top_left = viewportRect().topLeft();
+    if(item){
+        top_left = item->mapFromScene(top_left);
+    }
+    return top_left;
 }
 
 QRectF NodeView::viewportRect()
 {
-//    return mapToScene(rect()).boundingRect();
     return mapToScene(viewport()->rect()).boundingRect();
 }
 
@@ -729,13 +736,18 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::IDL:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
+            case NODE_KIND::SHARED_DATATYPES:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("version");
+                secondary_icon.second = "tag";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
             case NODE_KIND::COMPONENT:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT_IMPL);
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
@@ -745,6 +757,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                secondary_icon.second = "copyX";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->setSecondaryTextKey("replicate_count");
+                break;
             case NODE_KIND::BLACKBOX:
             case NODE_KIND::BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -765,7 +782,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
@@ -789,6 +806,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                //Don't show icon
+                //secondary_icon.second = "tiles";
+                //nodeItem->setSecondaryIconPath(secondary_icon);
+                //nodeItem->setSecondaryTextKey("namespace");
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -827,7 +848,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::MEMBER:
@@ -843,7 +864,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::ATTRIBUTE:
@@ -880,7 +901,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                secondary_icon.second = "bracketsAngled";
+                secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:
@@ -933,10 +954,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
-
-                    connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(itemsMoved()));
-                    connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
-
                 }
 
 
@@ -1024,19 +1041,6 @@ QList<EntityItem *> NodeView::getSelectedItems() const
         }
     }
     return items;
-}
-
-QList<EntityItem *> NodeView::getOrderedSelectedItems() const
-{
-    QList<EntityItem*> items;
-    foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
-        EntityItem* eItem = getEntityItem(item);
-        if(eItem){
-            items.append(eItem);
-        }
-    }
-    return items;
-
 }
 
 NodeItem *NodeView::getParentNodeItem(NodeViewItem *item)
@@ -1254,7 +1258,7 @@ void NodeView::state_Moving_Entered()
 {
     setCursor(Qt::SizeAllCursor);
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItem* item = getEntityItem(viewItem);
             if(item){
                 item->setMoveStarted();
@@ -1268,7 +1272,7 @@ void NodeView::state_Moving_Exited()
     if(selectionHandler){
         bool anyMoved = false;
 
-        QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
+        QVector<ViewItem*> selection = selectionHandler->getSelection();
 
         foreach(ViewItem* viewItem, selection){
             EntityItem* item = getEntityItem(viewItem);
@@ -1301,7 +1305,7 @@ void NodeView::state_Resizing_Entered()
             return;
         }
 
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
             if(item){
                 item->setResizeStarted();
@@ -1314,7 +1318,7 @@ void NodeView::state_Resizing_Entered()
 void NodeView::state_Resizing_Exited()
 {
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             NodeItem* item = getNodeItem(viewItem);
 
             if(item && item->setResizeFinished()){
@@ -1430,7 +1434,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 void NodeView::wheelEvent(QWheelEvent *event)
 {
     //Call Zoom
-    if(viewController->isModelReady()){
+    if(viewController->isControllerReady()){
         zoom(event->delta(), event->pos());
     }
 }
@@ -1463,6 +1467,14 @@ void NodeView::mousePressEvent(QMouseEvent *event)
                 clearSelection();
                 handledEvent = true;
             }
+        }
+    }
+
+    if(event->button() == Qt::MiddleButton){
+        EntityItem* item = getEntityAtPos(scenePos);
+        if(!item){
+            handledEvent = true;
+            fitToScreen();
         }
     }
 
@@ -1545,27 +1557,43 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void NodeView::drawBackground(QPainter *painter, const QRectF &)
-{
-    painter->resetTransform();
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(backgroundColor);
-    painter->drawRect(rect());
+void NodeView::drawForeground(QPainter *painter, const QRectF &r){
+    QGraphicsView::drawForeground(painter, r);
 
-    if(backgroundText != ""){
-        painter->setFont(backgroundFont);
-        if(isBackgroundSelected){
-            painter->setPen(selectedBackgroundFontColor);
-        }else{
-            painter->setPen(backgroundFontColor);
-        }
-        painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
+    if(!is_active){
+        //painter->setBrush(QColor(255, 255, 255, 50));
+        painter->setBrush(QColor(0, 0, 0, 60));
+        painter->setPen(Qt::NoPen);
+        painter->drawRect(r);
+    }
+}
+
+
+void NodeView::drawBackground(QPainter *painter, const QRectF & r)
+{
+    //Paint the background
+    QGraphicsView::drawBackground(painter, r);
+    {
+        painter->save();
+        //Reset the transform to ignore zoom/view
+        painter->resetTransform();
+        //Set the Pen and font
+        painter->setPen(background_text_color);
+        painter->setFont(background_font);
+
+        auto brect = rect();
+        //Calculate the top_left corner of the text rect.
+        QPointF point;
+        point.setX((brect.width() - background_text_rect.width()) / 2);
+        point.setY(brect.height() - background_text_rect.height());
+        painter->drawStaticText(point, background_text);
+        painter->restore();
     }
 }
 
 void NodeView::resizeEvent(QResizeEvent *event)
 {
     QGraphicsView::resizeEvent(event);
-    forceViewportChange();
+    update_minimap();
 }
 

@@ -3,20 +3,14 @@
 
 Data::Data(Key *key, QVariant value, bool protect):GraphML(GRAPHML_KIND::DATA)
 {
-    _parent = 0;
-    _parentDataID = -1;
-    _parentData = 0;
-    _key = key;
-    _isProtected = false;
-    _isDataLinked = false;
-    if(key){
-        _keyName = key->getName();
-        setProtected(key->isProtected());
-    }
+    this->key = key;
+    this->key_name = key->getName();
+    setProtected(key->isProtected());
 
     if(value.isValid()){
         setValue(value);
     }
+
     if(protect){
         setProtected(protect);
     }
@@ -25,88 +19,76 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GRAPHML_KIND::DATA)
 Data::~Data()
 {
     //Unset the parent
-    //setParent(0);
-
-    if(_parentData){
-        //Unset Parent Data.
-        _parentData->removeChildData(this);
+    if(parent){
+        parent->removeData(this);
     }
-    QList<Data*> childData = _childData.values();
-    while(!childData.isEmpty()){
-        Data* cData = childData.takeFirst();
-        if(cData){
-            cData->unsetParentData();
-        }
+
+    if(parent_data){
+        //Unset Parent Data.
+        parent_data->removeChildData(this);
+    }
+
+    for(auto data : child_data){
+        data->setParentData(0);
     }
 }
 
 Data *Data::clone(Data *data)
 {
-    Data* cloneData = 0;
-   if(data){
-       Key* key = data->getKey();
-       QVariant value = data->getValue();
-       cloneData = new Data(key);
-       cloneData->setValue(value);
-       cloneData->setProtected(data->isProtected());
-}
-   return cloneData;
-
+    if(data){
+        return new Data(data->getKey(), data->getValue(), data->isProtected());
+    }
+    return 0;
 }
 
-void Data::setParent(Entity *parent)
-{
-    if(_parent){
-        _parent->_dataRemoved(this);
+void Data::registerParent(Entity* parent){
+    //Unregister the current parent
+    if(this->parent){
+        this->parent->_dataRemoved(this);
     }
 
     if(parent){
-        setID();
+        setParent(parent);
+        //Call the parent datachanged
         parent->_dataChanged(this);
-        parent->_dataProtected(this);
-        
-    }
-    _parent = parent;
-    
-    if(_parent){
+        //Revalidate
         revalidateData();
     }
+};
+
+void Data::setParent(Entity *parent)
+{
+    this->parent = parent;
 }
 
 Entity *Data::getParent()
 {
-    return _parent;
+    return parent;
 }
 
 void Data::setProtected(bool protect)
 {
-    _isProtected = protect;
-    updateProtected();
+    is_protected = protect;
 }
 
-void Data::updateProtected(){
-    if(getParent()){
-        _parent->_dataProtected(this);
-    }
-}
 
 bool Data::isProtected() const
 {
-    return _isDataLinked || _isProtected;
+    return is_data_linked || is_protected;
 }
 
 bool Data::_setValue(QVariant value, bool validate){
     //Set using the 
     QVariant new_value = value;
     
-    if(validate && _key){
-        new_value = _key->validateDataChange(this, new_value);
+    if(validate && key){
+        new_value = key->validateDataChange(this, new_value);
     }
 
     //Check if the data changed
-    bool data_changed = new_value != _value;
-    _value = new_value;
-
+    bool data_changed = new_value != this->value;
+    this->value = new_value;
+    
     updateChildren(data_changed);
     return data_changed;
 }
@@ -121,74 +103,49 @@ bool Data::setValue(QVariant value)
     return _setValue(value, true);
 }
 
-void Data::setParentData(Data *parentData)
+void Data::setParentData(Data *data)
 {
-    unsetParentData();
+    this->parent_data = data;
+    bool valid_data = data != 0;
 
-    if(parentData){
-        parentData->addChildData(this);
-        _parentData = parentData;
-        _parentDataID = parentData->getID();
-        _isDataLinked = true;
-        updateProtected();
-    }
+    this->parent_data_id = valid_data ? data->getID() : -1;
+    this->is_data_linked = valid_data;
 }
 
 Data *Data::getParentData()
 {
-    return _parentData;
+    return parent_data;
 }
 
-void Data::unsetParentData()
-{
-    if(_parentData){
-        _parentData->removeChildData(this);
-        _parentData = 0;
-        _parentDataID = -1;
-        _isDataLinked = false;
-        //Update to use the parents protected status.
-        updateProtected();
-    }
-}
 
 void Data::clearValue()
 {
-    _value = QVariant();
+    setValue("");
     updateChildren();
 }
 
 bool Data::compare(const Data *data) const
 {
     if(data){
-        return _value == data->getValue();
+        return value == data->getValue();
     }
-    return false;
-}
-
-QList<Data *> Data::getChildData()
-{
-    return _childData.values();
-}
-
-bool Data::isVisualData()
-{
     return false;
 }
 
 
 Key *Data::getKey()
 {
-    return _key;
+    return key;
 }
 
 QString Data::getKeyName() const
 {
-    return _keyName;
+    return key_name;
 }
 
 QVariant Data::getValue() const
 {
-    return _value;
+    return value;
 }
 
 QString Data::toGraphML(int indentDepth)
@@ -196,7 +153,7 @@ QString Data::toGraphML(int indentDepth)
     QString tabSpace;
     tabSpace.fill('\t', indentDepth);
 
-    QString dataString = _value.toString();
+    QString dataString = value.toString();
 
     dataString.replace( "&", "&amp;" );
     dataString.replace( ">", "&gt;" );
@@ -220,27 +177,44 @@ QString Data::toString()
     return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
-void Data::addChildData(Data *childData)
-{
-    if(childData){
-        int ID = childData->getID();
-        if(!_childData.contains(ID)){
-            _childData[ID] = childData;
+bool Data::bindData(Data* data){
+    if(data && !data->getParentData()){
+        if(addChildData(data)){
+            data->setParentData(this);
+            return true;
         }
-        //Update.
-        childData->forceValue(getValue());
     }
+    return false;
+}
+bool Data::unbindData(Data* data){
+     if(data && data->getParentData() == this){
+         if(removeChildData(data)){
+            data->setParentData(0);
+            return true; 
+         }
+    }
+    return false;
+}
+bool Data::addChildData(Data *data)
+{
+    if(data && !child_data.contains(data)){
+        child_data.insert(data);
+        //Store the old value
+        data->store_value();
+        data->setValue(getValue());
+        return true;
+    }
+    return false;
 }
 
-void Data::removeChildData(Data *childData)
+bool Data::removeChildData(Data *data)
 {
-    if(childData){
-        int ID = childData->getID();
-        if(_childData.contains(ID)){
-            _childData.remove(ID);
-        }
-        childData->clearValue();
+    if(child_data.remove(data)){
+        //Store the old value
+        data->restore_value();
+        return true;
     }
+    return false;
 }
 
 void Data::revalidateData(){
@@ -249,7 +223,7 @@ void Data::revalidateData(){
 
 void Data::parentDataChanged(int ID, QString, QVariant data)
 {
-    if(ID == _parentDataID){
+    if(ID == parent_data_id){
         //If this signal is coming from our parent, update our value
         setValue(data);
     }
@@ -259,12 +233,23 @@ void Data::updateChildren(bool changed)
 {
     //Send a signal saying the data changed, regardless of whether it did.
     if(changed){
-        foreach(Data* data, _childData.values()){
-            data->forceValue(getValue());
+        for(auto data: child_data){
+            data->setValue(value);
         }
     }
-    if(getParent()){
-        _parent->_dataChanged(this);
+    if(parent){
+        parent->_dataChanged(this);
     }
-    emit dataChanged(getValue());
+
+    if(value.isValid()){
+        emit dataChanged(value);
+    }
+}
+
+void Data::store_value(){
+    old_value = value;
+}
+
+void Data::restore_value(){
+    setValue(old_value);
 }

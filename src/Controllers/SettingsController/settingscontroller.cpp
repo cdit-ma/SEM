@@ -157,12 +157,12 @@ void SettingsController::intializeSettings()
 
 
      //Jenkins - Server
-    createSetting(SK_JENKINS_URL, ST_STRING, "Jenkins", "Server", "URL");
-    createSetting(SK_JENKINS_JOBNAME, ST_STRING, "Jenkins", "Server", "Jobname");
+    createSetting(SK_JENKINC_URL, ST_STRING, "Jenkins", "Server", "URL");
+    createSetting(SK_JENKINC_JOBNAME, ST_STRING, "Jenkins", "Server", "Jobname");
 
     //Jenkins - User
-    createSetting(SK_JENKINS_USER, ST_STRING, "Jenkins", "User", "Username");
-    createSetting(SK_JENKINS_API, ST_STRING, "Jenkins", "User", "API Token");
+    createSetting(SK_JENKINC_USER, ST_STRING, "Jenkins", "User", "Username");
+    createSetting(SK_JENKINC_API, ST_STRING, "Jenkins", "User", "API Token");
 
     createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
@@ -244,7 +244,7 @@ void SettingsController::intializeSettings()
 
     _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
-    _getSetting(SK_JENKINS_JOBNAME)->setDefaultValue("deploy_model");
+    _getSetting(SK_JENKINC_JOBNAME)->setDefaultValue("deploy_model");
 
 }
 
