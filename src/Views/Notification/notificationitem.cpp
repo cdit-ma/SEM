@@ -19,12 +19,8 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     selected = true;
     setSelected(false);
 
-    iconPath = obj->iconPath();
-    iconName = obj->iconName();
-    if (iconPath.isEmpty() || iconName.isEmpty()) {
-        iconPath = "Icons";
-        iconName = getSeverityIcon(obj->severity());
-    }
+    _iconPath = obj->iconPath();
+    _iconName = obj->iconName();
 
     descriptionLabel = new QLabel(obj->description(), this);
     iconLabel = new QLabel(this);
@@ -38,6 +34,8 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
         filterVisibility[filter] = true;
     }
 
+    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
+    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
 }
@@ -75,7 +73,7 @@ int NotificationItem::getEntityID()
  */
 QString NotificationItem::getIconPath()
 {
-    return iconPath;
+    return _iconPath;
 }
 
 
@@ -85,7 +83,7 @@ QString NotificationItem::getIconPath()
  */
 QString NotificationItem::getIconName()
 {
-    return iconName;
+    return _iconName;
 }
 
 
@@ -140,9 +138,40 @@ void NotificationItem::themeChanged()
         backgroundColor = theme->getBackgroundColorHex();
     }
     updateStyleSheet();
+    iconChanged(getIconPath(), getIconName());
+}
 
-    QColor tintColor = getSeverityColor(getSeverity());
-    iconLabel->setPixmap(theme->getImage(getIconPath(), getIconName(), QSize(28,28), tintColor));
+
+/**
+ * @brief NotificationItem::descriptionChanged
+ * @param description
+ */
+void NotificationItem::descriptionChanged(QString description)
+{
+    if (description.isEmpty()) {
+        description = "...";
+    }
+    descriptionLabel->setText(description);
+}
+
+
+/**
+ * @brief NotificationItem::iconChanged
+ * @param iconPath
+ * @param iconName
+ */
+void NotificationItem::iconChanged(QString iconPath, QString iconName)
+{
+    _iconPath = iconPath;
+    _iconName = iconName;
+
+    if (_iconPath.isEmpty() || _iconName.isEmpty()) {
+        _iconPath = "Icons";
+        _iconName = getSeverityIcon(getSeverity());
+        qWarning() << "NotificationItem::iconChanged - Icon path and/or name is empty.";
+    }
+
+    iconLabel->setPixmap(Theme::theme()->getImage(iconPath, iconName, QSize(28,28), getSeverityColor(getSeverity())));
 }
 
 

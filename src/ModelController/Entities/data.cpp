@@ -210,12 +210,12 @@ bool Data::addChildData(Data *data)
 bool Data::removeChildData(Data *data)
 {
     if(child_data.remove(data)){
-        //Store the old value
         data->restore_value();
         return true;
     }
     return false;
 }
+
 
 void Data::revalidateData(){
     setValue(getValue());

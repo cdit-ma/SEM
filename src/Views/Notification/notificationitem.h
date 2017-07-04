@@ -28,6 +28,8 @@ signals:
 
 public slots:
     void themeChanged();
+    void descriptionChanged(QString description);
+    void iconChanged(QString iconPath, QString iconName);
 
     void showItem();
     void filterCleared(NOTIFICATION_FILTER filter);
@@ -40,13 +42,14 @@ protected:
     void mouseMoveEvent();
 
 private:
+    void updateIcon();
     void updateStyleSheet();
     void updateVisibility(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, bool visible = false);
 
     NotificationObject* notificationObject;
 
-    QString iconPath;
-    QString iconName;
+    QString _iconPath;
+    QString _iconName;
 
     QLabel* iconLabel;
     QLabel* descriptionLabel;

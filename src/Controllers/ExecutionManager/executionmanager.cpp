@@ -38,9 +38,16 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 
 void ExecutionManager::ValidateModel(QString model_path)
 {
+    //*
     emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
     emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
+    //*/
+
+    // Construct a notification item with a loading gif as its icon
+    //int nID = NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::WARNING, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    //auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
+
 
     if(results.success){
 
@@ -82,11 +89,14 @@ void ExecutionManager::ValidateModel(QString model_path)
                 }
             }
         }
+
         //Show the Notification Panel on Validation failure
         if(success_count < count){
-            NotificationManager::manager()->showNotificationPanel();
+            emit NotificationManager::manager()->showNotificationPanel();
         }
+
         NotificationManager::manager()->displayNotification("Model validation passed [" + QString::number(success_count) + "/" + QString::number(count) + "] tests", "Icons", "shield", -1, success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::WARNING, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+
     }else{
         NotificationManager::manager()->displayNotification("XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     }
