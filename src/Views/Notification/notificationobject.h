@@ -24,8 +24,7 @@ protected:
 
     void setTitle(QString title);
     void setDescription(QString description);
-    void setIconPath(QString path);
-    void setIconName(QString name);
+    void setIcon(QString path, QString name);
 
 public:
     int ID();
@@ -43,8 +42,7 @@ public:
 signals:
     void titleChanged(QString title);
     void descriptionChanged(QString description);
-    void iconPathChanged(QString path);
-    void iconNameChanged(QString name);
+    void iconChanged(QString path, QString name);
 
 private:
     static int _NotificationID;

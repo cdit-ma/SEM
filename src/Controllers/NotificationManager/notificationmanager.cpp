@@ -211,10 +211,8 @@ bool NotificationManager::updateNotification(int ID, QString iconPath, QString i
     }
 
     NotificationObject* obj = notificationObjects.value(ID);
-    obj->setIconPath(iconPath);
-    obj->setIconName(iconName);
+    obj->setIcon(iconPath, iconName);
     obj->setDescription(description);
-
     return true;
 }
 
@@ -301,15 +299,15 @@ void NotificationManager::showLastNotification()
 int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c, bool toast)
 {
     // construct notification item
-    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
-    notificationObjects[item->ID()] = item;
-    lastNotificationObject = item;
+    NotificationObject* obj = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
+    notificationObjects[obj->ID()] = obj;
+    lastNotificationObject = obj;
 
     // send signal to the notifications widget; highlight showMostRecentNotification button
     emit notificationAlert();
 
     // send signal to the notification dialog; add notification item
-    emit notificationItemAdded(item);
+    emit notificationItemAdded(obj);
 
     // send signal to main window; display notification toast
     if (toast) {
@@ -318,7 +316,7 @@ int NotificationManager::addNotification(QString description, QString iconPath, 
 
     // update severity count
     updateSeverityCountHash(s, true);
-    return item->ID();
+    return obj->ID();
 }
 
 

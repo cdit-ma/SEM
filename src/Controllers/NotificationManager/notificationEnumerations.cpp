@@ -1,6 +1,5 @@
 #include "notificationEnumerations.h"
 
-
 /**
  * @brief getBackgroundProcesses
  * @return
