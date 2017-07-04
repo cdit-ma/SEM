@@ -87,10 +87,15 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
 
     Entity* entity = data->getParent();
     QVariant value = data->getValue();
+    
+    int ID = -1;
+    if(entity){
+        ID = entity->getID();
+    }
 
     //Check if the value can be converted to this key type
     if(!new_value.canConvert(key_type_)){
-        emit validation_failed(entity->getID(), "Value cannot be converted to Key's type.");
+        emit validation_failed(ID, "Value cannot be converted to Key's type.");
         return value;
     }else{
         new_value.convert(key_type_);
@@ -106,7 +111,7 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
     if(gotValidValues(node_kind)){
         auto valid_values = getValidValues(node_kind);
         if(!valid_values.contains(new_value)){
-            emit validation_failed(entity->getID(), "Value not in list of valid values.");
+            emit validation_failed(ID, "Value not in list of valid values.");
             return value;
         }
     }
