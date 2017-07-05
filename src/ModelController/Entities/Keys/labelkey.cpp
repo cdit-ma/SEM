@@ -24,9 +24,16 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
     new_label.replace(" ", "_");
     new_label.replace("\t", "_");
 
+    
+
     //If its not attached to a node, the value is valid
     if(!node){
         return new_label;
+    }
+
+    if(new_label.isEmpty()){
+        //Don't allow an empty value
+        return data->getValue();
     }
 
     //Check for _XX
