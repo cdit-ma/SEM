@@ -876,10 +876,8 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     for(auto src : src_nodes){
         //Check to see if the src Node requires an edge of edge_kind
         if(!src->requiresEdgeKind(edge_kind)){
-            if(!src->acceptsEdgeKind(edge_kind)){
-                srcs_require_edge = false;
-                break;
-            }   
+            srcs_require_edge = false;
+            break;
         }
     }
     
