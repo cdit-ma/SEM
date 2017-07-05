@@ -29,8 +29,5 @@ set(RESOURCES
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON})
 
-add_executable(medea_cmd cmd.cpp utils.cpp)
-
 target_link_libraries(${PROJ_NAME} Qt5::Test)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller)
-target_link_libraries(medea_cmd medea_modelcontroller)
