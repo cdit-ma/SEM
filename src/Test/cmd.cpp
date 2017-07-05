@@ -231,16 +231,18 @@ Node* cd(Node* current_node, QStringList args){
 };
 
 Node* import_model(Node* current_node, QStringList args){
+    /*
     if(args.length() >= 1)
      auto path = token.split(" ")[1];
             QStringList files;
             QString file_data = Utils::readTextFile(path);
             files << file_data;
-            model_controller->importProjects(files);
+            model_controller->importProjects(files);*/
+    return current_node;
 };
 
 Node* export_model(Node* current_node, QStringList args){
-
+    return current_node;
 };
 
 
