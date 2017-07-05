@@ -1884,9 +1884,10 @@ bool ModelController::unbindData_(Node* src, QString src_key, Node* dst, QString
         auto src_data = src->getData(src_key);
         auto dst_data = dst->getData(dst_key);
         if(src_data && dst_data && dst_data->getParentData() == src_data){
-            dst_data->unbindData(src_data);
+            src_data->unbindData(dst_data);
             return true;
         }
+
     }
     return false;
 }

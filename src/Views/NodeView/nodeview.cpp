@@ -879,7 +879,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("value");
