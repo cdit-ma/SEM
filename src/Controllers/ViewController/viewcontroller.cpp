@@ -1182,7 +1182,6 @@ void ViewController::controller_dataRemoved(int ID, QString key)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        
         viewItem->removeData(key);
     }
 }
