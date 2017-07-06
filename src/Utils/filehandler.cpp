@@ -123,7 +123,7 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
 
 bool FileHandler::writeTextFile(QString filePath, QString fileData)
 {
-    _writeTextFile(filePath, fileData, true);
+    return _writeTextFile(filePath, fileData, true);
 }
 
 bool FileHandler::ensureDirectory(QString path)
