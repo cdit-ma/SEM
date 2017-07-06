@@ -291,11 +291,11 @@ void ToolbarController::setupToolActions()
 
     // setup menu info actions here
     createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Icons", "circleInfo");
-    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Icons", "circleInfo");
-    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Icons", "circleInfo");
-    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Icons", "circleInfo");
-    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Icons", "circleInfo");
-    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There no unimplemented Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_COMPONENTS", "There are no Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_BLACKBOXES", "There are no BlackBox entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_AGGREGATES", "There are no valid Aggregate entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_VECTORS", "There are no valid Vector entities", "Icons", "circleInfo");
     createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Icons", "circleInfo");
     createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Icons", "circleInfo");
     createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Icons", "circleInfo");

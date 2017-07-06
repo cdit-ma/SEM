@@ -730,6 +730,8 @@ void ActionController::setupActions()
 
     model_getCodeForComponent = createRootAction("Model", "Generate Code for Component", "", "Icons", "bracketsAngled");
     model_getCodeForComponent->setToolTip("Generate the C++ Impl code for the selected Component");
+    model_getCodeForComponent->setShortcutContext(Qt::ApplicationShortcut);
+    model_getCodeForComponent->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_G));
 
     model_generateModelWorkspace = createRootAction("Model", "Generate Model Workspace", "", "Icons", "briefcase");
     model_generateModelWorkspace->setToolTip("Generate all the C++ artifacts for the model");

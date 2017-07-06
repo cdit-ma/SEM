@@ -82,7 +82,7 @@ void ExecutionManager::ValidateModel(QString model_path)
                         auto id = get_xml_attribute(xml, "id");
                         auto warning = get_xml_attribute(xml, "warning") == "true";
                         auto error_code = xml.readElementText();
-                        NotificationManager::manager()->displayNotification(error_code, "", "", id.toInt(), warning? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::WARNING, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+                        NotificationManager::manager()->displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? NOTIFICATION_SEVERITY::WARNING : NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
                     }else if(result == "true"){
                         success_count ++;
                     }

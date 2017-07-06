@@ -236,5 +236,6 @@
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="circleCritical">Resources/Icons/circleCritical.png</file>
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
+        <file alias="circleHalo">Resources/Icons/circleHalo.png</file>
     </qresource>
 </RCC>

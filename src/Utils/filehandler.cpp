@@ -92,17 +92,14 @@ bool FileHandler::isFileReadable(QString filePath)
 
 QString FileHandler::writeTempTextFile(QString fileData, QString extension)
 {
-    QString path = getTempFileName(extension);
+    auto path = getTempFileName(extension);
 
-    if(!writeTextFile(path, fileData)){
+    if(!_writeTextFile(path, fileData, false)){
         path = "";
     }
     return path;
 }
-
-
-bool FileHandler::writeTextFile(QString filePath, QString fileData)
-{
+bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify){
     QFile file(filePath);
     QFileInfo fileInfo(file);
     if(ensureDirectory(filePath)){
@@ -118,8 +115,15 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
     }else{
         return false;
     }
-    _notification(NOTIFICATION_SEVERITY::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+    if(notify){
+        _notification(NOTIFICATION_SEVERITY::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+    }
     return true;
+}
+
+bool FileHandler::writeTextFile(QString filePath, QString fileData)
+{
+    _writeTextFile(filePath, fileData, true);
 }
 
 bool FileHandler::ensureDirectory(QString path)
