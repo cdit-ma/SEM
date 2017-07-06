@@ -9,7 +9,7 @@
 
 QString APP_URL(){
     #ifdef MEDEA_URL
-        return MEDEA_URL;
+        return MEDEA_URL "/";
     #else
         return "?";
     #endif

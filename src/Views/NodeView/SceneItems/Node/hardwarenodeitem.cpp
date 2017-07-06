@@ -8,10 +8,10 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 
 
     qreal size = DEFAULT_SIZE / 2.0;
-    setMinimumWidth(3*size);
+    setMinimumWidth(3.5 * size);
     setMinimumHeight(size);
 
-    setExpandedWidth(3 * size);
+    setExpandedWidth(3.5 * size);
     setExpandedHeight(size);
     setExpanded(false);
 
@@ -122,6 +122,12 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
         painter->setBrush(getBodyColor().darker(120));
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
+        painter->restore();
+    }else if(state == RENDER_STATE::BLOCK){
+        painter->save();
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(getBodyColor().darker(120));
+        painter->drawRect(rightRect());
         painter->restore();
     }
 
