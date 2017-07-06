@@ -65,9 +65,6 @@ bool Graphml::ModelParser::Process(){
         auto source_id = GetAttribute(e_id, "source");
         auto target_id = GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
-        //std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
-        //std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
-        std::cout << std::endl;
     }
 
 
@@ -284,7 +281,6 @@ bool Graphml::ModelParser::Process(){
             }
 
             if(!deployed_node){
-                std::cout << "Component '" << c_id << "' Not Deployed" << std::endl;
                 break;
             }
 
@@ -814,7 +810,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
         auto logging_server = GetLoggingServer(node->logging_server_id);
         bool is_master = node->is_re_master; 
 
-        if(is_deployed || is_master){
+        if(is_deployed || is_master || logging_profile || logging_server){
             std::vector<std::string> node_strings;
             //node_str += tab() + dblquotewrap(node->name) + ":{" + newline;
             
