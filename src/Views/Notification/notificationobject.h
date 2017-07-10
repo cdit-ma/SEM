@@ -26,6 +26,7 @@ protected:
     void setDescription(QString description);
     void setIcon(QString path, QString name);
     void setSeverity(NOTIFICATION_SEVERITY severity);
+    void setLoading(bool on);
 
 public:
     int ID();
@@ -41,9 +42,11 @@ public:
     NOTIFICATION_SEVERITY severity();
  
 signals:
+    // These signals should only be triggered by the setter functions above to keep the object/item state in sync
     void titleChanged(QString title);
     void descriptionChanged(QString description);
     void iconChanged(QString path, QString name);
+    void loading(bool on);
 
 private:
     static int _NotificationID;

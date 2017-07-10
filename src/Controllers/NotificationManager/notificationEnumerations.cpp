@@ -1,19 +1,5 @@
 #include "notificationEnumerations.h"
 
-/**
- * @brief getBackgroundProcesses
- * @return
- */
-QList<BACKGROUND_PROCESS> getBackgroundProcesses()
-{
-    QList<BACKGROUND_PROCESS> processes;
-    processes.append(BACKGROUND_PROCESS::UNKNOWN);
-    processes.append(BACKGROUND_PROCESS::VALIDATION);
-    processes.append(BACKGROUND_PROCESS::IMPORT_JENKINS);
-    processes.append(BACKGROUND_PROCESS::RUNNING_JOB);
-    return processes;
-}
-
 
 /**
  * @brief getNotificationFilters

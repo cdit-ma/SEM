@@ -85,6 +85,16 @@ void NotificationObject::setSeverity(NOTIFICATION_SEVERITY severity)
 
 
 /**
+ * @brief NotificationObject::setLoading
+ * @param on
+ */
+void NotificationObject::setLoading(bool on)
+{
+    emit loading(on);
+}
+
+
+/**
  * @brief NotificationObject::ID
  * @return
  */

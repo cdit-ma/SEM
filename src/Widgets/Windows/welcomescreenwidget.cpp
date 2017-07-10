@@ -5,6 +5,9 @@
 #include "../../theme.h"
 #include <QStringBuilder>
 
+#define MIN_WIDTH 800
+#define MIN_HEIGHT 700
+
 
 /**
  * @brief WelcomeScreenWidget::WelcomeScreenWidget
@@ -60,18 +63,23 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     recentProjectsToolbar->setIconSize(QSize(18, 18));
     recentProjectsToolbar->setOrientation(Qt::Vertical);
     recentProjectsToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsToolbar->setFixedSize(400, 350);
+    recentProjectsToolbar->setFixedSize(MIN_WIDTH/2, MIN_HEIGHT/2);
+
+    leftToolbar->addWidget(leftTopWidget);
 
     if (ac) {
-        leftToolbar->addWidget(leftTopWidget);
         leftToolbar->addAction(ac->file_newProject);
         leftToolbar->addAction(ac->file_openProject);
         leftToolbar->addAction(ac->options_settings);
+
+        bottomToolbar->addAction(ac->file_exit);
+        bottomToolbar->addAction(ac->help_aboutMedea);
+        bottomToolbar->addAction(ac->help_wiki);
     }
 
-    bottomToolbar->addAction(ac->file_exit);
-    bottomToolbar->addAction(ac->help_aboutMedea);
-    bottomToolbar->addAction(ac->help_wiki);
+    foreach (QAction* action, leftToolbar->actions()) {
+        leftToolbar->widgetForAction(action)->setMinimumWidth(leftTopWidget->sizeHint().width()/1.5);
+    }
 
     QVBoxLayout* vLayout = new QVBoxLayout();
     vLayout->addStretch();
@@ -98,6 +106,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
 
     //setContextMenuPolicy(Qt::NoContextMenu);
+    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     recentProjectsUpdated();
     themeChanged();
 }
