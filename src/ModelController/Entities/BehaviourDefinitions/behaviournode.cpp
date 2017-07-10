@@ -185,6 +185,11 @@ bool BehaviourNode::canAcceptEdge(EDGE_KIND edgeClass, Node *dst)
             }
         }
 
+        if(isWorkflowProducer() && !getRecieverNodes().empty()){
+            //Only one
+            return false;
+        }
+
         //Not a reciever!
         if(!bNode->isWorkflowReciever()){
             return false;

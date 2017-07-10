@@ -44,14 +44,23 @@ public:
 
 public:
     static int displayNotification(QString description,
-                             QString iconPath = "",
-                             QString iconName = "",
-                             int entityID = -1,
-                             NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
-                             NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
-                             NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
+                                   QString iconPath = "",
+                                   QString iconName = "",
+                                   int entityID = -1,
+                                   NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
+                                   NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
+                                   NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
 
-    static bool updateNotification(int ID, QString iconPath, QString iconName, QString description);
+    static int displayLoadingNotification(QString description,
+                                          QString iconPath = "",
+                                          QString iconName = "",
+                                          int entityID = -1,
+                                          NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
+                                          NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
+                                          NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
+
+    static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity);
+    static bool setNotificationLoading(int ID, bool on);
 
 signals:
     void notificationAlert();
@@ -68,8 +77,6 @@ signals:
     void req_lastNotificationID();
 
     void showNotificationPanel(bool show = true);
-
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BACKGROUND_PROCESS::UNKNOWN);
 
     void clearNotifications(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, int filterVal = -1);
 

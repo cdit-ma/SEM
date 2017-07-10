@@ -23,6 +23,6 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 * Set environment variable QTIFWDIR to point the installation of QT Installer Framework
 * Follow the build instructions above
 > ```
-> cpack -G IFW -C MEDEA
+> cpack -G IFW
 > ```
 * The installer will be located in build/_CPack_Packages

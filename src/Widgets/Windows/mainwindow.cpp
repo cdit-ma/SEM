@@ -88,7 +88,7 @@ void MainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
 
-    connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
+    //connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
     connect(viewController, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
     connect(viewController, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(viewController, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);

@@ -6,6 +6,7 @@
 
 #include <QFrame>
 #include <QLabel>
+#include <QMovie>
 
 class NotificationItem : public QFrame
 {
@@ -28,14 +29,17 @@ signals:
 
 public slots:
     void themeChanged();
-    void descriptionChanged(QString description);
-    void iconChanged(QString iconPath, QString iconName);
 
     void showItem();
     void filterCleared(NOTIFICATION_FILTER filter);
     void severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates);
     void typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates);
     void categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates);
+
+private slots:
+    void descriptionChanged(QString description);
+    void iconChanged(QString iconPath, QString iconName);
+    void loading(bool on);
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -53,6 +57,9 @@ private:
 
     QLabel* iconLabel;
     QLabel* descriptionLabel;
+
+    QMovie* loadingGif;
+    bool loadingOn;
 
     QString backgroundColor;
     bool selected;

@@ -18,7 +18,6 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
  */
 NotificationManager::NotificationManager(ViewController* controller)
 {
-    qRegisterMetaType<BACKGROUND_PROCESS>("BACKGROUND_PROCESS");
     viewController = controller;
 }
 
@@ -74,7 +73,7 @@ NotificationDialog* NotificationManager::constructPanel()
 {
     NotificationDialog* panel = new NotificationDialog();
     connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
-    connect(manager(), &NotificationManager::backgroundProcess, panel, &NotificationDialog::backgroundProcess);
+    //connect(manager(), &NotificationManager::backgroundProcess, panel, &NotificationDialog::backgroundProcess);
     connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
     connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
     connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
@@ -91,7 +90,7 @@ NotificationDialog* NotificationManager::constructPanel()
 NotificationToolbar* NotificationManager::constructToolbar()
 {
     NotificationToolbar* toolbar = new NotificationToolbar();
-    connect(manager(), &NotificationManager::backgroundProcess, toolbar, &NotificationToolbar::displayLoadingGif);
+    //connect(manager(), &NotificationManager::backgroundProcess, toolbar, &NotificationToolbar::displayLoadingGif);
     connect(manager(), &NotificationManager::notificationAlert, toolbar, &NotificationToolbar::notificationReceived);
     connect(manager(), &NotificationManager::notificationSeen, toolbar, &NotificationToolbar::notificationsSeen);
     connect(manager(), &NotificationManager::updateSeverityCount, toolbar, &NotificationToolbar::updateSeverityCount);
@@ -194,18 +193,44 @@ int NotificationManager::displayNotification(QString description, QString iconPa
 
 
 /**
- * @brief NotificationManager::updateNotification
- * @param ID
+ * @brief NotificationManager::displayLoadingNotification
+ * @param description
  * @param iconPath
  * @param iconName
- * @param description
+ * @param entityID
+ * @param s
+ * @param t
+ * @param c
  * @return
  */
-bool NotificationManager::updateNotification(int ID, QString iconPath, QString iconName, QString description)
+int NotificationManager::displayLoadingNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
 {
-    // TODO - add modifiable parameters
-    // allow change of icon and change of text
+    int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
+    setNotificationLoading(ID, true);
+    return ID;
 
+    /*
+    if (managerSingleton) {
+        int ID = managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c, false);
+        setNotificationLoading(ID, true);
+        return ID;
+    }
+    return -1;
+    /*/
+}
+
+
+/**
+ * @brief NotificationManager::updateNotification
+ * @param ID
+ * @param description
+ * @param iconPath
+ * @param iconName
+ * @param severity
+ * @return
+ */
+bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity)
+{
     if (!notificationObjects.contains(ID)) {
         return false;
     }
@@ -213,6 +238,25 @@ bool NotificationManager::updateNotification(int ID, QString iconPath, QString i
     NotificationObject* obj = notificationObjects.value(ID);
     obj->setIcon(iconPath, iconName);
     obj->setDescription(description);
+    obj->setSeverity(severity);
+    return true;
+}
+
+
+/**
+ * @brief NotificationManager::setNotificationLoading
+ * @param ID
+ * @param on
+ * @return
+ */
+bool NotificationManager::setNotificationLoading(int ID, bool on)
+{
+    if (!notificationObjects.contains(ID)) {
+        return false;
+    }
+
+    NotificationObject* obj = notificationObjects.value(ID);
+    obj->setLoading(on);
     return true;
 }
 

@@ -10,7 +10,6 @@ enum class NOTIFICATION_TYPE{APPLICATION, MODEL};
 enum class NOTIFICATION_CATEGORY{NOCATEGORY, FILE, JENKINS, DEPLOYMENT, VALIDATION};
 enum class NOTIFICATION_SEVERITY{INFO, WARNING, ERROR};
 enum class NOTIFICATION_FILTER{NOFILTER, SEVERITY, TYPE, CATEGORY};
-enum class BACKGROUND_PROCESS{UNKNOWN, VALIDATION, IMPORT_JENKINS, RUNNING_JOB};
 
 //NOTIFICATION::TYPE::APPLICATION;
 /*
@@ -19,7 +18,6 @@ namespace NOTIFICATION{
 }
 */
 
-extern QList<BACKGROUND_PROCESS> getBackgroundProcesses();
 extern QList<NOTIFICATION_FILTER> getNotificationFilters();
 extern QList<NOTIFICATION_TYPE> getNotificationTypes();
 extern QList<NOTIFICATION_CATEGORY> getNotificationCategories();
@@ -58,12 +56,6 @@ inline uint qHash(NOTIFICATION_SEVERITY key, uint seed)
     return ::qHash(static_cast<uint>(key), seed);
 }
 Q_DECLARE_METATYPE(NOTIFICATION_SEVERITY)
-
-inline uint qHash(BACKGROUND_PROCESS key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(BACKGROUND_PROCESS)
 
 
 #endif // NOTIFICATIONENUMERATIONS_H

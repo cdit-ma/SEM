@@ -25,6 +25,9 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     descriptionLabel = new QLabel(obj->description(), this);
     iconLabel = new QLabel(this);
 
+    loadingGif = 0;
+    loadingOn = false;
+
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(iconLabel);
     layout->addWidget(descriptionLabel, 1);
@@ -34,6 +37,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
         filterVisibility[filter] = true;
     }
 
+    connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
     connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
@@ -168,10 +172,37 @@ void NotificationItem::iconChanged(QString iconPath, QString iconName)
     if (_iconPath.isEmpty() || _iconName.isEmpty()) {
         _iconPath = "Icons";
         _iconName = getSeverityIcon(getSeverity());
-        qWarning() << "NotificationItem::iconChanged - Icon path and/or name is empty.";
     }
 
-    iconLabel->setPixmap(Theme::theme()->getImage(iconPath, iconName, QSize(28,28), getSeverityColor(getSeverity())));
+    if (!loadingOn) {
+        iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
+    }
+}
+
+
+/**
+ * @brief NotificationItem::loading
+ * @param on
+ */
+void NotificationItem::loading(bool on)
+{
+    if (loadingOn == on) {
+        return;
+    }
+
+    if (!loadingGif) {
+        loadingGif = new QMovie(this);
+        loadingGif->setFileName(":/Images/Icons/loading");
+        loadingGif->setScaledSize(QSize(16,16));
+    }
+
+    if (on) {
+        loadingGif->start();
+        iconLabel->setMovie(loadingGif);
+    } else {
+        loadingGif->stop();
+        iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
+    }
 }
 
 

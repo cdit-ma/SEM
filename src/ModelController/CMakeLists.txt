@@ -119,6 +119,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/exportidkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/frequencykey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
 )
 

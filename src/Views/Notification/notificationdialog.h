@@ -61,7 +61,7 @@ public slots:
 
     void getLastNotificationID();
 
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
+    //void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
     void testSlot(QStringList checkedList);
 
@@ -146,7 +146,7 @@ private:
     int visibleProcessCount;
 
     QHash<int, NotificationItem*> notificationItems;
-    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
+    //QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
 
 protected:
     void enterEvent(QEvent* event);

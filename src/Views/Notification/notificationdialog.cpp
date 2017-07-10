@@ -523,9 +523,11 @@ void NotificationDialog::clearAll()
     }
 
     // hide background process items
+    /*
     foreach (BACKGROUND_PROCESS process, backgroundProcesses.keys()) {
         backgroundProcess(false, process);
     }
+    */
 
     // clear the severity items count; the values here are sent to the notification toolbar
     foreach (NOTIFICATION_SEVERITY severity, severityItemsCount.keys()) {
@@ -609,7 +611,7 @@ void NotificationDialog::enterEvent(QEvent* event)
  * @brief NotificationDialog::backgroundProcess
  * @param inProgress
  * @param process
- */
+ *
 void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS process)
 {
     QFrame* processItem = backgroundProcesses.value(process, 0);
@@ -631,7 +633,7 @@ void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS p
         processItem->hide();
         displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
     }
-    */
+    *
     if (inProgress) {
         visibleProcessCount++;
     } else {
@@ -639,7 +641,7 @@ void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS p
     }
     processItem->setVisible(inProgress);
     displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
-}
+}*/
 
 
 /**
@@ -946,6 +948,7 @@ void NotificationDialog::setupLayout()
  */
 void NotificationDialog::setupBackgroundProcessItems()
 {
+    /*
     foreach (BACKGROUND_PROCESS process, getBackgroundProcesses()) {
         QString description;
         switch (process) {
@@ -985,6 +988,7 @@ void NotificationDialog::setupBackgroundProcessItems()
         processLayout->addWidget(frame);
         backgroundProcesses[process] = frame;
     }
+    */
 
     visibleProcessCount = 0;
 }
