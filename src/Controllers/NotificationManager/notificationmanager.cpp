@@ -196,12 +196,13 @@ int NotificationManager::displayNotification(QString description, QString iconPa
 /**
  * @brief NotificationManager::updateNotification
  * @param ID
+ * @param description
  * @param iconPath
  * @param iconName
- * @param description
+ * @param severity
  * @return
  */
-bool NotificationManager::updateNotification(int ID, QString iconPath, QString iconName, QString description)
+bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity)
 {
     // TODO - add modifiable parameters
     // allow change of icon and change of text
@@ -213,6 +214,7 @@ bool NotificationManager::updateNotification(int ID, QString iconPath, QString i
     NotificationObject* obj = notificationObjects.value(ID);
     obj->setIcon(iconPath, iconName);
     obj->setDescription(description);
+    obj->setSeverity(severity);
     return true;
 }
 

@@ -75,6 +75,16 @@ void NotificationObject::setIcon(QString path, QString name)
 
 
 /**
+ * @brief NotificationObject::setSeverity
+ * @param severity
+ */
+void NotificationObject::setSeverity(NOTIFICATION_SEVERITY severity)
+{
+    _severity = severity;
+}
+
+
+/**
  * @brief NotificationObject::ID
  * @return
  */

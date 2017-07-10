@@ -51,7 +51,7 @@ public:
                              NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
                              NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
 
-    static bool updateNotification(int ID, QString iconPath, QString iconName, QString description);
+    static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity);
 
 signals:
     void notificationAlert();

@@ -25,6 +25,7 @@ protected:
     void setTitle(QString title);
     void setDescription(QString description);
     void setIcon(QString path, QString name);
+    void setSeverity(NOTIFICATION_SEVERITY severity);
 
 public:
     int ID();
