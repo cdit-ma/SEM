@@ -168,10 +168,9 @@ void NotificationItem::iconChanged(QString iconPath, QString iconName)
     if (_iconPath.isEmpty() || _iconName.isEmpty()) {
         _iconPath = "Icons";
         _iconName = getSeverityIcon(getSeverity());
-        qWarning() << "NotificationItem::iconChanged - Icon path and/or name is empty.";
     }
 
-    iconLabel->setPixmap(Theme::theme()->getImage(iconPath, iconName, QSize(28,28), getSeverityColor(getSeverity())));
+    iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
 }
 
 
