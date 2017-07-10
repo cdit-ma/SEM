@@ -205,9 +205,18 @@ int NotificationManager::displayNotification(QString description, QString iconPa
  */
 int NotificationManager::displayLoadingNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
 {
-   int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
-   setNotificationLoading(ID, true);
-   return ID;
+    int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
+    setNotificationLoading(ID, true);
+    return ID;
+
+    /*
+    if (managerSingleton) {
+        int ID = managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c, false);
+        setNotificationLoading(ID, true);
+        return ID;
+    }
+    return -1;
+    /*/
 }
 
 
