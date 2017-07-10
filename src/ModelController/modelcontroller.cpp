@@ -876,10 +876,8 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     for(auto src : src_nodes){
         //Check to see if the src Node requires an edge of edge_kind
         if(!src->requiresEdgeKind(edge_kind)){
-            if(!src->acceptsEdgeKind(edge_kind)){
-                srcs_require_edge = false;
-                break;
-            }   
+            srcs_require_edge = false;
+            break;
         }
     }
     
@@ -1544,8 +1542,14 @@ bool ModelController::canDeleteNode(Node *node)
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:{
                 auto parent_node = node->getParentNode();
-                if(parent_node->getNodeKind() != NODE_KIND::AGGREGATE){
-                    return false;
+                auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
+
+                switch(parent_node_kind){
+                    case NODE_KIND::AGGREGATE:
+                    case NODE_KIND::VECTOR:
+                        break;
+                    default:
+                        return false;
                 }
                 break;
             }
@@ -1886,9 +1890,10 @@ bool ModelController::unbindData_(Node* src, QString src_key, Node* dst, QString
         auto src_data = src->getData(src_key);
         auto dst_data = dst->getData(dst_key);
         if(src_data && dst_data && dst_data->getParentData() == src_data){
-            dst_data->unbindData(src_data);
+            src_data->unbindData(dst_data);
             return true;
         }
+
     }
     return false;
 }
@@ -2073,6 +2078,14 @@ QList<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> ID
 
 }
 
+QSet<NODE_KIND> ModelController::getGUINodeKinds(){
+    auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
+    node_set.remove(NODE_KIND::IDL);
+    node_set.remove(NODE_KIND::WORKLOAD);
+    node_set.remove(NODE_KIND::PROCESS);
+    return node_set;
+}
+
 QList<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
 {
     QReadLocker lock(&lock_);
@@ -2082,14 +2095,17 @@ QList<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
-        for(auto node_kind: entity_factory->getNodeKinds()){
-            
-            auto temp_node = entity_factory->CreateTempNode(node_kind);
-            if(temp_node){
-                if(parent->canAdoptChild(temp_node)){
-                    kinds << node_kind;
+        bool can_adopt = !parent->isInstance();
+        
+        if(can_adopt){
+            for(auto node_kind: getGUINodeKinds()){
+                auto temp_node = entity_factory->CreateTempNode(node_kind);
+                if(temp_node){
+                    if(parent->canAdoptChild(temp_node)){
+                        kinds << node_kind;
+                    }
+                    entity_factory->DestructEntity(temp_node);
                 }
-                entity_factory->DestructEntity(temp_node);
             }
         }
     }
@@ -2861,14 +2877,15 @@ bool ModelController::canRemove(QList<Entity *> selection)
             }
 
             if(parent_node){
-                if(node->isImpl() && node->getDefinition()){
+                auto definition = node->getDefinition();
+                if(node->isImpl() && definition){
                     //Only allowed to delete OutEventPortImpls
                     if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
                         return false;
                     }
                 }
 
-                if(node->isInstance() && parent_node->isInstance()){
+                if(node->isInstance() && definition && parent_node->isInstance()){
                     return false;
                 }
 
@@ -2963,7 +2980,7 @@ int ModelController::getImplementation(int id)
 
 bool ModelController::isUserAction()
 {
-    if(isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO) || isModelAction(MODEL_ACTION::IMPORT) || isModelAction(MODEL_ACTION::OPEN)){
+    if(isModelAction(MODEL_ACTION::UNDO) || isModelAction(MODEL_ACTION::REDO) || isModelAction(MODEL_ACTION::OPEN)){
         return false;
     }else{
         return true;

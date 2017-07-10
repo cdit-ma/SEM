@@ -1182,7 +1182,6 @@ void ViewController::controller_dataRemoved(int ID, QString key)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        
         viewItem->removeData(key);
     }
 }
@@ -1480,12 +1479,12 @@ void ViewController::aboutMEDEA()
     "<ul>"
     "<li>Dan Fraser (Lead Programmer)</li>"
     "<li>Cathlyn Aston (UX Programmer)</li>"
-    "<li>Mitchell Conrad</li>"
+    "<li>Mitchell Conrad (Programmer)</li>"
+    "<li>Jackson Michael (Workers)</li>"
     "</ul>"
     "Past Members:"
     "<ul>"
-    "<li>Marianne Rieckmann (XSL Transforms)</li>"
-    "<li>Jackson Michael (CUTS Workers)</li>"
+    "<li>Marianne Rieckmann</li>"
     "<li>Matthew Hart</li>"
     "</ul>";
     BaseWindow* window = WindowManager::manager()->getActiveWindow();

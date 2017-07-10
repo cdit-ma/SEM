@@ -71,7 +71,7 @@ void JenkinsJobMonitorWidget::setupLayout()
     title_layout->addStretch();
 
     //Setup the Title
-    tabWidget = new QTabWidget();
+    tabWidget = new QTabWidget(this);
     verticalLayout->addWidget(tabWidget,1);
 
     action_toolbar = new QToolBar(this);

@@ -555,6 +555,7 @@ QString Theme::getWidgetStyleSheet(QString widgetName)
     return widgetName % " {"
            "background:" % getBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
+           "border: 0px;"
            "}";
 }
 

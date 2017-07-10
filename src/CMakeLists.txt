@@ -18,7 +18,8 @@ set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION "2.1.2-RE")
+SET(VERSION_NO "2.1.2")
+SET(VERSION "${VERSION_NO}-RE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
 
@@ -124,11 +125,19 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+
+    
 )
+
+if(WIN32)
+    #Only add rc file for windows
+    SET(SOURCE ${SOURCE} 
+        ${CMAKE_CURRENT_SOURCE_DIR}/medea.rc
+    )
+endif()
 
 SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.h
@@ -268,7 +277,7 @@ else()
     file(COPY ${LIBS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${LIBS_DEST_DIR})
     file(COPY ${TRANSFORMS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TRANSFORM_DEST_DIR})
     #Construct the binary
-    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES})
+    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES} )
 endif()
 
 if(WIN32)
@@ -281,6 +290,7 @@ target_link_libraries(${PROJ_NAME} Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller)
 
 #Install should copy the MEDEA app into a MEDEA folder
+#Install should copy the MEDEA app into a MEDEA folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION MEDEA RUNTIME DESTINATION MEDEA COMPONENT MEDEA)
 
 if(WIN32)
@@ -292,9 +302,11 @@ if(WIN32)
 	set(CPACK_COMPONENT_QT_LIBS_REQUIRED ON)
 	set(CPACK_COMPONENT_RE_GEN_REQUIRED ON)
 	set(CPACK_COMPONENT_SCRIPTS_REQUIRED ON)
-	set(CPACK_COMPONENT_QT_LIBS_DISPLAY_NAME "Qt 5.7 x64 Binaries")
+    set(CPACK_COMPONENT_MEDEA_REQUIRED ON)
+	set(CPACK_COMPONENT_QT_LIBS_DISPLAY_NAME "Qt Binaries")
 	set(CPACK_COMPONENT_RE_GEN_DISPLAY_NAME "re_gen XSL Code Generation")
 	set(CPACK_COMPONENT_SCRIPTS_DISPLAY_NAME "Scripts")
+    set(CPACK_COMPONENT_MEDEA_DISPLAY_NAME "MEDEA Core")
 	# Add the components to the CPACK (Not needed in Unix
     SET(CPACK_COMPONENTS_ALL MEDEA RE_GEN SCRIPTS QT_LIBS) 
 endif()
@@ -314,7 +326,11 @@ SET(CPACK_GENERATOR "IFW")
 # Set Project info
 SET(CPACK_PACKAGE_NAME "MEDEA")
 SET(CPACK_PACKAGE_VENDOR "CDIT-MA")
-#set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Modelling, Experiment DEsign and Analysis (MEDEA)")
+SET(CPACK_PACKAGE_VERSION ${VERSION_NO})
+SET(CPACK_PACKAGE_EXECUTABLES "MEDEA")
+SET(CPACK_PACKAGE_FILE_NAME ${VERSION_NAME}-${CMAKE_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}-installer)
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Modelling, Experiment DEsign and Analysis (MEDEA)")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY ${VERSION_NAME})
 
 # Set Icon

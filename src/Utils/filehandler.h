@@ -27,6 +27,7 @@ public:
 public:
     static FileHandler* getFileHandler();
 private:
+    static bool _writeTextFile(QString filePath, QString fileData, bool notify);
 
     static void _notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName);
 

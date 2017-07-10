@@ -13,6 +13,7 @@
 #include "Entities/Keys/indexkey.h"
 #include "Entities/Keys/exportidkey.h"
 #include "Entities/Keys/replicatecountkey.h"
+#include "Entities/Keys/frequencykey.h"
 
 //Model Includes
 
@@ -520,6 +521,8 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new ExportIDKey();
         }else if(key_name == "replicate_count"){
             key = new ReplicateCountKey();    
+        }else if(key_name == "frequency"){
+            key = new FrequencyKey();    
         }else{
             key = new Key(key_name, type);
         }

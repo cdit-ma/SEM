@@ -279,6 +279,9 @@ bool Entity::removeData(Data *data)
         count += keyLookup.remove(key->getName());
 
         data->setParent(0);
+        
+        emit dataRemoved(getID(), key->getName());
+
         return count == 2;
     }else{
         //Can't remove null data.
