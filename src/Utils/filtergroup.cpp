@@ -6,6 +6,7 @@
 #define FILTER_KEY "filterKey"
 #define FILTER_GROUP "filterGroup"
 #define FILTER_RESET_KEY "All"
+#define DEFAULT_CHECKED_STATE true
 
 /**
  * @brief FilterGroup::FilterGroup
@@ -50,19 +51,20 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
 
     filterGroupBox = new QGroupBox(filterGroup);
     filterGroupBox->setCheckable(true);
-    connect(filterGroupBox, SIGNAL(toggled(bool)), this, SLOT(updateResetButtonVisibility()));
+    //filterGroupBox->setFlat(true);
+    filterGroupBox->setAlignment(Qt::AlignHCenter);
 
     filterToolbar = new QToolBar();
     filterToolbar->setOrientation(orientation);
     filterToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
-    foreach (QAbstractButton* button, filters.values()) {
+    foreach (QAbstractButton* button, filterButtons.values()) {
         addToGroupBox(button);
     }
 
-    // intially uncheck the groupbox - hide all the filter buttons in this group
-    filterGroupBox->setChecked(false);
-    filterGroupBox->toggled(false);
+    // set the groupbox's initial checked state - this sets the filter buttons initial visibilty state
+    filterGroupBox->setChecked(DEFAULT_CHECKED_STATE);
+    filterGroupBox->toggled(DEFAULT_CHECKED_STATE);
 
     QLayout* layout = new QVBoxLayout(filterGroupBox);
     layout->addWidget(filterToolbar);
@@ -104,6 +106,8 @@ void FilterGroup::setResetButtonVisible(bool visible)
  */
 void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton)
 {
+    return;
+
     if (filters.contains(key)) {
         qWarning() << "FilterGroup::addToFilterGroup - A filter with key [" << key << "] already exists.";
         return;
@@ -128,6 +132,34 @@ void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton)
     }
 }
 
+void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
+{
+    uint variantKey = variantHasher.hash(key);
+
+    if (filterButtons.contains(variantKey)) {
+        qWarning() << "FilterGroup::addToFilterGroup - A filter with key [" << key.toString() << "] already exists.";
+        return;
+    }
+
+    if (filterButton) {
+
+        filterButtons[variantKey] = filterButton;
+        filterButton->setProperty(FILTER_KEY, key);
+        filterButton->setProperty(FILTER_GROUP, filterGroup);
+        filterButton->setCheckable(true);
+        filterButton->setChecked(false);
+        connect(filterButton, SIGNAL(clicked(bool)), this, SLOT(filterTriggered()));
+
+        // initially have the reset ("All") button checked
+        if (filterButton == resetFilterButton) {
+            filterButton->setChecked(true);
+            checkedFilterKeys.append(key);
+        }
+
+        addToGroupBox(filterButton);
+    }
+}
+
 
 /**
  * @brief FilterGroup::themeChanged
@@ -137,19 +169,29 @@ void FilterGroup::themeChanged()
     Theme* theme = Theme::theme();
 
     if (filterGroupBox) {
-        filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 6px; border: none; border-top: 2px solid" + theme->getAltBackgroundColorHex() + ";}"
-                                      "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0px 3px 0px 3px; }"
+        filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 10px; margin-bottom: 0px; border: none; border-top: 4px solid" + theme->getAltBackgroundColorHex() + ";}"
+                                      "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; margin-top: 10px; padding: -2px 6px 2px -16px; }"
                                       "QGroupBox::title::hover{ color:" + theme->getHighlightColorHex() + ";}"
-                                      ///*
-                                      "QGroupBox::indicator:checked{ image: url(:/Actions/Arrow_Down); }"
-                                      "QGroupBox::indicator:unchecked{ image: url(:/Actions/Arrow_Up); }"
-                                      //*/
+                                      "QGroupBox::indicator:checked{ image: none; }"
+                                      "QGroupBox::indicator:unchecked{ image: none; }"
+                                      /*
+                                      "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0px 3px 0px 3px; }"
+                                      "QGroupBox::indicator:checked{ image: url(:/Icons/arrowHeadDown); }"
+                                      "QGroupBox::indicator:unchecked{ image: url(:/Icons/arrowHeadUp); }"
+                                      */
+                                      + theme->getToolBarStyleSheet() +
                                       "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
     }
 
-    QString iconPath = resetFilterButton->property("iconPath").toString();
-    QString iconName = resetFilterButton->property("iconName").toString();
-    resetFilterButton->setIcon(theme->getIcon(iconPath, iconName));
+    //QString iconPath = resetFilterButton->property("iconPath").toString();
+    //QString iconName = resetFilterButton->property("iconName").toString();
+    //resetFilterButton->setIcon(theme->getIcon(iconPath, iconName));
+
+    foreach (QAbstractButton* button, filterButtons.values()) {
+        QString iconPath = button->property("iconPath").toString();
+        QString iconName = button->property("iconName").toString();
+        button->setIcon(theme->getIcon(iconPath, iconName));
+    }
 }
 
 
@@ -230,11 +272,11 @@ void FilterGroup::setupResetButton()
 {
     resetFilterButton = new QToolButton();
     resetFilterButton->setText("All");
-    resetFilterButton->setProperty("iconName", "Menu");
-    resetFilterButton->setProperty("iconPath", "Actions");
+    resetFilterButton->setProperty("iconName", "list");
+    resetFilterButton->setProperty("iconPath", "Icons");
     resetFilterButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     resetFilterButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    addToFilterGroup(FILTER_RESET_KEY, resetFilterButton);
+    addToFilterGroup(QVariant(FILTER_RESET_KEY), resetFilterButton);
 }
 
 
@@ -244,9 +286,9 @@ void FilterGroup::setupResetButton()
  * It makes sure that the reset filter button is at the top of the toolbar.
  * @param button
  */
-void FilterGroup::addToGroupBox(QAbstractButton* button)
+QAction* FilterGroup::addToGroupBox(QAbstractButton* button)
 {
-    if (filterGroupBox && filterToolbar && button) {
+    if (filterGroupBox && filterToolbar) {
         QAction* action = 0;
         if (button == resetFilterButton) {
             QAction* topAction = filterToolbar->actions().at(0);
@@ -259,9 +301,12 @@ void FilterGroup::addToGroupBox(QAbstractButton* button)
             resetAction->setVisible(showResetButton);
         } else {
             action = filterToolbar->addWidget(button);
-            connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
         }
+        qDebug() << "Added button - " << button->text();
+        connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
+        return action;
     }
+    return 0;
 }
 
 
@@ -295,3 +340,25 @@ void FilterGroup::updateFilterCheckedCount()
         }
     }
 }
+
+
+
+
+/*
+class QVariantHasher {
+  public:
+    QVariantHasher() : buff(&bb), ds(&buff) {
+      bb.reserve(1000);
+      buff.open(QIODevice::WriteOnly);
+    }
+    uint hash(const QVariant & v) {
+      buff.seek(0);
+      ds << v;
+      return qHashBits(bb.constData(), buff.pos());
+    }
+  private:
+    QByteArray bb;
+    QBuffer buff;
+    QDataStream ds;
+};
+*/

@@ -32,13 +32,11 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     : QWidget(parent)
 {
     setupLayout();
-    setupBackgroundProcessItems();
-
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-
-    themeChanged();
     initialisePanel();
     updateSelectionBasedButtons();
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 
     //test();
 }
@@ -299,7 +297,6 @@ void NotificationDialog::themeChanged()
     clearVisibleAction->setIcon(theme->getIcon("Icons", "cross"));
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
-    displaySeparator->setStyleSheet("color:" + theme->getDisabledBackgroundColorHex() + ";");
 
     foreach (QToolButton* button, filterButtonHash.values()) {
         QString iconPath = button->property("iconPath").toString();
@@ -471,7 +468,6 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
 
     itemsLayout->insertWidget(0, item);
     notificationItems[obj->ID()] = item;
-    severityItemsCount[severity]++;
 
     connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::updateSelection);
     connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::showItem);
@@ -499,9 +495,6 @@ void NotificationDialog::notificationDeleted(int ID)
     if (notificationItems.contains(ID)) {
         NotificationItem* item = notificationItems.take(ID);
         NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (severityItemsCount.contains(severity)) {
-            severityItemsCount[severity]--;
-        }
         selectedItems.removeAll(item);
         itemsLayout->removeWidget(item);
         updateSelectionBasedButtons();
@@ -522,21 +515,8 @@ void NotificationDialog::clearAll()
         delete child;
     }
 
-    // hide background process items
-    /*
-    foreach (BACKGROUND_PROCESS process, backgroundProcesses.keys()) {
-        backgroundProcess(false, process);
-    }
-    */
-
-    // clear the severity items count; the values here are sent to the notification toolbar
-    foreach (NOTIFICATION_SEVERITY severity, severityItemsCount.keys()) {
-        severityItemsCount[severity] = 0;
-    }
-
     notificationItems.clear();
     selectedItems.clear();
-    visibleProcessCount = 0;
 
     // reset checked filter buttons and checked filter lists
     clearFilters();
@@ -605,43 +585,6 @@ void NotificationDialog::enterEvent(QEvent* event)
         emit mouseEntered();
     }
 }
-
-
-/**
- * @brief NotificationDialog::backgroundProcess
- * @param inProgress
- * @param process
- *
-void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS process)
-{
-    QFrame* processItem = backgroundProcesses.value(process, 0);
-    if (!processItem) {
-        qWarning() << "NotificationDialog::backgroundProcess - Background process has not been setup.";
-        return;
-    }
-    /*
-    if (inProgress) {
-        if (!processItem->isVisible()) {
-            visibleProcessCount++;
-            processItem->show();
-            if (!displayedSeparatorFrame->isVisible()) {
-                displayedSeparatorFrame->show();
-            }
-        }
-    } else {
-        visibleProcessCount--;
-        processItem->hide();
-        displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
-    }
-    *
-    if (inProgress) {
-        visibleProcessCount++;
-    } else {
-        visibleProcessCount--;
-    }
-    processItem->setVisible(inProgress);
-    displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
-}*/
 
 
 /**
@@ -838,6 +781,7 @@ void NotificationDialog::setupLayout()
     filtersArea->setWidget(filtersToolbar);
     filtersArea->setWidgetResizable(true);
 
+    /*
     allAction = constructFilterButtonAction((ITEM_ROLES)-1, -1, "All", "icons", "Menu", false);
     setActionButtonChecked(allAction, true);
 
@@ -865,33 +809,11 @@ void NotificationDialog::setupLayout()
         constructFilterButtonAction(IR_TYPE, tInt, getTypeString(type), "Icons", iconName);
         typeCheckedStates[type] = false;
     }
+    */
 
     /*
      * DISPLAY SECTION
      */
-    processLayout = new QVBoxLayout();
-    processLayout->setMargin(0);
-    processLayout->setSpacing(0);
-
-    displaySeparator = new QFrame(this);
-    displaySeparator->setLineWidth(5);
-    displaySeparator->setFixedHeight(4);
-    displaySeparator->setFrameShape(QFrame::HLine);
-
-    if (SHOW_SEPARATOR_MARGIN) {
-        QFrame* displaySeparatorFrame = new QFrame(this);
-        displaySeparatorFrame->setFixedHeight(15);
-        QVBoxLayout* separatorLayout = new QVBoxLayout(displaySeparatorFrame);
-        separatorLayout->setContentsMargins(0, 2, 0, 0);
-        separatorLayout->setMargin(0);
-        separatorLayout->addWidget(displaySeparator);
-        displayedSeparatorFrame = displaySeparatorFrame;
-    } else {
-        displayedSeparatorFrame = displaySeparator;
-    }
-
-    displayedSeparatorFrame->hide();
-
     itemsLayout = new QVBoxLayout();
     itemsLayout->setMargin(0);
     itemsLayout->setSpacing(0);
@@ -900,13 +822,14 @@ void NotificationDialog::setupLayout()
 
     QFrame* displayWidget = new QFrame(this);
     displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
+    displayWidget->setLayout(itemsLayout);
 
+    /*
     QVBoxLayout* displayLayout = new QVBoxLayout(displayWidget);
     displayLayout->setMargin(0);
     displayLayout->setSpacing(0);
-    displayLayout->addLayout(processLayout);
-    displayLayout->addWidget(displayedSeparatorFrame);
     displayLayout->addLayout(itemsLayout, 1);
+    */
 
     QScrollArea* displayArea = new QScrollArea(this);
     displayArea->setWidget(displayWidget);
@@ -939,58 +862,74 @@ void NotificationDialog::setupLayout()
     setMinimumSize(minWidth, minHeight);
 
     // initially hide the source filters
-    filtersMenu->actions().last()->trigger();
+    //filtersMenu->actions().last()->trigger();
+
+    setupFilterGroups();
 }
 
 
 /**
- * @brief NotificationDialog::setupBackgroundProcessItems
+ * @brief NotificationDialog::setupFilterGroups
  */
-void NotificationDialog::setupBackgroundProcessItems()
+void NotificationDialog::setupFilterGroups()
 {
-    /*
-    foreach (BACKGROUND_PROCESS process, getBackgroundProcesses()) {
-        QString description;
-        switch (process) {
-        case BACKGROUND_PROCESS::VALIDATION:
-            description = "Validating Model ...";
-            break;
-        case BACKGROUND_PROCESS::IMPORT_JENKINS:
-            description = "Importing Jenkins Nodes ...";
-            break;
-        case BACKGROUND_PROCESS::RUNNING_JOB:
-            description = "Running Jenkins Job...";
-            break;
-        default:
-            description = "Background Process In Progress ...";
-            break;
-        }
-
-        //QMovie* loadingGif = new QMovie(this);
-        //loadingGif->setFileName(":/Images/Icons/loading");
-        //loadingGif->setScaledSize(QSize(32,32));
-        //loadingGif->start();
-
-        //QLabel* textLabel = new QLabel("<i>" + description + "</i>", this);
-        QLabel* textLabel = new QLabel(description, this);
-        QLabel* iconLabel = new QLabel(this);
-        //iconLabel->setMovie(loadingGif);
-
-        QFrame* frame = new QFrame(this);
-        frame->setStyleSheet("border: 1px 0px;");
-        frame->hide();
-
-        QHBoxLayout* layout = new QHBoxLayout(frame);
-        layout->addWidget(iconLabel);
-        layout->addSpacerItem(new QSpacerItem(5,0));
-        layout->addWidget(textLabel, 1);
-
-        processLayout->addWidget(frame);
-        backgroundProcesses[process] = frame;
+    // setup SEVERITY filter group
+    FilterGroup* severityGroup = new FilterGroup("SEVERITY", this);
+    foreach (NOTIFICATION_SEVERITY severity, getNotificationSeverities()) {
+        QString iconName = getSeverityIcon(severity);
+        QAbstractButton* button = constructFilterButton(getSeverityString(severity), "Icons", iconName);
+        severityGroup->addToFilterGroup(static_cast<int>(severity), button);
     }
-    */
+    filtersToolbar->addWidget(severityGroup->constructFilterGroupBox());
 
-    visibleProcessCount = 0;
+    // setup CATEGORY filter group
+    FilterGroup* categoryGroup = new FilterGroup("CATEGORY", this);
+    foreach (NOTIFICATION_CATEGORY category, getNotificationCategories()){
+        QString iconName = getCategoryIcon(category);
+        QAbstractButton* button = constructFilterButton(getCategoryString(category), "Icons", iconName);
+        categoryGroup->addToFilterGroup(static_cast<int>(category), button);
+    }
+    filtersToolbar->addWidget(categoryGroup->constructFilterGroupBox());
+
+    // setup TYPE filter group
+    FilterGroup* typeGroup = new FilterGroup("TYPE", this);
+    foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
+        QString iconName;
+        if (type == NOTIFICATION_TYPE::MODEL) {
+            iconName = "dotsInRectangle";
+        } else if (type == NOTIFICATION_TYPE::APPLICATION) {
+            iconName = "pencil";
+        }
+        QAbstractButton* button = constructFilterButton(getTypeString(type), "Icons", iconName);
+        typeGroup->addToFilterGroup(static_cast<int>(type), button);
+    }
+    filtersToolbar->addWidget(typeGroup->constructFilterGroupBox());
+}
+
+
+/**
+ * @brief NotificationDialog::constructFilterButton
+ * @param key
+ * @param label
+ * @param iconPath
+ * @param iconName
+ * @return
+ */
+QAbstractButton* NotificationDialog::constructFilterButton(QString label, QString iconPath, QString iconName)
+{
+    // set default icon
+    if (iconPath.isEmpty() || iconName.isEmpty()) {
+        iconPath = "Icons";
+        iconName = "circleQuestion";
+    }
+
+    QToolButton* button = new QToolButton(this);
+    button->setText(label);
+    button->setProperty("iconPath", iconPath);
+    button->setProperty("iconName", iconName);
+    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    return button;
 }
 
 
@@ -1045,8 +984,8 @@ QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITE
 
     // set default icon
     if (iconPath.isEmpty() || iconName.isEmpty()) {
-        iconPath = "Actions";
-        iconName = "Help";
+        iconPath = "Icons";
+        iconName = "circleQuestion";
     }
 
     QToolButton* button = new QToolButton(this);

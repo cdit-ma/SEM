@@ -61,8 +61,6 @@ public slots:
 
     void getLastNotificationID();
 
-    //void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
-
     void testSlot(QStringList checkedList);
 
 private slots:
@@ -83,7 +81,9 @@ private slots:
 private:
     void test();
     void setupLayout();
-    void setupBackgroundProcessItems();
+    void setupFilterGroups();
+
+    QAbstractButton* constructFilterButton(QString label = "", QString iconPath = "", QString iconName = "");
 
     QAction* constructFilterButtonAction(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "", bool addToGroup = true);
     void setActionButtonChecked(QAction *action, bool checked);
@@ -109,15 +109,12 @@ private:
     QToolBar* topToolbar;
     QToolBar* bottomToolbar;
     QSplitter* displaySplitter;
-    QFrame* displayedSeparatorFrame;
-    QFrame* displaySeparator;
 
     QLabel* infoLabel;
     QAction* infoAction;
     QTimer* blinkTimer;
     int intervalTime;
 
-    QVBoxLayout* processLayout;
     QVBoxLayout* itemsLayout;
 
     QAction* allAction;
@@ -142,11 +139,7 @@ private:
     QHash<NOTIFICATION_CATEGORY, bool> categoryCheckedStates;
     QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
 
-    QHash<NOTIFICATION_SEVERITY, int> severityItemsCount;
-    int visibleProcessCount;
-
     QHash<int, NotificationItem*> notificationItems;
-    //QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
 
 protected:
     void enterEvent(QEvent* event);

@@ -208,15 +208,6 @@ int NotificationManager::displayLoadingNotification(QString description, QString
     int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
     setNotificationLoading(ID, true);
     return ID;
-
-    /*
-    if (managerSingleton) {
-        int ID = managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c, false);
-        setNotificationLoading(ID, true);
-        return ID;
-    }
-    return -1;
-    /*/
 }
 
 
@@ -239,6 +230,10 @@ bool NotificationManager::updateNotification(int ID, QString description, QStrin
     obj->setIcon(iconPath, iconName);
     obj->setDescription(description);
     obj->setSeverity(severity);
+
+    // toast updated notification
+    emit manager()->notificationAdded(iconPath, iconName, description);
+
     return true;
 }
 
