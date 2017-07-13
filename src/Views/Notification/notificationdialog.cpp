@@ -367,9 +367,9 @@ void NotificationDialog::getLastNotificationID()
 }
 
 
-void NotificationDialog::testSlot(QStringList checkedList)
+void NotificationDialog::testSlot(QList<QVariant> checkedKeys)
 {
-    qDebug() << "List: " << checkedList;
+    qDebug() << "List: " << checkedKeys;
 }
 
 

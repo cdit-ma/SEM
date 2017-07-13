@@ -10,22 +10,20 @@
 #include <QBuffer>
 
 
+/*
+ * QVariantHasher Class
+ * This class allows QVariants to be hashed.
+ */
 class QVariantHasher {
   public:
-    QVariantHasher() : buff(&bb), ds(&buff) {
-      bb.reserve(1000);
-      buff.open(QIODevice::WriteOnly);
-    }
-    uint hash(const QVariant & v) {
-      buff.seek(0);
-      ds << v;
-      return qHashBits(bb.constData(), buff.pos());
-    }
+    QVariantHasher();
+    uint hash(const QVariant & v);
   private:
     QByteArray bb;
     QBuffer buff;
     QDataStream ds;
 };
+
 
 class FilterGroup : public QObject
 {
@@ -38,12 +36,11 @@ public:
 
     void setExclusive(bool exclusive);
     void setResetButtonVisible(bool visible);
-    void addToFilterGroup(QString key, QAbstractButton* filterButton);
     void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
 
 signals:
-    void filtersChanged(QStringList keys);
-    void resetFilterGroup();
+    void filtersChanged(QList<QVariant> checkedKeys);
+    void filtersCleared();
 
 public slots:
     void themeChanged();
@@ -65,14 +62,12 @@ private:
     QAction* resetAction;
     bool showResetButton;
 
-    QStringList checkedKeys;
     QString filterGroup;
     bool exclusive;
 
-    //QHash<QVariant, QAbstractButton*> filterButtons;
     QHash<uint, QAbstractButton*> filterButtons;
+    QList<QVariant> checkedKeys;
     QVariantHasher variantHasher;
-    QList<QVariant> checkedFilterKeys;
 
 };
 
