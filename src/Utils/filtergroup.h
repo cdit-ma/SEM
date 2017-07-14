@@ -36,6 +36,7 @@ public:
 
     void setExclusive(bool exclusive);
     void setResetButtonVisible(bool visible);
+    void setResetButtonKey(QVariant key);
     void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
 
 signals:
@@ -43,8 +44,9 @@ signals:
     void filtersCleared();
 
 public slots:
-    void themeChanged();
-    void filterTriggered();
+    void on_themeChanged();
+    void on_filterTriggered();
+
     void updateResetButtonVisibility();
 
 private:
@@ -58,8 +60,9 @@ private:
     QGroupBox* filterGroupBox;
     QToolBar* filterToolbar;
 
-    QToolButton* resetFilterButton;
+    QToolButton* resetButton;
     QAction* resetAction;
+    QVariant resetKey;
     bool showResetButton;
 
     QString filterGroup;

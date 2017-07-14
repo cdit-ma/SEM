@@ -28,17 +28,15 @@ signals:
     void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
 
 public slots:
-    void themeChanged();
+    void on_themeChanged();
+    void on_filterCleared(NOTIFICATION_FILTER filter);
+    void on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys);
 
     void showItem();
-    void filterCleared(NOTIFICATION_FILTER filter);
-    void severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates);
-    void typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates);
-    void categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates);
 
 private slots:
-    void descriptionChanged(QString description);
-    void iconChanged(QString iconPath, QString iconName);
+    void on_descriptionChanged(QString description);
+    void on_iconChanged(QString iconPath, QString iconName);
     void loading(bool on);
 
 protected:

@@ -73,7 +73,6 @@ NotificationDialog* NotificationManager::constructPanel()
 {
     NotificationDialog* panel = new NotificationDialog();
     connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
-    //connect(manager(), &NotificationManager::backgroundProcess, panel, &NotificationDialog::backgroundProcess);
     connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
     connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
     connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
@@ -90,7 +89,6 @@ NotificationDialog* NotificationManager::constructPanel()
 NotificationToolbar* NotificationManager::constructToolbar()
 {
     NotificationToolbar* toolbar = new NotificationToolbar();
-    //connect(manager(), &NotificationManager::backgroundProcess, toolbar, &NotificationToolbar::displayLoadingGif);
     connect(manager(), &NotificationManager::notificationAlert, toolbar, &NotificationToolbar::notificationReceived);
     connect(manager(), &NotificationManager::notificationSeen, toolbar, &NotificationToolbar::notificationsSeen);
     connect(manager(), &NotificationManager::updateSeverityCount, toolbar, &NotificationToolbar::updateSeverityCount);
