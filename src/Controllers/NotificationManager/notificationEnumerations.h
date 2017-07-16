@@ -39,18 +39,6 @@ inline uint qHash(NOTIFICATION_FILTER key, uint seed)
 }
 Q_DECLARE_METATYPE(NOTIFICATION_FILTER)
 
-inline uint qHash(NOTIFICATION_TYPE key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(NOTIFICATION_TYPE)
-
-inline uint qHash(NOTIFICATION_CATEGORY key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(NOTIFICATION_CATEGORY)
-
 inline uint qHash(NOTIFICATION_SEVERITY key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);

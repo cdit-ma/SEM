@@ -34,15 +34,6 @@ public:
     static NotificationToolbar* constructToolbar();
     //static PopupWidget* constructPopup();
 
-    QList<NotificationObject*> getNotificationItems();
-
-    QList<int> getNotificationsOfType(NOTIFICATION_TYPE type);
-    QList<int> getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
-    QList<int> getNotificationsOfCategory(NOTIFICATION_CATEGORY category);
-
-    void clearModelNotifications();
-
-public:
     static int displayNotification(QString description,
                                    QString iconPath = "",
                                    QString iconName = "",
@@ -61,6 +52,13 @@ public:
 
     static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity);
     static bool setNotificationLoading(int ID, bool on);
+
+    QList<NotificationObject*> getNotificationItems();
+    QList<int> getNotificationsOfType(NOTIFICATION_TYPE type);
+    QList<int> getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
+    QList<int> getNotificationsOfCategory(NOTIFICATION_CATEGORY category);
+
+    void clearModelNotifications();
 
 signals:
     void notificationAlert();

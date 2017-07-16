@@ -38,10 +38,10 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     }
 
     connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
-    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
-    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
-    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
-    themeChanged();
+    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::on_descriptionChanged);
+    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::on_iconChanged);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::on_themeChanged);
+    on_themeChanged();
 }
 
 
@@ -131,9 +131,9 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
 
 
 /**
- * @brief NotificationItem::themeChanged
+ * @brief NotificationItem::on_themeChanged
  */
-void NotificationItem::themeChanged()
+void NotificationItem::on_themeChanged()
 {
     Theme* theme = Theme::theme();
     if (selected) {
@@ -142,15 +142,15 @@ void NotificationItem::themeChanged()
         backgroundColor = theme->getBackgroundColorHex();
     }
     updateStyleSheet();
-    iconChanged(getIconPath(), getIconName());
+    on_iconChanged(getIconPath(), getIconName());
 }
 
 
 /**
- * @brief NotificationItem::descriptionChanged
+ * @brief NotificationItem::on_descriptionChanged
  * @param description
  */
-void NotificationItem::descriptionChanged(QString description)
+void NotificationItem::on_descriptionChanged(QString description)
 {
     if (description.isEmpty()) {
         description = "...";
@@ -160,11 +160,11 @@ void NotificationItem::descriptionChanged(QString description)
 
 
 /**
- * @brief NotificationItem::iconChanged
+ * @brief NotificationItem::on_iconChanged
  * @param iconPath
  * @param iconName
  */
-void NotificationItem::iconChanged(QString iconPath, QString iconName)
+void NotificationItem::on_iconChanged(QString iconPath, QString iconName)
 {
     _iconPath = iconPath;
     _iconName = iconName;
@@ -220,53 +220,59 @@ void NotificationItem::showItem()
 
 
 /**
- * @brief NotificationItem::filterCleared
+ * @brief NotificationItem::on_filterCleared
  * This is called when a filter group has been cleared.
  * This means that none of the filters in that group is checked; hence, set that filter to visible.
  * @param filter
  */
-void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
+void NotificationItem::on_filterCleared(NOTIFICATION_FILTER filter)
 {
     updateVisibility(filter, true);
 }
 
 
 /**
- * @brief NotificationItem::severityFilterToggled
- * This is called when the checked filter(s) from the SEVERITY filter group has changed.
+ * @brief NotificationItem::on_filtersChanged
+ * This is called when the checked filters have changed.
  * It updates this item's visibility based on that change.
- * @param checkedStates
+ * @param filter
+ * @param checkedKeys
  */
-void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
+void NotificationItem::on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys)
 {
-    bool visible = checkedStates.value(getSeverity(), false);
-    updateVisibility(NOTIFICATION_FILTER::SEVERITY, visible);
-}
+    bool visible = false;
 
+    switch (filter) {
+    case NOTIFICATION_FILTER::SEVERITY:
+    {
+        int sInt = static_cast<int>(getSeverity());
+        if (checkedKeys.contains(sInt)) {
+            visible = true;
+        }
+        break;
+    }
+    case NOTIFICATION_FILTER::CATEGORY:
+    {
+        int cInt = static_cast<int>(getCategory());
+        if (checkedKeys.contains(cInt)) {
+            visible = true;
+        }
+        break;
+    }
+    case NOTIFICATION_FILTER::TYPE:
+    {
+        int tInt = static_cast<int>(getType());
+        if (checkedKeys.contains(tInt)) {
+            visible = true;
+        }
+        break;
+    }
+    default:
+        visible = true;
+        break;
+    }
 
-/**
- * @brief NotificationItem::typeFilterToggled
- * This is called when the checked filter(s) from the TYPE filter group has changed.
- * It updates this item's visibility based on that change.
- * @param checkedStates
- */
-void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE, bool> checkedStates)
-{
-    bool visible = checkedStates.value(getType(), false);
-    updateVisibility(NOTIFICATION_FILTER::TYPE, visible);
-}
-
-
-/**
- * @brief NotificationItem::categoryFilterToggled
- * This is called when the checked filter(s) from the CATEGORY filter group has changed.
- * It updates this item's visibility based on that change.
- * @param checkedStates
- */
-void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
-{
-    bool visible = checkedStates.value(getCategory(), false);
-    updateVisibility(NOTIFICATION_FILTER::CATEGORY, visible);
+    updateVisibility(filter, visible);
 }
 
 

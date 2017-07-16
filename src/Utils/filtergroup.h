@@ -7,6 +7,23 @@
 #include <QToolBar>
 #include <QGroupBox>
 #include <QLayout>
+#include <QBuffer>
+
+
+/*
+ * QVariantHasher Class
+ * This class allows QVariants to be hashed.
+ */
+class QVariantHasher {
+  public:
+    QVariantHasher();
+    uint hash(const QVariant & v);
+  private:
+    QByteArray bb;
+    QBuffer buff;
+    QDataStream ds;
+};
+
 
 class FilterGroup : public QObject
 {
@@ -19,20 +36,22 @@ public:
 
     void setExclusive(bool exclusive);
     void setResetButtonVisible(bool visible);
-    void addToFilterGroup(QString key, QAbstractButton* filterButton);
+    void setResetButtonKey(QVariant key);
+    void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
 
 signals:
-    void filtersChanged(QStringList keys);
-    void resetFilterGroup();
+    void filtersChanged(QList<QVariant> checkedKeys);
+    void filtersCleared();
 
 public slots:
-    void themeChanged();
-    void filterTriggered();
+    void on_themeChanged();
+    void on_filterTriggered();
+
     void updateResetButtonVisibility();
 
 private:
     void setupResetButton();
-    void addToGroupBox(QAbstractButton* button);
+    QAction* addToGroupBox(QAbstractButton* button);
 
     void clearFilters();
     void updateFilterCheckedCount();
@@ -41,13 +60,17 @@ private:
     QGroupBox* filterGroupBox;
     QToolBar* filterToolbar;
 
-    QToolButton* resetFilterButton;
+    QToolButton* resetButton;
     QAction* resetAction;
+    QVariant resetKey;
     bool showResetButton;
 
-    QStringList checkedKeys;
     QString filterGroup;
     bool exclusive;
+
+    QHash<uint, QAbstractButton*> filterButtons;
+    QList<QVariant> checkedKeys;
+    QVariantHasher variantHasher;
 
 };
 
