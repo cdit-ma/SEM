@@ -1,7 +1,5 @@
 #include "notificationdialog.h"
 #include "notificationitem.h"
-#include "../../theme.h"
-#include "../../Utils/filtergroup.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -103,17 +101,11 @@ void NotificationDialog::on_themeChanged()
 
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
-    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
-                                  "QToolBar::separator {"
-                                  "margin: 2px 0px;"
-                                  "height: 4px;"
-                                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
-                                  "}"
-                                  "QToolButton {"
-                                  "padding: 5px 10px 5px 3px;"
-                                  "border-radius:" + theme->getSharpCornerRadius() + ";"
-                                  "}");
+    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet()
+                                  + "QToolBar{ padding: 0px; spacing: 0px; }"
+                                  + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
+    resetFiltersAction->setIcon(theme->getIcon("Icons", "cross"));
     sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
     sortSeverityAction->setIcon(theme->getIcon("Icons", "letterAZ"));
     centerOnAction->setIcon(theme->getIcon("Icons", "crosshair"));
@@ -441,6 +433,11 @@ void NotificationDialog::setupLayout()
     topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(20,20));
 
+    // construct reset/clear filters button
+    resetFiltersAction = topToolbar->addAction("Clear Filters");
+    resetFiltersAction->setToolTip("Clear All Filters");
+    resetFiltersAction->setVisible(false);
+
     QWidget* stretchWidget = new QWidget(this);
     stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
     stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -515,7 +512,11 @@ void NotificationDialog::setupLayout()
     filtersToolbar->setOrientation(Qt::Vertical);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    filtersToolbar->setIconSize(QSize(18,18));
+
+    // add a little padding at the top of the filters toolbar
+    QWidget* spacerWidget = new QWidget(this);
+    spacerWidget->setFixedHeight(7);
+    filtersToolbar->addWidget(spacerWidget);
 
     QScrollArea* filtersArea = new QScrollArea(this);
     filtersArea->setWidget(filtersToolbar);
@@ -615,6 +616,11 @@ void NotificationDialog::setupFilterGroups()
     connect(categoryGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
     connect(typeGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
 
+    // connect reset filters button to all the filter groups
+    connect(resetFiltersAction, &QAction::triggered, severityGroup, &FilterGroup::resetFilters);
+    connect(resetFiltersAction, &QAction::triggered, categoryGroup, &FilterGroup::resetFilters);
+    connect(resetFiltersAction, &QAction::triggered, typeGroup, &FilterGroup::resetFilters);
+
     // add filters to the toolbar
     filtersToolbar->addWidget(severityGroup->constructFilterGroupBox());
     filtersToolbar->addWidget(categoryGroup->constructFilterGroupBox());
@@ -635,7 +641,7 @@ void NotificationDialog::setupFilterGroups()
  * @param iconName
  * @return
  */
-QAbstractButton* NotificationDialog::constructFilterButton(QString label, QString iconPath, QString iconName)
+QToolButton* NotificationDialog::constructFilterButton(QString label, QString iconPath, QString iconName)
 {
     // set default icon
     if (iconPath.isEmpty() || iconName.isEmpty()) {

@@ -86,13 +86,13 @@ public slots:
 
 private:
     int addNotification(QString description,
-                         QString iconPath,
-                         QString iconName,
-                         int entityID,
-                         NOTIFICATION_SEVERITY s,
-                         NOTIFICATION_TYPE t,
-                         NOTIFICATION_CATEGORY c,
-                         bool toast = true);
+                        QString iconPath,
+                        QString iconName,
+                        int entityID,
+                        NOTIFICATION_SEVERITY s,
+                        NOTIFICATION_TYPE t,
+                        NOTIFICATION_CATEGORY c,
+                        bool toast = true);
 
     void updateSeverityCountHash(NOTIFICATION_SEVERITY severity, bool increment);
 

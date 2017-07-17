@@ -11,7 +11,9 @@
 #include <QActionGroup>
 #include <QSplitter>
 
+#include "../../theme.h"
 #include "../../Controllers/ViewController/viewitem.h"
+#include "../../Utils/filtergroup.h"
 #include "searchitemwidget.h"
 
 class SearchDialog : public QWidget
@@ -48,6 +50,7 @@ public slots:
 private:
     void updateKeyButtonIcons();
     void setupLayout();
+    void setupFilterGroups();
     void clear();
 
     SearchItemWidget* constructSearchItem(ViewItem* item);

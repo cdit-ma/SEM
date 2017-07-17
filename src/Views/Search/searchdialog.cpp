@@ -1,5 +1,4 @@
 #include "searchdialog.h"
-#include "../../theme.h"
 
 #include <QDateTime>
 #include <QDebug>
@@ -184,10 +183,9 @@ void SearchDialog::resetPanel()
  */
 void SearchDialog::updateKeyButtonIcons()
 {
-    //QIcon icon = Theme::theme()->getIcon("Actions", "Transparent_Square");
-    QPixmap pixmap = Theme::theme()->getImage("Actions", "blank", QSize(1,1));
+    QPixmap pixmap = Theme::theme()->getImage("Icons", "blank", QSize(1,1));
 
-    // added an tiny icon to left-align the tool button's text
+    // added a tiny icon to left-align the tool button's text
     foreach (QAction* action, staticKeysActionGroup->actions()) {
         QToolButton* button = (QToolButton*) keysToolbar->widgetForAction(action);
         button->setIcon(pixmap);

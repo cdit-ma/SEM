@@ -7,6 +7,7 @@
 #define FILTER_GROUP "filterGroup"
 #define FILTER_RESET_KEY "All"
 #define DEFAULT_CHECKED_STATE true
+#define ICON_SIZE 30
 
 /**
  * @brief FilterGroup::FilterGroup
@@ -58,8 +59,9 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
     filterToolbar = new QToolBar();
     filterToolbar->setOrientation(orientation);
     filterToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+    filterToolbar->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
 
-    foreach (QAbstractButton* button, filterButtons.values()) {
+    foreach (QAbstractButton* button, filterButtonsHash.values()) {
         addToGroupBox(button);
     }
 
@@ -69,12 +71,12 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
 
     QLayout* layout = new QVBoxLayout(filterGroupBox);
     layout->setMargin(0);
-    layout->setContentsMargins(0,10,0,0);
+    layout->setContentsMargins(0,10,0,7);
     layout->addWidget(filterToolbar);
 
     connect(filterGroupBox, SIGNAL(toggled(bool)), filterToolbar, SLOT(setVisible(bool)));
-    connect(Theme::theme(), &Theme::theme_Changed, this, &FilterGroup::on_themeChanged);
-    on_themeChanged();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &FilterGroup::themeChanged);
+    themeChanged();
 
     return filterGroupBox;
 }
@@ -110,11 +112,10 @@ void FilterGroup::setResetButtonVisible(bool visible)
 void FilterGroup::setResetButtonKey(QVariant key)
 {
     // remove reset button from hash
-    filterButtons.remove(variantHasher.hash(resetKey));
+    filterButtonsHash.remove(key);
 
     // re-store reset button with the new key
-    uint variantKey = variantHasher.hash(key);
-    filterButtons[variantKey] = resetButton;
+    filterButtonsHash[key] = resetButton;
 
     // update reset button's filter key property
     resetKey = key;
@@ -129,21 +130,19 @@ void FilterGroup::setResetButtonKey(QVariant key)
  */
 void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
 {
-    uint variantKey = variantHasher.hash(key);
-
-    if (filterButtons.contains(variantKey)) {
+    if (filterButtonsHash.contains(key)) {
         qWarning() << "FilterGroup::addToFilterGroup - A filter with key [" << key.toString() << "] already exists.";
         return;
     }
 
     if (filterButton) {
 
-        filterButtons[variantKey] = filterButton;
+        filterButtonsHash[key] = filterButton;
         filterButton->setProperty(FILTER_KEY, key);
         filterButton->setProperty(FILTER_GROUP, filterGroup);
         filterButton->setCheckable(true);
         filterButton->setChecked(false);
-        connect(filterButton, SIGNAL(clicked(bool)), this, SLOT(on_filterTriggered()));
+        connect(filterButton, SIGNAL(clicked(bool)), this, SLOT(filterTriggered()));
 
         // initially have the reset ("All") button checked
         if (filterButton == resetButton) {
@@ -157,15 +156,15 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
 
 
 /**
- * @brief FilterGroup::on_themeChanged
+ * @brief FilterGroup::themeChanged
  */
-void FilterGroup::on_themeChanged()
+void FilterGroup::themeChanged()
 {
     Theme* theme = Theme::theme();
 
     if (filterGroupBox) {
-        filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 16px; border: none; border-top: 4px solid " + theme->getAltBackgroundColorHex() + ";}"
-                                      "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; margin-top: 10px; padding: -2px 6px 2px -16px; }"
+        filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 5px; border: none; border-top: 4px solid " + theme->getAltBackgroundColorHex() + ";}"
+                                      "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; margin-top: 0px; padding: -2px 6px 2px -16px; }"
                                       "QGroupBox::title::hover{ color:" + theme->getHighlightColorHex() + ";}"
                                       "QGroupBox::indicator:checked{ image: none; }"
                                       "QGroupBox::indicator:unchecked{ image: none; }"
@@ -174,11 +173,14 @@ void FilterGroup::on_themeChanged()
                                       "QGroupBox::indicator:checked{ image: url(:/Icons/arrowHeadDown); }"
                                       "QGroupBox::indicator:unchecked{ image: url(:/Icons/arrowHeadUp); }"
                                       */
-                                      + theme->getToolBarStyleSheet() +
-                                      "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+                                      );
     }
 
-    foreach (QAbstractButton* button, filterButtons.values()) {
+    if (filterToolbar) {
+        filterToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+    }
+
+    foreach (QAbstractButton* button, filterButtonsHash.values()) {
         QString iconPath = button->property("iconPath").toString();
         QString iconName = button->property("iconName").toString();
         button->setIcon(theme->getIcon(iconPath, iconName));
@@ -187,9 +189,9 @@ void FilterGroup::on_themeChanged()
 
 
 /**
- * @brief FilterGroup::on_filterTriggered
+ * @brief FilterGroup::filterTriggered
  */
-void FilterGroup::on_filterTriggered()
+void FilterGroup::filterTriggered()
 {
     QAbstractButton* button = qobject_cast<QAbstractButton*>(sender());
     if (button) {
@@ -243,6 +245,24 @@ void FilterGroup::on_filterTriggered()
             emit filtersChanged(checkedKeys);
         }
     }
+}
+
+
+/**
+ * @brief FilterGroup::resetFilters
+ */
+void FilterGroup::resetFilters()
+{
+    // clear the filter then re-check the "All" button
+    clearFilters();
+    if (resetButton) {
+        resetButton->setChecked(true);
+    }
+
+    // update the checked count and send signals that the filters have changed
+    updateFilterCheckedCount();
+    emit filtersCleared();
+    emit filtersChanged(checkedKeys);
 }
 
 
@@ -312,8 +332,7 @@ QAction* FilterGroup::addToGroupBox(QAbstractButton* button)
 void FilterGroup::clearFilters()
 {
     foreach (QVariant key, checkedKeys) {
-        uint variantKey = variantHasher.hash(key);
-        QAbstractButton* button = filterButtons.value(variantKey, 0);
+        QAbstractButton* button = filterButtonsHash.value(key, 0);
         if (button) {
             button->setChecked(false);
         }
@@ -330,32 +349,10 @@ void FilterGroup::clearFilters()
 void FilterGroup::updateFilterCheckedCount()
 {
     if (filterGroupBox) {
-        if (resetButton->isChecked()) {
-            filterGroupBox->setTitle(filterGroup);
-        } else {
-            filterGroupBox->setTitle(filterGroup + " (" + QString::number(checkedKeys.count()) + ")");
+        QString newTitle = filterGroup;
+        if (!resetButton->isChecked()) {
+            newTitle = filterGroup + " (" + QString::number(checkedKeys.count()) + ")";
         }
+        filterGroupBox->setTitle(newTitle);
     }
 }
-
-
-/**
- * @brief QVariantHasher::QVariantHasher
- */
-QVariantHasher::QVariantHasher() : buff(&bb), ds(&buff) {
-    bb.reserve(1000);
-    buff.open(QIODevice::WriteOnly);
-}
-
-
-/**
- * @brief QVariantHasher::hash
- * @param v
- * @return
- */
-uint QVariantHasher::hash(const QVariant & v) {
-    buff.seek(0);
-    ds << v;
-    return qHashBits(bb.constData(), buff.pos());
-}
-
