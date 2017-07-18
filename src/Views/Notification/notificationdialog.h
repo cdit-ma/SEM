@@ -13,11 +13,12 @@
 #include <QLabel>
 #include <QTimer>
 
+#include "../../theme.h"
 #include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationEnumerations.h"
 #include "../../Utils/actiongroup.h"
-#include "notificationobject.h"
+#include "../../Utils/filtergroup.h"
 
 class NotificationItem;
 class NotificationDialog : public QWidget
@@ -65,7 +66,7 @@ private:
     void setupLayout();
     void setupFilterGroups();
 
-    QAbstractButton* constructFilterButton(QString label = "", QString iconPath = "", QString iconName = "");
+    QToolButton* constructFilterButton(QString label = "", QString iconPath = "", QString iconName = "");
 
     void removeItem(NotificationItem* item);
 
@@ -82,14 +83,14 @@ private:
     QToolBar* bottomToolbar;
     QSplitter* displaySplitter;
 
+    QVBoxLayout* itemsLayout;
+
     QLabel* infoLabel;
     QAction* infoAction;
     QTimer* blinkTimer;
     int intervalTime;
 
-    QVBoxLayout* itemsLayout;
-
-    QAction* allAction;
+    QAction* resetFiltersAction;
     QAction* sortTimeAction;
     QAction* sortSeverityAction;
     QAction* centerOnAction;

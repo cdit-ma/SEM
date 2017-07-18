@@ -9,22 +9,6 @@
 #include <QLayout>
 #include <QBuffer>
 
-
-/*
- * QVariantHasher Class
- * This class allows QVariants to be hashed.
- */
-class QVariantHasher {
-  public:
-    QVariantHasher();
-    uint hash(const QVariant & v);
-  private:
-    QByteArray bb;
-    QBuffer buff;
-    QDataStream ds;
-};
-
-
 class FilterGroup : public QObject
 {
     Q_OBJECT
@@ -44,10 +28,13 @@ signals:
     void filtersCleared();
 
 public slots:
-    void on_themeChanged();
-    void on_filterTriggered();
+    void themeChanged();
+    void resetFilters();
 
     void updateResetButtonVisibility();
+
+private slots:
+    void filterTriggered();
 
 private:
     void setupResetButton();
@@ -68,10 +55,15 @@ private:
     QString filterGroup;
     bool exclusive;
 
-    QHash<uint, QAbstractButton*> filterButtons;
+    QHash<QVariant, QAbstractButton*> filterButtonsHash;
     QList<QVariant> checkedKeys;
-    QVariantHasher variantHasher;
 
 };
+
+inline uint qHash(QVariant key, uint seed)
+{
+    return ::qHash(key.toUInt(), seed);
+}
+Q_DECLARE_METATYPE(QVariant)
 
 #endif // FILTERGROUP_H

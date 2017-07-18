@@ -32,6 +32,7 @@ QString Aggregate::getType()
     QString agg_namespace = getDataValue("namespace").toString();
     QString agg_label = getDataValue("label").toString();
     return agg_namespace + "::" + agg_label;
+    //return agg_namespace + "::" + agg_label;
 }
 
 void Aggregate::updateType(int ID, QString keyName)

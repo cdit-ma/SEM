@@ -711,7 +711,6 @@ QString Theme::getToolBarStyleSheet()
 
            "QToolButton {"
            "padding: 2px;"
-           //"padding: 3px;"
            "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
