@@ -3,8 +3,13 @@
 #include <QDateTime>
 #include <QDebug>
 
+#define FILTER_ASPECTS_KEY "Aspects"
+#define FILTER_DATA_KEY "Data"
+#define FILTER_RESET_KEY "All"
+
 #define DEFAULT_KEY_WIDTH 135
 #define DEFAULT_DISPLAY_WIDTH 215
+
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -30,6 +35,30 @@ SearchDialog::SearchDialog(QWidget *parent)
 void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results)
 {
     queryLabel->setText("\"" + query + "\"");
+    clearSearchItems();
+
+    bool hasResults = !results.isEmpty();
+    infoLabel->setVisible(!hasResults);
+    setFiltersVisible(hasResults);
+
+    if (!hasResults) {
+        return;
+    }
+
+    // update the data filter buttons
+    QStringList keys = results.uniqueKeys();
+    updateDataFilters(keys);
+
+    foreach (QString key, keys) {
+        QList<ViewItem*> viewItems = results.values(key);
+        foreach (ViewItem* item, viewItems) {
+            SearchItemWidget* searchItem = constructSearchItem(item);
+            searchItem->addDisplayKey(key);
+        }
+    }
+
+    /*
+    queryLabel->setText("\"" + query + "\"");
 
     // clear previous key actions and search result items
     clear();
@@ -53,6 +82,7 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
     // update the keys toolbar/buttons's size
     keysToolbar->setMinimumHeight(keysToolbar->sizeHint().height() + 10);
     updateKeyButtonIcons();
+    */
 }
 
 
@@ -100,6 +130,24 @@ void SearchDialog::themeChanged()
     infoLabel->setStyleSheet(labelStyle);
     searchLabel->setStyleSheet(labelStyle);
     queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+}
+
+
+/**
+ * @brief SearchDialog::on_filtersChanged
+ * @param checkedKeys
+ */
+void SearchDialog::on_filtersChanged(QList<QVariant> checkedKeys)
+{
+    FilterGroup* filterGroup = qobject_cast<FilterGroup*>(sender());
+    if (filterGroup) {
+        QVariant filter = filterGroup->getFilterGroupKey();
+        if (checkedKeys.contains(FILTER_RESET_KEY)) {
+            emit filterCleared(filter);
+        } else {
+            emit filtersChanged(filter, checkedKeys);
+        }
+    }
 }
 
 
@@ -335,6 +383,79 @@ void SearchDialog::setupLayout()
     connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupSelectedItem()));
     connect(searchButton, &QToolButton::clicked, this, &SearchDialog::searchButtonClicked);
     connect(refreshButton, &QToolButton::clicked, this, &SearchDialog::refreshButtonClicked);
+
+    setupFilterGroups();
+}
+
+
+/**
+ * @brief SearchDialog::setupFilterGroups
+ */
+void SearchDialog::setupFilterGroups()
+{
+    aspectFilterGroup = new FilterGroup("ASPECT", FILTER_ASPECTS_KEY, this);
+    aspectFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
+    foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
+        aspectFilterGroup->addFilterToolButton(static_cast<int>(aspect), GET_ASPECT_NAME(aspect), "EntityIcons", GET_ASPECT_ICON(aspect));
+    }
+
+    dataFilterGroup = new FilterGroup("DATA", FILTER_DATA_KEY, this);
+    dataFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
+
+    connect(aspectFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
+    connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
+
+    keysToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
+    keysToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
+}
+
+
+/**
+ * @brief SearchDialog::updateDataFilters
+ * @param newDataKeys
+ */
+void SearchDialog::updateDataFilters(QStringList newDataKeys)
+{
+    QList<QVariant> currentKeys = dataFilterGroup->getFilterKeys();
+    // remove filters that no longer match any search items
+    foreach (QVariant key, currentKeys) {
+        if (!newDataKeys.contains(key.toString())) {
+            dataFilterGroup->removeFilter(key);
+        }
+    }
+    // add filters for the new data keys
+    foreach (QString key, newDataKeys) {
+        if (!currentKeys.contains(key)) {
+            dataFilterGroup->addFilterToolButton(key, key, "Icons", "circleHalo");
+        }
+    }
+}
+
+
+/**
+ * @brief SearchDialog::clearSearchItems
+ */
+void SearchDialog::clearSearchItems()
+{
+    QList<SearchItemWidget*> widgets = searchItems.values();
+    while (!widgets.isEmpty()) {
+        SearchItemWidget* widget = widgets.takeFirst();
+        resultsLayout->removeWidget(widget);
+        delete widget;
+    }
+    searchItems.clear();
+}
+
+
+/**
+ * @brief SearchDialog::setFiltersVisible
+ * @param visible
+ */
+void SearchDialog::setFiltersVisible(bool visible)
+{
+    keysToolbar->setVisible(visible);
+    //aspectFilterGroup->setVisible(visible);
+    //dataFilterGroup->setVisible(visible);
 }
 
 
@@ -378,17 +499,30 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
     }
 
     SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
+    itemWidget->setAspectFilterKey(FILTER_ASPECTS_KEY);
+    itemWidget->setDataFilterKey(FILTER_DATA_KEY);
     resultsLayout->addWidget(itemWidget);
     searchItems.insert(ID, itemWidget);
 
     if (item) {
         connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
-        connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
         connect(itemWidget, SIGNAL(itemSelected(int)), this, SLOT(searchItemSelected(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
+        connect(this, &SearchDialog::filterCleared, itemWidget, &SearchItemWidget::filterCleared);
+        connect(this, &SearchDialog::filtersChanged, itemWidget, &SearchItemWidget::filtersChanged);
     }
 
+    // update the search item's visibility based on the currently checked filters
+    QList<QVariant> checkedAspects = aspectFilterGroup->getCheckedFilterKeys();
+    if (!checkedAspects.contains(FILTER_RESET_KEY)) {
+        qDebug() << "HERE - " << checkedAspects;
+        itemWidget->filtersChanged(FILTER_ASPECTS_KEY, checkedAspects);
+    }
+    QList<QVariant> checkedData = dataFilterGroup->getCheckedFilterKeys();
+    if (!checkedData.contains(FILTER_RESET_KEY)) {
+        itemWidget->filtersChanged(FILTER_DATA_KEY, checkedData);
+    }
     return itemWidget;
 }
 

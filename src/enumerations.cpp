@@ -397,3 +397,19 @@ RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
     }
     return RV_NONE;
 }
+
+QString GET_ASPECT_ICON(VIEW_ASPECT aspect)
+{
+    switch(aspect){
+    case VIEW_ASPECT::INTERFACES:
+        return "InterfaceDefinitions";
+    case VIEW_ASPECT::BEHAVIOUR:
+        return "BehaviourDefinitions";
+    case VIEW_ASPECT::ASSEMBLIES:
+        return "AssemblyDefinitions";
+    case VIEW_ASPECT::HARDWARE:
+        return "HardwareDefinitions";
+    default:
+        return "";
+    }
+}

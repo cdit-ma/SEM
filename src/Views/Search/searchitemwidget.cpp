@@ -5,6 +5,9 @@
 #define ICON_SIZE 32
 #define MARGIN 5
 
+#define ASPECT_FILTER "Aspect"
+#define DATA_FILTER "Data"
+
 /**
  * @brief SearchItemWidget::SearchItemWidget
  * @param item
@@ -15,6 +18,11 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
 {
     viewItem = item;
     viewItemID = -1;
+
+    if (viewItem->isNode()) {
+        NodeViewItem* nvi = (NodeViewItem*)viewItem;
+        viewAspect = nvi->getViewAspect();
+    }
 
     keyWidgetsConstructed = false;
     doubleClicked = false;
@@ -40,6 +48,10 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
         displayWidget = 0;
         layout->addWidget(textLabel);
     }
+
+    // this item is visible by default - initialise all filter visibility to true
+    //filterVisibility[ASPECT_FILTER] = true;
+    //filterVisibility[DATA_FILTER] = true;
 
     setSelected(false);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -77,6 +89,41 @@ void SearchItemWidget::addDisplayKey(QString key)
 void SearchItemWidget::setDisplayKeys(QList<QString> keys)
 {
     this->keys = keys;
+}
+
+
+/**
+ * @brief SearchItemWidget::setAspectFilterKey
+ * @param key
+ */
+void SearchItemWidget::setAspectFilterKey(QVariant key)
+{
+    aspectFilterKey = key;
+    filterVisibility[key.toString()] = true;
+}
+
+
+/**
+ * @brief SearchItemWidget::setDataFilterKey
+ * @param key
+ */
+void SearchItemWidget::setDataFilterKey(QVariant key)
+{
+    dataFilterKey = key;
+    filterVisibility[key.toString()] = true;
+}
+
+
+/**
+ * @brief SearchItemWidget::setFilterKeys
+ * @param keys
+ */
+void SearchItemWidget::setFilterKeys(QList<QVariant> keys)
+{
+    // this item is visible by default - initialise all filter visibility to true
+    foreach (QVariant key, keys) {
+        filterVisibility[key.toString()] = true;
+    }
 }
 
 
@@ -178,6 +225,40 @@ void SearchItemWidget::toggleKeyWidget(QString key)
         }
     }
     setVisible(true);
+}
+
+
+/**
+ * @brief SearchItemWidget::filterCleared
+ * @param filter
+ */
+void SearchItemWidget::filterCleared(QVariant filter)
+{
+    updateVisibility(filter, true);
+}
+
+
+/**
+ * @brief SearchItemWidget::filtersChanged
+ * @param filter
+ * @param checkedKeys
+ */
+void SearchItemWidget::filtersChanged(QVariant filter, QList<QVariant> checkedKeys)
+{
+    bool visible = true;
+    if (filter == aspectFilterKey) {
+        int aspectInt = static_cast<int>(viewAspect);
+        qDebug() << "INT - " << aspectInt;
+        visible = checkedKeys.contains(aspectInt);
+    } else if (filter == dataFilterKey) {
+        foreach (QVariant key, checkedKeys) {
+            if (!keys.contains(key.toString())) {
+                visible = false;
+                break;
+            }
+        }
+    }
+    updateVisibility(filter, visible);
 }
 
 
@@ -339,5 +420,36 @@ void SearchItemWidget::updateStyleSheet()
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
+}
+
+
+/**
+ * @brief SearchItemWidget::updateVisibility
+ * @param filter
+ * @param visible
+ */
+void SearchItemWidget::updateVisibility(QVariant filter, bool visible)
+{
+    if (!filterVisibility.contains(filter.toString())) {
+        return;
+    }
+
+    filterVisibility[filter.toString()] = visible;
+    if (isVisible() != visible) {
+        bool allVisible = true;
+        foreach (bool visible, filterVisibility.values()) {
+            if (!visible) {
+                allVisible = false;
+                break;
+            }
+        }
+        if (isVisible() != allVisible) {
+            setVisible(allVisible);
+            // de-select this item if it is hidden
+            if (!allVisible && selected) {
+                setSelected(false);
+            }
+        }
+    }
 }
 

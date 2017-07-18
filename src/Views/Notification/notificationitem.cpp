@@ -240,35 +240,28 @@ void NotificationItem::on_filterCleared(NOTIFICATION_FILTER filter)
  */
 void NotificationItem::on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys)
 {
-    bool visible = false;
+    bool visible = true;
 
     switch (filter) {
     case NOTIFICATION_FILTER::SEVERITY:
     {
         int sInt = static_cast<int>(getSeverity());
-        if (checkedKeys.contains(sInt)) {
-            visible = true;
-        }
+        visible = checkedKeys.contains(sInt);
         break;
     }
     case NOTIFICATION_FILTER::CATEGORY:
     {
         int cInt = static_cast<int>(getCategory());
-        if (checkedKeys.contains(cInt)) {
-            visible = true;
-        }
+        visible = checkedKeys.contains(cInt);
         break;
     }
     case NOTIFICATION_FILTER::TYPE:
     {
         int tInt = static_cast<int>(getType());
-        if (checkedKeys.contains(tInt)) {
-            visible = true;
-        }
+        visible = checkedKeys.contains(tInt);
         break;
     }
     default:
-        visible = true;
         break;
     }
 

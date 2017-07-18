@@ -66,8 +66,6 @@ private:
     void setupLayout();
     void setupFilterGroups();
 
-    QToolButton* constructFilterButton(QString label = "", QString iconPath = "", QString iconName = "");
-
     void removeItem(NotificationItem* item);
 
     void clearAll();

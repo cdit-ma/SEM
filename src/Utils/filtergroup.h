@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QAbstractButton>
+#include <QPushButton>
 #include <QToolButton>
 #include <QToolBar>
 #include <QGroupBox>
@@ -13,15 +14,27 @@ class FilterGroup : public QObject
 {
     Q_OBJECT
 public:
-    explicit FilterGroup(QString group, QObject *parent = 0);
+    explicit FilterGroup(QString title, QVariant groupKey = QVariant(), QObject *parent = 0);
 
-    QString getFilterGroup();
     QGroupBox* constructFilterGroupBox(Qt::Orientation orientation = Qt::Vertical);
+    QVariant getFilterGroupKey();
+    QVariant getResetKey();
+
+    QList<QVariant> getFilterKeys();
+    QList<QVariant> getCheckedFilterKeys();
 
     void setExclusive(bool exclusive);
+    void setVisible(bool visible);
+
     void setResetButtonVisible(bool visible);
+    void setResetButtonText(QString text);
     void setResetButtonKey(QVariant key);
+
+    void addFilterToolButton(QVariant key, QString label, QString iconPath, QString iconName);
+    void addFilterPushButton(QVariant key, QString label, QString iconPath, QString iconName);
     void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
+
+    void removeFilter(QVariant key);
 
 signals:
     void filtersChanged(QList<QVariant> checkedKeys);
@@ -38,12 +51,13 @@ private slots:
 
 private:
     void setupResetButton();
+
+    void addFilterButton(QAbstractButton *button, QVariant key, QString label, QString iconPath, QString iconName);
     QAction* addToGroupBox(QAbstractButton* button);
 
     void clearFilters();
     void updateFilterCheckedCount();
 
-    QHash<QString, QAbstractButton*> filters;
     QGroupBox* filterGroupBox;
     QToolBar* filterToolbar;
 
@@ -52,7 +66,8 @@ private:
     QVariant resetKey;
     bool showResetButton;
 
-    QString filterGroup;
+    QVariant filterGroupKey;
+    QString filterGroupTitle;
     bool exclusive;
 
     QHash<QVariant, QAbstractButton*> filterButtonsHash;

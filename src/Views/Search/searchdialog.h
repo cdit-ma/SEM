@@ -20,6 +20,7 @@ class SearchDialog : public QWidget
 {
     Q_OBJECT
 public:
+
     explicit SearchDialog(QWidget *parent = 0);
 
     void searchResults(QString query, QMap<QString, ViewItem*> results);
@@ -35,8 +36,12 @@ signals:
     void searchButtonClicked();
     void refreshButtonClicked();
 
+    void filterCleared(QVariant filter);
+    void filtersChanged(QVariant filter, QList<QVariant> checkedKeys);
+
 public slots:
     void themeChanged();
+    void on_filtersChanged(QList<QVariant> checkedKeys);
     void keyButtonChecked(bool checked);
 
     void searchItemSelected(int ID);
@@ -51,6 +56,10 @@ private:
     void updateKeyButtonIcons();
     void setupLayout();
     void setupFilterGroups();
+
+    void updateDataFilters(QStringList newDataKeys);
+    void clearSearchItems();
+    void setFiltersVisible(bool visible);
     void clear();
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
@@ -76,6 +85,9 @@ private:
 
     QActionGroup* staticKeysActionGroup;
     QActionGroup* dynamicKeysActionGroup;
+
+    FilterGroup* aspectFilterGroup;
+    FilterGroup* dataFilterGroup;
 
     QVBoxLayout* resultsLayout;
     QHash<int, SearchItemWidget*> searchItems;
