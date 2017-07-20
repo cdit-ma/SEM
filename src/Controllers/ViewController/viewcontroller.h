@@ -91,7 +91,9 @@ signals:
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
+
     void vc_gotSearchSuggestions(QStringList suggestions);
+    void vc_searchInProgress(bool inProgress);
 
     void vc_ActionFinished();
 

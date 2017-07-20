@@ -118,18 +118,35 @@ void MainWindow::updateSearchSuggestions(QStringList list)
 void MainWindow::searchEntered()
 {
     QString query = searchBar->text();
+
     if (!query.isEmpty()) {
+
+        searchPanel->loading(true);
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchPanel->searchResults(query, viewController->getSearchResults(query));
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        searchPanel->loading(false);
         qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
 
         // make sure that the search panel dock widget is visible and that its window is raised
-        // TODO - Make the search dock widget active
+        QWidget* parentWindow = searchDockWidget->window();
         if (!searchDockWidget->isVisible()) {
-            searchDockWidget->req_Visible(searchDockWidget->getID(), true);
+            // check if its window is minimized
+            if (parentWindow->isMinimized()) {
+                parentWindow->showNormal();
+            }
+            // check if it's not shown
+            if (!searchDockWidget->isVisible()) {
+                searchDockWidget->req_Visible(searchDockWidget->getID(), true);
+            }
         }
+
+        // raise and activate the dock's parent window
+        parentWindow->raise();
         searchDockWidget->activateWindow();
+
+        // raise the dock widget - this brings the dock widget to the front if it's tabbed
+        searchDockWidget->raise();
     }
 }
 
@@ -173,12 +190,10 @@ void MainWindow::toggleNotificationPanel()
     if (notificationDockWidget->isVisible()) {
         if (notificationDockWidget->isActiveWindow()) {
             notificationDockWidget->req_Visible(notificationDockWidget->getID(), false);
-        } else {
-            notificationDockWidget->activateWindow();
+            return;
         }
-    } else {
-        ensureNotificationPanelVisible();
     }
+    ensureNotificationPanelVisible();
 }
 
 
@@ -191,7 +206,9 @@ void MainWindow::ensureNotificationPanelVisible()
     if (!notificationDockWidget->isVisible()) {
         notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
     }
+    notificationDockWidget->window()->raise();
     notificationDockWidget->activateWindow();
+    notificationDockWidget->raise();
 }
 
 
@@ -595,6 +612,10 @@ void MainWindow::setupInnerWindow()
     // This function needs to be called after the code above
     setupMenuCornerWidget();
     setupDockablePanels();
+
+    // resizeDocks({blueWidget, yellowWidget}, {20 , 40}, Qt::Horizontal);
+    //innerWindow->resizeDocks({dwInterfaces, dwBehaviour, searchDockWidget}, {50, 50, 50}, Qt::Horizontal);
+    //innerWindow->resizeDocks({dwInterfaces, dwAssemblies}, {50, 50}, Qt::Vertical);
 }
 
 
@@ -910,7 +931,6 @@ void MainWindow::setupDockablePanels()
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
 
-    //notificationPanel = new NotificationDialog(this);
     notificationPanel = NotificationManager::constructPanel();
     notificationPanel->setParent(this);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
@@ -970,6 +990,7 @@ void MainWindow::setupDockablePanels()
 
     if (viewController) {
         connect(viewController, &ViewController::vc_SetupModelController, searchPanel, &SearchDialog::resetPanel);
+        //connect(viewController, &ViewController::vc_searchInProgress, searchPanel, &SearchDialog::loading);
         connect(searchPanel, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
         connect(searchPanel, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
         connect(searchPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));

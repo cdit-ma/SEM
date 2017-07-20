@@ -18,6 +18,10 @@ SearchDialog::SearchDialog(QWidget *parent)
 {
     selectedSearchItemID = -1;
 
+    loadingGif = new QMovie(this);
+    loadingGif->setFileName(":/Images/Icons/loading");
+    loadingGif->setScaledSize(QSize(16,16));
+
     setupLayout();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(on_themeChanged()));
@@ -32,8 +36,11 @@ SearchDialog::SearchDialog(QWidget *parent)
  */
 void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results)
 {
+    qDebug() << "GOT RESULTS";
+    queryText = query;
+
     // update displayed search string and clear previous search items
-    queryLabel->setText("\"" + query + "\"");
+    //queryLabel->setText("\"" + query + "\"");
     clearSearchItems();
 
     // only show the search filters when there are results
@@ -177,6 +184,24 @@ void SearchDialog::centerOnSelectedItem()
 void SearchDialog::popupSelectedItem()
 {
     emit popupViewItem(selectedSearchItemID);
+}
+
+
+/**
+ * @brief SearchDialog::loading
+ * @param on
+ */
+void SearchDialog::loading(bool on)
+{
+    if (on) {
+        //qDebug() << "HELLO";
+        loadingGif->start();
+        queryLabel->setMovie(loadingGif);
+    } else {
+        loadingGif->stop();
+        queryLabel->setPixmap(QPixmap());
+        queryLabel->setText("\"" + queryText + "\"");
+    }
 }
 
 

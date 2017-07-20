@@ -203,6 +203,8 @@ QStringList ViewController::_getSearchSuggestions()
 
 QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
+    emit vc_searchInProgress(true);
+
     QMap<QString, ViewItem*> results;
 
     foreach(ViewItem* item, viewItems.values()){
@@ -220,7 +222,8 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
                 }
             }
         }
-    }
+    }    
+    emit vc_searchInProgress(false);
     return results;
 }
 

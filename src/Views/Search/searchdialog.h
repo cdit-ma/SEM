@@ -7,6 +7,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QSplitter>
+#include <QMovie>
 
 #include "../../theme.h"
 #include "../../Controllers/ViewController/viewitem.h"
@@ -47,6 +48,7 @@ public slots:
     void centerOnSelectedItem();
     void popupSelectedItem();
 
+    void loading(bool on);
     void resetPanel();
 
 private:
@@ -63,6 +65,8 @@ private:
     QLabel* searchLabel;
     QLabel* scopeLabel;
     QLabel* infoLabel;
+
+    QMovie* loadingGif;
 
     QToolButton* centerOnButton;
     QToolButton* popupButton;
@@ -81,6 +85,7 @@ private:
     QHash<int, SearchItemWidget*> searchItems;
 
     int selectedSearchItemID;
+    QString queryText;
 };
 
 #endif // SEARCHDIALOG_H

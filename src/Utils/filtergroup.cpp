@@ -7,7 +7,7 @@
 #define FILTER_GROUP "filterGroup"
 #define FILTER_RESET_KEY "All"
 #define DEFAULT_CHECKED_STATE true
-#define ICON_SIZE 30
+#define ICON_SIZE 24
 
 /*
  * NOTE:    When setting tool button's text or icon, apply it to the button.

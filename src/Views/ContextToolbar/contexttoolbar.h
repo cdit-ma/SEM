@@ -11,7 +11,6 @@
 #include <QAction>
 #include <QWidgetAction>
 #include <QToolButton>
-#include <QSpinBox>
 #include <QRadioButton>
 #include <QVBoxLayout>
 
@@ -43,7 +42,6 @@ private:
     void setupAddChildMenu();
     void setupConnectMenu();
     void setupDisconnectMenu();
-    void setupReplicateCountMenu();
     void setupHardwareViewOptionMenu();
     void setupInstancesMenu();
 
@@ -85,11 +83,8 @@ private:
     QAction* definitionAction;
     QAction* implementationAction;
     //QAction* instancesAction;
+    QAction* connectionsAction;
     QAction* hardwareViewOptionAction;
-
-    //QAction* replicateCountAction;
-    //QSpinBox* replicateCount;
-    //QToolButton* applyReplicateCountButton;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
