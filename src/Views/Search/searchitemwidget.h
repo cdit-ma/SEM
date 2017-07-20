@@ -19,11 +19,10 @@ public:
     ~SearchItemWidget();
 
     void addDisplayKey(QString key);
-    void setDisplayKeys(QList<QString> keys);
 
-    void setAspectFilterKey(QVariant key);
-    void setDataFilterKey(QVariant key);
-    void setFilterKeys(QList<QVariant> keys);
+    void setAspectFilterKey(int key);
+    void setDataFilterKey(int key);
+    void setFilterKeys(QList<int> keys);
 
     void setSelected(bool selected);
     
@@ -35,10 +34,9 @@ signals:
 public slots:
     void themeChanged();
     void expandButtonToggled(bool checked);
-    void toggleKeyWidget(QString key);
 
-    void filterCleared(QVariant filter);
-    void filtersChanged(QVariant filter, QList<QVariant> checkedKeys);
+    void filterCleared(int filter);
+    void filtersChanged(int filter, QList<QVariant> checkedKeys);
     
 protected:
     void mouseReleaseEvent(QMouseEvent *);
@@ -49,8 +47,11 @@ protected:
 private:
     void setupLayout(QVBoxLayout* layout);
     void constructKeyWidgets();
+
+    void toggleKeyWidgets(QList<QVariant> checkedKeys);
+
     void updateStyleSheet();
-    void updateVisibility(QVariant filter, bool visible);
+    void updateVisibility(int filter, bool visible);
 
     ViewItem* viewItem;
     int viewItemID;    
@@ -73,8 +74,9 @@ private:
     bool keyWidgetsConstructed;
     bool doubleClicked;
     bool selected;
+    bool visible;
 
-    QHash<QString, bool> filterVisibility;
+    QHash<int, bool> filterVisibility;
     QVariant aspectFilterKey;
     QVariant dataFilterKey;
 

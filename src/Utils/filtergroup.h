@@ -24,7 +24,6 @@ public:
     QList<QVariant> getCheckedFilterKeys();
 
     void setExclusive(bool exclusive);
-    void setVisible(bool visible);
 
     void setResetButtonVisible(bool visible);
     void setResetButtonText(QString text);

@@ -138,22 +138,6 @@ void FilterGroup::setExclusive(bool exclusive)
 
 
 /**
- * @brief FilterGroup::setVisible
- * @param visible
- */
-void FilterGroup::setVisible(bool visible)
-{
-    if (filterGroupBox) {
-        filterGroupBox->setVisible(visible);
-    } else {
-        foreach (QAbstractButton* button, filterButtonsHash.values()) {
-            button->setVisible(visible);
-        }
-    }
-}
-
-
-/**
  * @brief FilterGroup::setResetButtonVisible
  * @param visible
  */

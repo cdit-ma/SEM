@@ -51,9 +51,8 @@ QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
     case VIEW_ASPECT::HARDWARE:
         return "Hardware";
     default:
-        break;
+        return "";
     }
-    return "";
 }
 
 VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)

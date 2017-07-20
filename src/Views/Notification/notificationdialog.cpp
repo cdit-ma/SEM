@@ -103,9 +103,9 @@ void NotificationDialog::on_themeChanged()
 
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
-    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet()
-                                  + "QToolBar{ padding: 0px; spacing: 0px; }"
-                                  + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolBar{ padding: 0px; spacing: 0px; }"
+                                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     resetFiltersAction->setIcon(theme->getIcon("Icons", "cross"));
     sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
@@ -512,8 +512,8 @@ void NotificationDialog::setupLayout()
      */
     filtersToolbar = new QToolBar(this);
     filtersToolbar->setOrientation(Qt::Vertical);
-    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     // add a little padding at the top of the filters toolbar
     QWidget* spacerWidget = new QWidget(this);
