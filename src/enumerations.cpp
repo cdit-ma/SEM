@@ -51,9 +51,8 @@ QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
     case VIEW_ASPECT::HARDWARE:
         return "Hardware";
     default:
-        break;
+        return "";
     }
-    return "";
 }
 
 VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
@@ -396,4 +395,20 @@ RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
         break;
     }
     return RV_NONE;
+}
+
+QString GET_ASPECT_ICON(VIEW_ASPECT aspect)
+{
+    switch(aspect){
+    case VIEW_ASPECT::INTERFACES:
+        return "InterfaceDefinitions";
+    case VIEW_ASPECT::BEHAVIOUR:
+        return "BehaviourDefinitions";
+    case VIEW_ASPECT::ASSEMBLIES:
+        return "AssemblyDefinitions";
+    case VIEW_ASPECT::HARDWARE:
+        return "HardwareDefinitions";
+    default:
+        return "";
+    }
 }

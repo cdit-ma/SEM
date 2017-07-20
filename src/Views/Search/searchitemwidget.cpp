@@ -5,6 +5,9 @@
 #define ICON_SIZE 32
 #define MARGIN 5
 
+#define ASPECT_FILTER "Aspect"
+#define DATA_FILTER "Data"
+
 /**
  * @brief SearchItemWidget::SearchItemWidget
  * @param item
@@ -16,9 +19,13 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
     viewItem = item;
     viewItemID = -1;
 
+    if (viewItem->isNode()) {
+        NodeViewItem* nvi = (NodeViewItem*)viewItem;
+        viewAspect = nvi->getViewAspect();
+    }
+
     keyWidgetsConstructed = false;
     doubleClicked = false;
-    checkedKey = "All";
 
     textLabel = new QLabel("No View Item", this);
     textLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -40,6 +47,9 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
         displayWidget = 0;
         layout->addWidget(textLabel);
     }
+
+    // this item is visible by default
+    visible = true;
 
     setSelected(false);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -71,12 +81,37 @@ void SearchItemWidget::addDisplayKey(QString key)
 
 
 /**
- * @brief SearchItemWidget::setDisplayKeys
+ * @brief SearchItemWidget::setAspectFilterKey
+ * @param key
+ */
+void SearchItemWidget::setAspectFilterKey(int key)
+{
+    aspectFilterKey = key;
+    filterVisibility[key] = true;
+}
+
+
+/**
+ * @brief SearchItemWidget::setDataFilterKey
+ * @param key
+ */
+void SearchItemWidget::setDataFilterKey(int key)
+{
+    dataFilterKey = key;
+    filterVisibility[key] = true;
+}
+
+
+/**
+ * @brief SearchItemWidget::setFilterKeys
  * @param keys
  */
-void SearchItemWidget::setDisplayKeys(QList<QString> keys)
+void SearchItemWidget::setFilterKeys(QList<int> keys)
 {
-    this->keys = keys;
+    // this item is visible by default - initialise all filter visibility to true
+    foreach (int key, keys) {
+        filterVisibility[key] = true;
+    }
 }
 
 
@@ -91,7 +126,6 @@ void SearchItemWidget::setSelected(bool selected)
     }
 
     this->selected = selected;
-
     if (selected) {
         emit itemSelected(viewItemID);
         backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
@@ -109,7 +143,6 @@ void SearchItemWidget::setSelected(bool selected)
 void SearchItemWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-
     if (selected) {
         backgroundColor =  theme->getAltBackgroundColorHex();
     } else {
@@ -121,7 +154,6 @@ void SearchItemWidget::themeChanged()
     if (iconLabel) {
         iconLabel->setPixmap(theme->getImage(iconPath.first, iconPath.second, iconSize, theme->getMenuIconColor()));
     }
-
     if (expandButton) {
         QIcon arrowIcon;
         arrowIcon.addPixmap(theme->getImage("Icon", "arrowHeadDown", QSize(), theme->getMenuIconColor()));
@@ -144,7 +176,6 @@ void SearchItemWidget::expandButtonToggled(bool checked)
     // only show the key widgets that match the currently checked key
     if (!keyWidgetsConstructed) {
         constructKeyWidgets();
-        toggleKeyWidget(checkedKey);
         keyWidgetsConstructed = true;
     }
 
@@ -154,30 +185,41 @@ void SearchItemWidget::expandButtonToggled(bool checked)
 
 
 /**
- * @brief SearchItemWidget::toggleKeyWidget
- * @param key
+ * @brief SearchItemWidget::filterCleared
+ * @param filter
  */
-void SearchItemWidget::toggleKeyWidget(QString key)
+void SearchItemWidget::filterCleared(int filter)
 {
-    checkedKey = key;
+    updateVisibility(filter, true);
+}
 
-    if (!keys.contains(key) && key != "All") {
-        setVisible(false);
+
+/**
+ * @brief SearchItemWidget::filtersChanged
+ * @param filter
+ * @param checkedKeys
+ */
+void SearchItemWidget::filtersChanged(int filter, QList<QVariant> checkedKeys)
+{
+    bool visible = true;
+
+    if (filter == aspectFilterKey) {
+        int aspectInt = static_cast<int>(viewAspect);
+        visible = checkedKeys.contains(aspectInt);
+
+    } else if (filter == dataFilterKey) {
+        foreach (QVariant key, checkedKeys) {
+            if (!keys.contains(key.toString())) {
+                visible = false;
+                break;
+            }
+        }
+    } else {
+        qWarning() << "SearchItemWidget::filtersChanged - This filter is not handled.";
         return;
     }
 
-    if (key == "All") {
-        foreach (QWidget* w, keyWidgetHash.values()) {
-            w->setVisible(true);
-        }
-    } else {
-        foreach (QString widgetKey, keyWidgetHash.keys()) {
-            QWidget* w = keyWidgetHash.value(widgetKey);
-            bool showWidget = widgetKey == key;
-            w->setVisible(showWidget);
-        }
-    }
-    setVisible(true);
+    updateVisibility(filter, visible);
 }
 
 
@@ -323,6 +365,34 @@ void SearchItemWidget::constructKeyWidgets()
 
 
 /**
+ * @brief SearchItemWidget::toggleKeyWidgets
+ * @param checkedKeys
+ */
+void SearchItemWidget::toggleKeyWidgets(QList<QVariant> checkedKeys)
+{
+    /*
+    if (!keys.contains(key) && key != "All") {
+        setVisible(false);
+        return;
+    }
+
+    if (key == "All") {
+        foreach (QWidget* w, keyWidgetHash.values()) {
+            w->setVisible(true);
+        }
+    } else {
+        foreach (QString widgetKey, keyWidgetHash.keys()) {
+            QWidget* w = keyWidgetHash.value(widgetKey);
+            bool showWidget = widgetKey == key;
+            w->setVisible(showWidget);
+        }
+    }
+    setVisible(true);
+    */
+}
+
+
+/**
  * @brief SearchItemWidget::updateStyleSheet
  */
 void SearchItemWidget::updateStyleSheet()
@@ -339,5 +409,38 @@ void SearchItemWidget::updateStyleSheet()
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
+}
+
+
+/**
+ * @brief SearchItemWidget::updateVisibility
+ * @param filter
+ * @param visible
+ */
+void SearchItemWidget::updateVisibility(int filter, bool visible)
+{
+    if (!filterVisibility.contains(filter)) {
+        qWarning() << "SearchItemWidget::updateVisibility - Unknown filter.";
+        return;
+    }
+
+    filterVisibility[filter] = visible;
+    if (this->visible != visible) {
+        bool allVisible = true;
+        foreach (bool filterVisible, filterVisibility.values()) {
+            if (!filterVisible) {
+                allVisible = false;
+                break;
+            }
+        }
+        if (this->visible != allVisible) {
+            setVisible(allVisible);
+            // de-select this item if it is hidden
+            if (!allVisible && selected) {
+                setSelected(false);
+            }
+            this->visible = allVisible;
+        }
+    }
 }
 

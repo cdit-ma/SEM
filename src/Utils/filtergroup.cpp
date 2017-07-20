@@ -9,16 +9,29 @@
 #define DEFAULT_CHECKED_STATE true
 #define ICON_SIZE 30
 
+/*
+ * NOTE:    When setting tool button's text or icon, apply it to the button.
+ *          When hiding a tool buttonw, set the visibility of its action.
+ */
+
 /**
  * @brief FilterGroup::FilterGroup
- * @param groupKind
+ * @param title
+ * @param groupKey
  * @param parent
  */
-FilterGroup::FilterGroup(QString group, QObject* parent) : QObject(parent)
+FilterGroup::FilterGroup(QString title, QVariant groupKey, QObject* parent) : QObject(parent)
 {
+    if (!groupKey.isValid()) {
+        groupKey = title;
+    }
+
+    filterGroupTitle = title;
+    filterGroupKey = groupKey;
+    setProperty(FILTER_GROUP, filterGroupKey);
+
     filterGroupBox = 0;
     filterToolbar = 0;
-    filterGroup = group;
     exclusive = false;
 
     resetAction = 0;
@@ -32,18 +45,48 @@ FilterGroup::FilterGroup(QString group, QObject* parent) : QObject(parent)
 
 
 /**
- * @brief FilterGroup::getFilterGroup
+ * @brief FilterGroup::getFilterGroupKey
  * @return
  */
-QString FilterGroup::getFilterGroup()
+QVariant FilterGroup::getFilterGroupKey()
 {
-    return filterGroup;
+    return filterGroupKey;
+}
+
+
+/**
+ * @brief FilterGroup::getResetKey
+ * @return
+ */
+QVariant FilterGroup::getResetKey()
+{
+    return FILTER_RESET_KEY;
+}
+
+
+/**
+ * @brief FilterGroup::getFilterKeys
+ * @return
+ */
+QList<QVariant> FilterGroup::getFilterKeys()
+{
+    return filterButtonsHash.keys();
+}
+
+
+/**
+ * @brief FilterGroup::getCheckedFilterKeys
+ * @return
+ */
+QList<QVariant> FilterGroup::getCheckedFilterKeys()
+{
+    return checkedKeys;
 }
 
 
 /**
  * @brief FilterGroup::constructFilterGroupBox
- * @param alignment
+ * @param orientation
  * @return
  */
 QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
@@ -52,7 +95,7 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
         return filterGroupBox;
     }
 
-    filterGroupBox = new QGroupBox(filterGroup);
+    filterGroupBox = new QGroupBox(filterGroupTitle);
     filterGroupBox->setCheckable(true);
     filterGroupBox->setAlignment(Qt::AlignHCenter);
 
@@ -106,6 +149,18 @@ void FilterGroup::setResetButtonVisible(bool visible)
 
 
 /**
+ * @brief FilterGroup::setResetButtonText
+ * @param text
+ */
+void FilterGroup::setResetButtonText(QString text)
+{
+    if (resetButton) {
+        resetButton->setText(text);
+    }
+}
+
+
+/**
  * @brief FilterGroup::setResetButtonKey
  * @param key
  */
@@ -120,6 +175,43 @@ void FilterGroup::setResetButtonKey(QVariant key)
     // update reset button's filter key property
     resetKey = key;
     resetButton->setProperty(FILTER_KEY, key);
+}
+
+
+/**
+ * @brief FilterGroup::addFilterToolButton
+ * @param key
+ * @param label
+ * @param iconPath
+ * @param iconName
+ */
+void FilterGroup::addFilterToolButton(QVariant key, QString label, QString iconPath, QString iconName)
+{
+    if (filterButtonsHash.contains(key)) {
+        qWarning() << "FilterGroup::addFilterToolButton - A filter with key [" << key.toString() << "] already exists.";
+        return;
+    }
+    QToolButton* button = new QToolButton();
+    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    addFilterButton(button, key, label, iconPath, iconName);
+}
+
+
+/**
+ * @brief FilterGroup::addFilterPushButton
+ * @param key
+ * @param label
+ * @param iconPath
+ * @param iconName
+ */
+void FilterGroup::addFilterPushButton(QVariant key, QString label, QString iconPath, QString iconName)
+{
+    if (filterButtonsHash.contains(key)) {
+        qWarning() << "FilterGroup::addFilterPushButton - A filter with key [" << key.toString() << "] already exists.";
+        return;
+    }
+    QPushButton* button = new QPushButton();
+    addFilterButton(button, key, label, iconPath, iconName);
 }
 
 
@@ -139,7 +231,7 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
 
         filterButtonsHash[key] = filterButton;
         filterButton->setProperty(FILTER_KEY, key);
-        filterButton->setProperty(FILTER_GROUP, filterGroup);
+        filterButton->setProperty(FILTER_GROUP, filterGroupKey);
         filterButton->setCheckable(true);
         filterButton->setChecked(false);
         connect(filterButton, SIGNAL(clicked(bool)), this, SLOT(filterTriggered()));
@@ -151,6 +243,25 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
         }
 
         addToGroupBox(filterButton);
+    }
+}
+
+
+/**
+ * @brief FilterGroup::removeFilter
+ * @param key
+ */
+void FilterGroup::removeFilter(QVariant key)
+{
+    if (filterButtonsHash.contains(key)) {
+        // don't delete the reset button
+        if (key == FILTER_RESET_KEY) {
+            return;
+        }
+        // remove the button from the hash and the checked list
+        QAbstractButton* button = filterButtonsHash.take(key);
+        checkedKeys.removeAll(key);
+        delete button;
     }
 }
 
@@ -299,6 +410,31 @@ void FilterGroup::setupResetButton()
 
 
 /**
+ * @brief FilterGroup::addFilterButton
+ * @param button
+ * @param key
+ * @param label
+ * @param iconPath
+ * @param iconName
+ */
+void FilterGroup::addFilterButton(QAbstractButton* button, QVariant key, QString label, QString iconPath, QString iconName)
+{
+    // set default icon
+    if (iconPath.isEmpty() || iconName.isEmpty()) {
+        iconPath = "Icons";
+        iconName = "circleQuestion";
+    }
+
+    button->setText(label);
+    button->setProperty("iconPath", iconPath);
+    button->setProperty("iconName", iconName);
+    button->setIcon(Theme::theme()->getIcon(iconPath, iconName));
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    addToFilterGroup(key, button);
+}
+
+
+/**
  * @brief FilterGroup::addToGroupBox
  * This adds/inserts the provided filter button to the toolbar in the filter group box.
  * It makes sure that the reset filter button is at the top of the toolbar.
@@ -309,7 +445,10 @@ QAction* FilterGroup::addToGroupBox(QAbstractButton* button)
     if (filterGroupBox && filterToolbar) {
         QAction* action = 0;
         if (button == resetButton) {
-            QAction* topAction = filterToolbar->actions().at(0);
+            QAction* topAction = 0;
+            if (!filterToolbar->actions().isEmpty()) {
+                topAction = filterToolbar->actions().at(0);
+            }
             if (topAction) {
                 action = filterToolbar->insertWidget(topAction, button);
             } else {
@@ -349,9 +488,9 @@ void FilterGroup::clearFilters()
 void FilterGroup::updateFilterCheckedCount()
 {
     if (filterGroupBox) {
-        QString newTitle = filterGroup;
+        QString newTitle = filterGroupTitle;
         if (!resetButton->isChecked()) {
-            newTitle = filterGroup + " (" + QString::number(checkedKeys.count()) + ")";
+            newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";
         }
         filterGroupBox->setTitle(newTitle);
     }

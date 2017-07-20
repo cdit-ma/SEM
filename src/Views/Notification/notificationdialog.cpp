@@ -11,7 +11,6 @@
 #include <QApplication>
 #include <QGroupBox>
 
-#define FILTER_GROUP "filterGroup"
 #define FILTER_RESET_KEY "All"
 #define FILTER_DEFAULT_WIDTH 200
 
@@ -46,14 +45,17 @@ NotificationDialog::NotificationDialog(QWidget *parent)
  */
 void NotificationDialog::on_filtersChanged(QList<QVariant> checkedKeys)
 {
-    NOTIFICATION_FILTER filter = sender()->property(FILTER_GROUP).value<NOTIFICATION_FILTER>();
-    bool resetFilter = checkedKeys.contains(FILTER_RESET_KEY);
-    if (resetFilter) {
-        emit filterCleared(filter);
-    } else {
-        emit filtersChanged(filter, checkedKeys);
+    FilterGroup* filterGroup = qobject_cast<FilterGroup*>(sender());
+    if (filterGroup) {
+        NOTIFICATION_FILTER filter = filterGroup->getFilterGroupKey().value<NOTIFICATION_FILTER>();
+        bool resetFilter = checkedKeys.contains(FILTER_RESET_KEY);
+        if (resetFilter) {
+            emit filterCleared(filter);
+        } else {
+            emit filtersChanged(filter, checkedKeys);
+        }
+        checkedFilterKeys[filter] = checkedKeys;
     }
-    checkedFilterKeys[filter] = checkedKeys;
 }
 
 
@@ -101,9 +103,9 @@ void NotificationDialog::on_themeChanged()
 
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
-    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet()
-                                  + "QToolBar{ padding: 0px; spacing: 0px; }"
-                                  + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolBar{ padding: 0px; spacing: 0px; }"
+                                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     resetFiltersAction->setIcon(theme->getIcon("Icons", "cross"));
     sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
@@ -299,7 +301,6 @@ void NotificationDialog::notificationDeleted(int ID)
 {
     if (notificationItems.contains(ID)) {
         NotificationItem* item = notificationItems.take(ID);
-        NOTIFICATION_SEVERITY severity = item->getSeverity();
         selectedItems.removeAll(item);
         itemsLayout->removeWidget(item);
         updateSelectionBasedButtons();
@@ -311,6 +312,7 @@ void NotificationDialog::notificationDeleted(int ID)
 /**
  * @brief NotificationDialog::clearAll
  * NOTE: This function is the only one that doesn't use notificationDeleted to delete items.
+ * It is only called when the notification panel is being reset.
  */
 void NotificationDialog::clearAll()
 {
@@ -510,8 +512,8 @@ void NotificationDialog::setupLayout()
      */
     filtersToolbar = new QToolBar(this);
     filtersToolbar->setOrientation(Qt::Vertical);
-    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     // add a little padding at the top of the filters toolbar
     QWidget* spacerWidget = new QWidget(this);
@@ -573,23 +575,21 @@ void NotificationDialog::setupLayout()
 void NotificationDialog::setupFilterGroups()
 {
     // setup SEVERITY filter group
-    FilterGroup* severityGroup = new FilterGroup("SEVERITY", this);
+    FilterGroup* severityGroup = new FilterGroup("SEVERITY", static_cast<int>(NOTIFICATION_FILTER::SEVERITY), this);
     foreach (NOTIFICATION_SEVERITY severity, getNotificationSeverities()) {
         QString iconName = getSeverityIcon(severity);
-        QAbstractButton* button = constructFilterButton(getSeverityString(severity), "Icons", iconName);
-        severityGroup->addToFilterGroup(static_cast<int>(severity), button);
+        severityGroup->addFilterToolButton(static_cast<int>(severity), getSeverityString(severity), "Icons", iconName);
     }
 
     // setup CATEGORY filter group
-    FilterGroup* categoryGroup = new FilterGroup("CATEGORY", this);
+    FilterGroup* categoryGroup = new FilterGroup("CATEGORY", static_cast<int>(NOTIFICATION_FILTER::CATEGORY), this);
     foreach (NOTIFICATION_CATEGORY category, getNotificationCategories()){
         QString iconName = getCategoryIcon(category);
-        QAbstractButton* button = constructFilterButton(getCategoryString(category), "Icons", iconName);
-        categoryGroup->addToFilterGroup(static_cast<int>(category), button);
+        categoryGroup->addFilterToolButton(static_cast<int>(category), getCategoryString(category), "Icons", iconName);
     }
 
     // setup TYPE filter group
-    FilterGroup* typeGroup = new FilterGroup("TYPE", this);
+    FilterGroup* typeGroup = new FilterGroup("SOURCE", static_cast<int>(NOTIFICATION_FILTER::TYPE), this);
     foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
         QString iconName;
         if (type == NOTIFICATION_TYPE::MODEL) {
@@ -597,19 +597,13 @@ void NotificationDialog::setupFilterGroups()
         } else if (type == NOTIFICATION_TYPE::APPLICATION) {
             iconName = "pencil";
         }
-        QAbstractButton* button = constructFilterButton(getTypeString(type), "Icons", iconName);
-        typeGroup->addToFilterGroup(static_cast<int>(type), button);
+        typeGroup->addFilterToolButton(static_cast<int>(type), getTypeString(type), "Icons", iconName);
     }
 
     // setup the filter groups' reset key
     severityGroup->setResetButtonKey(FILTER_RESET_KEY);
     categoryGroup->setResetButtonKey(FILTER_RESET_KEY);
     typeGroup->setResetButtonKey(FILTER_RESET_KEY);
-    
-    // assign notification filter keys
-    severityGroup->setProperty(FILTER_GROUP, static_cast<int>(NOTIFICATION_FILTER::SEVERITY));
-    categoryGroup->setProperty(FILTER_GROUP, static_cast<int>(NOTIFICATION_FILTER::CATEGORY));
-    typeGroup->setProperty(FILTER_GROUP, static_cast<int>(NOTIFICATION_FILTER::TYPE));
 
     // connect filter groups
     connect(severityGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
@@ -630,32 +624,6 @@ void NotificationDialog::setupFilterGroups()
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
         checkedFilterKeys[filter] = QList<QVariant>{FILTER_RESET_KEY};
     }
-}
-
-
-/**
- * @brief NotificationDialog::constructFilterButton
- * @param key
- * @param label
- * @param iconPath
- * @param iconName
- * @return
- */
-QToolButton* NotificationDialog::constructFilterButton(QString label, QString iconPath, QString iconName)
-{
-    // set default icon
-    if (iconPath.isEmpty() || iconName.isEmpty()) {
-        iconPath = "Icons";
-        iconName = "circleQuestion";
-    }
-
-    QToolButton* button = new QToolButton(this);
-    button->setText(label);
-    button->setProperty("iconPath", iconPath);
-    button->setProperty("iconName", iconName);
-    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    return button;
 }
 
 

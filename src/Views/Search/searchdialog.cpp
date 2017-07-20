@@ -3,8 +3,11 @@
 #include <QDateTime>
 #include <QDebug>
 
+#define FILTER_RESET_KEY "All"
+
 #define DEFAULT_KEY_WIDTH 135
 #define DEFAULT_DISPLAY_WIDTH 215
+
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -17,8 +20,8 @@ SearchDialog::SearchDialog(QWidget *parent)
 
     setupLayout();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    themeChanged();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(on_themeChanged()));
+    on_themeChanged();
 }
 
 
@@ -29,37 +32,48 @@ SearchDialog::SearchDialog(QWidget *parent)
  */
 void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results)
 {
+    // update displayed search string and clear previous search items
     queryLabel->setText("\"" + query + "\"");
+    clearSearchItems();
 
-    // clear previous key actions and search result items
-    clear();
+    // only show the search filters when there are results
+    bool hasResults = !results.isEmpty();
+    infoLabel->setVisible(!hasResults);
+    setFiltersVisible(hasResults);
 
-    constructKeyButton("All", "All (" + QString::number(results.count()) + ")");
+    if (!hasResults) {
+        return;
+    }
 
-    if (results.isEmpty()) {
-        infoLabel->show();
-    } else {
-        infoLabel->hide();
-        foreach (QString key, results.uniqueKeys()) {
-            QList<ViewItem*> viewItems = results.values(key);
-            foreach (ViewItem* item, viewItems) {
-                SearchItemWidget* searchItem = constructSearchItem(item);
-                searchItem->addDisplayKey(key);
-            }
-            constructKeyButton(key, key + " (" + QString::number(viewItems.count()) + ")");
+    // update the data filter buttons
+    QStringList keys = results.uniqueKeys();
+    updateDataFilters(keys);
+
+    // construct a search item for each result item
+    foreach (QString key, keys) {
+        QList<ViewItem*> viewItems = results.values(key);
+        foreach (ViewItem* item, viewItems) {
+            SearchItemWidget* searchItem = constructSearchItem(item);
+            searchItem->addDisplayKey(key);
         }
     }
 
-    // update the keys toolbar/buttons's size
-    keysToolbar->setMinimumHeight(keysToolbar->sizeHint().height() + 10);
-    updateKeyButtonIcons();
+    // update the search items visibility based on the currently checked filters
+    QList<QVariant> checkedAspects = aspectFilterGroup->getCheckedFilterKeys();
+    if (!checkedAspects.contains(FILTER_RESET_KEY)) {
+        emit filtersChanged(ASPECTS_FILTER, checkedAspects);
+    }
+    QList<QVariant> checkedData = dataFilterGroup->getCheckedFilterKeys();
+    if (!checkedData.contains(FILTER_RESET_KEY)) {
+        emit filtersChanged(DATA_FILTER, checkedData);
+    }
 }
 
 
 /**
  * @brief SearchDialog::themeChanged
  */
-void SearchDialog::themeChanged()
+void SearchDialog::on_themeChanged()
 {
     Theme* theme = Theme::theme();
     QString labelStyle = "QLabel {"
@@ -73,24 +87,14 @@ void SearchDialog::themeChanged()
                   "background:" + theme->getBackgroundColorHex() + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
-                  + theme->getDialogStyleSheet()
-                  + theme->getComboBoxStyleSheet());
-
-    mainWidget->setStyleSheet("SD_MAINWIDGET{ background:" + theme->getBackgroundColorHex() + ";}");
+                  + theme->getDialogStyleSheet());
 
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; background:" + theme->getBackgroundColorHex() + ";}");
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
-    keysToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
-                               "QToolBar::separator {"
-                               "margin: 2px 0px;"
-                               "height: 4px;"
-                               "background:" + theme->getDisabledBackgroundColorHex() + ";"
-                               "}"
-                               "QToolButton {"
-                               "padding: 5px 0px 5px 2px;"
-                               "border-radius:" + theme->getSharpCornerRadius() + ";"
-                               "}");
+    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                               "QToolBar{ padding: 0px; spacing: 0px; }"
+                               "QToolButton { border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     centerOnButton->setIcon(theme->getIcon("Icons", "crosshair"));
     popupButton->setIcon(theme->getIcon("Icons", "popOut"));
@@ -104,14 +108,22 @@ void SearchDialog::themeChanged()
 
 
 /**
- * @brief SearchDialog::keyButtonChecked
- * @param checked
+ * @brief SearchDialog::on_filtersChanged
+ * @param checkedKeys
  */
-void SearchDialog::keyButtonChecked(bool checked)
+void SearchDialog::on_filtersChanged(QList<QVariant> checkedKeys)
 {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action && checked) {
-        emit keyButtonChecked(action->property("key").toString());
+    FilterGroup* filterGroup = qobject_cast<FilterGroup*>(sender());
+    if (filterGroup) {
+        bool ok = false;
+        int filter = filterGroup->getFilterGroupKey().toInt(&ok);
+        if (ok) {
+            if (checkedKeys.contains(FILTER_RESET_KEY)) {
+                emit filterCleared(filter);
+            } else {
+                emit filtersChanged(filter, checkedKeys);
+            }
+        }
     }
 }
 
@@ -173,27 +185,7 @@ void SearchDialog::popupSelectedItem()
  */
 void SearchDialog::resetPanel()
 {
-    clear();
     searchResults("", QMap<QString, ViewItem*>());
-}
-
-
-/**
- * @brief SearchDialog::updateKeyButtonIcons
- */
-void SearchDialog::updateKeyButtonIcons()
-{
-    QPixmap pixmap = Theme::theme()->getImage("Icons", "blank", QSize(1,1));
-
-    // added a tiny icon to left-align the tool button's text
-    foreach (QAction* action, staticKeysActionGroup->actions()) {
-        QToolButton* button = (QToolButton*) keysToolbar->widgetForAction(action);
-        button->setIcon(pixmap);
-    }
-    foreach (QAction* action, dynamicKeysActionGroup->actions()) {
-        QToolButton* button = (QToolButton*) keysToolbar->widgetForAction(action);
-        button->setIcon(pixmap);
-    }
 }
 
 
@@ -246,29 +238,18 @@ void SearchDialog::setupLayout()
     bottomToolbar->addWidget(searchButton);
     bottomToolbar->addWidget(refreshButton);
 
-    keysToolbar = new QToolBar(this);
-    keysToolbar->setIconSize(QSize(18,18));
-    keysToolbar->setOrientation(Qt::Vertical);
-    keysToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    keysToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    filtersToolbar = new QToolBar(this);
+    filtersToolbar->setOrientation(Qt::Vertical);
+    filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    staticKeysActionGroup = new QActionGroup(this);
-    dynamicKeysActionGroup = new QActionGroup(this);
-
-    /*
-     * TODO - Add this back when filtering by aspects is added
-     *
-    constructKeyButton("All", "All", true, false);
-    keysToolbar->addSeparator();
-    constructKeyButton("Interfaces", "Interfaces", false, false);
-    constructKeyButton("Behaviour", "Behaviour", false, false);
-    constructKeyButton("Assembly", "Assembly", false, false);
-    constructKeyButton("Hardware", "Hardware", false, false);
-    keysToolbar->addSeparator();
-    */
+    // add a little padding at the top of the filters toolbar
+    QWidget* spacerWidget = new QWidget(this);
+    spacerWidget->setFixedHeight(7);
+    filtersToolbar->addWidget(spacerWidget);
 
     QScrollArea* keysArea = new QScrollArea(this);
-    keysArea->setWidget(keysToolbar);
+    keysArea->setWidget(filtersToolbar);
     keysArea->setWidgetResizable(true);
 
     QFrame* displayWidget = new QFrame(this);
@@ -309,11 +290,7 @@ void SearchDialog::setupLayout()
     topHLayout->addSpacerItem(new QSpacerItem(20, 0));
     topHLayout->addWidget(topToolbar);
 
-    mainWidget = new QWidget(this);
-    mainWidget->setObjectName("SD_MAINWIDGET");
-    setFocusProxy(mainWidget);
-
-    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(1, 1, 1, 1);
@@ -321,37 +298,69 @@ void SearchDialog::setupLayout()
     mainLayout->addWidget(displaySplitter, 1);
     mainLayout->addWidget(bottomToolbar);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setMargin(0);
-    layout->addWidget(mainWidget);
-
-    //setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
-
     int minWidth = qMax(topHLayout->sizeHint().width(), bottomToolbar->sizeHint().width()) + 20;
     int minHeight = topHLayout->sizeHint().height() + bottomToolbar->sizeHint().height() + 75;
     setMinimumSize(minWidth, minHeight);
+    //setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     connect(centerOnButton, SIGNAL(clicked(bool)), this, SLOT(centerOnSelectedItem()));
     connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupSelectedItem()));
     connect(searchButton, &QToolButton::clicked, this, &SearchDialog::searchButtonClicked);
     connect(refreshButton, &QToolButton::clicked, this, &SearchDialog::refreshButtonClicked);
+
+    setupFilterGroups();
 }
 
 
 /**
- * @brief SearchDialog::clear
- * Remove all the dynamic key actions from its action group and the toolbar and the clear search result items.
+ * @brief SearchDialog::setupFilterGroups
  */
-void SearchDialog::clear()
+void SearchDialog::setupFilterGroups()
 {
-    QList<QAction*> actions = dynamicKeysActionGroup->actions();
-    while (!actions.isEmpty()) {
-        QAction* action = actions.takeFirst();
-        dynamicKeysActionGroup->removeAction(action);
-        keysToolbar->removeAction(action);
-        delete action;
+    aspectFilterGroup = new FilterGroup("ASPECT", ASPECTS_FILTER, this);
+    aspectFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
+    foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
+        aspectFilterGroup->addFilterToolButton(static_cast<int>(aspect), GET_ASPECT_NAME(aspect), "EntityIcons", GET_ASPECT_ICON(aspect));
     }
 
+    dataFilterGroup = new FilterGroup("DATA", DATA_FILTER, this);
+    dataFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
+
+    connect(aspectFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
+    connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
+
+    filtersToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
+    filtersToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
+}
+
+
+/**
+ * @brief SearchDialog::updateDataFilters
+ * @param newDataKeys
+ */
+void SearchDialog::updateDataFilters(QStringList newDataKeys)
+{
+    QList<QVariant> currentKeys = dataFilterGroup->getFilterKeys();
+    // remove filters that no longer match any search items
+    foreach (QVariant key, currentKeys) {
+        if (!newDataKeys.contains(key.toString())) {
+            dataFilterGroup->removeFilter(key);
+        }
+    }
+    // add filters for the new data keys
+    foreach (QString key, newDataKeys) {
+        if (!currentKeys.contains(key)) {
+            dataFilterGroup->addFilterToolButton(key, key, "Icons", "circleHalo");
+        }
+    }
+}
+
+
+/**
+ * @brief SearchDialog::clearSearchItems
+ */
+void SearchDialog::clearSearchItems()
+{
     QList<SearchItemWidget*> widgets = searchItems.values();
     while (!widgets.isEmpty()) {
         SearchItemWidget* widget = widgets.takeFirst();
@@ -359,6 +368,16 @@ void SearchDialog::clear()
         delete widget;
     }
     searchItems.clear();
+}
+
+
+/**
+ * @brief SearchDialog::setFiltersVisible
+ * @param visible
+ */
+void SearchDialog::setFiltersVisible(bool visible)
+{
+    filtersToolbar->setVisible(visible);
 }
 
 
@@ -378,48 +397,19 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
     }
 
     SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
+    itemWidget->setAspectFilterKey(ASPECTS_FILTER);
+    itemWidget->setDataFilterKey(DATA_FILTER);
     resultsLayout->addWidget(itemWidget);
     searchItems.insert(ID, itemWidget);
 
     if (item) {
         connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
-        connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
         connect(itemWidget, SIGNAL(itemSelected(int)), this, SLOT(searchItemSelected(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
+        connect(this, &SearchDialog::filterCleared, itemWidget, &SearchItemWidget::filterCleared);
+        connect(this, &SearchDialog::filtersChanged, itemWidget, &SearchItemWidget::filtersChanged);
     }
 
     return itemWidget;
-}
-
-
-/**
- * @brief SearchDialog::constructKeyButton
- * @param key
- * @param text
- * @param checked
- */
-void SearchDialog::constructKeyButton(QString key, QString text, bool checked, bool addToGroup)
-{
-    QToolButton* button = new QToolButton(this);
-    button->setText(text);
-    button->setCheckable(true);
-    button->setChecked(checked);
-    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-
-    QAction* action = keysToolbar->addWidget(button);
-    action->setProperty("key", key);
-    action->setCheckable(true);
-    action->setChecked(checked);
-
-    if (addToGroup) {
-        dynamicKeysActionGroup->addAction(action);
-    } else {
-        staticKeysActionGroup->addAction(action);
-    }
-
-    connect(button, SIGNAL(clicked(bool)), action, SLOT(toggle()));
-    connect(action, SIGNAL(toggled(bool)), this, SLOT(keyButtonChecked(bool)));
-    connect(action, SIGNAL(toggled(bool)), button, SLOT(setChecked(bool)));
 }

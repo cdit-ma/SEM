@@ -2,6 +2,7 @@
 #define SEARCHITEMWIDGET_H
 
 #include "../../Controllers/ViewController/viewitem.h"
+#include "../../Controllers/ViewController/nodeviewitem.h"
 #include "../../theme.h"
 
 #include <QFrame>
@@ -18,7 +19,10 @@ public:
     ~SearchItemWidget();
 
     void addDisplayKey(QString key);
-    void setDisplayKeys(QList<QString> keys);
+
+    void setAspectFilterKey(int key);
+    void setDataFilterKey(int key);
+    void setFilterKeys(QList<int> keys);
 
     void setSelected(bool selected);
     
@@ -30,7 +34,9 @@ signals:
 public slots:
     void themeChanged();
     void expandButtonToggled(bool checked);
-    void toggleKeyWidget(QString key);
+
+    void filterCleared(int filter);
+    void filtersChanged(int filter, QList<QVariant> checkedKeys);
     
 protected:
     void mouseReleaseEvent(QMouseEvent *);
@@ -41,10 +47,15 @@ protected:
 private:
     void setupLayout(QVBoxLayout* layout);
     void constructKeyWidgets();
+
+    void toggleKeyWidgets(QList<QVariant> checkedKeys);
+
     void updateStyleSheet();
+    void updateVisibility(int filter, bool visible);
 
     ViewItem* viewItem;
-    int viewItemID;
+    int viewItemID;    
+    VIEW_ASPECT viewAspect;
     
     QLabel* iconLabel;
     QSize iconSize;
@@ -54,7 +65,7 @@ private:
     QToolButton* expandButton;
     QWidget* displayWidget;
     
-    QList<QString> keys;
+    QStringList keys;
     QHash<QString, QWidget*> keyWidgetHash;
     QString checkedKey;
 
@@ -63,6 +74,11 @@ private:
     bool keyWidgetsConstructed;
     bool doubleClicked;
     bool selected;
+    bool visible;
+
+    QHash<int, bool> filterVisibility;
+    QVariant aspectFilterKey;
+    QVariant dataFilterKey;
 
 };
 
