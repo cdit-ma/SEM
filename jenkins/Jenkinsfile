@@ -17,7 +17,7 @@ def names = nodeNames()
 //filter nodes
 def filtered_names = []
 for(n in names){
-    if(getLabels(n).contains("new_runtime")){
+    if(getLabels(n).contains("re")){
         filtered_names << n
         print("Got Node: " + n)
     }
@@ -44,9 +44,11 @@ stage('Build'){
         def node_name = n
         builders[node_name] = {  
             node(node_name){
-                dir("${RE_PATH}" + '/build'){
-                    sh 'cmake ..'
-                    sh 'make -j6'
+                withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
+                  dir("${RE_PATH}" + '/build'){
+                      sh 'cmake ..'
+                      sh 'make -j6'
+                  }
                 }
             }
         }
