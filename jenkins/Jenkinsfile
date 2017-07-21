@@ -24,7 +24,9 @@ for(n in names){
 }
 
 
-stage('Checkout'){
+def git_user = input(id: 'git_user', message: 'Select GitHub Credentials', parameters: [[$class: 'CredentialParameterDefinition', defaultValue: '', description: 'Git User', name: 'git_user']])
+
+stage('Checkout'){   
     def builders = [:]
     for(n in filtered_names){
         def node_name = n
@@ -32,7 +34,7 @@ stage('Checkout'){
             node(node_name){
             def loganPath = "${LOGAN_PATH}"
                 dir(loganPath){
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/cdit-ma/logan.git']]])    
+                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_user, url: 'https://github.com/cdit-ma/logan.git']]])    
                 }
             }
         }
