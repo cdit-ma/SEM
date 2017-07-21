@@ -14,7 +14,7 @@
 #include "zmq/registrar.h"
 
 std::string VERSION_NAME = "re_node_manager";
-std::string VERSION_NUMBER = "1.1";
+std::string VERSION_NUMBER = "1.2.0";
 
 Execution* exe = 0;
 
@@ -22,7 +22,7 @@ void signal_handler(int sig)
 {
     exe->Interrupt();
 }
-
+~
 int main(int argc, char **argv){
 
     //Connect the SIGINT/SIGTERM signals to our handler.
