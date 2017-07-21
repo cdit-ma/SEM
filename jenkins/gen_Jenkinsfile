@@ -184,14 +184,16 @@ for(def i = 0; i < nodeKeys.size(); i++){
         compileCode[nodeName] = {
             node(nodeName){
                 unstash 'codeGen'
-                dir(buildDir + "/build"){
-                    if(runScript('cmake ..') != 0){
-                        failureList << ("cmake failed on node: " + nodeName)
-                        fail_flag = true;
-                    }
-                    if(runScript('make') != 0){
-                        failureList << ("Compilation failed on node: " + nodeName)
-                        fail_flag = true;
+                withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
+                    dir(buildDir + "/build"){
+                        if(runScript('cmake ..') != 0){
+                            failureList << ("cmake failed on node: " + nodeName)
+                            fail_flag = true;
+                        }
+                        if(runScript('make') != 0){
+                            failureList << ("Compilation failed on node: " + nodeName)
+                            fail_flag = true;
+                        }
                     }
                 }
             }
