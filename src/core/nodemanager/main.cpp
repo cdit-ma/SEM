@@ -22,7 +22,7 @@ void signal_handler(int sig)
 {
     exe->Interrupt();
 }
-~
+
 int main(int argc, char **argv){
 
     //Connect the SIGINT/SIGTERM signals to our handler.
