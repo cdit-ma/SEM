@@ -23,6 +23,8 @@ for(n in names){
     }
 }
 
+def git_user = input(id: 'git_user', message: 'Select GitHub Credentials', parameters: [[$class: 'CredentialsParameterDefinition', defaultValue: '', description: 'Git User', name: 'git_user']])
+
 stage('Checkout'){
     def builders = [:]
     for(n in filtered_names){
@@ -30,7 +32,7 @@ stage('Checkout'){
         builders[node_name] = {
             node(node_name){
                 dir("${RE_PATH}"){
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIAL_ID}", url: 'https://github.com/cdit-ma/re.git']]])    
+                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_user, url: 'https://github.com/cdit-ma/re.git']]])    
                 }
             }
         }
