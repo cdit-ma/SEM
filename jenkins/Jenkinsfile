@@ -48,8 +48,8 @@ stage('Build'){
         def node_name = n
         builders[node_name] = {
                 node(node_name){
-                    withEnv(['CMAKE_MODULE_PATH=${LOGAN_PATH}/cmake_modules']){
-                        def loganPath = "${LOGAN_PATH}"
+                    def loganPath = "${LOGAN_PATH}"
+                    withEnv(['CMAKE_MODULE_PATH=' + loganPath + '/cmake_modules']){
                         dir(loganPath + '/build'){
                             sh 'cmake ..'
                             sh 'make -j6'
