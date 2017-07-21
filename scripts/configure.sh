@@ -5,7 +5,8 @@ echo "<<< CDIT-MA re Configure >>>"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RE_PATH=$SCRIPT_DIR/../
 RE_LIB_PATH=$RE_PATH/lib/
-CMAKE_MODULE_PATH=$RE_PATH
+CMAKE_MODULE_PATH=$RE_PATH/cmake_modules
+
 
 
 if [ "$(uname)" == "Darwin" ]; then

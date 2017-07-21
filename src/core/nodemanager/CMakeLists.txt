@@ -73,6 +73,9 @@ if (MSVC)
 elseif(UNIX)
 	target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)
+
+    target_link_libraries(${PROJ_NAME2} pthread)
+    target_link_libraries(${PROJ_NAME2} dl)
 endif(MSVC)
 
 #target_link_libraries(${PROJ_NAME} re_proto_control)
