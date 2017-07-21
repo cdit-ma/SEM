@@ -65,9 +65,6 @@ bool Graphml::ModelParser::Process(){
         auto source_id = GetAttribute(e_id, "source");
         auto target_id = GetAttribute(e_id, "target");
         entity_qos_map_[source_id] = target_id;
-        //std::cout << "port:" << GetDataValue(source_id, "label") << std::endl;
-        //std::cout << "qos:" << GetDataValue(target_id, "label") << std::endl;
-        std::cout << std::endl;
     }
 
 
@@ -284,7 +281,6 @@ bool Graphml::ModelParser::Process(){
             }
 
             if(!deployed_node){
-                std::cout << "Component '" << c_id << "' Not Deployed" << std::endl;
                 break;
             }
 
@@ -823,7 +819,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
         auto logging_server = GetLoggingServer(node->logging_server_id);
         bool is_master = node->is_re_master; 
 
-        if(is_deployed || is_master){
+        if(is_deployed || is_master || logging_profile || logging_server){
             std::vector<std::string> node_strings;
             //node_str += tab() + dblquotewrap(node->name) + ":{" + newline;
             
@@ -870,13 +866,22 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 //Output Logan Client
                 logsv_str += tab(3) + dblquotewrap("logan_server") + ":{" + newline;
 
+                std::vector<std::string> clients;
+
                 for(auto n_id : logging_server->connected_hardware_ids){
                     auto n = GetHardwareNode(n_id);
                     if(n){
-                        logsv_str += tab(4) + json_pair("clients", n->GetLoganClientAddress()) + "," + newline;
-                        logsv_str += tab(4) + json_pair("clients", n->GetModelLoggerAddress()) + "," + newline;
+                        if(!n->GetLoganClientAddress().empty()){
+                            clients.push_back(tab(5) + dblquotewrap(n->GetLoganClientAddress()));
+                        }
+                        if(!n->GetModelLoggerAddress().empty()){
+                            clients.push_back(tab(5) + dblquotewrap(n->GetModelLoggerAddress()));
+                        }
                     }
                 }
+
+                logsv_str += tab(4) + dblquotewrap("clients") + ":[" + newline + json_export_list(clients);
+                logsv_str += newline + tab(4) + "]," + newline;
 
                 logsv_str += tab(4) + json_pair("database", logging_server->database_name) + newline;
                 logsv_str += tab(3) + "}";
@@ -886,7 +891,7 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
                 std::string renm_str;
                 renm_str += tab(3) + dblquotewrap("re_node_manager") + ":{" + newline;
                 if(is_master){
-                    renm_str += tab(3) + json_pair("master", node->GetNodeManagerMasterAddress()) + "," + newline;
+                    renm_str += tab(4) + json_pair("master", node->GetNodeManagerMasterAddress()) + "," + newline;
                 }
                 renm_str += tab(4) + json_pair("slave", node->GetNodeManagerSlaveAddress()) + newline;
                 renm_str += tab(3) + "}";

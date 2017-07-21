@@ -11,7 +11,7 @@
     #include <dlfcn.h>
 #endif
 
-
+#include "../modellogger.h"
 #include "../periodiceventport.h"
 
 #include "../controlmessage/controlmessage.pb.h"
@@ -74,18 +74,16 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
         if(!component){
             //Construct Component
             component = ConstructComponent(c_info->type(), c_info->name());
-
-            //Set features on component
-            component->set_id(c_info->id());
-            component->set_type(c_info->type());
         }
 
         if(component){
+            //Set features on component
+            component->set_id(c_info->id());
+            component->set_type(c_info->type());
             for(auto a: c.attributes()){
                 auto a_info = a.mutable_info();
                 auto attribute = component->GetAttribute(a_info->name());
                 if(attribute){
-                    //std::cout << "Component: '" << a_info->name() << "' Setting Attribute: '" << a_info->name() << "'" <<  std::endl;
                     SetAttributeFromPb(&a, attribute);
                 }
             }
@@ -130,8 +128,12 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                     }
                     //Configure the port
                     port->Startup(attributes_);
+                }else{
+                    ModelLogger::get_model_logger()->LogFailedPortConstruction(p_info->type(), p_info->name(), p_info->id());
                 }
             }
+        }else{
+            ModelLogger::get_model_logger()->LogFailedComponentConstruction(c_info->type(), c_info->name(), c_info->id());
         }
     }
 }
@@ -187,7 +189,6 @@ Component* NodeContainer::GetComponent(std::string component_name){
     auto search = components_.find(component_name);
     
     if(search == components_.end()){
-        //std::cout << "Can't Find Component: " << component_name  << std::endl;
         return 0;
     }else{
         return search->second;
@@ -209,7 +210,6 @@ void* NodeContainer::LoadLibrary_(std::string library_path){
 
         auto end = std::chrono::steady_clock::now();
         auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "* Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " us" << std::endl;
 
         //Check for errors
         std::string error = GetLibraryError();
@@ -217,6 +217,7 @@ void* NodeContainer::LoadLibrary_(std::string library_path){
             std::cerr << "DLL Error: " << error << std::endl;
         }else{
             //Add it to the map of loaded libraries
+            std::cout << "* Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " us" << std::endl;
             loaded_libraries_[library_path] = lib_handle;
         }
     }
@@ -383,7 +384,6 @@ Component* NodeContainer::ConstructComponent(std::string component_type, std::st
             auto typed_function = (Component* (*) (std::string)) function;
             //Add to the lookup
             component_constructors_[component_type] = typed_function;
-        
         }
     }
 
@@ -413,5 +413,3 @@ void NodeContainer:: AddComponentConstructor(std::string component_type, Compone
         component_constructors_[component_type] = constructor;
     }
 }
-
-

@@ -194,6 +194,36 @@ void ModelLogger::LogComponentEvent(EventPort* eventport, ::BaseMessage* message
     }
 }
 
+void ModelLogger::LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id){
+    auto e = new re_common::LifecycleEvent();
+    fill_info(e->mutable_info());
+
+    auto comp = e->mutable_component();
+
+    comp->set_name(component_name);
+    comp->set_type(component_type);
+    comp->set_id(component_id);
+    
+    e->set_type(re_common::LifecycleEvent::FAILED);
+    
+    PushMessage(e);
+}
+
+void ModelLogger::LogFailedPortConstruction(std::string port_type, std::string port_name, std::string port_id){
+    auto e = new re_common::LifecycleEvent();
+    fill_info(e->mutable_info());
+
+    auto port = e->mutable_port();
+
+    port->set_name(port_name);
+    port->set_type(port_type);
+    port->set_id(port_id);
+    
+    e->set_type(re_common::LifecycleEvent::FAILED);
+    
+    PushMessage(e);
+}
+
 void ModelLogger::LogMessageEvent(EventPort* eventport){
     //Do Nothing
     auto e = new re_common::MessageEvent();
@@ -225,8 +255,6 @@ void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
-
-    
 
     PushMessage(e);
 }

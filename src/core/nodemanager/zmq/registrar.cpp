@@ -34,10 +34,6 @@ zmq::Registrar::~Registrar(){
         }
         registration_threads_.pop_back();
     }
-
-    if(execution_manager_){
-        delete execution_manager_;
-    }
 }
 
 void zmq::Registrar::RegistrationLoop(std::string endpoint){
