@@ -24,7 +24,7 @@ for(n in names){
 }
 
 
-def git_user = input(id: 'git_user', message: 'Select GitHub Credentials', parameters: [[$class: 'CredentialParameterDefinition', defaultValue: '', description: 'Git User', name: 'git_user']])
+def git_user = input(id: 'git_user', message: 'Select GitHub Credentials', parameters: [[$class: 'CredentialsParameterDefinition', defaultValue: '', description: 'Git User', name: 'git_user']])
 
 stage('Checkout'){   
     def builders = [:]
