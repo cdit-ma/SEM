@@ -47,14 +47,15 @@ stage('Build'){
     for(n in filtered_names){
         def node_name = n
         builders[node_name] = {
-            node(node_name){
-                withEnv(['CMAKE_MODULE_PATH=${LOGAN_PATH}/cmake_modules']) {
-                    dir('${LOGAN_PATH}/build'){
-                        sh 'cmake ..'
-                        sh 'make -j6'
+                node(node_name){
+                    withEnv(['CMAKE_MODULE_PATH=${LOGAN_PATH}/cmake_modules']){
+                        dir('${LOGAN_PATH}/build'){
+                            sh 'cmake ..'
+                            sh 'make -j6'
+                        }
                     }
             }
         }
+        parallel builders
     }
-    parallel builders
 }
