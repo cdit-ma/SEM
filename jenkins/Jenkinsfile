@@ -17,7 +17,7 @@ def names = nodeNames()
 //filter nodes
 def filtered_names = []
 for(n in names){
-    if(getLabels(n).contains("new_runtime")){
+    if(getLabels(n).contains("re")){
         filtered_names << n
         print("Got Node: " + n)
     }
