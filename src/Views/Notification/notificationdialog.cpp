@@ -546,7 +546,7 @@ void NotificationDialog::setupLayout()
     displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
-    displaySplitter->setSizes(QList<int>() << FILTER_DEFAULT_WIDTH << 215);
+    displaySplitter->setSizes(QList<int>() << FILTER_DEFAULT_WIDTH << 300);
 
     mainWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);

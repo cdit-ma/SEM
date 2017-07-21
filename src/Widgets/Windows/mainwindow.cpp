@@ -990,7 +990,6 @@ void MainWindow::setupDockablePanels()
 
     if (viewController) {
         connect(viewController, &ViewController::vc_SetupModelController, searchPanel, &SearchDialog::resetPanel);
-        //connect(viewController, &ViewController::vc_searchInProgress, searchPanel, &SearchDialog::loading);
         connect(searchPanel, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
         connect(searchPanel, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
         connect(searchPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));

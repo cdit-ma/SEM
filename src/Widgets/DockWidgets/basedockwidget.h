@@ -40,7 +40,7 @@ public:
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle();
 
-    void setActive(bool focussed);
+    virtual void setActive(bool focussed);
     bool isActive();
 
     void setMaximized(bool maximized);

@@ -52,6 +52,7 @@ private:
     QAction* getInfoAction(QString hashKey);
 
     QList<QAction*> constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind);
+    QList<QAction*> constructGroupedActions(QVariant key, QList<NodeViewItemAction*> actions);
 
     ViewController* viewController;
     ActionController* actionController;

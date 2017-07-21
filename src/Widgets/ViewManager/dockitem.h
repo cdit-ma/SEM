@@ -2,6 +2,7 @@
 #define DOCKITEM_H
 
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 
 #include <QToolBar>
@@ -19,6 +20,7 @@ private:
     void themeChanged();
     void titleChanged();
     void setupLayout();
+
     QLabel* iconLabel;
     QLabel* label;
 
@@ -26,5 +28,7 @@ private:
     QAction* labelAction;
     ViewManagerWidget* manager;
     BaseDockWidget* dockWidget;
+
+    bool isNodeViewDockWidget;
 };
 #endif // DOCKITEM_H

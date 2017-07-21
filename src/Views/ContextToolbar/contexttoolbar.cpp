@@ -652,3 +652,42 @@ QList<QAction*> ContextToolbar::constructSubMenuActions(QList<NodeViewItemAction
     return parentActions;
 }
 
+
+/**
+ * @brief ContextToolbar::constructGroupedActions
+ * @param key
+ * @param actions
+ * @return
+ */
+QList<QAction*> ContextToolbar::constructGroupedActions(QVariant key, QList<NodeViewItemAction*> actions)
+{
+    QHash<NodeViewItemAction*, QList<QAction*> > keyActionsHash;
+
+    foreach (NodeViewItemAction* viewItemAction, actions) {
+        // check if the viewItemAction has the given property
+        const char cKey = key.toChar().toLatin1();
+        QVariant keyVal = viewItemAction->property(&cKey);
+        if (keyVal.isValid()) {
+            // construct a sub-action for each of the nodeviewitemactions
+            QAction* subAction = viewItemAction->constructSubAction(false);
+            subAction->setProperty("ID", viewItemAction->getID());
+            keyActionsHash[viewItemAction].append(viewItemAction);
+        } else {
+            qWarning() << "ToolbarWidgetNew::constructGroupedActions - This item doesn't have a value for the given property.";
+        }
+    }
+
+    // construct a menu for each key action
+    QList<QAction*> keyActions;
+    foreach (NodeViewItemAction* viewItemAction, keyActionsHash.keys()) {
+        QMenu* menu = new QMenu(this);
+        menu->addActions(keyActionsHash.value(viewItemAction));
+        // construct a sub-action for the nodeviewitemaction
+        QAction* keyAction = viewItemAction->constructSubAction(false);
+        keyAction->setMenu(menu);
+        keyActions.append(keyAction);
+    }
+
+    return keyActions;
+}
+

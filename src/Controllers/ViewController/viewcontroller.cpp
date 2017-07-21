@@ -203,8 +203,6 @@ QStringList ViewController::_getSearchSuggestions()
 
 QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
-    emit vc_searchInProgress(true);
-
     QMap<QString, ViewItem*> results;
 
     foreach(ViewItem* item, viewItems.values()){
@@ -223,7 +221,6 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
             }
         }
     }    
-    emit vc_searchInProgress(false);
     return results;
 }
 
@@ -659,7 +656,7 @@ void ViewController::spawnSubView(ViewItem * item)
             dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
 
             //Show the reparent DockWidget Widget
-            WindowManager::manager()->reparentDockWidget(dockWidget);
+            WindowManager::manager()->currentDockWidget(dockWidget);
 
             //Fit the contents of the dockwidget to screen
             dockWidget->getNodeView()->fitToScreen();

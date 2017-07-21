@@ -238,6 +238,34 @@ ViewDockWidget *WindowManager::getActiveViewDockWidget()
 
 void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
 {
+    //*
+    if (!dockWidget || (dockWidget == activeViewDockWidget)) {
+        return;
+    }
+
+    if (dockWidget->getDockType() != BaseDockWidget::MDW_VIEW) {
+        return;
+    }
+
+    ViewDockWidget* viewDockWidget = (ViewDockWidget*) dockWidget;
+
+    if (viewDockWidget->isNodeViewDock()) {
+
+        ViewDockWidget* prevDock = activeViewDockWidget;
+        if (prevDock) {
+            prevDock->setActive(false);
+            disconnect(prevDock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+        }
+
+        activeViewDockWidget = viewDockWidget;
+        activeViewDockWidget->setActive(true);
+        connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+
+        emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
+    }
+    /*/
+
+    /*
     if(dockWidget != activeViewDockWidget){
         ViewDockWidget* prevDock = activeViewDockWidget;
         activeViewDockWidget = 0;
@@ -252,7 +280,6 @@ void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
             activeViewDockWidget = (ViewDockWidget*) dockWidget;
         }
 
-
         //Set the New.
         if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
             dockWidget->setActive(true);
@@ -260,9 +287,9 @@ void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
             connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
         }
 
-
         emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
     }
+    */
 }
 
 void WindowManager::setActiveDockWidget(int ID)
@@ -310,7 +337,7 @@ NodeViewDockWidget *WindowManager::getNodeViewDockWidget(ViewItem *item)
     return 0;
 }
 
-void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
+void WindowManager::currentDockWidget(BaseDockWidget *dockWidget)
 {
     showPopOutDialog(dockWidget);
 }
@@ -484,8 +511,8 @@ void WindowManager::reparentDockWidgetAction(int wID)
             qCritical() << "MedeaWindowManager::reparentDockWidget_ButtonPressed() - Can't find MedeaWindow with ID: " << wID;
         }
     }
-    if(activeViewDockWidget && window){
-        _reparentDockWidget(activeViewDockWidget, window);
+    if(currentDockWidget_ && window){
+        _reparentDockWidget(currentDockWidget_, window);
     }
 }
 
@@ -540,10 +567,11 @@ void WindowManager::_reparentDockWidget(BaseDockWidget *dockWidget, BaseWindow *
 void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
 {
     BaseWindow* window = getActiveWindow();
+    currentDockWidget_ = dockWidget;
 
-    if(dockWidget != activeViewDockWidget){
-        setActiveDockWidget(dockWidget);
-    }
+    //if(dockWidget != activeViewDockWidget){
+     //   setActiveDockWidget(dockWidget);
+    //}
     Theme* theme = Theme::theme();
     PopupWidget* popupDialog = new PopupWidget(PopupWidget::DIALOG, window);
 

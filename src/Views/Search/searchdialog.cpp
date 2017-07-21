@@ -5,8 +5,8 @@
 
 #define FILTER_RESET_KEY "All"
 
-#define DEFAULT_KEY_WIDTH 135
-#define DEFAULT_DISPLAY_WIDTH 215
+#define DEFAULT_KEY_WIDTH 200
+#define DEFAULT_DISPLAY_WIDTH 300
 
 
 /**
@@ -36,7 +36,6 @@ SearchDialog::SearchDialog(QWidget *parent)
  */
 void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results)
 {
-    qDebug() << "GOT RESULTS";
     queryText = query;
 
     // update displayed search string and clear previous search items

@@ -5,6 +5,11 @@ DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 {
     this->manager = manager;
     this->dockWidget = dockWidget;
+    isNodeViewDockWidget = false;
+
+    if (dockWidget && (dockWidget->getDockType() == BaseDockWidget::MDW_VIEW)) {
+        isNodeViewDockWidget = ((ViewDockWidget*)dockWidget)->isNodeViewDock();
+    }
 
     setFocusPolicy(Qt::ClickFocus);
     setProperty("ID", dockWidget->getID());
@@ -31,7 +36,18 @@ void DockItem::updateIcon()
 
 void DockItem::themeChanged()
 {
-    setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(dockWidget->isActive(), "DockItem"));
+    Theme* theme = Theme::theme();
+    if (isNodeViewDockWidget) {
+        setStyleSheet(theme->getDockTitleBarStyleSheet(dockWidget->isActive(), "DockItem"));
+    } else {
+        setStyleSheet(theme->getDockTitleBarStyleSheet(false, "DockItem") +
+                      "DockItem {"
+                      "background: rgba(0,0,0,0);"
+                      "border: 2px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                      "}"
+                      "DockItem QToolButton::hover{ background:" + theme->getHighlightColorHex() + "}"
+                      "DockItem QToolButton::!hover{ background: rgba(0,0,0,0); }");
+    }
 }
 
 void DockItem::titleChanged()

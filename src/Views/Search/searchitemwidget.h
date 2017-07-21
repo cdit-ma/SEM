@@ -67,7 +67,6 @@ private:
     
     QStringList keys;
     QHash<QString, QWidget*> keyWidgetHash;
-    QString checkedKey;
 
     QString backgroundColor;
 
