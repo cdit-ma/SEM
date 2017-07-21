@@ -9,6 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
 
 set(PROJ_NAME re_node_manager)
+set(PROJ_NAME2 execution_tester)
 project(${PROJ_NAME})
 
 #Find Protobuf
@@ -40,6 +41,19 @@ set(HEADERS
 
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
+    )
+    
+    set(SOURCE2
+    ${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
+	)
+
+set(HEADERS2
+    ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
 	)
 
 include_directories(${Boost_INCLUDE_DIRS})
@@ -48,8 +62,10 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
+add_executable(${PROJ_NAME2} ${SOURCE2} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME2} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
@@ -69,6 +85,14 @@ target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_execution_parser_lib)
+
+target_link_libraries(${PROJ_NAME2} ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME2} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJ_NAME2} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME2} re_core)
+target_link_libraries(${PROJ_NAME2} zmq_protoreceiver)
+target_link_libraries(${PROJ_NAME2} zmq_protowriter)
+target_link_libraries(${PROJ_NAME2} re_execution_parser_lib)
 
 
 

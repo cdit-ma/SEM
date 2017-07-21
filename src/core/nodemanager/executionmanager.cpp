@@ -17,12 +17,14 @@ void set_attr_string(NodeManager::Attribute* attr, std::string val){
 }
 
 ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution){
-    //Setup writer
-    proto_writer_ = new zmq::ProtoWriter();
-    proto_writer_->BindPublisherSocket(endpoint);
+    if(execution){
+        //Setup writer
+        proto_writer_ = new zmq::ProtoWriter();
+        proto_writer_->BindPublisherSocket(endpoint);
 
-    execution_ = execution;
-    execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
+        execution_ = execution;
+        execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
+    }
 
     //Setup the parser
     auto start = std::chrono::steady_clock::now();
@@ -31,9 +33,12 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
-    std::cout << "--------[Slave Registration]--------" << std::endl;
-    //Start Execution thread for 60!
-    execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
+
+    if(execution){
+        std::cout << "--------[Slave Registration]--------" << std::endl;
+        //Start Execution thread for 60!
+        execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
+    }
 }
 
 void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageLite* message){
@@ -365,6 +370,13 @@ bool ExecutionManager::ConstructControlMessages(){
             }
             okay = true;
         }
+    }
+
+
+    for(auto a: deployment_map_){
+        //Match the host_name 
+        std::string host_name = a.second->mutable_node()->mutable_info()->name();
+        std::cout << a.second->DebugString() << std::endl;
     }
 
     inactive_slave_addresses_ = required_slave_addresses_;

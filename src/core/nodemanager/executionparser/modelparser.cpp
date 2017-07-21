@@ -295,6 +295,7 @@ bool Graphml::ModelParser::Process(){
             }
 
             auto c_uid = c_id + unique_id;
+            
             if(!GetComponentInstance(c_uid)){
                 //Construct a Component
                 auto component_inst = new ComponentInstance();
@@ -316,7 +317,7 @@ bool Graphml::ModelParser::Process(){
 
                 //Parse Attributes
                 for(auto a_id : attribute_ids){
-                    auto a_uid = a_id + unique_id;
+                    auto a_uid = c_uid + "_" + a_id;
                     if(!GetAttribute(a_uid)){
                         auto attribute = new Attribute();
                         attribute->id = a_uid;
@@ -328,12 +329,14 @@ bool Graphml::ModelParser::Process(){
                         
                         //Add the Attribute to the Component
                         component_inst->attribute_ids.push_back(a_uid);
+                    }else{
+                        std::cerr << "Parsing Error: Got Duplicate Attribute ID: " << a_uid << " In ComponentInstance " << c_uid << std::endl;
                     }
                 }
 
                 //Parse In/OutEventPortInstance
                 for(auto p_id: port_ids){
-                    auto p_uid = p_id + unique_id;
+                    auto p_uid = c_uid + "_" + p_id;
                     if(!GetEventPort(p_uid)){
                         auto port = new EventPort();
                         port->id = p_uid;
@@ -375,13 +378,15 @@ bool Graphml::ModelParser::Process(){
                         event_ports_[p_uid] = port;
                         //Add the Attribute to the Component
                         component_inst->event_port_ids.push_back(p_uid);
+                    }else{
+                        std::cerr << "Parsing Error: Got Duplicate EventPort ID: " << p_uid << " In ComponentInstance " << c_uid << std::endl;
                     }
                 }
 
 
                 //Parse Periodic_Events
                 for(auto p_id : periodic_event_ids){
-                    auto p_uid = p_id + unique_id;
+                    auto p_uid = c_uid + "_" + p_id;
                     if(!GetEventPort(p_uid)){
                         auto port = new EventPort();
                         //setup the port
@@ -395,6 +400,8 @@ bool Graphml::ModelParser::Process(){
                         event_ports_[p_uid] = port;
                         //Add the Attribute to the Component
                         component_inst->event_port_ids.push_back(p_uid);
+                    }else{
+                        std::cerr << "Parsing Error: Got Duplicate PeriodicEventPort ID: " << p_uid << " In ComponentInstance " << c_uid << std::endl;
                     }
                 }
 
@@ -411,6 +418,8 @@ bool Graphml::ModelParser::Process(){
 
                 //Append to the component_replication object this nodes id
                 component_replication->component_instance_ids.push_back(c_uid);
+            }else{
+                std::cerr << "Parsing Error: Got Duplicate ComponentInstance ID: " << c_uid << std::endl;
             }
         }
 
