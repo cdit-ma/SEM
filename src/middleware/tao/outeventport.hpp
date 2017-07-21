@@ -77,8 +77,8 @@ void tao::OutEventPort<T, S, R>::Startup(std::map<std::string, ::Attribute*> att
         }
     }
 
-    if(attributes.count("publisher_references")){
-        for(auto s : attributes["publisher_references"]->StringList()){
+    if(attributes.count("publisher_names")){
+        for(auto s : attributes["publisher_names"]->StringList()){
             references_.push_back(s);
         }
     }

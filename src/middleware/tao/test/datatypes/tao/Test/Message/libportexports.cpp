@@ -32,10 +32,10 @@ std::map<std::string, ::Attribute*> get_in_attributes(std::string publisher_name
 	return attributes;
 };
 
-std::map<std::string, ::Attribute*> get_out_attributes(std::vector<std::string> publisher_address, std::vector<std::string> publisher_references){
+std::map<std::string, ::Attribute*> get_out_attributes(std::vector<std::string> publisher_address, std::vector<std::string> publisher_names){
 	std::map<std::string, ::Attribute*> attributes;
-	attributes["publisher_references"] = new ::Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_references");
-	attributes["publisher_references"]->set_StringList(publisher_references);
+	attributes["publisher_names"] = new ::Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_names");
+	attributes["publisher_names"]->set_StringList(publisher_names);
 	attributes["publisher_address"] = new ::Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address");
 	attributes["publisher_address"]->set_StringList(publisher_address);
 	return attributes;
@@ -52,14 +52,14 @@ int main(int argc, char** argv){
 	auto p4 = new tao::OutEventPort<Base::Aggregate, Test::Message, Test::Hello>(0, "TEST4");
 
 	{
-		std::vector<std::string> references = {"TestServer", "TestServer2", "LoggingServer2"};
+		std::vector<std::string> publisher_names = {"TestServer", "TestServer2", "LoggingServer2"};
 		std::vector<std::string> publisher_address = {"TestServer=corbaloc:iiop:192.168.111.90:50002/TestServer", "TestServer2=corbaloc:iiop:192.168.111.90:50004/TestServer2", "LoggingServer2=corbaloc:iiop:192.168.111.90:50003/LoggingServer2"};
-		p->Startup(get_out_attributes(publisher_address, references));
+		p->Startup(get_out_attributes(publisher_address, publisher_names));
 	}
 	{
-		std::vector<std::string> references = {"TestServer2", "LoggingServer2"};
+		std::vector<std::string> publisher_names = {"TestServer2", "LoggingServer2"};
 		std::vector<std::string> publisher_address = {"TestServer=corbaloc:iiop:192.168.111.90:50002/TestServer", "TestServer2=corbaloc:iiop:192.168.111.90:50004/TestServer2", "LoggingServer2=corbaloc:iiop:192.168.111.90:50003/LoggingServer2"};
-		p4->Startup(get_out_attributes(publisher_address, references));
+		p4->Startup(get_out_attributes(publisher_address, publisher_names));
 	}
 	p2->Startup(get_in_attributes("TestServer", "iiop://192.168.111.90:50002"));
 	p3->Startup(get_in_attributes("TestServer2", "iiop://192.168.111.90:50004"));
