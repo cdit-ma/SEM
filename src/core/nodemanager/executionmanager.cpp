@@ -372,13 +372,6 @@ bool ExecutionManager::ConstructControlMessages(){
         }
     }
 
-
-    for(auto a: deployment_map_){
-        //Match the host_name 
-        std::string host_name = a.second->mutable_node()->mutable_info()->name();
-        std::cout << a.second->DebugString() << std::endl;
-    }
-
     inactive_slave_addresses_ = required_slave_addresses_;
     
     //TODO: Add fail cases
