@@ -214,6 +214,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* mes
         ins.BindString(LOGAN_COMPONENT_TYPE, event->component().type());
         ins.BindString(LOGAN_PORT_NAME, event->port().name());
         ins.BindString(LOGAN_PORT_ID, event->port().id());
+        ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event->port().kind()));
         ins.BindString(LOGAN_PORT_TYPE, event->port().type());
         ins.BindString(LOGAN_PORT_MIDDLEWARE, event->port().middleware());
         ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
