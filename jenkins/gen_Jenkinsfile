@@ -113,7 +113,6 @@ node(masterNode){
             middlewareString += ","
         }
     }
-    print(middlewareString)
     
     def buildPath = workspacePath + "/" + buildDir
     
