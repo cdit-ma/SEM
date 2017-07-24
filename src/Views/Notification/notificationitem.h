@@ -29,7 +29,6 @@ signals:
 
 public slots:
     void on_themeChanged();
-    void on_filterCleared(NOTIFICATION_FILTER filter);
     void on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys);
 
     void showItem();
@@ -41,9 +40,10 @@ private slots:
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
-    void mouseMoveEvent();
 
 private:
+    void filterCleared(NOTIFICATION_FILTER filter);
+
     void updateIcon();
     void updateStyleSheet();
     void updateVisibility(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, bool visible = false);

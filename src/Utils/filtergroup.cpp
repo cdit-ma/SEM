@@ -327,14 +327,17 @@ void FilterGroup::filterTriggered()
 
         if (button->isChecked()) {
 
+            // reset this filter group
+            if (key == FILTER_RESET_KEY) {
+                resetFilters();
+                return;
+            }
+
             // if this filter group is exclusive, only one button can be checked at any time
             // clear previously checked buttons then re-check the triggered button
-            if (exclusive || (key == FILTER_RESET_KEY)) {
+            if (exclusive) {
                 clearFilters();
                 button->setChecked(true);
-                if (key == FILTER_RESET_KEY) {
-                    emit filtersCleared();
-                }
             } else {
                 // if any other button is checked, make sure the reset button is unchecked
                 if (resetButton && resetButton->isChecked()) {
@@ -357,8 +360,8 @@ void FilterGroup::filterTriggered()
             // if un-checking the last checked button, check the reset ("All") button
             // there has to be one filter button checked at all times
             if (checkedKeys.size() == 1) {
-                checkedKeys.append(FILTER_RESET_KEY);
-                resetButton->setChecked(true);
+                resetFilters();
+                return;
             }
 
             // remove the button's key from the checked keys list
@@ -387,8 +390,8 @@ void FilterGroup::resetFilters()
 
     // update the checked count and send signals that the filters have changed
     updateFilterCheckedCount();
-    emit filtersCleared();
     emit filtersChanged(checkedKeys);
+    emit filtersCleared();
 }
 
 

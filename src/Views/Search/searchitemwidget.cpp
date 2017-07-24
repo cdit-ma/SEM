@@ -5,9 +5,6 @@
 #define ICON_SIZE 32
 #define MARGIN 5
 
-#define ASPECT_FILTER "Aspect"
-#define DATA_FILTER "Data"
-
 /**
  * @brief SearchItemWidget::SearchItemWidget
  * @param item
@@ -103,19 +100,6 @@ void SearchItemWidget::setDataFilterKey(int key)
 
 
 /**
- * @brief SearchItemWidget::setFilterKeys
- * @param keys
- */
-void SearchItemWidget::setFilterKeys(QList<int> keys)
-{
-    // this item is visible by default - initialise all filter visibility to true
-    foreach (int key, keys) {
-        filterVisibility[key] = true;
-    }
-}
-
-
-/**
  * @brief SearchItemWidget::setSelected
  * @param selected
  */
@@ -185,32 +169,26 @@ void SearchItemWidget::expandButtonToggled(bool checked)
 
 
 /**
- * @brief SearchItemWidget::filterCleared
- * @param filter
- */
-void SearchItemWidget::filterCleared(int filter)
-{
-    updateVisibility(filter, true);
-}
-
-
-/**
  * @brief SearchItemWidget::filtersChanged
  * @param filter
  * @param checkedKeys
  */
 void SearchItemWidget::filtersChanged(int filter, QList<QVariant> checkedKeys)
 {
-    bool visible = true;
+    bool reset = checkedKeys.isEmpty();
+    if (reset) {
+        filterCleared(filter);
+        return;
+    }
 
-    if (filter == aspectFilterKey) {
+    bool visible = false;
+    if (filter == aspectFilterKey)   {
         int aspectInt = static_cast<int>(viewAspect);
         visible = checkedKeys.contains(aspectInt);
-
     } else if (filter == dataFilterKey) {
-        foreach (QVariant key, checkedKeys) {
-            if (!keys.contains(key.toString())) {
-                visible = false;
+        foreach (QVariant key, keys) {
+            if (checkedKeys.contains(key)) {
+                visible = true;
                 break;
             }
         }
@@ -270,6 +248,69 @@ void SearchItemWidget::leaveEvent(QEvent *)
 
 
 /**
+ * @brief SearchItemWidget::filterCleared
+ * @param filter
+ */
+void SearchItemWidget::filterCleared(int filter)
+{
+    updateVisibility(filter, true);
+}
+
+
+/**
+ * @brief SearchItemWidget::updateStyleSheet
+ */
+void SearchItemWidget::updateStyleSheet()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet("QFrame {"
+                  "border-style: solid;"
+                  "border-width: 0px 0px 1px 0px;"
+                  "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + backgroundColor + ";"
+                  "color:" + theme->getTextColorHex() + ";"
+                  "}"
+                  "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
+                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
+                  + theme->getToolBarStyleSheet());
+}
+
+
+/**
+ * @brief SearchItemWidget::updateVisibility
+ * @param filter
+ * @param visible
+ */
+void SearchItemWidget::updateVisibility(int filter, bool visible)
+{
+    if (!filterVisibility.contains(filter)) {
+        qWarning() << "SearchItemWidget::updateVisibility - Unknown filter.";
+        return;
+    }
+
+    filterVisibility[filter] = visible;
+    if (this->visible != visible) {
+        bool allVisible = true;
+        foreach (bool filterVisible, filterVisibility.values()) {
+            if (!filterVisible) {
+                allVisible = false;
+                break;
+            }
+        }
+        if (this->visible != allVisible) {
+            setVisible(allVisible);
+            // de-select this item if it is hidden
+            if (!allVisible && selected) {
+                setSelected(false);
+            }
+            this->visible = allVisible;
+        }
+    }
+}
+
+
+/**
  * @brief SearchItemWidget::setupLayout
  * @param layout
  */
@@ -289,7 +330,6 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setFixedSize(itemPixmap.size() + QSize(MARGIN, MARGIN));
 
-    //QSize toolButtonSize(18, 18);
     QSize toolButtonSize(24, 24);
 
     expandButton = new QToolButton(this);
@@ -362,85 +402,3 @@ void SearchItemWidget::constructKeyWidgets()
         displayLayout->addSpacerItem(new QSpacerItem(0, MARGIN));
     }
 }
-
-
-/**
- * @brief SearchItemWidget::toggleKeyWidgets
- * @param checkedKeys
- */
-void SearchItemWidget::toggleKeyWidgets(QList<QVariant> checkedKeys)
-{
-    /*
-    if (!keys.contains(key) && key != "All") {
-        setVisible(false);
-        return;
-    }
-
-    if (key == "All") {
-        foreach (QWidget* w, keyWidgetHash.values()) {
-            w->setVisible(true);
-        }
-    } else {
-        foreach (QString widgetKey, keyWidgetHash.keys()) {
-            QWidget* w = keyWidgetHash.value(widgetKey);
-            bool showWidget = widgetKey == key;
-            w->setVisible(showWidget);
-        }
-    }
-    setVisible(true);
-    */
-}
-
-
-/**
- * @brief SearchItemWidget::updateStyleSheet
- */
-void SearchItemWidget::updateStyleSheet()
-{
-    Theme* theme = Theme::theme();
-    setStyleSheet("QFrame {"
-                  "border-style: solid;"
-                  "border-width: 0px 0px 1px 0px;"
-                  "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + backgroundColor + ";"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
-                  + theme->getToolBarStyleSheet());
-}
-
-
-/**
- * @brief SearchItemWidget::updateVisibility
- * @param filter
- * @param visible
- */
-void SearchItemWidget::updateVisibility(int filter, bool visible)
-{
-    if (!filterVisibility.contains(filter)) {
-        qWarning() << "SearchItemWidget::updateVisibility - Unknown filter.";
-        return;
-    }
-
-    filterVisibility[filter] = visible;
-    if (this->visible != visible) {
-        bool allVisible = true;
-        foreach (bool filterVisible, filterVisibility.values()) {
-            if (!filterVisible) {
-                allVisible = false;
-                break;
-            }
-        }
-        if (this->visible != allVisible) {
-            setVisible(allVisible);
-            // de-select this item if it is hidden
-            if (!allVisible && selected) {
-                setSelected(false);
-            }
-            this->visible = allVisible;
-        }
-    }
-}
-

@@ -3,8 +3,6 @@
 #include <QDateTime>
 #include <QDebug>
 
-#define FILTER_RESET_KEY "All"
-
 #define DEFAULT_KEY_WIDTH 200
 #define DEFAULT_DISPLAY_WIDTH 300
 
@@ -67,11 +65,11 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // update the search items visibility based on the currently checked filters
     QList<QVariant> checkedAspects = aspectFilterGroup->getCheckedFilterKeys();
-    if (!checkedAspects.contains(FILTER_RESET_KEY)) {
+    if (!checkedAspects.isEmpty()) {
         emit filtersChanged(ASPECTS_FILTER, checkedAspects);
     }
     QList<QVariant> checkedData = dataFilterGroup->getCheckedFilterKeys();
-    if (!checkedData.contains(FILTER_RESET_KEY)) {
+    if (!checkedData.isEmpty()) {
         emit filtersChanged(DATA_FILTER, checkedData);
     }
 }
@@ -125,11 +123,7 @@ void SearchDialog::on_filtersChanged(QList<QVariant> checkedKeys)
         bool ok = false;
         int filter = filterGroup->getFilterGroupKey().toInt(&ok);
         if (ok) {
-            if (checkedKeys.contains(FILTER_RESET_KEY)) {
-                emit filterCleared(filter);
-            } else {
-                emit filtersChanged(filter, checkedKeys);
-            }
+            emit filtersChanged(filter, checkedKeys);
         }
     }
 }
@@ -209,7 +203,14 @@ void SearchDialog::loading(bool on)
  */
 void SearchDialog::resetPanel()
 {
-    searchResults("", QMap<QString, ViewItem*>());
+    selectedSearchItemID = -1;
+    queryText = "";
+
+    queryLabel->setText("\"" + queryText + "\"");
+    dataGroupAction->setVisible(false);
+
+    clearSearchItems();
+    infoLabel->setVisible(true);
 }
 
 
@@ -399,7 +400,6 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
         connect(itemWidget, SIGNAL(itemSelected(int)), this, SLOT(searchItemSelected(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
-        connect(this, &SearchDialog::filterCleared, itemWidget, &SearchItemWidget::filterCleared);
         connect(this, &SearchDialog::filtersChanged, itemWidget, &SearchItemWidget::filtersChanged);
     }
 

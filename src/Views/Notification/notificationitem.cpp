@@ -131,6 +131,24 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
 
 
 /**
+ * @brief NotificationItem::setSelected
+ * @param select
+ */
+void NotificationItem::setSelected(bool select)
+{
+    if (selected != select) {
+        selected = select;
+        if (selected) {
+            backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
+        } else {
+            backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        }
+        updateStyleSheet();
+    }
+}
+
+
+/**
  * @brief NotificationItem::on_themeChanged
  */
 void NotificationItem::on_themeChanged()
@@ -220,18 +238,6 @@ void NotificationItem::showItem()
 
 
 /**
- * @brief NotificationItem::on_filterCleared
- * This is called when a filter group has been cleared.
- * This means that none of the filters in that group is checked; hence, set that filter to visible.
- * @param filter
- */
-void NotificationItem::on_filterCleared(NOTIFICATION_FILTER filter)
-{
-    updateVisibility(filter, true);
-}
-
-
-/**
  * @brief NotificationItem::on_filtersChanged
  * This is called when the checked filters have changed.
  * It updates this item's visibility based on that change.
@@ -240,6 +246,12 @@ void NotificationItem::on_filterCleared(NOTIFICATION_FILTER filter)
  */
 void NotificationItem::on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys)
 {
+    bool reset = checkedKeys.isEmpty();
+    if (reset) {
+        filterCleared(filter);
+        return;
+    }
+
     bool visible = true;
 
     switch (filter) {
@@ -281,20 +293,14 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 
 
 /**
- * @brief NotificationItem::setSelected
- * @param select
+ * @brief NotificationItem::filterCleared
+ * This is called when a filter group has been cleared.
+ * This means that none of the filters in that group is checked; hence, set that filter to visible.
+ * @param filter
  */
-void NotificationItem::setSelected(bool select)
+void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
 {
-    if (selected != select) {
-        selected = select;
-        if (selected) {
-            backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
-        } else {
-            backgroundColor =  Theme::theme()->getBackgroundColorHex();
-        }
-        updateStyleSheet();
-    }
+    updateVisibility(filter, true);
 }
 
 

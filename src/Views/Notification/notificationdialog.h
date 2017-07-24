@@ -35,7 +35,6 @@ signals:
     void deleteNotification(int ID);
     void lastNotificationID(int ID);
 
-    void filterCleared(NOTIFICATION_FILTER filter);
     void filtersChanged(NOTIFICATION_FILTER, QList<QVariant> checkedKeys);
 
     void mouseEntered();
