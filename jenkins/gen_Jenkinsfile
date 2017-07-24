@@ -90,9 +90,10 @@ node(masterNode){
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
         //Generate deployment json
-        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
         print(executionParser)
-        def json = sh(returnStdout: true, script: executionParser)
+        sh(script: executionParser)
+        def json = readFile('execution.json')
         //Parse json
         jDeployment = readJSON text: json
     }
