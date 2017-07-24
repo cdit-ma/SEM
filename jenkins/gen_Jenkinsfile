@@ -72,7 +72,7 @@ def jDeployment = "";
 
 def file = "model.graphml"
 node(){
-    writeFile file: file, text: params.model
+    writeFile file: file, text: "${model}"
     stash includes: file, name: 'model'
     archiveArtifacts file
     
