@@ -52,10 +52,6 @@ def blockingKill(String pid){
     }
 }
 
-
-
-withEnv(['model=']){
-
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
 def buildDir = "gen" + env.BUILD_ID
@@ -76,9 +72,10 @@ def jDeployment = "";
 
 def file = "model.graphml"
 node(){
-    writeFile file: file, text: "${model}"
+    writeFile file: file, text: params.model
     stash includes: file, name: 'model'
     archiveArtifacts file
+    
 }
 
 node(masterNode){
@@ -324,4 +321,4 @@ if(fail_flag){
 else{
     currentBuild.result = 'SUCCESS'
 }
-}
+
