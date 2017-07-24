@@ -75,8 +75,10 @@ node(){
     writeFile file: file, text: "${model}"
     stash includes: file, name: 'model'
     archiveArtifacts file
-    
+   
 }
+
+withEnv(["model=A"]) {
 
 node(masterNode){
     deleteDir()
@@ -90,7 +92,7 @@ node(masterNode){
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
-      withEnv(["model=A"]) {
+      
         //Generate deployment json
         def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
         print("EXEUCTION PATH: " + executionParser)
@@ -322,5 +324,6 @@ if(fail_flag){
 }
 else{
     currentBuild.result = 'SUCCESS'
+}
 }
 
