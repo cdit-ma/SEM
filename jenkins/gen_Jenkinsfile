@@ -92,7 +92,7 @@ node(masterNode){
     stage('Build Deployment Plan'){
       withEnv(["model=A"]) {
         //Generate deployment json
-        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser > execution.json'
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
         print("EXEUCTION PATH: " + executionParser)
         sh(script: executionParser)
 
