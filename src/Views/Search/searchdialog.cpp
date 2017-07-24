@@ -343,19 +343,16 @@ void SearchDialog::setupLayout()
 void SearchDialog::setupFilterGroups()
 {
     aspectFilterGroup = new FilterGroup("ASPECT", ASPECTS_FILTER, this);
-    aspectFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
     foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
         aspectFilterGroup->addFilterToolButton(static_cast<int>(aspect), GET_ASPECT_NAME(aspect), "EntityIcons", GET_ASPECT_ICON(aspect));
     }
+    filtersToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
 
     dataFilterGroup = new FilterGroup("DATA", DATA_FILTER, this);
-    dataFilterGroup->setResetButtonKey(FILTER_RESET_KEY);
-
-    connect(aspectFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
-    connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
-
-    filtersToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
     dataGroupAction = filtersToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
+
+    connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
+    connect(aspectFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
 }
 
 

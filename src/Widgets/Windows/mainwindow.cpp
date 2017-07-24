@@ -13,6 +13,7 @@
 #include "../../theme.h"
 
 #include "../../Utils/filtergroup.h"
+#include "../../Utils/customgroupbox.h"
 
 #include <QDebug>
 #include <QHeaderView>
@@ -62,6 +63,15 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
+
+    /*
+    CustomGroupBox* cgb = new CustomGroupBox("TEST GROUP", this);
+    QDialog* d = new QDialog(this);
+    QVBoxLayout* l = new QVBoxLayout(d);
+    l->addWidget(cgb);
+    d->setStyleSheet("background: gray;");
+    d->exec();
+    */
 }
 
 

@@ -11,7 +11,7 @@
 
 /*
  * NOTE:    When setting tool button's text or icon, apply it to the button.
- *          When hiding a tool buttonw, set the visibility of its action.
+ *          When hiding a tool button, set the visibility of its action.
  */
 
 /**
