@@ -55,8 +55,6 @@ private:
     void setupLayout();
     void setupFilterGroups();
 
-    void updateDataFilters(QStringList newDataKeys);
-    void setFiltersVisible(bool visible);
     void clearSearchItems();
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
@@ -80,6 +78,7 @@ private:
 
     FilterGroup* aspectFilterGroup;
     FilterGroup* dataFilterGroup;
+    QAction* dataGroupAction;
 
     QVBoxLayout* resultsLayout;
     QHash<int, SearchItemWidget*> searchItems;

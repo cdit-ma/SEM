@@ -24,6 +24,7 @@ public:
     QList<QVariant> getCheckedFilterKeys();
 
     void setExclusive(bool exclusive);
+    void setVisible(bool visible);
 
     void setResetButtonVisible(bool visible);
     void setResetButtonText(QString text);
@@ -33,7 +34,7 @@ public:
     void addFilterPushButton(QVariant key, QString label, QString iconPath, QString iconName);
     void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
 
-    void removeFilter(QVariant key);
+    void clearFilterGroup();
 
 signals:
     void filtersChanged(QList<QVariant> checkedKeys);

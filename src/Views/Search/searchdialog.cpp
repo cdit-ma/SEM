@@ -39,29 +39,30 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
     queryText = query;
 
     // update displayed search string and clear previous search items
-    //queryLabel->setText("\"" + query + "\"");
+    queryLabel->setText("\"" + query + "\"");
     clearSearchItems();
 
     // only show the search filters when there are results
     bool hasResults = !results.isEmpty();
+    dataGroupAction->setVisible(hasResults);
     infoLabel->setVisible(!hasResults);
-    setFiltersVisible(hasResults);
 
     if (!hasResults) {
         return;
     }
 
     // update the data filter buttons
-    QStringList keys = results.uniqueKeys();
-    updateDataFilters(keys);
+    dataFilterGroup->clearFilterGroup();
+    dataFilterGroup->setResetButtonText("All (" + QString::number(results.count()) + ")");
 
     // construct a search item for each result item
-    foreach (QString key, keys) {
+    foreach (QString key, results.uniqueKeys()) {
         QList<ViewItem*> viewItems = results.values(key);
         foreach (ViewItem* item, viewItems) {
             SearchItemWidget* searchItem = constructSearchItem(item);
             searchItem->addDisplayKey(key);
         }
+        dataFilterGroup->addFilterToolButton(key, key + " (" + QString::number(viewItems.count()) + ")", "Icons", "circleHalo");
     }
 
     // update the search items visibility based on the currently checked filters
@@ -193,7 +194,6 @@ void SearchDialog::popupSelectedItem()
 void SearchDialog::loading(bool on)
 {
     if (on) {
-        //qDebug() << "HELLO";
         loadingGif->start();
         queryLabel->setMovie(loadingGif);
     } else {
@@ -354,29 +354,7 @@ void SearchDialog::setupFilterGroups()
     connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
 
     filtersToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
-    filtersToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
-}
-
-
-/**
- * @brief SearchDialog::updateDataFilters
- * @param newDataKeys
- */
-void SearchDialog::updateDataFilters(QStringList newDataKeys)
-{
-    QList<QVariant> currentKeys = dataFilterGroup->getFilterKeys();
-    // remove filters that no longer match any search items
-    foreach (QVariant key, currentKeys) {
-        if (!newDataKeys.contains(key.toString())) {
-            dataFilterGroup->removeFilter(key);
-        }
-    }
-    // add filters for the new data keys
-    foreach (QString key, newDataKeys) {
-        if (!currentKeys.contains(key)) {
-            dataFilterGroup->addFilterToolButton(key, key, "Icons", "circleHalo");
-        }
-    }
+    dataGroupAction = filtersToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
 }
 
 
@@ -392,16 +370,6 @@ void SearchDialog::clearSearchItems()
         delete widget;
     }
     searchItems.clear();
-}
-
-
-/**
- * @brief SearchDialog::setFiltersVisible
- * @param visible
- */
-void SearchDialog::setFiltersVisible(bool visible)
-{
-    filtersToolbar->setVisible(visible);
 }
 
 

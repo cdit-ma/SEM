@@ -138,6 +138,22 @@ void FilterGroup::setExclusive(bool exclusive)
 
 
 /**
+ * @brief FilterGroup::setVisible
+ * @param visible
+ */
+void FilterGroup::setVisible(bool visible)
+{
+    if (filterGroupBox) {
+        filterGroupBox->setVisible(visible);
+    } else {
+        foreach (QAbstractButton* button, filterButtonsHash.values()) {
+            button->setVisible(visible);
+        }
+    }
+}
+
+
+/**
  * @brief FilterGroup::setResetButtonVisible
  * @param visible
  */
@@ -188,7 +204,6 @@ void FilterGroup::setResetButtonKey(QVariant key)
 void FilterGroup::addFilterToolButton(QVariant key, QString label, QString iconPath, QString iconName)
 {
     if (filterButtonsHash.contains(key)) {
-        qWarning() << "FilterGroup::addFilterToolButton - A filter with key [" << key.toString() << "] already exists.";
         return;
     }
     QToolButton* button = new QToolButton();
@@ -207,7 +222,6 @@ void FilterGroup::addFilterToolButton(QVariant key, QString label, QString iconP
 void FilterGroup::addFilterPushButton(QVariant key, QString label, QString iconPath, QString iconName)
 {
     if (filterButtonsHash.contains(key)) {
-        qWarning() << "FilterGroup::addFilterPushButton - A filter with key [" << key.toString() << "] already exists.";
         return;
     }
     QPushButton* button = new QPushButton();
@@ -223,7 +237,6 @@ void FilterGroup::addFilterPushButton(QVariant key, QString label, QString iconP
 void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
 {
     if (filterButtonsHash.contains(key)) {
-        qWarning() << "FilterGroup::addToFilterGroup - A filter with key [" << key.toString() << "] already exists.";
         return;
     }
 
@@ -248,21 +261,23 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
 
 
 /**
- * @brief FilterGroup::removeFilter
- * @param key
+ * @brief FilterGroup::clearFilterGroup
  */
-void FilterGroup::removeFilter(QVariant key)
+void FilterGroup::clearFilterGroup()
 {
-    if (filterButtonsHash.contains(key)) {
+    QList<QVariant> keys = filterButtonsHash.keys();
+    foreach (QVariant key, keys) {
         // don't delete the reset button
         if (key == FILTER_RESET_KEY) {
-            return;
+            continue;
         }
-        // remove the button from the hash and the checked list
-        QAbstractButton* button = filterButtonsHash.take(key);
-        checkedKeys.removeAll(key);
-        delete button;
+        if (filterButtonsHash.contains(key)) {
+            checkedKeys.removeAll(key);
+            delete filterButtonsHash.take(key);
+        }
     }
+
+    resetFilters();
 }
 
 
@@ -364,7 +379,7 @@ void FilterGroup::filterTriggered()
  */
 void FilterGroup::resetFilters()
 {
-    // clear the filter then re-check the "All" button
+    // clear the filters then re-check the "All" button
     clearFilters();
     if (resetButton) {
         resetButton->setChecked(true);

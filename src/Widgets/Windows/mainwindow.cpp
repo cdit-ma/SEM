@@ -121,11 +121,11 @@ void MainWindow::searchEntered()
 
     if (!query.isEmpty()) {
 
-        searchPanel->loading(true);
+        //searchPanel->loading(true);
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchPanel->searchResults(query, viewController->getSearchResults(query));
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        searchPanel->loading(false);
+        //searchPanel->loading(false);
         qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
 
         // make sure that the search panel dock widget is visible and that its window is raised
