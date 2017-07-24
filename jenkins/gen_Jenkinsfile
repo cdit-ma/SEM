@@ -90,13 +90,15 @@ node(masterNode){
     def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
     //Parse graphml model and generate deployment plan
     stage('Build Deployment Plan'){
+      withEnv(["model=A"]) {
         //Generate deployment json
-        def executionParser = "${RE_PATH}" + '/bin/memory_worker_tester'
+        def executionParser = "${RE_PATH}" + '/bin/re_execution_parser > execution.json'
         print("EXEUCTION PATH: " + executionParser)
         sh(script: executionParser)
 
-//Parse json
+        //Parse json
         jDeployment = readJSON file: 'execution.json'
+        }
     }
     
     //Checkout transforms
