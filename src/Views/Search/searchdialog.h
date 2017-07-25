@@ -35,7 +35,6 @@ signals:
     void searchButtonClicked();
     void refreshButtonClicked();
 
-    void filterCleared(int filter);
     void filtersChanged(int filter, QList<QVariant> checkedKeys);
 
 public slots:

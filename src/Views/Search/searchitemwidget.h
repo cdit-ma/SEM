@@ -22,7 +22,6 @@ public:
 
     void setAspectFilterKey(int key);
     void setDataFilterKey(int key);
-    void setFilterKeys(QList<int> keys);
 
     void setSelected(bool selected);
     
@@ -35,7 +34,6 @@ public slots:
     void themeChanged();
     void expandButtonToggled(bool checked);
 
-    void filterCleared(int filter);
     void filtersChanged(int filter, QList<QVariant> checkedKeys);
     
 protected:
@@ -45,13 +43,13 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void setupLayout(QVBoxLayout* layout);
-    void constructKeyWidgets();
-
-    void toggleKeyWidgets(QList<QVariant> checkedKeys);
+    void filterCleared(int filter);
 
     void updateStyleSheet();
     void updateVisibility(int filter, bool visible);
+
+    void setupLayout(QVBoxLayout* layout);
+    void constructKeyWidgets();
 
     ViewItem* viewItem;
     int viewItemID;    

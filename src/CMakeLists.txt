@@ -127,6 +127,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationEnumerations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/customgroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 
     
@@ -221,6 +222,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
 )
 
