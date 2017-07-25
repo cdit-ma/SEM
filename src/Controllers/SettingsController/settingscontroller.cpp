@@ -50,6 +50,7 @@ QVariant SettingsController::getSetting(SETTING_KEY ID)
 void SettingsController::setSetting(SETTING_KEY ID, QVariant value)
 {
     _setSetting(_getSetting(ID), value);
+    settingsFile->sync();
 }
 
 bool SettingsController::isWriteProtected()
@@ -331,6 +332,7 @@ void SettingsController::resetSettings()
     emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
     emit settingChanged(SK_THEME_APPLY, true);
     emit settingsApplied();
+    settingsFile->sync();
 }
 
 void SettingsController::saveSettings()

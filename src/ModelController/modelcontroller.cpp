@@ -2925,7 +2925,13 @@ QString ModelController::getProjectPath()
 bool ModelController::isProjectSaved()
 {
     QReadLocker lock(&lock_);
-    return project_modified;
+    return project_modified == false;
+}
+
+int ModelController::getProjectActionCount()
+{
+    QReadLocker lock(&lock_);
+    return currentActionItemID;
 }
 
 Node* ModelController::getImplementation(Node* node){

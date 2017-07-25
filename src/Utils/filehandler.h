@@ -19,11 +19,18 @@ public:
     static bool writeTextFile(QString filePath, QString fileData);
     static QString writeTempTextFile(QString fileData, QString extension="");
 
-    static QString getTempFileName(QString suffix);
-    static QString sanitizeFilePath(QString filePath);
+    static QString getTempFileName(QString suffix, bool timestamp = true);
+    static void sanitizeFilePath(QString &filePath);
 
     static bool ensureDirectory(QString path);
     static bool removeDirectory(QString path);
+    static bool removeFile(QString path);
+
+
+    static QString getAutosaveFilePath(QString path);
+    static bool isAutosaveFilePath(QString path);
+    static QString getFileFromAutosavePath(QString autosave_path);
+
 public:
     static FileHandler* getFileHandler();
 private:

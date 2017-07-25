@@ -58,6 +58,7 @@ public:
     void setProjectPath(QString path);
 
     bool isProjectSaved();
+    int getProjectActionCount();
     void setProjectSaved(QString path="");
 
     QString getProjectAsGraphML();

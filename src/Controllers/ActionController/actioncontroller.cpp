@@ -49,7 +49,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
-        connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::updateRecentProjects);
+        connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);
+        connect(controller, &ViewController::vc_removeProjectFromRecentProjects, this, &ActionController::removeRecentProject);
 
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
@@ -201,21 +202,31 @@ void ActionController::clearRecentProjects()
     SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, QStringList());
 }
 
-void ActionController::updateRecentProjects(QString filePath)
-{
-    //Sanitize!
-    filePath = FileHandler::sanitizeFilePath(filePath);
 
-    QStringList files = recentProjectKeys;
+void ActionController::addRecentProject(QString file_path){
+    FileHandler::sanitizeFilePath(file_path);
+    auto project_list = recentProjectKeys;
 
     //Get the index of the filename opened (if it exists)
-    files.removeAll(filePath);
-    files.insert(0, filePath);
+    project_list.removeAll(file_path);
+    project_list.prepend(file_path);
 
-    while(files.size() > 8){
-        files.removeLast();
+    //Shrink the size to 8
+    while(project_list.size() > 8){
+        project_list.removeLast();
     }
-    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, files);
+
+    //Update the settings
+    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, project_list);
+}
+
+void ActionController::removeRecentProject(QString file_path){
+    FileHandler::sanitizeFilePath(file_path);
+    auto project_list = recentProjectKeys;
+    if(project_list.removeAll(file_path)){
+        //Only update if things have changed
+        SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, project_list);
+    }
 }
 
 void ActionController::settingChanged(SETTING_KEY key, QVariant value)
@@ -468,7 +479,7 @@ void ActionController::recentProjectsChanged()
     QStringList orderedKeys;
 
     foreach(QString filepath, list){
-        filepath = FileHandler::sanitizeFilePath(filepath);
+        FileHandler::sanitizeFilePath(filepath);
         createRecentProjectAction(filepath);
         orderedKeys.append(filepath);
     }

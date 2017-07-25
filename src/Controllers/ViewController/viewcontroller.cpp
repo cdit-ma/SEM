@@ -69,6 +69,13 @@ ViewController::ViewController() : QObject(){
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
+
+    autosave_timer_ = new QTimer(this);
+    //Every minute
+    //60000
+    autosave_timer_->setInterval(5000);
+    autosave_timer_->start();
+    connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 }
 
 void ViewController::connectModelController(ModelController* c){
@@ -869,6 +876,14 @@ void ViewController::setControllerReady(bool ready)
         emit vc_controllerReady(ready);
         emit vc_ActionFinished();
     }
+
+    if(ready){
+        //Reset the autosave id
+        autosave_id_ = 0;
+        autosave_timer_->start();
+    }else{
+        autosave_timer_->stop();
+    }
 }
 
 void ViewController::ModelControllerReady(bool ready)
@@ -958,9 +973,31 @@ void ViewController::TeardownController()
         controller = 0;
         // reset the notification manager
         NotificationManager::manager()->clearModelNotifications();
+        //Stop the auto save
     }
 }
 
+void ViewController::autoSaveProject(){
+    bool requires_save = controller && !controller->isProjectSaved();
+    //Check if the model is dirty
+    if(requires_save){
+        auto project_action_count = controller->getProjectActionCount();
+        auto project_path = controller->getProjectPath();
+        auto is_autosave = FileHandler::isAutosaveFilePath(project_path);
+        //Dont autosave if we are an autosave
+        
+        if(!is_autosave && project_action_count > autosave_id_){
+            auto data = controller->getProjectAsGraphML();
+            auto path = FileHandler::getAutosaveFilePath(project_path);
+
+            if(FileHandler::writeTextFile(path, data)){
+                emit vc_addProjectToRecentProjects(path);
+                NotificationManager::manager()->displayNotification("Auto-saved " + path, "Icons", "clockCycle", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::JENKINS);
+                autosave_id_ = project_action_count;
+            }
+        }
+    }
+}
 
 bool ViewController::_newProject(QString file_path)
 {
@@ -978,8 +1015,11 @@ bool ViewController::_saveProject()
 {
     if(controller){
         QString filePath = controller->getProjectPath();
-
-        if(filePath.isEmpty()){
+        bool is_autosaved = FileHandler::isAutosaveFilePath(filePath);
+        
+        if(is_autosaved){
+            return _saveAsProject(FileHandler::getFileFromAutosavePath(filePath));
+        }else if(filePath.isEmpty()){
             return _saveAsProject();
         }else{
             QString data = controller->getProjectAsGraphML();
@@ -988,16 +1028,21 @@ bool ViewController::_saveProject()
                 emit vc_projectSaved(filePath);
                 emit vc_addProjectToRecentProjects(filePath);
             }
+            auto autosave_path = FileHandler::getAutosaveFilePath(filePath);
+            //Remove the autosave
+            if(FileHandler::removeFile(autosave_path)){
+                emit vc_removeProjectFromRecentProjects(autosave_path);
+            }
             return true;
         }
     }
     return false;
 }
 
-bool ViewController::_saveAsProject()
+bool ViewController::_saveAsProject(QString file_path)
 {
     if(controller){
-        QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+        QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, file_path);
         if(!fileName.isEmpty()){
             controller->setProjectPath(fileName);
             return _saveProject();
@@ -1008,7 +1053,7 @@ bool ViewController::_saveAsProject()
 
 bool ViewController::_closeProject(bool show_welcome)
 {
-    if(controller && controller->isProjectSaved()){
+    if(controller && !controller->isProjectSaved()){
         auto file_path = controller->getProjectPath();
 
         if(file_path == ""){
