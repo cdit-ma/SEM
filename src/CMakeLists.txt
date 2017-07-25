@@ -317,8 +317,7 @@ if(WIN32)
     )
 elseif(APPLE)
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-        #COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
-        COMMAND /Users/cathlynaston/Qt5.8.0/5.8/clang_64/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+        COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
     )
 endif()
 
