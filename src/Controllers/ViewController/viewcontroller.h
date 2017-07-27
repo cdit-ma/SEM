@@ -353,9 +353,11 @@ private:
 
     ContextToolbar* toolbar;
     ModelController* controller;
+    QMutex mutex;
     QTimer* autosave_timer_ = 0;
     int autosave_id_ = 0;
     bool showSearchSuggestions;
+
 
 };
 

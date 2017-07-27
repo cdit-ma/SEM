@@ -10,13 +10,13 @@ class FileHandler : public QObject
 public:
     FileHandler();
 
-    static QString selectFile(QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "", QString initialFile = "");
-    static QStringList selectFiles(QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "",  QString initialFile = "");
+    static QString selectFile(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "", QString initialFile = "");
+    static QStringList selectFiles(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "",  QString initialFile = "");
 
     static QString readTextFile(QString filePath);
 
     static bool isFileReadable(QString filePath);
-    static bool writeTextFile(QString filePath, QString fileData);
+    static bool writeTextFile(QString filePath, QString fileData, bool notify = true);
     static QString writeTempTextFile(QString fileData, QString extension="");
 
     static QString getTempFileName(QString suffix, bool timestamp = true);
