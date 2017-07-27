@@ -668,10 +668,15 @@ QPointF NodeView::getTopLeftOfSelection(){
 
     QPointF top_left = viewportRect().topLeft();
     if(item){
-        return QPointF();
-    }else{
-        return top_left;
+        top_left = item->mapFromScene(top_left);
+        if(top_left.x() < 0){
+            top_left.setX(0);
+        }
+        if(top_left.y() < 0){
+            top_left.setY(0);
+        }
     }
+    return top_left;
 }
 
 QRectF NodeView::viewportRect()
