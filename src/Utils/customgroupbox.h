@@ -12,9 +12,14 @@ class CustomGroupBox : public QFrame
 {
     Q_OBJECT
 public:
-    explicit CustomGroupBox(QString title, QWidget *parent = 0);
+    explicit CustomGroupBox(QString title = "", QWidget *parent = 0);
 
-    void addWidget(QWidget* widget);
+    void setTitlte(QString title);
+
+    QAction* addWidget(QWidget* widget);
+    QAction* insertWidget(QAction* beforeAction, QWidget* widget);
+
+    QAction* getTopAction();
 
 public slots:
     void themeChanged();

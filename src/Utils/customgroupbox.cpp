@@ -24,14 +24,59 @@ CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
 
 
 /**
+ * @brief CustomGroupBox::setTitlte
+ * @param title
+ */
+void CustomGroupBox::setTitlte(QString title)
+{
+    if (groupTitleButton) {
+        groupTitleButton->setText(title);
+    }
+    groupTitle = title;
+}
+
+
+/**
  * @brief CustomGroupBox::addWidget
  * @param widget
+ * @return
  */
-void CustomGroupBox::addWidget(QWidget* widget)
+QAction* CustomGroupBox::addWidget(QWidget* widget)
 {
     if (widgetsToolbar) {
-        widgetsToolbar->addWidget(widget);
+        return widgetsToolbar->addWidget(widget);
     }
+    return 0;
+}
+
+
+/**
+ * @brief CustomGroupBox::insertWidget
+ * @param beforeAction
+ * @param widget
+ * @return
+ */
+QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
+{
+    if (widgetsToolbar) {
+        return widgetsToolbar->insertWidget(beforeAction, widget);
+    }
+    return 0;
+}
+
+
+/**
+ * @brief CustomGroupBox::getTopAction
+ * @return
+ */
+QAction* CustomGroupBox::getTopAction()
+{
+    if (widgetsToolbar) {
+        if (!widgetsToolbar->actions().isEmpty()) {
+            return widgetsToolbar->actions().at(0);
+        }
+    }
+    return 0;
 }
 
 
@@ -46,18 +91,7 @@ void CustomGroupBox::themeChanged()
                   "background: rgba(0,0,0,0);"
                   "}"
                   + theme->getToolBarStyleSheet() +
-                  "QToolButton {"
-                  "border: none;"
-                  "background: rgba(0,0,0,0);"
-                  "}"
-                  "QToolButton::checked {"
-                  "background: rgba(0,0,0,0);"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QToolButton:hover {"
-                  "background:" + theme->getHighlightColorHex() + ";"
-                  "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
-                  "}");
+                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     if (groupTitleButton) {
         /*
@@ -69,6 +103,26 @@ void CustomGroupBox::themeChanged()
         groupTitleButton->setIcon(icon);
         */
         groupTitleButton->setIcon(theme->getIcon("Icons", "arrowHeadVerticalToggle"));
+        groupTitleButton->setStyleSheet("QToolButton {"
+                                        "padding: 1px;"
+                                        "border: none;"
+                                        "background: rgba(0,0,0,0);"
+                                        "}"
+                                        "QToolButton::checked {"
+                                        "background: rgba(0,0,0,0);"
+                                        "color:" + theme->getTextColorHex() + ";"
+                                        "}"
+                                        "QToolButton:hover {"
+                                        "background:" + theme->getHighlightColorHex() + ";"
+                                        "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
+                                        "}");
+    }
+
+    foreach (QAction* action, widgetsToolbar->actions()) {
+        QToolButton* button = qobject_cast<QToolButton*>(widgetsToolbar->widgetForAction(action));
+        QString iconPath = button->property("iconPath").toString();
+        QString iconName = button->property("iconName").toString();
+        button->setIcon(theme->getIcon(iconPath, iconName));
     }
 }
 
@@ -78,12 +132,19 @@ void CustomGroupBox::themeChanged()
  */
 void CustomGroupBox::setupLayout()
 {
+    widgetsToolbar = new QToolBar(this);
+    widgetsToolbar->setOrientation(Qt::Vertical);
+    widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
     groupTitleButton = new QToolButton();
     groupTitleButton->setText(groupTitle);
     groupTitleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     groupTitleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     groupTitleButton->setCheckable(true);
     groupTitleButton->setChecked(true);
+    groupTitleButton->setObjectName("CustomGroupBoxTitleButton");
+
+    connect(groupTitleButton, &QToolButton::toggled, widgetsToolbar, &QToolBar::setVisible);
 
     QFrame* leftTitleFrame = new QFrame(this);
     leftTitleFrame->setFrameShape(QFrame::HLine);
@@ -102,11 +163,14 @@ void CustomGroupBox::setupLayout()
     QHBoxLayout* topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
     topLayout->addWidget(leftTitleFrame);
+    topLayout->addSpacerItem(new QSpacerItem(1,0));
     topLayout->addWidget(topToolbar);
+    topLayout->addSpacerItem(new QSpacerItem(1,0));
     topLayout->addWidget(rightTitleFrame);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->addLayout(topLayout);
+    mainLayout->addWidget(widgetsToolbar);
 }

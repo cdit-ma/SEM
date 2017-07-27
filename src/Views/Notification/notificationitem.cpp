@@ -293,6 +293,24 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 
 
 /**
+ * @brief NotificationItem::enterEvent
+ */
+void NotificationItem::enterEvent(QEvent *)
+{
+    emit hoverEnter(getEntityID());
+}
+
+
+/**
+ * @brief NotificationItem::leaveEvent
+ */
+void NotificationItem::leaveEvent(QEvent *)
+{
+    emit hoverLeave(getEntityID());
+}
+
+
+/**
  * @brief NotificationItem::filterCleared
  * This is called when a filter group has been cleared.
  * This means that none of the filters in that group is checked; hence, set that filter to visible.
