@@ -41,7 +41,7 @@
                 <xsl:variable name="key_id" select="cdit:get_key_id(., 'key')" />
                 <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node/gml:data[@key=$key_id and lower-case(text()) = 'true']) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, concat('Aggregate ', o:quote_wrap($type), ' has no child with data ', o:quote_wrap('key'), ' set to true.'), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat('Aggregate ', o:quote_wrap($type), ' has no child with data ', o:quote_wrap('key'), ' set to true'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
@@ -129,16 +129,81 @@
                 
                 <xsl:choose>
                     <xsl:when test="$got_instances">
-                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component label ', o:quote_wrap($label), ' which has instances, does not have any defined ComponentImpl'), false(), 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component ', o:quote_wrap($label), ' which has instances, does not have any defined ComponentImpl'), false(), 2)" />        
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component label ', o:quote_wrap($label), ' does not have any defined ComponentImpl'), true(), 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, $got_impl, concat('Component ', o:quote_wrap($label), ' does not have any defined ComponentImpl'), true(), 2)" />        
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:value-of select="cdit:output_test('All Components are defined', $results, 1)" />
+    </xsl:function>
+
+
+    <xsl:function name="cdit:test_eventport_delegates">
+        <xsl:param name="root"/>
+
+        <xsl:variable name="indelegates" as="element()*" select="cdit:get_entities_of_kind($root, 'InEventPortDelegate')" />   
+        <xsl:variable name="outdelegates" as="element()*" select="cdit:get_entities_of_kind($root, 'OutEventPortDelegate')" />   
+        <xsl:variable name="eventportdelegates" as="element()*" select="$indelegates, $outdelegates" />   
+
+        <xsl:variable name="results">
+            <xsl:for-each select="$eventportdelegates">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="port_aggregate_targets" select="cdit:get_edge_targets(., 'Edge_Aggregate', $id)" />
+                <xsl:value-of select="cdit:output_result($id, count($port_aggregate_targets) = 1, concat('EventPortDelegate ', o:quote_wrap($label), ' is not connected (Edge_Aggregate) to an Aggregate'), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('EventportDelegates established correctly', $results, 1)" />
+    </xsl:function>
+
+    
+    <xsl:function name="cdit:test_eventport_aggregates">
+        <xsl:param name="root"/>
+        <xsl:param name="components" as="element()*" />
+
+        <xsl:variable name="results">
+            <xsl:for-each select="$components">
+                <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind(., 'InEventPort')" />   
+                <xsl:variable name="outeventports" as="element()*" select="cdit:get_child_entities_of_kind(., 'OutEventPort')" />   
+                <xsl:variable name="eventports" as="element()*" select="$ineventports, $outeventports" />   
+
+                <xsl:for-each select="$eventports">
+                    <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                    <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                    
+                    <xsl:variable name="aggregates" select="cdit:get_child_nodes(.)" />
+
+                    
+
+                    <xsl:variable name="port_aggregate_targets" select="cdit:get_edge_targets(., 'Edge_Aggregate', $id)" />
+
+
+                    <xsl:choose>
+                        <xsl:when test="count($port_aggregate_targets) = 1 and count($aggregates) = 1">
+                            <!-- Compare the Definition ID of the Aggregate contained in the EventPort to the Aggregate the EventPort is connected to via Edge_Aggregate -->
+                            <xsl:variable name="aggregate" select="$aggregates[1]" />
+                            <xsl:variable name="aggregate_def" select="cdit:get_definition($aggregate)" />
+                            <xsl:variable name="aggregate_def_id" select="cdit:get_node_id($aggregate_def)" />
+
+                            <xsl:value-of select="cdit:output_result($id, $port_aggregate_targets[1] = $aggregate_def_id, concat('EventPort ', o:quote_wrap($label), ' is connected to an Aggregate different to the AggregateInstance it contains'), false(), 2)" />        
+                        </xsl:when>
+                        <xsl:when test="count($port_aggregate_targets) = 0">
+                            <xsl:value-of select="cdit:output_result($id, false(), concat('EventPort ', o:quote_wrap($label), ' is not connected (Edge_Aggregate) to an Aggregate'), false(), 2)" />        
+                        </xsl:when>
+                        <xsl:when test="count($aggregates) = 0">
+                            <xsl:value-of select="cdit:output_result($id, false(), concat('EventPort ', o:quote_wrap($label), ' does not contain an instance of an Aggregate'), false(), 2)" />        
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Eventports established correctly', $results, 1)" />
     </xsl:function>
 
     <xsl:function name="cdit:test_assembly_connections">
@@ -287,6 +352,7 @@
         <xsl:value-of select="cdit:test_invalid_label($root, 'Component', 'Component valid names')" />
         <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
         <xsl:value-of select="cdit:test_component_impls($root, $components)" />
+        <xsl:value-of select="cdit:test_eventport_aggregates($root, $components)" />
     </xsl:function>
 
     <xsl:function name="cdit:deployment_tests">
@@ -295,6 +361,7 @@
         <xsl:variable name="component_instances" as="element()*" select="cdit:get_entities_of_kind($root, 'ComponentInstance')" />
         
         <xsl:value-of select="cdit:test_assembly_connections($root, $component_instances)" />
+        <xsl:value-of select="cdit:test_eventport_delegates($root)" />
         <xsl:value-of select="cdit:test_deployment($root, $component_instances)" />
     </xsl:function>
 
