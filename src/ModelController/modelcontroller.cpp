@@ -19,6 +19,7 @@
 #include "Entities/data.h"
 #include "Entities/node.h"
 #include "Entities/key.h"
+#include "Entities/Keys/exportidkey.h"
 
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
@@ -2264,13 +2265,15 @@ bool ModelController::importGraphML(QString document, Node *parent)
                         auto key_name = key->getName();
                         auto value = xml.readElementText();
                         
+                        if(key_name == "uuid"){
+                            //Run the UUID through
+                            value = ExportIDKey::GetUUIDOfValue(value);
+                            unique_entity_ids.push_back(current_entity->getIDStr());
+                        }
                         //Add the data to the entity
                         current_entity->addData(key_name, value);
                             
                         //Push the current_entities ID onto a stack to handle uuid
-                        if(key_name == "uuid"){
-                            unique_entity_ids.push_back(current_entity->getIDStr());
-                        }
                     }else{
                         qCritical() << "ImportGraphML: Couldn't attach Data with key id: '" << key_id << "'";
                         error_count ++;
@@ -2354,7 +2357,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
             
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;
-                //Produce a notification for updating shared_datatyesp
+                //Produce a notification for updating shared_datatypes
+                
                 if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES){
                     auto version = entity->getDataValue("version").toString();
                     auto old_version = matched_entity->getDataValue("version").toString();

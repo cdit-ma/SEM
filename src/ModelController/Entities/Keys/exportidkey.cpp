@@ -23,13 +23,12 @@ QString ExportIDKey::getMD5UUID(const QString str_val){
     }
     md5_str.insert(0, '{');
     md5_str += '}';
+
+
     return md5_str;
 }
 
-QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
-    Node* node = 0;
-    auto str_val = data_value.toString();
-
+QString ExportIDKey::GetUUIDOfValue(const QString str_val){
     //Check if the data value is a valid uuid
     auto uuid = QUuid(str_val);
     
@@ -41,8 +40,14 @@ QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
             uuid = QUuid::createUuid();
         }
     }
+    return uuid.toString();
+}
 
-    auto uuid_str = uuid.toString();
+QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
+    Node* node = 0;
+    auto str_val = data_value.toString();
+
+    auto uuid_str = GetUUIDOfValue(str_val);
 
     auto entity_factory = getFactory();
 
