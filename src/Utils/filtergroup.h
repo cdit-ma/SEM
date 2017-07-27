@@ -1,6 +1,9 @@
 #ifndef FILTERGROUP_H
 #define FILTERGROUP_H
 
+#include "../theme.h"
+#include "customgroupbox.h"
+
 #include <QObject>
 #include <QAbstractButton>
 #include <QPushButton>
@@ -15,6 +18,8 @@ class FilterGroup : public QObject
     Q_OBJECT
 public:
     explicit FilterGroup(QString title, QVariant groupKey = QVariant(), QObject *parent = 0);
+
+    CustomGroupBox* constructFilterBox();
 
     QGroupBox* constructFilterGroupBox(Qt::Orientation orientation = Qt::Vertical);
     QVariant getFilterGroupKey();
@@ -55,8 +60,12 @@ private:
     void addFilterButton(QAbstractButton *button, QVariant key, QString label, QString iconPath, QString iconName);
     QAction* addToGroupBox(QAbstractButton* button);
 
+    void addToFilterBox(QAbstractButton* button);
+
     void clearFilters();
     void updateFilterCheckedCount();
+
+    CustomGroupBox* customFilterBox;
 
     QGroupBox* filterGroupBox;
     QToolBar* filterToolbar;

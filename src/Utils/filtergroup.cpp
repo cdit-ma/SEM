@@ -1,5 +1,4 @@
 #include "filtergroup.h"
-#include "../theme.h"
 
 #include <QDebug>
 
@@ -30,6 +29,8 @@ FilterGroup::FilterGroup(QString title, QVariant groupKey, QObject* parent) : QO
     filterGroupKey = groupKey;
     setProperty(FILTER_GROUP, filterGroupKey);
 
+    customFilterBox = 0;
+
     filterGroupBox = 0;
     filterToolbar = 0;
     exclusive = false;
@@ -41,6 +42,26 @@ FilterGroup::FilterGroup(QString title, QVariant groupKey, QObject* parent) : QO
 
     // construct and add reset ("All") button - this is visible by default
     setupResetButton();
+
+    themeChanged();
+}
+
+
+/**
+ * @brief FilterGroup::constructFilterBox
+ * @return
+ */
+CustomGroupBox* FilterGroup::constructFilterBox()
+{
+    if (!customFilterBox) {
+        customFilterBox = new CustomGroupBox(filterGroupTitle);
+    }
+
+    foreach (QAbstractButton* button, filterButtonsHash.values()) {
+        addToFilterBox(button);
+    }
+
+    return customFilterBox;
 }
 
 
@@ -255,7 +276,8 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
             checkedKeys.append(key);
         }
 
-        addToGroupBox(filterButton);
+        //addToGroupBox(filterButton);
+        addToFilterBox(filterButton);
     }
 }
 
@@ -306,11 +328,12 @@ void FilterGroup::themeChanged()
         filterToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
     }
 
+    /*
     foreach (QAbstractButton* button, filterButtonsHash.values()) {
         QString iconPath = button->property("iconPath").toString();
         QString iconName = button->property("iconName").toString();
         button->setIcon(theme->getIcon(iconPath, iconName));
-    }
+    }*/
 }
 
 
@@ -419,8 +442,9 @@ void FilterGroup::setupResetButton()
 {
     resetButton = new QToolButton();
     resetButton->setText("All");
-    resetButton->setProperty("iconName", "list");
     resetButton->setProperty("iconPath", "Icons");
+    resetButton->setProperty("iconName", "list");
+    resetButton->setIcon(Theme::theme()->getIcon("Icons", "list"));
     resetButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     resetButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     addToFilterGroup(resetKey, resetButton);
@@ -484,6 +508,30 @@ QAction* FilterGroup::addToGroupBox(QAbstractButton* button)
 
 
 /**
+ * @brief FilterGroup::addToFilterBox
+ * @param button
+ */
+void FilterGroup::addToFilterBox(QAbstractButton* button)
+{
+    if (customFilterBox) {
+        if (button == resetButton) {
+            QAction* topAction = customFilterBox->getTopAction();
+            QAction* action = 0;
+            if (topAction) {
+                action = customFilterBox->insertWidget(topAction, button);
+            } else {
+                action = customFilterBox->addWidget(button);
+            }
+            resetAction = action;
+            resetAction->setVisible(showResetButton);
+        } else {
+            customFilterBox->addWidget(button);
+        }
+    }
+}
+
+
+/**
  * @brief FilterGroup::clearFilters
  */
 void FilterGroup::clearFilters()
@@ -511,5 +559,12 @@ void FilterGroup::updateFilterCheckedCount()
             newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";
         }
         filterGroupBox->setTitle(newTitle);
+    }
+    if (customFilterBox) {
+        QString newTitle = filterGroupTitle;
+        if (!resetButton->isChecked()) {
+            newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";
+        }
+        customFilterBox->setTitlte(newTitle);
     }
 }

@@ -268,6 +268,8 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
     itemsLayout->insertWidget(0, item);
     notificationItems[obj->ID()] = item;
 
+    connect(item, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
+    connect(item, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
     connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::on_selectionChanged);
     connect(this, &NotificationDialog::filtersChanged, item, &NotificationItem::on_filtersChanged);
 
@@ -597,9 +599,12 @@ void NotificationDialog::setupFilterGroups()
     connect(resetFiltersAction, &QAction::triggered, typeGroup, &FilterGroup::resetFilters);
 
     // add filters to the toolbar
-    filtersToolbar->addWidget(severityGroup->constructFilterGroupBox());
-    filtersToolbar->addWidget(categoryGroup->constructFilterGroupBox());
-    filtersToolbar->addWidget(typeGroup->constructFilterGroupBox());
+    //filtersToolbar->addWidget(severityGroup->constructFilterGroupBox());
+    //filtersToolbar->addWidget(categoryGroup->constructFilterGroupBox());
+    //filtersToolbar->addWidget(typeGroup->constructFilterGroupBox());
+    filtersToolbar->addWidget(severityGroup->constructFilterBox());
+    filtersToolbar->addWidget(categoryGroup->constructFilterBox());
+    filtersToolbar->addWidget(typeGroup->constructFilterBox());
 
     // by default the "All" button for each filter group is checked - initialise checked keys list
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {

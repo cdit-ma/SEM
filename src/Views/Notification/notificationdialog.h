@@ -39,6 +39,9 @@ signals:
 
     void mouseEntered();
 
+    void itemHoverEnter(int ID);
+    void itemHoverLeave(int ID);
+
 public slots:
     void initialisePanel();
     void resetPanel();

@@ -25,6 +25,8 @@ public:
     void setSelected(bool select);
 
 signals:
+    void hoverEnter(int ID);
+    void hoverLeave(int ID);
     void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
 
 public slots:
@@ -40,6 +42,8 @@ private slots:
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
+    void enterEvent(QEvent*);
+    void leaveEvent(QEvent*);
 
 private:
     void filterCleared(NOTIFICATION_FILTER filter);

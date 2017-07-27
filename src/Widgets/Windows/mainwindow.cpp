@@ -1006,6 +1006,8 @@ void MainWindow::setupDockablePanels()
         connect(searchPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
         connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
         connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
+        connect(notificationPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
+        connect(notificationPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
     }
     connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
     connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
