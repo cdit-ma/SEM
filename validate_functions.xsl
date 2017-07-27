@@ -260,8 +260,9 @@
                             <xsl:variable name="aggregate" select="$aggregates[1]" />
                             <xsl:variable name="aggregate_def" select="cdit:get_definition($aggregate)" />
                             <xsl:variable name="aggregate_def_id" select="cdit:get_node_id($aggregate_def)" />
+                            <xsl:variable name="aggregate_target_id" select="cdit:get_node_id($port_aggregate_targets[1])" />
 
-                            <xsl:value-of select="cdit:output_result($id, $port_aggregate_targets[1] != $aggregate_def_id, concat('EventPort ', o:quote_wrap($label), ' is connected to an Aggregate different to the AggregateInstance it contains'), false(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, $aggregate_target_id = $aggregate_def_id, concat('EventPort ', o:quote_wrap($label), ' is connected to an Aggregate different to the AggregateInstance it contains'), false(), 2)" />        
                         </xsl:when>
                         <xsl:when test="count($port_aggregate_targets) = 0">
                             <xsl:value-of select="cdit:output_result($id, false(), concat('EventPort ', o:quote_wrap($label), ' is not connected (Edge_Aggregate) to an Aggregate'), false(), 2)" />        
