@@ -108,6 +108,53 @@
 
         <xsl:value-of select="cdit:output_test('All Component entities require unique labels', $results, 1)" />
     </xsl:function>
+    
+
+    <xsl:function name="cdit:test_component_behaviour">
+        <xsl:param name="root"/>
+
+        <xsl:variable name="component_impls" select="cdit:get_entities_of_kind($root, 'ComponentImpl')" />
+        
+        <xsl:variable name="results">
+            <xsl:for-each select="$component_impls">
+                <xsl:variable name="input_parameters" select="cdit:get_entities_of_kind(., 'InputParameter')" />
+                
+
+                <xsl:for-each select="$input_parameters">
+                    <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                    <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="value" select="cdit:get_key_value(., 'value')" />
+
+                    <xsl:variable name="data_sources" select="cdit:get_edge_sources(., 'Edge_Data', $id)" />
+                    <xsl:variable name="got_data" select="count($data_sources) = 1 or $value != ''" />
+
+
+                    <xsl:value-of select="cdit:output_result($id, $got_data, concat('InputParameter ', o:quote_wrap($label), ' does not have either a value set or a data connection (Edge_Data)'), false(), 2)" />        
+                </xsl:for-each>
+
+                <xsl:variable name="children" select="cdit:get_child_nodes(.)" />
+
+                <xsl:for-each select="$children">
+                    <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                    <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
+                    <xsl:variable name="ignored_kinds" select="('PeriodicEvent', 'InEventPortImpl', 'Variable', 'AttributeImpl', 'Header')" />
+
+                    <!-- Check if the $kind is to be ignored -->
+                    <xsl:variable name="ignored" select="$kind = $ignored_kinds" />
+
+                    <xsl:variable name="workflow_sources" select="cdit:get_edge_sources(., 'Edge_Workflow', $id)" />
+                    <xsl:if test="$ignored = false()">
+                        <xsl:value-of select="cdit:output_result($id, count($workflow_sources) = 1, concat($kind, ' ', o:quote_wrap($label), ' does not have a Workflow connection (Edge_Workflow)'), true(), 2)" />        
+                    </xsl:if>
+
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Component behaviour tests', $results, 1)" />
+    </xsl:function>
+
 
     <xsl:function name="cdit:test_component_impls">
         <xsl:param name="root"/>
@@ -353,6 +400,7 @@
         <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
         <xsl:value-of select="cdit:test_component_impls($root, $components)" />
         <xsl:value-of select="cdit:test_eventport_aggregates($root, $components)" />
+        <xsl:value-of select="cdit:test_component_behaviour($root)" />
     </xsl:function>
 
     <xsl:function name="cdit:deployment_tests">
