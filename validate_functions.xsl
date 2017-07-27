@@ -118,18 +118,20 @@
         <xsl:variable name="results">
             <xsl:for-each select="$component_impls">
                 <xsl:variable name="input_parameters" select="cdit:get_entities_of_kind(., 'InputParameter')" />
+                <xsl:variable name="variadic_parameters" select="cdit:get_entities_of_kind(., 'VariadicParameter')" />
+                <xsl:variable name="variable_parameters" select="cdit:get_entities_of_kind(., 'VariableParameter')" />
                 
 
-                <xsl:for-each select="$input_parameters">
+                <xsl:for-each select="$input_parameters, $variadic_parameters, $variable_parameters">
                     <xsl:variable name="id" select="cdit:get_node_id(.)" />
                     <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
                     <xsl:variable name="value" select="cdit:get_key_value(., 'value')" />
 
                     <xsl:variable name="data_sources" select="cdit:get_edge_sources(., 'Edge_Data', $id)" />
                     <xsl:variable name="got_data" select="count($data_sources) = 1 or $value != ''" />
 
-
-                    <xsl:value-of select="cdit:output_result($id, $got_data, concat('InputParameter ', o:quote_wrap($label), ' does not have either a value set or a data connection (Edge_Data)'), false(), 2)" />        
+                    <xsl:value-of select="cdit:output_result($id, $got_data, concat($kind, ' ', o:quote_wrap($label), ' requires either a value set or a data connection (Edge_Data)'), false(), 2)" />        
                 </xsl:for-each>
 
                 <xsl:variable name="children" select="cdit:get_child_nodes(.)" />
