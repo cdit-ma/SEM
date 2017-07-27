@@ -20,17 +20,18 @@ FileHandler::FileHandler():QObject()
 
 }
 
-QString FileHandler::selectFile(QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter, QString defaultSuffix, QString initialFile)
+
+QString FileHandler::selectFile(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter, QString defaultSuffix, QString initialFile)
 {
     QString file;
-    QStringList files = selectFiles(windowTitle, fileMode, write, nameFilter, defaultSuffix, initialFile);
+    QStringList files = selectFiles(parent, windowTitle, fileMode, write, nameFilter, defaultSuffix, initialFile);
     if(files.length() == 1){
         file = files.at(0);
     }
     return file;
 }
 
-QStringList FileHandler::selectFiles(QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter, QString defaultSuffix, QString initialFile)
+QStringList FileHandler::selectFiles(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter, QString defaultSuffix, QString initialFile)
 {
     QStringList files;
     QFileDialog* fd = getFileDialog();
@@ -40,6 +41,7 @@ QStringList FileHandler::selectFiles(QString windowTitle, QFileDialog::FileMode 
     fd->setFileMode(fileMode);
     fd->setConfirmOverwrite(write);
     fd->selectFile(initialFile);
+    fd->setParent(parent);
 
     if(write){
         fd->setAcceptMode(QFileDialog::AcceptSave);
@@ -99,6 +101,7 @@ QString FileHandler::writeTempTextFile(QString fileData, QString extension)
     }
     return path;
 }
+
 bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify){
     QFile file(filePath);
     QFileInfo fileInfo(file);
@@ -121,9 +124,9 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
     return true;
 }
 
-bool FileHandler::writeTextFile(QString filePath, QString fileData)
+bool FileHandler::writeTextFile(QString filePath, QString fileData, bool notify)
 {
-    return _writeTextFile(filePath, fileData, true);
+    return _writeTextFile(filePath, fileData, notify);
 }
 
 bool FileHandler::ensureDirectory(QString path)
@@ -142,6 +145,15 @@ bool FileHandler::ensureDirectory(QString path)
     return true;
 }
 
+bool FileHandler::removeFile(QString path){
+    bool success = QFile::remove(path);
+
+    if(success){
+        _notification(NOTIFICATION_SEVERITY::INFO, "File: '" % path % "' removed!", "Icons", "file");
+    }
+    return success;
+}
+
 bool FileHandler::removeDirectory(QString path)
 {
     QDir dir(path);
@@ -153,15 +165,14 @@ bool FileHandler::removeDirectory(QString path)
     return success;
 }
 
-QString FileHandler::getTempFileName(QString suffix)
+QString FileHandler::getTempFileName(QString suffix, bool timestamp)
 {
-    return QDir::tempPath() + "/" + getTimestamp() + suffix;
+    return QDir::tempPath() + "/" + (timestamp ? getTimestamp() : "") + suffix;
 }
 
-QString FileHandler::sanitizeFilePath(QString filePath)
+void FileHandler::sanitizeFilePath(QString &filePath)
 {
     filePath = filePath.replace("\\","/");
-    return filePath;
 }
 
 QString FileHandler::getTimestamp()
@@ -191,4 +202,41 @@ FileHandler *FileHandler::getFileHandler()
 void FileHandler::_notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName)
 {
     NotificationManager::manager()->displayNotification(notificationText, iconPath, iconName, -1, severity, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::FILE);
+}
+
+QString FileHandler::getAutosaveFilePath(QString path){
+    if(isAutosaveFilePath(path)){
+        return path;
+    }else{
+        QFileInfo fi(path);
+        //Trim the .graphml
+        auto project_path = fi.path();
+        auto project_base = fi.completeBaseName();
+
+        if(!project_base.isEmpty()){
+            QString auto_path = project_path + "/" + project_base + ".autosave.graphml";
+            sanitizeFilePath(auto_path);
+            return auto_path;
+        }else{
+            return path;
+        }
+    }
+}
+
+bool FileHandler::isAutosaveFilePath(QString path){
+    return path.endsWith(".autosave.graphml");
+}
+
+QString FileHandler::getFileFromAutosavePath(QString autosave_path){
+    if(isAutosaveFilePath(autosave_path)){
+        QString str = ".autosave.graphml";
+        auto pos = autosave_path.lastIndexOf(str);
+
+        if(pos >= 0){
+            autosave_path.remove(pos, str.size());
+        }
+        return autosave_path + ".graphml";
+    }else{
+        return autosave_path;
+    }
 }

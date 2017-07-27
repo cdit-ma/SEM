@@ -38,7 +38,9 @@ signals:
 private slots:
     void showShortcutDialog();
     void clearRecentProjects();
-    void updateRecentProjects(QString filePath);
+    void addRecentProject(QString file_path);
+    void removeRecentProject(QString file_path);
+    
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
     void gotJava(bool java);
@@ -190,6 +192,7 @@ public:
     QStringList recentProjectKeys;
 
 private:
+
     void createRecentProjectAction(QString fileName);
     void recentProjectsChanged();
     void setupActions();

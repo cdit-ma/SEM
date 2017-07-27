@@ -15,6 +15,7 @@
 #include "../../ModelController/kinds.h"
 #include "../../ModelController/nodekinds.h"
 #include "../../ModelController/edgekinds.h"
+#include <QTimer>
 
 enum class MODEL_SEVERITY;
 class NotificationManager;
@@ -170,6 +171,8 @@ signals:
     void vc_fitToScreen();
 
     void vc_addProjectToRecentProjects(QString filePath);
+    void vc_removeProjectFromRecentProjects(QString filePath);
+    
 
     void vc_getCodeForComponent(QString graphmlPath, QString componentName);
     void vc_validateModel(QString graphmlPath, QString reportPath);
@@ -220,6 +223,7 @@ public slots:
     void importXMEProject();
     void importXMIProject();
    
+    void autoSaveProject();
     void saveProject();
     void saveAsProject();
     void closeProject();
@@ -309,7 +313,7 @@ private:
 
     bool _newProject(QString file_path="");
     bool _saveProject();
-    bool _saveAsProject();
+    bool _saveAsProject(QString file_path = "");
     bool _closeProject(bool show_welcome=false);
     void _importProjects();
     void _importProjectFiles(QStringList fileName);
@@ -349,8 +353,12 @@ private:
 
     ContextToolbar* toolbar;
     ModelController* controller;
-
+    QMutex mutex;
+    QTimer* autosave_timer_ = 0;
+    int autosave_id_ = 0;
     bool showSearchSuggestions;
+
+
 };
 
 #endif // VIEWCONTROLLER_H

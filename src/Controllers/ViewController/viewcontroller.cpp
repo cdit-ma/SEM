@@ -69,6 +69,13 @@ ViewController::ViewController() : QObject(){
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
+
+    autosave_timer_ = new QTimer(this);
+    //Every minute
+    //60000
+    autosave_timer_->setInterval(60000);
+    autosave_timer_->start();
+    connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 }
 
 void ViewController::connectModelController(ModelController* c){
@@ -82,7 +89,6 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::ProjectModified, this, &ViewController::mc_projectModified);
     connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
 
-    
     connect(controller, &ModelController::ActionFinished, this, &ViewController::vc_ActionFinished);
     connect(controller, &ModelController::Notification, this, &ViewController::modelNotification);
 
@@ -95,8 +101,6 @@ void ViewController::connectModelController(ModelController* c){
 
     connect(this, &ViewController::vc_SetupModelController, controller, &ModelController::SetupController);
     connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
-   
-
     connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
@@ -115,7 +119,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_replicateEntities, controller, &ModelController::replicate);
     connect(this, &ViewController::vc_deleteEntities, controller, &ModelController::remove);
    
-    this->setController(controller);
+    controller = c;
 }
 
 ViewController::~ViewController()
@@ -446,7 +450,7 @@ void ViewController::requestSearchSuggestions()
 
 void ViewController::setController(ModelController *c)
 {
-    controller = c;
+    
 }
 
 
@@ -869,6 +873,14 @@ void ViewController::setControllerReady(bool ready)
         emit vc_controllerReady(ready);
         emit vc_ActionFinished();
     }
+
+    if(ready){
+        //Reset the autosave id
+        autosave_id_ = 0;
+        autosave_timer_->start();
+    }else{
+        autosave_timer_->stop();
+    }
 }
 
 void ViewController::ModelControllerReady(bool ready)
@@ -941,6 +953,7 @@ void ViewController::constructDDSQOSProfile()
 
 void ViewController::TeardownController()
 {   
+    QMutexLocker locker(&mutex);
     if (controller) {
         setControllerReady(false);
         emit selectionController->clearSelection();
@@ -958,9 +971,33 @@ void ViewController::TeardownController()
         controller = 0;
         // reset the notification manager
         NotificationManager::manager()->clearModelNotifications();
+        //Stop the auto save
     }
 }
 
+
+void ViewController::autoSaveProject(){
+    QMutexLocker locker(&mutex);
+
+    if(controller && !controller->isProjectSaved()){
+        auto project_action_count = controller->getProjectActionCount();
+        auto project_path = controller->getProjectPath();
+        auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
+        
+        if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
+            //Get the data from the controller
+            auto autosave_data = controller->getProjectAsGraphML();
+            auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
+            if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
+                //Display a notification of the autosave
+                NotificationManager::manager()->displayNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::JENKINS);
+                //update the autosave id
+                autosave_id_ = project_action_count;
+                emit vc_addProjectToRecentProjects(autosave_path);
+            }
+        }
+    }
+}
 
 bool ViewController::_newProject(QString file_path)
 {
@@ -968,6 +1005,10 @@ bool ViewController::_newProject(QString file_path)
         if(!controller){
             initializeController();
             emit vc_SetupModelController(file_path);
+
+            if(!file_path.isEmpty()){
+                emit vc_addProjectToRecentProjects(file_path); 
+            }
             return true;
         }
     }
@@ -978,8 +1019,11 @@ bool ViewController::_saveProject()
 {
     if(controller){
         QString filePath = controller->getProjectPath();
-
-        if(filePath.isEmpty()){
+        bool is_autosaved = FileHandler::isAutosaveFilePath(filePath);
+        
+        if(is_autosaved){
+            return _saveAsProject(FileHandler::getFileFromAutosavePath(filePath));
+        }else if(filePath.isEmpty()){
             return _saveAsProject();
         }else{
             QString data = controller->getProjectAsGraphML();
@@ -988,16 +1032,22 @@ bool ViewController::_saveProject()
                 emit vc_projectSaved(filePath);
                 emit vc_addProjectToRecentProjects(filePath);
             }
+
+            auto autosave_path = FileHandler::getAutosaveFilePath(filePath);
+            //Remove the autosave
+            if(FileHandler::removeFile(autosave_path)){
+                emit vc_removeProjectFromRecentProjects(autosave_path);
+            }
             return true;
         }
     }
     return false;
 }
 
-bool ViewController::_saveAsProject()
+bool ViewController::_saveAsProject(QString file_path)
 {
     if(controller){
-        QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+        QString fileName = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, file_path);
         if(!fileName.isEmpty()){
             controller->setProjectPath(fileName);
             return _saveProject();
@@ -1008,31 +1058,35 @@ bool ViewController::_saveAsProject()
 
 bool ViewController::_closeProject(bool show_welcome)
 {
-    if(controller && controller->isProjectSaved()){
-        auto file_path = controller->getProjectPath();
+    {
+        //Mutex lock things
+        QMutexLocker locker(&mutex);
+        if(controller && !controller->isProjectSaved()){
+            auto file_path = controller->getProjectPath();
 
-        if(file_path == ""){
-            file_path = "Untitled Project";
-        }
+            if(file_path == ""){
+                file_path = "Untitled Project";
+            }
 
-        //Ask User to confirm save?
-        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                            "Do you want to save the changes made to '" + file_path + "'?",
-                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
-                            WindowManager::manager()->getMainWindow());
-        msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
-        msgBox.setButtonText(QMessageBox::Yes, "Save");
-        msgBox.setButtonText(QMessageBox::No, "Ignore");
+            //Ask User to confirm save?
+            QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                                "Do you want to save the changes made to '" + file_path + "'?",
+                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                                WindowManager::manager()->getMainWindow());
+            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
+            msgBox.setButtonText(QMessageBox::Yes, "Save");
+            msgBox.setButtonText(QMessageBox::No, "Ignore");
 
-        int buttonPressed = msgBox.exec();
+            int buttonPressed = msgBox.exec();
 
-        if(buttonPressed & QMessageBox::Yes){
-            if(!_saveProject()){
-                // if failed to save, don't exit!
+            if(buttonPressed & QMessageBox::Yes){
+                if(!_saveProject()){
+                    // if failed to save, don't exit!
+                    return false;
+                }
+            }else if(buttonPressed & QMessageBox::Cancel){
                 return false;
             }
-        }else if(buttonPressed & QMessageBox::Cancel){
-            return false;
         }
     }
     if(show_welcome){
@@ -1228,13 +1282,37 @@ void ViewController::newProject()
 
 bool ViewController::OpenProject()
 {
-    auto file_path = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);    
+    auto file_path = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);    
     return OpenExistingProject(file_path);
 }
 
 bool ViewController::OpenExistingProject(QString file_path)
 {
     if(file_path != ""){
+        //Handle the Autosave life.
+        auto auto_save = FileHandler::getAutosaveFilePath(file_path);
+
+        QFileInfo file_info(file_path);
+        QFileInfo autosave_file_info(auto_save);
+
+        if(autosave_file_info.exists() && autosave_file_info.lastModified() > file_info.lastModified()){
+            //Ask User to confirm save?
+            QMessageBox msgBox(QMessageBox::Question, "Open AutoSaved Project",
+                                "An more recent autosaved backup of the selected project exists. '" + auto_save + "'",
+                                QMessageBox::Yes | QMessageBox::No,
+                                WindowManager::manager()->getMainWindow());
+
+            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "clockCycle", QSize(50,50), Theme::theme()->getMenuIconColor()));
+            msgBox.setButtonText(QMessageBox::Yes, "Open autosaved backup");
+            msgBox.setButtonText(QMessageBox::No, "Open selected project");
+
+            auto button_pressed = msgBox.exec();
+
+            if(button_pressed == QMessageBox::Yes){
+                file_path = auto_save;
+            }
+        }
+
         return _newProject(file_path);
     }
     return false;
@@ -1243,12 +1321,13 @@ bool ViewController::OpenExistingProject(QString file_path)
 
 void ViewController::importProjects()
 {
+
     _importProjects();
 }
 
 void ViewController::importXMEProject()
 {
-    QStringList files = FileHandler::selectFiles("Select an XME File to import.", QFileDialog::ExistingFile, false, GME_FILE_EXT, GME_FILE_SUFFIX);
+    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an XME File to import.", QFileDialog::ExistingFile, false, GME_FILE_EXT, GME_FILE_SUFFIX);
     if(files.length() == 1){
         QString xmePath = files.first();
         QFile file(xmePath);
@@ -1262,7 +1341,7 @@ void ViewController::importXMEProject()
 
 void ViewController::importXMIProject()
 {
-    QStringList files = FileHandler::selectFiles("Select an XMI File to import.", QFileDialog::ExistingFile, false, XMI_FILE_EXT, XMI_FILE_SUFFIX);
+    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an XMI File to import.", QFileDialog::ExistingFile, false, XMI_FILE_EXT, XMI_FILE_SUFFIX);
     if(files.length() == 1){
         QString xmiPath = files.first();
         emit vc_importXMIProject(xmiPath);
@@ -1271,7 +1350,7 @@ void ViewController::importXMIProject()
 
 void ViewController::importIdlFile()
 {
-    QStringList files = FileHandler::selectFiles("Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
+    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
     if(files.length() == 1){
         QString xmiPath = files.first();
 
@@ -1299,7 +1378,7 @@ void ViewController::closeMEDEA()
 void ViewController::generateWorkspace()
 {
     QString file_path = getTempFileForModel();
-    QString output_dir = FileHandler::selectFile("Select an folder to create workspace in.", QFileDialog::Directory, false);
+    QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
     execution_manager->GenerateWorkspace(file_path, output_dir);
 }
 
@@ -1327,7 +1406,7 @@ void ViewController::saveAsProject()
 
 void ViewController::_importProjects()
 {
-    QStringList files = FileHandler::selectFiles("Select graphML File(s) to import.", QFileDialog::ExistingFiles, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select graphML File(s) to import.", QFileDialog::ExistingFiles, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
     _importProjectFiles(files);
 }
 
@@ -1534,6 +1613,7 @@ void ViewController::replicate()
 
 void ViewController::initializeController()
 {
+    QMutexLocker locker(&mutex);
     if(!controller){
         setControllerReady(false);
         controller = new ModelController();
