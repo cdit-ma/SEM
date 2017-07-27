@@ -59,13 +59,35 @@
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
                 <xsl:variable name="got_key" select="count(./gml:graph/gml:node) > 0" />        
-                <xsl:value-of select="cdit:output_result($id, $got_key, concat($entity_kind, ' requires a child entity'), false(), 2)" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, concat($entity_kind, ' ', o:quote_wrap($label), ' requires a child entity'), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:value-of select="cdit:output_test($test, $results, 1)" />
     </xsl:function>
+
+    <xsl:function name="cdit:test_aggregate_unique_member_label">
+        <xsl:param name="root"/>
+        <xsl:param name="aggregates" as="element()*" />
+
+        <xsl:variable name="results">  
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="key_id" select="cdit:get_key_id(., 'key')" />
+                <xsl:variable name="label_id" select="cdit:get_key_id(., 'label')" />
+                <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="got_same_child_name" select="count(./gml:graph/gml:node/gml:data[@key=$label_id and text() = $label]) = 0" />        
+                <xsl:value-of select="cdit:output_result($id, $got_same_child_name, concat('Aggregate ', o:quote_wrap($type), ' has a child with the same label.'), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('All children of Aggregates require a different label than its parent Aggregate.', $results, 1)" />
+    </xsl:function>
+
+
 
     <xsl:function name="cdit:test_aggregate_unique_type">
         <xsl:param name="root"/>
@@ -384,6 +406,8 @@
 
         <xsl:value-of select="cdit:test_aggregate_requires_key($root, $aggregates)" />
         <xsl:value-of select="cdit:test_aggregate_unique_type($root, $aggregates)" />
+
+        <xsl:value-of select="cdit:test_aggregate_unique_member_label($root, $aggregates)" />
 
         
 
