@@ -85,6 +85,7 @@ void SearchItemWidget::setAspectFilterKey(int key)
 {
     aspectFilterKey = key;
     filterVisibility[key] = true;
+    updateVisibility(key, true);
 }
 
 
@@ -96,6 +97,7 @@ void SearchItemWidget::setDataFilterKey(int key)
 {
     dataFilterKey = key;
     filterVisibility[key] = true;
+    updateVisibility(key, true);
 }
 
 

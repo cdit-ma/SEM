@@ -2,7 +2,7 @@
 #include "../theme.h"
 
 #define TITLE_FRAME_WIDTH 4
-#define TITLE_ARROW_SIZE 24
+#define TITLE_ARROW_SIZE 20
 
 /**
  * @brief CustomGroupBox::CustomGroupBox
@@ -102,9 +102,10 @@ void CustomGroupBox::themeChanged()
         icon.addPixmap(theme->getImage("Icon", "arrowHeadUp", QSize(), theme->getHighlightColor()), QIcon::Active, QIcon::Off);
         groupTitleButton->setIcon(icon);
         */
-        groupTitleButton->setIcon(theme->getIcon("Icons", "arrowHeadVerticalToggle"));
+        groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle"));
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px;"
+                                        //"padding-left: 4px;"
                                         "border: none;"
                                         "background: rgba(0,0,0,0);"
                                         "}"
@@ -142,7 +143,6 @@ void CustomGroupBox::setupLayout()
     groupTitleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     groupTitleButton->setCheckable(true);
     groupTitleButton->setChecked(true);
-    groupTitleButton->setObjectName("CustomGroupBoxTitleButton");
 
     connect(groupTitleButton, &QToolButton::toggled, widgetsToolbar, &QToolBar::setVisible);
 
@@ -159,6 +159,7 @@ void CustomGroupBox::setupLayout()
     QToolBar* topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(TITLE_ARROW_SIZE, TITLE_ARROW_SIZE));
     topToolbar->addWidget(groupTitleButton);
+    //topToolbar->setLayoutDirection(Qt::RightToLeft);
 
     QHBoxLayout* topLayout = new QHBoxLayout();
     topLayout->setMargin(0);

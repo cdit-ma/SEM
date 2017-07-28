@@ -61,6 +61,8 @@ CustomGroupBox* FilterGroup::constructFilterBox()
         addToFilterBox(button);
     }
 
+    resetFilters();
+
     return customFilterBox;
 }
 
@@ -203,8 +205,8 @@ void FilterGroup::setResetButtonText(QString text)
  */
 void FilterGroup::setResetButtonKey(QVariant key)
 {
-    // remove reset button from hash
-    filterButtonsHash.remove(key);
+    // remove reset key from hash
+    filterButtonsHash.remove(resetKey);
 
     // re-store reset button with the new key
     filterButtonsHash[key] = resetButton;
@@ -254,8 +256,9 @@ void FilterGroup::addFilterPushButton(QVariant key, QString label, QString iconP
  * @brief FilterGroup::addToFilterGroup
  * @param key
  * @param filterButton
+ * @param addToGroupBox
  */
-void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
+void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton, bool addToGroupBox)
 {
     if (filterButtonsHash.contains(key)) {
         return;
@@ -276,8 +279,10 @@ void FilterGroup::addToFilterGroup(QVariant key, QAbstractButton* filterButton)
             checkedKeys.append(key);
         }
 
-        //addToGroupBox(filterButton);
-        addToFilterBox(filterButton);
+        if (addToGroupBox) {
+            //addToGroupBox(filterButton);
+            addToFilterBox(filterButton);
+        }
     }
 }
 
@@ -447,7 +452,7 @@ void FilterGroup::setupResetButton()
     resetButton->setIcon(Theme::theme()->getIcon("Icons", "list"));
     resetButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     resetButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    addToFilterGroup(resetKey, resetButton);
+    addToFilterGroup(resetKey, resetButton, false);
 }
 
 
@@ -542,6 +547,8 @@ void FilterGroup::clearFilters()
             button->setChecked(false);
         }
     }
+    //checkedKeys = filterButtonsHash.keys();
+    //checkedKeys.removeAll(resetKey);
     checkedKeys.clear();
 }
 

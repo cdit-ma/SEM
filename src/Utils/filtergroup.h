@@ -37,7 +37,7 @@ public:
 
     void addFilterToolButton(QVariant key, QString label, QString iconPath, QString iconName);
     void addFilterPushButton(QVariant key, QString label, QString iconPath, QString iconName);
-    void addToFilterGroup(QVariant key, QAbstractButton* filterButton);
+    void addToFilterGroup(QVariant key, QAbstractButton* filterButton, bool addToGroupBox = true);
 
     void clearFilterGroup();
 

@@ -101,7 +101,7 @@ private:
     QHash<int, NotificationItem*> notificationItems;
     QList<NotificationItem*> selectedItems;
 
-    QHash<NOTIFICATION_FILTER, QList<QVariant>> checkedFilterKeys;
+    QHash<NOTIFICATION_FILTER, FilterGroup*> filterGroups;
 
 protected:
     void enterEvent(QEvent* event);

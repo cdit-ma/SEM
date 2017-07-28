@@ -6,6 +6,7 @@
 #define DEFAULT_KEY_WIDTH 200
 #define DEFAULT_DISPLAY_WIDTH 300
 
+#define FILTER_REST_KEY -1
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -343,13 +344,15 @@ void SearchDialog::setupLayout()
 void SearchDialog::setupFilterGroups()
 {
     aspectFilterGroup = new FilterGroup("ASPECT", ASPECTS_FILTER, this);
+    aspectFilterGroup->setResetButtonKey(FILTER_REST_KEY);
     foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
         aspectFilterGroup->addFilterToolButton(static_cast<int>(aspect), GET_ASPECT_NAME(aspect), "EntityIcons", GET_ASPECT_ICON(aspect));
     }
-    filtersToolbar->addWidget(aspectFilterGroup->constructFilterGroupBox());
+    filtersToolbar->addWidget(aspectFilterGroup->constructFilterBox());
 
     dataFilterGroup = new FilterGroup("DATA", DATA_FILTER, this);
-    dataGroupAction = filtersToolbar->addWidget(dataFilterGroup->constructFilterGroupBox());
+    dataFilterGroup->setResetButtonKey(FILTER_REST_KEY);
+    dataGroupAction = filtersToolbar->addWidget(dataFilterGroup->constructFilterBox());
 
     connect(dataFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);
     connect(aspectFilterGroup, &FilterGroup::filtersChanged, this, &SearchDialog::on_filtersChanged);

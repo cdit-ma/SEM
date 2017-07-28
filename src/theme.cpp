@@ -1233,6 +1233,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "maximizeToggle", "Icons", "maximize", "Icons", "minimize");
     setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
+    setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
 
 
 

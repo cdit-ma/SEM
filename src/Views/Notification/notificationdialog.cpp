@@ -48,7 +48,6 @@ void NotificationDialog::on_filtersChanged(QList<QVariant> checkedKeys)
     if (filterGroup) {
         NOTIFICATION_FILTER filter = filterGroup->getFilterGroupKey().value<NOTIFICATION_FILTER>();
         emit filtersChanged(filter, checkedKeys);
-        checkedFilterKeys[filter] = checkedKeys;
     }
 }
 
@@ -275,7 +274,10 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
 
     // update the item's visibility depending on the currently checked filters
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        emit filtersChanged(filter, checkedFilterKeys.value(filter, QList<QVariant>()));
+        auto filter_group = filterGroups.value(filter, 0);
+        if(filter_group){
+            item->on_filtersChanged(filter, filter_group->getCheckedFilterKeys());
+        }
     }
 }
 
@@ -589,9 +591,12 @@ void NotificationDialog::setupFilterGroups()
     }
 
     // connect filter groups
-    connect(severityGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
-    connect(categoryGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
-    connect(typeGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
+    connect(severityGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
+    connect(categoryGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
+    connect(typeGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
+    //connect(severityGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
+    //connect(categoryGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
+    //connect(typeGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
 
     // connect reset filters button to all the filter groups
     connect(resetFiltersAction, &QAction::triggered, severityGroup, &FilterGroup::resetFilters);
@@ -599,17 +604,13 @@ void NotificationDialog::setupFilterGroups()
     connect(resetFiltersAction, &QAction::triggered, typeGroup, &FilterGroup::resetFilters);
 
     // add filters to the toolbar
-    //filtersToolbar->addWidget(severityGroup->constructFilterGroupBox());
-    //filtersToolbar->addWidget(categoryGroup->constructFilterGroupBox());
-    //filtersToolbar->addWidget(typeGroup->constructFilterGroupBox());
     filtersToolbar->addWidget(severityGroup->constructFilterBox());
     filtersToolbar->addWidget(categoryGroup->constructFilterBox());
     filtersToolbar->addWidget(typeGroup->constructFilterBox());
 
-    // by default the "All" button for each filter group is checked - initialise checked keys list
-    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        checkedFilterKeys[filter] = QList<QVariant>();
-    }
+    filterGroups.insert(NOTIFICATION_FILTER::SEVERITY, severityGroup);
+    filterGroups.insert(NOTIFICATION_FILTER::CATEGORY, categoryGroup);
+    filterGroups.insert(NOTIFICATION_FILTER::TYPE, typeGroup);
 }
 
 
