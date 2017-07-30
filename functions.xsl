@@ -478,7 +478,7 @@
         <!-- set RE_PATH -->
         <xsl:value-of select="o:cmake_comment('Get the RE_PATH')" />
         <xsl:value-of select="o:cmake_set_env('RE_PATH', '$ENV{RE_PATH}')" />
-        <xsl:value-of select="o:cmake_set_env('CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}', '${RE_PATH}/cmake/modules')" />
+        <xsl:value-of select="o:cmake_set_env('CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}', '${RE_PATH}/cmake_modules')" />
         <xsl:value-of select="o:nl()" />
     </xsl:function>
 
