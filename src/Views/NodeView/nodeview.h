@@ -85,7 +85,11 @@ public slots:
 
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
+    
 private slots:
+    void notification_Added(NotificationObject* obj);
+    void notification_Destructed(int id);
+    
     void node_ConnectMode(NodeItem* item);
     void node_PopOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
     void item_EditData(ViewItem* item, QString keyName);
@@ -140,6 +144,7 @@ private:
     EntityItem* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItem*> guiItems;
+    QHash<int, int> notification_id_lookup;
 
     ViewController* viewController = 0;
     SelectionHandler* selectionHandler = 0;
