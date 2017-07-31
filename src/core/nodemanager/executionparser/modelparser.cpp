@@ -332,7 +332,8 @@ bool Graphml::ModelParser::Process(){
 
                 //Parse In/OutEventPortInstance
                 for(auto p_id: port_ids){
-                    auto p_uid = c_uid + "_" + p_id;
+                    auto p_uid = p_id + unique_id;
+                    //auto p_uid = p_id;
                     if(!GetEventPort(p_uid)){
                         auto port = new EventPort();
                         port->id = p_uid;
@@ -428,12 +429,14 @@ bool Graphml::ModelParser::Process(){
         for(auto ac : m.second){
             auto source_port = GetEventPort(ac->source_id);
             auto target_port = GetEventPort(ac->target_id);
-
+            
             ComponentReplication* source_replication = 0;
             ComponentReplication* target_replication = 0;
             if(source_port && target_port){
                 source_replication = GetComponentReplication(source_port->component_id);
                 target_replication = GetComponentReplication(target_port->component_id);
+            }else{
+                std::cerr << "Cannot find source/target ports" << std::endl;
             }
 
             if(source_replication && target_replication){
@@ -465,6 +468,7 @@ bool Graphml::ModelParser::Process(){
                         //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
                         auto t_uid = ac->target_id + s_unique;
                         auto target_port_inst = GetEventPort(t_uid);
+                        
 
 
                         if(source_port_inst && target_port_inst){

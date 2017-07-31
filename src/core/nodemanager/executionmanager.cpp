@@ -77,6 +77,14 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
     }
 }
 
+std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessage(){
+    std::vector<NodeManager::ControlMessage*> messages;
+    for(auto a : deployment_map_){
+        messages.push_back(a.second);
+    }
+    return messages;
+}
+
 void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
     //Get the initial size
     int initial_size = inactive_slave_addresses_.size();

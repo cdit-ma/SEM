@@ -43,6 +43,8 @@ class ExecutionManager{
         void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
 
         bool Finished();
+        
+        std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
     private:
         void HandleSlaveOnline(std::string endpoint);
         bool ConstructControlMessages();

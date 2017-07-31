@@ -100,9 +100,8 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
 
-    if(attributes.count("publisher_address") > 0 ){
+    if(attributes.count("publisher_address")){
         for(auto s : attributes["publisher_address"]->StringList()){
-            std::cout << "ZMQ::InEventPort::" << this->get_name() <<  " Connect: " << s << std::endl;
             end_points_.push_back(s);
         }
     }
@@ -110,7 +109,7 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     if(!end_points_.empty()){
         configured_ = true;
     }else{
-        std::cerr << "zmq::InEventPort<T, S>::startup: No Valid Recieasdasdver Endpoints" << std::endl;
+        std::cerr << "zmq::InEventPort<T, S>::startup: No Valid Endpoints" << std::endl;
     }
 };
 
