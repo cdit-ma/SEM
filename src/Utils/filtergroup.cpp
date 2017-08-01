@@ -4,7 +4,7 @@
 
 #define FILTER_KEY "filterKey"
 #define FILTER_GROUP "filterGroup"
-#define FILTER_RESET_KEY "All"
+
 #define DEFAULT_CHECKED_STATE true
 #define ICON_SIZE 30
 
@@ -37,7 +37,7 @@ FilterGroup::FilterGroup(QString title, QVariant groupKey, QObject* parent) : QO
 
     resetAction = 0;
     resetButton = 0;
-    resetKey = FILTER_RESET_KEY;
+    resetKey = "All";
     showResetButton = true;
 
     // construct and add reset ("All") button - this is visible by default
@@ -83,7 +83,7 @@ QVariant FilterGroup::getFilterGroupKey()
  */
 QVariant FilterGroup::getResetKey()
 {
-    return FILTER_RESET_KEY;
+    return resetKey;
 }
 
 
@@ -295,7 +295,7 @@ void FilterGroup::clearFilterGroup()
     QList<QVariant> keys = filterButtonsHash.keys();
     foreach (QVariant key, keys) {
         // don't delete the reset button
-        if (key == FILTER_RESET_KEY) {
+        if (key == resetKey) {
             continue;
         }
         if (filterButtonsHash.contains(key)) {
@@ -303,7 +303,6 @@ void FilterGroup::clearFilterGroup()
             delete filterButtonsHash.take(key);
         }
     }
-
     resetFilters();
 }
 
@@ -332,13 +331,6 @@ void FilterGroup::themeChanged()
     if (filterToolbar) {
         filterToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
     }
-
-    /*
-    foreach (QAbstractButton* button, filterButtonsHash.values()) {
-        QString iconPath = button->property("iconPath").toString();
-        QString iconName = button->property("iconName").toString();
-        button->setIcon(theme->getIcon(iconPath, iconName));
-    }*/
 }
 
 
@@ -356,7 +348,7 @@ void FilterGroup::filterTriggered()
         if (button->isChecked()) {
 
             // reset this filter group
-            if (key == FILTER_RESET_KEY) {
+            if (key == resetKey) {
                 resetFilters();
                 return;
             }
@@ -370,7 +362,7 @@ void FilterGroup::filterTriggered()
                 // if any other button is checked, make sure the reset button is unchecked
                 if (resetButton && resetButton->isChecked()) {
                     resetButton->setChecked(false);
-                    checkedKeys.removeAll(FILTER_RESET_KEY);
+                    checkedKeys.removeAll(resetKey);
                 }
             }
 
@@ -380,7 +372,7 @@ void FilterGroup::filterTriggered()
         } else {
 
             // the reset ("All") button cannot be unchecked by clicking on it
-            if (key == FILTER_RESET_KEY) {
+            if (key == resetKey) {
                 button->setChecked(true);
                 return;
             }
@@ -407,13 +399,17 @@ void FilterGroup::filterTriggered()
 
 /**
  * @brief FilterGroup::resetFilters
+ * This un-checks all currently checked buttons then re-checks the reset ("All") button.
+ * It updates the checked count in the title and sends a signal with a clear checked list.
  */
 void FilterGroup::resetFilters()
 {
     // clear the filters then re-check the "All" button
     clearFilters();
+
     if (resetButton) {
         resetButton->setChecked(true);
+    } else {
     }
 
     // update the checked count and send signals that the filters have changed
@@ -538,6 +534,7 @@ void FilterGroup::addToFilterBox(QAbstractButton* button)
 
 /**
  * @brief FilterGroup::clearFilters
+ * This un-checks all currently checked buttons.
  */
 void FilterGroup::clearFilters()
 {
@@ -547,8 +544,6 @@ void FilterGroup::clearFilters()
             button->setChecked(false);
         }
     }
-    //checkedKeys = filterButtonsHash.keys();
-    //checkedKeys.removeAll(resetKey);
     checkedKeys.clear();
 }
 
@@ -560,14 +555,7 @@ void FilterGroup::clearFilters()
  */
 void FilterGroup::updateFilterCheckedCount()
 {
-    if (filterGroupBox) {
-        QString newTitle = filterGroupTitle;
-        if (!resetButton->isChecked()) {
-            newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";
-        }
-        filterGroupBox->setTitle(newTitle);
-    }
-    if (customFilterBox) {
+    if (customFilterBox && resetButton) {
         QString newTitle = filterGroupTitle;
         if (!resetButton->isChecked()) {
             newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";

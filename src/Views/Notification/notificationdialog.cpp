@@ -507,7 +507,7 @@ void NotificationDialog::setupLayout()
 
     // add a little padding at the top of the filters toolbar
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setFixedHeight(7);
+    spacerWidget->setFixedHeight(5);
     filtersToolbar->addWidget(spacerWidget);
 
     QScrollArea* filtersArea = new QScrollArea(this);
@@ -594,9 +594,6 @@ void NotificationDialog::setupFilterGroups()
     connect(severityGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
     connect(categoryGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
     connect(typeGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
-    //connect(severityGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
-    //connect(categoryGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
-    //connect(typeGroup, SIGNAL(filtersChanged(QList<QVariant>)), this, SLOT(on_filtersChanged(QList<QVariant>)));
 
     // connect reset filters button to all the filter groups
     connect(resetFiltersAction, &QAction::triggered, severityGroup, &FilterGroup::resetFilters);
