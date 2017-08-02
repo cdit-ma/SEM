@@ -237,5 +237,7 @@
         <file alias="circleCritical">Resources/Icons/circleCritical.png</file>
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleHalo">Resources/Icons/circleHalo.png</file>
+        <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
+        <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
     </qresource>
 </RCC>

@@ -64,15 +64,21 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
+    
     /*
     auto group_box = new OptionGroupBox("Test group", this);
     for(auto s : getNotificationSeverities()){
         group_box->addOption(static_cast<uint>(s), getSeverityString(s), "Icons", getSeverityIcon(s));
-
     }
+    group_box->addOption("HELLO", "HELLO", "Icons", "circle");
     auto vals = group_box->getOptions<NOTIFICATION_SEVERITY>();
     for (auto v : vals){
         qCritical() << getSeverityString(v);
+    }
+
+     auto vals2 = group_box->getOptions<QVariant>();
+    for (auto v : vals2){
+        qCritical() << v;
     }
     group_box->setExclusive(true);
 
@@ -82,7 +88,8 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     l->addWidget(group_box);
     d->setStyleSheet("background:gray;");
     d->show();
-    d->exec();*/
+    d->exec();
+    */
 }
 
 
@@ -948,7 +955,7 @@ void MainWindow::setupDockablePanels()
     searchPanel = new SearchDialog(this);
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
-    searchDockWidget->setIcon("Icons", "zoom");
+    searchDockWidget->setIcon("Icons", "zoomInPage");
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
 
@@ -958,7 +965,7 @@ void MainWindow::setupDockablePanels()
 
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
-    notificationDockWidget->setIcon("Icons", "exclamation");
+    notificationDockWidget->setIcon("Icons", "exclamationInBubble");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
 
