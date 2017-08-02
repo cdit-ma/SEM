@@ -66,6 +66,8 @@ public:
 
 private:
 public:
+    void AddNotification(QString image_path, QString image_name, QColor color);
+    void ClearNotification();
     void renderText(QPainter* painter, qreal lod, ELEMENT_RECT pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
@@ -233,6 +235,11 @@ private:
     QPair<QString, QString> tertiaryIconPath;
     bool paintTertiaryIcon;
 
+public:
+    QPair<QString, QString> notification_icon;
+    QColor notification_color;
+    bool paint_notification = false;
+private:
 
     //QHash<ELEMENT_RECT, ImageMap> imageMap;
     QHash<ELEMENT_RECT, StaticTextItem*> textMap;

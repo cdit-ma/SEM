@@ -725,10 +725,31 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             brush.setColor(getBodyColor());
         }
 
-        
+        //Paint the pixmap!
     }
+    /*
 
-    //Paint the pixmap!
+        if(paint_notification){
+            painter->save();
+            QPen pen(notification_color);;
+            pen.setJoinStyle(Qt::MiterJoin);
+            pen.setWidth(2);
+            //pen.setColor(Qt::black);
+            painter->setPen(pen);
+            
+            auto background = Theme::blendColors(notification_color, getBodyColor(), .60);
+            painter->setBrush(background);
+            painter->drawRect(getElementRect(ER_MAIN_ICON));
+            //pen.setWidth(2);
+           // pen.setColor(notification_color);
+            //pen.setCosmetic(true);
+           // painter->setPen(pen);
+
+            //painter->drawEllipse(getElementRect(ER_MAIN_ICON));
+           // painter->drawRect(getElementRect(ER_MAIN_ICON));
+            painter->restore();
+        }*/
+    
     paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
 
     if(state > RENDER_STATE::BLOCK){
@@ -740,6 +761,16 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
         if(isReadOnly()){
             paintPixmap(painter, lod, ER_LOCKED_STATE, "Icons", "lockClosed");
+        }
+        if(paint_notification){
+            painter->save();
+            //QBrush brush(Qt::SolidPattern);
+            //painter->setPen(Qt::NoPen);
+            //brush.setColor(getBodyColor());
+            //painter->setBrush(brush);
+            //painter->drawRect(getElementRect(ER_NOTIFICATION));
+            //paintPixmap(painter, lod, ER_NOTIFICATION, notification_icon, notification_color);
+            painter->restore();
         }
     }
 }
@@ -948,4 +979,22 @@ void EntityItem::setMoveEnabled(bool enabled)
 bool EntityItem::isMoveEnabled()
 {
     return moveEnabled;
+}
+
+
+void EntityItem::AddNotification(QString image_path, QString image_name, QColor color){
+    if(!paint_notification || notification_icon.first != image_path || notification_icon.second != image_name){
+        notification_icon.first = image_path;
+        notification_icon.second = image_name;
+        notification_color = color;
+        paint_notification = true;
+        update();
+    }
+}
+
+void EntityItem::ClearNotification(){
+    if(paint_notification){
+        paint_notification = false;
+        update();
+    }
 }

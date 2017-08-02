@@ -19,6 +19,8 @@
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"
 
+#include "../Notification/notificationobject.h"
+
 
 #define ZOOM_INCREMENTOR 1.05
 
@@ -58,6 +60,8 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     themeChanged();
 
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
+    connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NodeView::notification_Added);
+    connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &NodeView::notification_Destructed);
 }
 
 
@@ -668,10 +672,15 @@ QPointF NodeView::getTopLeftOfSelection(){
 
     QPointF top_left = viewportRect().topLeft();
     if(item){
-        return QPointF();
-    }else{
-        return top_left;
+        top_left = item->mapFromScene(top_left);
+        if(top_left.x() < 0){
+            top_left.setX(0);
+        }
+        if(top_left.y() < 0){
+            top_left.setY(0);
+        }
     }
+    return top_left;
 }
 
 QRectF NodeView::viewportRect()
@@ -1598,3 +1607,24 @@ void NodeView::resizeEvent(QResizeEvent *event)
     update_minimap();
 }
 
+void NodeView::notification_Added(NotificationObject* obj){
+    //Check for IDs
+    auto entity = getEntityItem(obj->entityID());
+    if(entity){
+        auto color = getSeverityColor(obj->severity());
+        entity->AddNotification(obj->iconPath(), obj->iconName(), color);
+        notification_id_lookup[obj->ID()] = entity->getID();
+    }
+}
+
+void NodeView::notification_Destructed(int id){
+
+    auto e_id = notification_id_lookup.value(id, -1);
+    if(e_id != -1){
+        notification_id_lookup.remove(id);
+        auto entity = getEntityItem(e_id);
+        if(entity){
+            entity->ClearNotification();
+        }
+    }
+}
