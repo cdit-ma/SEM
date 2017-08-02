@@ -9,6 +9,7 @@
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
+#include "../../Widgets/optiongroupbox.h"
 
 #include "../../theme.h"
 
@@ -63,15 +64,25 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
-
     /*
-    CustomGroupBox* cgb = new CustomGroupBox("TEST GROUP", this);
+    auto group_box = new OptionGroupBox("Test group", this);
+    for(auto s : getNotificationSeverities()){
+        group_box->addOption(static_cast<uint>(s), getSeverityString(s), "Icons", getSeverityIcon(s));
+
+    }
+    auto vals = group_box->getOptions<NOTIFICATION_SEVERITY>();
+    for (auto v : vals){
+        qCritical() << getSeverityString(v);
+    }
+    group_box->setExclusive(true);
+
     QDialog* d = new QDialog(this);
+    d->setModal(false);
     QVBoxLayout* l = new QVBoxLayout(d);
-    l->addWidget(cgb);
-    d->setStyleSheet("background: gray;");
-    d->exec();
-    */
+    l->addWidget(group_box);
+    d->setStyleSheet("background:gray;");
+    d->show();
+    d->exec();*/
 }
 
 

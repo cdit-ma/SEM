@@ -468,6 +468,6 @@ void FilterGroup::updateFilterCheckedCount()
         if (!resetButton->isChecked()) {
             newTitle = filterGroupTitle + " (" + QString::number(checkedKeys.count()) + ")";
         }
-        customFilterBox->setTitlte(newTitle);
+        customFilterBox->setTitle(newTitle);
     }
 }

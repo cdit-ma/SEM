@@ -27,7 +27,7 @@ CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
  * @brief CustomGroupBox::setTitlte
  * @param title
  */
-void CustomGroupBox::setTitlte(QString title)
+void CustomGroupBox::setTitle(QString title)
 {
     if (groupTitleButton) {
         groupTitleButton->setText(title);
@@ -145,13 +145,13 @@ void CustomGroupBox::themeChanged()
                                         "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
                                         "}");
     }
-
+    /*
     foreach (QAction* action, widgetsToolbar->actions()) {
         QToolButton* button = qobject_cast<QToolButton*>(widgetsToolbar->widgetForAction(action));
         QString iconPath = button->property("iconPath").toString();
         QString iconName = button->property("iconName").toString();
         button->setIcon(theme->getIcon(iconPath, iconName));
-    }
+    }*/
 }
 
 

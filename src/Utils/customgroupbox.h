@@ -14,7 +14,7 @@ class CustomGroupBox : public QFrame
 public:
     explicit CustomGroupBox(QString title = "", QWidget *parent = 0);
 
-    void setTitlte(QString title);
+    virtual void setTitle(QString title);
     QString getTitle();
 
     void setChecked(bool checked);
