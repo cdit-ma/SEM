@@ -15,6 +15,10 @@ public:
     explicit CustomGroupBox(QString title = "", QWidget *parent = 0);
 
     void setTitlte(QString title);
+    QString getTitle();
+
+    void setChecked(bool checked);
+    bool isChecked();
 
     QAction* addWidget(QWidget* widget);
     QAction* insertWidget(QAction* beforeAction, QWidget* widget);

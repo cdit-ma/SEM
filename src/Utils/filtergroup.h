@@ -21,10 +21,8 @@ public:
 
     CustomGroupBox* constructFilterBox();
 
-    QGroupBox* constructFilterGroupBox(Qt::Orientation orientation = Qt::Vertical);
     QVariant getFilterGroupKey();
     QVariant getResetKey();
-
     QList<QVariant> getFilterKeys();
     QList<QVariant> getCheckedFilterKeys();
 
@@ -32,6 +30,7 @@ public:
     void setVisible(bool visible);
 
     void setResetButtonVisible(bool visible);
+    void setResetButtonIcon(QString path, QString name);
     void setResetButtonText(QString text);
     void setResetButtonKey(QVariant key);
 
@@ -46,10 +45,7 @@ signals:
     void filtersCleared();
 
 public slots:
-    void themeChanged();
     void resetFilters();
-
-    void updateResetButtonVisibility();
 
 private slots:
     void filterTriggered();
@@ -66,9 +62,6 @@ private:
     void updateFilterCheckedCount();
 
     CustomGroupBox* customFilterBox;
-
-    QGroupBox* filterGroupBox;
-    QToolBar* filterToolbar;
 
     QToolButton* resetButton;
     QAction* resetAction;

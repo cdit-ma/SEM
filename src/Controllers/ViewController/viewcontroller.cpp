@@ -192,6 +192,24 @@ QStringList getSearchableKeys(){
     return {"label", "description", "kind", "namespace", "type", "value"};
 };
 
+QList<ViewItem*> ViewController::getSearchableEntities(){
+    QList<ViewItem*> items;
+
+    for(ViewItem* item : viewItems.values()){
+        auto node_item = (NodeViewItem*) item;
+        auto edge_item = (EdgeViewItem*) item;
+
+        if(item->isNode()){
+            if(node_item->isNodeOfType(NODE_TYPE::ASPECT)){
+                continue;
+            }
+        }else if(item->isEdge()){
+            //Do nothing
+        }
+        items.append(item);
+    }
+    return items;
+}
 
 QStringList ViewController::_getSearchSuggestions()
 {
@@ -199,7 +217,7 @@ QStringList ViewController::_getSearchSuggestions()
     //QStringList suggestions;
     QSet<QString> suggestions;
 
-    foreach(ViewItem* item, viewItems.values()){
+    for(auto item : getSearchableEntities()){
         if(item->isInModel()){
             //ID's
             suggestions.insert(QString::number(item->getID()));
@@ -219,7 +237,13 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     auto keys = getSearchableKeys();
     QMap<QString, ViewItem*> results;
 
-    foreach(ViewItem* item, viewItems.values()){
+    for(auto item : getSearchableEntities()){
+        if(item && item->isNode()){
+            auto node_item = (NodeViewItem*) item;
+            if(node_item->isNodeOfType(NODE_TYPE::ASPECT)){
+                continue;
+            }
+        }
         if(item->isInModel()){
             QString ID = QString::number(item->getID());
 

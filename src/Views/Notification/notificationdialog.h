@@ -56,6 +56,9 @@ private slots:
     void on_filtersChanged(QList<QVariant> checkedKeys);
     void on_selectionChanged(NotificationItem* item, bool selected, bool controlDown);
 
+    void entitySelectionChanged(int ID);
+    void selectionFilterToggled(bool checked);
+
     void viewSelection();
 
     void clearSelected();
@@ -102,6 +105,10 @@ private:
     QList<NotificationItem*> selectedItems;
 
     QHash<NOTIFICATION_FILTER, FilterGroup*> filterGroups;
+
+    int selectedEntityID;
+    QList<int> selectedEntityItemIDs;
+
 
 protected:
     void enterEvent(QEvent* event);

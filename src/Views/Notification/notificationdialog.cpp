@@ -27,6 +27,8 @@
 NotificationDialog::NotificationDialog(QWidget *parent)
     : QWidget(parent)
 {
+    selectedEntityID = -1;
+
     setupLayout();
     initialisePanel();
     updateSelectionBasedButtons();
@@ -141,6 +143,47 @@ void NotificationDialog::on_selectionChanged(NotificationItem* item, bool select
     blinkInfoLabel(false);
     item->setSelected(selectItem);
     updateSelectionBasedButtons();
+}
+
+
+/**
+ * @brief NotificationDialog::entitySelectionChanged
+ * @param ID
+ */
+void NotificationDialog::entitySelectionChanged(int ID)
+{
+    if (ID == selectedEntityID) {
+        return;
+    }
+    foreach (NotificationItem* item, notificationItems) {
+        int entityID = item->getEntityID();
+        if (entityID == ID) {
+            selectedEntityItemIDs.append(entityID);
+        }
+    }
+}
+
+
+/**
+ * @brief NotificationDialog::selectionFilterToggled
+ * @param checked
+ */
+void NotificationDialog::selectionFilterToggled(bool checked)
+{
+    if (checked) {
+        foreach (NotificationItem* item, notificationItems) {
+            int entityID = item->getEntityID();
+            if (selectedEntityItemIDs.contains(entityID)) {
+                // show the item if it matches the current filters
+            } else {
+                item->setVisible(false);
+            }
+        }
+    } else {
+        foreach (NotificationItem* item, notificationItems) {
+            // show all items that match the current filters
+        }
+    }
 }
 
 
@@ -504,11 +547,6 @@ void NotificationDialog::setupLayout()
     filtersToolbar->setOrientation(Qt::Vertical);
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    // add a little padding at the top of the filters toolbar
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setFixedHeight(5);
-    filtersToolbar->addWidget(spacerWidget);
 
     QScrollArea* filtersArea = new QScrollArea(this);
     filtersArea->setWidget(filtersToolbar);

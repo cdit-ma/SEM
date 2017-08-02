@@ -269,11 +269,6 @@ void SearchDialog::setupLayout()
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    // add a little padding at the top of the filters toolbar
-    QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setFixedHeight(7);
-    filtersToolbar->addWidget(spacerWidget);
-
     QScrollArea* keysArea = new QScrollArea(this);
     keysArea->setWidget(filtersToolbar);
     keysArea->setWidgetResizable(true);

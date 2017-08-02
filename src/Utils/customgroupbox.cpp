@@ -37,6 +37,41 @@ void CustomGroupBox::setTitlte(QString title)
 
 
 /**
+ * @brief CustomGroupBox::getTitle
+ * @return
+ */
+QString CustomGroupBox::getTitle()
+{
+    return groupTitle;
+}
+
+
+/**
+ * @brief CustomGroupBox::setChecked
+ * @param checked
+ */
+void CustomGroupBox::setChecked(bool checked)
+{
+    if (groupTitleButton) {
+        groupTitleButton->setChecked(checked);
+    }
+}
+
+
+/**
+ * @brief CustomGroupBox::isChecked
+ * @return
+ */
+bool CustomGroupBox::isChecked()
+{
+    if (groupTitleButton) {
+        return groupTitleButton->isChecked();
+    }
+    return false;
+}
+
+
+/**
  * @brief CustomGroupBox::addWidget
  * @param widget
  * @return
@@ -94,14 +129,6 @@ void CustomGroupBox::themeChanged()
                   "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     if (groupTitleButton) {
-        /*
-        QIcon icon = Theme::theme()->getIcon("Icons", "arrowHeadVerticalToggle");
-        icon.addPixmap(theme->getImage("Icon", "arrowHeadDown", QSize(), QColor(250,0,0)), QIcon::Normal, QIcon::On);
-        icon.addPixmap(theme->getImage("Icon", "arrowHeadUp", QSize(), QColor(250,0,0)), QIcon::Normal, QIcon::Off);
-        icon.addPixmap(theme->getImage("Icon", "arrowHeadDown", QSize(), theme->getHighlightColor()), QIcon::Active, QIcon::On);
-        icon.addPixmap(theme->getImage("Icon", "arrowHeadUp", QSize(), theme->getHighlightColor()), QIcon::Active, QIcon::Off);
-        groupTitleButton->setIcon(icon);
-        */
         groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle"));
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px;"
@@ -172,6 +199,7 @@ void CustomGroupBox::setupLayout()
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
+    mainLayout->setContentsMargins(0, 2, 0, 2);
     mainLayout->addLayout(topLayout);
     mainLayout->addWidget(widgetsToolbar);
 }

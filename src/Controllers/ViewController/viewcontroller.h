@@ -284,6 +284,7 @@ private slots:
     void modelNotification(MODEL_SEVERITY severity, QString description, int ID);
 
 private:
+    QList<ViewItem*> ViewController::getSearchableEntities();
 
     void setupEntityKindItems();
     void _showGitHubPage(QString relURL="");
