@@ -132,35 +132,30 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
         args << "preview=true";
     }
 
-    //emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
-    //auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
-    //emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
-
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = NotificationManager::displayLoadingNotification("Generating Component C++ ...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
-    NotificationManager::manager()->deleteNotification(nID);
 
     if(!results.success){
-        NotificationManager::displayNotification("XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
+        NotificationManager::updateNotification(nID, "XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", NOTIFICATION_SEVERITY::ERROR);
+    }else{
+        NotificationManager::manager()->deleteNotification(nID);
     }
     return results.success;
 }
 
 bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory)
 {
-    //emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::VALIDATION);
-    //auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-    //emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::VALIDATION);
-
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = NotificationManager::displayLoadingNotification("Generating Datatypes C++ ...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-    NotificationManager::manager()->deleteNotification(nID);
 
     if(!results.success){
-        NotificationManager::manager()->displayNotification("XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
+        NotificationManager::updateNotification(nID, "XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", NOTIFICATION_SEVERITY::ERROR);
+    }else{
+        NotificationManager::manager()->deleteNotification(nID);
     }
+
     return results.success;
 }
 

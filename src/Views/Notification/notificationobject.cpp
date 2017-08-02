@@ -81,6 +81,7 @@ void NotificationObject::setIcon(QString path, QString name)
 void NotificationObject::setSeverity(NOTIFICATION_SEVERITY severity)
 {
     _severity = severity;
+    emit iconChanged(_iconPath, _iconName);
 }
 
 

@@ -166,30 +166,8 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             painter->drawRect(currentRect());
         }
 
-        //Paint the Header
-
-        
-        if(paint_notification){
-            painter->save();
-            painter->setClipRect(headerRect());
-            QPen pen(notification_color);;
-            pen.setJoinStyle(Qt::MiterJoin);
-            pen.setWidth(4);
-            //pen.setColor(Qt::black);
-            painter->setPen(pen);
-            
-            auto background = Theme::blendColors(notification_color, getHeaderColor(), .60);
-            painter->setBrush(background);
-            painter->drawRect(getElementRect(ER_MAIN_ICON));
-            
-        }else{
-            painter->setBrush(getHeaderColor());
-        }
+        painter->setBrush(getHeaderColor());
         painter->drawRect(headerRect());
-
-        if(paint_notification){
-            painter->restore();
-        }
 
         if(state > RENDER_STATE::BLOCK){
             //Paint the White Background for the text

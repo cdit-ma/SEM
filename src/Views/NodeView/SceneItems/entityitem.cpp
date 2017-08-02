@@ -727,29 +727,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         //Paint the pixmap!
     }
-    /*
-
-        if(paint_notification){
-            painter->save();
-            QPen pen(notification_color);;
-            pen.setJoinStyle(Qt::MiterJoin);
-            pen.setWidth(2);
-            //pen.setColor(Qt::black);
-            painter->setPen(pen);
-            
-            auto background = Theme::blendColors(notification_color, getBodyColor(), .60);
-            painter->setBrush(background);
-            painter->drawRect(getElementRect(ER_MAIN_ICON));
-            //pen.setWidth(2);
-           // pen.setColor(notification_color);
-            //pen.setCosmetic(true);
-           // painter->setPen(pen);
-
-            //painter->drawEllipse(getElementRect(ER_MAIN_ICON));
-           // painter->drawRect(getElementRect(ER_MAIN_ICON));
-            painter->restore();
-        }*/
-    
+      
     paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
 
     if(state > RENDER_STATE::BLOCK){

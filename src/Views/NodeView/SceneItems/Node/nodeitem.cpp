@@ -1294,7 +1294,11 @@ QColor NodeItem::getBodyColor() const
 
 QColor NodeItem::getHeaderColor() const
 {
-    return getBodyColor().darker(120);
+    auto color = getBodyColor().darker(120);
+    if(!isHighlighted() && paint_notification){
+        color = Theme::blendColors(notification_color, color, .60);
+    }
+    return color;
 }
 
 QPointF NodeItem::getTopLeftOffset() const

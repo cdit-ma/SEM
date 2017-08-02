@@ -225,8 +225,8 @@ bool NotificationManager::updateNotification(int ID, QString description, QStrin
     }
 
     NotificationObject* obj = notificationObjects.value(ID);
-    obj->setIcon(iconPath, iconName);
     obj->setDescription(description);
+    obj->setIcon(iconPath, iconName);
     obj->setSeverity(severity);
 
     // toast updated notification
