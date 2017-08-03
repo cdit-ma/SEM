@@ -103,33 +103,23 @@ QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString
 void SettingsController::intializeSettings()
 {
     //General
-    createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "", "Default Model path", "Icons", "folder");
-    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "", "MEDEA Wiki URL", "Icons", "book");
-
-    //General - Window
-    createSetting(SK_GENERAL_WIDTH, ST_INT, "General", "Window", "Initial MEDEA window width");
-    createSetting(SK_GENERAL_HEIGHT, ST_INT, "General", "Window", "Initial MEDEA window height");
-    createSetting(SK_GENERAL_MAXIMIZED, ST_BOOL, "General", "Window", "Launch MEDEA maximized");
-    createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "Window", "Save window state on exit", "Icons", "floppyDisk");
-
-    //General - Controls
-    //createSetting(SK_GENERAL_SELECT_ON_CREATION, ST_BOOL, "General", "Controls", "Select Entity on creation");
-    createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "Controls", "Zoom to mouse", "Icons", "zoom");
+    createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
+    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
+    createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "MEDEA", "Save window/tool state on exit", "Icons", "floppyDisk");
+    createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
+    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
+    
     createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
-    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "", "Reset All Settings", "Icons", "bin");
 
-    //Window - Views
-    createSetting(SK_WINDOW_INTERFACES_VISIBLE, ST_BOOL, "Window", "Views", "Show Interfaces on launch", "EntityIcons", "InterfaceDefinitions");
-    createSetting(SK_WINDOW_BEHAVIOUR_VISIBLE, ST_BOOL, "Window", "Views", "Show Behaviour on launch", "EntityIcons", "BehaviourDefinitions");
-    createSetting(SK_WINDOW_ASSEMBLIES_VISIBLE, ST_BOOL, "Window", "Views", "Show Assemblies on launch", "EntityIcons", "AssemblyDefinitions");
-    createSetting(SK_WINDOW_HARDWARE_VISIBLE, ST_BOOL, "Window", "Views", "Show Hardware on launch", "EntityIcons", "HardwareDefinitions");
-    createSetting(SK_WINDOW_QOS_VISIBLE, ST_BOOL, "Window", "Views", "Show QOS Browser on launch", "EntityIcons", "QOSProfile");
+    createSetting(SK_WINDOW_INNER_GEOMETRY, ST_BYTEARRAY, "General", "", "Recent Projects");
+    createSetting(SK_WINDOW_INNER_STATE, ST_BYTEARRAY, "General", "", "Recent Projects");
+    createSetting(SK_WINDOW_OUTER_GEOMETRY, ST_BYTEARRAY, "General", "", "Recent Projects");
+    createSetting(SK_WINDOW_OUTER_STATE, ST_BYTEARRAY, "General", "", "Recent Projects");
 
-    //Window - Tools
-    createSetting(SK_WINDOW_TABLE_VISIBLE, ST_BOOL, "Window", "Tools", "Show Table on launch", "Icons", "grid3x3");
-    createSetting(SK_WINDOW_MINIMAP_VISIBLE, ST_BOOL, "Window", "Tools", "Show Minimap on launch", "Icons", "map");
-    createSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Manager on launch", "Icons", "tiles");
-    createSetting(SK_WINDOW_TOOLBAR_VISIBLE, ST_BOOL, "Window", "Tools", "Show Toolbar on launch", "Icons", "spanner");
+    
+
+
+    /* TO REMOVE */
 
     //Toolbar - Visible Buttons
     createSetting(SK_TOOLBAR_CONTEXT, ST_BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar", "Icons", "gearDark");
@@ -142,14 +132,11 @@ void SettingsController::intializeSettings()
     createSetting(SK_TOOLBAR_FIT_TO_SCREEN, ST_BOOL, "Toolbar", "Visible Buttons", "Fit To Screen", "Icons", "screenResize");
     createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection", "Icons", "crosshair");
     createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window", "Icons", "popOut");
-    //createSetting(SK_TOOLBAR_SORT, ST_BOOL, "Toolbar", "Visible Buttons", "Sort");
     createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search", "Icons", "zoom");
     createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete", "Icons", "bin");
     createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally", "Icons", "alignHorizontal");
     createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically", "Icons", "alignVertical");
     createSetting(SK_TOOLBAR_VALIDATE, ST_BOOL, "Toolbar", "Visible Buttons", "Validate Model", "Icons", "shieldTick");
-    
-
     createSetting(SK_TOOLBAR_CONTRACT, ST_BOOL, "Toolbar", "Visible Buttons", "Expand Selection", "Icons", "triangleSouthEast");
     createSetting(SK_TOOLBAR_EXPAND, ST_BOOL, "Toolbar", "Visible Buttons", "Contract Selection", "Icons", "triangleNorthWest");
 
@@ -202,28 +189,9 @@ void SettingsController::intializeSettings()
 
 
 
-    _getSetting(SK_GENERAL_WIDTH)->setDefaultValue(1200);
     _getSetting(SK_GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
-
-
-    _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(700);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
-    //_getSetting(SK_GENERAL_SELECT_ON_CREATION)->setDefaultValue(true);
     _getSetting(SK_GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
-    _getSetting(SK_GENERAL_MAXIMIZED)->setDefaultValue(false);
-
-
-    _getSetting(SK_WINDOW_INTERFACES_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_HARDWARE_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_QOS_VISIBLE)->setDefaultValue(false);
-
-
-    _getSetting(SK_WINDOW_TABLE_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_MINIMAP_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_TOOLBAR_VISIBLE)->setDefaultValue(true);
 
     _getSetting(SK_TOOLBAR_CONTEXT)->setDefaultValue(false);
     _getSetting(SK_TOOLBAR_SEARCH)->setDefaultValue(true);

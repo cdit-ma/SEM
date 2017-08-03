@@ -196,7 +196,7 @@ void AppSettings::setupLayout()
     tabWidget = new QTabWidget(this);
     //tabWidget->setTabPosition(QTabWidget::West);
     tabWidget->setTabPosition(QTabWidget::North);
-    tabWidget->setContentsMargins(QMargins(0,0,0,0));
+    tabWidget->setContentsMargins(QMargins(5,5,5,5));
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
     layout->addWidget(tabWidget, 1);
@@ -236,7 +236,7 @@ void AppSettings::setupSettingsLayouts()
         QString settingString = setting->getSettingString();
         SETTING_KEY key = setting->getID();
 
-        QVBoxLayout* layout = getSectionLayout(category, section);
+        auto box = getSectionBox(category, section);
 
         if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
             DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);
@@ -246,7 +246,8 @@ void AppSettings::setupSettingsLayouts()
             }
             connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
 
-            layout->addWidget(widget);
+            //layout->addWidget(widget);
+            box->addWidget(widget);
 
             int width  = widget->getMinimumLabelWidth();
 
@@ -255,12 +256,14 @@ void AppSettings::setupSettingsLayouts()
 
             nameToCategory[settingString] = category;
 
-            if(categoryToWidth.contains(category)){
-                if(categoryToWidth[category] < width){
+            if(setting->getType() != ST_BOOL && setting->getType() != ST_BUTTON){
+                if(categoryToWidth.contains(category)){
+                    if(categoryToWidth[category] < width){
+                        categoryToWidth[category] = width;
+                    }
+                }else{
                     categoryToWidth[category] = width;
                 }
-            }else{
-                categoryToWidth[category] = width;
             }
         }
     }
@@ -297,6 +300,8 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
         area->setWidget(widget);
 
         layout = new QVBoxLayout();
+        layout->setSpacing(0);
+        layout->setContentsMargins(10,10,10,10);
         widget->setLayout(layout);
         tabWidget->addTab(area, category);
         categoryLayouts[category] = layout;
@@ -322,3 +327,17 @@ QVBoxLayout *AppSettings::getSectionLayout(QString category, QString section)
     }
     return layout;
 }
+
+CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
+    QString key = category + "_" + section;
+
+    CustomGroupBox* box = sectionBoxes.value(key, 0);
+    if(!box){
+        auto category_layout = getCategoryLayout(category);
+        box = new CustomGroupBox(section, category_layout->parentWidget());
+        category_layout->addWidget(box);
+        sectionBoxes[key] = box;
+    }
+    return box;
+}
+

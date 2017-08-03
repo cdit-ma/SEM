@@ -10,6 +10,7 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QAction>
+#include "../customgroupbox.h"
 
 #include "../dataeditwidget.h"
 #include "../../theme.h"
@@ -53,6 +54,7 @@ private:
     void setupSettingsLayouts();
     QVBoxLayout *getCategoryLayout(QString category);
     QVBoxLayout* getSectionLayout(QString category, QString section);
+    CustomGroupBox* getSectionBox(QString category, QString section);
 
     QTabWidget* tabWidget;
     QLabel* warningLabel;
@@ -62,6 +64,7 @@ private:
     QHash<QString, QVBoxLayout*> categoryLayouts;
     QHash<QString, QVBoxLayout*> sectionLayouts;
     QHash<SETTING_KEY, QVariant> changedSettings;
+    QHash<QString, CustomGroupBox*> sectionBoxes;
     QAction* applySettingsAction;
     QAction* clearSettingsAction;
     QAction* warningAction;

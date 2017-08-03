@@ -50,20 +50,13 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
 
     SettingsController* s = SettingsController::settings();
 
-    int width = s->getSetting(SK_GENERAL_WIDTH).toInt();
-    int height = s->getSetting(SK_GENERAL_HEIGHT).toInt();
-    resize(width, height);
-    resizeToolWidgets();
+    //resizeToolWidgets();
 
-    if (s->getSetting(SK_GENERAL_MAXIMIZED).toBool()) {
-        showMaximized();
-    } else {
-        showNormal();
-    }
 
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
+    showNormal();
     
     /*
     auto group_box = new OptionGroupBox("Test group", this);
@@ -98,7 +91,7 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
  */
 MainWindow::~MainWindow()
 {
-    saveSettings();
+    saveWindowState();
 
     SettingsController::teardownSettings();
     Theme::teardownTheme();
@@ -501,12 +494,15 @@ void MainWindow::toggleWelcomeScreen(bool on)
         // hide notification toast
         notificationPopup->hide();
         notificationTimer->stop();
+
     } else {
         holderLayout->removeWidget(innerWindow);
         holderLayout->addWidget(welcomeScreen);
         setCentralWidget(innerWindow);
         // show top-most notification; if there are any
         NotificationManager::manager()->showLastNotification();
+
+        restoreWindowState();
     }
 }
 
@@ -514,15 +510,24 @@ void MainWindow::toggleWelcomeScreen(bool on)
 /**
  * @brief MedeaMainWindow::saveSettings
  */
-void MainWindow::saveSettings()
+void MainWindow::saveWindowState()
 {
     SettingsController* s = SettingsController::settings();
     if(s && s->getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT).toBool()){
-        s->setSetting(SK_GENERAL_MAXIMIZED, isMaximized());
-        if(!isMaximized()){
-            s->setSetting(SK_GENERAL_WIDTH, width());
-            s->setSetting(SK_GENERAL_HEIGHT, height());
-        }
+        s->setSetting(SK_WINDOW_OUTER_GEOMETRY, saveGeometry());
+        s->setSetting(SK_WINDOW_OUTER_STATE, saveState());
+        s->setSetting(SK_WINDOW_INNER_GEOMETRY, innerWindow->saveGeometry());
+        s->setSetting(SK_WINDOW_INNER_STATE, innerWindow->saveState());
+    }
+}
+
+void MainWindow::restoreWindowState(){
+    SettingsController* s = SettingsController::settings();
+    if(s){
+        restoreGeometry(s->getSetting(SK_WINDOW_OUTER_GEOMETRY).toByteArray());
+        restoreState(s->getSetting(SK_WINDOW_OUTER_STATE).toByteArray());
+        innerWindow->restoreGeometry(s->getSetting(SK_WINDOW_INNER_GEOMETRY).toByteArray());
+        innerWindow->restoreState(s->getSetting(SK_WINDOW_INNER_STATE).toByteArray());
     }
 }
 
@@ -630,11 +635,6 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
 
-    innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
     // This function needs to be called after the code above
@@ -724,7 +724,6 @@ void MainWindow::setupToolBar()
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
 
     //Check visibility state.
-    dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TOOLBAR_VISIBLE).toBool());
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
@@ -854,7 +853,6 @@ void MainWindow::setupDock()
     connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockWidget, SLOT(setVisible(bool)));
 
     //Check visibility state.
-    //dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
     addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
@@ -878,7 +876,6 @@ void MainWindow::setupDataTable()
 
     //Check visibility state.
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-    setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
 }
 
 
@@ -895,7 +892,6 @@ void MainWindow::setupMinimap()
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-    setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_MINIMAP_VISIBLE).toBool());
 }
 
 
@@ -984,7 +980,6 @@ void MainWindow::setupDockablePanels()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, jenkinsDockWidget);
 
     // initially hide tool dock widgets
-    innerWindow->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
     innerWindow->setDockWidgetVisibility(jenkinsDockWidget, false);
@@ -1045,7 +1040,6 @@ void MainWindow::setupViewManager()
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-    setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE).toBool());
 }
 
 

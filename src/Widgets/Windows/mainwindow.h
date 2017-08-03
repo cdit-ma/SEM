@@ -75,7 +75,9 @@ private:
     void setViewController(ViewController* vc);
     void initializeApplication();
     void toggleWelcomeScreen(bool on);
-    void saveSettings();
+    
+    void saveWindowState();
+    void restoreWindowState();
 
     void setupTools();
     void setupInnerWindow();
