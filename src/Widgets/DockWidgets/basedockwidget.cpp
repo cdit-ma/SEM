@@ -58,6 +58,10 @@ BaseDockWidget::~BaseDockWidget()
 
 }
 
+void BaseDockWidget::themeChanged(){
+    setIcon(titleIcon.first, titleIcon.second);
+}
+
 
 int BaseDockWidget::getID()
 {

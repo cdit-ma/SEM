@@ -103,67 +103,67 @@ QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString
 void SettingsController::intializeSettings()
 {
     //General
-    //createSetting(SK_GENERAL_DEBUG_LOGGING, ST_BOOL, "General", "", "Log debugging information");
-    createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "", "Default Model path");
-    //createSetting(SK_GENERAL_CUTS_CONFIGURE_PATH, ST_FILE, "General", "", "CUTS configure script file path");
-    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "", "MEDEA Wiki URL");
+    createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "", "Default Model path", "Icons", "folder");
+    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "", "MEDEA Wiki URL", "Icons", "book");
 
     //General - Window
     createSetting(SK_GENERAL_WIDTH, ST_INT, "General", "Window", "Initial MEDEA window width");
     createSetting(SK_GENERAL_HEIGHT, ST_INT, "General", "Window", "Initial MEDEA window height");
     createSetting(SK_GENERAL_MAXIMIZED, ST_BOOL, "General", "Window", "Launch MEDEA maximized");
-    createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "Window", "Save window state on exit");
+    createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "Window", "Save window state on exit", "Icons", "floppyDisk");
 
     //General - Controls
     //createSetting(SK_GENERAL_SELECT_ON_CREATION, ST_BOOL, "General", "Controls", "Select Entity on creation");
-    createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "Controls", "Zoom to mouse");
+    createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "Controls", "Zoom to mouse", "Icons", "zoom");
     createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
-    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "", "Reset All Settings");
+    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "", "Reset All Settings", "Icons", "bin");
 
     //Window - Views
-    createSetting(SK_WINDOW_INTERFACES_VISIBLE, ST_BOOL, "Window", "Views", "Show Interfaces on launch");
-    createSetting(SK_WINDOW_BEHAVIOUR_VISIBLE, ST_BOOL, "Window", "Views", "Show Behaviour on launch");
-    createSetting(SK_WINDOW_ASSEMBLIES_VISIBLE, ST_BOOL, "Window", "Views", "Show Assemblies on launch");
-    createSetting(SK_WINDOW_HARDWARE_VISIBLE, ST_BOOL, "Window", "Views", "Show Hardware on launch");
-    createSetting(SK_WINDOW_QOS_VISIBLE, ST_BOOL, "Window", "Views", "Show QOS Browser on launch");
+    createSetting(SK_WINDOW_INTERFACES_VISIBLE, ST_BOOL, "Window", "Views", "Show Interfaces on launch", "EntityIcons", "InterfaceDefinitions");
+    createSetting(SK_WINDOW_BEHAVIOUR_VISIBLE, ST_BOOL, "Window", "Views", "Show Behaviour on launch", "EntityIcons", "BehaviourDefinitions");
+    createSetting(SK_WINDOW_ASSEMBLIES_VISIBLE, ST_BOOL, "Window", "Views", "Show Assemblies on launch", "EntityIcons", "AssemblyDefinitions");
+    createSetting(SK_WINDOW_HARDWARE_VISIBLE, ST_BOOL, "Window", "Views", "Show Hardware on launch", "EntityIcons", "HardwareDefinitions");
+    createSetting(SK_WINDOW_QOS_VISIBLE, ST_BOOL, "Window", "Views", "Show QOS Browser on launch", "EntityIcons", "QOSProfile");
 
     //Window - Tools
-    createSetting(SK_WINDOW_TABLE_VISIBLE, ST_BOOL, "Window", "Tools", "Show Table on launch");
-    createSetting(SK_WINDOW_MINIMAP_VISIBLE, ST_BOOL, "Window", "Tools", "Show Minimap on launch");
-    createSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Manager on launch");
-    createSetting(SK_WINDOW_TOOLBAR_VISIBLE, ST_BOOL, "Window", "Tools", "Show Toolbar on launch");
+    createSetting(SK_WINDOW_TABLE_VISIBLE, ST_BOOL, "Window", "Tools", "Show Table on launch", "Icons", "grid3x3");
+    createSetting(SK_WINDOW_MINIMAP_VISIBLE, ST_BOOL, "Window", "Tools", "Show Minimap on launch", "Icons", "map");
+    createSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Manager on launch", "Icons", "tiles");
+    createSetting(SK_WINDOW_TOOLBAR_VISIBLE, ST_BOOL, "Window", "Tools", "Show Toolbar on launch", "Icons", "spanner");
 
     //Toolbar - Visible Buttons
-    createSetting(SK_TOOLBAR_CONTEXT, ST_BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar");
-    createSetting(SK_TOOLBAR_UNDO, ST_BOOL, "Toolbar", "Visible Buttons", "Undo");
-    createSetting(SK_TOOLBAR_REDO, ST_BOOL, "Toolbar", "Visible Buttons", "Redo");
-    createSetting(SK_TOOLBAR_CUT, ST_BOOL, "Toolbar", "Visible Buttons", "Cut");
-    createSetting(SK_TOOLBAR_COPY, ST_BOOL, "Toolbar", "Visible Buttons", "Copy");
-    createSetting(SK_TOOLBAR_PASTE, ST_BOOL, "Toolbar", "Visible Buttons", "Paste");
-    createSetting(SK_TOOLBAR_REPLICATE, ST_BOOL, "Toolbar", "Visible Buttons", "Replicate");
-    createSetting(SK_TOOLBAR_FIT_TO_SCREEN, ST_BOOL, "Toolbar", "Visible Buttons", "Fit To Screen");
-    createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection");
-    createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window");
+    createSetting(SK_TOOLBAR_CONTEXT, ST_BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar", "Icons", "gearDark");
+    createSetting(SK_TOOLBAR_UNDO, ST_BOOL, "Toolbar", "Visible Buttons", "Undo", "Icons", "arrowUndo");
+    createSetting(SK_TOOLBAR_REDO, ST_BOOL, "Toolbar", "Visible Buttons", "Redo", "Icons", "arrowRedo");
+    createSetting(SK_TOOLBAR_CUT, ST_BOOL, "Toolbar", "Visible Buttons", "Cut", "Icons", "scissors");
+    createSetting(SK_TOOLBAR_COPY, ST_BOOL, "Toolbar", "Visible Buttons", "Copy", "Icons", "copy");
+    createSetting(SK_TOOLBAR_PASTE, ST_BOOL, "Toolbar", "Visible Buttons", "Paste", "Icons", "clipboard");
+    createSetting(SK_TOOLBAR_REPLICATE, ST_BOOL, "Toolbar", "Visible Buttons", "Replicate", "Icons", "copyList");
+    createSetting(SK_TOOLBAR_FIT_TO_SCREEN, ST_BOOL, "Toolbar", "Visible Buttons", "Fit To Screen", "Icons", "screenResize");
+    createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection", "Icons", "crosshair");
+    createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window", "Icons", "popOut");
     //createSetting(SK_TOOLBAR_SORT, ST_BOOL, "Toolbar", "Visible Buttons", "Sort");
-    createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search");
-    createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete");
-    createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally");
-    createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically");
+    createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search", "Icons", "zoom");
+    createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete", "Icons", "bin");
+    createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally", "Icons", "alignHorizontal");
+    createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically", "Icons", "alignVertical");
+    createSetting(SK_TOOLBAR_VALIDATE, ST_BOOL, "Toolbar", "Visible Buttons", "Validate Model", "Icons", "shieldTick");
+    
 
-    createSetting(SK_TOOLBAR_CONTRACT, ST_BOOL, "Toolbar", "Visible Buttons", "Expand Selection");
-    createSetting(SK_TOOLBAR_EXPAND, ST_BOOL, "Toolbar", "Visible Buttons", "Contract Selection");
+    createSetting(SK_TOOLBAR_CONTRACT, ST_BOOL, "Toolbar", "Visible Buttons", "Expand Selection", "Icons", "triangleSouthEast");
+    createSetting(SK_TOOLBAR_EXPAND, ST_BOOL, "Toolbar", "Visible Buttons", "Contract Selection", "Icons", "triangleNorthWest");
 
 
 
 
 
      //Jenkins - Server
-    createSetting(SK_JENKINC_URL, ST_STRING, "Jenkins", "Server", "URL");
-    createSetting(SK_JENKINC_JOBNAME, ST_STRING, "Jenkins", "Server", "Jobname");
+    createSetting(SK_JENKINC_URL, ST_STRING, "Jenkins", "Server", "URL", "Icons", "globe");
+    createSetting(SK_JENKINC_JOBNAME, ST_STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
 
     //Jenkins - User
-    createSetting(SK_JENKINC_USER, ST_STRING, "Jenkins", "User", "Username");
-    createSetting(SK_JENKINC_API, ST_STRING, "Jenkins", "User", "API Token");
+    createSetting(SK_JENKINC_USER, ST_STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
+    createSetting(SK_JENKINC_API, ST_STRING, "Jenkins", "User", "API Token", "Icons", "star");
 
     createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
@@ -236,12 +236,13 @@ void SettingsController::intializeSettings()
     _getSetting(SK_TOOLBAR_FIT_TO_SCREEN)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
-    //_getSetting(SK_TOOLBAR_SORT)->setDefaultValue(false);
     _getSetting(SK_TOOLBAR_DELETE)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_EXPAND)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_CONTRACT)->setDefaultValue(true);
+    _getSetting(SK_TOOLBAR_VALIDATE)->setDefaultValue(true);
+    
 
     _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
@@ -283,10 +284,13 @@ void SettingsController::_setSetting(Setting *setting, QVariant value)
 
 }
 
-Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name)
+Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name, QString iconPath, QString iconName)
 {
     if(!settingsHash.contains(ID)){
         Setting* setting = new Setting(ID, type, category, section, name);
+        if(iconPath != "" && iconName != ""){
+            setting->setIcon(iconPath, iconName);
+        }
         settingsHash[ID] = setting;
         settingsKeys.append(ID);
         return setting;

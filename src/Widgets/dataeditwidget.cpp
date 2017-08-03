@@ -6,7 +6,7 @@
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QComboBox>
-#include <QPushButton>
+#include <QToolButton>
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QPlainTextEdit>
@@ -27,6 +27,41 @@ DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+}
+void DataEditWidget::updateIcon(){
+    Theme* theme = Theme::theme();
+    if(icon_path.first != "" && icon_path.second != ""){
+        switch(type){
+            case ST_BUTTON:{
+                auto button = qobject_cast<QToolButton*>(editWidget_1);
+                if(button){
+                    button->setIcon(theme->getIcon(icon_path));
+                }
+                break;
+            }   
+            default:
+                iconLabel->setPixmap(theme->getIcon(icon_path).pixmap(16,16));
+                break;
+
+        }
+    }
+}
+
+void DataEditWidget::setIcon(QString path, QString name){
+    icon_path.first = path;
+    icon_path.second = name;
+    updateIcon();
+    showIcon();
+}
+void DataEditWidget::showIcon(){
+    if(iconLabel && type != ST_BUTTON){
+        iconLabel->show();
+    }
+}
+void DataEditWidget::hideIcon(){
+    if(iconLabel){
+        iconLabel->hide();
+    }
 }
 
 QString DataEditWidget::getKeyName()
@@ -126,9 +161,13 @@ void DataEditWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    QPushButton* button = qobject_cast<QPushButton*>(editWidget_2);
+    if(toolbar){
+        toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    }
+
+    QToolButton* button = qobject_cast<QToolButton*>(editWidget_2);
     if(button){
-        QString style = theme->getPushButtonStyleSheet();
+        QString style = theme->getToolBarStyleSheet();
         //QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
         switch(type){
         case ST_FILE:{
@@ -140,9 +179,10 @@ void DataEditWidget::themeChanged()
             break;
         }
         case ST_COLOR:{
-            style += "QPushButton{background: " + currentData.toString() + ";}";
+            style += "QToolButton{background: " + currentData.toString() + ";}";
             break;
         }
+        
         default:{
             break;
         }
@@ -173,20 +213,27 @@ void DataEditWidget::themeChanged()
             style += "background:" + Theme::theme()->getAltBackgroundColorHex() + "; border: 1px solid " + theme->getAltBackgroundColorHex() + ";";
         }
 
+        
+
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
         QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
-        QPushButton* button = qobject_cast<QPushButton*>(editWidget_1);
+        QToolButton* button = qobject_cast<QToolButton*>(editWidget_1);
 
         if(lineEdit){
             lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
         }else if(button){
-            button->setStyleSheet(theme->getPushButtonStyleSheet());
+            button->setStyleSheet(theme->getToolButtonStyleSheet());
+            button->setIcon(theme->getIcon(icon_path));
         }else if(textEdit){
             textEdit->setStyleSheet(theme->getTextEditStyleSheet());
         }else{
             editWidget_1->setStyleSheet(style);
         }
+
     }
+
+    
+    updateIcon();
 }
 
 void DataEditWidget::dataChanged(QVariant value)
@@ -291,8 +338,6 @@ void DataEditWidget::setupLayout()
 {
     QVBoxLayout* verticalLayout = new QVBoxLayout(this);
     QHBoxLayout* editLayout = new QHBoxLayout();
-
-
     verticalLayout->setMargin(0);
     editLayout->setMargin(0);
 
@@ -302,8 +347,10 @@ void DataEditWidget::setupLayout()
     editWidget_1 = 0;
     editWidget_2 = 0;
     editLabel = new QLabel(label, this);
-
+    iconLabel = new QLabel(this);
+    editLayout->addWidget(iconLabel);
     editLayout->addWidget(editLabel);
+    iconLabel->hide();
 
     switch(type){
         case ST_STRING:{
@@ -353,16 +400,19 @@ void DataEditWidget::setupLayout()
 
         lineEdit->setText(currentData.toString());
 
-        QPushButton* button = new QPushButton(this);
+        QToolButton* button = new QToolButton(this);
         button->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
-        button->setFlat(true);
+
+        toolbar = new QToolBar(this);
+        toolbar->addWidget(button);
+        //button->setFlat(true);
 
         editWidget_1 = lineEdit;
         editWidget_2 = button;
         editLayout->addWidget(editWidget_1, 1);
-        editLayout->addWidget(editWidget_2);
+        editLayout->addWidget(toolbar);
 
-        connect(button, &QPushButton::pressed, this, &DataEditWidget::pickPath);
+        connect(button, &QToolButton::pressed, this, &DataEditWidget::pickPath);
         connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
         connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
         break;
@@ -373,14 +423,13 @@ void DataEditWidget::setupLayout()
 
 
 
-        QPushButton* button = new QPushButton(this);
+        QToolButton* button = new QToolButton(this);
         button->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
-        button->setFlat(true);
 
         editWidget_1 = lineEdit;
         editWidget_2 = button;
 
-        connect(button, &QPushButton::pressed, this, &DataEditWidget::pickColor);
+        connect(button, &QToolButton::pressed, this, &DataEditWidget::pickColor);
         connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
         connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::editFinished);
 
@@ -389,14 +438,19 @@ void DataEditWidget::setupLayout()
         break;
     }
     case ST_BUTTON:{
-        QPushButton* button = new QPushButton(label, this);
+        QToolButton* button = new QToolButton(this);
+        button->setText(label);
         button->setFixedHeight(SMALL_SQUARE);
-        connect(button, &QPushButton::clicked, this, &DataEditWidget::editFinished);
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        connect(button, &QToolButton::clicked, this, &DataEditWidget::editFinished);
 
+        toolbar = new QToolBar(this);
+        toolbar->addWidget(button);
         editWidget_1 = button;
         editLayout->removeWidget(editLabel);
 
-        editLayout->addWidget(editWidget_1, 1);
+        editLayout->addWidget(toolbar, 1);
         editLabel->deleteLater();
         editLabel = 0;
         break;

@@ -1,7 +1,7 @@
 #ifndef OPTION_GROUPBOX_H
 #define OPTION_GROUPBOX_H
 
-#include "../Utils/customgroupbox.h"
+#include "customgroupbox.h"
 #include <QHash>
 #include <QToolButton>
 

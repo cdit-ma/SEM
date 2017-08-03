@@ -14,7 +14,7 @@
 #include "../../theme.h"
 
 #include "../../Utils/filtergroup.h"
-#include "../../Utils/customgroupbox.h"
+#include "../../Widgets/customgroupbox.h"
 
 #include <QDebug>
 #include <QHeaderView>
@@ -971,7 +971,7 @@ void MainWindow::setupDockablePanels()
 
     jenkinsDockWidget = WindowManager::constructViewDockWidget("Jenkins");
     jenkinsDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    jenkinsDockWidget->setIcon("Icons", "jenkins");
+    jenkinsDockWidget->setIcon("Icons", "jenkinsFlat");
     jenkinsDockWidget->setIconVisible(true);
     jenkinsDockWidget->setProtected(true);
 

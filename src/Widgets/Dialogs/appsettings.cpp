@@ -240,6 +240,10 @@ void AppSettings::setupSettingsLayouts()
 
         if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
             DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);
+            if(setting->gotIcon()){
+                auto icon = setting->getIcon();
+                widget->setIcon(icon.first, icon.second);
+            }
             connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
 
             layout->addWidget(widget);

@@ -88,9 +88,10 @@ public:
     QAction* toolbar_delete;
     QAction* toolbar_alignVertical;
     QAction* toolbar_alignHorizontal;
-    QAction* toolbar_search;
+    QAction* toolbar_search; 
     QAction* toolbar_contract;
     QAction* toolbar_expand;
+    QAction* toolbar_validate;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;

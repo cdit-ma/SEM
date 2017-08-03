@@ -52,6 +52,18 @@ QPair<QString, QString> Setting::getIcon() const
     return icon;
 }
 
+bool Setting::gotIcon() const{
+    return icon.first != "" && icon.second != "";
+}
+
+void Setting::setIcon(QString path, QString name){
+    icon.first = path;
+    icon.second = name;
+}
+void Setting::setIcon(QPair<QString, QString> icon){
+    setIcon(icon.first, icon.second);
+}
+
 bool Setting::isThemeSetting() const
 {
     return getSettingString().contains("theme", Qt::CaseInsensitive);

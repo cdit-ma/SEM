@@ -31,4 +31,6 @@ void ToolDockWidget::themeChanged()
     if (getTitleBar()) {
         getTitleBar()->setStyleSheet(theme->getToolDockWidgetTitleBarStyleSheet());
     }
+
+    BaseDockWidget::themeChanged();
 }

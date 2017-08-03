@@ -2,7 +2,7 @@
 #define FILTERGROUP_H
 
 #include "../theme.h"
-#include "customgroupbox.h"
+#include "../Widgets/customgroupbox.h"
 
 #include <QObject>
 #include <QAbstractButton>

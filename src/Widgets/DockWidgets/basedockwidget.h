@@ -24,7 +24,7 @@ public:
     void setSourceWindow(BaseWindow* window);
     BaseWindow* getSourceWindow();
 
-    virtual void themeChanged() = 0;
+    virtual void themeChanged();
 
     QPair<QString, QString> getIcon();
     DockTitleBar* getTitleBar();

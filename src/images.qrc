@@ -239,5 +239,9 @@
         <file alias="circleHalo">Resources/Icons/circleHalo.png</file>
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
+        <file alias="jenkinsFlat">Resources/Icons/jenkinsFlat.png</file>
+        <file alias="personCircle">Resources/Icons/personCircle.png</file>
+        <file alias="fingerprint">Resources/Icons/fingerprint.png</file>
+        
     </qresource>
 </RCC>

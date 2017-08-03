@@ -15,6 +15,9 @@ public:
     QVariant getDefaultValue() const;
     QString getTooltip() const;
     QPair<QString, QString> getIcon() const;
+    bool gotIcon() const;
+    void setIcon(QString path, QString name);
+    void setIcon(QPair<QString, QString> icon);
 
     bool isThemeSetting() const;
     QString getSettingString() const;

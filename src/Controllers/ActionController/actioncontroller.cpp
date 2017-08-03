@@ -413,6 +413,8 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
         return toolbar_contract;
     case SK_TOOLBAR_EXPAND:
         return toolbar_expand;
+    case SK_TOOLBAR_VALIDATE:
+        return toolbar_validate;
     default:
         return 0;
     }
@@ -931,7 +933,10 @@ void ActionController::setupApplicationToolbar()
     applicationToolbar->addSeperator();
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
+    toolbar_validate = applicationToolbar->addAction(model_validateModel->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
+
+    
 
     SettingsController* s = SettingsController::settings();
     foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){

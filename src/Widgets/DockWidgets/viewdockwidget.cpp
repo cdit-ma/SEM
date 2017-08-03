@@ -30,4 +30,5 @@ bool ViewDockWidget::isNodeViewDock()
 void ViewDockWidget::themeChanged()
 {
     setStyleSheet(Theme::theme()->getViewDockWidgetStyleSheet(isActive()));
+    BaseDockWidget::themeChanged();
 }

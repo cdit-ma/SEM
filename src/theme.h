@@ -128,6 +128,7 @@ public:
     QString getComboBoxStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
+    QString getToolButtonStyleSheet();
     QString getLineEditStyleSheet();
     QString getTextEditStyleSheet();
     QString getRadioButtonStyleSheet();

@@ -918,6 +918,13 @@ QString Theme::getPushButtonStyleSheet()
            "}";
 }
 
+QString Theme::getToolButtonStyleSheet()
+{
+    return "QToolButton {"
+            "text-align: center;"
+           "}";
+}
+
 QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"

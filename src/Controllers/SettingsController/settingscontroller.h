@@ -52,6 +52,7 @@ enum SETTING_KEY{
     SK_TOOLBAR_EXPAND,
     SK_TOOLBAR_CONTRACT,
     SK_TOOLBAR_SEARCH,
+    SK_TOOLBAR_VALIDATE,
 
     // JENKINS
     SK_JENKINC_URL,
@@ -119,7 +120,7 @@ private:
     void loadSettingsFromFile();
 
     void _setSetting(Setting* setting, QVariant value);
-    Setting* createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name);
+    Setting* createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name, QString icon_path = "", QString icon_name = "");
     Setting* _getSetting(SETTING_KEY ID);
 
     QHash<SETTING_KEY, Setting*> settingsHash;
