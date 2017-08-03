@@ -32,38 +32,34 @@ public:
 
     QVariant getSetting(QString);
 signals:
-    void setSetting(SETTING_KEY key, QVariant data);
+    void setSetting(SETTINGS key, QVariant data);
     void settingsApplied();
 public slots:
-    void settingChanged(SETTING_KEY key, QVariant data);
+    void settingChanged(SETTINGS key, QVariant data);
 
 private slots:
     void themeChanged();
-    void dataValueChanged(QString dataKey, QVariant data);
+    void dataValueChanged(QVariant data);
 
     void applySettings();
     void clearSettings();
 private:
     void updateButtons();
-
-    SETTING_KEY getSettingKey(QString key);
-
-    DataEditWidget* getDataWidget(QString key);
-    DataEditWidget* getDataWidget(SETTING_KEY key);
+    DataEditWidget* getDataWidget(SETTINGS key);
     void setupLayout();
     void setupSettingsLayouts();
     QVBoxLayout *getCategoryLayout(QString category);
     QVBoxLayout* getSectionLayout(QString category, QString section);
     CustomGroupBox* getSectionBox(QString category, QString section);
+    
 
     QTabWidget* tabWidget;
     QLabel* warningLabel;
     QToolBar* toolbar;
-    QHash<QString, SETTING_KEY> settingKeyLookup;
-    QHash<SETTING_KEY, DataEditWidget*> dataEditWidgets;
+    QHash<SETTINGS, DataEditWidget*> dataEditWidgets;
     QHash<QString, QVBoxLayout*> categoryLayouts;
     QHash<QString, QVBoxLayout*> sectionLayouts;
-    QHash<SETTING_KEY, QVariant> changedSettings;
+    QHash<SETTINGS, QVariant> changedSettings;
     QHash<QString, CustomGroupBox*> sectionBoxes;
     QAction* applySettingsAction;
     QAction* clearSettingsAction;
@@ -71,6 +67,8 @@ private:
     QAction* resetSettings;
 
 };
+
+
 
 
 #endif

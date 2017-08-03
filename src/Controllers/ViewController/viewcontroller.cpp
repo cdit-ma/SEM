@@ -645,7 +645,7 @@ void ViewController::_showWebpage(QString URL)
 
 void ViewController::_showWiki(ViewItem *item)
 {
-    QString wikiURL = SettingsController::settings()->getSetting(SK_GENERAL_MEDEA_WIKI_URL).toString();
+    QString wikiURL = SettingsController::settings()->getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL).toString();
     QString url = wikiURL;
 
     bool isGitWiki = wikiURL.contains("github.com", Qt::CaseInsensitive);

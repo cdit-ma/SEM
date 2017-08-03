@@ -141,9 +141,9 @@ public:
 
 signals:
     void theme_Changed();
-    void changeSetting(SETTING_KEY setting, QVariant value);
+    void changeSetting(SETTINGS setting, QVariant value);
 public slots:
-    void settingChanged(SETTING_KEY setting, QVariant value);
+    void settingChanged(SETTINGS setting, QVariant value);
 private:
     void clearIconMap();
     void preloadImages();

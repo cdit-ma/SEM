@@ -12,12 +12,12 @@ class DataEditWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DataEditWidget(QString dataKey, QString label, SETTING_TYPE type, QVariant data, QWidget *parent = 0);
+    explicit DataEditWidget(QString label, SETTING_TYPE type, QVariant data, QWidget *parent = 0);
     
     void setIcon(QString icon_path, QString icon_name);
     void showIcon();
     void hideIcon();
-    QString getKeyName();
+    QString getLabel();
 
     SETTING_TYPE getType();
     void setHighlighted(bool highlighted);
@@ -36,14 +36,13 @@ private slots:
     void pickColor();
     void pickPath();
 signals:
-    void valueChanged(QString datakey, QVariant data);
+    void valueChanged(QVariant data);
 private:
     void updateIcon();
 
     void setupLayout();
 
     bool isHighlighted;
-    QString dataKey;
     QString label;
     QVariant currentData;
     QVariant newData;

@@ -15,7 +15,7 @@ FileHandler::FileHandler():QObject()
     fileDialog = new QFileDialog(0);
     fileDialog->setModal(true);
     //Get Path.
-    QString directory = SettingsController::settings()->getSetting(SK_GENERAL_MODEL_PATH).toString();
+    QString directory = SettingsController::settings()->getSetting(SETTINGS::GENERAL_MODEL_PATH).toString();
     fileDialog->setDirectory(directory);
 
 }

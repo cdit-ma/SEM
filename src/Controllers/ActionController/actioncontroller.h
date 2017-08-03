@@ -41,7 +41,7 @@ private slots:
     void addRecentProject(QString file_path);
     void removeRecentProject(QString file_path);
     
-    void settingChanged(SETTING_KEY key, QVariant value);
+    void settingChanged(SETTINGS key, QVariant value);
     void jenkinsValidated(bool success);
     void gotJava(bool java);
     void selectionChanged(int selectionSize);
@@ -53,7 +53,7 @@ private slots:
     void updateJenkinsActions();
     void updateUndoRedo();
 
-    QAction* getSettingAction(SETTING_KEY key);
+    QAction* getSettingAction(SETTINGS key);
 
     void updateActions();
 public:

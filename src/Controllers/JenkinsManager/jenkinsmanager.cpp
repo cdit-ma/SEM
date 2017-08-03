@@ -29,7 +29,7 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
     connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::ValidateSettings);
 
     //Sync settings to JenkinsManager
-    foreach(SETTING_KEY key, settings->getSettingsKeys("Jenkins")){
+    foreach(SETTINGS key, settings->getSettingsKeys("Jenkins")){
         SettingChanged(key, settings->getSetting(key));
     }
 
@@ -176,24 +176,24 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
     }
 }
 
-void JenkinsManager::SettingChanged(SETTING_KEY key, QVariant value)
+void JenkinsManager::SettingChanged(SETTINGS key, QVariant value)
 {
     QString strValue = value.toString();
 
     switch(key){
-    case SK_JENKINC_API:{
+    case SETTINGS::JENKINC_API:{
         SetApiToken(strValue);
         break;
     }
-    case SK_JENKINC_JOBNAME:{
+    case SETTINGS::JENKINC_JOBNAME:{
         SetJobName(strValue);
         break;
     }
-    case SK_JENKINC_USER:{
+    case SETTINGS::JENKINC_USER:{
         SetUser(strValue);
         break;
     }
-    case SK_JENKINC_URL:{
+    case SETTINGS::JENKINC_URL:{
         SetUrl(strValue);
         break;
     }

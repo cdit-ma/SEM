@@ -1072,91 +1072,91 @@ void Theme::preloadImages()
     emit theme_Changed();
 }
 
-void Theme::settingChanged(SETTING_KEY setting, QVariant value)
+void Theme::settingChanged(SETTINGS setting, QVariant value)
 {
     QColor color = value.value<QColor>();
 
     switch(setting){
-    case SK_THEME_BG_COLOR:{
+    case SETTINGS::THEME_BG_COLOR:{
         setBackgroundColor(color);
         break;
     }
-    case SK_THEME_BG_ALT_COLOR:{
+    case SETTINGS::THEME_BG_ALT_COLOR:{
         setAltBackgroundColor(color);
         break;
     }
-    case SK_THEME_TEXT_COLOR:{
+    case SETTINGS::THEME_TEXT_COLOR:{
         setTextColor(CR_NORMAL, color);
         break;
     }
-    case SK_THEME_ALTERNATE_TEXT_COLOR:{
+    case SETTINGS::THEME_ALTERNATE_TEXT_COLOR:{
         setAltTextColor(color);
         break;
     }
-    case SK_THEME_ICON_COLOR:{
+    case SETTINGS::THEME_ICON_COLOR:{
         setMenuIconColor(CR_NORMAL, color);
         break;
     }
-    case SK_THEME_BG_DISABLED_COLOR:{
+    case SETTINGS::THEME_BG_DISABLED_COLOR:{
         setDisabledBackgroundColor(color);
         break;
     }
-    case SK_THEME_TEXT_DISABLED_COLOR:{
+    case SETTINGS::THEME_TEXT_DISABLED_COLOR:{
         setTextColor(CR_DISABLED, color);
         break;
     }
-    case SK_THEME_ICON_DISABLED_COLOR:{
+    case SETTINGS::THEME_ICON_DISABLED_COLOR:{
         setMenuIconColor(CR_DISABLED, color);
         break;
     }
-    case SK_THEME_BG_SELECTED_COLOR:{
+    case SETTINGS::THEME_BG_SELECTED_COLOR:{
         setHighlightColor(color);
         break;
     }
-    case SK_THEME_TEXT_SELECTED_COLOR:{
+    case SETTINGS::THEME_TEXT_SELECTED_COLOR:{
         setTextColor(CR_SELECTED, color);
         break;
     }
-    case SK_THEME_ICON_SELECTED_COLOR:{
+    case SETTINGS::THEME_ICON_SELECTED_COLOR:{
         setMenuIconColor(CR_SELECTED, color);
         break;
     }
-    case SK_THEME_VIEW_BORDER_SELECTED_COLOR:{
+    case SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR:{
         setActiveWidgetBorderColor(color);
         break;
     }
-    case SK_THEME_ASPECT_BG_INTERFACES_COLOR:{
+    case SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR:{
         setAspectBackgroundColor(VIEW_ASPECT::INTERFACES, color);
         break;
     }
-    case SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR:{
+    case SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR:{
         setAspectBackgroundColor(VIEW_ASPECT::BEHAVIOUR, color);
         break;
     }
-    case SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR:{
+    case SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR:{
         setAspectBackgroundColor(VIEW_ASPECT::ASSEMBLIES, color);
         break;
     }
-    case SK_THEME_ASPECT_BG_HARDWARE_COLOR:{
+    case SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR:{
         setAspectBackgroundColor(VIEW_ASPECT::HARDWARE, color);
         break;
     }
-    case SK_THEME_SETTHEME_DARKTHEME:{
+    case SETTINGS::THEME_SETTHEME_DARKTHEME:{
         resetTheme(VT_DARK_THEME);
         break;
     }
-    case SK_THEME_SETTHEME_LIGHTHEME:{
+    case SETTINGS::THEME_SETTHEME_LIGHTHEME:{
         resetTheme(VT_LIGHT_THEME);
         break;
     }
-    case SK_THEME_SETASPECT_CLASSIC:{
+    case SETTINGS::THEME_SETASPECT_CLASSIC:{
         resetAspectTheme(false);
         break;
     }
-    case SK_THEME_SETASPECT_COLORBLIND:{
+    case SETTINGS::THEME_SETASPECT_COLORBLIND:{
         resetAspectTheme(true);
         break;
-    }case SK_THEME_APPLY:{
+    }case SETTINGS::THEME_APPLY:{
         applyTheme();
         break;
     }
@@ -1251,32 +1251,32 @@ void Theme::resetTheme(VIEW_THEME themePreset)
 {
     if (themePreset == VT_DARK_THEME) {
         QColor bgColor = QColor(70,70,70);
-        emit changeSetting(SK_THEME_BG_COLOR, bgColor);
-        emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter());
-        emit changeSetting(SK_THEME_TEXT_COLOR, white());
-        emit changeSetting(SK_THEME_ICON_COLOR, white());
-        emit changeSetting(SK_THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SK_THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SK_THEME_BG_SELECTED_COLOR, QColor(255,165,70));
-        emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, black());
-        emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, black());
-        emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, black());
-        emit changeSetting(SK_THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
+        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter());
+        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
+        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
+        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
     }else if(themePreset == VT_LIGHT_THEME){
         QColor bgColor = QColor(170,170,170);
-        emit changeSetting(SK_THEME_BG_COLOR, bgColor);
-        emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter(130));
-        emit changeSetting(SK_THEME_TEXT_COLOR, black());
-        emit changeSetting(SK_THEME_ICON_COLOR, black());
-        emit changeSetting(SK_THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
-        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SK_THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SK_THEME_BG_SELECTED_COLOR, QColor(75,110,175));
-        emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, white());
-        emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, white());
-        emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, white());
-        emit changeSetting(SK_THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
+        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
+        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
+        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
+        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
     }
 
 }
@@ -1284,16 +1284,16 @@ void Theme::resetTheme(VIEW_THEME themePreset)
 void Theme::resetAspectTheme(bool colorBlind)
 {
     if(colorBlind){
-        emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR, QColor(24,148,184));
-        emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(90,90,90));
-        emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(175,175,175));
-        emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(207,107,100));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, QColor(24,148,184));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(90,90,90));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(175,175,175));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, QColor(207,107,100));
     }else{
         //LEGACY
-        emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR,  QColor(110,210,210));
-        emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(254,184,126));
-        emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(255,160,160));
-        emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(110,170,220));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR,  QColor(110,210,210));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(254,184,126));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(255,160,160));
+        emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, QColor(110,170,220));
     }
 }
 

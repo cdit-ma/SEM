@@ -14,7 +14,8 @@ SettingsController* SettingsController::settingsSingleton = 0;
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
     //Register the settings key.
-    qRegisterMetaType<SETTING_KEY>("SETTING_KEY");
+    //qRegisterMetaType<SETTINGS>("SETTINGS");
+    //qRegisterMetaType<SETTING_TYPE>("SETTING_TYPE");
 
     settingsGUI = 0;
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
@@ -27,10 +28,11 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
 
 
     //Place defaults in case nothing is set.
-    emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
-    emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
+    emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
+    emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
 
     loadSettingsFromFile();
+    saveSettings();
 }
 
 SettingsController::~SettingsController()
@@ -39,7 +41,7 @@ SettingsController::~SettingsController()
     settingsFile->deleteLater();
 }
 
-QVariant SettingsController::getSetting(SETTING_KEY ID)
+QVariant SettingsController::getSetting(SETTINGS ID)
 {
     if(settingsHash.contains(ID)){
         return settingsHash[ID]->getValue();
@@ -47,7 +49,7 @@ QVariant SettingsController::getSetting(SETTING_KEY ID)
     return QVariant();
 }
 
-void SettingsController::setSetting(SETTING_KEY ID, QVariant value)
+void SettingsController::setSetting(SETTINGS ID, QVariant value)
 {
     _setSetting(_getSetting(ID), value);
     settingsFile->sync();
@@ -58,7 +60,7 @@ bool SettingsController::isWriteProtected()
     return !settingsFile->isWritable();
 }
 
-bool SettingsController::isThemeSetting(SETTING_KEY key)
+bool SettingsController::isThemeSetting(SETTINGS key)
 {
     Setting* setting = _getSetting(key);
     return setting && setting->isThemeSetting();
@@ -67,7 +69,7 @@ bool SettingsController::isThemeSetting(SETTING_KEY key)
 QList<Setting *> SettingsController::getSettings()
 {
     QList<Setting*> s;
-    foreach(SETTING_KEY key, settingsKeys){
+    foreach(SETTINGS key, settingsKeys){
        if(settingsHash.contains(key)){
            s.append(settingsHash[key]);
        }
@@ -75,15 +77,15 @@ QList<Setting *> SettingsController::getSettings()
     return s;
 }
 
-QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString section, QString name)
+QList<SETTINGS> SettingsController::getSettingsKeys(QString category, QString section, QString name)
 {
-    QList<SETTING_KEY> keys;
+    QList<SETTINGS> keys;
 
     bool useCat = !category.isEmpty();
     bool useSect = !section.isEmpty();
     bool useName = !name.isEmpty();
 
-    foreach(SETTING_KEY key, settingsKeys){
+    foreach(SETTINGS key, settingsKeys){
         Setting* s = _getSetting(key);
 
         if(s){
@@ -103,18 +105,19 @@ QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString
 void SettingsController::intializeSettings()
 {
     //General
-    createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
-    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
-    createSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT, ST_BOOL, "General", "MEDEA", "Save window/tool state on exit", "Icons", "floppyDisk");
-    createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
-    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
+    createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
+    createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
+    createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
+    createSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Dock Widgets State on exit", "Icons", "floppyDisk");
+    createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
+    createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
     
-    createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
+    createSetting(SETTINGS::GENERAL_RECENT_PROJECTS, SETTING_TYPE::STRINGLIST, "General", "MEDEA", "Recent Projects");
 
-    createSetting(SK_WINDOW_INNER_GEOMETRY, ST_BYTEARRAY, "General", "", "Recent Projects");
-    createSetting(SK_WINDOW_INNER_STATE, ST_BYTEARRAY, "General", "", "Recent Projects");
-    createSetting(SK_WINDOW_OUTER_GEOMETRY, ST_BYTEARRAY, "General", "", "Recent Projects");
-    createSetting(SK_WINDOW_OUTER_STATE, ST_BYTEARRAY, "General", "", "Recent Projects");
+    createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window Geometry");
+    createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window State");
+    createSetting(SETTINGS::WINDOW_OUTER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window Geometry");
+    createSetting(SETTINGS::WINDOW_OUTER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window State");
 
     
 
@@ -122,120 +125,151 @@ void SettingsController::intializeSettings()
     /* TO REMOVE */
 
     //Toolbar - Visible Buttons
-    createSetting(SK_TOOLBAR_CONTEXT, ST_BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar", "Icons", "gearDark");
-    createSetting(SK_TOOLBAR_UNDO, ST_BOOL, "Toolbar", "Visible Buttons", "Undo", "Icons", "arrowUndo");
-    createSetting(SK_TOOLBAR_REDO, ST_BOOL, "Toolbar", "Visible Buttons", "Redo", "Icons", "arrowRedo");
-    createSetting(SK_TOOLBAR_CUT, ST_BOOL, "Toolbar", "Visible Buttons", "Cut", "Icons", "scissors");
-    createSetting(SK_TOOLBAR_COPY, ST_BOOL, "Toolbar", "Visible Buttons", "Copy", "Icons", "copy");
-    createSetting(SK_TOOLBAR_PASTE, ST_BOOL, "Toolbar", "Visible Buttons", "Paste", "Icons", "clipboard");
-    createSetting(SK_TOOLBAR_REPLICATE, ST_BOOL, "Toolbar", "Visible Buttons", "Replicate", "Icons", "copyList");
-    createSetting(SK_TOOLBAR_FIT_TO_SCREEN, ST_BOOL, "Toolbar", "Visible Buttons", "Fit To Screen", "Icons", "screenResize");
-    createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection", "Icons", "crosshair");
-    createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window", "Icons", "popOut");
-    createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search", "Icons", "zoom");
-    createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete", "Icons", "bin");
-    createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally", "Icons", "alignHorizontal");
-    createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically", "Icons", "alignVertical");
-    createSetting(SK_TOOLBAR_VALIDATE, ST_BOOL, "Toolbar", "Visible Buttons", "Validate Model", "Icons", "shieldTick");
-    createSetting(SK_TOOLBAR_CONTRACT, ST_BOOL, "Toolbar", "Visible Buttons", "Expand Selection", "Icons", "triangleSouthEast");
-    createSetting(SK_TOOLBAR_EXPAND, ST_BOOL, "Toolbar", "Visible Buttons", "Contract Selection", "Icons", "triangleNorthWest");
+    createSetting(SETTINGS::TOOLBAR_CONTEXT, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Show Context Toolbar", "Icons", "gearDark");
+    createSetting(SETTINGS::TOOLBAR_UNDO, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Undo", "Icons", "arrowUndo");
+    createSetting(SETTINGS::TOOLBAR_REDO, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Redo", "Icons", "arrowRedo");
+    createSetting(SETTINGS::TOOLBAR_CUT, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Cut", "Icons", "scissors");
+    createSetting(SETTINGS::TOOLBAR_COPY, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Copy", "Icons", "copy");
+    createSetting(SETTINGS::TOOLBAR_PASTE, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Paste", "Icons", "clipboard");
+    createSetting(SETTINGS::TOOLBAR_REPLICATE, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Replicate", "Icons", "copyList");
+    createSetting(SETTINGS::TOOLBAR_FIT_TO_SCREEN, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Fit To Screen", "Icons", "screenResize");
+    createSetting(SETTINGS::TOOLBAR_CENTER_SELECTION, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Center Selection", "Icons", "crosshair");
+    createSetting(SETTINGS::TOOLBAR_VIEW_IN_NEWWINDOW, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "View In New Window", "Icons", "popOut");
+    createSetting(SETTINGS::TOOLBAR_SEARCH, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Search", "Icons", "zoom");
+    createSetting(SETTINGS::TOOLBAR_DELETE, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Delete", "Icons", "bin");
+    createSetting(SETTINGS::TOOLBAR_ALIGN_HORIZONTAL, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Align Horizontally", "Icons", "alignHorizontal");
+    createSetting(SETTINGS::TOOLBAR_ALIGN_VERTICAL, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Align Vertically", "Icons", "alignVertical");
+    createSetting(SETTINGS::TOOLBAR_VALIDATE, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Validate Model", "Icons", "shieldTick");
+    createSetting(SETTINGS::TOOLBAR_CONTRACT, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Expand Selection", "Icons", "triangleSouthEast");
+    createSetting(SETTINGS::TOOLBAR_EXPAND, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Contract Selection", "Icons", "triangleNorthWest");
 
 
 
 
 
      //Jenkins - Server
-    createSetting(SK_JENKINC_URL, ST_STRING, "Jenkins", "Server", "URL", "Icons", "globe");
-    createSetting(SK_JENKINC_JOBNAME, ST_STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
+    createSetting(SETTINGS::JENKINC_URL, SETTING_TYPE::STRING, "Jenkins", "Server", "URL", "Icons", "globe");
+    createSetting(SETTINGS::JENKINC_JOBNAME, SETTING_TYPE::STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
 
     //Jenkins - User
-    createSetting(SK_JENKINC_USER, ST_STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
-    createSetting(SK_JENKINC_API, ST_STRING, "Jenkins", "User", "API Token", "Icons", "star");
+    createSetting(SETTINGS::JENKINC_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
+    createSetting(SETTINGS::JENKINC_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
 
-    createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
-    createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
 
     //Theme - Default Colors
-    createSetting(SK_THEME_BG_COLOR, ST_COLOR, "Theme", "Default Colors", "Background");
-    createSetting(SK_THEME_BG_ALT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternative Background");
-    createSetting(SK_THEME_TEXT_COLOR, ST_COLOR, "Theme", "Default Colors", "Text");
-    createSetting(SK_THEME_ALTERNATE_TEXT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternate Text");
+    createSetting(SETTINGS::THEME_BG_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Background");
+    createSetting(SETTINGS::THEME_BG_ALT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Alternative Background");
+    createSetting(SETTINGS::THEME_TEXT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Text");
+    createSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Alternate Text");
 
-    createSetting(SK_THEME_ICON_COLOR, ST_COLOR, "Theme", "Default Colors", "Icon");
+    createSetting(SETTINGS::THEME_ICON_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Icon");
 
     //Theme - Disabled Colors
-    createSetting(SK_THEME_BG_DISABLED_COLOR, ST_COLOR, "Theme", "Disabled Colors", "Background");
-    createSetting(SK_THEME_TEXT_DISABLED_COLOR, ST_COLOR, "Theme", "Disabled Colors", "Text");
-    createSetting(SK_THEME_ICON_DISABLED_COLOR, ST_COLOR, "Theme", "Disabled Colors", "Icon");
+    createSetting(SETTINGS::THEME_BG_DISABLED_COLOR, SETTING_TYPE::COLOR, "Theme", "Disabled Colors", "Background");
+    createSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, SETTING_TYPE::COLOR, "Theme", "Disabled Colors", "Text");
+    createSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, SETTING_TYPE::COLOR, "Theme", "Disabled Colors", "Icon");
 
     //Theme - Selected Colors
-    createSetting(SK_THEME_BG_SELECTED_COLOR, ST_COLOR, "Theme", "Selected Colors", "Background");
-    createSetting(SK_THEME_TEXT_SELECTED_COLOR, ST_COLOR, "Theme", "Selected Colors", "Text");
-    createSetting(SK_THEME_ICON_SELECTED_COLOR, ST_COLOR, "Theme", "Selected Colors", "Icon");
-    createSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, ST_COLOR, "Theme", "Selected Colors", "Active View Border");
+    createSetting(SETTINGS::THEME_BG_SELECTED_COLOR, SETTING_TYPE::COLOR, "Theme", "Selected Colors", "Background");
+    createSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, SETTING_TYPE::COLOR, "Theme", "Selected Colors", "Text");
+    createSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, SETTING_TYPE::COLOR, "Theme", "Selected Colors", "Icon");
+    createSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, SETTING_TYPE::COLOR, "Theme", "Selected Colors", "Active View Border");
 
     //Theme - Aspect Colors
-    createSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Interfaces");
-    createSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Behaviour");
-    createSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Assemblies");
-    createSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Hardware");
-    createSetting(SK_THEME_SETASPECT_CLASSIC, ST_BUTTON, "Theme", "Aspect Colors", "Classic");
-    createSetting(SK_THEME_SETASPECT_COLORBLIND, ST_BUTTON, "Theme", "Aspect Colors", "Color Blind");
+    createSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, SETTING_TYPE::COLOR, "Theme", "Aspect Colors", "Interfaces");
+    createSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, SETTING_TYPE::COLOR, "Theme", "Aspect Colors", "Behaviour");
+    createSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, SETTING_TYPE::COLOR, "Theme", "Aspect Colors", "Assemblies");
+    createSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, SETTING_TYPE::COLOR, "Theme", "Aspect Colors", "Hardware");
+    createSetting(SETTINGS::THEME_SETASPECT_CLASSIC, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Classic");
+    createSetting(SETTINGS::THEME_SETASPECT_COLORBLIND, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
 
 
-    createSetting(SK_THEME_APPLY, ST_NONE, "Theme", "Theme", "Apply Theme");
+    createSetting(SETTINGS::THEME_APPLY, SETTING_TYPE::NONE, "Theme", "Theme", "Apply Theme");
 
 
 
-    _getSetting(SK_GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
-    _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
-    _getSetting(SK_GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
+    _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
+    _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
+    _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(true);
+    
+    _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
 
-    _getSetting(SK_TOOLBAR_CONTEXT)->setDefaultValue(false);
-    _getSetting(SK_TOOLBAR_SEARCH)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_UNDO)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_REDO)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_CUT)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_COPY)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_PASTE)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_REPLICATE)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_FIT_TO_SCREEN)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_DELETE)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_EXPAND)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_CONTRACT)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_VALIDATE)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);
+    _getSetting(SETTINGS::TOOLBAR_SEARCH)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_UNDO)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_REDO)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_CUT)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_COPY)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_PASTE)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_REPLICATE)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_FIT_TO_SCREEN)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_DELETE)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_EXPAND)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_CONTRACT)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_VALIDATE)->setDefaultValue(true);
     
 
-    _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
+    _getSetting(SETTINGS::GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
-    _getSetting(SK_JENKINC_JOBNAME)->setDefaultValue("deploy_model");
+    _getSetting(SETTINGS::JENKINC_JOBNAME)->setDefaultValue("deploy_model");
 
 }
 
+QString getSettingKey(Setting* setting){
+    QString str;
+    if(setting){
+        str = QString::number(static_cast<uint>(setting->getID())) % "_" % setting->getName();
+        str = str.toUpper();
+        str.replace(" ", "_");
+    }
+    return str;
+}
+
+QString getSettingGroupKey(Setting* setting){
+    QString str;
+    if(setting){
+        str = setting->getCategory() % "_" % setting->getSection();
+        str = str.toUpper();
+        str.replace(" ", "_");
+    }
+    return str;
+}
+
+void SettingsController::writeSetting(Setting* setting, QVariant value){
+    if(setting && settingsFile){
+        settingsFile->beginGroup(getSettingGroupKey(setting));
+        settingsFile->setValue(getSettingKey(setting), value);
+        settingsFile->endGroup();
+    }
+}
 void SettingsController::loadSettingsFromFile()
 {
     foreach(Setting* setting, settingsHash.values()){
-        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
             continue;
         }
-        QString settingKey = setting->getSettingString();
 
-        if(settingsFile->contains(settingKey)){
-            QVariant fileValue = settingsFile->value(settingKey);
-            if(setting->getType() == ST_COLOR){
-                fileValue = QColor(fileValue.toString());
+        settingsFile->beginGroup(getSettingGroupKey(setting));
+        auto file_value = settingsFile->value(getSettingKey(setting));
+        settingsFile->endGroup();
+
+        if(!file_value.isNull()){
+            if(setting->getType() == SETTING_TYPE::COLOR){
+                file_value = QColor(file_value.toString());
             }
-            if(!fileValue.isNull()){
-                _setSetting(setting, fileValue);
+            if(!file_value.isNull()){
+                _setSetting(setting, file_value);
             }
         }else{
-            settingsFile->setValue(settingKey, setting->getDefaultValue());
+            writeSetting(setting, setting->getDefaultValue());
         }
     }
 }
@@ -245,14 +279,14 @@ void SettingsController::_setSetting(Setting *setting, QVariant value)
     if(setting && setting->setValue(value)){
         emit settingChanged(setting->getID(), setting->getValue());
 
-        if(setting->getID() == SK_GENERAL_RESET_SETTINGS){
+        if(setting->getID() == SETTINGS::GENERAL_RESET_SETTINGS){
             resetSettings();
         }
     }
 
 }
 
-Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name, QString iconPath, QString iconName)
+Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name, QString iconPath, QString iconName)
 {
     if(!settingsHash.contains(ID)){
         Setting* setting = new Setting(ID, type, category, section, name);
@@ -268,7 +302,7 @@ Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QS
     return 0;
 }
 
-Setting *SettingsController::_getSetting(SETTING_KEY ID)
+Setting *SettingsController::_getSetting(SETTINGS ID)
 {
     if(settingsHash.contains(ID)){
         return settingsHash[ID];
@@ -289,10 +323,10 @@ void SettingsController::showSettingsWidget()
 
 void SettingsController::resetSettings()
 {
-    foreach(SETTING_KEY sk, settingsKeys){
+    foreach(SETTINGS sk, settingsKeys){
         Setting* setting = _getSetting(sk);
         if(setting){
-            if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+            if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
                 continue;
             }
             //Reset to default
@@ -300,9 +334,9 @@ void SettingsController::resetSettings()
         }
     }
     //Reset Settings
-    emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
-    emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
-    emit settingChanged(SK_THEME_APPLY, true);
+    emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
+    emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
+    emit settingChanged(SETTINGS::THEME_APPLY, true);
     emit settingsApplied();
     settingsFile->sync();
 }
@@ -311,18 +345,18 @@ void SettingsController::saveSettings()
 {
     foreach(Setting* setting, settingsHash.values()){
         //Ignore writing Button and None Type settings
-        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
             continue;
         }
 
         QVariant value = setting->getValue();
 
         //Convert QColor to a String'd hex
-        if(setting->getType() == ST_COLOR){
+        if(setting->getType() == SETTING_TYPE::COLOR){
             QColor color = value.value<QColor>();
             value = Theme::QColorToHex(color);
         }
-        settingsFile->setValue(setting->getSettingString(), value);
+        writeSetting(setting, value);
     }
     settingsFile->sync();
 }

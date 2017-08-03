@@ -110,7 +110,7 @@ void JenkinsStartJobWidget::build()
     foreach(DataEditWidget* parameterWidget, parameterWidgets){
         Jenkins_Job_Parameter parameter;
         if(parameterWidget){
-            parameter.name = parameterWidget->getKeyName();
+            parameter.name = parameterWidget->getLabel();
             parameter.value = parameterWidget->getValue().toString();
             buildParameters.append(parameter);
         }
@@ -225,19 +225,19 @@ void JenkinsStartJobWidget::setupLayout()
  */
 DataEditWidget *JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter parameter)
 {
-    SETTING_TYPE type = ST_STRING;
+    SETTING_TYPE type = SETTING_TYPE::STRING;
 
     if(parameter.type == "String"){
         //Set the Type to be String.
-        type = ST_STRING;
+        type = SETTING_TYPE::STRING;
     }else if(parameter.type == "Boolean"){
         //Set the Type to be Boolean
-        type = ST_BOOL;
+        type = SETTING_TYPE::BOOL;
     }else if(parameter.type == "File"){
-        type = ST_FILE;
+        type = SETTING_TYPE::FILE;
     }
 
-    DataEditWidget* dataEdit = new DataEditWidget(parameter.name, parameter.name, type, parameter.defaultValue);
+    DataEditWidget* dataEdit = new DataEditWidget(parameter.name, type, parameter.defaultValue);
     ////Construct a new KeyEdit Widget with the provided parameters
     //KeyEditWidget* keyEdit = new KeyEditWidget("",parameter.name, parameter.name, valueType, parameter.description, customType);
     return dataEdit;

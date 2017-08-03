@@ -57,11 +57,11 @@ QVariant AppSettings::getSetting(QString)
     return QVariant();
 }
 
-void AppSettings::settingChanged(SETTING_KEY key, QVariant data)
+void AppSettings::settingChanged(SETTINGS key, QVariant data)
 {
     DataEditWidget* widget = getDataWidget(key);
     if(widget){
-        if(widget->getType() != ST_BUTTON){
+        if(widget->getType() != SETTING_TYPE::BUTTON){
             widget->setValue(data);
         }
     }
@@ -85,18 +85,19 @@ void AppSettings::themeChanged()
                   );
 }
 
-void AppSettings::dataValueChanged(QString dataKey, QVariant data)
+void AppSettings::dataValueChanged(QVariant data)
 {
-    DataEditWidget* widget = getDataWidget(dataKey);
+    //Get the sender
+    auto widget = qobject_cast<DataEditWidget*>(sender());
+    
     if(widget){
-        SETTING_KEY key = getSettingKey(dataKey);
-
+        SETTINGS key = widget->property("SETTINGS_KEY").value<SETTINGS>();
         //Apply directly.
-        if(widget->getType() == ST_BUTTON){
+        if(widget->getType() == SETTING_TYPE::BUTTON){
             emit setSetting(key, true);
             //APPLY THEME
             if(SettingsController::settings()->isThemeSetting(key)){
-                emit setSetting(SK_THEME_APPLY, true);
+                emit setSetting(SETTINGS::THEME_APPLY, true);
             }
         }else{
             QVariant currentValue = SettingsController::settings()->getSetting(key);
@@ -117,7 +118,7 @@ void AppSettings::applySettings()
 {
     bool themeChanged = false;
     bool settingsChanged = false;
-    foreach(SETTING_KEY key, changedSettings.keys()){
+    foreach(SETTINGS key, changedSettings.keys()){
         if(!themeChanged && SettingsController::settings()->isThemeSetting(key)){
             themeChanged = true;
         }
@@ -126,7 +127,7 @@ void AppSettings::applySettings()
     }
 
     if(themeChanged){
-        emit setSetting(SK_THEME_APPLY, true);
+        emit setSetting(SETTINGS::THEME_APPLY, true);
     }
 
     if(settingsChanged){
@@ -136,7 +137,7 @@ void AppSettings::applySettings()
 
 void AppSettings::clearSettings()
 {
-    foreach(SETTING_KEY key, changedSettings.keys()){
+    foreach(SETTINGS key, changedSettings.keys()){
         DataEditWidget* widget = getDataWidget(key);
         if(widget){
             widget->setValue(SettingsController::settings()->getSetting(key));
@@ -161,26 +162,9 @@ void AppSettings::updateButtons()
     warningAction->setVisible(SettingsController::settings()->isWriteProtected());
 }
 
-SETTING_KEY AppSettings::getSettingKey(QString key)
+DataEditWidget *AppSettings::getDataWidget(SETTINGS key)
 {
-    if(settingKeyLookup.contains(key)){
-        return settingKeyLookup[key];
-    }
-    return SK_NONE;
-}
-
-DataEditWidget *AppSettings::getDataWidget(QString key)
-{
-    SETTING_KEY sKey = getSettingKey(key);
-    return getDataWidget(sKey);
-}
-
-DataEditWidget *AppSettings::getDataWidget(SETTING_KEY key)
-{
-    if(dataEditWidgets.contains(key)){
-        return dataEditWidgets[key];
-    }
-    return 0;
+    return dataEditWidgets.value(key, 0);
 }
 
 void AppSettings::setupLayout()
@@ -222,65 +206,36 @@ void AppSettings::setupLayout()
 
 void AppSettings::setupSettingsLayouts()
 {
-
-    QHash<QString, int> categoryToWidth;
-    QHash<QString, QString> nameToCategory;
-    foreach(Setting* setting, SettingsController::settings()->getSettings()){
+    for(auto setting : SettingsController::settings()->getSettings()){
         //Ignore invisible settings.
-        if(setting->getType() == ST_NONE || setting->getType() == ST_STRINGLIST){
+        if(setting->getType() == SETTING_TYPE::NONE || setting->getType() == SETTING_TYPE::STRINGLIST || setting->getType() == SETTING_TYPE::BYTEARRAY){
             continue;
         }
 
-        QString category = setting->getCategory();
-        QString section = setting->getSection();
-        QString settingString = setting->getSettingString();
-        SETTING_KEY key = setting->getID();
+        auto category = setting->getCategory();
+        auto section = setting->getSection();
+        auto key = setting->getID();
 
         auto box = getSectionBox(category, section);
 
-        if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
-            DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);
+        if(!dataEditWidgets.contains(key)){
+            DataEditWidget* widget = new DataEditWidget(setting->getName(), setting->getType(), setting->getValue(), this);
+            widget->setProperty("SETTINGS_KEY", (uint)key);
+            box->addWidget(widget);
+
             if(setting->gotIcon()){
                 auto icon = setting->getIcon();
                 widget->setIcon(icon.first, icon.second);
             }
+
             connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
-
-            //layout->addWidget(widget);
-            box->addWidget(widget);
-
-            int width  = widget->getMinimumLabelWidth();
-
-            settingKeyLookup[settingString] = key;
             dataEditWidgets[key] = widget;
-
-            nameToCategory[settingString] = category;
-
-            if(setting->getType() != ST_BOOL && setting->getType() != ST_BUTTON){
-                if(categoryToWidth.contains(category)){
-                    if(categoryToWidth[category] < width){
-                        categoryToWidth[category] = width;
-                    }
-                }else{
-                    categoryToWidth[category] = width;
-                }
-            }
-        }
-    }
-
-    foreach(DataEditWidget* dataWidget, dataEditWidgets.values()){
-        QString category = nameToCategory[dataWidget->getKeyName()];
-        int width = categoryToWidth[category];
-        if(width > 0){
-            dataWidget->setLabelWidth(width);
         }
     }
 
     foreach(QString category, categoryLayouts.keys()){
         getCategoryLayout(category)->addStretch(1);
     }
-
-
 }
 
 QVBoxLayout *AppSettings::getCategoryLayout(QString category)

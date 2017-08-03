@@ -1,6 +1,6 @@
 #include "setting.h"
 #include <QStringBuilder>
-Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name)
+Setting::Setting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name)
 {
     this->ID = ID;
     this->type = type;
@@ -12,7 +12,7 @@ Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString se
 }
 
 
-SETTING_KEY Setting::getID() const
+SETTINGS Setting::getID() const
 {
     return ID;
 }
@@ -66,15 +66,7 @@ void Setting::setIcon(QPair<QString, QString> icon){
 
 bool Setting::isThemeSetting() const
 {
-    return getSettingString().contains("theme", Qt::CaseInsensitive);
-}
-
-QString Setting::getSettingString() const
-{
-    QString setting = QString::number(ID) % "_" % category % "_" % section % "_" % name;
-    setting = setting.toUpper();
-    setting.replace(" ", "_");
-    return setting;
+    return category.toLower() == "theme";
 }
 
 void Setting::setDefaultValue(QVariant value)
@@ -96,7 +88,7 @@ bool Setting::setValue(QVariant value)
    if(value != this->value){
        this->value = value;
        return true;
-   }else if(type == ST_BUTTON || type == ST_NONE){
+   }else if(type == SETTING_TYPE::BUTTON || type == SETTING_TYPE::NONE){
        return true;
    }
    return false;

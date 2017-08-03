@@ -199,7 +199,7 @@ void ActionController::showShortcutDialog()
 
 void ActionController::clearRecentProjects()
 {
-    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, QStringList());
+    SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, QStringList());
 }
 
 
@@ -217,7 +217,7 @@ void ActionController::addRecentProject(QString file_path){
     }
 
     //Update the settings
-    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, project_list);
+    SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, project_list);
 }
 
 void ActionController::removeRecentProject(QString file_path){
@@ -225,11 +225,11 @@ void ActionController::removeRecentProject(QString file_path){
     auto project_list = recentProjectKeys;
     if(project_list.removeAll(file_path)){
         //Only update if things have changed
-        SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, project_list);
+        SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, project_list);
     }
 }
 
-void ActionController::settingChanged(SETTING_KEY key, QVariant value)
+void ActionController::settingChanged(SETTINGS key, QVariant value)
 {
     bool boolVal = value.toBool();
 
@@ -239,7 +239,7 @@ void ActionController::settingChanged(SETTING_KEY key, QVariant value)
         action->setVisible(boolVal);
     }
 
-    if(key == SK_GENERAL_RECENT_PROJECTS){
+    if(key == SETTINGS::GENERAL_RECENT_PROJECTS){
         recentProjectsChanged();
     }
 }
@@ -378,42 +378,42 @@ void ActionController::updateUndoRedo()
     }
 }
 
-QAction *ActionController::getSettingAction(SETTING_KEY key)
+QAction *ActionController::getSettingAction(SETTINGS key)
 {
     switch(key){
-    case SK_TOOLBAR_CONTEXT:
+    case SETTINGS::TOOLBAR_CONTEXT:
         return toolbar_context;
-    case SK_TOOLBAR_UNDO:
+    case SETTINGS::TOOLBAR_UNDO:
         return toolbar_undo;
-    case SK_TOOLBAR_REDO:
+    case SETTINGS::TOOLBAR_REDO:
         return toolbar_redo;
-    case SK_TOOLBAR_CUT:
+    case SETTINGS::TOOLBAR_CUT:
         return toolbar_cut;
-    case SK_TOOLBAR_COPY:
+    case SETTINGS::TOOLBAR_COPY:
         return toolbar_copy;
-    case SK_TOOLBAR_PASTE:
+    case SETTINGS::TOOLBAR_PASTE:
         return toolbar_paste;
-    case SK_TOOLBAR_REPLICATE:
+    case SETTINGS::TOOLBAR_REPLICATE:
         return toolbar_replicate;
-    case SK_TOOLBAR_FIT_TO_SCREEN:
+    case SETTINGS::TOOLBAR_FIT_TO_SCREEN:
         return toolbar_fitToScreen;
-    case SK_TOOLBAR_CENTER_SELECTION:
+    case SETTINGS::TOOLBAR_CENTER_SELECTION:
         return toolbar_centerOn;
-    case SK_TOOLBAR_VIEW_IN_NEWWINDOW:
+    case SETTINGS::TOOLBAR_VIEW_IN_NEWWINDOW:
         return toolbar_viewInNewWindow;
-    case SK_TOOLBAR_DELETE:
+    case SETTINGS::TOOLBAR_DELETE:
         return toolbar_delete;
-    case SK_TOOLBAR_ALIGN_HORIZONTAL:
+    case SETTINGS::TOOLBAR_ALIGN_HORIZONTAL:
         return toolbar_alignVertical;
-    case SK_TOOLBAR_ALIGN_VERTICAL:
+    case SETTINGS::TOOLBAR_ALIGN_VERTICAL:
         return toolbar_alignHorizontal;
-    case SK_TOOLBAR_SEARCH:
+    case SETTINGS::TOOLBAR_SEARCH:
         return toolbar_search;
-    case SK_TOOLBAR_CONTRACT:
+    case SETTINGS::TOOLBAR_CONTRACT:
         return toolbar_contract;
-    case SK_TOOLBAR_EXPAND:
+    case SETTINGS::TOOLBAR_EXPAND:
         return toolbar_expand;
-    case SK_TOOLBAR_VALIDATE:
+    case SETTINGS::TOOLBAR_VALIDATE:
         return toolbar_validate;
     default:
         return 0;
@@ -476,7 +476,7 @@ void ActionController::recentProjectsChanged()
     }
 
     //Load in the defaults.
-    QStringList list = SettingsController::settings()->getSetting(SK_GENERAL_RECENT_PROJECTS).toStringList();
+    QStringList list = SettingsController::settings()->getSetting(SETTINGS::GENERAL_RECENT_PROJECTS).toStringList();
 
     QStringList orderedKeys;
 
@@ -939,7 +939,7 @@ void ActionController::setupApplicationToolbar()
     
 
     SettingsController* s = SettingsController::settings();
-    foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
+    foreach(SETTINGS key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
         settingChanged(key, s->getSetting(key));
     }
     applicationToolbar->updateSpacers();

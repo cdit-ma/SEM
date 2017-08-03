@@ -18,16 +18,6 @@ ViewWindow::ViewWindow():BaseWindow(0, BaseWindow::VIEW_WINDOW)
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
 
-    //Setup Reset action
-    resetDockedWidgetsAction = new QAction("Reset Docked Widgets", this);
-
-    connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
-
-
-
-
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    themeChanged();
 }
 
 ViewWindow::~ViewWindow()
@@ -43,24 +33,6 @@ void ViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
     }
 }
 
-void ViewWindow::themeChanged()
-{
-    resetDockedWidgetsAction->setIcon(Theme::theme()->getIcon("Icons", "refresh"));
-}
 
-void ViewWindow::resetDockWidgets()
-{
-    foreach(BaseDockWidget* child, getDockWidgets()){
-        child->setVisible(true);
-    }
-}
-
-QMenu *ViewWindow::createPopupMenu()
-{
-    QMenu* menu = BaseWindow::createPopupMenu();
-    menu->addSeparator();
-    menu->addAction(resetDockedWidgetsAction);
-    return menu;
-}
 
 

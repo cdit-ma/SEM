@@ -232,8 +232,7 @@ void DockTabWidget::setupLayout()
     vLayout->addWidget(stackedWidget, 1);
 
     setContentsMargins(1,2,1,1);
-    setMinimumWidth(MIN_WIDTH);
-    setMaximumWidth(MAX_WIDTH);
+    
 
     setupDocks();
 }

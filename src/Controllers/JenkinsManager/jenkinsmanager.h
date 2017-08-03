@@ -64,7 +64,7 @@ private slots:
     void GotValidatedSettings_(bool valid, QString message);
 
     //From SettingsController
-    void SettingChanged(SETTING_KEY key, QVariant value);
+    void SettingChanged(SETTINGS key, QVariant value);
 private:
     void jenkinsRequestFinished(JenkinsRequest* request);
     void storeJobConfiguration(QString job_name, QJsonDocument json);

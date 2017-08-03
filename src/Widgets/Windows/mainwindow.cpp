@@ -39,6 +39,8 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     viewController = vc;
     initializeApplication();
     setContextMenuPolicy(Qt::NoContextMenu);
+    innerWindow = WindowManager::constructCentralWindow("Main Window");
+    setCentralWidget(innerWindow);
 
     setupTools();
     setupInnerWindow();
@@ -49,6 +51,13 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
 
     SettingsController* s = SettingsController::settings();
+
+    auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
+    if(!outer_geo.isEmpty()){
+        restoreGeometry(outer_geo);
+    }else{
+        setMinimumSize(1200, 800);
+    }
 
     //resizeToolWidgets();
 
@@ -91,8 +100,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
  */
 MainWindow::~MainWindow()
 {
-    saveWindowState();
-
     SettingsController::teardownSettings();
     Theme::teardownTheme();
 }
@@ -293,9 +300,10 @@ void MainWindow::updateMenuBarSize()
  */
 void MainWindow::resetToolDockWidgets()
 {
-    foreach (BaseDockWidget* child, getDockWidgets()) {
-        child->setVisible(true);
-    }
+    resetDockWidgets();
+    innerWindow->addToolBar(applicationToolbar);
+    applicationToolbar->setVisible(true);
+    resizeToolWidgets();
 }
 
 
@@ -305,6 +313,8 @@ void MainWindow::resetToolDockWidgets()
 void MainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
+
+    applicationToolbar->setStyleSheet("QToolBar{background:" % theme->getBackgroundColorHex() % ";}");
 
     QString menuStyle = theme->getMenuStyleSheet();
     ActionController* actionController = viewController->getActionController();
@@ -391,46 +401,6 @@ void MainWindow::popupSearch()
     searchBar->selectAll();
 }
 
-
-/**
- * @brief MedeaMainWindow::toolbarChanged
- * @param area
- */
-void MainWindow::toolbarChanged(Qt::DockWidgetArea area)
-{
-    if (area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea) {
-        applicationToolbar->setOrientation(Qt::Horizontal);
-        applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
-        applicationToolbar->setFixedWidth(QWIDGETSIZE_MAX);
-    } else {
-        applicationToolbar->setOrientation(Qt::Vertical);
-        resizeEvent(0);
-    }
-}
-
-
-/**
- * @brief MedeaMainWindow::toolbarTopLevelChanged
- * @param undocked
- */
-void MainWindow::toolbarTopLevelChanged(bool undocked)
-{
-    if (undocked) {
-        if (applicationToolbar->orientation() == Qt::Vertical) {
-            applicationToolbar->setOrientation(Qt::Horizontal);
-            applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
-        }
-        //applicationToolbar->parentWidget()->resize(applicationToolbar->sizeHint() +  QSize(12,0));
-        QWidget* topWidget =  applicationToolbar->parentWidget()->parentWidget();
-        if (topWidget) {
-            //topWidget->resize(applicationToolbar->sizeHint() + QSize(15,0));
-            topWidget->resize(applicationToolbar->sizeHint() + QSize(6,0));
-            topWidget->updateGeometry();
-        }
-    }
-}
-
-
 /**
  * @brief MedeaMainWindow::setModelTitle
  * @param modelTitle
@@ -494,7 +464,6 @@ void MainWindow::toggleWelcomeScreen(bool on)
         // hide notification toast
         notificationPopup->hide();
         notificationTimer->stop();
-
     } else {
         holderLayout->removeWidget(innerWindow);
         holderLayout->addWidget(welcomeScreen);
@@ -513,21 +482,43 @@ void MainWindow::toggleWelcomeScreen(bool on)
 void MainWindow::saveWindowState()
 {
     SettingsController* s = SettingsController::settings();
-    if(s && s->getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT).toBool()){
-        s->setSetting(SK_WINDOW_OUTER_GEOMETRY, saveGeometry());
-        s->setSetting(SK_WINDOW_OUTER_STATE, saveState());
-        s->setSetting(SK_WINDOW_INNER_GEOMETRY, innerWindow->saveGeometry());
-        s->setSetting(SK_WINDOW_INNER_STATE, innerWindow->saveState());
+    if(s){
+        if(s->getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT).toBool()){
+            s->setSetting(SETTINGS::WINDOW_OUTER_GEOMETRY, saveGeometry());
+            s->setSetting(SETTINGS::WINDOW_OUTER_STATE, saveState());
+        }
+        if(s->getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT).toBool()){
+            s->setSetting(SETTINGS::WINDOW_INNER_GEOMETRY, innerWindow->saveGeometry());
+            s->setSetting(SETTINGS::WINDOW_INNER_STATE, innerWindow->saveState());
+        }
     }
 }
 
 void MainWindow::restoreWindowState(){
     SettingsController* s = SettingsController::settings();
     if(s){
-        restoreGeometry(s->getSetting(SK_WINDOW_OUTER_GEOMETRY).toByteArray());
-        restoreState(s->getSetting(SK_WINDOW_OUTER_STATE).toByteArray());
-        innerWindow->restoreGeometry(s->getSetting(SK_WINDOW_INNER_GEOMETRY).toByteArray());
-        innerWindow->restoreState(s->getSetting(SK_WINDOW_INNER_STATE).toByteArray());
+        auto load_dock = s->getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT).toBool();
+        auto load_window = s->getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT).toBool();
+
+        auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
+        auto outer_state = s->getSetting(SETTINGS::WINDOW_OUTER_STATE).toByteArray();
+        auto inner_geo = s->getSetting(SETTINGS::WINDOW_INNER_GEOMETRY).toByteArray();
+        auto inner_state = s->getSetting(SETTINGS::WINDOW_INNER_STATE).toByteArray();
+
+        //Check if any are invalid
+        bool invalid = outer_geo.isEmpty() || outer_state.isEmpty() || inner_geo.isEmpty() || inner_state.isEmpty();
+
+        if(invalid){
+            resetToolDockWidgets();
+        }else{
+            if(load_window){
+                restoreState(outer_state);
+            }
+            if(load_dock){
+                innerWindow->restoreState(inner_state);
+            }
+            restoreGeometry(outer_geo);
+        }
     }
 }
 
@@ -587,8 +578,7 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {
-    innerWindow = WindowManager::constructCentralWindow("Main Window");
-    setCentralWidget(innerWindow);
+    
 
     //Construct dockWidgets.
     NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
@@ -691,40 +681,45 @@ void MainWindow::setupMenuBar()
 }
 
 
+void MainWindow::toolbarOrientationChanged(Qt::Orientation orientation){
+    if(applicationToolbar_spacer1 && applicationToolbar_spacer2){
+        QSizePolicy::Policy  h_pol = QSizePolicy::Fixed;
+        QSizePolicy::Policy  v_pol = QSizePolicy::Fixed;
+
+        switch(orientation){
+            case Qt::Horizontal:
+                h_pol = QSizePolicy::Expanding;
+                break;
+            case Qt::Vertical:
+                v_pol = QSizePolicy::Expanding;
+                break;
+        }
+
+        applicationToolbar_spacer1->setSizePolicy(h_pol, v_pol);
+        applicationToolbar_spacer2->setSizePolicy(h_pol, v_pol);
+    }
+}
 /**
  * @brief MedeaMainWindow::setupToolBar
  */
 void MainWindow::setupToolBar()
 {
-    applicationToolbar = new QToolBar(this);
-    applicationToolbar->setMovable(false);
-    applicationToolbar->setFloatable(false);
-    applicationToolbar->setIconSize(QSize(20,20));
-
-    QWidget* w1 = new QWidget(this);
-    QWidget* w2 = new QWidget(this);
-    w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QFrame* frame = new QFrame(this);
-    QHBoxLayout* layout = new QHBoxLayout(frame);
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->addWidget(w1);
-    layout->addWidget(applicationToolbar);
-    layout->addWidget(w2);
-
+    applicationToolbar = new QToolBar("Toolbar", this);
+    applicationToolbar->setObjectName("APPLICATION_TOOLBAR");
+    applicationToolbar->setMovable(true);
+    applicationToolbar->setFloatable(true);
+    applicationToolbar->setIconSize(QSize(16,16));
+    
+    applicationToolbar_spacer1 = new QWidget(this);
+    applicationToolbar_spacer2 = new QWidget(this);
+    applicationToolbar->addWidget(applicationToolbar_spacer1);
     applicationToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
+    applicationToolbar->addWidget(applicationToolbar_spacer2);
 
-    BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Toolbar");
-    dockWidget->setTitleBarWidget(frame);
-    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
-
-    connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
-    connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
-
-    //Check visibility state.
-    addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
+    
+    connect(applicationToolbar, &QToolBar::orientationChanged, this, &MainWindow::toolbarOrientationChanged);
+    toolbarOrientationChanged(Qt::Horizontal);
+    innerWindow->addToolBar(applicationToolbar);
 }
 
 
@@ -845,15 +840,18 @@ void MainWindow::setupNotificationBar()
 void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
+    dockTabWidget->setMinimumWidth(150);
+    dockTabWidget->setMaximumWidth(150);
 
-    BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Dock");
-    dockWidget->setWidget(dockTabWidget);
-    dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea);
 
-    connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockWidget, SLOT(setVisible(bool)));
+    tool_Dock = WindowManager::constructToolDockWidget("Dock");
+    tool_Dock->setWidget(dockTabWidget);
+    tool_Dock->setAllowedAreas(Qt::LeftDockWidgetArea);
+
+    connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), tool_Dock, SLOT(setVisible(bool)));
 
     //Check visibility state.
-    addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
+    addDockWidget(Qt::LeftDockWidgetArea, tool_Dock, Qt::Vertical);
 }
 
 
@@ -862,20 +860,22 @@ void MainWindow::setupDock()
  */
 void MainWindow::setupDataTable()
 {
-    BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Table");
-    tableWidget = new DataTableWidget(viewController, dockWidget);
-    dockWidget->setWidget(tableWidget);
-    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    tool_Table = WindowManager::constructToolDockWidget("Table");
+    tableWidget = new DataTableWidget(viewController, tool_Table);
+    tableWidget->setMinimumHeight(200);
+    tableWidget->setMinimumWidth(200);
+    tool_Table->setWidget(tableWidget);
+    tool_Table->setAllowedAreas(Qt::RightDockWidgetArea);
 
     //Add the rename action to the dockwidget so that it'll handle rename shortcut
-    dockWidget->addAction(viewController->getActionController()->edit_renameActiveSelection);
+    tool_Table->addAction(viewController->getActionController()->edit_renameActiveSelection);
 
     QAction* modelAction = viewController->getActionController()->model_selectModel;
     modelAction->setToolTip("Show Model's Table");
-    dockWidget->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
+    tool_Table->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
 
     //Check visibility state.
-    addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, tool_Table, Qt::Vertical);
 }
 
 
@@ -885,13 +885,16 @@ void MainWindow::setupDataTable()
 void MainWindow::setupMinimap()
 {
     minimap = new NodeViewMinimap(this);
-    minimap->setMinimumHeight(150);
+    minimap->setMinimumHeight(100);
+    minimap->setMinimumWidth(200);
+    minimap->setMaximumWidth(200);
+    
 
-    BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Minimap");
-    dockWidget->setWidget(minimap);
-    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    tool_Minimap = WindowManager::constructToolDockWidget("Minimap");
+    tool_Minimap->setWidget(minimap);
+    tool_Minimap->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, tool_Minimap, Qt::Vertical);
 }
 
 
@@ -902,9 +905,12 @@ void MainWindow::setupMinimap()
  */
 void MainWindow::setupMenuCornerWidget()
 {
-    QMenu* menu = createPopupMenu();
-    restoreToolsAction = menu->addAction("Show All Tool Widgets");
-    connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+    QMenu* menu = QMainWindow::createPopupMenu();
+    //Add a hide/show for toolbar
+    menu->addAction(applicationToolbar->toggleViewAction());
+
+    restoreToolsAction = menu->addAction("Reset All Tools");
+    connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
 
     restoreToolsButton = new QToolButton(this);
     restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
@@ -971,7 +977,7 @@ void MainWindow::setupDockablePanels()
     jenkinsDockWidget->setIconVisible(true);
     jenkinsDockWidget->setProtected(true);
 
-    dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
+    //dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
 
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
@@ -1004,7 +1010,7 @@ void MainWindow::setupDockablePanels()
     bw->tabifyDockWidget(searchDockWidget, notificationDockWidget);
     bw->addDockWidget(Qt::RightDockWidgetArea, dwQOSBrowser);
 
-    bw->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
+    bw->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SETTINGS::WINDOW_QOS_VISIBLE).toBool());
     bw->setDockWidgetVisibility(searchDockWidget, true);
     bw->setDockWidgetVisibility(notificationDockWidget, true);
 
@@ -1033,13 +1039,14 @@ void MainWindow::setupDockablePanels()
 void MainWindow::setupViewManager()
 {
     viewManager = WindowManager::manager()->getViewManagerGUI();
-    viewManager->setMinimumHeight(210);
+    viewManager->setMinimumHeight(100);
+    viewManager->setMinimumWidth(200);
 
-    BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("View Manager");
-    dockWidget->setWidget(viewManager);
-    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    tool_ViewManager = WindowManager::constructToolDockWidget("View Manager");
+    tool_ViewManager->setWidget(viewManager);
+    tool_ViewManager->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, tool_ViewManager, Qt::Vertical);
 }
 
 
@@ -1061,12 +1068,9 @@ void MainWindow::setupJenkinsManager()
  */
 void MainWindow::resizeToolWidgets()
 {
-    int windowHeight = height();
-    int defaultWidth = 500;
-    tableWidget->resize(defaultWidth, windowHeight/2);
-    tableWidget->updateGeometry();
-    minimap->parentWidget()->resize(defaultWidth, windowHeight / 4);
-    viewManager->parentWidget()->resize(defaultWidth, windowHeight / 4);
+    //Reset the RIght Panel
+    resizeDocks({tool_Table, tool_ViewManager, tool_Minimap}, {1,2,1}, Qt::Vertical);
+    resizeDocks({tool_Table, tool_ViewManager, tool_Minimap, tool_Dock}, {1,1,1, 1}, Qt::Vertical);
 }
 
 
@@ -1134,6 +1138,10 @@ void MainWindow::resizeEvent(QResizeEvent* e)
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    //Save the state
+    if(!welcomeScreenOn){
+        saveWindowState();
+    }
     if (viewController) {
         viewController->closeMEDEA();
         event->ignore();

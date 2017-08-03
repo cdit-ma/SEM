@@ -10,7 +10,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 
     zoom_icon = Theme::theme()->getImage("Icons", "zoom", zoomIcon().size(), Qt::white);
     
-    
+    setMinimumWidth(200);
     QTimer* updateTimer = new QTimer(this);
     updateTimer->setInterval(1000);
     updateTimer->start();

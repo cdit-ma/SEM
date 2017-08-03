@@ -106,7 +106,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SIGNAL(actionTriggered(QAction*)));
 
     //setContextMenuPolicy(Qt::NoContextMenu);
-    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    //setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     recentProjectsUpdated();
     themeChanged();
 }

@@ -24,7 +24,7 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::ClickFocus);
 
-    setMinimumSize(550,350);
+    //setMinimumSize(550,350);
 
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
@@ -34,8 +34,17 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(showContextMenu(const QPoint &)));
 
+    reset_action = new QAction("Reset Docked Widgets", this);
+    connect(reset_action, &QAction::triggered, this, &BaseWindow::resetDockWidgets);
+
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+}
+
+void BaseWindow::resetDockWidgets(){
+    for(auto dock_widget : getDockWidgets()){
+        dock_widget->setVisible(true);
+    }
 }
 
 BaseWindow::~BaseWindow()
@@ -251,13 +260,15 @@ void BaseWindow::updateActions()
 QMenu *BaseWindow::createPopupMenu()
 {
     QMenu* menu = QMainWindow::createPopupMenu();
-
+    menu->addSeparator();
+    menu->addAction(reset_action);
     return menu;
 }
 
 void BaseWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
+    reset_action->setIcon(theme->getIcon("Icons", "refresh"));
     setStyleSheet(theme->getWindowStyleSheet() %
                   theme->getMenuBarStyleSheet() %
                   theme->getMenuStyleSheet() %

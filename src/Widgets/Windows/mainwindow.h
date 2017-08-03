@@ -59,7 +59,6 @@ public slots:
     void updateMenuBarSize();
 
     void resetToolDockWidgets();
-
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevDock);
@@ -68,9 +67,7 @@ private slots:
     void updateSearchSuggestions(QStringList list);
     void searchEntered();
 
-    void toolbarChanged(Qt::DockWidgetArea area);
-    void toolbarTopLevelChanged(bool a);
-
+    void toolbarOrientationChanged(Qt::Orientation orientation);
 private:
     void setViewController(ViewController* vc);
     void initializeApplication();
@@ -107,11 +104,22 @@ private:
     BaseDockWidget* searchDockWidget;
     BaseDockWidget* notificationDockWidget;
 
+
+    BaseDockWidget * tool_Table = 0;
+    BaseDockWidget* tool_ViewManager = 0;
+    BaseDockWidget* tool_Minimap = 0;
+    BaseDockWidget* tool_Dock = 0;
+
     //CUTSManager* cutsManager;
     //XMIImporter* xmiImporter;
 
     QMenuBar* menuBar;
+    QWidget* applicationToolbar_spacer1 = 0;
+    QWidget* applicationToolbar_spacer2 = 0;
     QToolBar* applicationToolbar;
+
+
+
     DockTabWidget* dockTabWidget;
     DataTableWidget* tableWidget;
     NodeViewMinimap* minimap;

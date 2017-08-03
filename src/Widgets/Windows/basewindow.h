@@ -46,7 +46,9 @@ public slots:
 private:
     void removeAllDockWidgets();
     void updateActions();
-
+protected:
+    void resetDockWidgets();
+public:
     QList<int> previouslyVisibleDockIDs;
     WindowType windowType;
 
@@ -59,7 +61,7 @@ private:
     int ID;
     bool terminating;
     static int _WindowID;
-
+    QAction* reset_action;
     // QWidget interface
 protected:
     bool focusNextPrevChild(bool next);

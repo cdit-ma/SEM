@@ -6,8 +6,8 @@
 
 class Setting{
 public:
-    Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name);
-    SETTING_KEY getID() const;
+    Setting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name);
+    SETTINGS getID() const;
     SETTING_TYPE getType() const;
     QString getSection() const;
     QString getCategory() const;
@@ -20,15 +20,13 @@ public:
     void setIcon(QPair<QString, QString> icon);
 
     bool isThemeSetting() const;
-    QString getSettingString() const;
-
 
     void setDefaultValue(QVariant value);
     bool resetValue();
     bool setValue(QVariant value);
     QVariant getValue() const;
 private:
-    SETTING_KEY ID;
+    SETTINGS ID;
     SETTING_TYPE type;
     QString category;
     QString section;
