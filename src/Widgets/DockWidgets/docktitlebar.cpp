@@ -43,12 +43,11 @@ void DockTitleBar::setToolBarIconSize(int height)
     iconLabel->setFixedSize(height +2,height);
 }
 
-void DockTitleBar::setIcon(QPixmap pixmap)
-{
-    iconLabel->setPixmap(pixmap);
-    iconAction->setVisible(!pixmap.isNull());
+void DockTitleBar::setIcon(QString iconPath, QString iconName){
+    icon_path.first = iconPath;
+    icon_path.second = iconName;
+    updateIcon(iconAction, icon_path.first, icon_path.second);    
 }
-
 QPixmap DockTitleBar::getIcon()
 {
     return *iconLabel->pixmap();
@@ -93,37 +92,23 @@ void DockTitleBar::addToolAction(QAction* action, Qt::Alignment alignment)
         addAction(action);
     }
 }
+void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName){
+    if(action){
+        action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
+    }
+}
 
 void DockTitleBar::themeChanged()
 {
     updateActiveStyle();
     Theme* theme = Theme::theme();
 
-    //Update Icons.
-    if(closeAction){
-        closeAction->setIcon(theme->getIcon("Icons", "cross"));
-    }
-    if(maximizeAction){
-        maximizeAction->setIcon(theme->getIcon("Icons", "maximizeToggle"));
-    }
-    if(popOutAction){
-        popOutAction->setIcon(theme->getIcon("Icons", "popOut"));
-    }
-    if(protectAction){
-        protectAction->setIcon(theme->getIcon("Icons", "lockToggle"));
-    }
-    if(hideAction){
-        hideAction->setIcon(theme->getIcon("Icons", "visibleToggle"));
-    }
-    /*
-     * TODO - Change the icon colour based on theme
-    if (iconAction->isVisible() && iconLabel->pixmap()) {
-        QPixmap newPixmap(iconLabel->pixmap()->size());
-        newPixmap.fill(theme->getMenuIconColor());
-        newPixmap.setMask(iconLabel->pixmap()->createMaskFromColor(Qt::transparent));
-        iconLabel->setPixmap(newPixmap);
-    }
-    */
+    updateIcon(closeAction, "Icons", "cross");
+    updateIcon(maximizeAction, "Icons", "maximizeToggle");
+    updateIcon(popOutAction, "Icons", "popOut");
+    updateIcon(protectAction, "Icons", "lockToggle");
+    updateIcon(hideAction, "Icons", "visibleToggle");
+    updateIcon(iconAction, icon_path.first, icon_path.second);
 }
 
 void DockTitleBar::updateActiveStyle()
@@ -141,7 +126,7 @@ void DockTitleBar::setupToolBar()
     titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     iconAction = addWidget(iconLabel);
-    iconAction->setVisible(false);
+    //iconAction->setVisible(false);
     addWidget(titleLabel);
 
     popOutAction = addAction("Pop Out");
