@@ -492,8 +492,8 @@ QString Theme::getWindowStyleSheet()
 {
     return "QMainWindow {"
            "background: " % getBackgroundColorHex() % ";"
-           "color: " % getTextColorHex() % ";"
-           "background-image: url(:/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
+           "color:" % getTextColorHex() % ";"
+           "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
             "}";
 }
 
@@ -520,15 +520,7 @@ QString Theme::getScrollBarStyleSheet()
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
            "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
 
-            /* // Have buttons
-             "QScrollBar::handle:vertical{margin:" % size % " " % margin %";}"
-             "QScrollBar::handle:horizontal{margin:" % margin % " " % size %";}"
-             "QScrollBar::up-arrow, QScrollBar::down-arrow{background: " % getBackgroundColorHex() % "; width: " % button %"; height:" % button % "; margin: " % margin % ";}"
-             "QScrollBar::up-arrow:active, QScrollBar::down-arrow:active{background: " % getHighlightColorHex() % ";}"
 
-             "QScrollBar::up-arrow{image: url(:/Actions/Arrow_Up);}"
-             "QScrollBar::down-arrow{image: url(:/Actions/Arrow_Down);}"
-            */
             ;
 }
 
@@ -543,10 +535,10 @@ QString Theme::getDialogStyleSheet()
 QString Theme::getSplitterStyleSheet()
 {
     return  "QSplitter {background:" % getBackgroundColorHex() % ";}"
-            "QSplitter::handle{width:12px;height:12px;}"
-            "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % "}"
-            "QSplitter::handle:horizontal {image: url(:/Actions/Menu_Vertical);}"
-            "QSplitter::handle:vertical {image: url(:/Actions/Menu_Horizontal);}"
+            "QSplitter::handle{width:16px;height:16px;}"
+            "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % ";}"
+            "QSplitter::handle:horizontal {image: url(:/Images/Icons/dotsVertical);}"
+            "QSplitter::handle:vertical {image: url(:/Images/Icons/dotsHorizontal);}"
             ;
 }
 
@@ -878,7 +870,6 @@ QString Theme::getComboBoxStyleSheet()
            "padding: 0px;"
            "width: 20px;"
            "}"
-           //"QComboBox::down-arrow{ image: url(:/Actions/Arrow_Down); }"
            "QComboBox QAbstractItemView {"
            "color:" % getTextColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"

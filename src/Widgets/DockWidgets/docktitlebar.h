@@ -18,7 +18,7 @@ public:
     QList<QAction*> getToolActions();
 
     void setToolBarIconSize(int height);
-    void setIcon(QPixmap pixmap);
+    void setIcon(QString iconPath, QString iconName);
     QPixmap getIcon();
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
@@ -30,6 +30,7 @@ private slots:
     void themeChanged();
     void updateActiveStyle();
 private:
+    void updateIcon(QAction* action, QString iconPath, QString iconName);
     void setupToolBar();
     bool isActive();
 
@@ -39,7 +40,7 @@ private:
     bool _isActive;
 
     QList<QAction*> actions;
-
+    QPair<QString, QString> icon_path;
     QAction* closeAction;
     QAction* maximizeAction;
     QAction* popOutAction;
