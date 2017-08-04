@@ -46,7 +46,7 @@ void DockTitleBar::setToolBarIconSize(int height)
 void DockTitleBar::setIcon(QString iconPath, QString iconName){
     icon_path.first = iconPath;
     icon_path.second = iconName;
-    updateIcon(iconAction, icon_path.first, icon_path.second);    
+    updateIcon(iconLabel, icon_path.first, icon_path.second);    
 }
 QPixmap DockTitleBar::getIcon()
 {
@@ -97,6 +97,11 @@ void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconNam
         action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
     }
 }
+void DockTitleBar::updateIcon(QLabel* action, QString iconPath, QString iconName){
+    if(action){
+        action->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(16,16)));
+    }
+}
 
 void DockTitleBar::themeChanged()
 {
@@ -108,7 +113,7 @@ void DockTitleBar::themeChanged()
     updateIcon(popOutAction, "Icons", "popOut");
     updateIcon(protectAction, "Icons", "lockToggle");
     updateIcon(hideAction, "Icons", "visibleToggle");
-    updateIcon(iconAction, icon_path.first, icon_path.second);
+    updateIcon(iconLabel, icon_path.first, icon_path.second);
 }
 
 void DockTitleBar::updateActiveStyle()

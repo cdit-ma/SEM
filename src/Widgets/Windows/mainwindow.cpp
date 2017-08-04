@@ -10,7 +10,7 @@
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 #include "../../Widgets/optiongroupbox.h"
-
+#include "../../Views/Notification/notificationobject.h"
 #include "../../theme.h"
 
 #include "../../Utils/filtergroup.h"
@@ -56,13 +56,13 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     if(!outer_geo.isEmpty()){
         restoreGeometry(outer_geo);
     }else{
-        setMinimumSize(1200, 800);
+        //setMinimumSize(1200, 800);
     }
 
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
-    showNormal();
+    show();
     
     /*
     auto group_box = new OptionGroupBox("Test group", this);
@@ -176,34 +176,31 @@ void MainWindow::searchEntered()
 }
 
 
-/**
- * @brief MainWindow::popupNotification
- * @param iconPath
- * @param iconName
- * @param description
- */
-void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
-{
+void MainWindow::popupLatestNotification(){
     notificationPopup->hide();
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
-        notificationLabel->setText(description);
-        QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
-        if (pixmap.isNull()) {
-            pixmap = Theme::theme()->getIcon("Icons", "circleInfo").pixmap(QSize(32,32));
+        auto notification = NotificationManager::manager()->getLastNotificationItem();
+        if(notification){
+            notificationLabel->setText(notification->description());
+            auto pixmap = Theme::theme()->getImage(notification->iconPath(), notification->iconName(), QSize(32,32), getSeverityColor(notification->severity()));
+            
+            if (pixmap.isNull()) {
+                pixmap = Theme::theme()->getImage("Icons", "circleInfo", QSize(32,32), getSeverityColor(notification->severity()));
+            }
+
+            notificationIconLabel->setPixmap(pixmap);
+            notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
+            moveWidget(notificationPopup, 0, Qt::AlignBottom);
+
+            notificationPopup->show();
+            notificationPopup->raise();
+            notificationTimer->start(5000);
         }
-        notificationIconLabel->setPixmap(pixmap);
-        notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
-        moveWidget(notificationPopup, 0, Qt::AlignBottom);
-
-        notificationPopup->show();
-        notificationPopup->raise();
-        notificationTimer->start(5000);
     }
+
 }
-
-
 /**
  * @brief MainWindow::toggleNotificationPanel
  * This toggles the visibility of the notification panel dock widget.
@@ -311,7 +308,7 @@ void MainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    applicationToolbar->setStyleSheet("QToolBar{background:" % theme->getBackgroundColorHex() % "; padding:4px;} " +
+    applicationToolbar->setStyleSheet("QToolBar{background:" % theme->getBackgroundColorHex() % "; padding:4px;} "
             " QToolBar::handle{width:16px;height:16px; background:" % theme->getAltBackgroundColorHex() % ";}"
             " QToolBar::handle:horizontal{image: url(:/Images/Icons/dotsVertical);}"
             " QToolBar::handle:vertical{image: url(:/Images/Icons/dotsHorizontal);}"
@@ -469,10 +466,14 @@ void MainWindow::toggleWelcomeScreen(bool on)
         holderLayout->removeWidget(innerWindow);
         holderLayout->addWidget(welcomeScreen);
         setCentralWidget(innerWindow);
-        // show top-most notification; if there are any
-        NotificationManager::manager()->showLastNotification();
-
         restoreWindowState();
+
+        auto activeTimer = new QTimer(this);
+        activeTimer->setInterval(1000);
+        activeTimer->setSingleShot(true);
+        connect(activeTimer, SIGNAL(timeout()), NotificationManager::manager(), SLOT(showLastNotification()));
+        connect(activeTimer, SIGNAL(timeout()), activeTimer, SLOT(deleteLater()));
+        activeTimer->start();
     }
 }
 
@@ -710,7 +711,6 @@ void MainWindow::setupToolBar()
     applicationToolbar->setMovable(true);
     applicationToolbar->setFloatable(true);
     applicationToolbar->setIconSize(QSize(16,16));
-
     
     applicationToolbar_spacer1 = new QWidget(this);
     applicationToolbar_spacer2 = new QWidget(this);
@@ -720,8 +720,8 @@ void MainWindow::setupToolBar()
 
     
     connect(applicationToolbar, &QToolBar::orientationChanged, this, &MainWindow::toolbarOrientationChanged);
-    toolbarOrientationChanged(Qt::Horizontal);
     innerWindow->addToolBar(applicationToolbar);
+    toolbarOrientationChanged(Qt::Horizontal);
 }
 
 
@@ -826,10 +826,10 @@ void MainWindow::setupNotificationBar()
     layout->addWidget(notificationIconLabel, 0, Qt::AlignCenter);
     layout->addWidget(notificationLabel, 1, Qt::AlignCenter);
 
-    notificationPopup = new PopupWidget(PopupWidget::TOOL, 0);
+    notificationPopup = new PopupWidget(PopupWidget::POPUP, 0);
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
-    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupLatestNotification);
 
     notificationTimer = new QTimer(this);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
@@ -952,8 +952,8 @@ void MainWindow::setupDockablePanels()
     auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
     //dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
     dwQOSBrowser->setIconVisible(true);
+    dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
     dwQOSBrowser->setProtected(true);
 
     searchPanel = new SearchDialog(this);

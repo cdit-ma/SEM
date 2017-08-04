@@ -60,6 +60,9 @@ public:
 
     void clearModelNotifications();
 
+    NotificationObject* getNotificationItem(int id);
+    NotificationObject* getLastNotificationItem();
+
 signals:
     void notificationAlert();
     void notificationSeen();

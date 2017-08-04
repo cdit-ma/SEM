@@ -308,6 +308,13 @@ void NotificationManager::setLastNotificationItem(int ID)
     }
 }
 
+NotificationObject* NotificationManager::getNotificationItem(int id){
+    return notificationObjects.value(id, 0);
+}
+NotificationObject* NotificationManager::getLastNotificationItem(){
+    return lastNotificationObject;
+}
+
 
 /**
  * @brief NotificationManager::showLastNotification

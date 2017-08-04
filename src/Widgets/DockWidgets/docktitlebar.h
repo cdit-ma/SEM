@@ -31,6 +31,7 @@ private slots:
     void updateActiveStyle();
 private:
     void updateIcon(QAction* action, QString iconPath, QString iconName);
+    void updateIcon(QLabel* action, QString iconPath, QString iconName);
     void setupToolBar();
     bool isActive();
 

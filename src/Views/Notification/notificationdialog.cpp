@@ -420,7 +420,7 @@ void NotificationDialog::initialisePanel()
         foreach (NotificationObject* item, notifications) {
             notificationAdded(item);
         }
-        NotificationManager::manager()->showLastNotification();
+        //NotificationManager::manager()->showLastNotification();
     }
 }
 

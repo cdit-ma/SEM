@@ -49,7 +49,8 @@ signals:
 public slots:
     void setModelTitle(QString modelTitle="");
 
-    void popupNotification(QString iconPath, QString iconName, QString description);
+    void popupLatestNotification();
+    
     void toggleNotificationPanel();
     void ensureNotificationPanelVisible();
 

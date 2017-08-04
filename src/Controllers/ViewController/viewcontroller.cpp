@@ -913,6 +913,7 @@ void ViewController::ModelControllerReady(bool ready)
     if(ready){
         emit vc_showWelcomeScreen(false);
         fitAllViews();
+        
     }
 }
 

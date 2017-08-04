@@ -175,6 +175,7 @@ void CustomGroupBox::setupLayout()
     widgetsToolbar = new QToolBar(this);
     widgetsToolbar->setOrientation(Qt::Vertical);
     widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    widgetsToolbar->setIconSize(QSize(32, 32));
 
     groupTitleButton = new QToolButton();
     groupTitleButton->setText(groupTitle);
