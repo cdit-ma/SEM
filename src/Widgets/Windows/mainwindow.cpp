@@ -314,7 +314,11 @@ void MainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    applicationToolbar->setStyleSheet("QToolBar{background:" % theme->getBackgroundColorHex() % ";}");
+    applicationToolbar->setStyleSheet("QToolBar{background:" % theme->getBackgroundColorHex() % "; padding:4px;} " +
+            " QToolBar::handle{width:16px;height:16px; background:" % theme->getAltBackgroundColorHex() % ";}"
+            " QToolBar::handle:horizontal{image: url(:/Images/Icons/dotsVertical);}"
+            " QToolBar::handle:vertical{image: url(:/Images/Icons/dotsHorizontal);}"
+    );
 
     QString menuStyle = theme->getMenuStyleSheet();
     ActionController* actionController = viewController->getActionController();
@@ -709,6 +713,7 @@ void MainWindow::setupToolBar()
     applicationToolbar->setMovable(true);
     applicationToolbar->setFloatable(true);
     applicationToolbar->setIconSize(QSize(16,16));
+
     
     applicationToolbar_spacer1 = new QWidget(this);
     applicationToolbar_spacer2 = new QWidget(this);

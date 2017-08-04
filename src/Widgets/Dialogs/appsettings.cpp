@@ -83,6 +83,9 @@ void AppSettings::themeChanged()
     setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
                   );
+    
+    clearSettingsAction->setIcon(theme->getIcon("Icons", "cross"));
+    applySettingsAction->setIcon(theme->getIcon("Icons", "tick"));
 }
 
 void AppSettings::dataValueChanged(QVariant data)
@@ -187,6 +190,8 @@ void AppSettings::setupLayout()
 
 
     toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(16,16));
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     warningAction = toolbar->addWidget(warningLabel);
     clearSettingsAction = toolbar->addAction("Clear");
