@@ -29,6 +29,7 @@ private slots:
     void activeItem_IconChanged();
     void activeItem_LabelChanged();
     void themeChanged();
+    void titleClicked();
 private:
     void setupLayout();
 
@@ -38,8 +39,6 @@ private:
     QSize iconSize;
     DataTableView* tableView;
     QToolBar* toolbar;
-    //QLabel* iconLabel;
-    //QLabel* label;
     QToolButton* entity_button;
     
     ViewController* viewController;

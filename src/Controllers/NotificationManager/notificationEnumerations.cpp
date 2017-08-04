@@ -150,7 +150,7 @@ QString getCategoryIcon(NOTIFICATION_CATEGORY category)
     case NOTIFICATION_CATEGORY::DEPLOYMENT:
         return "screen";
     case NOTIFICATION_CATEGORY::JENKINS:
-        return "jenkins";
+        return "jenkinsFlat";
     case NOTIFICATION_CATEGORY::FILE:
         return "file";
     case NOTIFICATION_CATEGORY::VALIDATION:

@@ -17,7 +17,6 @@ DataTableView::DataTableView(QWidget* parent):QTableView(parent)
     //Setup the Header on the Left.
     //verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     verticalHeader()->setHighlightSections(false);
-
     setFocusPolicy(Qt::TabFocus);
     setShowGrid(false);
 }

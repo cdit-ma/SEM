@@ -13,7 +13,7 @@
 
 #define FILTER_KEY "filter_key"
 
-#define FILTER_DEFAULT_WIDTH 200
+#define FILTER_DEFAULT_WIDTH 150
 
 #define ICON_SIZE 24
 #define SHOW_SEPARATOR_MARGIN false

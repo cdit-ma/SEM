@@ -3,7 +3,7 @@
 #include <QDateTime>
 #include <QDebug>
 
-#define DEFAULT_KEY_WIDTH 200
+#define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 300
 
 #define FILTER_REST_KEY -1
