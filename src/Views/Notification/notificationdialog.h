@@ -19,6 +19,7 @@
 #include "../../Controllers/NotificationManager/notificationEnumerations.h"
 #include "../../Utils/actiongroup.h"
 #include "../../Utils/filtergroup.h"
+#include "../../Widgets/optiongroupbox.h"
 
 class NotificationItem;
 class NotificationDialog : public QWidget
@@ -35,8 +36,6 @@ signals:
     void deleteNotification(int ID);
     void lastNotificationID(int ID);
 
-    void filtersChanged(NOTIFICATION_FILTER, QList<QVariant> checkedKeys);
-
     void mouseEntered();
 
     void itemHoverEnter(int ID);
@@ -52,9 +51,9 @@ public slots:
     void getLastNotificationID();
 
 private slots:
-    void on_themeChanged();
-    void on_filtersChanged(QList<QVariant> checkedKeys);
-    void on_selectionChanged(NotificationItem* item, bool selected, bool controlDown);
+    void themeChanged();
+    void filtersChanged();
+    void selectionChanged(NotificationItem* item, bool selected, bool controlDown);
 
     void entitySelectionChanged(int ID);
     void selectionFilterToggled(bool checked);
@@ -70,6 +69,7 @@ private slots:
 private:
     void setupLayout();
     void setupFilterGroups();
+    void setupFilters();
 
     void removeItem(NotificationItem* item);
 
@@ -104,7 +104,7 @@ private:
     QHash<int, NotificationItem*> notificationItems;
     QList<NotificationItem*> selectedItems;
 
-    QHash<NOTIFICATION_FILTER, FilterGroup*> filterGroups;
+    QHash<NOTIFICATION_FILTER, OptionGroupBox*> filters;
 
     int selectedEntityID;
     QList<int> selectedEntityItemIDs;

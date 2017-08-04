@@ -11,6 +11,8 @@
 #include <QApplication>
 #include <QGroupBox>
 
+#define FILTER_KEY "filter_key"
+
 #define FILTER_DEFAULT_WIDTH 200
 
 #define ICON_SIZE 24
@@ -33,23 +35,47 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     initialisePanel();
     updateSelectionBasedButtons();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(on_themeChanged()));
-    on_themeChanged();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 
 /**
- * @brief NotificationDialog::on_filtersChanged
- * This is called when one of the filter buttons is triggered.
- * It sends a checked list of the triggered filter group to the notification items.
- * @param checkedKeys
+ * @brief NotificationDialog::filtersChanged
  */
-void NotificationDialog::on_filtersChanged(QList<QVariant> checkedKeys)
+void NotificationDialog::filtersChanged()
 {
-    FilterGroup* filterGroup = qobject_cast<FilterGroup*>(sender());
+    OptionGroupBox* filterGroup = qobject_cast<OptionGroupBox*>(sender());
     if (filterGroup) {
-        NOTIFICATION_FILTER filter = filterGroup->getFilterGroupKey().value<NOTIFICATION_FILTER>();
-        emit filtersChanged(filter, checkedKeys);
+
+        NOTIFICATION_FILTER filterKey = filterGroup->property(FILTER_KEY).value<NOTIFICATION_FILTER>();
+        QList<QVariant> checkedFilters = filterGroup->getCheckedKeys();
+
+        switch (filterKey) {
+        case NOTIFICATION_FILTER::SEVERITY:
+            foreach (NotificationItem* item, notificationItems) {
+                int s = static_cast<int>(item->getSeverity());
+                item->updateVisibility(filterKey, checkedFilters.contains(s));
+                //item->setVisible(checkedFilters.contains(s));
+            }
+            break;
+        case NOTIFICATION_FILTER::CATEGORY:
+            foreach (NotificationItem* item, notificationItems) {
+                int c = static_cast<int>(item->getCategory());
+                item->updateVisibility(filterKey, checkedFilters.contains(c));
+                //item->setVisible(checkedFilters.contains(c));
+            }
+            break;
+        case NOTIFICATION_FILTER::TYPE:
+            foreach (NotificationItem* item, notificationItems) {
+                int t = static_cast<int>(item->getType());
+                item->updateVisibility(filterKey, checkedFilters.contains(t));
+                //item->setVisible(checkedFilters.contains(t));
+            }
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -81,9 +107,9 @@ void NotificationDialog::viewSelection()
 
 
 /**
- * @brief NotificationDialog::on_themeChanged
+ * @brief NotificationDialog::themeChanged
  */
-void NotificationDialog::on_themeChanged()
+void NotificationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet("QScrollArea {"
@@ -115,12 +141,12 @@ void NotificationDialog::on_themeChanged()
 
 
 /**
- * @brief NotificationDialog::on_selectionChanged
+ * @brief NotificationDialog::selectionChanged
  * @param item - the notification item that was clicked
  * @param selected - the item's current selected state
  * @param controlDown - control key's down state
  */
-void NotificationDialog::on_selectionChanged(NotificationItem* item, bool selected, bool controlDown)
+void NotificationDialog::selectionChanged(NotificationItem* item, bool selected, bool controlDown)
 {
     if (!item) {
         return;
@@ -312,16 +338,23 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
 
     connect(item, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
     connect(item, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
-    connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::on_selectionChanged);
-    connect(this, &NotificationDialog::filtersChanged, item, &NotificationItem::on_filtersChanged);
+    connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::selectionChanged);
 
-    // update the item's visibility depending on the currently checked filters
+    // update the search item's visibility based on the currently checked filters
+    bool showItem = true;
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        auto filter_group = filterGroups.value(filter, 0);
-        if(filter_group){
-            item->on_filtersChanged(filter, filter_group->getCheckedFilterKeys());
+        OptionGroupBox* group = filters.value(filter);
+        if (group) {
+            if (showItem && !group->isAllChecked()) {
+                int filterVal = item->getNotificationFilterValue(filter);
+                showItem = group->getCheckedKeys().contains(filterVal);
+            }
+            if (!showItem) {
+                break;
+            }
         }
     }
+    item->setVisible(showItem);
 }
 
 
@@ -593,31 +626,34 @@ void NotificationDialog::setupLayout()
     int minHeight = topToolbar->sizeHint().height() + bottomToolbar->sizeHint().height() + 75;
     setMinimumSize(minWidth, minHeight);
 
-    setupFilterGroups();
+    setupFilters();
 }
 
 
 /**
- * @brief NotificationDialog::setupFilterGroups
+ * @brief NotificationDialog::setupFilters
  */
-void NotificationDialog::setupFilterGroups()
+void NotificationDialog::setupFilters()
 {
-    // setup SEVERITY filter group
-    FilterGroup* severityGroup = new FilterGroup("SEVERITY", static_cast<int>(NOTIFICATION_FILTER::SEVERITY), this);
+    // setup SEVERITY group
+    OptionGroupBox* severityGroup = new OptionGroupBox("SEVERITY", this);
+    severityGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::SEVERITY));
     foreach (NOTIFICATION_SEVERITY severity, getNotificationSeverities()) {
         QString iconName = getSeverityIcon(severity);
-        severityGroup->addFilterToolButton(static_cast<int>(severity), getSeverityString(severity), "Icons", iconName);
+        severityGroup->addOption(static_cast<int>(severity), getSeverityString(severity), "Icons", iconName);
     }
 
-    // setup CATEGORY filter group
-    FilterGroup* categoryGroup = new FilterGroup("CATEGORY", static_cast<int>(NOTIFICATION_FILTER::CATEGORY), this);
+    // setup CATEGORY group
+    OptionGroupBox* categoryGroup = new OptionGroupBox("CATEGORY", this);
+    categoryGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::CATEGORY));
     foreach (NOTIFICATION_CATEGORY category, getNotificationCategories()){
         QString iconName = getCategoryIcon(category);
-        categoryGroup->addFilterToolButton(static_cast<int>(category), getCategoryString(category), "Icons", iconName);
+        categoryGroup->addOption(static_cast<int>(category), getCategoryString(category), "Icons", iconName);
     }
 
-    // setup TYPE filter group
-    FilterGroup* typeGroup = new FilterGroup("SOURCE", static_cast<int>(NOTIFICATION_FILTER::TYPE), this);
+    // setup TYPE group
+    OptionGroupBox* typeGroup = new OptionGroupBox("SOURCE", this);
+    typeGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::TYPE));
     foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
         QString iconName;
         if (type == NOTIFICATION_TYPE::MODEL) {
@@ -625,27 +661,27 @@ void NotificationDialog::setupFilterGroups()
         } else if (type == NOTIFICATION_TYPE::APPLICATION) {
             iconName = "pencil";
         }
-        typeGroup->addFilterToolButton(static_cast<int>(type), getTypeString(type), "Icons", iconName);
+        typeGroup->addOption(static_cast<int>(type), getTypeString(type), "Icons", iconName);
     }
 
     // connect filter groups
-    connect(severityGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
-    connect(categoryGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
-    connect(typeGroup, &FilterGroup::filtersChanged, this, &NotificationDialog::on_filtersChanged);
+    connect(severityGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    connect(categoryGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    connect(typeGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
 
     // connect reset filters button to all the filter groups
-    connect(resetFiltersAction, &QAction::triggered, severityGroup, &FilterGroup::resetFilters);
-    connect(resetFiltersAction, &QAction::triggered, categoryGroup, &FilterGroup::resetFilters);
-    connect(resetFiltersAction, &QAction::triggered, typeGroup, &FilterGroup::resetFilters);
+    connect(resetFiltersAction, &QAction::triggered, severityGroup, &OptionGroupBox::resetOptions);
+    connect(resetFiltersAction, &QAction::triggered, categoryGroup, &OptionGroupBox::resetOptions);
+    connect(resetFiltersAction, &QAction::triggered, typeGroup, &OptionGroupBox::resetOptions);
 
     // add filters to the toolbar
-    filtersToolbar->addWidget(severityGroup->constructFilterBox());
-    filtersToolbar->addWidget(categoryGroup->constructFilterBox());
-    filtersToolbar->addWidget(typeGroup->constructFilterBox());
+    filtersToolbar->addWidget(severityGroup);
+    filtersToolbar->addWidget(categoryGroup);
+    filtersToolbar->addWidget(typeGroup);
 
-    filterGroups.insert(NOTIFICATION_FILTER::SEVERITY, severityGroup);
-    filterGroups.insert(NOTIFICATION_FILTER::CATEGORY, categoryGroup);
-    filterGroups.insert(NOTIFICATION_FILTER::TYPE, typeGroup);
+    filters.insert(NOTIFICATION_FILTER::SEVERITY, severityGroup);
+    filters.insert(NOTIFICATION_FILTER::CATEGORY, categoryGroup);
+    filters.insert(NOTIFICATION_FILTER::TYPE, typeGroup);
 }
 
 

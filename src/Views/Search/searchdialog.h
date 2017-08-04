@@ -13,6 +13,7 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../Utils/filtergroup.h"
 #include "searchitemwidget.h"
+#include "../../Widgets/optiongroupbox.h"
 
 class SearchDialog : public QWidget
 {
@@ -35,11 +36,9 @@ signals:
     void searchButtonClicked();
     void refreshButtonClicked();
 
-    void filtersChanged(int filter, QList<QVariant> checkedKeys);
-
 public slots:
-    void on_themeChanged();
-    void on_filtersChanged(QList<QVariant> checkedKeys);
+    void themeChanged();
+    void filtersChanged();
 
     void searchItemSelected(int ID);
     void viewItemDestructed(int ID);
@@ -52,7 +51,7 @@ public slots:
 
 private:
     void setupLayout();
-    void setupFilterGroups();
+    void setupFilters();
 
     void clearSearchItems();
 
@@ -75,8 +74,8 @@ private:
     QToolBar* bottomToolbar;
     QSplitter* displaySplitter;
 
-    FilterGroup* aspectFilterGroup;
-    FilterGroup* dataFilterGroup;
+    OptionGroupBox* aspectsFilters;
+    OptionGroupBox* dataFilters;
     QAction* dataGroupAction;
 
     QVBoxLayout* resultsLayout;

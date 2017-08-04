@@ -47,6 +47,18 @@ QString CustomGroupBox::getTitle()
 
 
 /**
+ * @brief CustomGroupBox::setIconSize
+ * @param size
+ */
+void CustomGroupBox::setIconSize(QSize size)
+{
+    if (groupTitleButton) {
+        groupTitleButton->setIconSize(size);
+    }
+}
+
+
+/**
  * @brief CustomGroupBox::setChecked
  * @param checked
  */

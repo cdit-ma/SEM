@@ -38,10 +38,10 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     }
 
     connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
-    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::on_descriptionChanged);
-    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::on_iconChanged);
-    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::on_themeChanged);
-    on_themeChanged();
+    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
+    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
+    themeChanged();
 }
 
 
@@ -131,6 +131,31 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
 
 
 /**
+ * @brief NotificationItem::getNotificationFilterValue
+ * @param filter
+ * @return
+ */
+int NotificationItem::getNotificationFilterValue(NOTIFICATION_FILTER filter)
+{
+    int value = -1;
+    switch (filter) {
+    case NOTIFICATION_FILTER::SEVERITY:
+        value = static_cast<int>(getSeverity());
+        break;
+    case NOTIFICATION_FILTER::CATEGORY:
+        value = static_cast<int>(getCategory());
+        break;
+    case NOTIFICATION_FILTER::TYPE:
+        value = static_cast<int>(getType());
+        break;
+    default:
+        break;
+    }
+    return value;
+}
+
+
+/**
  * @brief NotificationItem::setSelected
  * @param select
  */
@@ -149,9 +174,9 @@ void NotificationItem::setSelected(bool select)
 
 
 /**
- * @brief NotificationItem::on_themeChanged
+ * @brief NotificationItem::themeChanged
  */
-void NotificationItem::on_themeChanged()
+void NotificationItem::themeChanged()
 {
     Theme* theme = Theme::theme();
     if (selected) {
@@ -160,15 +185,15 @@ void NotificationItem::on_themeChanged()
         backgroundColor = theme->getBackgroundColorHex();
     }
     updateStyleSheet();
-    on_iconChanged(getIconPath(), getIconName());
+    iconChanged(getIconPath(), getIconName());
 }
 
 
 /**
- * @brief NotificationItem::on_descriptionChanged
+ * @brief NotificationItem::descriptionChanged
  * @param description
  */
-void NotificationItem::on_descriptionChanged(QString description)
+void NotificationItem::descriptionChanged(QString description)
 {
     if (description.isEmpty()) {
         description = "...";
@@ -178,11 +203,11 @@ void NotificationItem::on_descriptionChanged(QString description)
 
 
 /**
- * @brief NotificationItem::on_iconChanged
+ * @brief NotificationItem::iconChanged
  * @param iconPath
  * @param iconName
  */
-void NotificationItem::on_iconChanged(QString iconPath, QString iconName)
+void NotificationItem::iconChanged(QString iconPath, QString iconName)
 {
     _iconPath = iconPath;
     _iconName = iconName;
@@ -225,63 +250,6 @@ void NotificationItem::loading(bool on)
 
 
 /**
- * @brief NotificationItem::showItem
- * This forces this item to be visible.
- */
-void NotificationItem::showItem()
-{
-    foreach (NOTIFICATION_FILTER filter, filterVisibility.keys()) {
-        filterVisibility[filter] = true;
-    }
-    show();
-}
-
-
-/**
- * @brief NotificationItem::on_filtersChanged
- * This is called when the checked filters have changed.
- * It updates this item's visibility based on that change.
- * @param filter
- * @param checkedKeys
- */
-void NotificationItem::on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys)
-{
-    bool reset = checkedKeys.isEmpty();
-    if (reset) {
-        filterCleared(filter);
-        return;
-    }
-
-    bool visible = true;
-
-    switch (filter) {
-    case NOTIFICATION_FILTER::SEVERITY:
-    {
-        int sInt = static_cast<int>(getSeverity());
-        visible = checkedKeys.contains(sInt);
-        break;
-    }
-    case NOTIFICATION_FILTER::CATEGORY:
-    {
-        int cInt = static_cast<int>(getCategory());
-        visible = checkedKeys.contains(cInt);
-        break;
-    }
-    case NOTIFICATION_FILTER::TYPE:
-    {
-        int tInt = static_cast<int>(getType());
-        visible = checkedKeys.contains(tInt);
-        break;
-    }
-    default:
-        break;
-    }
-
-    updateVisibility(filter, visible);
-}
-
-
-/**
  * @brief NotificationItem::mouseReleaseEvent
  * This sends a signal to the notification dialog notifying it of this item's current selected state and whether the CONTROL key is down.
  * @param event
@@ -307,18 +275,6 @@ void NotificationItem::enterEvent(QEvent *)
 void NotificationItem::leaveEvent(QEvent *)
 {
     emit hoverLeave(getEntityID());
-}
-
-
-/**
- * @brief NotificationItem::filterCleared
- * This is called when a filter group has been cleared.
- * This means that none of the filters in that group is checked; hence, set that filter to visible.
- * @param filter
- */
-void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
-{
-    updateVisibility(filter, true);
 }
 
 

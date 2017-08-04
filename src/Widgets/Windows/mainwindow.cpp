@@ -59,9 +59,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
         setMinimumSize(1200, 800);
     }
 
-    //resizeToolWidgets();
-
-
     setModelTitle();
     themeChanged();
     toggleWelcomeScreen(true);
