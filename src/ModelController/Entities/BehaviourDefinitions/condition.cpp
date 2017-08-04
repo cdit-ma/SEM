@@ -11,21 +11,16 @@ Condition::Condition(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND:
 	QString kind_string = "Condition";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Condition();});
 
+
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "value", QVariant::String);
 };
 
 Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
     setNodeType(NODE_TYPE::CONDITION);
+    //setAcceptsEdgeKind(EDGE_KIND::DATA);
     setWorkflowProducer(true);
     setWorkflowReciever(false);
-
-
-    if(kind == NODE_KIND::CONDITION){
-        //updateDefaultData("value", QVariant::String);
-    }
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
 }
 
 Branch *Condition::getBranch()
