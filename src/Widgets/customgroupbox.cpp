@@ -157,13 +157,6 @@ void CustomGroupBox::themeChanged()
                                         "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
                                         "}");
     }
-    /*
-    foreach (QAction* action, widgetsToolbar->actions()) {
-        QToolButton* button = qobject_cast<QToolButton*>(widgetsToolbar->widgetForAction(action));
-        QString iconPath = button->property("iconPath").toString();
-        QString iconName = button->property("iconName").toString();
-        button->setIcon(theme->getIcon(iconPath, iconName));
-    }*/
 }
 
 
@@ -176,7 +169,6 @@ void CustomGroupBox::setupLayout()
     widgetsToolbar->setOrientation(Qt::Vertical);
     widgetsToolbar->setIconSize(QSize(16,16));
     widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    
 
     groupTitleButton = new QToolButton();
     groupTitleButton->setText(groupTitle);

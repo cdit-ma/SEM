@@ -314,6 +314,7 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
     return false;
 }
 
+
 inline uint qHash(QVariant key, uint seed)
 {
     return ::qHash(key.toUInt(), seed);

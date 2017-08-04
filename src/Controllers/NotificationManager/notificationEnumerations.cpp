@@ -1,4 +1,5 @@
 #include "notificationEnumerations.h"
+#include "../../theme.h"
 
 
 /**
@@ -170,7 +171,8 @@ QColor getSeverityColor(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
     case NOTIFICATION_SEVERITY::INFO:
-        return QColor(0,180,180);
+        return Theme::theme()->getTextColor();
+        //return QColor(0,180,180);
     case NOTIFICATION_SEVERITY::WARNING:
         return QColor(255,200,0);
     case NOTIFICATION_SEVERITY::ERROR:

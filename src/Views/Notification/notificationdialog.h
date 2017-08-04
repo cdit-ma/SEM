@@ -48,6 +48,8 @@ public slots:
     void notificationAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
 
+    void entitySelectionChanged(int ID);
+
     void getLastNotificationID();
 
 private slots:
@@ -55,8 +57,7 @@ private slots:
     void filtersChanged();
     void selectionChanged(NotificationItem* item, bool selected, bool controlDown);
 
-    void entitySelectionChanged(int ID);
-    void selectionFilterToggled(bool checked);
+    void selectionFilterToggled(bool);
 
     void viewSelection();
 
@@ -64,11 +65,8 @@ private slots:
     void clearVisible();
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
-    void intervalTimeout();
-
 private:
     void setupLayout();
-    void setupFilterGroups();
     void setupFilters();
 
     void removeItem(NotificationItem* item);
@@ -77,23 +75,20 @@ private:
     void clearSelection();
 
     void updateSelectionBasedButtons();
-    void blinkInfoLabel(bool blink = true);
     
     QWidget* mainWidget;
 
+    QSplitter* displaySplitter;
     QToolBar* filtersToolbar;
     QToolBar* topToolbar;
     QToolBar* bottomToolbar;
-    QSplitter* displaySplitter;
 
     QVBoxLayout* itemsLayout;
 
-    QLabel* infoLabel;
-    QAction* infoAction;
-    QTimer* blinkTimer;
-    int intervalTime;
+    QAction* displayAllAction;
+    QAction* displayToggleAction;
+    QAction* displayLinkedItemsAction;
 
-    QAction* resetFiltersAction;
     QAction* sortTimeAction;
     QAction* sortSeverityAction;
     QAction* centerOnAction;
@@ -102,13 +97,11 @@ private:
     QAction* clearVisibleAction;
 
     QHash<int, NotificationItem*> notificationItems;
-    QList<NotificationItem*> selectedItems;
-
     QHash<NOTIFICATION_FILTER, OptionGroupBox*> filters;
 
+    QList<NotificationItem*> selectedItems;
+    QList<int> linkedEntityIDs;
     int selectedEntityID;
-    QList<int> selectedEntityItemIDs;
-
 
 protected:
     void enterEvent(QEvent* event);

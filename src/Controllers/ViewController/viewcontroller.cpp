@@ -66,13 +66,13 @@ ViewController::ViewController() : QObject(){
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
+    connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
-
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
 
-    autosave_timer_ = new QTimer(this);
     //Every minute
     //60000
+    autosave_timer_ = new QTimer(this);
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);

@@ -259,32 +259,34 @@ void SearchItemWidget::updateStyleSheet()
 /**
  * @brief SearchItemWidget::updateVisibility
  * @param filter
- * @param visible
+ * @param filterMatched
  */
-void SearchItemWidget::updateVisibility(int filter, bool visible)
+void SearchItemWidget::updateVisibility(int filter, bool filterMatched)
 {
     if (!filterVisibility.contains(filter)) {
         qWarning() << "SearchItemWidget::updateVisibility - Unknown filter.";
         return;
     }
 
-    filterVisibility[filter] = visible;
-    if (this->visible != visible) {
-        bool allVisible = true;
-        foreach (bool filterVisible, filterVisibility.values()) {
-            if (!filterVisible) {
-                allVisible = false;
-                break;
+    filterVisibility[filter] = filterMatched;
+    bool showItem = filterMatched;
+
+    if (visible != filterMatched) {
+        if (filterMatched) {
+            showItem = true;
+            foreach (bool filterVisible, filterVisibility.values()) {
+                if (!filterVisible) {
+                    showItem = false;
+                    break;
+                }
             }
-        }
-        if (this->visible != allVisible) {
-            setVisible(allVisible);
             // de-select this item if it is hidden
-            if (!allVisible && selected) {
+            if (!showItem && selected) {
                 setSelected(false);
             }
-            this->visible = allVisible;
         }
+        setVisible(showItem);
+        visible = showItem;
     }
 }
 

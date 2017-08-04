@@ -174,6 +174,37 @@ void NotificationItem::setSelected(bool select)
 
 
 /**
+ * @brief NotificationItem::addFilter
+ * @param filter
+ * @param filterVal
+ */
+void NotificationItem::addFilter(QVariant filter, QVariant filterVal)
+{
+    if (!customFilters.contains(filter)) {
+        customFilters[filter] = filterVal;
+        customFilterVisibility[filter] = true;
+    }
+}
+
+
+/**
+ * @brief NotificationItem::filtersChanged
+ * @param filter
+ * @param filterVal
+ */
+void NotificationItem::filtersChanged(QVariant filter, QVariant filterVal)
+{
+    if (customFilters.contains(filter)) {
+        bool filterMatched = customFilters[filter] == filterVal;
+        customFilterVisibility[filter] = filterMatched;
+        updateVisibility(filterMatched);
+    } else {
+        updateVisibility(false);
+    }
+}
+
+
+/**
  * @brief NotificationItem::themeChanged
  */
 void NotificationItem::themeChanged()
@@ -299,22 +330,56 @@ void NotificationItem::updateStyleSheet()
 
 /**
  * @brief NotificationItem::updateVisibility
- * This is called when a filter has been triggered.
- * It updates the visibily of this item based on whether all of its filters match the currently checked filters.
- * @param filter
- * @param visible
+ * @param filterMatched
  */
-void NotificationItem::updateVisibility(NOTIFICATION_FILTER filter, bool visible)
+void NotificationItem::updateVisibility(bool filterMatched)
 {
-    if (!filterVisibility.contains(filter)) {
-        return;
-    }
+    if (isVisible() != filterMatched) {
 
-    filterVisibility[filter] = visible;
+        bool showItem = filterMatched;
+        if (filterMatched) {
+            foreach (bool visible, filterVisibility.values()) {
+                if (!visible) {
+                    showItem = false;
+                    break;
+                }
+            }
+            if (showItem) {
+                foreach (bool visible, customFilterVisibility.values()) {
+                    if (!visible) {
+                        showItem = false;
+                        break;
+                    }
+                }
+            }
+        }
 
-    if (isVisible() != visible) {
+        // de-select this item if it is hidden
+        if (!showItem && selected) {
+            emit itemClicked(this, selected, true);
+        }
+
+        setVisible(showItem);
+
+        /*
+        // de-select this item if it is hidden
+        if (!filterMatched) {
+            setVisible(false);
+            if (!allVisible && selected) {
+                emit itemClicked(this, selected, true);
+            }
+            return;
+        }
+
         bool allVisible = true;
         foreach (bool visible, filterVisibility.values()) {
+            if (!visible) {
+                allVisible = false;
+                break;
+            }
+        }
+        if () {
+        foreach (bool visible, customFilterVisibility.values()) {
             if (!visible) {
                 allVisible = false;
                 break;
@@ -326,6 +391,28 @@ void NotificationItem::updateVisibility(NOTIFICATION_FILTER filter, bool visible
             if (!allVisible && selected) {
                 emit itemClicked(this, selected, true);
             }
-        }
+        }*/
     }
+}
+
+
+/**
+ * @brief NotificationItem::updateVisibility
+ * This is called when a filter has been triggered.
+ * It updates the visibily of this item based on whether all of its filters match the currently checked filters.
+ * @param filter
+ * @param filterMatched
+ */
+void NotificationItem::filtersChanged(NOTIFICATION_FILTER filter, bool filterMatched)
+{
+    if (filterVisibility.contains(filter)) {
+        filterVisibility[filter] = filterMatched;
+        updateVisibility(filterMatched);
+    }
+}
+
+
+inline uint qHash(QVariant key, uint seed)
+{
+    return ::qHash(key.toUInt(), seed);
 }

@@ -81,11 +81,14 @@ signals:
 
     void clearNotifications(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, int filterVal = -1);
 
+    void selectionChanged(int selectedID);
+
 public slots:
     void deleteNotification(int ID);
-
     void setLastNotificationItem(int ID);
     void showLastNotification();
+
+    void activeSelectionChanged(ViewItem* item, bool isActive);
 
 private:
     int addNotification(QString description,

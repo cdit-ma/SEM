@@ -19,6 +19,7 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 NotificationManager::NotificationManager(ViewController* controller)
 {
     viewController = controller;
+
 }
 
 
@@ -75,6 +76,7 @@ NotificationDialog* NotificationManager::constructPanel()
     connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
     connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
     connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
+    connect(manager(), &NotificationManager::selectionChanged, panel, &NotificationDialog::entitySelectionChanged);
     connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
     connect(panel, &NotificationDialog::lastNotificationID, manager(), &NotificationManager::setLastNotificationItem);
     connect(panel, &NotificationDialog::mouseEntered, manager(), &NotificationManager::notificationSeen);
@@ -324,6 +326,21 @@ void NotificationManager::showLastNotification()
 {
     if (lastNotificationObject) {
         emit notificationAdded(lastNotificationObject->iconPath(), lastNotificationObject->iconName(), lastNotificationObject->description());
+    }
+}
+
+
+/**
+ * @brief NotificationManager::activeSelectionChanged
+ * @param item
+ * @param isActive
+ */
+void NotificationManager::activeSelectionChanged(ViewItem* item, bool isActive)
+{
+    if (!item || !isActive) {
+        emit selectionChanged(-1);
+    } else {
+        emit selectionChanged(item->getID());
     }
 }
 

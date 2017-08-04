@@ -42,11 +42,11 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
     queryLabel->setText("\"" + query + "\"");
     clearSearchItems();
 
-    // only show the search filters when there are results
+    // clear previous data filters
+    dataFilters->removeOptions();
+
     bool hasResults = !results.isEmpty();
     infoLabel->setVisible(!hasResults);
-
-    dataFilters->removeOptions();
     if (!hasResults) {
         dataFilters->setResetButtonText("All");
         return;

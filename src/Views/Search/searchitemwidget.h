@@ -28,7 +28,7 @@ public:
     VIEW_ASPECT getViewAspect();
     QStringList getDataKeys();
     
-    void updateVisibility(int filter, bool visible);
+    void updateVisibility(int filter, bool filterMatched);
 
 signals:
     void hoverEnter(int ID);

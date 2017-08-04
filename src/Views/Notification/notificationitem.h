@@ -24,8 +24,11 @@ public:
 
     void setSelected(bool select);
 
+    void addFilter(QVariant filter, QVariant filterVal);
+    void filtersChanged(QVariant filter, QVariant filterVal);
+
     int getNotificationFilterValue(NOTIFICATION_FILTER filter);
-    void updateVisibility(NOTIFICATION_FILTER filter, bool visible);
+    void filtersChanged(NOTIFICATION_FILTER filter, bool filterMatched);
 
 signals:
     void hoverEnter(int ID);
@@ -48,6 +51,7 @@ protected:
 private:
     void updateIcon();
     void updateStyleSheet();
+    void updateVisibility(bool filterMatched);
 
     NotificationObject* notificationObject;
 
@@ -63,8 +67,9 @@ private:
     QString backgroundColor;
     bool selected;
 
+    QHash<QVariant, QVariant> customFilters;
+    QHash<QVariant, bool> customFilterVisibility;
     QHash<NOTIFICATION_FILTER, bool> filterVisibility;
-
 };
 
 #endif // NOTIFICATIONITEM_H

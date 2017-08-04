@@ -11,15 +11,11 @@
 #include <QApplication>
 #include <QGroupBox>
 
+#define ENTITY_ID "entity_ID"
 #define FILTER_KEY "filter_key"
-
 #define FILTER_DEFAULT_WIDTH 150
 
 #define ICON_SIZE 24
-#define SHOW_SEPARATOR_MARGIN false
-
-#define BLINK_INTERVAL 0
-#define BLINK_TIME 3000
 
 
 /**
@@ -37,6 +33,9 @@ NotificationDialog::NotificationDialog(QWidget *parent)
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+
+    // temporarily hide the display toggele
+    displayToggleAction->setVisible(false);
 }
 
 
@@ -55,22 +54,19 @@ void NotificationDialog::filtersChanged()
         case NOTIFICATION_FILTER::SEVERITY:
             foreach (NotificationItem* item, notificationItems) {
                 int s = static_cast<int>(item->getSeverity());
-                item->updateVisibility(filterKey, checkedFilters.contains(s));
-                //item->setVisible(checkedFilters.contains(s));
+                item->filtersChanged(filterKey, checkedFilters.contains(s));
             }
             break;
         case NOTIFICATION_FILTER::CATEGORY:
             foreach (NotificationItem* item, notificationItems) {
                 int c = static_cast<int>(item->getCategory());
-                item->updateVisibility(filterKey, checkedFilters.contains(c));
-                //item->setVisible(checkedFilters.contains(c));
+                item->filtersChanged(filterKey, checkedFilters.contains(c));
             }
             break;
         case NOTIFICATION_FILTER::TYPE:
             foreach (NotificationItem* item, notificationItems) {
                 int t = static_cast<int>(item->getType());
-                item->updateVisibility(filterKey, checkedFilters.contains(t));
-                //item->setVisible(checkedFilters.contains(t));
+                item->filtersChanged(filterKey, checkedFilters.contains(t));
             }
             break;
         default:
@@ -87,12 +83,7 @@ void NotificationDialog::filtersChanged()
 void NotificationDialog::viewSelection()
 {
     int numSelectedItems = selectedItems.count();
-
     if (numSelectedItems != 1) {
-        if (selectedItems.isEmpty()) {
-            infoLabel->setText("Please select <u>one</u> notification...");
-            blinkInfoLabel();
-        }
         return;
     }
 
@@ -128,13 +119,15 @@ void NotificationDialog::themeChanged()
                                   "QToolBar{ padding: 0px; spacing: 0px; }"
                                   "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
-    resetFiltersAction->setIcon(theme->getIcon("Icons", "cross"));
     sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
     sortSeverityAction->setIcon(theme->getIcon("Icons", "letterAZ"));
     centerOnAction->setIcon(theme->getIcon("Icons", "crosshair"));
     popupAction->setIcon(theme->getIcon("Icons", "popOut"));
     clearSelectedAction->setIcon(theme->getIcon("Icons", "bin"));
     clearVisibleAction->setIcon(theme->getIcon("Icons", "cross"));
+
+    displayAllAction->setIcon(theme->getIcon("Icons", "list"));
+    displayLinkedItemsAction->setIcon(theme->getIcon("Icons", "bug"));
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 }
@@ -166,7 +159,6 @@ void NotificationDialog::selectionChanged(NotificationItem* item, bool selected,
         selectedItems.removeAll(item);
     }
 
-    blinkInfoLabel(false);
     item->setSelected(selectItem);
     updateSelectionBasedButtons();
 }
@@ -174,17 +166,26 @@ void NotificationDialog::selectionChanged(NotificationItem* item, bool selected,
 
 /**
  * @brief NotificationDialog::entitySelectionChanged
+ * Update the selectedEntityID and the displayed notifications if necessary if this panel is visible.
+ * If there are no notifications linled to the new selected entity, disable the display toggle.
  * @param ID
  */
 void NotificationDialog::entitySelectionChanged(int ID)
 {
-    if (ID == selectedEntityID) {
-        return;
-    }
-    foreach (NotificationItem* item, notificationItems) {
-        int entityID = item->getEntityID();
-        if (entityID == ID) {
-            selectedEntityItemIDs.append(entityID);
+    selectedEntityID = ID;
+    if ((selectedEntityID == -1) || !linkedEntityIDs.contains(selectedEntityID)) {
+        // uncheck and disable the display selection toggle
+        // this also updates displayed notifications
+        if (displayLinkedItemsAction->isChecked()) {
+            displayLinkedItemsAction->setChecked(false);
+            displayAllAction->setChecked(true);
+        }
+        displayLinkedItemsAction->setEnabled(false);
+    } else {
+        // enable selection toggle
+        displayLinkedItemsAction->setEnabled(true);
+        if (this->isVisible() && displayLinkedItemsAction->isChecked()) {
+            selectionFilterToggled(true);
         }
     }
 }
@@ -192,23 +193,11 @@ void NotificationDialog::entitySelectionChanged(int ID)
 
 /**
  * @brief NotificationDialog::selectionFilterToggled
- * @param checked
  */
-void NotificationDialog::selectionFilterToggled(bool checked)
+void NotificationDialog::selectionFilterToggled(bool)
 {
-    if (checked) {
-        foreach (NotificationItem* item, notificationItems) {
-            int entityID = item->getEntityID();
-            if (selectedEntityItemIDs.contains(entityID)) {
-                // show the item if it matches the current filters
-            } else {
-                item->setVisible(false);
-            }
-        }
-    } else {
-        foreach (NotificationItem* item, notificationItems) {
-            // show all items that match the current filters
-        }
+    foreach (NotificationItem* item, notificationItems) {
+        item->filtersChanged(ENTITY_ID, selectedEntityID);
     }
 }
 
@@ -247,13 +236,6 @@ void NotificationDialog::getLastNotificationID()
  */
 void NotificationDialog::clearSelected()
 {
-    // start/restart timer
-    if (selectedItems.isEmpty()) {
-        infoLabel->setText("Please select at least one notification...");
-        blinkInfoLabel();
-        return;
-    }
-
     // delete selected items
     while (!selectedItems.isEmpty()) {
         removeItem(selectedItems.takeFirst());
@@ -315,7 +297,6 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
             break;
         }
     }
-
     foreach (NotificationItem* item, itemsToDelete) {
         removeItem(item);
     }
@@ -336,25 +317,29 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
     itemsLayout->insertWidget(0, item);
     notificationItems[obj->ID()] = item;
 
+    int entityID = item->getEntityID();
+    if (entityID != -1) {
+        linkedEntityIDs.append(entityID);
+        item->addFilter(ENTITY_ID, entityID);
+    }
+
     connect(item, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
     connect(item, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
     connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::selectionChanged);
 
     // update the search item's visibility based on the currently checked filters
-    bool showItem = true;
+    // this also sets the correct visibility values for each of its filters
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        OptionGroupBox* group = filters.value(filter);
+        OptionGroupBox* group = filters.value(filter, 0);
         if (group) {
-            if (showItem && !group->isAllChecked()) {
-                int filterVal = item->getNotificationFilterValue(filter);
-                showItem = group->getCheckedKeys().contains(filterVal);
-            }
-            if (!showItem) {
-                break;
-            }
+            int filterVal = item->getNotificationFilterValue(filter);
+            bool showItem = group->getCheckedKeys().contains(filterVal);
+            item->filtersChanged(filter, showItem);
         }
     }
-    item->setVisible(showItem);
+    if (displayLinkedItemsAction->isChecked()) {
+        item->filtersChanged(ENTITY_ID, selectedEntityID);
+    }
 }
 
 
@@ -405,6 +390,7 @@ void NotificationDialog::clearSelection()
         item->setSelected(false);
     }
     selectedItems.clear();
+    updateSelectionBasedButtons();
 }
 
 
@@ -440,22 +426,6 @@ void NotificationDialog::enterEvent(QEvent* event)
 
 
 /**
- * @brief NotificationDialog::blinkInfoLabel
- * @param blink
- */
-void NotificationDialog::blinkInfoLabel(bool blink)
-{
-    if (blink) {
-        intervalTime = 0;
-        blinkTimer->start();
-    } else {
-        blinkTimer->stop();
-    }
-    infoAction->setVisible(blink);
-}
-
-
-/**
  * @brief NotificationDialog::removeItem
  * This requests to delete the provided notification item.
  * Error items cannot be deleted using the notification dialog.
@@ -473,38 +443,38 @@ void NotificationDialog::removeItem(NotificationItem* item)
 
 
 /**
- * @brief NotificationDialog::intervalTimeout
- */
-void NotificationDialog::intervalTimeout()
-{
-    if (BLINK_INTERVAL == 0) {
-        blinkInfoLabel(false);
-    }  else {
-        intervalTime += BLINK_INTERVAL;
-        if (intervalTime == BLINK_TIME) {
-            blinkInfoLabel(false);
-        } else {
-            infoAction->setVisible(!infoAction->isVisible());
-        }
-    }
-}
-
-
-/**
  * @brief NotificationDialog::setupLayout
  */
 void NotificationDialog::setupLayout()
 {
     /*
+     * DISPLAY TOGGLE TOOLBAR
+     */
+    QToolBar* displayToggleToolbar = new QToolBar(this);
+    displayToggleToolbar->setIconSize(QSize(20,20));
+    displayToggleToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    displayToggleToolbar->setStyleSheet("QToolButton{ border-radius:" + Theme::theme()->getSharpCornerRadius() + ";}");
+
+    displayAllAction = displayToggleToolbar->addAction("All");
+    displayAllAction->setCheckable(true);
+    displayAllAction->setChecked(true);
+
+    displayLinkedItemsAction = displayToggleToolbar->addAction("Selection");
+    displayLinkedItemsAction->setCheckable(true);
+    displayLinkedItemsAction->setEnabled(false);
+    connect(displayLinkedItemsAction, &QAction::toggled, this, &NotificationDialog::selectionFilterToggled);
+
+    QActionGroup* displayGroup = new QActionGroup(this);
+    displayGroup->addAction(displayAllAction);
+    displayGroup->addAction(displayLinkedItemsAction);
+    displayGroup->setExclusive(true);
+
+    /*
      * TOP TOOLBAR
      */
     topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(20,20));
-
-    // construct reset/clear filters button
-    resetFiltersAction = topToolbar->addAction("Clear Filters");
-    resetFiltersAction->setToolTip("Clear All Filters");
-    resetFiltersAction->setVisible(false);
+    displayToggleAction = topToolbar->addWidget(displayToggleToolbar);
 
     QWidget* stretchWidget = new QWidget(this);
     stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
@@ -525,20 +495,6 @@ void NotificationDialog::setupLayout()
      */
     bottomToolbar = new QToolBar(this);
     bottomToolbar->setIconSize(QSize(20,20));
-    //bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-
-    infoLabel = new QLabel(this);
-    infoLabel->setFont(QFont(font().family(), font().pointSizeF(), QFont::Normal, true));
-    infoAction = bottomToolbar->addWidget(infoLabel);
-    infoAction->setVisible(false);
-
-    blinkTimer = new QTimer(this);
-    blinkTimer->setTimerType(Qt::PreciseTimer);
-    blinkTimer->setInterval(BLINK_INTERVAL);
-    if (BLINK_INTERVAL <= 0) {
-        blinkTimer->setInterval(BLINK_TIME);
-    }
-    connect(blinkTimer, &QTimer::timeout, this, &NotificationDialog::intervalTimeout);
 
     QWidget* stretchWidget2 = new QWidget(this);
     stretchWidget2->setStyleSheet("background: rgba(0,0,0,0);");
@@ -668,11 +624,6 @@ void NotificationDialog::setupFilters()
     connect(severityGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
     connect(categoryGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
     connect(typeGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
-
-    // connect reset filters button to all the filter groups
-    connect(resetFiltersAction, &QAction::triggered, severityGroup, &OptionGroupBox::resetOptions);
-    connect(resetFiltersAction, &QAction::triggered, categoryGroup, &OptionGroupBox::resetOptions);
-    connect(resetFiltersAction, &QAction::triggered, typeGroup, &OptionGroupBox::resetOptions);
 
     // add filters to the toolbar
     filtersToolbar->addWidget(severityGroup);
