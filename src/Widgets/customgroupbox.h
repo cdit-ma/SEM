@@ -17,6 +17,8 @@ public:
     virtual void setTitle(QString title);
     QString getTitle();
 
+    void setIconSize(QSize size);
+
     void setChecked(bool checked);
     bool isChecked();
 

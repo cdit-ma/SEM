@@ -24,7 +24,12 @@ public:
     void setDataFilterKey(int key);
 
     void setSelected(bool selected);
+
+    VIEW_ASPECT getViewAspect();
+    QStringList getDataKeys();
     
+    void updateVisibility(int filter, bool visible);
+
 signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
@@ -34,8 +39,6 @@ public slots:
     void themeChanged();
     void expandButtonToggled(bool checked);
 
-    void filtersChanged(int filter, QList<QVariant> checkedKeys);
-    
 protected:
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
@@ -43,10 +46,7 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void filterCleared(int filter);
-
     void updateStyleSheet();
-    void updateVisibility(int filter, bool visible);
 
     void setupLayout(QVBoxLayout* layout);
     void constructKeyWidgets();
@@ -72,6 +72,7 @@ private:
     bool doubleClicked;
     bool selected;
     bool visible;
+
 
     QHash<int, bool> filterVisibility;
     QVariant aspectFilterKey;

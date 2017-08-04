@@ -2,61 +2,65 @@
 #define OPTION_GROUPBOX_H
 
 #include "customgroupbox.h"
-#include <QHash>
 #include <QToolButton>
 
 class OptionGroupBox : public CustomGroupBox
 {
     Q_OBJECT
+
 public:
-    explicit OptionGroupBox(QString title, QWidget *parent = 0);
+    explicit OptionGroupBox(QString title, QWidget* parent = 0);
 
-    void setExclusive(bool exclusive);
-
-    template<class T> QList<T> getOptions(){
+    template<class T> QList<T> getOptions()
+    {
         QList<T> options;
-        
         for(auto key : optionsLookup.keys()){
             options.append(key.value<T>());
         }
         return options;
-    };
+    }
 
-    template<class T> QList<T> getCheckedOptions(){
+    template<class T> QList<T> getCheckedOptions()
+    {
         QList<T> options;
-        
         for(auto key : checkedKeys){
             options.append(key.value<T>());
         }
         return options;
-    };
+    }
+
+    QList<QVariant> getCheckedKeys();
+    bool isAllChecked();
 
     bool addOption(QVariant key, QString label, QString icon_path, QString icon_name);
     void removeOption(QVariant key);
     void removeOptions();
 
-    void setIconSize(QSize iconSize);
+    void setExclusive(bool exclusive);
     void setTitle(QString title);
 
     void setResetButtonVisible(bool visible);
     void setResetButtonIcon(QString path, QString name);
     void setResetButtonText(QString text);
-    void setResetButtonKey(QVariant key);
+
 signals:
     void checkedOptionsChanged();
+
 public slots:
     void resetOptions();
+
 private slots:
-    void optionToggled();
     void themeChanged();
+    void optionToggled();
 
 private:
-    void uncheckOptions();
-    void setupResetButton();
     QAction* addOptionButton(QToolButton* button, QVariant key = QVariant());
-    void clearFilters();
-    void updateTitleCount();
 
+    void uncheckOptions();
+    void clearFilters();
+
+    void updateTitleCount();
+    void setupResetButton();
 
     QToolButton* resetButton = 0;
     QAction* resetAction = 0;
@@ -66,10 +70,8 @@ private:
     bool exclusive = false;
     QString title;
 
-
     QHash<QVariant, QToolButton*> optionsLookup;
     QList<QVariant> checkedKeys;
 };
-
 
 #endif // OPTION_GROUPBOX_H

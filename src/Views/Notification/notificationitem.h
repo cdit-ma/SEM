@@ -24,20 +24,20 @@ public:
 
     void setSelected(bool select);
 
+    int getNotificationFilterValue(NOTIFICATION_FILTER filter);
+    void updateVisibility(NOTIFICATION_FILTER filter, bool visible);
+
 signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
     void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
 
 public slots:
-    void on_themeChanged();
-    void on_filtersChanged(NOTIFICATION_FILTER filter, QList<QVariant> checkedKeys);
-
-    void showItem();
+    void themeChanged();
 
 private slots:
-    void on_descriptionChanged(QString description);
-    void on_iconChanged(QString iconPath, QString iconName);
+    void descriptionChanged(QString description);
+    void iconChanged(QString iconPath, QString iconName);
     void loading(bool on);
 
 protected:
@@ -46,11 +46,8 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void filterCleared(NOTIFICATION_FILTER filter);
-
     void updateIcon();
     void updateStyleSheet();
-    void updateVisibility(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, bool visible = false);
 
     NotificationObject* notificationObject;
 

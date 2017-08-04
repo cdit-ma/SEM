@@ -124,6 +124,26 @@ void SearchItemWidget::setSelected(bool selected)
 
 
 /**
+ * @brief SearchItemWidget::getViewAspect
+ * @return
+ */
+VIEW_ASPECT SearchItemWidget::getViewAspect()
+{
+    return viewAspect;
+}
+
+
+/**
+ * @brief SearchItemWidget::getDataKeys
+ * @return
+ */
+QStringList SearchItemWidget::getDataKeys()
+{
+    return keys;
+}
+
+
+/**
  * @brief SearchItemWidget::themeChanged
  */
 void SearchItemWidget::themeChanged()
@@ -171,39 +191,6 @@ void SearchItemWidget::expandButtonToggled(bool checked)
 
 
 /**
- * @brief SearchItemWidget::filtersChanged
- * @param filter
- * @param checkedKeys
- */
-void SearchItemWidget::filtersChanged(int filter, QList<QVariant> checkedKeys)
-{
-    bool reset = checkedKeys.isEmpty();
-    if (reset) {
-        filterCleared(filter);
-        return;
-    }
-
-    bool visible = false;
-    if (filter == aspectFilterKey)   {
-        int aspectInt = static_cast<int>(viewAspect);
-        visible = checkedKeys.contains(aspectInt);
-    } else if (filter == dataFilterKey) {
-        foreach (QVariant key, keys) {
-            if (checkedKeys.contains(key)) {
-                visible = true;
-                break;
-            }
-        }
-    } else {
-        qWarning() << "SearchItemWidget::filtersChanged - This filter is not handled.";
-        return;
-    }
-
-    updateVisibility(filter, visible);
-}
-
-
-/**
  * @brief SearchItemWidget::mouseReleaseEvent
  * Imitate clicking the expand button when any of this widget is clicked.
  */
@@ -246,16 +233,6 @@ void SearchItemWidget::enterEvent(QEvent *)
 void SearchItemWidget::leaveEvent(QEvent *)
 {
     emit hoverLeave(viewItemID);
-}
-
-
-/**
- * @brief SearchItemWidget::filterCleared
- * @param filter
- */
-void SearchItemWidget::filterCleared(int filter)
-{
-    updateVisibility(filter, true);
 }
 
 
