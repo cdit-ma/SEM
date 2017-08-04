@@ -52,8 +52,8 @@ private:
     void constructKeyWidgets();
 
     ViewItem* viewItem;
-    int viewItemID;    
     VIEW_ASPECT viewAspect;
+    int viewItemID;
     
     QLabel* iconLabel;
     QSize iconSize;
