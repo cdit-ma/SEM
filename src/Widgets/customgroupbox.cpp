@@ -52,8 +52,8 @@ QString CustomGroupBox::getTitle()
  */
 void CustomGroupBox::setIconSize(QSize size)
 {
-    if (groupTitleButton) {
-        groupTitleButton->setIconSize(size);
+    if(widgetsToolbar){
+        widgetsToolbar->setIconSize(size);
     }
 }
 
@@ -174,8 +174,9 @@ void CustomGroupBox::setupLayout()
 {
     widgetsToolbar = new QToolBar(this);
     widgetsToolbar->setOrientation(Qt::Vertical);
+    widgetsToolbar->setIconSize(QSize(16,16));
     widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    widgetsToolbar->setIconSize(QSize(32, 32));
+    
 
     groupTitleButton = new QToolButton();
     groupTitleButton->setText(groupTitle);
@@ -189,12 +190,12 @@ void CustomGroupBox::setupLayout()
     QFrame* leftTitleFrame = new QFrame(this);
     leftTitleFrame->setFrameShape(QFrame::HLine);
     leftTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
-    leftTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    leftTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QFrame* rightTitleFrame = new QFrame(this);
     rightTitleFrame->setFrameShape(QFrame::HLine);
     rightTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
-    rightTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    rightTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QToolBar* topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(TITLE_ARROW_SIZE, TITLE_ARROW_SIZE));

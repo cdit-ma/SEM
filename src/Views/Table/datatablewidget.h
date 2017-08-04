@@ -9,6 +9,7 @@
 #include "datatablewidget.h"
 #include "datatabledelegate.h"
 
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QToolBar>
 #include <QTableView>
@@ -37,8 +38,10 @@ private:
     QSize iconSize;
     DataTableView* tableView;
     QToolBar* toolbar;
-    QLabel* iconLabel;
-    QLabel* label;
+    //QLabel* iconLabel;
+    //QLabel* label;
+    QToolButton* entity_button;
+    
     ViewController* viewController;
     DataTableDelegate* multilineDelegate;
 

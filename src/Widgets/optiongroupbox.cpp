@@ -172,11 +172,13 @@ void OptionGroupBox::removeOption(QVariant key)
  */
 void OptionGroupBox::removeOptions()
 {
+    hide();
     for (auto val : optionsLookup.values()) {
         delete val;
     }
     optionsLookup.clear();
     resetOptions();
+    show();
 }
 
 

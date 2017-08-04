@@ -184,6 +184,7 @@ void BaseDockWidget::setActive(bool active)
         titleBar->setActive(active);
         themeChanged();
         emit dockSetActive(active);
+        raise();
     }
 }
 

@@ -792,27 +792,13 @@ QString Theme::getAbstractItemViewStyleSheet()
            "QHeaderView::section:selected {"
            "font-weight: normal;"
            "}"
-
-           "QAbstractItemView QLineEdit {"
-           "background:" % getHighlightColorHex() % ";"
-           "color:" % getTextColorHex(CR_SELECTED) % ";"
-           "border: 0px;"
-           "}"
-           "QAbstractItemView QComboBox {"
-           "background:" % getHighlightColorHex() % ";"
-           "color:" % getTextColorHex(CR_SELECTED) % ";"
-           "border: 0px;"
-           "}"
-           "QAbstractItemView QSpinBox {"
-           "background:" % getHighlightColorHex() % ";"
-           "color:" % getTextColorHex(CR_SELECTED) % ";"
-           "border: 0px;"
-           "}"
-           "QAbstractItemView QDoubleSpinBox {"
-           "background:" % getHighlightColorHex() % ";"
-           "color:" % getTextColorHex(CR_SELECTED) % ";"
-           "border: 0px;"
-           "}";
+            "QAbstractItemView QWidget {"
+            "color:" % getTextColorHex() % ";"
+            "border: none;"
+            "background:" % getBackgroundColorHex() % ";"
+            "selection-color:" % getTextColorHex(CR_SELECTED) % ";"
+            "selection-background-color:" % getHighlightColorHex() % ";"
+            "}";
 }
 
 QString Theme::getAltAbstractItemViewStyleSheet()
@@ -1001,8 +987,7 @@ QString Theme::getProgressBarStyleSheet()
 
 QString Theme::getLabelStyleSheet()
 {
-    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}"
-            /*"QLabel:hover{ background:" % getHighlightColorHex() + "; color:" + getTextColorHex(CR_SELECTED) + ";}"*/;
+    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
 QString Theme::getTitleLabelStyleSheet()

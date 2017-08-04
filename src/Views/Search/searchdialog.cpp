@@ -44,15 +44,14 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // only show the search filters when there are results
     bool hasResults = !results.isEmpty();
-    dataGroupAction->setVisible(hasResults);
     infoLabel->setVisible(!hasResults);
 
+    dataFilters->removeOptions();
     if (!hasResults) {
+        dataFilters->setResetButtonText("All");
         return;
     }
 
-    // update the data filter buttons
-    dataFilters->removeOptions();
     dataFilters->setResetButtonText("All (" + QString::number(results.count()) + ")");
 
     // construct a search item for each result item
@@ -214,8 +213,6 @@ void SearchDialog::resetPanel()
     queryText = "";
 
     queryLabel->setText("\"" + queryText + "\"");
-    dataGroupAction->setVisible(false);
-
     clearSearchItems();
     infoLabel->setVisible(true);
 }

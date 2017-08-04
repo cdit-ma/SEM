@@ -239,18 +239,20 @@ ViewDockWidget *WindowManager::getActiveViewDockWidget()
 
 void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
 {
-    //*
-    if (!dockWidget || (dockWidget == activeViewDockWidget)) {
+    /*
+    //Don't bother setting the activeWidget, if it's already active
+    if (dockWidget && dockWidget == activeViewDockWidget){
         return;
     }
 
-    if (dockWidget->getDockType() != BaseDockWidget::MDW_VIEW) {
+    //Don't allow any non-view windows to have active selection
+    if (dockWidget && dockWidget->getDockType() != BaseDockWidget::MDW_VIEW) {
         return;
     }
 
     ViewDockWidget* viewDockWidget = (ViewDockWidget*) dockWidget;
 
-    if (viewDockWidget->isNodeViewDock()) {
+    if (viewDockWidget && viewDockWidget->isNodeViewDock()) {
 
         ViewDockWidget* prevDock = activeViewDockWidget;
         if (prevDock) {
@@ -264,9 +266,10 @@ void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
 
         emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
     }
-    /*/
+    */
+    
 
-    /*
+    
     if(dockWidget != activeViewDockWidget){
         ViewDockWidget* prevDock = activeViewDockWidget;
         activeViewDockWidget = 0;
@@ -277,20 +280,19 @@ void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
             disconnect(prevDock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
         }
 
-        if(dockWidget){
-            activeViewDockWidget = (ViewDockWidget*) dockWidget;
-        }
 
         //Set the New.
         if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
-            dockWidget->setActive(true);
-
-            connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+            auto view_dock = (ViewDockWidget*) dockWidget;
+            if(view_dock->isNodeViewDock() && view_dock->isVisible()){
+                activeViewDockWidget = view_dock;
+                dockWidget->setActive(true);
+                connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+            }
         }
 
         emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
     }
-    */
 }
 
 void WindowManager::setActiveDockWidget(int ID)
@@ -375,6 +377,7 @@ void WindowManager::focusChanged(QWidget* prev, QWidget* now)
             ID = parent->property("ID").toInt(&okay);
             if(okay){
                 setActiveDockWidget(ID);
+                return;
             }
         }
     }
