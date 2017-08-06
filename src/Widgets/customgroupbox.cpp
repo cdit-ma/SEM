@@ -174,7 +174,7 @@ void CustomGroupBox::themeChanged()
                              "}";
         }
         groupTitleButton->setStyleSheet("QToolButton {"
-                                        "padding: 1px;"
+                                        "padding: 1px 1px 1px 0px;"
                                         "border: none;"
                                         "color:" + theme->getTextColorHex() + ";"
                                         "background: rgba(0,0,0,0);"
@@ -220,7 +220,7 @@ void CustomGroupBox::setupLayout()
     QHBoxLayout* topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
     topLayout->addWidget(leftTitleFrame);
-    topLayout->addSpacerItem(new QSpacerItem(1,0));
+    //topLayout->addSpacerItem(new QSpacerItem(1,0));
     topLayout->addWidget(topToolbar);
     topLayout->addSpacerItem(new QSpacerItem(1,0));
     topLayout->addWidget(rightTitleFrame);
