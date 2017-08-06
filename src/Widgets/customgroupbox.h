@@ -19,6 +19,8 @@ public:
 
     void setIconSize(QSize size);
 
+    void setCheckable(bool checkable);
+
     void setChecked(bool checked);
     bool isChecked();
 

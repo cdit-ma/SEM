@@ -2,7 +2,8 @@
 #include "../theme.h"
 
 #define TITLE_FRAME_WIDTH 4
-#define TITLE_ARROW_SIZE 20
+#define TITLE_ARROW_SIZE 16
+#define DEFAULT_ICON_SIZE 16
 
 /**
  * @brief CustomGroupBox::CustomGroupBox
@@ -17,6 +18,8 @@ CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
     widgetsToolbar = 0;
 
     setupLayout();
+    setIconSize(QSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE));
+    //setCheckable(false);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
     themeChanged();
@@ -52,8 +55,25 @@ QString CustomGroupBox::getTitle()
  */
 void CustomGroupBox::setIconSize(QSize size)
 {
-    if(widgetsToolbar){
+    if (widgetsToolbar) {
         widgetsToolbar->setIconSize(size);
+    }
+}
+
+
+/**
+ * @brief CustomGroupBox::setCheckable
+ * @param checkable
+ */
+void CustomGroupBox::setCheckable(bool checkable)
+{
+    if (groupTitleButton) {
+        groupTitleButton->setCheckable(checkable);
+        if (checkable) {
+            groupTitleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        } else {
+            groupTitleButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+        }
     }
 }
 
@@ -141,21 +161,25 @@ void CustomGroupBox::themeChanged()
                   "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
     if (groupTitleButton) {
-        groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle"));
+        QString checkableStyle = "";
+        if (groupTitleButton->isCheckable()) {
+            groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle"));
+            checkableStyle = "QToolButton::checked {"
+                             "background: rgba(0,0,0,0);"
+                             "color:" + theme->getTextColorHex() + ";"
+                             "}"
+                             "QToolButton:hover {"
+                             "background:" + theme->getHighlightColorHex() + ";"
+                             "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
+                             "}";
+        }
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px;"
-                                        //"padding-left: 4px;"
                                         "border: none;"
-                                        "background: rgba(0,0,0,0);"
-                                        "}"
-                                        "QToolButton::checked {"
-                                        "background: rgba(0,0,0,0);"
                                         "color:" + theme->getTextColorHex() + ";"
+                                        "background: rgba(0,0,0,0);"
                                         "}"
-                                        "QToolButton:hover {"
-                                        "background:" + theme->getHighlightColorHex() + ";"
-                                        "color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";"
-                                        "}");
+                                        + checkableStyle);
     }
 }
 
@@ -167,7 +191,6 @@ void CustomGroupBox::setupLayout()
 {
     widgetsToolbar = new QToolBar(this);
     widgetsToolbar->setOrientation(Qt::Vertical);
-    widgetsToolbar->setIconSize(QSize(16,16));
     widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     groupTitleButton = new QToolButton();

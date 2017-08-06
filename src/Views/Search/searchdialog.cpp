@@ -211,8 +211,12 @@ void SearchDialog::resetPanel()
 {
     selectedSearchItemID = -1;
     queryText = "";
-
     queryLabel->setText("\"" + queryText + "\"");
+
+    // clear previous data filters
+    dataFilters->removeOptions();
+    dataFilters->setResetButtonText("All");
+
     clearSearchItems();
     infoLabel->setVisible(true);
 }
