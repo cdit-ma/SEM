@@ -169,7 +169,7 @@
 
                     <xsl:variable name="workflow_sources" select="cdit:get_edge_sources(., 'Edge_Workflow', $id)" />
                     <xsl:if test="$ignored = false()">
-                        <xsl:value-of select="cdit:output_result($id, count($workflow_sources) = 1, concat($kind, ' ', o:quote_wrap($label), ' does not have a Workflow connection (Edge_Workflow)'), true(), 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, count($workflow_sources) > 0, concat($kind, ' ', o:quote_wrap($label), ' does not have a Workflow connection (Edge_Workflow)'), true(), 2)" />        
                     </xsl:if>
 
                 </xsl:for-each>
