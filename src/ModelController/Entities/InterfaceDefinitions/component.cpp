@@ -5,6 +5,8 @@ Component::Component(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONEN
 	auto node_kind = NODE_KIND::COMPONENT;
 	QString kind_string = "Component";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Component();});
+
+    RegisterDefaultData(factory, node_kind, "comment", QVariant::String);
 };
 
 Component::Component():Node(NODE_KIND::COMPONENT)

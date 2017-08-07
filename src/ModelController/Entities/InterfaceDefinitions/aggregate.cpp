@@ -12,6 +12,7 @@ Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGAT
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "namespace", QVariant::String);
+    RegisterDefaultData(factory, node_kind, "comment", QVariant::String);
 };
 
 Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)

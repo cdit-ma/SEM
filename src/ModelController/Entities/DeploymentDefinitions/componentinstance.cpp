@@ -8,6 +8,7 @@ ComponentInstance::ComponentInstance(EntityFactory* factory) : Node(factory, NOD
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ComponentInstance();});
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "comment", QVariant::String);
 };
 
 ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
