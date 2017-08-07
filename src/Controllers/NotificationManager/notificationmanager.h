@@ -86,7 +86,6 @@ signals:
 public slots:
     void deleteNotification(int ID);
     void setLastNotificationItem(int ID);
-    void showLastNotification();
 
     void activeSelectionChanged(ViewItem* item, bool isActive);
 

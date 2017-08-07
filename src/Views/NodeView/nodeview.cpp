@@ -589,9 +589,12 @@ void NodeView::showItem(EntityItem* item){
     auto parent = item->getParent();
     while(parent){
         if(parent->isNodeItem()){
-            ((NodeItem*)parent)->setExpanded(true);
-            int ID = parent->getID();
-            emit setData(ID, "isExpanded", true);
+            auto node_item = (NodeItem*)parent;
+            if(!node_item->isExpanded()){
+                node_item->setExpanded(true);
+                int ID = parent->getID();
+                emit setData(ID, "isExpanded", true);
+            }
         }
         parent = parent->getParent();
     }

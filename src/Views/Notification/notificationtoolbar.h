@@ -19,7 +19,7 @@ public:
 
 signals:
     void toggleDialog();
-
+    void showLastNotification();
 public slots:
     void themeChanged();
 

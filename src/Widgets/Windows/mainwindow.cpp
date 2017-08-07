@@ -469,7 +469,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
         restoreWindowState();
 
         //Call this after everything has loaded
-        QMetaObject::invokeMethod(NotificationManager::manager(), "showLastNotification", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "popupLatestNotification", Qt::QueuedConnection);
     }
 }
 
@@ -921,6 +921,8 @@ void MainWindow::setupMenuCornerWidget()
     notificationToolbar = NotificationManager::constructToolbar();
     notificationToolbar->setParent(this);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
+    connect(notificationToolbar, &NotificationToolbar::showLastNotification, this, &MainWindow::popupLatestNotification);
+    
     connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
 
     QToolBar* tb = new QToolBar(this);
