@@ -110,6 +110,7 @@ private:
     BaseDockWidget* tool_ViewManager = 0;
     BaseDockWidget* tool_Minimap = 0;
     BaseDockWidget* tool_Dock = 0;
+    BaseDockWidget* tool_inner = 0;
 
     //CUTSManager* cutsManager;
     //XMIImporter* xmiImporter;

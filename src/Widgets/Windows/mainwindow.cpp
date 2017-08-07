@@ -36,16 +36,33 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
+    setDockNestingEnabled(false);
+    setDockOptions(QMainWindow::AnimatedDocks);
     viewController = vc;
     initializeApplication();
     setContextMenuPolicy(Qt::NoContextMenu);
     innerWindow = WindowManager::constructCentralWindow("Main Window");
-    setCentralWidget(innerWindow);
+   
+    tool_inner = WindowManager::constructToolDockWidget("Inner Window");
+    tool_inner->setWidget(innerWindow);
+    tool_inner->setAllowedAreas(Qt::TopDockWidgetArea);
+     
+
+    addDockWidget(Qt::TopDockWidgetArea, tool_inner);
+    tool_inner->setFeatures(QDockWidget::NoDockWidgetFeatures);
+   
+
+
+    //setCentralWidget(innerWindow);
+    //setCentralWidget(innerWindow);
 
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
     setViewController(vc);
+
+
+   
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
@@ -457,15 +474,15 @@ void MainWindow::toggleWelcomeScreen(bool on)
 
     if (on) {
         holderLayout->removeWidget(welcomeScreen);
-        holderLayout->addWidget(innerWindow);
+        //holderLayout->addWidget(innerWindow);
         setCentralWidget(welcomeScreen);
         // hide notification toast
         notificationPopup->hide();
         notificationTimer->stop();
     } else {
-        holderLayout->removeWidget(innerWindow);
+        //holderLayout->removeWidget(innerWindow);
         holderLayout->addWidget(welcomeScreen);
-        setCentralWidget(innerWindow);
+        //setCentralWidget(innerWindow);
         restoreWindowState();
 
         //Call this after everything has loaded
@@ -513,7 +530,7 @@ void MainWindow::restoreWindowState(){
                 restoreState(outer_state);
             }
             if(load_dock){
-                innerWindow->restoreState(inner_state);
+                //innerWindow->restoreState(inner_state);
             }
             restoreGeometry(outer_geo);
         }
@@ -718,6 +735,8 @@ void MainWindow::setupToolBar()
     connect(applicationToolbar, &QToolBar::orientationChanged, this, &MainWindow::toolbarOrientationChanged);
     innerWindow->addToolBar(applicationToolbar);
     toolbarOrientationChanged(Qt::Horizontal);
+
+    tool_inner->setTitleBarWidget(new QWidget(this));
 }
 
 
@@ -839,7 +858,7 @@ void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
     dockTabWidget->setMinimumWidth(150);
-    dockTabWidget->setMaximumWidth(150);
+    dockTabWidget->setMaximumWidth(250);
 
 
     tool_Dock = WindowManager::constructToolDockWidget("Dock");
@@ -885,7 +904,7 @@ void MainWindow::setupMinimap()
     minimap = new NodeViewMinimap(this);
     minimap->setMinimumHeight(100);
     minimap->setMinimumWidth(200);
-    minimap->setMaximumWidth(200);
+    //minimap->setMaximumWidth(200);
     
 
     tool_Minimap = WindowManager::constructToolDockWidget("Minimap");
@@ -919,7 +938,7 @@ void MainWindow::setupMenuCornerWidget()
 
     //notificationToolbar = new NotificationToolbar(viewController, this);
     notificationToolbar = NotificationManager::constructToolbar();
-    notificationToolbar->setParent(this);
+    notificationToolbar->setParent(this); 
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
     connect(notificationToolbar, &NotificationToolbar::showLastNotification, this, &MainWindow::popupLatestNotification);
     
@@ -1070,7 +1089,8 @@ void MainWindow::resizeToolWidgets()
 {
     //Reset the RIght Panel
     resizeDocks({tool_Table, tool_ViewManager, tool_Minimap}, {1,2,1}, Qt::Vertical);
-    resizeDocks({tool_Table, tool_ViewManager, tool_Minimap, tool_Dock}, {1,1,1, 1}, Qt::Vertical);
+    //resizeDocks({tool_Table, tool_ViewManager, tool_Minimap, tool_Dock}, {1,1,1,1}, Qt::Vertical);
+    //resizeDocks({tool_Table, tool_ViewManager, tool_Minimap, tool_Dock}, {1,1,1,1}, Qt::Horizontal);
 }
 
 
