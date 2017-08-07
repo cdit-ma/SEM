@@ -15,8 +15,11 @@ public:
     bool isNodeViewDock();
     void themeChanged();
 
+    void setWidget(QWidget *widget);
+
 private:
     VIEWDOCKWIDGET_TYPE type;
+
 };
 
 #endif // VIEWDOCKWIDGET_H

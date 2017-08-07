@@ -32,3 +32,11 @@ void ViewDockWidget::themeChanged()
     setStyleSheet(Theme::theme()->getViewDockWidgetStyleSheet(isActive()));
     BaseDockWidget::themeChanged();
 }
+
+void ViewDockWidget::setWidget(QWidget *widget)
+{
+    if (widget) {
+        widget->setMinimumSize(400, 300);
+        BaseDockWidget::setWidget(widget);
+    }
+}
