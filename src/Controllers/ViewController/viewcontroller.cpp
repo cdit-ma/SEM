@@ -56,8 +56,6 @@ ViewController::ViewController() : QObject(){
     SettingsController::initializeSettings();
 
     NotificationManager::construct_singleton(this);
-
-    //notificationManager = new NotificationManager(this, this);
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     toolbarController = new ToolbarController(this);
@@ -66,7 +64,7 @@ ViewController::ViewController() : QObject(){
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
-    connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
+    //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
 
