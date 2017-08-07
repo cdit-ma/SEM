@@ -542,6 +542,9 @@ void NodeView::centerItem(int ID)
         QList<EntityItem*> items;
         items.append(item);
         centerOnItems(items);
+        if (parentWidget()) {
+            parentWidget()->show();
+        }
     }
 }
 
