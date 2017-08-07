@@ -26,6 +26,7 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     : QWidget(parent)
 {
     selectedEntityID = -1;
+    noEntitySelectedID = -2;
 
     setupLayout();
     initialisePanel();
@@ -34,7 +35,7 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 
-    // temporarily hide the display toggele
+    // temporarily hide the display toggle
     displayToggleAction->setVisible(false);
 }
 
@@ -82,12 +83,12 @@ void NotificationDialog::filtersChanged()
  */
 void NotificationDialog::viewSelection()
 {
-    int numSelectedItems = selectedItems.count();
+    int numSelectedItems = selectedNotificationItems.count();
     if (numSelectedItems != 1) {
         return;
     }
 
-    NotificationItem* selectedItem = selectedItems.at(0);
+    NotificationItem* selectedItem = selectedNotificationItems.at(0);
     int eID = selectedItem->getEntityID();
     if (sender() == centerOnAction) {
         emit centerOn(eID);
@@ -147,16 +148,16 @@ void NotificationDialog::selectionChanged(NotificationItem* item, bool selected,
 
     bool selectItem = !selected;
     if (!controlDown) {
-        if (selectedItems.count() > 1) {
+        if (selectedNotificationItems.count() > 1) {
             selectItem = true;
         }
         clearSelection();
     }
 
     if (selectItem) {
-        selectedItems.append(item);
+        selectedNotificationItems.append(item);
     } else {
-        selectedItems.removeAll(item);
+        selectedNotificationItems.removeAll(item);
     }
 
     item->setSelected(selectItem);
@@ -167,37 +168,35 @@ void NotificationDialog::selectionChanged(NotificationItem* item, bool selected,
 /**
  * @brief NotificationDialog::entitySelectionChanged
  * Update the selectedEntityID and the displayed notifications if necessary if this panel is visible.
- * If there are no notifications linled to the new selected entity, disable the display toggle.
  * @param ID
  */
 void NotificationDialog::entitySelectionChanged(int ID)
 {
     selectedEntityID = ID;
-    if ((selectedEntityID == -1) || !linkedEntityIDs.contains(selectedEntityID)) {
-        // uncheck and disable the display selection toggle
-        // this also updates displayed notifications
-        if (displayLinkedItemsAction->isChecked()) {
-            displayLinkedItemsAction->setChecked(false);
-            displayAllAction->setChecked(true);
-        }
-        displayLinkedItemsAction->setEnabled(false);
-    } else {
-        // enable selection toggle
-        displayLinkedItemsAction->setEnabled(true);
-        if (this->isVisible() && displayLinkedItemsAction->isChecked()) {
-            selectionFilterToggled(true);
-        }
+    if (this->isVisible() && displayLinkedItemsAction->isChecked()) {
+        selectionFilterToggled(true);
     }
 }
 
 
 /**
  * @brief NotificationDialog::selectionFilterToggled
+ * @param checked
  */
-void NotificationDialog::selectionFilterToggled(bool)
+void NotificationDialog::selectionFilterToggled(bool checked)
 {
     foreach (NotificationItem* item, notificationItems) {
-        item->filtersChanged(ENTITY_ID, selectedEntityID);
+        if (checked) {
+            // if there is nothing currently selected, hide the items
+            if (selectedEntityID == -1) {
+                item->filtersChanged(ENTITY_ID, noEntitySelectedID);
+            } else {
+                item->filtersChanged(ENTITY_ID, selectedEntityID);
+            }
+        } else {
+            // if "All" display is checked, show all the items
+            item->filtersChanged(ENTITY_ID, item->getEntityID());
+        }
     }
 }
 
@@ -237,8 +236,8 @@ void NotificationDialog::getLastNotificationID()
 void NotificationDialog::clearSelected()
 {
     // delete selected items
-    while (!selectedItems.isEmpty()) {
-        removeItem(selectedItems.takeFirst());
+    while (!selectedNotificationItems.isEmpty()) {
+        removeItem(selectedNotificationItems.takeFirst());
     }
 }
 
@@ -317,11 +316,8 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
     itemsLayout->insertWidget(0, item);
     notificationItems[obj->ID()] = item;
 
-    int entityID = item->getEntityID();
-    if (entityID != -1) {
-        linkedEntityIDs.append(entityID);
-        item->addFilter(ENTITY_ID, entityID);
-    }
+    // add filter for actively selected entity ID
+    item->addFilter(ENTITY_ID, item->getEntityID());
 
     connect(item, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
     connect(item, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
@@ -352,7 +348,7 @@ void NotificationDialog::notificationDeleted(int ID)
 {
     if (notificationItems.contains(ID)) {
         NotificationItem* item = notificationItems.take(ID);
-        selectedItems.removeAll(item);
+        selectedNotificationItems.removeAll(item);
         itemsLayout->removeWidget(item);
         updateSelectionBasedButtons();
         delete item;
@@ -374,7 +370,7 @@ void NotificationDialog::clearAll()
     }
 
     notificationItems.clear();
-    selectedItems.clear();
+    selectedNotificationItems.clear();
 
     // reset checked filter buttons and checked filter lists
     updateSelectionBasedButtons();
@@ -386,10 +382,10 @@ void NotificationDialog::clearAll()
  */
 void NotificationDialog::clearSelection()
 {
-    foreach (NotificationItem* item, selectedItems) {
+    foreach (NotificationItem* item, selectedNotificationItems) {
         item->setSelected(false);
     }
-    selectedItems.clear();
+    selectedNotificationItems.clear();
     updateSelectionBasedButtons();
 }
 
@@ -461,7 +457,6 @@ void NotificationDialog::setupLayout()
 
     displayLinkedItemsAction = displayToggleToolbar->addAction("Selection");
     displayLinkedItemsAction->setCheckable(true);
-    displayLinkedItemsAction->setEnabled(false);
     connect(displayLinkedItemsAction, &QAction::toggled, this, &NotificationDialog::selectionFilterToggled);
 
     QActionGroup* displayGroup = new QActionGroup(this);
@@ -641,7 +636,7 @@ void NotificationDialog::setupFilters()
  */
 void NotificationDialog::updateSelectionBasedButtons()
 {
-    bool enable = !selectedItems.isEmpty();
+    bool enable = !selectedNotificationItems.isEmpty();
     // TODO - Commented this out to match search centerOn and popup buttons
     //centerOnAction->setEnabled(enable);
     //popupAction->setEnabled(enable);

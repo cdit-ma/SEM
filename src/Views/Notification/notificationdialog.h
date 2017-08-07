@@ -57,7 +57,7 @@ private slots:
     void filtersChanged();
     void selectionChanged(NotificationItem* item, bool selected, bool controlDown);
 
-    void selectionFilterToggled(bool);
+    void selectionFilterToggled(bool checked);
 
     void viewSelection();
 
@@ -99,9 +99,9 @@ private:
     QHash<int, NotificationItem*> notificationItems;
     QHash<NOTIFICATION_FILTER, OptionGroupBox*> filters;
 
-    QList<NotificationItem*> selectedItems;
-    QList<int> linkedEntityIDs;
+    QList<NotificationItem*> selectedNotificationItems;
     int selectedEntityID;
+    int noEntitySelectedID;
 
 protected:
     void enterEvent(QEvent* event);

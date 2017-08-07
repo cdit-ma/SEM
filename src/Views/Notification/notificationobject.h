@@ -11,11 +11,11 @@ class NotificationObject : public QObject
     Q_OBJECT
 
 protected:
-    explicit NotificationObject(QString title,
-                                QString description,
-                                QString iconPath,
-                                QString iconName,
-                                int entityID,
+    explicit NotificationObject(QString title = "",
+                                QString description = "",
+                                QString iconPath = "",
+                                QString iconName = "",
+                                int entityID = -1,
                                 NOTIFICATION_SEVERITY severity = NOTIFICATION_SEVERITY::INFO,
                                 NOTIFICATION_TYPE type = NOTIFICATION_TYPE::MODEL,
                                 NOTIFICATION_CATEGORY category = NOTIFICATION_CATEGORY::NOCATEGORY,
