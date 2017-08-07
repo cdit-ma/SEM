@@ -318,16 +318,6 @@ NotificationObject* NotificationManager::getLastNotificationItem(){
 }
 
 
-/**
- * @brief NotificationManager::showLastNotification
- * Send a signal to the main window to toast the last notification (last item in the dialog's list).
- */
-void NotificationManager::showLastNotification()
-{
-    if (lastNotificationObject) {
-        emit notificationAdded(lastNotificationObject->iconPath(), lastNotificationObject->iconName(), lastNotificationObject->description());
-    }
-}
 
 
 /**

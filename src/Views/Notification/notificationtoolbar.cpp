@@ -161,7 +161,7 @@ void NotificationToolbar::setupLayout()
     addSeparator();
 
     connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
-    connect(showMostRecentAction, &QAction::triggered, NotificationManager::manager(), &NotificationManager::showLastNotification);
+    connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::showLastNotification);
 
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
