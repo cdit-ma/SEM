@@ -582,10 +582,27 @@ void NodeView::setupConnections(EntityItem *item)
         connect(node, &NodeItem::req_popOutRelatedNode, this, &NodeView::node_PopOutRelatedNode);
     }
 }
-
+void NodeView::showItem(EntityItem* item){
+    auto parent = item->getParent();
+    while(parent){
+        if(parent->isNodeItem()){
+            ((NodeItem*)parent)->setExpanded(true);
+            int ID = parent->getID();
+            emit setData(ID, "isExpanded", true);
+        }
+        parent = parent->getParent();
+    }
+}
 
 void NodeView::centerOnItems(QList<EntityItem *> items)
 {
+    emit triggerAction("Expanding Selection");
+    for(auto item: items){
+        if(!item->isVisibleTo(0)){
+            showItem(item);
+            //Show item
+        }
+    }
     centerRect(getSceneBoundingRectOfItems(items));
 }
 
@@ -621,7 +638,6 @@ void NodeView::centerRect(QRectF rectScene)
 void NodeView::centerView(QPointF scenePos)
 {
     QPointF delta = viewportRect().center() - scenePos;
-    qCritical() << delta;
     translate(delta);
     viewportCenter_Scene = viewportRect().center();
 }
