@@ -468,12 +468,8 @@ void MainWindow::toggleWelcomeScreen(bool on)
         setCentralWidget(innerWindow);
         restoreWindowState();
 
-        auto activeTimer = new QTimer(this);
-        activeTimer->setInterval(1000);
-        activeTimer->setSingleShot(true);
-        connect(activeTimer, SIGNAL(timeout()), NotificationManager::manager(), SLOT(showLastNotification()));
-        connect(activeTimer, SIGNAL(timeout()), activeTimer, SLOT(deleteLater()));
-        activeTimer->start();
+        //Call this after everything has loaded
+        QMetaObject::invokeMethod(NotificationManager::manager(), "showLastNotification", Qt::QueuedConnection);
     }
 }
 

@@ -317,7 +317,7 @@ void ActionController::selectionChanged(int selection_size)
         edit_CycleActiveSelectionForward->setEnabled(got_multi_selection);
         edit_CycleActiveSelectionBackward->setEnabled(got_multi_selection);
         
-        view_fitView->setEnabled(controller_ready);
+        view_fitView->setEnabled(got_selection);
         view_fitAllViews->setEnabled(controller_ready);
 
         auto active_item = selectionController->getActiveSelectedItem();

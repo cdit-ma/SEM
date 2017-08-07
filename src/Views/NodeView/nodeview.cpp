@@ -114,8 +114,8 @@ void NodeView::setViewController(ViewController *viewController)
 void NodeView::translate(QPointF point)
 {
     QGraphicsView::translate(point.x(), point.y());
-    //forceViewportChange();
 }
+
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
@@ -621,6 +621,7 @@ void NodeView::centerRect(QRectF rectScene)
 void NodeView::centerView(QPointF scenePos)
 {
     QPointF delta = viewportRect().center() - scenePos;
+    qCritical() << delta;
     translate(delta);
     viewportCenter_Scene = viewportRect().center();
 }

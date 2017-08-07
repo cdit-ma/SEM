@@ -912,8 +912,9 @@ void ViewController::ModelControllerReady(bool ready)
     setControllerReady(ready);
     if(ready){
         emit vc_showWelcomeScreen(false);
-        fitAllViews();
-        
+
+        //Call this after everything has loaded
+        QMetaObject::invokeMethod(this, "fitAllViews", Qt::QueuedConnection);
     }
 }
 
