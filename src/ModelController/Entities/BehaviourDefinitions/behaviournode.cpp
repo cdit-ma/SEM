@@ -9,6 +9,9 @@
 
 
 BehaviourNode::BehaviourNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+
+    //Register DefaultData
+    RegisterDefaultData(factory, kind, "comment", QVariant::String);
 };
 
 BehaviourNode::BehaviourNode(NODE_KIND kind) : Node(kind)

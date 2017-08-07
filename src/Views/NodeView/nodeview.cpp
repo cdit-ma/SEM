@@ -114,8 +114,8 @@ void NodeView::setViewController(ViewController *viewController)
 void NodeView::translate(QPointF point)
 {
     QGraphicsView::translate(point.x(), point.y());
-    //forceViewportChange();
 }
+
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
@@ -585,10 +585,27 @@ void NodeView::setupConnections(EntityItem *item)
         connect(node, &NodeItem::req_popOutRelatedNode, this, &NodeView::node_PopOutRelatedNode);
     }
 }
-
+void NodeView::showItem(EntityItem* item){
+    auto parent = item->getParent();
+    while(parent){
+        if(parent->isNodeItem()){
+            ((NodeItem*)parent)->setExpanded(true);
+            int ID = parent->getID();
+            emit setData(ID, "isExpanded", true);
+        }
+        parent = parent->getParent();
+    }
+}
 
 void NodeView::centerOnItems(QList<EntityItem *> items)
 {
+    emit triggerAction("Expanding Selection");
+    for(auto item: items){
+        if(!item->isVisibleTo(0)){
+            showItem(item);
+            //Show item
+        }
+    }
     centerRect(getSceneBoundingRectOfItems(items));
 }
 

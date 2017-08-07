@@ -108,6 +108,7 @@ private slots:
     void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
+    void showItem(EntityItem* item);
     void setupConnections(EntityItem* item);
 
     void centerOnItems(QList<EntityItem*> items);
