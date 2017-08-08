@@ -73,7 +73,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
         if(!component){
             //Construct Component
-            component = ConstructComponent(c_info->type(), c_info->name());
+            component = ConstructComponent(c_info->type(), c_info->name(), c_info->id());
         }
 
         if(component){
@@ -89,7 +89,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
             }
             for(auto p : c.ports()){
                 auto p_info = p.mutable_info();
-                auto port = component->GetEventPort(p_info->name());
+                auto port = component->GetEventPort(p_info->id());
 
                 //Get the middleware
                 std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
@@ -166,9 +166,7 @@ void NodeContainer::Teardown(){
     }
 }
 
-bool NodeContainer::AddComponent(Component* component){
-    std::string component_id = component->get_id();
-
+bool NodeContainer::AddComponent(Component* component, std::string component_id){
     //Search pub_lookup_ for key
     auto search = components_.find(component_id);
     
@@ -372,7 +370,7 @@ std::string NodeContainer::GetLibraryPrefix() const{
     #endif
 }
 
-Component* NodeContainer::ConstructComponent(std::string component_type, std::string component_name){
+Component* NodeContainer::ConstructComponent(std::string component_type, std::string component_name, std::string component_id){
     Component* c = 0;
     if(!component_constructors_.count(component_type)){
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + "components_" + to_lower(component_type) + GetLibrarySuffix();
@@ -391,7 +389,7 @@ Component* NodeContainer::ConstructComponent(std::string component_type, std::st
         c = component_constructors_[component_type](component_name);
         if(c){
             //Add the Component to the NodeContainer
-            AddComponent(c);
+            AddComponent(c, component_id);
         }
     }
     return c;
