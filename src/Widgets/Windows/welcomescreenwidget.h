@@ -16,10 +16,9 @@ public:
 signals:
     void actionTriggered(QAction*);
 
-public slots:
+private slots:
     void themeChanged();
     void recentProjectsUpdated();
-
 private:
     ActionController* actionController;
     QToolButton* recentProjectsLabel;

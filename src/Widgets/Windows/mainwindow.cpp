@@ -36,7 +36,7 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    setDockNestingEnabled(false);
+    setDockNestingEnabled(true);
     setDockOptions(QMainWindow::AnimatedDocks);
 
     viewController = vc;
@@ -46,8 +46,10 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
 
     setupTools();
     setupInnerWindow();
-    setupJenkinsManager();
+    
+
     setViewController(vc);
+    setupJenkinsManager();
 
 
    
@@ -126,7 +128,6 @@ void MainWindow::setViewController(ViewController *vc)
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
     if (actionController) {
-        connect(actionController, &ActionController::recentProjectsUpdated, this, &MainWindow::recentProjectsUpdated);
         connect(actionController->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
     }
 }
@@ -438,7 +439,9 @@ void MainWindow::initializeApplication()
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
 
+    
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 }
@@ -449,9 +452,7 @@ void MainWindow::swapCentralWidget(QWidget* widget){
         //the QMainWindow deleting the old widget when a new central widget is deleted
         centralWidget()->setParent(0);
     }
-    if(widget){
-        setCentralWidget(widget);
-    }
+    setCentralWidget(widget);
 }
 
 /**
@@ -474,7 +475,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
         notificationPopup->hide();
         notificationTimer->stop();
     }else{
-        swapCentralWidget(placeholder);
+        swapCentralWidget(innerWindow);
         restoreWindowState();
 
         //Call this after everything has loaded
@@ -518,13 +519,15 @@ void MainWindow::restoreWindowState(){
         if(invalid){
             resetToolDockWidgets();
         }else{
+            restoreGeometry(outer_geo);
+            
             if(load_window){
                 restoreState(outer_state);
             }
+
             if(load_dock){
                 innerWindow->restoreState(inner_state);
             }
-            restoreGeometry(outer_geo);
         }
     }
 }
@@ -586,15 +589,6 @@ void MainWindow::setupTools()
 void MainWindow::setupInnerWindow()
 {   
     innerWindow = WindowManager::constructCentralWindow("Main Window");
-    dockwidget_InnerWindow = WindowManager::constructToolDockWidget("Inner Window");
-    dockwidget_InnerWindow->setWidget(innerWindow);
-    dockwidget_InnerWindow->setAllowedAreas(Qt::TopDockWidgetArea);
-    dockwidget_InnerWindow->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    dockwidget_InnerWindow->removeTitleBar();
-    //Set a blank titlebar
-    dockwidget_InnerWindow->setTitleBarWidget(new QWidget(this));
-    
-    
 
     //Construct dockWidgets.
     NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
@@ -643,9 +637,7 @@ void MainWindow::setupInnerWindow()
 
     setupToolBar();
     setupMenuCornerWidget();
-    setupDockablePanels();
-
-    addDockWidget(Qt::TopDockWidgetArea, dockwidget_InnerWindow);
+    setupDockablePanels();    
 }
 
 
@@ -653,15 +645,8 @@ void MainWindow::setupInnerWindow()
  * @brief MedeaMainWindow::setupWelcomeScreen
  */
 void MainWindow::setupWelcomeScreen()
-{   
-    placeholder = new QWidget(this);
+{
     welcomeScreen = new WelcomeScreenWidget(viewController->getActionController(), this);
-    welcomeScreenOn = false;
-
-    
-
-
-    connect(this, &MainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }
 
 
@@ -851,7 +836,7 @@ void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
     dockTabWidget->setMinimumWidth(150);
-    dockTabWidget->setMaximumWidth(250);
+    dockTabWidget->setMaximumWidth(150);
 
 
     dockwidget_Dock = WindowManager::constructToolDockWidget("Dock");
@@ -872,6 +857,7 @@ void MainWindow::setupDataTable()
 {
     dockwidget_Table = WindowManager::constructToolDockWidget("Table");
     tableWidget = new DataTableWidget(viewController, dockwidget_Table);
+    tableWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred));
     tableWidget->setMinimumHeight(200);
     tableWidget->setMinimumWidth(200);
     dockwidget_Table->setWidget(tableWidget);
@@ -897,7 +883,7 @@ void MainWindow::setupMinimap()
     minimap = new NodeViewMinimap(this);
     minimap->setMinimumHeight(100);
     minimap->setMinimumWidth(200);
-    //minimap->setMaximumWidth(200);
+    minimap->setMaximumWidth(200);
     
 
     dockwidget_Minimap = WindowManager::constructToolDockWidget("Minimap");
@@ -915,6 +901,7 @@ void MainWindow::setupMinimap()
  */
 void MainWindow::setupMenuCornerWidget()
 {
+    
     QMenu* menu = QMainWindow::createPopupMenu();
     //Add a hide/show for toolbar
     menu->addAction(applicationToolbar->toggleViewAction());
@@ -1057,8 +1044,7 @@ void MainWindow::resizeToolWidgets()
 {
     //Reset the RIght Panel
     resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {1,2,1}, Qt::Vertical);
-    //resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap, dockwidget_Dock}, {1,1,1,1}, Qt::Vertical);
-    //resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap, dockwidget_Dock}, {1,1,1,1}, Qt::Horizontal);
+    resizeDocks({dockwidget_Dock, dockwidget_Table}, {1,1}, Qt::Horizontal);
 }
 
 

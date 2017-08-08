@@ -44,8 +44,6 @@ signals:
     void requestSuggestions();
     void preloadImages();
     void jenkins_validated(bool);
-    void recentProjectsUpdated();
-
 public slots:
     void setModelTitle(QString modelTitle="");
 
@@ -150,8 +148,6 @@ private:
     QAction* restoreToolsAction;
 
     WelcomeScreenWidget* welcomeScreen = 0;
-    QWidget* placeholder = 0;
-
     bool welcomeScreenOn = false;
 
 protected:

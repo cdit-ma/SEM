@@ -209,6 +209,7 @@ ToolDockWidget *WindowManager::_constructToolDockWidget(QString title)
 {
     //Construct new DockWidget
     ToolDockWidget* dockWidget = new ToolDockWidget(title);
+
     
     addDockWidget(dockWidget);
     return dockWidget;
