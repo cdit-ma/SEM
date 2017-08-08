@@ -33,6 +33,7 @@ int main(int argc, char **argv){
         return 1;
     }
     
+    
     ExecutionManager em("", graphml_path, 0, 0);
     for(auto message : em.getNodeStartupMessage()){
         std::cout << message->DebugString() << std::endl;

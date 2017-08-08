@@ -78,7 +78,7 @@ node(){
    
 }
 
-withEnv(["model=A"]){
+withEnv(["model=''"]){
     node(masterNode){
         deleteDir()
         unstash 'model'
@@ -94,6 +94,11 @@ withEnv(["model=A"]){
             //Generate deployment json
             def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
             sh(script: executionParser)
+
+            def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
+            archiveArtifacts "execution.dump"
+            sh(script: executionParser)
+
             //Parse json
             jDeployment = readJSON file: 'execution.json'
         

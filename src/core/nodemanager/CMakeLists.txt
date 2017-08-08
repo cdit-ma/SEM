@@ -16,7 +16,7 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
 )
 set(NODE_MANAGER re_node_manager)
-set(EXECUTION_TESTER execution_tester)
+set(EXECUTION_TESTER re_execution_tester)
 
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
