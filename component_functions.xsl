@@ -838,8 +838,12 @@
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        <xsl:variable name="comment" select="cdit:get_key_value($root, 'comment')" />
 
-        <!--<xsl:value-of select="o:tabbed_cpp_comment(concat('generate_workload_cpp: ', $kind,' [', $id, '] = ', $label), $tab)" />-->
+        <xsl:if test="$comment != ''">
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('User Comment: ', $comment), $tab)" />
+        </xsl:if>
+        
         <xsl:choose>
             <xsl:when test="$kind = 'OutEventPortImpl'">
                 <xsl:value-of select="cdit:generate_OutEventPortImpl($root, $tab)" />
@@ -877,9 +881,6 @@
             <xsl:when test="$kind = 'Setter'">
                 <xsl:value-of select="cdit:generate_Setter($root, $tab)" />
             </xsl:when>
-            
-            
-
             <xsl:when test="$kind = 'PeriodicEvent'">
                 <!-- Do Nothing -->
             </xsl:when>
