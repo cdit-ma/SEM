@@ -8,13 +8,13 @@
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
+#include "cmakevars.h"
 #include "execution.hpp"
 
 #include "zmq/registrant.h"
 #include "zmq/registrar.h"
 
 std::string VERSION_NAME = "re_node_manager";
-std::string VERSION_NUMBER = "1.3.0";
 
 Execution* exe = 0;
 
@@ -104,7 +104,7 @@ int main(int argc, char **argv){
 		return 1;
     }
 
-    std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
+    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
     if(is_master){
         std::cout << "* Master:" << std::endl;    
         std::cout << "** Endpoint: " << master_endpoint << std::endl;    

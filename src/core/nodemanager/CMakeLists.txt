@@ -7,9 +7,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
+SET(VERSION "1.3.0")
 
-set(PROJ_NAME re_node_manager)
-set(PROJ_NAME2 execution_tester)
+
+#Pass Version info into cmakevars.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
+)
+set(NODE_MANAGER re_node_manager)
+set(EXECUTION_TESTER execution_tester)
+
+set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
 
 #Find Protobuf
@@ -24,7 +33,7 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 
-set(SOURCE
+set(NODE_MANAGER_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
@@ -34,7 +43,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
 	)
 
-set(HEADERS
+set(NODE_MANAGER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
@@ -43,14 +52,14 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
     )
     
-    set(SOURCE2
+set(EXECUTION_TESTER_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
 	)
 
-set(HEADERS2
+set(EXECUTION_TESTER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
@@ -61,41 +70,39 @@ include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
-add_executable(${PROJ_NAME2} ${SOURCE2} ${HEADERS})
+add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${NODE_MANAGER_HEADERS})
+add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${EXECUTION_TESTER_HEADERS})
 
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJ_NAME2} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${NODE_MANAGER} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${EXECUTION_TESTER} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
     add_definitions(-DPROTOBUF_USE_DLLS)
 elseif(UNIX)
-	target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
+	target_link_libraries(${NODE_MANAGER} pthread)
+    target_link_libraries(${NODE_MANAGER} dl)
 
-    target_link_libraries(${PROJ_NAME2} pthread)
-    target_link_libraries(${PROJ_NAME2} dl)
+    target_link_libraries(${EXECUTION_TESTER} pthread)
+    target_link_libraries(${EXECUTION_TESTER} dl)
 endif(MSVC)
 
-#target_link_libraries(${PROJ_NAME} re_proto_control)
-
 #Link executable against all libraries required
-target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${PROJ_NAME} re_core)
-target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
-target_link_libraries(${PROJ_NAME} zmq_protowriter)
-target_link_libraries(${PROJ_NAME} re_execution_parser_lib)
+target_link_libraries(${NODE_MANAGER} ${ZMQ_LIBRARIES})
+target_link_libraries(${NODE_MANAGER} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${NODE_MANAGER} re_core)
+target_link_libraries(${NODE_MANAGER} zmq_protoreceiver)
+target_link_libraries(${NODE_MANAGER} zmq_protowriter)
+target_link_libraries(${NODE_MANAGER} re_execution_parser_lib)
 
-target_link_libraries(${PROJ_NAME2} ${ZMQ_LIBRARIES})
-target_link_libraries(${PROJ_NAME2} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME2} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${PROJ_NAME2} re_core)
-target_link_libraries(${PROJ_NAME2} zmq_protoreceiver)
-target_link_libraries(${PROJ_NAME2} zmq_protowriter)
-target_link_libraries(${PROJ_NAME2} re_execution_parser_lib)
+target_link_libraries(${EXECUTION_TESTER} ${ZMQ_LIBRARIES})
+target_link_libraries(${EXECUTION_TESTER} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${EXECUTION_TESTER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${EXECUTION_TESTER} re_core)
+target_link_libraries(${EXECUTION_TESTER} zmq_protoreceiver)
+target_link_libraries(${EXECUTION_TESTER} zmq_protowriter)
+target_link_libraries(${EXECUTION_TESTER} re_execution_parser_lib)
 
 
 
