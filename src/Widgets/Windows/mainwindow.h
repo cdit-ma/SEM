@@ -100,24 +100,21 @@ private:
 
     ViewController* viewController;
 
-    BaseWindow* innerWindow;
-    BaseDockWidget *jenkinsDockWidget;
-    BaseDockWidget* searchDockWidget;
-    BaseDockWidget* notificationDockWidget;
+    BaseWindow* innerWindow = 0;
+    BaseDockWidget* dockwidget_Jenkins = 0;
+    BaseDockWidget* dockwidget_Search = 0;
+    BaseDockWidget* dockwidget_Notification = 0;
 
+    BaseDockWidget* dockwidget_Table = 0;
+    BaseDockWidget* dockwidget_ViewManager = 0;
+    BaseDockWidget* dockwidget_Minimap = 0;
+    BaseDockWidget* dockwidget_Dock = 0;
+    BaseDockWidget* dockwidget_InnerWindow = 0;
 
-    BaseDockWidget * tool_Table = 0;
-    BaseDockWidget* tool_ViewManager = 0;
-    BaseDockWidget* tool_Minimap = 0;
-    BaseDockWidget* tool_Dock = 0;
-
-    //CUTSManager* cutsManager;
-    //XMIImporter* xmiImporter;
-
-    QMenuBar* menuBar;
+    QMenuBar* menuBar = 0;
     QWidget* applicationToolbar_spacer1 = 0;
     QWidget* applicationToolbar_spacer2 = 0;
-    QToolBar* applicationToolbar;
+    QToolBar* applicationToolbar = 0;
 
 
 

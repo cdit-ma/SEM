@@ -36,16 +36,21 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
+    setDockNestingEnabled(false);
+    setDockOptions(QMainWindow::AnimatedDocks);
+
     viewController = vc;
     initializeApplication();
     setContextMenuPolicy(Qt::NoContextMenu);
-    innerWindow = WindowManager::constructCentralWindow("Main Window");
-    setCentralWidget(innerWindow);
+    
 
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
     setViewController(vc);
+
+
+   
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
@@ -154,24 +159,24 @@ void MainWindow::searchEntered()
         qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
 
         // make sure that the search panel dock widget is visible and that its window is raised
-        QWidget* parentWindow = searchDockWidget->window();
-        if (!searchDockWidget->isVisible()) {
+        QWidget* parentWindow = dockwidget_Search->window();
+        if (!dockwidget_Search->isVisible()) {
             // check if its window is minimized
             if (parentWindow->isMinimized()) {
                 parentWindow->showNormal();
             }
             // check if it's not shown
-            if (!searchDockWidget->isVisible()) {
-                searchDockWidget->req_Visible(searchDockWidget->getID(), true);
+            if (!dockwidget_Search->isVisible()) {
+                dockwidget_Search->req_Visible(dockwidget_Search->getID(), true);
             }
         }
 
         // raise and activate the dock's parent window
         parentWindow->raise();
-        searchDockWidget->activateWindow();
+        dockwidget_Search->activateWindow();
 
         // raise the dock widget - this brings the dock widget to the front if it's tabbed
-        searchDockWidget->raise();
+        dockwidget_Search->raise();
     }
 }
 
@@ -209,9 +214,9 @@ void MainWindow::popupLatestNotification(){
  */
 void MainWindow::toggleNotificationPanel()
 {
-    if (notificationDockWidget->isVisible()) {
-        if (notificationDockWidget->isActiveWindow()) {
-            notificationDockWidget->req_Visible(notificationDockWidget->getID(), false);
+    if (dockwidget_Notification->isVisible()) {
+        if (dockwidget_Notification->isActiveWindow()) {
+            dockwidget_Notification->req_Visible(dockwidget_Notification->getID(), false);
             return;
         }
     }
@@ -225,12 +230,12 @@ void MainWindow::toggleNotificationPanel()
  */
 void MainWindow::ensureNotificationPanelVisible()
 {
-    if (!notificationDockWidget->isVisible()) {
-        notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
+    if (!dockwidget_Notification->isVisible()) {
+        dockwidget_Notification->req_Visible(dockwidget_Notification->getID(), true);
     }
-    notificationDockWidget->window()->raise();
-    notificationDockWidget->activateWindow();
-    notificationDockWidget->raise();
+    dockwidget_Notification->window()->raise();
+    dockwidget_Notification->activateWindow();
+    dockwidget_Notification->raise();
 }
 
 
@@ -454,18 +459,12 @@ void MainWindow::toggleWelcomeScreen(bool on)
     // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
     setDockWidgetsVisible(!on);
+    welcomeScreen->setVisible(on);
 
-    if (on) {
-        holderLayout->removeWidget(welcomeScreen);
-        holderLayout->addWidget(innerWindow);
-        setCentralWidget(welcomeScreen);
-        // hide notification toast
+    if(on){
         notificationPopup->hide();
         notificationTimer->stop();
-    } else {
-        holderLayout->removeWidget(innerWindow);
-        holderLayout->addWidget(welcomeScreen);
-        setCentralWidget(innerWindow);
+    }else{
         restoreWindowState();
 
         //Call this after everything has loaded
@@ -564,7 +563,7 @@ void MainWindow::setupTools()
     setupProgressBar();
     setupNotificationBar();
     setupDock();
-    setupToolBar();
+    
     setupDataTable();
     setupViewManager();
     setupMinimap();
@@ -575,7 +574,16 @@ void MainWindow::setupTools()
  * @brief MedeaMainWindow::setupInnerWindow
  */
 void MainWindow::setupInnerWindow()
-{
+{   
+    innerWindow = WindowManager::constructCentralWindow("Main Window");
+    dockwidget_InnerWindow = WindowManager::constructToolDockWidget("Inner Window");
+    dockwidget_InnerWindow->setWidget(innerWindow);
+    dockwidget_InnerWindow->setAllowedAreas(Qt::TopDockWidgetArea);
+    dockwidget_InnerWindow->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    dockwidget_InnerWindow->removeTitleBar();
+    //Set a blank titlebar
+    dockwidget_InnerWindow->setTitleBarWidget(new QWidget(this));
+    
     
 
     //Construct dockWidgets.
@@ -623,15 +631,11 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
 
-    // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
-    // application if it's called before the dock widgets are added above
-    // This function needs to be called after the code above
+    setupToolBar();
     setupMenuCornerWidget();
     setupDockablePanels();
 
-    // resizeDocks({blueWidget, yellowWidget}, {20 , 40}, Qt::Horizontal);
-    //innerWindow->resizeDocks({dwInterfaces, dwBehaviour, searchDockWidget}, {50, 50, 50}, Qt::Horizontal);
-    //innerWindow->resizeDocks({dwInterfaces, dwAssemblies}, {50, 50}, Qt::Vertical);
+    addDockWidget(Qt::TopDockWidgetArea, dockwidget_InnerWindow);
 }
 
 
@@ -641,13 +645,15 @@ void MainWindow::setupInnerWindow()
 void MainWindow::setupWelcomeScreen()
 {
     welcomeScreen = new WelcomeScreenWidget(viewController->getActionController(), this);
+    setCentralWidget(welcomeScreen);
+    welcomeScreen->hide();
     welcomeScreenOn = false;
 
-    QWidget* holderWidget = new QWidget(this);
-    holderWidget->hide();
+    //QWidget* holderWidget = new QWidget(this);
+    //holderWidget->hide();
 
-    holderLayout = new QVBoxLayout(holderWidget);
-    holderLayout->addWidget(welcomeScreen);
+    //holderLayout = new QVBoxLayout(holderWidget);
+    //holderLayout->addWidget(welcomeScreen);
 
     connect(this, &MainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }
@@ -716,9 +722,9 @@ void MainWindow::setupToolBar()
 
     
     connect(applicationToolbar, &QToolBar::orientationChanged, this, &MainWindow::toolbarOrientationChanged);
-    innerWindow->addToolBar(applicationToolbar);
     toolbarOrientationChanged(Qt::Horizontal);
-}
+    innerWindow->addToolBar(applicationToolbar);
+}   
 
 
 /**
@@ -740,7 +746,7 @@ void MainWindow::setupSearchBar()
 
     searchBar = new QLineEdit(this);
     searchBar->setFont(QFont(font().family(), 13));
-    searchBar->setPlaceholderText("Search Here...");
+    searchBar->setPlaceholderText("Search MEDEA");
     searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     searchBar->setCompleter(searchCompleter);
 
@@ -839,17 +845,17 @@ void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
     dockTabWidget->setMinimumWidth(150);
-    dockTabWidget->setMaximumWidth(150);
+    dockTabWidget->setMaximumWidth(250);
 
 
-    tool_Dock = WindowManager::constructToolDockWidget("Dock");
-    tool_Dock->setWidget(dockTabWidget);
-    tool_Dock->setAllowedAreas(Qt::LeftDockWidgetArea);
+    dockwidget_Dock = WindowManager::constructToolDockWidget("Dock");
+    dockwidget_Dock->setWidget(dockTabWidget);
+    dockwidget_Dock->setAllowedAreas(Qt::LeftDockWidgetArea);
 
-    connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), tool_Dock, SLOT(setVisible(bool)));
+    connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockwidget_Dock, SLOT(setVisible(bool)));
 
     //Check visibility state.
-    addDockWidget(Qt::LeftDockWidgetArea, tool_Dock, Qt::Vertical);
+    addDockWidget(Qt::LeftDockWidgetArea, dockwidget_Dock, Qt::Vertical);
 }
 
 
@@ -858,22 +864,22 @@ void MainWindow::setupDock()
  */
 void MainWindow::setupDataTable()
 {
-    tool_Table = WindowManager::constructToolDockWidget("Table");
-    tableWidget = new DataTableWidget(viewController, tool_Table);
+    dockwidget_Table = WindowManager::constructToolDockWidget("Table");
+    tableWidget = new DataTableWidget(viewController, dockwidget_Table);
     tableWidget->setMinimumHeight(200);
     tableWidget->setMinimumWidth(200);
-    tool_Table->setWidget(tableWidget);
-    tool_Table->setAllowedAreas(Qt::RightDockWidgetArea);
+    dockwidget_Table->setWidget(tableWidget);
+    dockwidget_Table->setAllowedAreas(Qt::RightDockWidgetArea);
 
     //Add the rename action to the dockwidget so that it'll handle rename shortcut
-    tool_Table->addAction(viewController->getActionController()->edit_renameActiveSelection);
+    dockwidget_Table->addAction(viewController->getActionController()->edit_renameActiveSelection);
 
     QAction* modelAction = viewController->getActionController()->model_selectModel;
     modelAction->setToolTip("Show Model's Table");
-    tool_Table->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
+    dockwidget_Table->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
 
     //Check visibility state.
-    addDockWidget(Qt::RightDockWidgetArea, tool_Table, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, dockwidget_Table, Qt::Vertical);
 }
 
 
@@ -885,14 +891,14 @@ void MainWindow::setupMinimap()
     minimap = new NodeViewMinimap(this);
     minimap->setMinimumHeight(100);
     minimap->setMinimumWidth(200);
-    minimap->setMaximumWidth(200);
+    //minimap->setMaximumWidth(200);
     
 
-    tool_Minimap = WindowManager::constructToolDockWidget("Minimap");
-    tool_Minimap->setWidget(minimap);
-    tool_Minimap->setAllowedAreas(Qt::RightDockWidgetArea);
+    dockwidget_Minimap = WindowManager::constructToolDockWidget("Minimap");
+    dockwidget_Minimap->setWidget(minimap);
+    dockwidget_Minimap->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    addDockWidget(Qt::RightDockWidgetArea, tool_Minimap, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
 }
 
 
@@ -919,7 +925,7 @@ void MainWindow::setupMenuCornerWidget()
 
     //notificationToolbar = new NotificationToolbar(viewController, this);
     notificationToolbar = NotificationManager::constructToolbar();
-    notificationToolbar->setParent(this);
+    notificationToolbar->setParent(this); 
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
     connect(notificationToolbar, &NotificationToolbar::showLastNotification, this, &MainWindow::popupLatestNotification);
     
@@ -955,67 +961,42 @@ void MainWindow::setupDockablePanels()
     dwQOSBrowser->setProtected(true);
 
     searchPanel = new SearchDialog(this);
-    searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
-    searchDockWidget->setWidget(searchPanel);
-    searchDockWidget->setIcon("Icons", "zoomInPage");
-    searchDockWidget->setIconVisible(true);
-    searchDockWidget->setProtected(true);
+    dockwidget_Search = WindowManager::constructViewDockWidget("Search Results");
+    dockwidget_Search->setWidget(searchPanel);
+    dockwidget_Search->setIcon("Icons", "zoomInPage");
+    dockwidget_Search->setIconVisible(true);
+    dockwidget_Search->setProtected(true);
 
     notificationPanel = NotificationManager::constructPanel();
     notificationPanel->setParent(this);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
 
-    notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
-    notificationDockWidget->setWidget(notificationPanel);
-    notificationDockWidget->setIcon("Icons", "exclamationInBubble");
-    notificationDockWidget->setIconVisible(true);
-    notificationDockWidget->setProtected(true);
+    dockwidget_Notification = WindowManager::constructViewDockWidget("Notifications");
+    dockwidget_Notification->setWidget(notificationPanel);
+    dockwidget_Notification->setIcon("Icons", "exclamationInBubble");
+    dockwidget_Notification->setIconVisible(true);
+    dockwidget_Notification->setProtected(true);
 
-    jenkinsDockWidget = WindowManager::constructViewDockWidget("Jenkins");
-    jenkinsDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    jenkinsDockWidget->setIcon("Icons", "jenkinsFlat");
-    jenkinsDockWidget->setIconVisible(true);
-    jenkinsDockWidget->setProtected(true);
+    dockwidget_Jenkins = WindowManager::constructViewDockWidget("Jenkins");
+    dockwidget_Jenkins->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dockwidget_Jenkins->setIcon("Icons", "jenkinsFlat");
+    dockwidget_Jenkins->setIconVisible(true);
+    dockwidget_Jenkins->setProtected(true);
 
-    //dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
+    //dwQOSBrowser->widget()->setMinimumSize(dockwidget_Search->widget()->minimumSize());
 
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, jenkinsDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Notification);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Jenkins);
 
     // initially hide tool dock widgets
-    innerWindow->setDockWidgetVisibility(searchDockWidget, false);
-    innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
-    innerWindow->setDockWidgetVisibility(jenkinsDockWidget, false);
-    innerWindow->tabifyDockWidget(searchDockWidget, notificationDockWidget);
+    innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
+    innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
+    innerWindow->setDockWidgetVisibility(dockwidget_Jenkins, false);
+    innerWindow->tabifyDockWidget(dockwidget_Search, dockwidget_Notification);
 
-    /**
-     * Initially have the search and notification panels and the QoS browser in a separate window
-     * NOTE: Need to add the dock widget to the inner window first before reparenting it so that it's protected from deletion
-     */
-    /*
-    BaseWindow* bw = WindowManager::constructSubWindow("Tool Dock Widgets");
-    bw->setWindowTitle("Sub Window #" + QString::number(bw->getID() - 2));
-
-    // remove tool dock widgets from the inner window
-    innerWindow->removeDockWidget(dwQOSBrowser);
-    innerWindow->removeDockWidget(searchDockWidget);
-    innerWindow->removeDockWidget(notificationDockWidget);
-
-    // reparent dock widgets
-    bw->addDockWidget(Qt::LeftDockWidgetArea, searchDockWidget);
-    bw->addDockWidget(Qt::LeftDockWidgetArea, notificationDockWidget);
-    bw->tabifyDockWidget(searchDockWidget, notificationDockWidget);
-    bw->addDockWidget(Qt::RightDockWidgetArea, dwQOSBrowser);
-
-    bw->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SETTINGS::WINDOW_QOS_VISIBLE).toBool());
-    bw->setDockWidgetVisibility(searchDockWidget, true);
-    bw->setDockWidgetVisibility(notificationDockWidget, true);
-
-    bw->show();
-    */
 
     if (viewController) {
         connect(viewController, &ViewController::vc_SetupModelController, searchPanel, &SearchDialog::resetPanel);
@@ -1042,11 +1023,11 @@ void MainWindow::setupViewManager()
     viewManager->setMinimumHeight(100);
     viewManager->setMinimumWidth(200);
 
-    tool_ViewManager = WindowManager::constructToolDockWidget("View Manager");
-    tool_ViewManager->setWidget(viewManager);
-    tool_ViewManager->setAllowedAreas(Qt::RightDockWidgetArea);
+    dockwidget_ViewManager = WindowManager::constructToolDockWidget("View Manager");
+    dockwidget_ViewManager->setWidget(viewManager);
+    dockwidget_ViewManager->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    addDockWidget(Qt::RightDockWidgetArea, tool_ViewManager, Qt::Vertical);
+    addDockWidget(Qt::RightDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
 }
 
 
@@ -1057,8 +1038,8 @@ void MainWindow::setupJenkinsManager()
 {
     auto jenkinsManager = viewController->getJenkinsManager();
     auto jmw = jenkinsManager->GetJobMonitorWidget();
-    jenkinsDockWidget->setWidget(jmw);
-    connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){jenkinsDockWidget->setVisible(true);});
+    dockwidget_Jenkins->setWidget(jmw);
+    connect(viewController, &ViewController::vc_executeJenkinsJob, this, [this](QString){dockwidget_Jenkins->setVisible(true);});
 }
 
 
@@ -1069,8 +1050,9 @@ void MainWindow::setupJenkinsManager()
 void MainWindow::resizeToolWidgets()
 {
     //Reset the RIght Panel
-    resizeDocks({tool_Table, tool_ViewManager, tool_Minimap}, {1,2,1}, Qt::Vertical);
-    resizeDocks({tool_Table, tool_ViewManager, tool_Minimap, tool_Dock}, {1,1,1, 1}, Qt::Vertical);
+    resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {1,2,1}, Qt::Vertical);
+    //resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap, dockwidget_Dock}, {1,1,1,1}, Qt::Vertical);
+    //resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap, dockwidget_Dock}, {1,1,1,1}, Qt::Horizontal);
 }
 
 
@@ -1082,37 +1064,34 @@ void MainWindow::resizeToolWidgets()
  */
 void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignment alignment)
 {
-    QWidget* cw = parentWidget;
-    QPointF widgetPos;
-    if (cw == 0) {
-        //Check for active Window
-        cw = QApplication::activeWindow();
+    auto center_widget = parentWidget;
+    
+    if(!center_widget){
+        center_widget = QApplication::activeWindow();
         //Check
-        if (!cw || !cw->isWindowType()) {
-            cw = WindowManager::manager()->getActiveWindow();
-            //cw = QApplication::activeWindow();
-            //qDebug() << "NOT A WINDOW - " << cw;
-        } else {
-            //qDebug() << "WINDOW";
+        if(!center_widget || !center_widget->isWindowType()){
+            center_widget = WindowManager::manager()->getActiveWindow();
         }
     }
-    if (cw == innerWindow) {
-        widgetPos = pos() - QPointF(0,8);
-    } else {
-        widgetPos.ry() -= widget->height()/2 + 8;
-    }
-    if (cw && widget) {
-        widgetPos += cw->geometry().center();
+
+    if(widget && center_widget){
+        auto pos = center_widget->mapToGlobal(center_widget->rect().center());
+        auto widget_size = widget->frameGeometry();
         switch (alignment) {
         case Qt::AlignBottom:
-            widgetPos.ry() += cw->height()/2;
+            //Move to the bottom
+            pos.ry() += center_widget->height() / 2;
+            //Offset by the height of the widget
+            pos.ry() -= widget_size.height();
             break;
         default:
+            //Offset by the half the height of the widget
+            pos.ry() -= widget_size.height() / 2;
             break;
         }
-        widgetPos -= QPointF(widget->width()/2, widget->height()/2);
-        widget->move(widgetPos.x(), widgetPos.y());
-        //cw->activateWindow();
+        //Center the widget
+        pos.rx() -= widget_size.width() / 2;
+        widget->move(pos);
     }
 }
 
