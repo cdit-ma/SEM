@@ -228,15 +228,18 @@ bool ExecutionManager::ConstructControlMessages(){
                     port_info_pb->set_type(event_port->message_type);
 
                     NodeManager::EventPort::Kind k;
+                    
                     if(event_port->kind == "OutEventPortInstance"){
                         k = NodeManager::EventPort::OUT_PORT;
                     } else if(event_port->kind == "InEventPortInstance"){
                         k = NodeManager::EventPort::IN_PORT;
                     } else if(event_port->kind == "PeriodicEvent"){
                         k = NodeManager::EventPort::PERIODIC_PORT;
+                    } else{
+                        std::cerr << "INVALID PORT KIND: " << event_port->kind << std::endl;
                     }
+                    
                     port_pb->set_kind(k);
-
                     //Get the Middleware for the ports
                     if(k != NodeManager::EventPort::PERIODIC_PORT){
                         std::string port_middleware = event_port->middleware;

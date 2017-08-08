@@ -45,15 +45,15 @@ NodeContainer::~NodeContainer(){
     }
 }
 
-bool NodeContainer::Activate(std::string component_name){
-    Component* component = GetComponent(component_name);
+bool NodeContainer::Activate(std::string component_id){
+    Component* component = GetComponent(component_id);
     if(component){
         return component->Activate();
     }
     return false;
 }
-bool NodeContainer::Passivate(std::string component_name){
-    Component* component = GetComponent(component_name);
+bool NodeContainer::Passivate(std::string component_id){
+    Component* component = GetComponent(component_id);
     if(component && component->is_active()){
         return component->Passivate();
     }
@@ -69,7 +69,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
     for(auto c : n->components()){
         auto c_info = c.mutable_info();
-        auto component = GetComponent(c_info->name());
+        auto component = GetComponent(c_info->id());
 
         if(!component){
             //Construct Component
@@ -167,19 +167,19 @@ void NodeContainer::Teardown(){
 }
 
 bool NodeContainer::AddComponent(Component* component){
-    std::string component_name = component->get_name();
+    std::string component_id = component->get_id();
 
     //Search pub_lookup_ for key
-    auto search = components_.find(component_name);
+    auto search = components_.find(component_id);
     
     if(search == components_.end()){
         //Set the library path
-        std::pair<std::string, Component*> insert_pair(component_name, component);
+        std::pair<std::string, Component*> insert_pair(component_id, component);
         //Insert into hash
         components_.insert(insert_pair);
         return true;
     }else{
-        std::cout << "'" << component_name << "' NOT A UNIQUE NAME!" << std::endl;
+        std::cerr << "'" << component_id << "' Not an unique ID!" << std::endl;
         return false;
     }
 }

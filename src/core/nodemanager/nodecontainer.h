@@ -19,8 +19,8 @@ class NodeContainer{
         NodeContainer(std::string library_path);
         ~NodeContainer();
         
-        bool Activate(std::string component_name);
-        bool Passivate(std::string component_name);
+        bool Activate(std::string component_id);
+        bool Passivate(std::string component_id);
 
         bool ActivateAll();
         bool PassivateAll();
@@ -30,7 +30,7 @@ class NodeContainer{
         void Teardown();
 
         bool AddComponent(Component* component);
-        Component* GetComponent(std::string component_name);
+        Component* GetComponent(std::string component_id);
 
     private:
         //DLL functions
