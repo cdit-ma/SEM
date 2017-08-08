@@ -25,10 +25,13 @@ public:
     BaseWindow* getSourceWindow();
 
     virtual void themeChanged();
-
+    
     QPair<QString, QString> getIcon();
     DockTitleBar* getTitleBar();
+    void removeTitleBar();
+
     void setTitleBarIconSize(int height);
+
     bool isProtected();
     void setProtected(bool protect);
     virtual void setWidget(QWidget* widget);

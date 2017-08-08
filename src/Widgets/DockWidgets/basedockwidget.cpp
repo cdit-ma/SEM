@@ -27,8 +27,6 @@ BaseDockWidget::BaseDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     connect(this, &QDockWidget::visibilityChanged, this, &BaseDockWidget::_visibilityChanged);
     _isProtected = false;
 
-    //setWindowFlags(Qt::WindowStaysOnTopHint);
-
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     if(titleBar){
@@ -101,6 +99,13 @@ QPair<QString, QString> BaseDockWidget::getIcon()
 DockTitleBar *BaseDockWidget::getTitleBar()
 {
     return titleBar;
+}
+
+void BaseDockWidget::removeTitleBar(){
+    if(titleBar){
+        delete titleBar;
+        titleBar = 0;
+    }
 }
 
 void BaseDockWidget::setTitleBarIconSize(int height)
