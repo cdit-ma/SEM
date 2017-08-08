@@ -32,8 +32,11 @@ std::vector<std::string> GraphmlParser::FindNodes(std::string kind, std::string 
 }
 
 std::vector<std::string> GraphmlParser::FindEdges(std::string kind){
-    std::string search = ".//edge[data[@key='" + 
-                            attribute_map_["kind"] + "' and .='" + kind +"']]";
+    std::string search = ".//edge";
+    
+    if(kind != ""){
+        search += "[data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']]";
+    }
 
     std::vector<std::string> out;
 
@@ -44,23 +47,38 @@ std::vector<std::string> GraphmlParser::FindEdges(std::string kind){
 }
 
 std::string GraphmlParser::GetAttribute(std::string id, std::string attribute_name){
-    std::string search = ".//*[@id='" + id + "']";
-    std::string out;
-    try{
-        auto res = doc.select_node(search.c_str());
-        out = res.node().attribute(attribute_name.c_str()).value();
-    } catch(...){}
-    return out;
+
+    std::string key = id + "|" + attribute_name;
+
+    if(attr_lookup_.count(key)){
+        return attr_lookup_[key];
+    }else{
+        std::string search = ".//*[@id='" + id + "']";
+        std::string out;
+        try{
+            auto res = doc.select_node(search.c_str());
+            out = res.node().attribute(attribute_name.c_str()).value();
+        } catch(...){}
+        attr_lookup_[key] = out;
+        return out;
+    }
 }
 
 std::string GraphmlParser::GetDataValue(std::string id, std::string key_name){
-    std::string search = ".//*[@id='" + id + "']/data[@key='" + attribute_map_[key_name] + "']";
-    std::string out;
-    try{
-        auto res = doc.select_node(search.c_str());
-        out = res.node().child_value();
-    } catch(...){}
-    return out;
+    std::string key = id + "|" + key_name;
+
+    if(data_lookup_.count(key)){
+        return data_lookup_[key];
+    }else{
+        std::string search = ".//*[@id='" + id + "']/data[@key='" + attribute_map_[key_name] + "']";
+        std::string out;
+        try{
+            auto res = doc.select_node(search.c_str());
+            out = res.node().child_value();
+        } catch(...){}
+        data_lookup_[key] = out;
+        return out;
+    }
 }
 
 std::string GraphmlParser::GetParentNode(std::string id){

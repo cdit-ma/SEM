@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 class GraphmlParser;
 namespace Graphml{
@@ -92,6 +93,8 @@ namespace Graphml{
             std::vector<std::string> definition_edge_ids_;
             std::vector<std::string> aggregate_edge_ids_;
             std::vector<std::string> qos_edge_ids_;
+
+            std::map<std::string, std::set<std::string> > entity_edge_ids_;
 
             std::map<std::string, std::string> deployed_entities_map_;
             std::map<std::string, std::string> definition_ids_;

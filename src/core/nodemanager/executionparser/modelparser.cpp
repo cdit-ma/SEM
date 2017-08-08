@@ -29,6 +29,7 @@ Graphml::ModelParser::ModelParser(const std::string filename){
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
 }
+
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
         return false;
@@ -48,6 +49,13 @@ bool Graphml::ModelParser::Process(){
     definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
     aggregate_edge_ids_ = graphml_parser_->FindEdges("Edge_Aggregate");
     qos_edge_ids_ = graphml_parser_->FindEdges("Edge_QOS");
+
+    for(auto edge_id : graphml_parser_->FindEdges()){
+        auto source_id = GetAttribute(edge_id, "source");
+        auto target_id = GetAttribute(edge_id, "target");
+        entity_edge_ids_[source_id].insert(target_id);
+        entity_edge_ids_[target_id].insert(source_id);
+    }
 
     for(auto c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
         RecurseEdge(c_id, c_id);
@@ -698,22 +706,17 @@ std::string Graphml::ModelParser::GetTCPAddress(const std::string ip, const unsi
 }
 
 void Graphml::ModelParser::RecurseEdge(std::string source_id, std::string current_id){
-    for(auto e_id: assembly_edge_ids_){
-        auto s_id = GetAttribute(e_id, "source");
 
-        if(s_id == current_id){
-            auto t_id = GetAttribute(e_id, "target");
-            auto t_kind = GetDataValue(t_id, "kind");
-
-            if(t_kind == "InEventPortInstance"){
-                auto edge = new AssemblyConnection();
-                edge->source_id = source_id;
-                edge->target_id = t_id;
-                edge->inter_assembly = source_id != current_id;
-                assembly_map_[source_id].push_back(edge);
-            }else{
-                RecurseEdge(source_id, t_id);
-            }
+    for(auto t_id: entity_edge_ids_[current_id]){
+        auto t_kind = GetDataValue(t_id, "kind");
+        if(t_kind == "InEventPortInstance"){
+            auto edge = new AssemblyConnection();
+            edge->source_id = source_id;
+            edge->target_id = t_id;
+            edge->inter_assembly = source_id != current_id;
+            assembly_map_[source_id].push_back(edge);
+        }else if(t_kind == "OutEventPortDelegate" || t_kind == "InEventPortDelegate"){
+            RecurseEdge(source_id, t_id);
         }
     }
 }

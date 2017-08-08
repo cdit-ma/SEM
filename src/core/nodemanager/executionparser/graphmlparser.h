@@ -12,7 +12,7 @@ class GraphmlParser{
     public:
         GraphmlParser(std::string filename);
         std::vector<std::string> FindNodes(std::string kind, std::string parent_id = "");
-        std::vector<std::string> FindEdges(std::string kind);
+        std::vector<std::string> FindEdges(std::string kind ="");
 
         std::string GetAttribute(std::string id, std::string attribute_name);
         std::string GetDataValue(std::string id, std::string key_name);
@@ -22,8 +22,9 @@ class GraphmlParser{
 
     private:
         std::map<std::string, std::string> attribute_map_;
-
         pugi::xml_document doc;
+        std::map<std::string, std::string> data_lookup_;
+        std::map<std::string, std::string> attr_lookup_;
 
 
 };
