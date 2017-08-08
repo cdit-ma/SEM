@@ -18,7 +18,7 @@ set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION_NO "2.1.2")
+SET(VERSION_NO "2.2.0")
 SET(VERSION "${VERSION_NO}-RE")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
@@ -95,6 +95,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/enumerations.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.cpp

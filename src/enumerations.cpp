@@ -4,23 +4,7 @@
 #include "ModelController/nodekinds.h"
 #define SHADE_AMOUNT 130
 
-//Auto Generated File
-#include "cmakevars.h"
 
-QString APP_URL(){
-    #ifdef MEDEA_URL
-        return MEDEA_URL "/";
-    #else
-        return "?";
-    #endif
-}
-QString APP_VERSION(){
-    #ifdef MEDEA_VERSION
-        return MEDEA_VERSION;
-    #else
-        return "?";
-    #endif
-}
 
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {

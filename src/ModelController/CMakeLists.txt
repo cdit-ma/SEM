@@ -11,6 +11,15 @@ find_package(Qt5 COMPONENTS Core Network REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+#Pass Version info into cmakevars.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
+)
+
+#Include the binary directory to include the generated cmakevars.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
@@ -121,6 +130,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/frequencykey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../version.cpp
 )
 
 set(HEADERS
@@ -231,6 +241,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.h
 )
+
 
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc

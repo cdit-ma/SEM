@@ -61,6 +61,7 @@ public slots:
 
     void resetToolDockWidgets();
 private slots:
+
     void themeChanged();
     void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevDock);
 
@@ -70,6 +71,8 @@ private slots:
 
     void toolbarOrientationChanged(Qt::Orientation orientation);
 private:
+
+    void swapCentralWidget(QWidget* widget);
     void setViewController(ViewController* vc);
     void initializeApplication();
     void toggleWelcomeScreen(bool on);
@@ -146,9 +149,10 @@ private:
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 
-    WelcomeScreenWidget* welcomeScreen;
-    QVBoxLayout* holderLayout;
-    bool welcomeScreenOn;
+    WelcomeScreenWidget* welcomeScreen = 0;
+    QWidget* placeholder = 0;
+
+    bool welcomeScreenOn = false;
 
 protected:
     void resizeEvent(QResizeEvent *);

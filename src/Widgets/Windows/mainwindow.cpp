@@ -443,6 +443,16 @@ void MainWindow::initializeApplication()
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 }
 
+void MainWindow::swapCentralWidget(QWidget* widget){
+    if(centralWidget()){
+        //Setting the parent of the centralWidget will stop
+        //the QMainWindow deleting the old widget when a new central widget is deleted
+        centralWidget()->setParent(0);
+    }
+    if(widget){
+        setCentralWidget(widget);
+    }
+}
 
 /**
  * @brief MedeaMainWindow::toggleWelcomeScreen
@@ -459,12 +469,12 @@ void MainWindow::toggleWelcomeScreen(bool on)
     // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
     setDockWidgetsVisible(!on);
-    welcomeScreen->setVisible(on);
-
     if(on){
+        swapCentralWidget(welcomeScreen);
         notificationPopup->hide();
         notificationTimer->stop();
     }else{
+        swapCentralWidget(placeholder);
         restoreWindowState();
 
         //Call this after everything has loaded
@@ -643,17 +653,13 @@ void MainWindow::setupInnerWindow()
  * @brief MedeaMainWindow::setupWelcomeScreen
  */
 void MainWindow::setupWelcomeScreen()
-{
+{   
+    placeholder = new QWidget(this);
     welcomeScreen = new WelcomeScreenWidget(viewController->getActionController(), this);
-    setCentralWidget(welcomeScreen);
-    welcomeScreen->hide();
     welcomeScreenOn = false;
 
-    //QWidget* holderWidget = new QWidget(this);
-    //holderWidget->hide();
+    
 
-    //holderLayout = new QVBoxLayout(holderWidget);
-    //holderLayout->addWidget(welcomeScreen);
 
     connect(this, &MainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }

@@ -11,6 +11,7 @@
 #include <QElapsedTimer>
 #include <QXmlStreamReader>
 
+#include "../version.h"
 
 #include "entityfactory.h"
 #include "tempentity.h"
@@ -2269,11 +2270,14 @@ bool ModelController::importGraphML(QString document, Node *parent)
                             //Run the UUID through
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
+                        }else if(key_name == "medea_version"){
+                            if(value != APP_VERSION()){
+                                QString message = "Model was created in MEDEA v" % value % ". Some functionality may have changed.";
+                                emit Notification(MODEL_SEVERITY::INFO, message);
+                            }
                         }
                         //Add the data to the entity
                         current_entity->addData(key_name, value);
-                            
-                        //Push the current_entities ID onto a stack to handle uuid
                     }else{
                         qCritical() << "ImportGraphML: Couldn't attach Data with key id: '" << key_id << "'";
                         error_count ++;

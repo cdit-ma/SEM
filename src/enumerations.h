@@ -6,6 +6,7 @@
 //#include <QColor>
 #include <QList>
 #include <QHash>
+#include "version.h"
 
 enum RECT_VERTEX{RV_NONE, RV_LEFT, RV_TOPLEFT, RV_TOP, RV_TOPRIGHT, RV_RIGHT, RV_BOTTOMRIGHT, RV_BOTTOM, RV_BOTTOMLEFT};
 
@@ -34,8 +35,6 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define DIALOG_MIN_HEIGHT 250
 
 enum class VIEW_ASPECT;
-extern QString APP_URL();
-extern QString APP_VERSION();
 extern QList<VIEW_ASPECT> GET_VIEW_ASPECTS();
 extern VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect);
 extern RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect);

@@ -52,7 +52,6 @@ QVariant SettingsController::getSetting(SETTINGS ID)
 void SettingsController::setSetting(SETTINGS ID, QVariant value)
 {
     _setSetting(_getSetting(ID), value);
-    settingsFile->sync();
 }
 
 bool SettingsController::isWriteProtected()
@@ -316,6 +315,7 @@ void SettingsController::showSettingsWidget()
         settingsGUI = new AppSettings(0);
         connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
         connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
+        connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::saveSettings);
         connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::settingsApplied);
     }
     settingsGUI->show();
@@ -338,7 +338,8 @@ void SettingsController::resetSettings()
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
     emit settingChanged(SETTINGS::THEME_APPLY, true);
     emit settingsApplied();
-    settingsFile->sync();
+    //Write settings
+    saveSettings();
 }
 
 void SettingsController::saveSettings()
