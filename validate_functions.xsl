@@ -179,6 +179,25 @@
         <xsl:value-of select="cdit:output_test('Component behaviour tests', $results, 1)" />
     </xsl:function>
 
+    
+    <xsl:function name="cdit:test_attributes">
+        <xsl:param name="root"/>
+        <xsl:param name="attributes" as="element()*" />
+
+        <xsl:variable name="kind_key_id" select="cdit:get_key_id($root, 'kind')" />
+        
+        <xsl:variable name="results">
+            <xsl:for-each select="$attributes">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="label_valid" select="$label != 'Attribute'" />
+                
+                <xsl:value-of select="cdit:output_result($id, $label_valid, concat('Attribute ', o:quote_wrap($label), ' has an invalid label'), false(), 2)" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('All Attributes are legal', $results, 1)" />
+    </xsl:function>
 
     <xsl:function name="cdit:test_component_impls">
         <xsl:param name="root"/>
@@ -420,12 +439,15 @@
         <xsl:param name="root" />
 
         <xsl:variable name="components" as="element()*" select="cdit:get_entities_of_kind($root, 'Component')" />
+        <xsl:variable name="attributes" as="element()*" select="cdit:get_entities_of_kind($root, 'Attribute')" />
         
 
         <xsl:value-of select="cdit:test_components_unique_name($root, $components)" />
         <xsl:value-of select="cdit:test_invalid_label($root, 'Component', 'Component valid names')" />
         <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label($root, 'Variable', 'Vector valid names')" />
         <xsl:value-of select="cdit:test_component_impls($root, $components)" />
+        <xsl:value-of select="cdit:test_attributes($root, $attributes)" />
         <xsl:value-of select="cdit:test_eventport_aggregates($root, $components)" />
         <xsl:value-of select="cdit:test_component_behaviour($root)" />
     </xsl:function>
