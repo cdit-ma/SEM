@@ -14,7 +14,7 @@
 #include "zmq/registrar.h"
 
 std::string VERSION_NAME = "re_node_manager";
-std::string VERSION_NUMBER = "1.2.0";
+std::string VERSION_NUMBER = "1.3.0";
 
 Execution* exe = 0;
 
