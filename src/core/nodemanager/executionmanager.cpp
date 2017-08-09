@@ -365,11 +365,11 @@ bool ExecutionManager::ConstructControlMessages(){
         }
     }
 
-    std::cout << "------------[Deployment]------------";
+    std::cout << "------------[Deployment]------------" << std::endl; 
     bool okay = false;
     for(auto node : nodes){
         if(node->is_deployed()){
-            std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
+            std::cout << "* Node: '" << node->name << "' Deploys:" << std::endl;
             //Push this node onto the required slaves list
             required_slave_addresses_.push_back(node->GetNodeManagerSlaveAddress());
 
