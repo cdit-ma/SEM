@@ -76,7 +76,7 @@ private:
     void toggleWelcomeScreen(bool on);
     
     void saveWindowState();
-    void restoreWindowState();
+    void restoreWindowState(bool restore_geo = true);
 
     void setupTools();
     void setupInnerWindow();

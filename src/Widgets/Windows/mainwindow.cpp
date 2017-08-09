@@ -25,6 +25,7 @@
 #include <QStringBuilder>
 #include <QStringListModel>
 #include <QTabWidget>
+#include <QDesktopWidget>
 
 #define TOOLBAR_HEIGHT 32
 
@@ -63,7 +64,8 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     if(!outer_geo.isEmpty()){
         restoreGeometry(outer_geo);
     }else{
-        //setMinimumSize(1200, 800);
+        
+        
     }
 
     setModelTitle();
@@ -444,6 +446,13 @@ void MainWindow::initializeApplication()
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
+    //Start MEDEA centralized and 1200x800
+    resize(1200, 800);
+    auto default_screen_geo = QApplication::desktop()->screenGeometry();
+    auto pos_x = (default_screen_geo.width() - width()) / 2;
+    auto pos_y = (default_screen_geo.height() - height()) / 2;
+    move(pos_x, pos_y);
 }
 
 void MainWindow::swapCentralWidget(QWidget* widget){
@@ -476,7 +485,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
         notificationTimer->stop();
     }else{
         swapCentralWidget(innerWindow);
-        restoreWindowState();
+        restoreWindowState(false);
 
         //Call this after everything has loaded
         QMetaObject::invokeMethod(this, "popupLatestNotification", Qt::QueuedConnection);
@@ -502,25 +511,21 @@ void MainWindow::saveWindowState()
     }
 }
 
-void MainWindow::restoreWindowState(){
+void MainWindow::restoreWindowState(bool restore_geo){
     SettingsController* s = SettingsController::settings();
     if(s){
         auto load_dock = s->getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT).toBool();
         auto load_window = s->getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT).toBool();
 
-        auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
         auto outer_state = s->getSetting(SETTINGS::WINDOW_OUTER_STATE).toByteArray();
-        auto inner_geo = s->getSetting(SETTINGS::WINDOW_INNER_GEOMETRY).toByteArray();
         auto inner_state = s->getSetting(SETTINGS::WINDOW_INNER_STATE).toByteArray();
 
         //Check if any are invalid
-        bool invalid = outer_geo.isEmpty() || outer_state.isEmpty() || inner_geo.isEmpty() || inner_state.isEmpty();
+        bool invalid = outer_state.isEmpty() || inner_state.isEmpty();
 
         if(invalid){
             resetToolDockWidgets();
         }else{
-            restoreGeometry(outer_geo);
-            
             if(load_window){
                 restoreState(outer_state);
             }
@@ -985,6 +990,7 @@ void MainWindow::setupDockablePanels()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Jenkins);
 
     // initially hide tool dock widgets
+    innerWindow->setDockWidgetVisibility(dwQOSBrowser, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Jenkins, false);
@@ -1110,9 +1116,7 @@ void MainWindow::resizeEvent(QResizeEvent* e)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     //Save the state
-    if(!welcomeScreenOn){
-        saveWindowState();
-    }
+    saveWindowState();
     if (viewController) {
         viewController->closeMEDEA();
         event->ignore();
