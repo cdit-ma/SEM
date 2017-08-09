@@ -176,7 +176,10 @@ void DataEditWidget::themeChanged()
             break;
         }
         case SETTING_TYPE::COLOR:{
-            style += "QToolButton{background: " + currentData.toString() + ";}";
+            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+            if(lineEdit){
+                style += "QToolButton{background: " + lineEdit->text() + ";}";
+            }
             break;
         }
         
@@ -409,7 +412,7 @@ void DataEditWidget::setupLayout()
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(toolbar);
 
-        connect(button, &QToolButton::pressed, this, &DataEditWidget::pickPath);
+        connect(button, &QToolButton::released, this, &DataEditWidget::pickPath);
         connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
         connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
         break;
@@ -426,9 +429,9 @@ void DataEditWidget::setupLayout()
         editWidget_1 = lineEdit;
         editWidget_2 = button;
 
-        connect(button, &QToolButton::pressed, this, &DataEditWidget::pickColor);
+        connect(button, &QToolButton::released, this, &DataEditWidget::pickColor);//, Qt::QueuedConnection);
         connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::editFinished);
+        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);
@@ -440,7 +443,7 @@ void DataEditWidget::setupLayout()
         button->setFixedHeight(SMALL_SQUARE);
         button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-        connect(button, &QToolButton::clicked, this, &DataEditWidget::editFinished);
+        connect(button, &QToolButton::released, this, &DataEditWidget::editFinished);
 
         toolbar = new QToolBar(this);
         toolbar->addWidget(button);
