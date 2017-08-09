@@ -71,7 +71,14 @@
             <xsl:variable name="target_value" select="cdit:get_mutable_aggregate_path($source)" />
             
             <xsl:if test="$target_value != ''">
-                <xsl:value-of select="concat(o:t($tab), $setter, '(', $target_value, ');', o:nl())" />
+                <xsl:choose>
+                    <xsl:when test="$is_top_level_aggregate">
+                        <xsl:value-of select="concat(o:t($tab), $setter, ' = ', $target_value, ';', o:nl())" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat(o:t($tab), $setter, '(', $target_value, ');', o:nl())" />
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:if>
         </xsl:for-each>
 
