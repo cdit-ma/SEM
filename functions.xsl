@@ -2187,6 +2187,11 @@
         <xsl:value-of select="lower-case(cdit:get_key_value($root, $key_name)) = 'true'" />
     </xsl:function>
     
+        
+<xsl:function name="cdit:get_parent_node">
+        <xsl:param name="root"/>
+        <xsl:sequence select="$root/../.." />
+    </xsl:function>
 
      <xsl:function name="cdit:get_parents_of_kind">
         <xsl:param name="root" />
@@ -2228,12 +2233,15 @@
         </xsl:for-each>
     </xsl:function>
 
+    
     <xsl:function name="cdit:get_entities_of_kind" as="element()*">
-        <xsl:param name="root" />
+        <xsl:param name="roots" />
         <xsl:param name="kind" as="xs:string" />
 
-        <xsl:variable name="kind_id" select="cdit:get_key_id($root, 'kind')" />        
-        <xsl:sequence select="$root//gml:data[@key=$kind_id and text() = $kind]/.." />
+        <xsl:for-each select="$roots">
+            <xsl:variable name="kind_id" select="cdit:get_key_id(., 'kind')" /> 
+            <xsl:sequence select=".//gml:data[@key=$kind_id and text() = $kind]/.." />
+        </xsl:for-each>
     </xsl:function>
 
     <xsl:function name="cdit:get_required_datatypes">

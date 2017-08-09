@@ -773,10 +773,7 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:get_parent_node">
-        <xsl:param name="root"/>
-        <xsl:sequence select="$root/../.." />
-    </xsl:function>
+    
 
     <xsl:function name="cdit:is_var_a_class_member" as="xs:boolean">
         <xsl:param name="root"/>

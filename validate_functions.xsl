@@ -132,6 +132,52 @@
     </xsl:function>
     
 
+    <xsl:function name="cdit:is_data_linked"  as="xs:boolean">
+        <xsl:param name="root"/>
+
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        <xsl:variable name="data_sources" select="cdit:get_edge_sources($root, 'Edge_Data', $id)" />
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+
+        <xsl:choose>
+            <xsl:when test="count($data_sources) > 0">
+                <xsl:value-of select="true()" />        
+            </xsl:when>
+            <xsl:when test="not($parent_node)">
+                <xsl:value-of select="false()" />        
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:is_data_linked($parent_node)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:has_ancestor_of_kind" as="xs:boolean">
+        <xsl:param name="root"/>
+        <xsl:param name="kind"/>
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        
+
+        <xsl:choose>
+            <xsl:when test="not($parent_node)">
+                <xsl:value-of select="false()" />        
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="parent_kind" select="cdit:get_key_value($parent_node, 'kind')" />
+                <xsl:variable name="same_kind" select="$parent_kind = $kind" />
+                <xsl:choose>
+                    <xsl:when test="$same_kind">
+                        <xsl:value-of select="true()" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cdit:has_ancestor_of_kind($parent_node, $kind)" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="cdit:test_component_behaviour">
         <xsl:param name="root"/>
 
@@ -143,17 +189,33 @@
                 <xsl:variable name="variadic_parameters" select="cdit:get_entities_of_kind(., 'VariadicParameter')" />
                 <xsl:variable name="variable_parameters" select="cdit:get_entities_of_kind(., 'VariableParameter')" />
                 
-
-                <xsl:for-each select="$input_parameters, $variadic_parameters, $variable_parameters">
+                <xsl:variable name="outeventport_impls" select="cdit:get_entities_of_kind(., 'OutEventPortImpl')" />
+                <xsl:variable name="member_instances" select="cdit:get_entities_of_kind($outeventport_impls, 'MemberInstance')" />
+               
+                <xsl:for-each select="$input_parameters, $variadic_parameters, $variable_parameters, $member_instances">
                     <xsl:variable name="id" select="cdit:get_node_id(.)" />
                     <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
                     <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
                     <xsl:variable name="value" select="cdit:get_key_value(., 'value')" />
+                    <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
 
-                    <xsl:variable name="data_sources" select="cdit:get_edge_sources(., 'Edge_Data', $id)" />
-                    <xsl:variable name="got_data" select="count($data_sources) = 1 or $value != ''" />
+                    <xsl:variable name="in_vector" select="cdit:has_ancestor_of_kind(., 'VectorInstance') or cdit:has_ancestor_of_kind(., 'Vector')" />
 
-                    <xsl:value-of select="cdit:output_result($id, $got_data, concat($kind, ' ', o:quote_wrap($label), ' requires either a value set or a data connection (Edge_Data)'), false(), 2)" />        
+                    <xsl:variable name="got_data_link" select="cdit:is_data_linked(.)" />
+                    <xsl:variable name="got_data" select="$got_data_link or $value != ''" />
+
+                    <!-- Don't want to check inside vectors, as they do not need data -->
+                    <xsl:if test="not($in_vector)">
+                        <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
+                        <xsl:value-of select="cdit:output_result($id, $got_data, concat($kind, ' ', o:quote_wrap($label), ' requires either a value set or a data connection (Edge_Data)'), false(), 2)" />        
+                        
+                        <xsl:if test="not($got_data_link) and $type = 'String' and $value != ''">
+                            <!-- Check if string that is set is double-quote wrapped -->
+                            <xsl:variable name="got_valid_string" select="starts-with($value, o:dblquote()) and ends-with($value , o:dblquote())" />
+                            <xsl:value-of select="cdit:output_result($id, $got_valid_string, concat($kind, ' ', o:quote_wrap($label), ' has a string value set which is not double quoted. Are you trying to reference a variable?'), true(), 2)" />        
+                        </xsl:if>
+                    </xsl:if>
+                    
                 </xsl:for-each>
 
                 <xsl:variable name="children" select="cdit:get_child_nodes(.)" />
