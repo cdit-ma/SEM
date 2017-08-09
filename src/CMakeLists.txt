@@ -18,11 +18,6 @@ set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-SET(VERSION_NO "2.2.0")
-SET(VERSION "${VERSION_NO}-RE")
-SET(URL "https://github.com/cdit-ma/MEDEA")
-SET(VERSION_NAME "${PROJ_NAME}v${VERSION}")
-
 
 if(WIN32)
 	SET(QT_USE_QTMAIN TRUE)

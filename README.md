@@ -15,7 +15,7 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 > cd MEDEA
 > mkdir build
 > cd build
-> cmake ../src
+> cmake ..
 > make -j10
 > ```
 
