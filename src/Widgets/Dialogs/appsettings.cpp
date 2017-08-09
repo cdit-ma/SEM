@@ -32,11 +32,9 @@
 
 AppSettings::AppSettings(QWidget *parent):QDialog(parent)
 {
-    //setMinimumWidth(SETTINGS_WIDTH);
-    //setMinimumHeight(SETTINGS_HEIGHT);
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
-    QString title = "App Settings";
+    QString title = "Settings";
     setWindowTitle(title);
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
     setModal(true);
@@ -79,13 +77,14 @@ void AppSettings::themeChanged()
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
 
-    setWindowIcon(theme->getImage("Icons", "gear"));
     setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
                   );
     
     clearSettingsAction->setIcon(theme->getIcon("Icons", "cross"));
     applySettingsAction->setIcon(theme->getIcon("Icons", "tick"));
+
+    //setWindowIcon(theme->getIcon("Icons", "gear"));
 }
 
 void AppSettings::dataValueChanged(QVariant data)
