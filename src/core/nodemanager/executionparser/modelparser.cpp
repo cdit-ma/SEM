@@ -53,8 +53,9 @@ bool Graphml::ModelParser::Process(){
     for(auto edge_id : graphml_parser_->FindEdges()){
         auto source_id = GetAttribute(edge_id, "source");
         auto target_id = GetAttribute(edge_id, "target");
-        entity_edge_ids_[source_id].insert(target_id);
-        entity_edge_ids_[target_id].insert(source_id);
+        auto edge_kind = GetDataValue(edge_id, "kind");
+        entity_edge_ids_[source_id].insert(edge_id);
+        entity_edge_ids_[target_id].insert(edge_id);
     }
 
     for(auto c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
@@ -707,16 +708,25 @@ std::string Graphml::ModelParser::GetTCPAddress(const std::string ip, const unsi
 
 void Graphml::ModelParser::RecurseEdge(std::string source_id, std::string current_id){
 
-    for(auto t_id: entity_edge_ids_[current_id]){
-        auto t_kind = GetDataValue(t_id, "kind");
-        if(t_kind == "InEventPortInstance"){
-            auto edge = new AssemblyConnection();
-            edge->source_id = source_id;
-            edge->target_id = t_id;
-            edge->inter_assembly = source_id != current_id;
-            assembly_map_[source_id].push_back(edge);
-        }else if(t_kind == "OutEventPortDelegate" || t_kind == "InEventPortDelegate"){
-            RecurseEdge(source_id, t_id);
+
+    for(auto edge_id: entity_edge_ids_[current_id]){
+        auto edge_source = GetAttribute(edge_id, "source");
+        auto edge_target = GetAttribute(edge_id, "target");
+        auto edge_kind = GetDataValue(edge_id, "kind");
+        
+        //Only step forward
+        if(edge_kind == "Edge_Assembly" && edge_source == current_id){
+            auto target_kind = GetDataValue(edge_target, "kind");
+
+            if(target_kind == "InEventPortInstance"){
+                auto edge = new AssemblyConnection();
+                edge->source_id = source_id;
+                edge->target_id = edge_target;
+                edge->inter_assembly = source_id != current_id;
+                assembly_map_[source_id].push_back(edge);
+            }else if(target_kind == "OutEventPortDelegate" || target_kind == "InEventPortDelegate"){
+                RecurseEdge(source_id, edge_target);
+            }
         }
     }
 }
