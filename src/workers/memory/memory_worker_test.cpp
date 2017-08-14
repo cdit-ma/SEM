@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "memory_worker_impl.h"
 
 int main(){

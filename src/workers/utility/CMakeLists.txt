@@ -28,7 +28,7 @@ add_executable(${TESTER_NAME} utility_worker_test.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD /bigobj")
 elseif(UNIX)
 	target_link_libraries(${PROJ_NAME} pthread)
 endif(MSVC)

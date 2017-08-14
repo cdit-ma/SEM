@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <signal.h>
 #include <boost/program_options.hpp>
 
 #include "../controlmessage/controlmessage.pb.h"

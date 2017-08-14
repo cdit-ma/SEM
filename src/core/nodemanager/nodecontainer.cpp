@@ -212,7 +212,7 @@ void* NodeContainer::LoadLibrary_(std::string library_path){
         //Check for errors
         std::string error = GetLibraryError();
         if(!error.empty()){
-            std::cerr << "DLL Error: " << error << std::endl;
+            std::cerr << "DLL Error Loading: " << library_path << " : "<< error << std::endl;
         }else{
             //Add it to the map of loaded libraries
             std::cout << "* Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " us" << std::endl;
