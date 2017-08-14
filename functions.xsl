@@ -115,6 +115,15 @@
     <xsl:function name="o:tabbed_cpp_comment">
         <xsl:param name="text" as="xs:string"  />
         <xsl:param name="tab" as="xs:integer"  />
+
+        <xsl:for-each select="tokenize($text, '\n\r?')[.]">
+            <xsl:value-of select="concat(o:t($tab), '// ', ., o:nl())" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="o:tabbed_cpp_comment">
+        <xsl:param name="text" as="xs:string"  />
+        <xsl:param name="tab" as="xs:integer"  />
         <xsl:value-of select="concat(o:t($tab), '// ', $text, o:nl())" />
     </xsl:function>
 
@@ -1056,6 +1065,8 @@
          <!-- Include directories -->
         <xsl:value-of select="o:cmake_include_re_core()" />
 
+        
+
         <xsl:variable name="mw_package" select="o:cmake_get_mw_package_name($mw)" />
         <xsl:variable name="mw_package_uc" select="upper-case($mw_package)" />
         <xsl:if test="$mw_package_uc != ''">
@@ -1094,6 +1105,14 @@
             <xsl:value-of select="o:cmake_comment('Build the shared library that will be loaded at compile time.')" />
             <xsl:value-of select="concat('add_library(${SHARED_LIB_NAME} SHARED ${SOURCE} ${HEADERS} ', o:cmake_var_wrap($mw_srcs), ' ',o:cmake_var_wrap($mw_hdrs), ')', o:nl())" />
             <xsl:value-of select="o:nl()" />
+
+
+            <!-- Link Shared library -->
+            <xsl:value-of select="o:cmake_comment('Set Windows Shared Lib Settings')" />
+            <xsl:value-of select="concat('if (MSVC)', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'add_definitions(-DPROTOBUF_USE_DLLS)', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'set(CMAKE_CXX_FLAGS_RELEASE ', o:dblquote_wrap('${CMAKE_CXX_FLAGS_RELEASE} /MD'), o:nl())" />
+            <xsl:value-of select="concat('endif (MSVC)', o:nl())" />
 
             <!-- Link Shared library -->
             <xsl:value-of select="o:cmake_comment('Link the shared library.')" />
