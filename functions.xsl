@@ -121,13 +121,6 @@
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="o:tabbed_cpp_comment">
-        <xsl:param name="text" as="xs:string"  />
-        <xsl:param name="tab" as="xs:integer"  />
-        <xsl:value-of select="concat(o:t($tab), '// ', $text, o:nl())" />
-    </xsl:function>
-
-
     <xsl:function name="o:cpp_func_def">
         <xsl:param name="return_type" as="xs:string"  />
         <xsl:param name="namespace" as="xs:string"  />

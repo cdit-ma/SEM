@@ -845,7 +845,7 @@
         <xsl:variable name="comment" select="cdit:get_key_value($root, 'comment')" />
 
         <xsl:if test="$comment != ''">
-            <xsl:value-of select="o:tabbed_cpp_comment(concat('User Comment: ', $comment), $tab)" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('User Comment: ', o:nl(), $comment), $tab)" />
         </xsl:if>
         
         <xsl:choose>
