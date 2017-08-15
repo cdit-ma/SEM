@@ -753,7 +753,7 @@ void MainWindow::setupSearchBar()
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchButton);
 
-    searchPopup = new PopupWidget(PopupWidget::POPUP, this);
+    searchPopup = new PopupWidget(PopupWidget::POPUP, 0);
     searchPopup->setWidget(searchToolbar);
     searchPopup->setWidth(300);
 

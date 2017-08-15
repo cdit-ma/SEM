@@ -22,7 +22,7 @@ PopupWidget::PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent) : QDialog(paren
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
         break;
     default:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::SplashScreen);
     }
 }
 
