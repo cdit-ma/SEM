@@ -684,3 +684,35 @@ QAction *WindowManager::constructPopOutWindowAction(QSignalMapper *mapper, BaseW
     return action;
 }
 
+
+void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment)
+{
+    if(!parent_widget){
+        parent_widget = QApplication::activeWindow();
+        //Check
+        if(!parent_widget || !parent_widget->isWindowType()){
+            parent_widget = manager()->getActiveWindow();
+        }
+    }
+
+    if(widget && parent_widget){
+        auto pos = parent_widget->mapToGlobal(parent_widget->rect().center());
+        auto widget_size = widget->frameGeometry();
+        switch (alignment) {
+        case Qt::AlignBottom:
+            //Move to the bottom
+            pos.ry() += parent_widget->height() / 2;
+            //Offset by the height of the widget
+            pos.ry() -= widget_size.height();
+            break;
+        default:
+            //Offset by the half the height of the widget
+            pos.ry() -= widget_size.height() / 2;
+            break;
+        }
+        //Center the widget
+        pos.rx() -= widget_size.width() / 2;
+        widget->move(pos);
+    }
+}
+

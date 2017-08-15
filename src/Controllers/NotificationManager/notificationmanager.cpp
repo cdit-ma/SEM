@@ -5,6 +5,7 @@
 #include "../../Views/Notification/notificationobject.h"
 #include "../../Views/Notification/notificationdialog.h"
 #include "../../Views/Notification/notificationtoolbar.h"
+#include "../../Views/Notification/notificationpopup.h"
 #include "../../Widgets/Dialogs/popupwidget.h"
 
 NotificationManager* NotificationManager::managerSingleton = 0;
@@ -95,6 +96,7 @@ NotificationToolbar* NotificationManager::constructToolbar()
     connect(manager(), &NotificationManager::notificationSeen, toolbar, &NotificationToolbar::notificationsSeen);
     connect(manager(), &NotificationManager::updateSeverityCount, toolbar, &NotificationToolbar::updateSeverityCount);
     connect(manager(), &NotificationManager::lastNotificationDeleted, toolbar, &NotificationToolbar::lastNotificationDeleted);
+    connect(toolbar, &NotificationToolbar::showLastNotification, manager(), &NotificationManager::popupLatestNotification);
     return toolbar;
 }
 
@@ -210,6 +212,25 @@ int NotificationManager::displayLoadingNotification(QString description, QString
     return ID;
 }
 
+void NotificationManager::popupLatestNotification(){
+    auto popup = getNotificationPopup();
+    auto latest_notification = getLastNotificationItem();
+    if(popup && latest_notification){
+        popup->DisplayNotification(latest_notification);
+        popup->show();
+
+        WindowManager::MoveWidget(popup, 0, Qt::AlignBottom);
+    }
+}
+
+
+NotificationPopup* NotificationManager::getNotificationPopup(){
+    if(!notification_popup){
+        notification_popup = new NotificationPopup();
+        connect(this, &NotificationManager::notificationItemAdded, this, &NotificationManager::popupLatestNotification);
+    }
+    return notification_popup;
+}
 
 /**
  * @brief NotificationManager::updateNotification

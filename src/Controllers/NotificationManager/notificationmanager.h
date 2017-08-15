@@ -12,6 +12,7 @@ class ViewController;
 class NotificationDialog;
 class NotificationToolbar;
 class NotificationObject;
+class NotificationPopup;
 class PopupWidget;
 
 class NotificationManager : public QObject
@@ -32,7 +33,8 @@ public:
 
     static NotificationDialog* constructPanel();
     static NotificationToolbar* constructToolbar();
-    //static PopupWidget* constructPopup();
+    NotificationPopup* getNotificationPopup();
+
 
     static int displayNotification(QString description,
                                    QString iconPath = "",
@@ -62,7 +64,7 @@ public:
 
     NotificationObject* getNotificationItem(int id);
     NotificationObject* getLastNotificationItem();
-
+    
 signals:
     void notificationAlert();
     void notificationSeen();
@@ -84,6 +86,7 @@ signals:
     void selectionChanged(int selectedID);
 
 public slots:
+    void popupLatestNotification();
     void deleteNotification(int ID);
     void setLastNotificationItem(int ID);
 
@@ -106,6 +109,9 @@ private:
     static NotificationManager* managerSingleton;
     static NotificationObject* lastNotificationObject;
     static QHash<int, NotificationObject*> notificationObjects;
+
+
+    NotificationPopup* notification_popup = 0;
 
     ViewController* viewController;
 

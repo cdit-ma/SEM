@@ -9,6 +9,10 @@
 PopupWidget::PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent) : QDialog(parent)
 {
     mainFrame = new QFrame(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setSpacing(0);
+    layout->setMargin(5);
+    layout->addWidget(mainFrame);
 
     setAttribute(Qt::WA_TranslucentBackground);
     setModal(false);
@@ -33,13 +37,14 @@ PopupWidget::PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent) : QDialog(paren
  */
 void PopupWidget::setWidget(QWidget* widget)
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(mainFrame);
     layout->setSpacing(0);
     layout->setMargin(5);
     layout->addWidget(widget);
+    //mainFrame->setLayout(layout);
 
     // set the default size to be the same as the widget plus the margin
-    setSize(widget->sizeHint().width() + 10, widget->sizeHint().height() + 10);
+    //setSize(widget->sizeHint().width() + 10, widget->sizeHint().height() + 10);
 }
 
 

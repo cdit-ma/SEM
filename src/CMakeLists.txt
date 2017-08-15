@@ -112,6 +112,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationobject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp

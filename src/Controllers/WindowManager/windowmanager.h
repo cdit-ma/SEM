@@ -23,6 +23,8 @@ public:
     static WindowManager* manager();
     static void teardown();
 
+    static void MoveWidget(QWidget* widget, QWidget* parent_widget = 0, Qt::Alignment = Qt::AlignCenter);
+
     static BaseWindow* getMainWindow();
 
     //Factory constructor Functions
