@@ -162,8 +162,8 @@ void SearchItemWidget::themeChanged()
     }
     if (expandButton) {
         QIcon arrowIcon;
-        arrowIcon.addPixmap(theme->getImage("Icon", "arrowHeadDown", QSize(), theme->getMenuIconColor()));
-        arrowIcon.addPixmap(theme->getImage("Icon", "arrowHeadUp", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
+        arrowIcon.addPixmap(theme->getImage("Icons", "arrowHeadDown", QSize(), theme->getMenuIconColor()));
+        arrowIcon.addPixmap(theme->getImage("Icons", "arrowHeadUp", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
         expandButton->setIcon(arrowIcon);
         expandButton->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
@@ -204,7 +204,7 @@ void SearchItemWidget::mouseReleaseEvent(QMouseEvent *)
         }
         doubleClicked = false;
     } else {
-        setSelected(true);
+        setSelected(!selected);
     }
 }
 
