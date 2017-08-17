@@ -30,6 +30,8 @@ NotificationObject::NotificationObject(QString title, QString description, QStri
     _severity = severity;
     _iconPath = iconPath;
     _iconName = iconName;
+
+    _creationDateTime = QDateTime::currentDateTime();
 }
 
 
@@ -82,6 +84,17 @@ void NotificationObject::setSeverity(NOTIFICATION_SEVERITY severity)
 {
     _severity = severity;
     emit iconChanged(_iconPath, _iconName);
+}
+
+
+/**
+ * @brief NotificationObject::setDateTime
+ * @param dateTime
+ */
+void NotificationObject::setDateTime(QDateTime dateTime)
+{
+    _creationDateTime = dateTime;
+    emit timestampChanged(dateTime.time());
 }
 
 
@@ -182,5 +195,15 @@ NOTIFICATION_CATEGORY NotificationObject::category()
 NOTIFICATION_SEVERITY NotificationObject::severity()
 {
     return _severity;
+}
+
+
+/**
+ * @brief NotificationObject::creationDateTime
+ * @return
+ */
+QDateTime NotificationObject::creationDateTime()
+{
+    return _creationDateTime;
 }
 

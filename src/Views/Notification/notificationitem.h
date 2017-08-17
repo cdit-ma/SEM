@@ -7,6 +7,7 @@
 #include <QFrame>
 #include <QLabel>
 #include <QMovie>
+//#include <QTimer>
 
 class NotificationItem : public QFrame
 {
@@ -41,7 +42,9 @@ public slots:
 private slots:
     void descriptionChanged(QString description);
     void iconChanged(QString iconPath, QString iconName);
+    void timestampChanged(QTime time);
     void loading(bool on);
+    //void updateEllapsedTime();
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -60,6 +63,10 @@ private:
 
     QLabel* iconLabel;
     QLabel* descriptionLabel;
+    QLabel* timestampLabel;
+
+    //QDateTime creationDateTime;
+    //QTimer* ellapsedTimer;
 
     QMovie* loadingGif;
     bool loadingOn;

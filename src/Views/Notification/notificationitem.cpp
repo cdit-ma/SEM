@@ -2,6 +2,7 @@
 
 #include <QMouseEvent>
 
+
 /**
  * @brief NotificationItem::NotificationItem
  * @param obj
@@ -15,6 +16,16 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
         return;
     }
 
+    /*
+    creationDateTime = obj->creationDateTime();
+    timestampLabel = new QLabel("0s ago", this);
+
+    QTimer* ellapsedTimer = new QTimer(this);
+    ellapsedTimer->setTimerType(Qt::VeryCoarseTimer);
+    connect(ellapsedTimer, &QTimer::timeout, this, &NotificationItem::updateEllapsedTime);
+    ellapsedTimer->start(10000);
+    */
+
     notificationObject = obj;
     selected = true;
     setSelected(false);
@@ -24,13 +35,18 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
 
     descriptionLabel = new QLabel(obj->description(), this);
     iconLabel = new QLabel(this);
+    timestampLabel = new QLabel(obj->creationDateTime().time().toString("H:mm a"), this);
+
+    //descriptionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    //descriptionLabel->setMinimumWidth(10);
 
     loadingGif = 0;
     loadingOn = false;
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(iconLabel);
-    layout->addWidget(descriptionLabel, 1);
+    layout->addWidget(descriptionLabel);
+    layout->addWidget(timestampLabel, 1, Qt::AlignRight);
 
     // this item is visible by default - initialise all filter visibility to true
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
@@ -38,6 +54,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     }
 
     connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
+    connect(obj, &NotificationObject::timestampChanged, this, &NotificationItem::timestampChanged);
     connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
@@ -255,6 +272,16 @@ void NotificationItem::iconChanged(QString iconPath, QString iconName)
 
 
 /**
+ * @brief NotificationItem::timestampChanged
+ * @param time
+ */
+void NotificationItem::timestampChanged(QTime time)
+{
+    timestampLabel->setText(time.toString("H:mm a"));
+}
+
+
+/**
  * @brief NotificationItem::loading
  * @param on
  */
@@ -278,6 +305,18 @@ void NotificationItem::loading(bool on)
         iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
     }
 }
+
+
+/**
+ * @brief NotificationItem::updateEllapsedTime
+ */
+/*
+void NotificationItem::updateEllapsedTime()
+{
+    int timeElapsed = creationDateTime.time().elapsed();
+    timestampLabel->setText(QString::number(timeElapsed/1000) + "s ago");
+}
+*/
 
 
 /**
@@ -360,38 +399,6 @@ void NotificationItem::updateVisibility(bool filterMatched)
         }
 
         setVisible(showItem);
-
-        /*
-        // de-select this item if it is hidden
-        if (!filterMatched) {
-            setVisible(false);
-            if (!allVisible && selected) {
-                emit itemClicked(this, selected, true);
-            }
-            return;
-        }
-
-        bool allVisible = true;
-        foreach (bool visible, filterVisibility.values()) {
-            if (!visible) {
-                allVisible = false;
-                break;
-            }
-        }
-        if () {
-        foreach (bool visible, customFilterVisibility.values()) {
-            if (!visible) {
-                allVisible = false;
-                break;
-            }
-        }
-        if (isVisible() != allVisible) {
-            setVisible(allVisible);
-            // de-select this item if it is hidden
-            if (!allVisible && selected) {
-                emit itemClicked(this, selected, true);
-            }
-        }*/
     }
 }
 

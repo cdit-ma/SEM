@@ -2,6 +2,7 @@
 #define NOTIFICATIONOBJECT_H
 
 #include <QObject>
+#include <QDateTime>
 
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 
@@ -26,6 +27,7 @@ protected:
     void setDescription(QString description);
     void setIcon(QString path, QString name);
     void setSeverity(NOTIFICATION_SEVERITY severity);
+    void setDateTime(QDateTime dateTime);
     void setLoading(bool on);
 
 public:
@@ -40,12 +42,15 @@ public:
     NOTIFICATION_TYPE type();
     NOTIFICATION_CATEGORY category();
     NOTIFICATION_SEVERITY severity();
+
+    QDateTime creationDateTime();
  
 signals:
     // These signals should only be triggered by the setter functions above to keep the object/item state in sync
     void titleChanged(QString title);
     void descriptionChanged(QString description);
     void iconChanged(QString path, QString name);
+    void timestampChanged(QTime time);
     void loading(bool on);
 
 private:
@@ -61,6 +66,8 @@ private:
     NOTIFICATION_TYPE _type;
     NOTIFICATION_CATEGORY _category;
     NOTIFICATION_SEVERITY _severity;
+
+    QDateTime _creationDateTime;
 
 };
 

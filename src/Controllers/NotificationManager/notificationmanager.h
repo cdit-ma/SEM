@@ -6,7 +6,6 @@
 #include "../ActionController/actioncontroller.h"
 
 #include <QObject>
-#include <QTime>
 
 class ViewController;
 class NotificationDialog;
@@ -60,11 +59,11 @@ public:
     QList<int> getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
     QList<int> getNotificationsOfCategory(NOTIFICATION_CATEGORY category);
 
-    void clearModelNotifications();
-
     NotificationObject* getNotificationItem(int id);
     NotificationObject* getLastNotificationItem();
-    
+
+    void clearModelNotifications();
+
 signals:
     void notificationAlert();
     void notificationSeen();
