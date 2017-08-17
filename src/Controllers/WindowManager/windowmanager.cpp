@@ -657,7 +657,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton::!hover{background:rgba(0,0,0,0);border:none;}");
     titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";");
 
-   // popupDialog->exec();
+    popupDialog->exec();
     delete popupDialog;
 }
 

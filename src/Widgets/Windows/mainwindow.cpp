@@ -15,6 +15,7 @@
 
 #include "../../Utils/filtergroup.h"
 #include "../../Widgets/customgroupbox.h"
+#include "../../Controllers/SearchManager/searchmanager.h"
 
 #include <QDebug>
 #include <QHeaderView>
@@ -130,7 +131,8 @@ void MainWindow::setViewController(ViewController *vc)
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
     if (actionController) {
-        connect(actionController->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
+        //connect(actionController->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
+        connect(actionController->getRootAction("Root_Search"), &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
     }
 }
 
@@ -728,6 +730,8 @@ void MainWindow::setupToolBar()
  */
 void MainWindow::setupSearchBar()
 {
+    //searchPopup = new SearchPopup();
+
     searchButton = new QToolButton(this);
     searchButton->setToolTip("Submit Search");
 
@@ -963,7 +967,8 @@ void MainWindow::setupDockablePanels()
     dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
     dwQOSBrowser->setProtected(true);
 
-    searchPanel = new SearchDialog(this);
+    searchPanel = SearchManager::manager()->getSearchDialog();
+    //searchPanel = new SearchDialog(this);
     dockwidget_Search = WindowManager::constructViewDockWidget("Search Results");
     dockwidget_Search->setWidget(searchPanel);
     dockwidget_Search->setIcon("Icons", "zoomInPage");
@@ -1014,6 +1019,8 @@ void MainWindow::setupDockablePanels()
         connect(notificationPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
     }
     connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
+
+
     connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
 }
 

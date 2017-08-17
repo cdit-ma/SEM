@@ -34,7 +34,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
 
     if (viewItem) {
         viewItemID = viewItem->getID();
-        viewItem->registerObject(this);
+        //viewItem->registerObject(this);
         textLabel->setText(viewItem->getData("label").toString());
         iconPath = viewItem->getIcon();
         setupLayout(layout);
@@ -48,7 +48,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
     // this item is visible by default
     visible = true;
 
-    setSelected(false);
+    //setSelected(false);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
@@ -161,10 +161,7 @@ void SearchItemWidget::themeChanged()
         iconLabel->setPixmap(theme->getImage(iconPath.first, iconPath.second, iconSize, theme->getMenuIconColor()));
     }
     if (expandButton) {
-        QIcon arrowIcon;
-        arrowIcon.addPixmap(theme->getImage("Icons", "arrowHeadDown", QSize(), theme->getMenuIconColor()));
-        arrowIcon.addPixmap(theme->getImage("Icons", "arrowHeadUp", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
-        expandButton->setIcon(arrowIcon);
+        expandButton->setIcon(theme->getIcon("Icons", "arrowHeadVerticalToggle"));
         expandButton->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
 }
@@ -297,6 +294,7 @@ void SearchItemWidget::updateVisibility(int filter, bool filterMatched)
  */
 void SearchItemWidget::setupLayout(QVBoxLayout* layout)
 {
+    
     iconSize = QSize(ICON_SIZE, ICON_SIZE);
 
     QPixmap itemPixmap = Theme::theme()->getImage(iconPath.first, iconPath.second, iconSize);
@@ -305,41 +303,33 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
         iconPath.second = "Help";
         itemPixmap = Theme::theme()->getImage("Actions", "Help", iconSize);
     }
-
+    
+    auto top_widget = new QWidget(this);
     iconLabel = new QLabel(this);
     iconLabel->setPixmap(itemPixmap);
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setFixedSize(itemPixmap.size() + QSize(MARGIN, MARGIN));
 
-    QSize toolButtonSize(24, 24);
+    auto top_layout = new QHBoxLayout(top_widget);
+    top_layout->addWidget(iconLabel);
+    top_layout->addWidget(textLabel, 1);
 
+    QSize toolButtonSize(16, 16);
+    
     expandButton = new QToolButton(this);
     expandButton->setFixedSize(toolButtonSize);
     expandButton->setCheckable(true);
     expandButton->setChecked(false);
     expandButton->setEnabled(false);
-    expandButton->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    //expandButton->setAttribute(Qt::WA_TransparentForMouseEvents, true);
     expandButton->setToolTip("Double-Click To Show/Hide Matching Data");
 
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setIconSize(toolButtonSize);
-    toolbar->addWidget(expandButton);
-
-    QWidget* topBarWidget = new QWidget(this);
-    topBarWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    QHBoxLayout* topLayout = new QHBoxLayout(topBarWidget);
-    topLayout->setMargin(0);
-    topLayout->setSpacing(MARGIN);
-    topLayout->addWidget(iconLabel);
-    topLayout->addWidget(textLabel, 1);
-    topLayout->addWidget(toolbar);
-    topBarWidget->setMinimumWidth(topLayout->sizeHint().width());
+    top_layout->addWidget(expandButton);
 
     displayWidget = new QWidget(this);
     displayWidget->setVisible(expandButton->isChecked());
 
-    layout->addWidget(topBarWidget);
+    layout->addWidget(top_widget);
     layout->addWidget(displayWidget);
 }
 

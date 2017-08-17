@@ -10,6 +10,7 @@
 
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+#include "../../Controllers/SearchManager/searchmanager.h"
 
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
@@ -56,6 +57,7 @@ ViewController::ViewController() : QObject(){
     SettingsController::initializeSettings();
 
     NotificationManager::construct_singleton(this);
+    SearchManager::construct_singleton(this);
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     toolbarController = new ToolbarController(this);

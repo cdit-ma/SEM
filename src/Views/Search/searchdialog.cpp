@@ -40,6 +40,7 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // update displayed search string and clear previous search items
     queryLabel->setText("\"" + query + "\"");
+    
     clearSearchItems();
 
     // clear previous data filters
@@ -54,15 +55,24 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     dataFilters->setResetButtonText("All (" + QString::number(results.count()) + ")");
 
+    for(auto key : results.uniqueKeys()){
+        auto view_items = results.values(key);
+        for(auto item : view_items){
+            auto search_item = constructSearchItem(item);
+            search_item->addDisplayKey(key);
+            resultsLayout->addWidget(search_item);
+        }
+        dataFilters->addOption(key, key + " (" + QString::number(view_items.count()) + ")", "Icons", "circleHalo");
+    }
+    /*
     // construct a search item for each result item
     foreach (QString key, results.uniqueKeys()) {
         QList<ViewItem*> viewItems = results.values(key);
         foreach (ViewItem* item, viewItems) {
-            SearchItemWidget* searchItem = constructSearchItem(item);
             searchItem->addDisplayKey(key);
         }
         dataFilters->addOption(key, key + " (" + QString::number(viewItems.count()) + ")", "Icons", "circleHalo");
-    }
+    }*/
 }
 
 
