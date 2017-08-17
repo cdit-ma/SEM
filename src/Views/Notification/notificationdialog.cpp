@@ -342,7 +342,7 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
             item->filtersChanged(filter, showItem);
         }
     }
-    if (displayAllButton->isChecked()) {
+    if (!displayAllButton->isChecked()) {
         item->filtersChanged(ENTITY_ID, selectedEntityID);
     }
 }
