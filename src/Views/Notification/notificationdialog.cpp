@@ -1,17 +1,9 @@
 #include "notificationdialog.h"
 #include "notificationitem.h"
 
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QFrame>
-#include <QScrollArea>
-#include <QTime>
-#include <QMovie>
-#include <QStringBuilder>
-#include <QApplication>
-#include <QGroupBox>
-
 #define ENTITY_ID "entity_ID"
+#define NO_SELECTION_ID -2
+
 #define FILTER_KEY "filter_key"
 #define FILTER_DEFAULT_WIDTH 150
 
@@ -26,7 +18,6 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     : QWidget(parent)
 {
     selectedEntityID = -1;
-    noEntitySelectedID = -2;
 
     setupLayout();
     initialisePanel();
@@ -34,9 +25,6 @@ NotificationDialog::NotificationDialog(QWidget *parent)
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
-
-    // temporarily hide the display toggle
-    displayToggleAction->setVisible(false);
 }
 
 
@@ -127,8 +115,8 @@ void NotificationDialog::themeChanged()
     clearSelectedAction->setIcon(theme->getIcon("Icons", "bin"));
     clearVisibleAction->setIcon(theme->getIcon("Icons", "cross"));
 
-    displayAllAction->setIcon(theme->getIcon("Icons", "list"));
-    displayLinkedItemsAction->setIcon(theme->getIcon("Icons", "bug"));
+    displayAllButton->setIcon(theme->getIcon("Icons", "list"));
+    displayLinkedItemsButton->setIcon(theme->getIcon("Icons", "bug"));
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 }
@@ -173,7 +161,7 @@ void NotificationDialog::selectionChanged(NotificationItem* item, bool selected,
 void NotificationDialog::entitySelectionChanged(int ID)
 {
     selectedEntityID = ID;
-    if (this->isVisible() && displayLinkedItemsAction->isChecked()) {
+    if (this->isVisible() && displayLinkedItemsButton->isChecked()) {
         selectionFilterToggled(true);
     }
 }
@@ -185,19 +173,40 @@ void NotificationDialog::entitySelectionChanged(int ID)
  */
 void NotificationDialog::selectionFilterToggled(bool checked)
 {
+    QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
+    QToolButton* otherButton = 0;
+
+    if (senderButton == displayAllButton) {
+        // don't allow the "All" button to be unchecked manually
+        if (!checked) {
+            displayAllButton->setChecked(true);
+            return;
+        }
+        otherButton = displayLinkedItemsButton;
+    } else {
+        otherButton = displayAllButton;
+    }
+    otherButton->setChecked(!checked);
+
+    bool displayAll = displayAllButton->isChecked();
     foreach (NotificationItem* item, notificationItems) {
-        if (checked) {
+        if (displayAll) {
+            // if "All" display is checked, show all the items
+            item->filtersChanged(ENTITY_ID, item->getEntityID());
+        } else {
             // if there is nothing currently selected, hide the items
             if (selectedEntityID == -1) {
-                item->filtersChanged(ENTITY_ID, noEntitySelectedID);
+                item->filtersChanged(ENTITY_ID, NO_SELECTION_ID);
             } else {
                 item->filtersChanged(ENTITY_ID, selectedEntityID);
             }
-        } else {
-            // if "All" display is checked, show all the items
-            item->filtersChanged(ENTITY_ID, item->getEntityID());
         }
     }
+    QString newBoxTitle = "CONTEXT";
+    if (!displayAll) {
+        newBoxTitle += " (1)";
+    }
+    displayToggleBox->setTitle(newBoxTitle);
 }
 
 
@@ -333,7 +342,7 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
             item->filtersChanged(filter, showItem);
         }
     }
-    if (displayLinkedItemsAction->isChecked()) {
+    if (displayAllButton->isChecked()) {
         item->filtersChanged(ENTITY_ID, selectedEntityID);
     }
 }
@@ -444,32 +453,10 @@ void NotificationDialog::removeItem(NotificationItem* item)
 void NotificationDialog::setupLayout()
 {
     /*
-     * DISPLAY TOGGLE TOOLBAR
-     */
-    QToolBar* displayToggleToolbar = new QToolBar(this);
-    displayToggleToolbar->setIconSize(QSize(20,20));
-    displayToggleToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    displayToggleToolbar->setStyleSheet("QToolButton{ border-radius:" + Theme::theme()->getSharpCornerRadius() + ";}");
-
-    displayAllAction = displayToggleToolbar->addAction("All");
-    displayAllAction->setCheckable(true);
-    displayAllAction->setChecked(true);
-
-    displayLinkedItemsAction = displayToggleToolbar->addAction("Selection");
-    displayLinkedItemsAction->setCheckable(true);
-    connect(displayLinkedItemsAction, &QAction::toggled, this, &NotificationDialog::selectionFilterToggled);
-
-    QActionGroup* displayGroup = new QActionGroup(this);
-    displayGroup->addAction(displayAllAction);
-    displayGroup->addAction(displayLinkedItemsAction);
-    displayGroup->setExclusive(true);
-
-    /*
      * TOP TOOLBAR
      */
     topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(20,20));
-    displayToggleAction = topToolbar->addWidget(displayToggleToolbar);
 
     QWidget* stretchWidget = new QWidget(this);
     stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
@@ -586,6 +573,26 @@ void NotificationDialog::setupLayout()
  */
 void NotificationDialog::setupFilters()
 {
+    displayAllButton = new QToolButton(this);
+    displayAllButton->setText("All");
+    displayAllButton->setCheckable(true);
+    displayAllButton->setChecked(true);
+    displayAllButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    displayAllButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    connect(displayAllButton, &QToolButton::clicked, this, &NotificationDialog::selectionFilterToggled);
+
+    displayLinkedItemsButton = new QToolButton(this);
+    displayLinkedItemsButton->setText("Selection");
+    displayLinkedItemsButton->setCheckable(true);
+    displayLinkedItemsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    displayLinkedItemsButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    connect(displayLinkedItemsButton, &QToolButton::clicked, this, &NotificationDialog::selectionFilterToggled);
+
+    displayToggleBox = new CustomGroupBox("CONTEXT", this);
+    displayToggleBox->addWidget(displayAllButton);
+    displayToggleBox->addWidget(displayLinkedItemsButton);
+    filtersToolbar->addWidget(displayToggleBox);
+
     // setup SEVERITY group
     OptionGroupBox* severityGroup = new OptionGroupBox("SEVERITY", this);
     severityGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::SEVERITY));
