@@ -71,7 +71,7 @@ ViewController::ViewController() : QObject(){
     //Every minute
     //60000
     autosave_timer_ = new QTimer(this);
-    autosave_timer_->setInterval(60000);
+    autosave_timer_->setInterval(5000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 }
@@ -1014,7 +1014,7 @@ void ViewController::autoSaveProject(){
             auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
             if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
                 //Display a notification of the autosave
-                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::FILE, false);
+                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::FILE, true);
                 //update the autosave id
                 autosave_id_ = project_action_count;
                 emit vc_addProjectToRecentProjects(autosave_path);

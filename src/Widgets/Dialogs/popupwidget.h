@@ -7,18 +7,17 @@
 class PopupWidget : public QDialog
 {
     Q_OBJECT
+
 public:
-    enum POPUPWIDGET_TYPE{DIALOG, POPUP, TOOL};
-    enum SIZE_TYPE{FIXED, MIN, MAX};
-    explicit PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent = 0);
-
+    enum class TYPE{DIALOG, POPUP, TOOL};
+    explicit PopupWidget(PopupWidget::TYPE type, QWidget* parent = 0);
     void setWidget(QWidget* widget);
-    void setWidth(int width, SIZE_TYPE type = FIXED);
-    void setHeight(int height, SIZE_TYPE type = FIXED);
-    void setSize(int width, int height, SIZE_TYPE type = FIXED);
-
+protected:
+    void paintEvent(QPaintEvent* event);
 private:
-    QFrame* mainFrame;
+    void themeChanged();
+    QColor background_color;
+    QColor border_color;
 };
 
 #endif // POPUPWIDGET_H

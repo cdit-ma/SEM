@@ -20,7 +20,7 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 NotificationManager::NotificationManager(ViewController* controller)
 {
     viewController = controller;
-
+    getNotificationPopup();
 }
 
 
@@ -218,16 +218,21 @@ void NotificationManager::popupLatestNotification(){
     if(popup && latest_notification){
         popup->DisplayNotification(latest_notification);
         popup->show();
-
         WindowManager::MoveWidget(popup, 0, Qt::AlignBottom);
     }
+}
+
+void NotificationManager::centerPopup(){
+
+    WindowManager::MoveWidget(getNotificationPopup(), 0, Qt::AlignBottom);
+    getNotificationPopup()->show();
 }
 
 
 NotificationPopup* NotificationManager::getNotificationPopup(){
     if(!notification_popup){
         notification_popup = new NotificationPopup();
-        connect(this, &NotificationManager::notificationItemAdded, this, &NotificationManager::popupLatestNotification);
+        connect(this, &NotificationManager::notificationAdded, this, &NotificationManager::popupLatestNotification);
     }
     return notification_popup;
 }

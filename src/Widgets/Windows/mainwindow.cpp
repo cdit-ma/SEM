@@ -199,11 +199,11 @@ void MainWindow::popupLatestNotification(){
             }
 
             notificationIconLabel->setPixmap(pixmap);
-            notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
-            moveWidget(notificationPopup, 0, Qt::AlignBottom);
 
+            moveWidget(notificationPopup, 0, Qt::AlignBottom);
             notificationPopup->show();
-            notificationPopup->raise();
+
+            //notificationPopup->raise();
             notificationTimer->start(5000);
         }
     }
@@ -486,9 +486,9 @@ void MainWindow::toggleWelcomeScreen(bool on)
     }else{
         swapCentralWidget(innerWindow);
         restoreWindowState(false);
-
         //Call this after everything has loaded
-        //QMetaObject::invokeMethod(this, "popupLatestNotification", Qt::QueuedConnection);
+        //NotificationManager::manager()->popupLatestNotification();
+        //QMetaObject::invokeMethod(NotificationManager::manager(), "popupLatestNotification", Qt::QueuedConnection);
     }
 }
 
@@ -752,10 +752,10 @@ void MainWindow::setupSearchBar()
     searchToolbar->setFloatable(false);
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchButton);
+    searchToolbar->setFixedWidth(300);
 
-    searchPopup = new PopupWidget(PopupWidget::POPUP, 0);
+    searchPopup = new PopupWidget(PopupWidget::TYPE::TOOL, 0);
     searchPopup->setWidget(searchToolbar);
-    searchPopup->setWidth(300);
 
     connect(this, &MainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MainWindow::updateSearchSuggestions);
@@ -790,10 +790,10 @@ void MainWindow::setupProgressBar()
     layout->addWidget(progressLabel);
     layout->addWidget(progressBar);
 
-    progressPopup = new PopupWidget(PopupWidget::DIALOG, this);
+    progressPopup = new PopupWidget(PopupWidget::TYPE::TOOL, 0);
     progressPopup->setWidget(widget);
-    progressPopup->setWidth(widget->sizeHint().width() + 200);
-    progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
+    //progressPopup->setWidth(widget->sizeHint().width() + 200);
+    //progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
     progressPopup->hide();
 
     connect(viewController, &ViewController::mc_showProgress, this, &MainWindow::showProgressBar);
@@ -814,23 +814,28 @@ void MainWindow::setupNotificationBar()
     notificationLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     //notificationLabel->setWordWrap(true);
 
+    
     notificationWidget = new QWidget(this);
     notificationWidget->setContentsMargins(5, 2, 5, 2);
     notificationWidget->setStyleSheet("background: rgba(0,0,0,0); border: 0px;");
+    notificationWidget->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
 
     QHBoxLayout* layout = new QHBoxLayout(notificationWidget);
     layout->setMargin(0);
     layout->setSpacing(5);
-    layout->addWidget(notificationIconLabel, 0, Qt::AlignCenter);
-    layout->addWidget(notificationLabel, 1, Qt::AlignCenter);
+    layout->addWidget(notificationIconLabel, 0);//, Qt::AlignCenter);
+    layout->addWidget(notificationLabel, 1);//, Qt::AlignCenter);
 
-    notificationPopup = new PopupWidget(PopupWidget::POPUP, 0);
+    notificationPopup = new PopupWidget(PopupWidget::TYPE::POPUP, 0);
+    //notificationPopup->setAttribute(Qt::WA_ShowWithoutActivating);
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
     //connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupLatestNotification);
 
     notificationTimer = new QTimer(this);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
+
+   
 }
 
 

@@ -27,7 +27,9 @@ WindowManager* WindowManager::managerSingleton = 0;
 
 WindowManager* WindowManager::manager()
 {
+    
     if(!managerSingleton){
+        qRegisterMetaType<Qt::Alignment>("Qt::Alignment");
         managerSingleton = new WindowManager();
     }
     return managerSingleton;
@@ -580,7 +582,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
      //   setActiveDockWidget(dockWidget);
     //}
     Theme* theme = Theme::theme();
-    PopupWidget* popupDialog = new PopupWidget(PopupWidget::DIALOG, window);
+    PopupWidget* popupDialog = new PopupWidget(PopupWidget::TYPE::DIALOG, window);
 
     QFont titleFont;
     titleFont.setPixelSize(15);
@@ -655,7 +657,7 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton::!hover{background:rgba(0,0,0,0);border:none;}");
     titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";");
 
-    popupDialog->exec();
+   // popupDialog->exec();
     delete popupDialog;
 }
 
@@ -687,6 +689,14 @@ QAction *WindowManager::constructPopOutWindowAction(QSignalMapper *mapper, BaseW
 
 void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment)
 {
+    //Add an event to the event loop to move the widget in the next server tick.
+    QMetaObject::invokeMethod(manager(), "MoveWidgetEvent", Qt::QueuedConnection, Q_ARG(QWidget*, widget), Q_ARG(QWidget*, parent_widget), Q_ARG(Qt::Alignment, alignment));
+    //manager()->MoveWidgetEvent(widget, parent_widget, alignment);
+}
+
+void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment){
+   
+    qCritical() << "WindowManager::MoveWidgetEvent()";
     if(!parent_widget){
         parent_widget = QApplication::activeWindow();
         //Check
@@ -697,7 +707,7 @@ void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alig
 
     if(widget && parent_widget){
         auto pos = parent_widget->mapToGlobal(parent_widget->rect().center());
-        auto widget_size = widget->frameGeometry();
+        auto widget_size = widget->frameGeometry().size();//.size();
         switch (alignment) {
         case Qt::AlignBottom:
             //Move to the bottom

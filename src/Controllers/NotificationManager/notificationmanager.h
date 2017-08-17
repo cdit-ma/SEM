@@ -87,6 +87,7 @@ signals:
 
 public slots:
     void popupLatestNotification();
+    void centerPopup();
     void deleteNotification(int ID);
     void setLastNotificationItem(int ID);
 

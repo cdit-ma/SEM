@@ -13,7 +13,9 @@ class NotificationPopup : public PopupWidget
 public:
     explicit NotificationPopup();
     void DisplayNotification(NotificationObject* notification);
+
 private:
+    Q_INVOKABLE void adjustSize();
     void themeChanged();
     void setupLayout();
 
