@@ -95,6 +95,8 @@ public:
     void setMenuIconColor(COLOR_ROLE role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
     void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias);
+
+    void setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias);
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
@@ -153,6 +155,7 @@ private:
     void resetTheme(VIEW_THEME themePreset);
     void resetAspectTheme(bool colorBlind);
     void setupToggledIcons();
+    void setupAliasIcons();
     void updateValid();
 
     QImage getImage(QString resource_name);
@@ -179,6 +182,8 @@ private:
 
     QHash<COLOR_ROLE, QColor> textColor;
     QHash<COLOR_ROLE, QColor> menuIconColor;
+
+    QHash<QString, QString> icon_alias_lookup;
 
     QColor highlightColor;
     QColor backgroundColor;

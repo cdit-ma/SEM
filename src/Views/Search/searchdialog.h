@@ -61,6 +61,7 @@ private:
     QLabel* searchLabel;
     QLabel* scopeLabel;
     QLabel* infoLabel;
+    QFrame* displayWidget;
 
     QMovie* loadingGif;
 

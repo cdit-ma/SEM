@@ -189,7 +189,7 @@ QList<ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
 }
 
 QStringList getSearchableKeys(){
-    return {"label", "description", "kind", "namespace", "type", "value"};
+    return {"label", "description", "kind", "namespace", "type", "value", "ID"};
 };
 
 QList<ViewItem*> ViewController::getSearchableEntities(){
@@ -203,10 +203,10 @@ QList<ViewItem*> ViewController::getSearchableEntities(){
             if(node_item->isNodeOfType(NODE_TYPE::ASPECT)){
                 continue;
             }
-        }else if(item->isEdge()){
-            //Do nothing
         }
-        items.append(item);
+        if(item->isInModel()){
+            items.append(item);
+        }
     }
     return items;
 }
@@ -214,18 +214,12 @@ QList<ViewItem*> ViewController::getSearchableEntities(){
 QStringList ViewController::_getSearchSuggestions()
 {
     auto keys = getSearchableKeys();
-    //QStringList suggestions;
     QSet<QString> suggestions;
 
     for(auto item : getSearchableEntities()){
-        if(item->isInModel()){
-            //ID's
-            suggestions.insert(QString::number(item->getID()));
-
-            for(auto key : keys){
-                if(item->hasData(key)){
-                    suggestions.insert(item->getData(key).toString());
-                }
+        for(auto key : keys){
+            if(item->hasData(key)){
+                suggestions.insert(item->getData(key).toString());
             }
         }
     }
@@ -238,29 +232,15 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     QMap<QString, ViewItem*> results;
 
     for(auto item : getSearchableEntities()){
-        if(item && item->isNode()){
-            auto node_item = (NodeViewItem*) item;
-            if(node_item->isNodeOfType(NODE_TYPE::ASPECT)){
-                continue;
-            }
-        }
-        if(item->isInModel()){
-            QString ID = QString::number(item->getID());
-
-            if(ID.contains(query)){
-                results.insertMulti("ID", item);
-            }
-
-            for(auto key : keys){
-                if(item->hasData(key)){
-                    auto data = item->getData(key).toString();
-                    if(data.contains(query, Qt::CaseInsensitive)){
-                        results.insertMulti(key, item);
-                    }
+        for(auto key : keys){
+            if(item->hasData(key)){
+                auto data = item->getData(key).toString();
+                if(data.contains(query, Qt::CaseInsensitive)){
+                    results.insertMulti(key, item);
                 }
             }
         }
-    }    
+    }
     return results;
 }
 

@@ -17,6 +17,7 @@ Theme::Theme() : QObject(0)
     selectedItemBorderColor = Qt::blue;
 
     //Get the original settings from the settings.
+    setupAliasIcons();
     setupToggledIcons();
     updateValid();
 
@@ -390,12 +391,6 @@ QIcon Theme::getIcon(QString prefix, QString alias)
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
             }
         }
-        //*/
-
-        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        //icon.addPixmap(getImage(prefix, alias, QSize(), QColor(255,0,0)), QIcon::Selected, QIcon::Off);
-        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
-        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Active, QIcon::On);
 
         iconLookup[lookupName] = icon;
         return icon;
@@ -1194,11 +1189,19 @@ QColor Theme::calculateImageColor(QImage image)
     return c;
 }
 
+QString resourceName(QString prefix, QString alias){
+    return "Images/" % prefix % '/' % alias;
+}
+
 QString Theme::getResourceName(QString prefix, QString alias) const
 {
     //Uncomment for bounding rects
     //return "Images/Icons/square";
-    return "Images/" % prefix % '/' % alias;
+    auto resource_name = resourceName(prefix, alias);
+    while(icon_alias_lookup.contains(resource_name)){
+        resource_name = icon_alias_lookup[resource_name];
+    }
+    return resource_name;
 }
 
 QString Theme::getResourceName(IconPair icon) const
@@ -1217,9 +1220,25 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
     setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
+}
 
+void Theme::setupAliasIcons(){
+    setIconAlias("Data", "label", "Icons", "label");
+    setIconAlias("Data", "description", "Icons", "speechBubbleFilled");
+    setIconAlias("Data", "kind", "Icons", "tiles");
+    setIconAlias("Data", "namespace", "Icons", "letterA");
+    setIconAlias("Data", "value", "Icons", "pencil");
+    setIconAlias("Data", "type", "Icons", "gearDark");
+    setIconAlias("Data", "ID", "Icons", "numberOne");
+}   
 
-
+void Theme::setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias){
+    auto alias_rn = resourceName(prefix, alias);
+    auto icon_rn = resourceName(icon_prefix, icon_alias);
+    
+    if(!icon_alias_lookup.contains(alias_rn)){
+        icon_alias_lookup[alias_rn] = icon_rn;
+    }
 }
 
 

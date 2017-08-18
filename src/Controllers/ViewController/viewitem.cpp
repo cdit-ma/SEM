@@ -19,6 +19,8 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->ID = ID;
     this->entityKind = entity_kind;
     //Add X/Y
+
+    changeData("ID", ID);
     
 
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));

@@ -11,6 +11,14 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+struct DataItem{
+    QWidget* item = 0;
+    QLabel* label_icon = 0;
+    QLabel* label_value = 0;
+    QLabel* label_key = 0;
+};
+
+
 class SearchItemWidget : public QFrame
 {
     Q_OBJECT
@@ -18,27 +26,23 @@ public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
     ~SearchItemWidget();
 
-    void addDisplayKey(QString key);
+    void addMatchedKey(QString key);
+    void removeMatchedKey(QString key);
+    void clearMatchedKeys();
+    bool gotMatchedKey(QString key);
 
-    void setAspectFilterKey(int key);
-    void setDataFilterKey(int key);
+
 
     void setSelected(bool selected);
 
     VIEW_ASPECT getViewAspect();
-    QStringList getDataKeys();
-    
-    void updateVisibility(int filter, bool filterMatched);
-
 signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
     void itemSelected(int ID);
-
 public slots:
     void themeChanged();
     void expandButtonToggled(bool checked);
-
 protected:
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
@@ -46,38 +50,47 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
+    void updateDataIcon(QString key);
+    void updateIcon();
+    void updateLabel();
+    void updateData(QString data);
+
+    void setupLayout();
+    void setupDataLayout();
+
+    void setupDataKey(QString key);
+    void removeDataKey(QString key);
+    
+    
+    
     void updateStyleSheet();
-
-    void setupLayout(QVBoxLayout* layout);
+    
     void constructKeyWidgets();
-
-    ViewItem* viewItem;
-    VIEW_ASPECT viewAspect;
-    int viewItemID;
     
-    QLabel* iconLabel;
-    QSize iconSize;
-    QPair<QString, QString> iconPath;
+    bool data_layout_setup = false;
 
-    QLabel* textLabel;
-    QToolButton* expandButton;
-    QWidget* displayWidget;
+    ViewItem* view_item = 0;
+    VIEW_ASPECT view_aspect = VIEW_ASPECT::NONE;
+    int ID = -1;
     
-    QStringList keys;
-    QHash<QString, QWidget*> keyWidgetHash;
+    QLabel* label_text = 0;
+    QLabel* label_icon = 0;
+    QToolButton* button_expand = 0;
+    QWidget* data_widget = 0;
+
+    QSize icon_size;
+    QSize small_icon_size;
+
+    
+    QSet<QString> matched_keys;
+
+    QHash<QString, DataItem*> data_key_hash;
 
     QString backgroundColor;
 
-    bool keyWidgetsConstructed;
-    bool doubleClicked;
-    bool selected;
-    bool visible;
-
-
-    QHash<int, bool> filterVisibility;
-    QVariant aspectFilterKey;
-    QVariant dataFilterKey;
-
+    bool doubleClicked = false;
+    bool selected = false;
+    bool visible = false;
 };
 
 #endif // SEARCHITEMWIDGET_H
