@@ -18,38 +18,32 @@
 class SearchDialog : public QWidget
 {
     Q_OBJECT
-
 public:
-    enum SEARCH_FILTER{ASPECTS_FILTER, DATA_FILTER};
-
     explicit SearchDialog(QWidget *parent = 0);
 
-    void searchResults(QString query, QMap<QString, ViewItem*> results);
-
+    void DisplaySearchResults(QString query, QMap<QString, ViewItem*> results);
 signals:
     void itemHoverEnter(int ID);
     void itemHoverLeave(int ID);
 
-    void centerOnViewItem(int ID);
-    void popupViewItem(int ID);
+    void SearchQuery(QString query);
+    void SearchPopup();
 
-    void searchButtonClicked();
-    void refreshButtonClicked();
-
-public slots:
+    void CenterOn(int ID);
+    void Popup(int ID);
+private slots:
     void themeChanged();
     void filtersChanged();
 
     void searchItemSelected(int ID);
-    void viewItemDestructed(int ID);
-
-    void centerOnSelectedItem();
-    void popupSelectedItem();
-
-    void loading(bool on);
     void resetPanel();
-
+public slots:
+    void viewItemDestructed(int ID);
+protected:
+    void paintEvent(QPaintEvent *);
 private:
+    
+    void setQuery(QString query);
     void setupLayout();
     void setupFilters();
 
@@ -57,33 +51,33 @@ private:
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
 
-    QLabel* queryLabel;
-    QLabel* searchLabel;
-    QLabel* scopeLabel;
-    QLabel* infoLabel;
-    QFrame* displayWidget;
+    QLabel* search_label = 0;
+    QLabel* query_label = 0;
+    
+    QLabel* info_label = 0;
 
-    QMovie* loadingGif;
+    QWidget* filters_widgets = 0;
+    QWidget* results_widgets = 0;
+    QVBoxLayout* results_layout = 0;
+    QVBoxLayout* filters_layout = 0;
 
-    QToolButton* centerOnButton;
-    QToolButton* popupButton;
-    QToolButton* searchButton;
-    QToolButton* refreshButton;
+    QToolBar* top_toolbar = 0;
+    QToolBar* bottom_toolbar = 0;
 
-    QToolBar* filtersToolbar;
-    QToolBar* topToolbar;
-    QToolBar* bottomToolbar;
-    QSplitter* displaySplitter;
+    QAction* center_action = 0;
+    QAction* popup_action = 0;
+    QAction* search_action = 0;
+    QAction* refresh_action = 0;
+    
+    QSplitter* splitter = 0;
 
-    OptionGroupBox* aspectsFilters;
-    OptionGroupBox* dataFilters;
-    QAction* dataGroupAction;
+    OptionGroupBox* aspect_filters = 0;
+    OptionGroupBox* data_filters = 0;
 
-    QVBoxLayout* resultsLayout;
-    QHash<int, SearchItemWidget*> searchItems;
+    QHash<int, SearchItemWidget*> search_items;
 
-    int selectedSearchItemID;
-    QString queryText;
+    int selected_id = -1;
+    QString query_text;
 };
 
 #endif // SEARCHDIALOG_H

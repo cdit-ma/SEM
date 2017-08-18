@@ -58,6 +58,8 @@ public:
     QList<ViewDockWidget*> getViewDockWidgets();
     QList<NodeViewDockWidget*> getNodeViewDockWidgets();
     NodeViewDockWidget* getNodeViewDockWidget(ViewItem* item);
+
+    void showDockWidget(BaseDockWidget* widget);
     
     void currentDockWidget(BaseDockWidget *dockWidget);
     private slots:

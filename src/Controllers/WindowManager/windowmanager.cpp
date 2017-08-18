@@ -35,6 +35,24 @@ WindowManager* WindowManager::manager()
     return managerSingleton;
 }
 
+void WindowManager::showDockWidget(BaseDockWidget* widget){
+    if(widget){
+        auto window = widget->window();
+        widget->show();
+        if(window){
+            if (window->isMinimized()) {
+                window->showNormal();
+            }
+            // raise and activate the dock's parent window
+            window->raise();
+        }
+        // make sure that the search panel dock widget is visible and that its window is raised
+        widget->activateWindow();
+        // raise the dock widget - this brings the dock widget to the front if it's tabbed
+        widget->raise();
+    }
+}
+
 BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
 {
     return manager()->_constructMainWindow(vc);

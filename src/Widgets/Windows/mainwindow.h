@@ -47,11 +47,6 @@ signals:
 public slots:
     void setModelTitle(QString modelTitle="");
 
-    void popupLatestNotification();
-    
-    void toggleNotificationPanel();
-    void ensureNotificationPanelVisible();
-
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 
@@ -63,13 +58,11 @@ private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevDock);
 
-    void popupSearch();
-    void updateSearchSuggestions(QStringList list);
-    void searchEntered();
-
     void toolbarOrientationChanged(Qt::Orientation orientation);
 private:
-
+    void showSearchDialog();
+    void showNotificationDialog();
+    
     void swapCentralWidget(QWidget* widget);
     void setViewController(ViewController* vc);
     void initializeApplication();
@@ -83,9 +76,7 @@ private:
     void setupWelcomeScreen();
     void setupMenuBar();
     void setupToolBar();
-    void setupSearchBar();
     void setupProgressBar();
-    void setupNotificationBar();
     void setupDock();
     void setupDataTable();
     void setupViewManager();
@@ -124,25 +115,11 @@ private:
     NodeViewMinimap* minimap;
     ViewManagerWidget* viewManager;
 
-    PopupWidget* searchPopup;
-    QToolBar* searchToolbar;
-    QLineEdit* searchBar;
-    QToolButton* searchButton;
-    QCompleter* searchCompleter;
-    QStringListModel* searchCompleterModel;
-    SearchDialog* searchPanel;
-
     PopupWidget* progressPopup;
     QProgressBar* progressBar;
     QLabel* progressLabel;
 
-    PopupWidget* notificationPopup;
-    QWidget* notificationWidget;
-    QLabel* notificationIconLabel;
-    QLabel* notificationLabel;
-    QTimer* notificationTimer;
-    NotificationToolbar* notificationToolbar;
-    NotificationDialog* notificationPanel;
+    NotificationToolbar* notificationToolbar = 0;
 
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;

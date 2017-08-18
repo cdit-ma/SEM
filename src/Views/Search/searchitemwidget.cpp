@@ -67,6 +67,9 @@ void SearchItemWidget::clearMatchedKeys(){
         removeDataKey(key);
     }
     matched_keys.clear();
+
+    //Triggered
+    expandButtonToggled(false);
 }
 
 /**
@@ -233,7 +236,7 @@ void SearchItemWidget::updateStyleSheet()
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
-                  "QWidget{border:1px solid red;}"
+                  /*"QWidget{border:1px solid red;}"*/
                   + theme->getToolBarStyleSheet());
 }
 

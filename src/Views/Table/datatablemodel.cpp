@@ -171,7 +171,7 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::DecorationRole) {
         if(hasPopupEditor(index)){
-            return  Theme::theme()->getImage("Icons", "popOut", QSize(16,16), Theme::theme()->getAltBackgroundColor());
+            return  Theme::theme()->getImage("Icons", "popOut", QSize(16,16), Theme::theme()->getMenuIconColor());
         }
     }
 
@@ -200,8 +200,14 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
 
 QVariant DataTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if(role == Qt::DisplayRole && orientation == Qt::Vertical){
-        return getKey(section);
+    if(orientation == Qt::Vertical){
+        auto key = getKey(section);
+        if(role == Qt::DisplayRole){
+            return key;
+        }/* //UNCOMMENT FOR ICONS IN TABLE
+        else if(role == Qt::DecorationRole){
+            return  Theme::theme()->getImage("Data", key, QSize(16,16), Theme::theme()->getTextColor());
+        }*/
     }
     if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
         if(section == 0){
@@ -210,6 +216,8 @@ QVariant DataTableModel::headerData(int section, Qt::Orientation orientation, in
             return "Value";
         }
     }
+
+
     if (role == Qt::ToolTipRole) {
         if(isRowProtected(section)){
             return "Data is Protected";

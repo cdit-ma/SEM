@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QIcon>
 #include <QReadWriteLock>
+#include <QStringBuilder>
 
 #include <QObject>
 #include <QFuture>

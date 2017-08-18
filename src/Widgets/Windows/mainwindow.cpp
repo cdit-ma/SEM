@@ -123,7 +123,6 @@ void MainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
 
-    //connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
     connect(viewController, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
     connect(viewController, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(viewController, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
@@ -131,118 +130,29 @@ void MainWindow::setViewController(ViewController *vc)
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
     if (actionController) {
-        //connect(actionController->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
-        connect(actionController->getRootAction("Root_Search"), &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
+        connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
     }
+
+    connect(SearchManager::manager(), &SearchManager::SearchComplete, this, &MainWindow::showSearchDialog);
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::showNotificationDialog);
 }
 
-
-/**
- * @brief MedeaMainWindow::showCompletion
- * @param list
- */
-void MainWindow::updateSearchSuggestions(QStringList list)
+void MainWindow::showSearchDialog()
 {
-    searchCompleterModel->setStringList(list);
+    WindowManager::manager()->showDockWidget(dockwidget_Search);
 }
 
 
-/**
- * @brief MedeaMainWindow::searchEntered
- */
-void MainWindow::searchEntered()
-{
-    QString query = searchBar->text();
-
-    if (!query.isEmpty()) {
-
-        //searchPanel->loading(true);
-        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        searchPanel->searchResults(query, viewController->getSearchResults(query));
-        qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        //searchPanel->loading(false);
-        qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
-
-        // make sure that the search panel dock widget is visible and that its window is raised
-        QWidget* parentWindow = dockwidget_Search->window();
-        if (!dockwidget_Search->isVisible()) {
-            // check if its window is minimized
-            if (parentWindow->isMinimized()) {
-                parentWindow->showNormal();
-            }
-            // check if it's not shown
-            if (!dockwidget_Search->isVisible()) {
-                dockwidget_Search->req_Visible(dockwidget_Search->getID(), true);
-            }
-        }
-
-        // raise and activate the dock's parent window
-        parentWindow->raise();
-        dockwidget_Search->activateWindow();
-
-        // raise the dock widget - this brings the dock widget to the front if it's tabbed
-        dockwidget_Search->raise();
-    }
-}
-
-
-void MainWindow::popupLatestNotification(){
-    notificationPopup->hide();
-    notificationTimer->stop();
-
-    if (!welcomeScreenOn) {
-        auto notification = NotificationManager::manager()->getLastNotificationItem();
-        if(notification){
-            notificationLabel->setText(notification->description());
-            auto pixmap = Theme::theme()->getImage(notification->iconPath(), notification->iconName(), QSize(32,32), getSeverityColor(notification->severity()));
-            
-            if (pixmap.isNull()) {
-                pixmap = Theme::theme()->getImage("Icons", "circleInfo", QSize(32,32), getSeverityColor(notification->severity()));
-            }
-
-            notificationIconLabel->setPixmap(pixmap);
-
-            moveWidget(notificationPopup, 0, Qt::AlignBottom);
-            notificationPopup->show();
-
-            //notificationPopup->raise();
-            notificationTimer->start(5000);
-        }
-    }
-
-}
 /**
  * @brief MainWindow::toggleNotificationPanel
  * This toggles the visibility of the notification panel dock widget.
  * If it's already visible but its parent window is not active, activate
  * the window instead of hiding it. Otherwise, hide the dock widget.
  */
-void MainWindow::toggleNotificationPanel()
+void MainWindow::showNotificationDialog()
 {
-    if (dockwidget_Notification->isVisible()) {
-        if (dockwidget_Notification->isActiveWindow()) {
-            dockwidget_Notification->req_Visible(dockwidget_Notification->getID(), false);
-            return;
-        }
-    }
-    ensureNotificationPanelVisible();
+    WindowManager::manager()->showDockWidget(dockwidget_Notification);
 }
-
-
-/**
- * @brief MainWindow::ensureNotificationPanelVisible
- * This ensures that the notification dock widget is visible and activated/raised.
- */
-void MainWindow::ensureNotificationPanelVisible()
-{
-    if (!dockwidget_Notification->isVisible()) {
-        dockwidget_Notification->req_Visible(dockwidget_Notification->getID(), true);
-    }
-    dockwidget_Notification->window()->raise();
-    dockwidget_Notification->activateWindow();
-    dockwidget_Notification->raise();
-}
-
 
 /**
  * @brief MedeaMainWindow::showProgressBar
@@ -336,18 +246,9 @@ void MainWindow::themeChanged()
     actionController->menu_help->setStyleSheet(menuStyle);
     actionController->menu_options->setStyleSheet(menuStyle);
 
-    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
-    searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    searchToolbar->setStyleSheet(theme->getToolBarStyleSheet());
-    searchBar->setStyleSheet(theme->getLineEditStyleSheet());
-    searchButton->setIcon(theme->getIcon("Icons", "zoom"));
-
     progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
     progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
-
-    notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
-    //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
     restoreToolsButton->setIcon(theme->getIcon("Icons", "spanner"));
     restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
@@ -393,20 +294,6 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
         minimap->setBackgroundColor(QColor(0,0,0));
         minimap->setScene(0);
     }
-}
-
-
-/**
- * @brief MedeaMainWindow::popupSearch
- * This pops up and brings the search bar in focus.
- */
-void MainWindow::popupSearch()
-{
-    emit requestSuggestions();
-    moveWidget(searchPopup);
-    searchPopup->show();
-    searchBar->setFocus();
-    searchBar->selectAll();
 }
 
 /**
@@ -483,8 +370,6 @@ void MainWindow::toggleWelcomeScreen(bool on)
     setDockWidgetsVisible(!on);
     if(on){
         swapCentralWidget(welcomeScreen);
-        notificationPopup->hide();
-        notificationTimer->stop();
     }else{
         swapCentralWidget(innerWindow);
         restoreWindowState(false);
@@ -552,25 +437,10 @@ void MainWindow::setupTools()
     tableWidget = 0;
     minimap = 0;
 
-    searchPopup = 0;
-    searchToolbar = 0;
-    searchBar = 0;
-    searchButton = 0;
-    searchPanel = 0;
-    searchCompleter = 0;
-    searchCompleterModel = 0;
-
     progressPopup = 0;
     progressBar = 0;
     progressLabel = 0;
 
-    notificationPopup = 0;
-    notificationWidget = 0;
-    notificationIconLabel = 0;
-    notificationLabel = 0;
-    notificationTimer = 0;
-    notificationToolbar = 0;
-    notificationPanel = 0;
 
     restoreToolsButton = 0;
     restoreToolsAction = 0;
@@ -579,9 +449,7 @@ void MainWindow::setupTools()
 
     setupWelcomeScreen();
     setupMenuBar();
-    setupSearchBar();
     setupProgressBar();
-    setupNotificationBar();
     setupDock();
     
     setupDataTable();
@@ -725,50 +593,6 @@ void MainWindow::setupToolBar()
 }   
 
 
-/**
- * @brief MedeaMainWindow::setupSearchBar
- */
-void MainWindow::setupSearchBar()
-{
-    //searchPopup = new SearchPopup();
-
-    searchButton = new QToolButton(this);
-    searchButton->setToolTip("Submit Search");
-
-    searchCompleterModel = new QStringListModel(this);
-
-    searchCompleter = new QCompleter(this);
-    searchCompleter->setModel(searchCompleterModel);
-    searchCompleter->setFilterMode(Qt::MatchContains);
-    searchCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    searchCompleter->popup()->setItemDelegate(new QStyledItemDelegate(this));
-    searchCompleter->popup()->setFont(QFont(font().family(), 10));
-
-    searchBar = new QLineEdit(this);
-    searchBar->setFont(QFont(font().family(), 13));
-    searchBar->setPlaceholderText("Search MEDEA");
-    searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    searchBar->setCompleter(searchCompleter);
-
-    searchToolbar = new QToolBar(this);
-    searchToolbar->setIconSize(QSize(24,24));
-    searchToolbar->setMovable(false);
-    searchToolbar->setFloatable(false);
-    searchToolbar->addWidget(searchBar);
-    searchToolbar->addWidget(searchButton);
-    searchToolbar->setFixedWidth(300);
-
-    searchPopup = new PopupWidget(PopupWidget::TYPE::TOOL, 0);
-    searchPopup->setWidget(searchToolbar);
-
-    connect(this, &MainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
-    connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MainWindow::updateSearchSuggestions);
-
-    connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
-    connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
-    connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
-}
-
 
 /**
  * @brief MedeaMainWindow::setupProgressBar
@@ -802,44 +626,6 @@ void MainWindow::setupProgressBar()
 
     connect(viewController, &ViewController::mc_showProgress, this, &MainWindow::showProgressBar);
     connect(viewController, &ViewController::mc_progressChanged, this, &MainWindow::updateProgressBar);
-}
-
-
-/**
- * @brief MedeaMainWindow::setupNotificationBar
- */
-void MainWindow::setupNotificationBar()
-{
-    notificationIconLabel = new QLabel(this);
-    notificationIconLabel->setAlignment(Qt::AlignCenter);
-
-    notificationLabel = new QLabel("This is a notification.", this);
-    notificationLabel->setFont(QFont(font().family(), 11));
-    notificationLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    //notificationLabel->setWordWrap(true);
-
-    
-    notificationWidget = new QWidget(this);
-    notificationWidget->setContentsMargins(5, 2, 5, 2);
-    notificationWidget->setStyleSheet("background: rgba(0,0,0,0); border: 0px;");
-    notificationWidget->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
-
-    QHBoxLayout* layout = new QHBoxLayout(notificationWidget);
-    layout->setMargin(0);
-    layout->setSpacing(5);
-    layout->addWidget(notificationIconLabel, 0);//, Qt::AlignCenter);
-    layout->addWidget(notificationLabel, 1);//, Qt::AlignCenter);
-
-    notificationPopup = new PopupWidget(PopupWidget::TYPE::POPUP, 0);
-    //notificationPopup->setAttribute(Qt::WA_ShowWithoutActivating);
-    notificationPopup->setWidget(notificationWidget);
-    notificationPopup->hide();
-    //connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupLatestNotification);
-
-    notificationTimer = new QTimer(this);
-    connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
-
-   
 }
 
 
@@ -933,7 +719,7 @@ void MainWindow::setupMenuCornerWidget()
     //notificationToolbar = new NotificationToolbar(viewController, this);
     notificationToolbar = NotificationManager::constructToolbar();
     notificationToolbar->setParent(this); 
-    connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
+    connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::showNotificationDialog);
     //connect(notificationToolbar, &NotificationToolbar::showLastNotification, this, &MainWindow::popupLatestNotification);
     
     connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
@@ -962,22 +748,21 @@ void MainWindow::setupDockablePanels()
 {
     auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
-    //dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwQOSBrowser->setIconVisible(true);
     dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
     dwQOSBrowser->setProtected(true);
 
-    searchPanel = SearchManager::manager()->getSearchDialog();
-    //searchPanel = new SearchDialog(this);
+    auto searchPanel = SearchManager::manager()->getSearchDialog();
+    
     dockwidget_Search = WindowManager::constructViewDockWidget("Search Results");
     dockwidget_Search->setWidget(searchPanel);
     dockwidget_Search->setIcon("Icons", "zoomInPage");
     dockwidget_Search->setIconVisible(true);
     dockwidget_Search->setProtected(true);
-
-    notificationPanel = NotificationManager::constructPanel();
-    notificationPanel->setParent(this);
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
+    
+    auto notificationPanel = NotificationManager::constructPanel();
+    
+    
 
     dockwidget_Notification = WindowManager::constructViewDockWidget("Notifications");
     dockwidget_Notification->setWidget(notificationPanel);
@@ -1008,20 +793,13 @@ void MainWindow::setupDockablePanels()
 
 
     if (viewController) {
-        connect(viewController, &ViewController::vc_SetupModelController, searchPanel, &SearchDialog::resetPanel);
-        connect(searchPanel, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
-        connect(searchPanel, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
-        connect(searchPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
-        connect(searchPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
+        
+        
         connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
         connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
         connect(notificationPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
         connect(notificationPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
     }
-    connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
-
-
-    connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
 }
 
 
