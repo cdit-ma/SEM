@@ -8,9 +8,6 @@
 #define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 300
 
-#define FILTER_REST_KEY -1
-#define FILTER_KEY "filter_key"
-
 /**
  * @brief SearchDialog::SearchDialog
  * @param parent
@@ -104,6 +101,8 @@ void SearchDialog::themeChanged()
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
 }
+
+     
 
 
 /**

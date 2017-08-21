@@ -1,11 +1,5 @@
 #include "searchitemwidget.h"
 
-#include <QToolBar>
-#include <QStringBuilder>
-
-#define ICON_SIZE 32
-#define MARGIN 5
-
 /**
  * @brief SearchItemWidget::SearchItemWidget
  * @param item
@@ -31,8 +25,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
 
     setupLayout();
 
-    //setSelected(false);
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), &Theme::theme_Changed, this, &SearchItemWidget::themeChanged);
     themeChanged();
 }
 
@@ -241,9 +234,6 @@ void SearchItemWidget::updateStyleSheet()
 }
 
 void SearchItemWidget::setupLayout(){
-    small_icon_size = QSize(16, 16);
-    icon_size = QSize(ICON_SIZE, ICON_SIZE);
-
     auto layout = new QVBoxLayout(this);
     layout->setMargin(5);
     layout->setSpacing(5);
