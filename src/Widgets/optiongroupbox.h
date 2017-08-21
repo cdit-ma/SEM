@@ -33,6 +33,7 @@ public:
     bool isAllChecked();
 
     bool addOption(QVariant key, QString label, QString icon_path, QString icon_name);
+    void setOptionVisible(QVariant key, bool is_visible);
     void removeOption(QVariant key);
     void removeOptions();
 
@@ -71,6 +72,7 @@ private:
     QString title;
 
     QHash<QVariant, QToolButton*> optionsLookup;
+    QHash<QVariant, QAction*> action_lookup;
     QList<QVariant> checkedKeys;
 };
 

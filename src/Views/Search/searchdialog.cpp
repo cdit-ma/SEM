@@ -78,8 +78,8 @@ void SearchDialog::themeChanged()
                     theme->getSplitterStyleSheet()
                 );
 
-    results_widgets->setStyleSheet("background: rgba(0,0,0,0);");
-    filters_widgets->setStyleSheet("background: rgba(0,0,0,0);");
+    results_widget->setStyleSheet("background: rgba(0,0,0,0);");
+    filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
 
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
@@ -209,23 +209,23 @@ void SearchDialog::setupLayout()
     popup_action = top_toolbar->addAction("Popup On Selection");
 
 
-    filters_widgets = new QWidget(this);
-    filters_layout = new QVBoxLayout(filters_widgets);
+    filters_widget = new QWidget(this);
+    filters_layout = new QVBoxLayout(filters_widget);
     filters_layout->setAlignment(Qt::AlignTop);
     filters_layout->setMargin(5);
     filters_layout->setSpacing(0);
     filters_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
     auto filter_scroll = new QScrollArea(this);
-    filter_scroll->setWidget(filters_widgets);
+    filter_scroll->setWidget(filters_widget);
     filter_scroll->setWidgetResizable(true);
 
 
     
-    results_widgets = new QWidget(this);
+    results_widget = new QWidget(this);
 
 
-    results_layout = new QVBoxLayout(results_widgets);
+    results_layout = new QVBoxLayout(results_widget);
     results_layout->setAlignment(Qt::AlignTop);
     results_layout->setSpacing(0);
     results_layout->setMargin(0);
@@ -233,7 +233,7 @@ void SearchDialog::setupLayout()
     results_layout->addWidget(info_label);
 
     auto results_scroll = new QScrollArea(this);
-    results_scroll->setWidget(results_widgets);
+    results_scroll->setWidget(results_widget);
     results_scroll->setWidgetResizable(true);
 
     v_layout->addLayout(top_layout);
@@ -250,7 +250,7 @@ void SearchDialog::setupLayout()
     auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-    layout->setContentsMargins(1, 1, 1, 1);
+    //layout->setContentsMargins(1, 1, 1, 1);
     layout->addWidget(splitter, 1);
     
 
@@ -271,14 +271,14 @@ void SearchDialog::setupLayout()
 void SearchDialog::setupFilters()
 {
     aspect_filters = new OptionGroupBox("ASPECT", this);
-    filters_widgets->layout()->addWidget(aspect_filters);
+    filters_layout->addWidget(aspect_filters);
 
     for(auto view_aspect : GET_VIEW_ASPECTS()){
         aspect_filters->addOption(QVariant::fromValue(view_aspect), GET_ASPECT_NAME(view_aspect), "EntityIcons", GET_ASPECT_ICON(view_aspect));
     }
 
     data_filters = new OptionGroupBox("DATA", this);
-    filters_widgets->layout()->addWidget(data_filters);
+    filters_layout->addWidget(data_filters);
 
     connect(aspect_filters, &OptionGroupBox::checkedOptionsChanged, this, &SearchDialog::filtersChanged);
     connect(data_filters, &OptionGroupBox::checkedOptionsChanged, this, &SearchDialog::filtersChanged);

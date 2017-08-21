@@ -93,6 +93,15 @@ void OptionGroupBox::setResetButtonVisible(bool visible)
     }
 }
 
+void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
+{
+    auto option_button = action_lookup.value(key, 0);
+    if(option_button){
+        option_button->setVisible(visible);
+    }
+}
+
+
 
 /**
  * @brief OptionGroupBox::setResetButtonIcon
@@ -307,8 +316,11 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
-    if (addOptionButton(button, key)) {
+    auto action = addOptionButton(button, key);
+
+    if(action){
         resetOptions();
+        action_lookup.insert(key, action);
         return true;
     }
     return false;

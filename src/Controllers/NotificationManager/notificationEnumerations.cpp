@@ -2,6 +2,9 @@
 #include "../../theme.h"
 
 
+extern QList<NOTIFICATION_CONTEXT> getNotificationContexts(){
+    return {NOTIFICATION_CONTEXT::SELECTED, NOTIFICATION_CONTEXT::NOT_SELECTED};
+}
 /**
  * @brief getNotificationFilters
  * @return
@@ -97,6 +100,17 @@ QString getSeverityString(NOTIFICATION_SEVERITY severity)
     }
 }
 
+QString getContextString(NOTIFICATION_CONTEXT context)
+{
+    switch (context) {
+    case NOTIFICATION_CONTEXT::SELECTED:
+        return "Selected";
+    case NOTIFICATION_CONTEXT::NOT_SELECTED:
+        return "Not Selected";
+    default:
+        return "Unknown Context";
+    }
+}
 
 /**
  * @brief getCategoryString
@@ -138,7 +152,21 @@ QString getSeverityIcon(NOTIFICATION_SEVERITY severity)
         return "circleQuestion";
     }
 }
+QString getContextIcon(NOTIFICATION_CONTEXT context){
+    switch (context) {
+        default:
+            return "circleQuestion";
+    }
+}
 
+QString getTypeIcon(NOTIFICATION_TYPE type){
+    switch (type) {
+    case NOTIFICATION_TYPE::MODEL:
+        return "dotsInRectangle";
+    case NOTIFICATION_TYPE::APPLICATION:
+        return "circleQuestion";
+    }
+}
 
 /**
  * @brief getCategoryIcon

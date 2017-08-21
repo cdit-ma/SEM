@@ -51,8 +51,8 @@ private:
     
     QLabel* info_label = 0;
 
-    QWidget* filters_widgets = 0;
-    QWidget* results_widgets = 0;
+    QWidget* filters_widget = 0;
+    QWidget* results_widget = 0;
     QVBoxLayout* results_layout = 0;
     QVBoxLayout* filters_layout = 0;
 

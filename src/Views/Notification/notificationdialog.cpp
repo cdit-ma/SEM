@@ -24,8 +24,8 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     selectedEntityID = -1;
 
     setupLayout();
-    initialisePanel();
-    updateSelectionBasedButtons();
+    //initialisePanel();
+    //updateSelectionBasedButtons();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -95,34 +95,27 @@ void NotificationDialog::viewSelection()
  */
 void NotificationDialog::themeChanged()
 {
-    Theme* theme = Theme::theme();
-    setStyleSheet("QScrollArea {"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "}"
-                  "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}"
-                  + theme->getAltAbstractItemViewStyleSheet()
-                  + theme->getDialogStyleSheet());
+    auto theme = Theme::theme();
+    
+    setStyleSheet(
+                    "#NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";} " +
+                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0);} " +
+                    "QLabel {color:" + theme->getTextColorHex() + ";} " + 
+                    theme->getToolBarStyleSheet() +
+                    theme->getSplitterStyleSheet()
+                );
 
-    mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
+    notifications_widget->setStyleSheet("background: rgba(0,0,0,0);");
+    filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
 
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
-    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
-    filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
-                                  "QToolBar{ padding: 0px; spacing: 0px; }"
-                                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 
-    sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
-    sortSeverityAction->setIcon(theme->getIcon("Icons", "letterAZ"));
-    centerOnAction->setIcon(theme->getIcon("Icons", "crosshair"));
-    popupAction->setIcon(theme->getIcon("Icons", "popOut"));
-    clearSelectedAction->setIcon(theme->getIcon("Icons", "bin"));
-    clearVisibleAction->setIcon(theme->getIcon("Icons", "cross"));
+    center_action->setIcon(theme->getIcon("Icons", "crosshair"));
+    popup_action->setIcon(theme->getIcon("Icons", "popOut"));
+    //search_action->setIcon(theme->getIcon("Icons", "zoom"));
+    //refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
 
-    displayAllButton->setIcon(theme->getIcon("Icons", "list"));
-    displayLinkedItemsButton->setIcon(theme->getIcon("Icons", "bug"));
-
-    displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
+    //query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 }
 
 
@@ -456,118 +449,77 @@ void NotificationDialog::removeItem(NotificationItem* item)
  */
 void NotificationDialog::setupLayout()
 {
-    /*
-     * TOP TOOLBAR
-     */
-    topToolbar = new QToolBar(this);
-    topToolbar->setIconSize(QSize(20,20));
+    auto right_widget = new QWidget(this);
+    auto v_layout = new QVBoxLayout(right_widget);
+    //Add Padding to the top
+    v_layout->setContentsMargins(0, 5, 0, 0);
+    v_layout->setSpacing(5);
+    
+    info_label = new QLabel("No Notifications.", this);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setFont(QFont(font().family(), 25));
+    
+    top_toolbar = new QToolBar(this);
+    top_toolbar->setIconSize(QSize(16, 16));
+    
+    center_action = top_toolbar->addAction("Center On Notification");
+    popup_action = top_toolbar->addAction("Popup On Notification");
+    top_toolbar->addSeparator();
+    //sort_time_action = top_toolbar->addAction("Sort by time");
+    //sort_severity_action = top_toolbar->addAction("Sort by severity");
 
-    QWidget* stretchWidget = new QWidget(this);
-    stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
-    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    topToolbar->addWidget(stretchWidget);
 
-    centerOnAction = topToolbar->addAction("");
-    centerOnAction->setToolTip("Center View Aspect On Selected Item");
+    filters_widget = new QWidget(this);
+    filters_layout = new QVBoxLayout(filters_widget);
+    filters_layout->setAlignment(Qt::AlignTop);
+    filters_layout->setMargin(5);
+    filters_layout->setSpacing(0);
 
-    popupAction = topToolbar->addAction("");
-    popupAction->setToolTip("View Selected Item In New Window");
+    filters_scroll = new QScrollArea(this);
+    filters_scroll->setWidget(filters_widget);
+    filters_scroll->setWidgetResizable(true);
 
-    connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
-    connect(popupAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
 
-    /*
-     * BOTTOM TOOLBAR
-     */
-    bottomToolbar = new QToolBar(this);
-    bottomToolbar->setIconSize(QSize(20,20));
+    
+    notifications_widget = new QWidget(this);
 
-    QWidget* stretchWidget2 = new QWidget(this);
-    stretchWidget2->setStyleSheet("background: rgba(0,0,0,0);");
-    stretchWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    bottomToolbar->addWidget(stretchWidget2);
 
-    sortTimeAction = bottomToolbar->addAction("");
-    sortTimeAction->setToolTip("Sort Notifications By Time");
-    sortTimeAction->setCheckable(true);
-    sortTimeAction->setChecked(true);
-    sortTimeAction->setVisible(false);
+    notifications_layout = new QVBoxLayout(notifications_widget);
+    notifications_layout->setAlignment(Qt::AlignTop);
+    notifications_layout->setSpacing(0);
+    notifications_layout->setMargin(0);
+    //Add the No Results info label to the results layout
+    notifications_layout->addWidget(info_label);
 
-    sortSeverityAction = bottomToolbar->addAction("");
-    sortSeverityAction->setToolTip("Sort Notifications By Severity");
-    sortSeverityAction->setCheckable(true);
-    sortSeverityAction->setChecked(false);
-    sortSeverityAction->setVisible(false);
+    notifications_scroll = new QScrollArea(this);
+    notifications_scroll->setWidget(notifications_widget);
+    notifications_scroll->setWidgetResizable(true);
 
-    //bottomToolbar->addSeparator();
+    v_layout->addWidget(top_toolbar);
+    v_layout->addWidget(notifications_scroll, 1);
 
-    clearSelectedAction = bottomToolbar->addAction("Clear Selected");
-    clearSelectedAction->setToolTip("Clear Selected Items");
 
-    clearVisibleAction = bottomToolbar->addAction("Clear Visible");
-    clearVisibleAction->setToolTip("Clear Visible Items");
+    splitter = new QSplitter(this);
+    splitter->addWidget(filters_scroll);
+    splitter->addWidget(right_widget);
+    splitter->setStretchFactor(0, 0);
+    splitter->setStretchFactor(1, 1);
+    splitter->setSizes(QList<int>() << FILTER_DEFAULT_WIDTH << 2 * FILTER_DEFAULT_WIDTH);
 
-    connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
-    connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
-
-    QActionGroup* sortGroup = new QActionGroup(this);
-    sortGroup->setExclusive(true);
-    sortGroup->addAction(sortTimeAction);
-    sortGroup->addAction(sortSeverityAction);
-
-    /*
-     * FILTERS (LEFT) TOOLBAR
-     */
-    filtersToolbar = new QToolBar(this);
-    filtersToolbar->setOrientation(Qt::Vertical);
-    filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    QScrollArea* filtersArea = new QScrollArea(this);
-    filtersArea->setWidget(filtersToolbar);
-    filtersArea->setWidgetResizable(true);
-
-    /*
-     * DISPLAY SECTION
-     */
-    itemsLayout = new QVBoxLayout();
-    itemsLayout->setMargin(0);
-    itemsLayout->setSpacing(0);
-    itemsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    itemsLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-    QFrame* displayWidget = new QFrame(this);
-    displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
-    displayWidget->setLayout(itemsLayout);
-
-    QScrollArea* displayArea = new QScrollArea(this);
-    displayArea->setWidget(displayWidget);
-    displayArea->setWidgetResizable(true);
-
-    displaySplitter = new QSplitter(this);
-    displaySplitter->addWidget(filtersArea);
-    displaySplitter->addWidget(displayArea);
-    displaySplitter->setStretchFactor(0, 0);
-    displaySplitter->setStretchFactor(1, 1);
-    displaySplitter->setSizes(QList<int>() << FILTER_DEFAULT_WIDTH << 300);
-
-    mainWidget = new QWidget(this);
-    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
-    mainLayout->setMargin(0);
-    mainLayout->setSpacing(0);
-    mainLayout->setContentsMargins(1, 1, 1, 1);
-    mainLayout->addWidget(topToolbar);
-    mainLayout->addWidget(displaySplitter, 1);
-    mainLayout->addWidget(bottomToolbar);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
-    layout->addWidget(mainWidget);
+    layout->setSpacing(0);
+    layout->setContentsMargins(1, 1, 1, 1);
+    layout->addWidget(splitter, 1);
+    
 
-    int minWidth = qMax(topToolbar->sizeHint().width(), bottomToolbar->sizeHint().width());
-    int minHeight = topToolbar->sizeHint().height() + bottomToolbar->sizeHint().height() + 75;
-    setMinimumSize(minWidth, minHeight);
+    /*
+    connect(center_action, &QAction::triggered, this, [=](){emit CenterOn(selected_id);});
+    connect(popup_action, &QAction::triggered, this, [=](){emit Popup(selected_id);});
 
+    connect(search_action, &QAction::triggered, this, &SearchDialog::SearchPopup);
+    connect(refresh_action, &QAction::triggered, this, [=](){emit SearchQuery(query_text);});
+    */
     setupFilters();
 }
 
@@ -577,68 +529,38 @@ void NotificationDialog::setupLayout()
  */
 void NotificationDialog::setupFilters()
 {
-    displayAllButton = new QToolButton(this);
-    displayAllButton->setText("All");
-    displayAllButton->setCheckable(true);
-    displayAllButton->setChecked(true);
-    displayAllButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    displayAllButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    connect(displayAllButton, &QToolButton::clicked, this, &NotificationDialog::selectionFilterToggled);
-
-    displayLinkedItemsButton = new QToolButton(this);
-    displayLinkedItemsButton->setText("Selection");
-    displayLinkedItemsButton->setCheckable(true);
-    displayLinkedItemsButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    displayLinkedItemsButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    connect(displayLinkedItemsButton, &QToolButton::clicked, this, &NotificationDialog::selectionFilterToggled);
-
-    displayToggleBox = new CustomGroupBox("CONTEXT", this);
-    displayToggleBox->addWidget(displayAllButton);
-    displayToggleBox->addWidget(displayLinkedItemsButton);
-    filtersToolbar->addWidget(displayToggleBox);
-
-    // setup SEVERITY group
-    OptionGroupBox* severityGroup = new OptionGroupBox("SEVERITY", this);
-    severityGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::SEVERITY));
-    foreach (NOTIFICATION_SEVERITY severity, getNotificationSeverities()) {
-        QString iconName = getSeverityIcon(severity);
-        severityGroup->addOption(static_cast<int>(severity), getSeverityString(severity), "Icons", iconName);
+    context_filters = new OptionGroupBox("CONTEXT", this);
+    for(auto context : getNotificationContexts()){
+        context_filters->addOption(QVariant::fromValue(context), getContextString(context), "Icons", getContextIcon(context));
     }
+    //Hide
+    context_filters->setOptionVisible(QVariant::fromValue(NOTIFICATION_CONTEXT::NOT_SELECTED), false);
 
-    // setup CATEGORY group
-    OptionGroupBox* categoryGroup = new OptionGroupBox("CATEGORY", this);
-    categoryGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::CATEGORY));
-    foreach (NOTIFICATION_CATEGORY category, getNotificationCategories()){
-        QString iconName = getCategoryIcon(category);
-        categoryGroup->addOption(static_cast<int>(category), getCategoryString(category), "Icons", iconName);
+    filters_layout->addWidget(context_filters);
+
+
+    severity_filters = new OptionGroupBox("SEVERITY", this);
+    for (auto severity : getNotificationSeverities()) {
+        severity_filters->addOption(QVariant::fromValue(severity), getSeverityString(severity), "Icons", getSeverityIcon(severity));
     }
+    filters_layout->addWidget(severity_filters);
 
-    // setup TYPE group
-    OptionGroupBox* typeGroup = new OptionGroupBox("SOURCE", this);
-    typeGroup->setProperty(FILTER_KEY, static_cast<int>(NOTIFICATION_FILTER::TYPE));
-    foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
-        QString iconName;
-        if (type == NOTIFICATION_TYPE::MODEL) {
-            iconName = "dotsInRectangle";
-        } else if (type == NOTIFICATION_TYPE::APPLICATION) {
-            iconName = "pencil";
-        }
-        typeGroup->addOption(static_cast<int>(type), getTypeString(type), "Icons", iconName);
+    category_filters = new OptionGroupBox("CATEGORY", this);
+    for (auto category : getNotificationCategories()) {
+        category_filters->addOption(QVariant::fromValue(category), getCategoryString(category), "Icons", getCategoryIcon(category));
     }
+    filters_layout->addWidget(category_filters);
 
-    // connect filter groups
-    connect(severityGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
-    connect(categoryGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
-    connect(typeGroup, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    source_filters = new OptionGroupBox("SOURCE", this);
+    for (auto type : getNotificationTypes()) {
+        source_filters->addOption(QVariant::fromValue(type), getTypeString(type), "Icons", getTypeIcon(type));
+    }
+    filters_layout->addWidget(source_filters);
 
-    // add filters to the toolbar
-    filtersToolbar->addWidget(severityGroup);
-    filtersToolbar->addWidget(categoryGroup);
-    filtersToolbar->addWidget(typeGroup);
-
-    filters.insert(NOTIFICATION_FILTER::SEVERITY, severityGroup);
-    filters.insert(NOTIFICATION_FILTER::CATEGORY, categoryGroup);
-    filters.insert(NOTIFICATION_FILTER::TYPE, typeGroup);
+    connect(context_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    connect(severity_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    connect(category_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
+    connect(source_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
 }
 
 

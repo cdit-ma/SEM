@@ -70,7 +70,33 @@ private:
     void clearSelection();
 
     void updateSelectionBasedButtons();
+
+private:
+    QLabel* info_label = 0;
     
+    QWidget* filters_widget = 0;
+    QWidget* notifications_widget = 0;
+    QVBoxLayout* notifications_layout = 0;
+    QVBoxLayout* filters_layout = 0;
+
+    QToolBar* top_toolbar = 0;
+
+    QAction* center_action = 0;
+    QAction* popup_action = 0;
+    
+    QSplitter* splitter = 0;
+
+    QScrollArea* filters_scroll = 0;
+    QScrollArea* notifications_scroll = 0;
+
+    OptionGroupBox* context_filters = 0;
+    OptionGroupBox* severity_filters = 0;
+    OptionGroupBox* category_filters = 0;
+    OptionGroupBox* source_filters = 0;
+
+    QHash<int, NotificationItem*> notification_items;
+private:
+
     QWidget* mainWidget;
 
     QSplitter* displaySplitter;
