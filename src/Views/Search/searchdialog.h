@@ -15,7 +15,7 @@
 #include "searchitemwidget.h"
 #include "../../Widgets/optiongroupbox.h"
 
-class SearchDialog : public QWidget
+class SearchDialog : public QFrame
 {
     Q_OBJECT
 public:
@@ -39,10 +39,7 @@ private slots:
     void resetPanel();
 public slots:
     void viewItemDestructed(int ID);
-protected:
-    void paintEvent(QPaintEvent *);
 private:
-    
     void setQuery(QString query);
     void setupLayout();
     void setupFilters();

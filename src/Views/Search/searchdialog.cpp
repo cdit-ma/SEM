@@ -13,7 +13,7 @@
  * @param parent
  */
 SearchDialog::SearchDialog(QWidget *parent)
-    : QWidget(parent)
+    : QFrame(parent)
 {
     setupLayout();
     setObjectName("SearchDialog");
@@ -65,15 +65,6 @@ void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> 
     }
 
     filtersChanged();
-}
-
-
-void SearchDialog::paintEvent(QPaintEvent *) 
-{ 
-    QStyleOption opt;
-    opt.init(this);
-    QPainter p(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
 /**

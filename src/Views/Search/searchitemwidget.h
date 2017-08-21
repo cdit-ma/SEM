@@ -18,7 +18,6 @@ struct DataItem{
     QLabel* label_key = 0;
 };
 
-
 class SearchItemWidget : public QFrame
 {
     Q_OBJECT
@@ -30,8 +29,6 @@ public:
     void removeMatchedKey(QString key);
     void clearMatchedKeys();
     bool gotMatchedKey(QString key);
-
-
 
     void setSelected(bool selected);
 
