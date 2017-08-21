@@ -7,9 +7,8 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QSplitter>
-#include <QMovie>
 
-#include "../../theme.h"
+
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../Utils/filtergroup.h"
 #include "searchitemwidget.h"

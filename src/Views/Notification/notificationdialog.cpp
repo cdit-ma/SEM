@@ -15,7 +15,7 @@
  * @param parent
  */
 NotificationDialog::NotificationDialog(QWidget *parent)
-    : QWidget(parent)
+    : QFrame(parent)
 {
     selectedEntityID = -1;
 

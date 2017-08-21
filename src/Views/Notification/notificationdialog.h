@@ -21,7 +21,7 @@
 #include "../../Widgets/optiongroupbox.h"
 
 class NotificationItem;
-class NotificationDialog : public QWidget
+class NotificationDialog : public QFrame
 {
     Q_OBJECT
 

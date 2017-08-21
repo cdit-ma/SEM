@@ -1,9 +1,5 @@
 #include "searchdialog.h"
-
-#include <QDateTime>
-#include <QDebug>
-#include <QStyleOption>
-#include <QPainter>
+#include "../../theme.h"
 
 #define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 300
