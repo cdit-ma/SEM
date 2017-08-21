@@ -4,7 +4,6 @@
 #include <QScrollArea>
 #include <QLabel>
 #include <QToolBar>
-#include <QToolButton>
 #include <QVBoxLayout>
 #include <QSplitter>
 

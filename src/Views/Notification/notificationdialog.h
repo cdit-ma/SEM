@@ -1,16 +1,12 @@
 #ifndef NOTIFICATIONDIALOG_H
 #define NOTIFICATIONDIALOG_H
 
-#include <QDialog>
 #include <QVBoxLayout>
 #include <QScrollArea>
 #include <QSplitter>
 #include <QToolBar>
 #include <QToolButton>
 #include <QLabel>
-#include <QMovie>
-#include <QTimer>
-#include <QApplication>
 
 #include "../../theme.h"
 #include "../../enumerations.h"

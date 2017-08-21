@@ -1,6 +1,10 @@
 #include "notificationdialog.h"
 #include "notificationitem.h"
 
+
+#include <QApplication>
+
+
 #define ENTITY_ID "entity_ID"
 #define NO_SELECTION_ID -2
 

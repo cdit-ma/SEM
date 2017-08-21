@@ -87,6 +87,8 @@ void SearchDialog::themeChanged()
     refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+    
 }
 
      
@@ -175,21 +177,30 @@ void SearchDialog::resetPanel()
  */
 void SearchDialog::setupLayout()
 {
-    search_label = new QLabel("Search: ", this);
+    auto right_widget = new QWidget(this);
+    auto v_layout = new QVBoxLayout(right_widget);
+    //Add Padding to the top
+    v_layout->setContentsMargins(0, 5, 0, 0);
+    v_layout->setSpacing(5);
+
+    
+    search_label = new QLabel("Search Query: ", this);
     query_label = new QLabel(this);
-    query_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    info_label = new QLabel("No Results", this);
-    //info_label->setFont(QFont(font().family(), 10));
-    //info_label->setFixedHeight(topToolbar->sizeHint().height());
-
-    auto size = QSize(16, 16);
-
+    query_label->setFont(QFont(font().family(), 12));
+    
+    info_label = new QLabel("No results matching the query.", this);
+    info_label->setAlignment(Qt::AlignCenter);
+    info_label->setFont(QFont(font().family(), 25));
+    
+    
     top_toolbar = new QToolBar(this);
-    top_toolbar->setIconSize(size);
-
-    top_toolbar->addWidget(search_label);
-    top_toolbar->addWidget(query_label);
+    top_toolbar->setIconSize(QSize(16, 16));
+    
+    //Construct the top layout
+    auto top_layout = new QHBoxLayout();
+    top_layout->addWidget(search_label);
+    top_layout->addWidget(query_label, 1);
+    top_layout->addWidget(top_toolbar);
 
     search_action = top_toolbar->addAction("Search Again");
     refresh_action = top_toolbar->addAction("Refresh Search Results");
@@ -210,27 +221,22 @@ void SearchDialog::setupLayout()
     filter_scroll->setWidgetResizable(true);
 
 
-    auto right_widget = new QWidget(this);
-    auto v_layout = new QVBoxLayout(right_widget);
-    v_layout->setContentsMargins(0,5,0,0);
-    v_layout->setSpacing(5);
     
-
-
     results_widgets = new QWidget(this);
+
+
     results_layout = new QVBoxLayout(results_widgets);
     results_layout->setAlignment(Qt::AlignTop);
     results_layout->setSpacing(0);
     results_layout->setMargin(0);
+    //Add the No Results info label to the results layout
     results_layout->addWidget(info_label);
-
-    results_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
     auto results_scroll = new QScrollArea(this);
     results_scroll->setWidget(results_widgets);
     results_scroll->setWidgetResizable(true);
 
-    v_layout->addWidget(top_toolbar);
+    v_layout->addLayout(top_layout);
     v_layout->addWidget(results_scroll, 1);
 
 
