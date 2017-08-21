@@ -2,16 +2,15 @@
 #define NOTIFICATIONDIALOG_H
 
 #include <QDialog>
-#include <QListWidget>
-#include <QListWidgetItem>
-#include <QSignalMapper>
+#include <QVBoxLayout>
+#include <QScrollArea>
+#include <QSplitter>
 #include <QToolBar>
 #include <QToolButton>
-#include <QSplitter>
-#include <QPushButton>
-#include <QMenu>
 #include <QLabel>
+#include <QMovie>
 #include <QTimer>
+#include <QApplication>
 
 #include "../../theme.h"
 #include "../../enumerations.h"
@@ -85,9 +84,9 @@ private:
 
     QVBoxLayout* itemsLayout;
 
-    QAction* displayAllAction;
-    QAction* displayToggleAction;
-    QAction* displayLinkedItemsAction;
+    CustomGroupBox* displayToggleBox;
+    QToolButton* displayAllButton;
+    QToolButton* displayLinkedItemsButton;
 
     QAction* sortTimeAction;
     QAction* sortSeverityAction;
@@ -101,7 +100,6 @@ private:
 
     QList<NotificationItem*> selectedNotificationItems;
     int selectedEntityID;
-    int noEntitySelectedID;
 
 protected:
     void enterEvent(QEvent* event);
