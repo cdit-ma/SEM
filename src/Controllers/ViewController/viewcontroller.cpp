@@ -871,7 +871,7 @@ void ViewController::modelNotification(MODEL_SEVERITY severity, QString descript
             break;
     }
 
-    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NOCATEGORY);
+    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NONE);
 }
 
 void ViewController::setControllerReady(bool ready)

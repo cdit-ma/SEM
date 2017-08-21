@@ -16,13 +16,14 @@
 #include "../../Utils/filtergroup.h"
 #include "../../Widgets/optiongroupbox.h"
 
+class ViewController;
 class NotificationItem;
 class NotificationDialog : public QFrame
 {
     Q_OBJECT
 
 public:
-    explicit NotificationDialog(QWidget *parent = 0);
+    explicit NotificationDialog(ViewController* controller, QWidget *parent = 0);
 
 signals:
     void centerOn(int entityID);
@@ -42,17 +43,11 @@ public slots:
 
     void notificationAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
-
-    void entitySelectionChanged(int ID);
-
-    void getLastNotificationID();
+    void selectionChanged();
 
 private slots:
     void themeChanged();
     void filtersChanged();
-    void selectionChanged(NotificationItem* item, bool selected, bool controlDown);
-
-    void selectionFilterToggled(bool checked);
 
     void viewSelection();
 
@@ -61,6 +56,7 @@ private slots:
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
 private:
+    void updateNotificationVisibility(QList<NotificationItem*> items);
     void setupLayout();
     void setupFilters();
 
@@ -96,6 +92,7 @@ private:
 
     QHash<int, NotificationItem*> notification_items;
 private:
+    void ToggleSelection(NotificationItem* item);
 
     QWidget* mainWidget;
 
@@ -120,8 +117,14 @@ private:
     QHash<int, NotificationItem*> notificationItems;
     QHash<NOTIFICATION_FILTER, OptionGroupBox*> filters;
 
+    
+    NotificationItem* selected_notification = 0;
+    //QSet<NotificationItem*> selected_notifications;
+
     QList<NotificationItem*> selectedNotificationItems;
     int selectedEntityID;
+
+    ViewController* viewController = 0;
 
 protected:
     void enterEvent(QEvent* event);

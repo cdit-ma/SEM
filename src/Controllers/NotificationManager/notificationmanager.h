@@ -34,6 +34,8 @@ public:
     static NotificationToolbar* constructToolbar();
     NotificationPopup* getNotificationPopup();
 
+    QList<int> getSelectionIDs();
+
 
     static int displayNotification(QString description,
                                    QString iconPath = "",
@@ -41,7 +43,7 @@ public:
                                    int entityID = -1,
                                    NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
                                    NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
-                                   NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
+                                   NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NONE);
 
     static int displayLoadingNotification(QString description,
                                           QString iconPath = "",
@@ -49,7 +51,7 @@ public:
                                           int entityID = -1,
                                           NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
                                           NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
-                                          NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NOCATEGORY);
+                                          NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NONE);
 
     static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity);
     static bool setNotificationLoading(int ID, bool on);

@@ -1,7 +1,7 @@
 #include "notificationdialog.h"
 #include "notificationitem.h"
 
-
+#include "../../Controllers/ViewController/viewcontroller.h"
 #include <QApplication>
 
 
@@ -18,16 +18,20 @@
  * @brief NotificationDialog::NotificationDialog
  * @param parent
  */
-NotificationDialog::NotificationDialog(QWidget *parent)
+NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *parent)
     : QFrame(parent)
 {
     selectedEntityID = -1;
+    this->viewController = viewController;
 
     setupLayout();
-    //initialisePanel();
-    //updateSelectionBasedButtons();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    initialisePanel();
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationDialog::themeChanged);
+    if(viewController){
+        connect(viewController->getSelectionController(), &SelectionController::selectionChanged, this, &NotificationDialog::selectionChanged);
+    }
     themeChanged();
 }
 
@@ -37,34 +41,32 @@ NotificationDialog::NotificationDialog(QWidget *parent)
  */
 void NotificationDialog::filtersChanged()
 {
-    OptionGroupBox* filterGroup = qobject_cast<OptionGroupBox*>(sender());
-    if (filterGroup) {
+    updateNotificationVisibility(notification_items.values());
+}
 
-        NOTIFICATION_FILTER filterKey = filterGroup->property(FILTER_KEY).value<NOTIFICATION_FILTER>();
-        QList<QVariant> checkedFilters = filterGroup->getCheckedKeys();
+void NotificationDialog::updateNotificationVisibility(QList<NotificationItem*> items){
+    auto checked_context_set = context_filters->getCheckedOptions<NOTIFICATION_CONTEXT>().toSet();
+    auto checked_severity_set = severity_filters->getCheckedOptions<NOTIFICATION_SEVERITY>().toSet();
+    auto checked_category_set = category_filters->getCheckedOptions<NOTIFICATION_CATEGORY>().toSet();
+    auto checked_type_set = source_filters->getCheckedOptions<NOTIFICATION_TYPE>().toSet();
+    
+    //We only need to check selection when the SELECTED is exclusively selected.
+    bool check_selection = checked_context_set.size() == 1 && checked_context_set.contains(NOTIFICATION_CONTEXT::SELECTED);
+    QSet<int> selected_ids;
+    if(viewController && check_selection){
+        selected_ids = viewController->getSelectionController()->getSelectionIDs().toSet();
+    }
 
-        switch (filterKey) {
-        case NOTIFICATION_FILTER::SEVERITY:
-            foreach (NotificationItem* item, notificationItems) {
-                int s = static_cast<int>(item->getSeverity());
-                item->filtersChanged(filterKey, checkedFilters.contains(s));
-            }
-            break;
-        case NOTIFICATION_FILTER::CATEGORY:
-            foreach (NotificationItem* item, notificationItems) {
-                int c = static_cast<int>(item->getCategory());
-                item->filtersChanged(filterKey, checkedFilters.contains(c));
-            }
-            break;
-        case NOTIFICATION_FILTER::TYPE:
-            foreach (NotificationItem* item, notificationItems) {
-                int t = static_cast<int>(item->getType());
-                item->filtersChanged(filterKey, checkedFilters.contains(t));
-            }
-            break;
-        default:
-            break;
+    for(auto item : items){
+        bool matches_severity = checked_severity_set.contains(item->getSeverity());
+        bool matches_category = checked_category_set.contains(item->getCategory());
+        bool matches_type = checked_type_set.contains(item->getType());
+        bool matches_context = true;
+        if(check_selection){
+            matches_context = selected_ids.contains(item->getEntityID());
         }
+
+        item->setVisible(matches_severity && matches_category && matches_type && matches_context);
     }
 }
 
@@ -119,91 +121,26 @@ void NotificationDialog::themeChanged()
 }
 
 
-/**
- * @brief NotificationDialog::selectionChanged
- * @param item - the notification item that was clicked
- * @param selected - the item's current selected state
- * @param controlDown - control key's down state
- */
-void NotificationDialog::selectionChanged(NotificationItem* item, bool selected, bool controlDown)
-{
-    if (!item) {
-        return;
+
+void NotificationDialog::ToggleSelection(NotificationItem* item){
+    bool set_selected = selected_notification != item;
+
+    
+    if(selected_notification){
+        //unselect old notification
+        selected_notification->setSelected(!set_selected);
     }
 
-    bool selectItem = !selected;
-    if (!controlDown) {
-        if (selectedNotificationItems.count() > 1) {
-            selectItem = true;
-        }
-        clearSelection();
+    if(item){
+        item->setSelected(set_selected);
     }
+    selected_notification = item;
 
-    if (selectItem) {
-        selectedNotificationItems.append(item);
-    } else {
-        selectedNotificationItems.removeAll(item);
-    }
-
-    item->setSelected(selectItem);
-    updateSelectionBasedButtons();
-}
-
-
-/**
- * @brief NotificationDialog::entitySelectionChanged
- * Update the selectedEntityID and the displayed notifications if necessary if this panel is visible.
- * @param ID
- */
-void NotificationDialog::entitySelectionChanged(int ID)
-{
-    selectedEntityID = ID;
-    if (this->isVisible() && displayLinkedItemsButton->isChecked()) {
-        selectionFilterToggled(true);
-    }
-}
-
-
-/**
- * @brief NotificationDialog::selectionFilterToggled
- * @param checked
- */
-void NotificationDialog::selectionFilterToggled(bool checked)
-{
-    QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
-    QToolButton* otherButton = 0;
-
-    if (senderButton == displayAllButton) {
-        // don't allow the "All" button to be unchecked manually
-        if (!checked) {
-            displayAllButton->setChecked(true);
-            return;
-        }
-        otherButton = displayLinkedItemsButton;
-    } else {
-        otherButton = displayAllButton;
-    }
-    otherButton->setChecked(!checked);
-
-    bool displayAll = displayAllButton->isChecked();
-    foreach (NotificationItem* item, notificationItems) {
-        if (displayAll) {
-            // if "All" display is checked, show all the items
-            item->filtersChanged(ENTITY_ID, item->getEntityID());
-        } else {
-            // if there is nothing currently selected, hide the items
-            if (selectedEntityID == -1) {
-                item->filtersChanged(ENTITY_ID, NO_SELECTION_ID);
-            } else {
-                item->filtersChanged(ENTITY_ID, selectedEntityID);
-            }
-        }
-    }
-    QString newBoxTitle = "CONTEXT";
-    if (!displayAll) {
-        newBoxTitle += " (1)";
-    }
-    displayToggleBox->setTitle(newBoxTitle);
+    
+    bool has_entity = selected_notification && selected_notification->getEntityID() != -1;
+    
+    center_action->setEnabled(has_entity);
+    popup_action->setEnabled(has_entity);
 }
 
 
@@ -216,25 +153,12 @@ void NotificationDialog::resetPanel()
 }
 
 
-/**
- * @brief NotificationDialog::getLastNotificationID
- * Send a signal with the top most notification item's ID.
- */
-void NotificationDialog::getLastNotificationID()
-{
-    if (!notificationItems.isEmpty()) {
-        QLayoutItem* topItem = itemsLayout->itemAt(0);
-        if (topItem) {
-            NotificationItem* item = qobject_cast<NotificationItem*>(topItem->widget());
-            if (item) {
-                emit lastNotificationID(item->getID());
-                return;
-            }
-        }
+void NotificationDialog::selectionChanged(){
+    auto checked_context_set = context_filters->getCheckedOptions<NOTIFICATION_CONTEXT>().toSet();
+    if(checked_context_set.contains(NOTIFICATION_CONTEXT::SELECTED)){
+        filtersChanged();
     }
-    emit lastNotificationID(-1);
 }
-
 
 /**
  * @brief NotificationDialog::clearSelected
@@ -312,35 +236,23 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
  * @brief NotificationDialog::notificationAdded
  * @param obj
  */
-void NotificationDialog::notificationAdded(NotificationObject* obj)
+void NotificationDialog::notificationAdded(NotificationObject* notification)
 {
-    if (!obj) {
+    if (!notification) {
         return;
     }
+    auto id = notification->ID();
+    if(!notification_items.contains(id)){
+        auto notification_item = new NotificationItem(notification, this);
 
-    NotificationItem* item = new NotificationItem(obj, this);
-    itemsLayout->insertWidget(0, item);
-    notificationItems[obj->ID()] = item;
+        notifications_layout->insertWidget(0, notification_item);
+        notification_items[id] = notification_item;
+    
+        connect(notification_item, &NotificationItem::hoverEnter, this, & NotificationDialog::itemHoverEnter);
+        connect(notification_item, &NotificationItem::hoverLeave, this, & NotificationDialog::itemHoverLeave);
+        connect(notification_item, &NotificationItem::itemClicked, this, & NotificationDialog::ToggleSelection);
 
-    // add filter for actively selected entity ID
-    item->addFilter(ENTITY_ID, item->getEntityID());
-
-    connect(item, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
-    connect(item, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
-    connect(item, &NotificationItem::itemClicked, this, &NotificationDialog::selectionChanged);
-
-    // update the search item's visibility based on the currently checked filters
-    // this also sets the correct visibility values for each of its filters
-    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        OptionGroupBox* group = filters.value(filter, 0);
-        if (group) {
-            int filterVal = item->getNotificationFilterValue(filter);
-            bool showItem = group->getCheckedKeys().contains(filterVal);
-            item->filtersChanged(filter, showItem);
-        }
-    }
-    if (!displayAllButton->isChecked()) {
-        item->filtersChanged(ENTITY_ID, selectedEntityID);
+        updateNotificationVisibility({notification_item});
     }
 }
 
@@ -352,12 +264,12 @@ void NotificationDialog::notificationAdded(NotificationObject* obj)
  */
 void NotificationDialog::notificationDeleted(int ID)
 {
-    if (notificationItems.contains(ID)) {
-        NotificationItem* item = notificationItems.take(ID);
-        selectedNotificationItems.removeAll(item);
-        itemsLayout->removeWidget(item);
+    if (notification_items.contains(ID)) {
+        auto notification = notification_items.take(ID);
+        selectedNotificationItems.removeAll(notification);
+        itemsLayout->removeWidget(notification);
         updateSelectionBasedButtons();
-        delete item;
+        delete notification;
     }
 }
 
@@ -403,12 +315,8 @@ void NotificationDialog::clearSelection()
  */
 void NotificationDialog::initialisePanel()
 {
-    QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
-    if (!notifications.isEmpty()) {
-        foreach (NotificationObject* item, notifications) {
-            notificationAdded(item);
-        }
-        //NotificationManager::manager()->showLastNotification();
+    for(auto notification : NotificationManager::manager()->getNotificationItems()){
+        notificationAdded(notification);
     }
 }
 

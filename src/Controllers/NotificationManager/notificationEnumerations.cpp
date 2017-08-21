@@ -3,22 +3,11 @@
 
 
 extern QList<NOTIFICATION_CONTEXT> getNotificationContexts(){
-    return {NOTIFICATION_CONTEXT::SELECTED, NOTIFICATION_CONTEXT::NOT_SELECTED};
+    return {
+        NOTIFICATION_CONTEXT::SELECTED,
+        NOTIFICATION_CONTEXT::NOT_SELECTED
+    };
 }
-/**
- * @brief getNotificationFilters
- * @return
- */
-QList<NOTIFICATION_FILTER> getNotificationFilters()
-{
-    QList<NOTIFICATION_FILTER> filters;
-    filters.append(NOTIFICATION_FILTER::NOFILTER);
-    filters.append(NOTIFICATION_FILTER::SEVERITY);
-    filters.append(NOTIFICATION_FILTER::TYPE);
-    filters.append(NOTIFICATION_FILTER::CATEGORY);
-    return filters;
-}
-
 
 /**
  * @brief getNotificationTypes
@@ -26,10 +15,10 @@ QList<NOTIFICATION_FILTER> getNotificationFilters()
  */
 QList<NOTIFICATION_TYPE> getNotificationTypes()
 {
-    QList<NOTIFICATION_TYPE> types;
-    types.append(NOTIFICATION_TYPE::MODEL);
-    types.append(NOTIFICATION_TYPE::APPLICATION);
-    return types;
+    return {
+        NOTIFICATION_TYPE::MODEL,
+        NOTIFICATION_TYPE::APPLICATION
+    };
 }
 
 
@@ -39,13 +28,12 @@ QList<NOTIFICATION_TYPE> getNotificationTypes()
  */
 QList<NOTIFICATION_CATEGORY> getNotificationCategories()
 {
-    QList<NOTIFICATION_CATEGORY> categories;
-    categories.append(NOTIFICATION_CATEGORY::NOCATEGORY);
-    categories.append(NOTIFICATION_CATEGORY::DEPLOYMENT);
-    categories.append(NOTIFICATION_CATEGORY::FILE);
-    categories.append(NOTIFICATION_CATEGORY::JENKINS);
-    categories.append(NOTIFICATION_CATEGORY::VALIDATION);
-    return categories;
+    return {
+        NOTIFICATION_CATEGORY::NONE,
+        NOTIFICATION_CATEGORY::FILE,
+        NOTIFICATION_CATEGORY::JENKINS,
+        NOTIFICATION_CATEGORY::VALIDATION
+    };
 }
 
 
@@ -55,11 +43,11 @@ QList<NOTIFICATION_CATEGORY> getNotificationCategories()
  */
 QList<NOTIFICATION_SEVERITY> getNotificationSeverities()
 {
-    QList<NOTIFICATION_SEVERITY> severities;
-    severities.append(NOTIFICATION_SEVERITY::INFO);
-    severities.append(NOTIFICATION_SEVERITY::WARNING);
-    severities.append(NOTIFICATION_SEVERITY::ERROR);
-    return severities;
+    return {
+        NOTIFICATION_SEVERITY::INFO,
+        NOTIFICATION_SEVERITY::WARNING,
+        NOTIFICATION_SEVERITY::ERROR
+    };
 }
 
 
@@ -120,8 +108,6 @@ QString getContextString(NOTIFICATION_CONTEXT context)
 QString getCategoryString(NOTIFICATION_CATEGORY category)
 {
     switch (category) {
-    case NOTIFICATION_CATEGORY::DEPLOYMENT:
-        return "Deployment";
     case NOTIFICATION_CATEGORY::FILE:
         return "File";
     case NOTIFICATION_CATEGORY::JENKINS:
@@ -135,7 +121,7 @@ QString getCategoryString(NOTIFICATION_CATEGORY category)
 
 
 /**
- * @brief getSeverityIcon
+ * @brief getSeverityIcongetSeverityIcon
  * @param severity
  * @return
  */
@@ -176,8 +162,6 @@ QString getTypeIcon(NOTIFICATION_TYPE type){
 QString getCategoryIcon(NOTIFICATION_CATEGORY category)
 {
     switch (category) {
-    case NOTIFICATION_CATEGORY::DEPLOYMENT:
-        return "screen";
     case NOTIFICATION_CATEGORY::JENKINS:
         return "jenkinsFlat";
     case NOTIFICATION_CATEGORY::FILE:

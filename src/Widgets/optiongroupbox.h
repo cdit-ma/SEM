@@ -14,7 +14,7 @@ public:
     template<class T> QList<T> getOptions()
     {
         QList<T> options;
-        for(auto key : optionsLookup.keys()){
+        for(auto key : actions_lookup.keys()){
             options.append(key.value<T>());
         }
         return options;
@@ -55,24 +55,23 @@ private slots:
     void optionToggled();
 
 private:
-    QAction* addOptionButton(QToolButton* button, QVariant key = QVariant());
+
+    QAction* getNewOptionAction();
 
     void uncheckOptions();
     void clearFilters();
 
     void updateTitleCount();
-    void setupResetButton();
+    void setupResetAction();
 
-    QToolButton* resetButton = 0;
-    QAction* resetAction = 0;
+    QAction* reset_action = 0;
     QSize icon_size = QSize(10,10);
     
     bool showResetButton = true;
     bool exclusive = false;
     QString title;
 
-    QHash<QVariant, QToolButton*> optionsLookup;
-    QHash<QVariant, QAction*> action_lookup;
+    QHash<QVariant, QAction*> actions_lookup;
     QList<QVariant> checkedKeys;
 };
 

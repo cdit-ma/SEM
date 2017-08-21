@@ -67,17 +67,21 @@ NotificationManager* NotificationManager::manager()
 }
 
 
+QList<int> getSelectionIDs(){
+
+}
+
 /**
  * @brief NotificationManager::constructPanel
  * @return
  */
 NotificationDialog* NotificationManager::constructPanel()
 {
-    NotificationDialog* panel = new NotificationDialog();
-    connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
+    NotificationDialog* panel = new NotificationDialog(manager()->viewController);
+    //connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
     connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
     connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
-    connect(manager(), &NotificationManager::selectionChanged, panel, &NotificationDialog::entitySelectionChanged);
+    connect(manager(), &NotificationManager::selectionChanged, panel, &NotificationDialog::selectionChanged);
     connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
     connect(panel, &NotificationDialog::lastNotificationID, manager(), &NotificationManager::setLastNotificationItem);
     connect(panel, &NotificationDialog::mouseEntered, manager(), &NotificationManager::notificationSeen);

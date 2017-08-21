@@ -48,10 +48,11 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     layout->addWidget(descriptionLabel);
     layout->addWidget(timestampLabel, 1, Qt::AlignRight);
 
+    /*
     // this item is visible by default - initialise all filter visibility to true
     foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
         filterVisibility[filter] = true;
-    }
+    }*/
 
     connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
     connect(obj, &NotificationObject::timestampChanged, this, &NotificationItem::timestampChanged);
@@ -143,7 +144,7 @@ NOTIFICATION_CATEGORY NotificationItem::getCategory()
     if (notificationObject) {
         return notificationObject->category();
     }
-    return NOTIFICATION_CATEGORY::NOCATEGORY;
+    return NOTIFICATION_CATEGORY::NONE;
 }
 
 

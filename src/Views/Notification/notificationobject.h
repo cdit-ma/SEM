@@ -19,7 +19,7 @@ protected:
                                 int entityID = -1,
                                 NOTIFICATION_SEVERITY severity = NOTIFICATION_SEVERITY::INFO,
                                 NOTIFICATION_TYPE type = NOTIFICATION_TYPE::MODEL,
-                                NOTIFICATION_CATEGORY category = NOTIFICATION_CATEGORY::NOCATEGORY,
+                                NOTIFICATION_CATEGORY category = NOTIFICATION_CATEGORY::NONE,
                                 QObject *parent = 0);
     ~NotificationObject();
 

@@ -8,7 +8,7 @@
 
 enum class NOTIFICATION_CONTEXT{NOT_SELECTED, SELECTED};
 enum class NOTIFICATION_TYPE{APPLICATION, MODEL};
-enum class NOTIFICATION_CATEGORY{NOCATEGORY, FILE, JENKINS, DEPLOYMENT, VALIDATION};
+enum class NOTIFICATION_CATEGORY{NONE, FILE, JENKINS, VALIDATION};
 enum class NOTIFICATION_SEVERITY{INFO, WARNING, ERROR};
 enum class NOTIFICATION_FILTER{NOFILTER, SEVERITY, TYPE, CATEGORY};
 
@@ -44,9 +44,22 @@ inline uint qHash(NOTIFICATION_SEVERITY key, uint seed)
 }
 Q_DECLARE_METATYPE(NOTIFICATION_SEVERITY)
 
-
+inline uint qHash(NOTIFICATION_CATEGORY key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 Q_DECLARE_METATYPE(NOTIFICATION_CATEGORY)
+
+inline uint qHash(NOTIFICATION_CONTEXT key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 Q_DECLARE_METATYPE(NOTIFICATION_CONTEXT)
+
+inline uint qHash(NOTIFICATION_TYPE key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 Q_DECLARE_METATYPE(NOTIFICATION_TYPE)
 
 
