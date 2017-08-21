@@ -76,7 +76,7 @@ void SearchDialog::themeChanged()
     
     setStyleSheet(
                     "#SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";} " +
-                    "QScrollArea {border: 1px solid " % theme->getDisabledBackgroundColorHex() % "; background: rgba(0,0,0,0);} " +
+                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0);} " +
                     "QLabel {color:" + theme->getTextColorHex() + ";} " + 
                     theme->getToolBarStyleSheet() +
                     theme->getSplitterStyleSheet()
@@ -190,23 +190,22 @@ void SearchDialog::setupLayout()
     auto size = QSize(16, 16);
 
     top_toolbar = new QToolBar(this);
-    bottom_toolbar = new QToolBar(this);
     top_toolbar->setIconSize(size);
-    bottom_toolbar->setIconSize(size);
 
     top_toolbar->addWidget(search_label);
     top_toolbar->addWidget(query_label);
 
+    search_action = top_toolbar->addAction("Search Again");
+    refresh_action = top_toolbar->addAction("Refresh Search Results");
+    top_toolbar->addSeparator();
     center_action = top_toolbar->addAction("Center On Selection");
     popup_action = top_toolbar->addAction("Popup On Selection");
 
-    search_action = bottom_toolbar->addAction("Search Again");
-    refresh_action = bottom_toolbar->addAction("Refresh Search Results");
 
     filters_widgets = new QWidget(this);
     filters_layout = new QVBoxLayout(filters_widgets);
     filters_layout->setAlignment(Qt::AlignTop);
-    filters_layout->setMargin(0);
+    filters_layout->setMargin(5);
     filters_layout->setSpacing(0);
     filters_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
@@ -214,23 +213,34 @@ void SearchDialog::setupLayout()
     filter_scroll->setWidget(filters_widgets);
     filter_scroll->setWidgetResizable(true);
 
-    results_widgets = new QWidget(this);
+
+    auto right_widget = new QWidget(this);
+    auto v_layout = new QVBoxLayout(right_widget);
+    v_layout->setContentsMargins(0,5,0,0);
+    v_layout->setSpacing(5);
     
+
+
+    results_widgets = new QWidget(this);
     results_layout = new QVBoxLayout(results_widgets);
     results_layout->setAlignment(Qt::AlignTop);
-    results_layout->setMargin(0);
     results_layout->setSpacing(0);
+    results_layout->setMargin(0);
     results_layout->addWidget(info_label);
+
     results_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
     auto results_scroll = new QScrollArea(this);
     results_scroll->setWidget(results_widgets);
     results_scroll->setWidgetResizable(true);
 
+    v_layout->addWidget(top_toolbar);
+    v_layout->addWidget(results_scroll, 1);
+
 
     splitter = new QSplitter(this);
     splitter->addWidget(filter_scroll);
-    splitter->addWidget(results_scroll);
+    splitter->addWidget(right_widget);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
     splitter->setSizes(QList<int>() << DEFAULT_KEY_WIDTH << DEFAULT_DISPLAY_WIDTH);
@@ -239,9 +249,8 @@ void SearchDialog::setupLayout()
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->setContentsMargins(1, 1, 1, 1);
-    layout->addWidget(top_toolbar);
     layout->addWidget(splitter, 1);
-    layout->addWidget(bottom_toolbar, 0, Qt::AlignRight);
+    
 
 
     connect(center_action, &QAction::triggered, this, [=](){emit CenterOn(selected_id);});

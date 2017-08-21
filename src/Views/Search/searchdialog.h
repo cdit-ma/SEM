@@ -59,7 +59,6 @@ private:
     QVBoxLayout* filters_layout = 0;
 
     QToolBar* top_toolbar = 0;
-    QToolBar* bottom_toolbar = 0;
 
     QAction* center_action = 0;
     QAction* popup_action = 0;

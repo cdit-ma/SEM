@@ -230,12 +230,16 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
     auto keys = getSearchableKeys();
     QMap<QString, ViewItem*> results;
+    
+    QRegExp rx("*" + query + "*");
+    rx.setPatternSyntax(QRegExp::WildcardUnix);
+    rx.setCaseSensitivity(Qt::CaseInsensitive);
 
     for(auto item : getSearchableEntities()){
         for(auto key : keys){
             if(item->hasData(key)){
                 auto data = item->getData(key).toString();
-                if(data.contains(query, Qt::CaseInsensitive)){
+                if(rx.exactMatch(data)){
                     results.insertMulti(key, item);
                 }
             }
