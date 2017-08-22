@@ -73,7 +73,7 @@ ViewController::ViewController() : QObject(){
     //Every minute
     //60000
     autosave_timer_ = new QTimer(this);
-    autosave_timer_->setInterval(5000);
+    autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 }
