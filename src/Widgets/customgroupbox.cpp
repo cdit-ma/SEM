@@ -163,7 +163,7 @@ void CustomGroupBox::themeChanged()
     if (groupTitleButton) {
         QString checkableStyle = "";
         if (groupTitleButton->isCheckable()) {
-            groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle"));
+            groupTitleButton->setIcon(theme->getIcon("Icons", "folderToggle", true));
             checkableStyle = "QToolButton::checked {"
                              "background: rgba(0,0,0,0);"
                              "color:" + theme->getTextColorHex() + ";"

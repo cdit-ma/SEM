@@ -48,13 +48,15 @@ signals:
     void checkedOptionsChanged();
 
 public slots:
-    void resetOptions();
+    void reset();
 
-private slots:
+    
+    private slots:
     void themeChanged();
     void optionToggled();
-
+    
 private:
+    void resetOptions();
 
     QAction* getNewOptionAction();
 

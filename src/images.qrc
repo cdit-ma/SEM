@@ -242,6 +242,10 @@
         <file alias="jenkinsFlat">Resources/Icons/jenkinsFlat.png</file>
         <file alias="personCircle">Resources/Icons/personCircle.png</file>
         <file alias="fingerprint">Resources/Icons/fingerprint.png</file>
-        
+        <file alias="arrowUp">Resources/Icons/arrowUp.png</file>
+        <file alias="arrowDown">Resources/Icons/arrowDown.png</file>
+        <file alias="thumbsUp">Resources/Icons/thumbsUp.png</file>
+        <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
+        <file alias="circleDark">Resources/Icons/circleDark.png</file>
     </qresource>
 </RCC>

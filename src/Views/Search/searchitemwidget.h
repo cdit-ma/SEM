@@ -75,7 +75,7 @@ private:
     QToolButton* button_expand = 0;
     QWidget* data_widget = 0;
 
-    QSize icon_size = QSize(32, 32);
+    QSize icon_size = QSize(24, 24);
     QSize small_icon_size = QSize(16, 16);
 
     

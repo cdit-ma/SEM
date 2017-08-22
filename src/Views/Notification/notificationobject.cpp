@@ -52,6 +52,10 @@ void NotificationObject::setTitle(QString title)
 }
 
 
+bool NotificationObject::isLoading(){
+    return _loading;
+}
+
 /**
  * @brief NotificationObject::setDescription
  * @param description
@@ -74,6 +78,7 @@ void NotificationObject::setIcon(QString path, QString name)
     _iconName = name;
     emit iconChanged(path, name);
 }
+
 
 
 /**
@@ -104,7 +109,8 @@ void NotificationObject::setDateTime(QDateTime dateTime)
  */
 void NotificationObject::setLoading(bool on)
 {
-    emit loading(on);
+    _loading = on;
+    emit loading(_loading);
 }
 
 
@@ -202,7 +208,7 @@ NOTIFICATION_SEVERITY NotificationObject::severity()
  * @brief NotificationObject::creationDateTime
  * @return
  */
-QDateTime NotificationObject::creationDateTime()
+QDateTime NotificationObject::time() const
 {
     return _creationDateTime;
 }

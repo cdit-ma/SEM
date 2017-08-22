@@ -261,6 +261,7 @@ bool NotificationManager::updateNotification(int ID, QString description, QStrin
     obj->setDescription(description);
     obj->setIcon(iconPath, iconName);
     obj->setSeverity(severity);
+    obj->setLoading(false);
 
     // toast updated notification
     emit manager()->notificationAdded(iconPath, iconName, description);

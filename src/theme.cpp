@@ -319,7 +319,7 @@ bool Theme::gotImage(QString path, QString alias)
 {
     auto resource_name = getResourceName(path, alias);
     QReadLocker lock(&lock_);
-    return imageLookup.contains(resource_name);
+    return image_names.contains(resource_name);
 }
 
 QString Theme::getBorderWidth()
@@ -342,7 +342,7 @@ QIcon Theme::getIcon(IconPair icon)
     return getIcon(icon.first, icon.second);
 }
 
-QIcon Theme::getIcon(QString prefix, QString alias)
+QIcon Theme::getIcon(QString prefix, QString alias, bool ignore_checked_colors)
 {
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QString lookupName = getResourceName(prefix, alias);
@@ -370,10 +370,9 @@ QIcon Theme::getIcon(QString prefix, QString alias)
 
         bool isTinted = tintIcon(prefix, alias);
 
-        ///*
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
+        
         if(isTinted){
             icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
             icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
@@ -384,12 +383,16 @@ QIcon Theme::getIcon(QString prefix, QString alias)
             QString toggledAliasName = toggledPaths.second.second;
 
             bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
+
+            auto toggled_normal_color = ignore_checked_colors ? getMenuIconColor(CR_NORMAL) : getMenuIconColor(CR_SELECTED);
             //Set the toggled states.
-            icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), toggled_normal_color), QIcon::Normal, QIcon::On);
             if(isToggledTinted){
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
             }
+        }else{
+            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
         }
 
         iconLookup[lookupName] = icon;
@@ -544,6 +547,20 @@ QString Theme::getWidgetStyleSheet(QString widgetName)
            "color:" % getTextColorHex() % ";"
            "border: 0px;"
            "}";
+}
+
+QMovie* Theme::getGif(QString path, QString name){
+    auto lookupName = getResourceName(path, name);
+    qCritical() << lookupName;
+    if(!gifLookup.contains(lookupName)){
+        auto movie = new QMovie();
+        movie->setFileName(":/" % lookupName);
+        movie->setScaledSize(QSize(16,16));
+        movie->start();
+        gifLookup[lookupName] = movie;
+    }
+
+    return gifLookup[lookupName];
 }
 
 QString Theme::getTabbedWidgetStyleSheet()
@@ -1022,18 +1039,26 @@ void Theme::preloadImages()
 
     //Recurse through all files in the image alias.
     QDirIterator it(":/Images/", QDirIterator::Subdirectories);
-    while (it.hasNext()){
-        it.next();
-        if(it.fileInfo().isFile()){
-            //Trim the :/ from the path1
-            auto file_path = it.filePath().mid(2);
-            
-            //load the image
-            if(getImage(file_path).isNull()){
-                qCritical() << "Image: " << file_path << " Is an null image";
-            }else{
-                load_count ++;
+
+    QList<QString> files;
+    {
+        QWriteLocker lock(&lock_);
+        while (it.hasNext()){
+            it.next();
+            if(it.fileInfo().isFile()){
+                //Trim the :/ from the path1
+                auto file_path = it.filePath().mid(2);
+                image_names.insert(file_path);
+                files.append(file_path);
             }
+        }
+    }
+    for(auto file_path : files){
+         //load the image
+         if(getImage(file_path).isNull()){
+            qCritical() << "Image: " << file_path << " Is an null image";
+        }else{
+            load_count ++;
         }
     }
 
@@ -1220,6 +1245,8 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
     setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
+
+    setIconToggledImage("Icons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
 }
 
 void Theme::setupAliasIcons(){

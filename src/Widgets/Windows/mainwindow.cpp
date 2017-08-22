@@ -749,7 +749,7 @@ void MainWindow::setupDockablePanels()
     auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
     dwQOSBrowser->setIconVisible(true);
-    dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
+    dwQOSBrowser->setIcon("Icons", "speedGauge");
     dwQOSBrowser->setProtected(true);
 
     auto searchPanel = SearchManager::manager()->getSearchDialog();

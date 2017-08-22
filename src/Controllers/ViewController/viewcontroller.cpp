@@ -424,7 +424,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             default:
                 break;
-
             }
         }else if(isEdge){
             switch(edgeViewItem->getEdgeKind()){
@@ -438,6 +437,10 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             }
         }
 
+        if(!Theme::theme()->gotImage(alias, image)){
+            alias = "Icons";
+            image = "circleDark";
+        }
         //Try and get the image
         //auto i = Theme::theme()->getIcon(alias, image);
         viewItem->setIcon(alias, image);

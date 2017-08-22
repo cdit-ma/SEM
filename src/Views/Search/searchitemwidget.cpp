@@ -101,10 +101,11 @@ void SearchItemWidget::updateIcon(){
     auto theme = Theme::theme();
     auto icon_path = view_item->getIcon();
     auto tint = theme->getMenuIconColor();
-    auto pixmap = theme->getImage(icon_path.first, icon_path.second, icon_size, tint);
+    auto pixmap = theme->getImage(icon_path.first, icon_path.second, QSize(32,32), tint);
     if(pixmap.isNull()){
         pixmap = theme->getImage("Icons", "Help", icon_size, tint);
     }
+    pixmap = pixmap.scaled(icon_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     label_icon->setPixmap(pixmap);
 }
 
@@ -240,8 +241,11 @@ void SearchItemWidget::setupLayout(){
 
     if(view_item){
         auto top_layout = new QHBoxLayout();
+        top_layout->setMargin(0);
+        top_layout->setMargin(0);
         label_icon = new QLabel(this);
         label_icon->setFixedSize(icon_size);
+        label_icon->setAlignment(Qt::AlignCenter);
 
         label_text = new QLabel(this);
         label_text->setFont(QFont(font().family(), 10));

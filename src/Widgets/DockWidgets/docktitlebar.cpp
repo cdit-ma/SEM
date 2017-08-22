@@ -94,7 +94,7 @@ void DockTitleBar::addToolAction(QAction* action, Qt::Alignment alignment)
 }
 void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName){
     if(action){
-        action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
+        action->setIcon(Theme::theme()->getIcon(iconPath, iconName, true));
     }
 }
 void DockTitleBar::updateIcon(QLabel* action, QString iconPath, QString iconName){

@@ -6,6 +6,7 @@
 
 #include "../../Utils/filehandler.h"
 #include "../NotificationManager/notificationmanager.h"
+#include "../../Views/Notification/notificationobject.h"
 #include "../ViewController/viewcontroller.h"
 
 ExecutionManager::ExecutionManager(ViewController *view_controller)
@@ -38,13 +39,18 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 
 void ExecutionManager::ValidateModel(QString model_path)
 {
+    auto manager =  NotificationManager::manager();
     // Clear previous validation notification items
-    foreach (int ID, NotificationManager::manager()->getNotificationsOfCategory(NOTIFICATION_CATEGORY::VALIDATION)) {
-        NotificationManager::manager()->deleteNotification(ID);
+    for (auto ID : manager->getNotificationsOfCategory(NOTIFICATION_CATEGORY::VALIDATION)) {
+        auto notification = manager->getNotificationItem(ID);
+        if(notification->description().startsWith("model validation", Qt::CaseInsensitive)){
+            continue;
+        }
+        manager->deleteNotification(ID);
     }
 
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = manager->displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
     //NotificationManager::manager()->deleteNotification(nID);
 
@@ -74,7 +80,7 @@ void ExecutionManager::ValidateModel(QString model_path)
                         auto id = get_xml_attribute(xml, "id");
                         auto warning = get_xml_attribute(xml, "warning") == "true";
                         auto error_code = xml.readElementText();
-                        NotificationManager::displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? NOTIFICATION_SEVERITY::WARNING : NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+                        manager->displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? NOTIFICATION_SEVERITY::WARNING : NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
                     }else if(result == "true"){
                         success_count ++;
                     }
@@ -84,12 +90,12 @@ void ExecutionManager::ValidateModel(QString model_path)
 
         // Show the notification panel on validation failure
         if (success_count < count) {
-            emit NotificationManager::manager()->showNotificationPanel();
+            emit manager->showNotificationPanel();
         }
-        NotificationManager::manager()->updateNotification(nID, "Model Validation - [" + QString::number(success_count) + "/" + QString::number(count) + "] tests passed", "Icons", "shield", success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR);
+        manager->updateNotification(nID, "Model validation - [" + QString::number(success_count) + "/" + QString::number(count) + "] tests passed", "Icons", "shield", success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR);
 
     } else {
-        NotificationManager::manager()->updateNotification(nID, "XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", NOTIFICATION_SEVERITY::ERROR);
+        manager->updateNotification(nID, "XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", NOTIFICATION_SEVERITY::ERROR);
     }
 }
 

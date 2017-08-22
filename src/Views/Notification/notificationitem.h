@@ -7,6 +7,7 @@
 #include <QFrame>
 #include <QLabel>
 #include <QMovie>
+#include <QToolButton>
 //#include <QTimer>
 
 class NotificationItem : public QFrame
@@ -17,6 +18,7 @@ public:
 
     int getID();
     int getEntityID();
+    NotificationObject* getNotification() const;
     QString getIconPath();
     QString getIconName();
     NOTIFICATION_SEVERITY getSeverity();
@@ -25,13 +27,7 @@ public:
 
     void setSelected(bool select);
 
-    void addFilter(QVariant filter, QVariant filterVal);
-    void filtersChanged(QVariant filter, QVariant filterVal);
-
-    int getNotificationFilterValue(NOTIFICATION_FILTER filter);
-    void filtersChanged(NOTIFICATION_FILTER filter, bool filterMatched);
-
-signals:
+    signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
     void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
@@ -40,11 +36,10 @@ public slots:
     void themeChanged();
 
 private slots:
-    void descriptionChanged(QString description);
-    void iconChanged(QString iconPath, QString iconName);
-    void timestampChanged(QTime time);
+    void descriptionChanged();
+    void updateIcon();
+    void timestampChanged();
     void loading(bool on);
-    //void updateEllapsedTime();
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
@@ -52,31 +47,22 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void updateIcon();
+    void setupLayout();
     void updateStyleSheet();
     void updateVisibility(bool filterMatched);
 
-    NotificationObject* notificationObject;
+    NotificationObject* notification = 0;
 
-    QString _iconPath;
-    QString _iconName;
-
-    QLabel* iconLabel;
-    QLabel* descriptionLabel;
-    QLabel* timestampLabel;
-
-    //QDateTime creationDateTime;
-    //QTimer* ellapsedTimer;
-
-    QMovie* loadingGif;
-    bool loadingOn;
+    QSize icon_size = QSize(24, 24);
+    QLabel* label_icon = 0;
+    QLabel* label_text = 0;
+    QLabel* label_time = 0;
+    QAction* action_delete = 0;
+    
 
     QString backgroundColor;
-    bool selected;
-
-    QHash<QVariant, QVariant> customFilters;
-    QHash<QVariant, bool> customFilterVisibility;
-    QHash<NOTIFICATION_FILTER, bool> filterVisibility;
+    bool selected = false;
 };
+
 
 #endif // NOTIFICATIONITEM_H

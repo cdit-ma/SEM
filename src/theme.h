@@ -8,7 +8,7 @@
 #include <QIcon>
 #include <QReadWriteLock>
 #include <QStringBuilder>
-
+#include <QMovie>
 #include <QObject>
 #include <QFuture>
 
@@ -53,6 +53,8 @@ public:
     QColor getPressedColor();
     QString getPressedColorHex();
 
+    QMovie* getGif(QString path, QString name);
+
     QColor getSelectedItemBorderColor();
     QString getSelectedItemBorderColorHex();
 
@@ -75,7 +77,7 @@ public:
     QColor getMainImageColor(IconPair path);
 
     QIcon getIcon(IconPair icon);
-    QIcon getIcon(QString prefix, QString alias);
+    QIcon getIcon(QString prefix, QString alias, bool ignore_checked_colors = false);
 
 private:
     QPixmap _getPixmap(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
@@ -168,7 +170,9 @@ private:
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
 
+    QSet<QString> image_names;
 
+    QHash<QString, QMovie*> gifLookup;
     QHash<QString, QImage> imageLookup;
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QIcon> iconLookup;

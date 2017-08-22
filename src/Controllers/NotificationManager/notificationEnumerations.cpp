@@ -133,7 +133,7 @@ QString getSeverityIcon(NOTIFICATION_SEVERITY severity)
     case NOTIFICATION_SEVERITY::WARNING:
         return "triangleCritical";
     case NOTIFICATION_SEVERITY::ERROR:
-        return "circleCrossDark";
+        return "pointyCircleCriticalDark";
     default:
         return "circleQuestion";
     }
@@ -141,7 +141,7 @@ QString getSeverityIcon(NOTIFICATION_SEVERITY severity)
 QString getContextIcon(NOTIFICATION_CONTEXT context){
     switch (context) {
         default:
-            return "circleQuestion";
+            return "tiles" ;
     }
 }
 

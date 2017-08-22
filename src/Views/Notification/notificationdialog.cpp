@@ -5,12 +5,7 @@
 #include <QApplication>
 
 
-#define ENTITY_ID "entity_ID"
-#define NO_SELECTION_ID -2
-
-#define FILTER_KEY "filter_key"
 #define FILTER_DEFAULT_WIDTH 150
-
 #define ICON_SIZE 24
 
 
@@ -21,11 +16,9 @@
 NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *parent)
     : QFrame(parent)
 {
-    selectedEntityID = -1;
     this->viewController = viewController;
 
     setupLayout();
-
     initialisePanel();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationDialog::themeChanged);
@@ -68,29 +61,28 @@ void NotificationDialog::updateNotificationVisibility(QList<NotificationItem*> i
 
         item->setVisible(matches_severity && matches_category && matches_type && matches_context);
     }
+
+    updateVisibleCount();
 }
 
-
-/**
- * @brief NotificationDialog::viewSelection
- * Center on or popout the corresponding entity for the selected notification item.
- */
-void NotificationDialog::viewSelection()
-{
-    int numSelectedItems = selectedNotificationItems.count();
-    if (numSelectedItems != 1) {
-        return;
+void NotificationDialog::updateVisibleCount(){
+    int visible_count = 0;
+    for(auto item : notification_items){
+        if(item->isVisibleTo(notifications_widget)){
+            visible_count ++;
+        }
     }
 
-    NotificationItem* selectedItem = selectedNotificationItems.at(0);
-    int eID = selectedItem->getEntityID();
-    if (sender() == centerOnAction) {
-        emit centerOn(eID);
-    } else if (sender() == popupAction) {
-        emit popup(eID);
+    auto notification_count = notification_items.size();
+    bool all_visible = visible_count == notification_count;
+    if(!all_visible){
+        status_label->setText("[" + QString::number(notification_count - visible_count) + "/" + QString::number(notification_count) + "] notifications hidden by filters");
     }
+    //Hide and show the 
+    notifications_status_widget->setVisible(!all_visible);
+
+    info_label->setVisible(notification_count == 0);
 }
-
 
 /**
  * @brief NotificationDialog::themeChanged
@@ -100,11 +92,12 @@ void NotificationDialog::themeChanged()
     auto theme = Theme::theme();
     
     setStyleSheet(
-                    "#NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";} " +
-                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0);} " +
+                    "#NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";}" +
+                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                     "QLabel {color:" + theme->getTextColorHex() + ";} " + 
                     theme->getToolBarStyleSheet() +
-                    theme->getSplitterStyleSheet()
+                    theme->getSplitterStyleSheet() +
+                    "QToolButton::checked:!hover{background: " % theme->getAltBackgroundColorHex() % ";}"
                 );
 
     notifications_widget->setStyleSheet("background: rgba(0,0,0,0);");
@@ -113,10 +106,12 @@ void NotificationDialog::themeChanged()
 
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
-    //search_action->setIcon(theme->getIcon("Icons", "zoom"));
-    //refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
+    sort_time_action->setIcon(theme->getIcon("Icons", "sort", true));
+    reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
+    
+    auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
+    clock_label->setPixmap(pixmap);
 
-    //query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 }
 
@@ -144,15 +139,6 @@ void NotificationDialog::ToggleSelection(NotificationItem* item){
 }
 
 
-/**
- * @brief NotificationDialog::resetPanel
- */
-void NotificationDialog::resetPanel()
-{
-    clearAll();
-}
-
-
 void NotificationDialog::selectionChanged(){
     auto checked_context_set = context_filters->getCheckedOptions<NOTIFICATION_CONTEXT>().toSet();
     if(checked_context_set.contains(NOTIFICATION_CONTEXT::SELECTED)){
@@ -160,77 +146,21 @@ void NotificationDialog::selectionChanged(){
     }
 }
 
-/**
- * @brief NotificationDialog::clearSelected
- */
-void NotificationDialog::clearSelected()
-{
-    // delete selected items
-    while (!selectedNotificationItems.isEmpty()) {
-        removeItem(selectedNotificationItems.takeFirst());
+void NotificationDialog::toggleSort(){
+    auto sort_ascending = sort_time_action->isChecked();
+    auto ordered_list = notification_items.values();
+
+    qSort(ordered_list.begin(), ordered_list.end(), 
+    [sort_ascending](const NotificationItem* a, const NotificationItem* b) -> bool {
+        bool agtb = a->getNotification()->time() > b->getNotification()->time();
+         return sort_ascending ? agtb : !agtb;
+        });
+    
+    for(auto item : ordered_list){
+        notifications_layout->removeWidget(item);
+        notifications_layout->addWidget(item);
     }
 }
-
-
-/**
- * @brief NotificationDialog::clearVisible
- */
-void NotificationDialog::clearVisible()
-{
-    QList<NotificationItem*> visibleItems;
-    foreach (NotificationItem* item, notificationItems) {
-        if (item->isVisible()) {
-            visibleItems.append(item);
-        }
-    }
-
-    // delete visible items
-    while (!visibleItems.isEmpty()) {
-        removeItem(visibleItems.takeFirst());
-    }
-}
-
-
-/**
- * @brief NotificationDialog::clearNotifications
- * @param filter
- * @param filterVal
- */
-void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filterVal)
-{
-    QList<NotificationItem*> itemsToDelete;
-    foreach (NotificationItem* item, notificationItems.values()) {
-        switch (filter) {
-        case NOTIFICATION_FILTER::SEVERITY:
-        {
-            if (item->getSeverity() == (NOTIFICATION_SEVERITY)filterVal) {
-                itemsToDelete.append(item);
-            }
-            break;
-        }
-        case NOTIFICATION_FILTER::TYPE:
-        {
-            if (item->getType() == (NOTIFICATION_TYPE)filterVal) {
-                itemsToDelete.append(item);
-            }
-            break;
-        }
-        case NOTIFICATION_FILTER::CATEGORY:
-        {
-            if (item->getCategory() == (NOTIFICATION_CATEGORY)filterVal) {
-                itemsToDelete.append(item);
-            }
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    foreach (NotificationItem* item, itemsToDelete) {
-        removeItem(item);
-    }
-}
-
 
 /**
  * @brief NotificationDialog::notificationAdded
@@ -245,7 +175,10 @@ void NotificationDialog::notificationAdded(NotificationObject* notification)
     if(!notification_items.contains(id)){
         auto notification_item = new NotificationItem(notification, this);
 
-        notifications_layout->insertWidget(0, notification_item);
+        //Add or insert based on state of sort
+        int position = sort_time_action->isChecked() ? 0 : -1;
+        
+        notifications_layout->insertWidget(position, notification_item);
         notification_items[id] = notification_item;
     
         connect(notification_item, &NotificationItem::hoverEnter, this, & NotificationDialog::itemHoverEnter);
@@ -266,47 +199,13 @@ void NotificationDialog::notificationDeleted(int ID)
 {
     if (notification_items.contains(ID)) {
         auto notification = notification_items.take(ID);
-        selectedNotificationItems.removeAll(notification);
-        itemsLayout->removeWidget(notification);
-        updateSelectionBasedButtons();
+        if(selected_notification == notification){
+            ToggleSelection(0);
+        }
         delete notification;
     }
+    updateVisibleCount();
 }
-
-
-/**
- * @brief NotificationDialog::clearAll
- * NOTE: This function is the only one that doesn't use notificationDeleted to delete items.
- * It is only called when the notification panel is being reset.
- */
-void NotificationDialog::clearAll()
-{
-    // remove widgets from the items layout
-    QLayoutItem* child;
-    while ((child = itemsLayout->takeAt(0)) != 0) {
-        delete child;
-    }
-
-    notificationItems.clear();
-    selectedNotificationItems.clear();
-
-    // reset checked filter buttons and checked filter lists
-    updateSelectionBasedButtons();
-}
-
-
-/**
- * @brief NotificationDialog::clearSelection
- */
-void NotificationDialog::clearSelection()
-{
-    foreach (NotificationItem* item, selectedNotificationItems) {
-        item->setSelected(false);
-    }
-    selectedNotificationItems.clear();
-    updateSelectionBasedButtons();
-}
-
 
 /**
  * @brief NotificationDialog::initialisePanel
@@ -336,79 +235,113 @@ void NotificationDialog::enterEvent(QEvent* event)
 
 
 /**
- * @brief NotificationDialog::removeItem
- * This requests to delete the provided notification item.
- * Error items cannot be deleted using the notification dialog.
- * @param item
- */
-void NotificationDialog::removeItem(NotificationItem* item)
-{
-    if (item) {
-        NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (severity != NOTIFICATION_SEVERITY::ERROR) {
-            emit deleteNotification(item->getID());
-        }
-    }
-}
-
-
-/**
  * @brief NotificationDialog::setupLayout
  */
 void NotificationDialog::setupLayout()
 {
+
+    auto left_widget = new QWidget(this);
     auto right_widget = new QWidget(this);
-    auto v_layout = new QVBoxLayout(right_widget);
-    //Add Padding to the top
-    v_layout->setContentsMargins(0, 5, 0, 0);
-    v_layout->setSpacing(5);
+
+    {
+        //LEFT WIDGET
+        left_widget->setContentsMargins(5,5,1,5);
+        auto v_layout = new QVBoxLayout(left_widget);
+        v_layout->setMargin(0);
+
+        filters_widget = new QWidget(this);
+        filters_widget->setContentsMargins(5,0,5,5);
+        filters_layout = new QVBoxLayout(filters_widget);
+        filters_layout->setAlignment(Qt::AlignTop);
+        filters_layout->setMargin(0);
+        filters_layout->setSpacing(0);
+
+        filters_scroll = new QScrollArea(this);
+        filters_scroll->setWidget(filters_widget);
+        filters_scroll->setWidgetResizable(true);
+
+        v_layout->addWidget(filters_scroll, 1);
+    }
+
+    {
+        //RIGHT WIDGET
+        right_widget->setContentsMargins(1,5,5,5);
+        auto v_layout = new QVBoxLayout(right_widget);
+        v_layout->setMargin(0);
+        v_layout->setSpacing(5);
+
+        top_toolbar = new QToolBar(this);
+        top_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
+        top_toolbar->setIconSize(QSize(16, 16));
+
+        clock_label = new QLabel(this);
+        clock_label->setFixedSize(QSize(16, 16));
+        clock_label->setAlignment(Qt::AlignCenter);
+        clock_label->setToolTip("Sort Notifications by time (Ascending/Descending)");
+        
+        top_toolbar->addWidget(clock_label);
+        sort_time_action = top_toolbar->addAction("Sort by time");
+        sort_time_action->setToolTip(clock_label->toolTip());
+        sort_time_action->setCheckable(true);
+        sort_time_action->setChecked(true);
+
+
+
+        
+        top_toolbar->addSeparator();
+        center_action = top_toolbar->addAction("Center On Notification");
+        popup_action = top_toolbar->addAction("Popup On Notification");
     
-    info_label = new QLabel("No Notifications.", this);
-    info_label->setAlignment(Qt::AlignCenter);
-    info_label->setFont(QFont(font().family(), 25));
+
+        info_label = new QLabel("No notifications", this);
+        info_label->setAlignment(Qt::AlignCenter);
+        info_label->setFont(QFont(font().family(), 25));
+        info_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
+        
+        //Used for the ScrollArea
+        notifications_widget = new QWidget(this);
+        notifications_layout = new QVBoxLayout(notifications_widget);
+        notifications_layout->setAlignment(Qt::AlignTop);
+        notifications_layout->setSpacing(0);
+        notifications_layout->setMargin(0);
+
+        //Add the No Results info label to the results layout
+        notifications_layout->addWidget(info_label);
     
-    top_toolbar = new QToolBar(this);
-    top_toolbar->setIconSize(QSize(16, 16));
-    
-    center_action = top_toolbar->addAction("Center On Notification");
-    popup_action = top_toolbar->addAction("Popup On Notification");
-    top_toolbar->addSeparator();
-    //sort_time_action = top_toolbar->addAction("Sort by time");
-    //sort_severity_action = top_toolbar->addAction("Sort by severity");
+        notifications_scroll = new QScrollArea(this);
+        notifications_scroll->setWidget(notifications_widget);
+        notifications_scroll->setWidgetResizable(true);
 
 
-    filters_widget = new QWidget(this);
-    filters_layout = new QVBoxLayout(filters_widget);
-    filters_layout->setAlignment(Qt::AlignTop);
-    filters_layout->setMargin(5);
-    filters_layout->setSpacing(0);
+        {
+            //Is the Notification label in the status bar
+            status_label = new QLabel(this);
+            status_label->setAlignment(Qt::AlignCenter);
+            status_label->setFont(QFont(font().family(), 12));
+            status_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
 
-    filters_scroll = new QScrollArea(this);
-    filters_scroll->setWidget(filters_widget);
-    filters_scroll->setWidgetResizable(true);
+            bottom_toolbar = new QToolBar(this);
+            bottom_toolbar->setIconSize(QSize(16, 16));
+            bottom_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
+            reset_filters_action = bottom_toolbar->addAction("Reset Filters");
+
+            notifications_status_widget = new QWidget(this);
+            notifications_status_widget->hide();
+            auto status_layout = new QHBoxLayout(notifications_status_widget);
+            status_layout->setContentsMargins(0, 0, 0, 0);
+            status_layout->addWidget(status_label, 1);
+            status_layout->addWidget(bottom_toolbar);
+        }
 
 
-    
-    notifications_widget = new QWidget(this);
-
-
-    notifications_layout = new QVBoxLayout(notifications_widget);
-    notifications_layout->setAlignment(Qt::AlignTop);
-    notifications_layout->setSpacing(0);
-    notifications_layout->setMargin(0);
-    //Add the No Results info label to the results layout
-    notifications_layout->addWidget(info_label);
-
-    notifications_scroll = new QScrollArea(this);
-    notifications_scroll->setWidget(notifications_widget);
-    notifications_scroll->setWidgetResizable(true);
-
-    v_layout->addWidget(top_toolbar);
-    v_layout->addWidget(notifications_scroll, 1);
-
+        //Right
+        v_layout->addWidget(top_toolbar, 0, Qt::AlignRight);
+        v_layout->addWidget(notifications_scroll, 1);
+        v_layout->addWidget(notifications_status_widget);
+    }
 
     splitter = new QSplitter(this);
-    splitter->addWidget(filters_scroll);
+    splitter->addWidget(left_widget);
     splitter->addWidget(right_widget);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
@@ -417,18 +350,10 @@ void NotificationDialog::setupLayout()
     auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-    layout->setContentsMargins(1, 1, 1, 1);
     layout->addWidget(splitter, 1);
-    
-
-    /*
-    connect(center_action, &QAction::triggered, this, [=](){emit CenterOn(selected_id);});
-    connect(popup_action, &QAction::triggered, this, [=](){emit Popup(selected_id);});
-
-    connect(search_action, &QAction::triggered, this, &SearchDialog::SearchPopup);
-    connect(refresh_action, &QAction::triggered, this, [=](){emit SearchQuery(query_text);});
-    */
     setupFilters();
+
+    connect(sort_time_action, &QAction::triggered, this, &NotificationDialog::toggleSort);
 }
 
 
@@ -441,7 +366,7 @@ void NotificationDialog::setupFilters()
     for(auto context : getNotificationContexts()){
         context_filters->addOption(QVariant::fromValue(context), getContextString(context), "Icons", getContextIcon(context));
     }
-    //Hide
+    //Hide the NOT_SELECTED option
     context_filters->setOptionVisible(QVariant::fromValue(NOTIFICATION_CONTEXT::NOT_SELECTED), false);
 
     filters_layout->addWidget(context_filters);
@@ -457,6 +382,7 @@ void NotificationDialog::setupFilters()
     for (auto category : getNotificationCategories()) {
         category_filters->addOption(QVariant::fromValue(category), getCategoryString(category), "Icons", getCategoryIcon(category));
     }
+    category_filters->setOptionVisible(QVariant::fromValue(NOTIFICATION_CATEGORY::NONE), false);
     filters_layout->addWidget(category_filters);
 
     source_filters = new OptionGroupBox("SOURCE", this);
@@ -469,17 +395,11 @@ void NotificationDialog::setupFilters()
     connect(severity_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
     connect(category_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
     connect(source_filters, &OptionGroupBox::checkedOptionsChanged, this, &NotificationDialog::filtersChanged);
-}
 
 
-/**
- * @brief NotificationDialog::updateSelectionBasedButtons
- */
-void NotificationDialog::updateSelectionBasedButtons()
-{
-    bool enable = !selectedNotificationItems.isEmpty();
-    // TODO - Commented this out to match search centerOn and popup buttons
-    //centerOnAction->setEnabled(enable);
-    //popupAction->setEnabled(enable);
-    clearSelectedAction->setEnabled(enable);
+
+    connect(reset_filters_action, &QAction::triggered, context_filters, &OptionGroupBox::reset);
+    connect(reset_filters_action, &QAction::triggered, severity_filters, &OptionGroupBox::reset);
+    connect(reset_filters_action, &QAction::triggered, category_filters, &OptionGroupBox::reset);
+    connect(reset_filters_action, &QAction::triggered, source_filters, &OptionGroupBox::reset);
 }

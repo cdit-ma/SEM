@@ -161,6 +161,11 @@ void OptionGroupBox::removeOptions()
 }
 
 
+void OptionGroupBox::reset(){
+    resetOptions();
+    emit checkedOptionsChanged();
+}
+
 /**
  * @brief OptionGroupBox::uncheckOptions
  */
@@ -183,6 +188,7 @@ void OptionGroupBox::resetOptions()
     reset_action->setChecked(true);
     checkedKeys = actions_lookup.keys();
     updateTitleCount();
+    
 }
 
 

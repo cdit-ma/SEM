@@ -1,6 +1,7 @@
 #include "notificationitem.h"
 
 #include <QMouseEvent>
+#include <QToolBar>
 
 
 /**
@@ -15,51 +16,51 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
         qWarning() << "NotificationItem::NotificationItem - Notification object is null.";
         return;
     }
+    
+    notification = obj;
 
-    /*
-    creationDateTime = obj->creationDateTime();
-    timestampLabel = new QLabel("0s ago", this);
+    setupLayout();
 
-    QTimer* ellapsedTimer = new QTimer(this);
-    ellapsedTimer->setTimerType(Qt::VeryCoarseTimer);
-    connect(ellapsedTimer, &QTimer::timeout, this, &NotificationItem::updateEllapsedTime);
-    ellapsedTimer->start(10000);
-    */
 
-    notificationObject = obj;
-    selected = true;
-    setSelected(false);
-
-    _iconPath = obj->iconPath();
-    _iconName = obj->iconName();
-
-    descriptionLabel = new QLabel(obj->description(), this);
-    iconLabel = new QLabel(this);
-    timestampLabel = new QLabel(obj->creationDateTime().time().toString("H:mm a"), this);
-
-    //descriptionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    //descriptionLabel->setMinimumWidth(10);
-
-    loadingGif = 0;
-    loadingOn = false;
-
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->addWidget(iconLabel);
-    layout->addWidget(descriptionLabel);
-    layout->addWidget(timestampLabel, 1, Qt::AlignRight);
-
-    /*
-    // this item is visible by default - initialise all filter visibility to true
-    foreach (NOTIFICATION_FILTER filter, getNotificationFilters()) {
-        filterVisibility[filter] = true;
-    }*/
-
-    connect(obj, &NotificationObject::loading, this, &NotificationItem::loading);
-    connect(obj, &NotificationObject::timestampChanged, this, &NotificationItem::timestampChanged);
-    connect(obj, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
-    connect(obj, &NotificationObject::iconChanged, this, &NotificationItem::iconChanged);
+    connect(notification, &NotificationObject::loading, this, &NotificationItem::updateIcon);
+    connect(notification, &NotificationObject::timestampChanged, this, &NotificationItem::timestampChanged);
+    connect(notification, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
+    connect(notification, &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
+    
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
+
+    connect(action_delete, &QAction::triggered, [=](){
+        NotificationManager::manager()->deleteNotification(notification->ID());
+    });
+}
+
+
+void NotificationItem::setupLayout(){
+
+    auto layout = new QHBoxLayout(this);
+    layout->setMargin(5);
+    layout->setSpacing(5);
+
+    label_icon = new QLabel(this);
+    label_icon->setFixedSize(icon_size);
+    label_icon->setAlignment(Qt::AlignCenter);
+
+    label_text = new QLabel(this);
+
+    label_time = new QLabel(this);
+
+    auto toolbar = new QToolBar(this);
+    toolbar->setIconSize(icon_size/2);
+    action_delete = toolbar->addAction("Delete Notification");
+
+    layout->addWidget(label_icon);
+    layout->addWidget(label_text, 1);
+    layout->addWidget(label_time);
+    layout->addWidget(toolbar);
+
+    descriptionChanged();
+    timestampChanged();
 }
 
 
@@ -69,10 +70,14 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
  */
 int NotificationItem::getID()
 {
-    if (notificationObject) {
-        return notificationObject->ID();
+    if (notification) {
+        return notification->ID();
     }
     return -1;
+}
+
+NotificationObject* NotificationItem::getNotification() const{
+    return notification;
 }
 
 
@@ -82,8 +87,8 @@ int NotificationItem::getID()
  */
 int NotificationItem::getEntityID()
 {
-    if (notificationObject) {
-        return notificationObject->entityID();
+    if (notification) {
+        return notification->entityID();
     }
     return -1;
 }
@@ -95,7 +100,7 @@ int NotificationItem::getEntityID()
  */
 QString NotificationItem::getIconPath()
 {
-    return _iconPath;
+    return "";
 }
 
 
@@ -105,7 +110,7 @@ QString NotificationItem::getIconPath()
  */
 QString NotificationItem::getIconName()
 {
-    return _iconName;
+    return "";
 }
 
 
@@ -115,8 +120,8 @@ QString NotificationItem::getIconName()
  */
 NOTIFICATION_SEVERITY NotificationItem::getSeverity()
 {
-    if (notificationObject) {
-        return notificationObject->severity();
+    if (notification) {
+        return notification->severity();
     }
     return NOTIFICATION_SEVERITY::INFO;
 }
@@ -128,8 +133,8 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
  */
 NOTIFICATION_TYPE NotificationItem::getType()
 {
-    if (notificationObject) {
-        return notificationObject->type();
+    if (notification) {
+        return notification->type();
     }
     return NOTIFICATION_TYPE::MODEL;
 }
@@ -141,35 +146,10 @@ NOTIFICATION_TYPE NotificationItem::getType()
  */
 NOTIFICATION_CATEGORY NotificationItem::getCategory()
 {
-    if (notificationObject) {
-        return notificationObject->category();
+    if (notification) {
+        return notification->category();
     }
     return NOTIFICATION_CATEGORY::NONE;
-}
-
-
-/**
- * @brief NotificationItem::getNotificationFilterValue
- * @param filter
- * @return
- */
-int NotificationItem::getNotificationFilterValue(NOTIFICATION_FILTER filter)
-{
-    int value = -1;
-    switch (filter) {
-    case NOTIFICATION_FILTER::SEVERITY:
-        value = static_cast<int>(getSeverity());
-        break;
-    case NOTIFICATION_FILTER::CATEGORY:
-        value = static_cast<int>(getCategory());
-        break;
-    case NOTIFICATION_FILTER::TYPE:
-        value = static_cast<int>(getType());
-        break;
-    default:
-        break;
-    }
-    return value;
 }
 
 
@@ -191,36 +171,6 @@ void NotificationItem::setSelected(bool select)
 }
 
 
-/**
- * @brief NotificationItem::addFilter
- * @param filter
- * @param filterVal
- */
-void NotificationItem::addFilter(QVariant filter, QVariant filterVal)
-{
-    if (!customFilters.contains(filter)) {
-        customFilters[filter] = filterVal;
-        customFilterVisibility[filter] = true;
-    }
-}
-
-
-/**
- * @brief NotificationItem::filtersChanged
- * @param filter
- * @param filterVal
- */
-void NotificationItem::filtersChanged(QVariant filter, QVariant filterVal)
-{
-    if (customFilters.contains(filter)) {
-        bool filterMatched = customFilters[filter] == filterVal;
-        customFilterVisibility[filter] = filterMatched;
-        updateVisibility(filterMatched);
-    } else {
-        updateVisibility(false);
-    }
-}
-
 
 /**
  * @brief NotificationItem::themeChanged
@@ -234,7 +184,8 @@ void NotificationItem::themeChanged()
         backgroundColor = theme->getBackgroundColorHex();
     }
     updateStyleSheet();
-    iconChanged(getIconPath(), getIconName());
+
+    updateIcon();
 }
 
 
@@ -242,12 +193,13 @@ void NotificationItem::themeChanged()
  * @brief NotificationItem::descriptionChanged
  * @param description
  */
-void NotificationItem::descriptionChanged(QString description)
+void NotificationItem::descriptionChanged()
 {
+    auto description = notification->description();
     if (description.isEmpty()) {
         description = "...";
     }
-    descriptionLabel->setText(description);
+    label_text->setText(description);
 }
 
 
@@ -256,19 +208,26 @@ void NotificationItem::descriptionChanged(QString description)
  * @param iconPath
  * @param iconName
  */
-void NotificationItem::iconChanged(QString iconPath, QString iconName)
+void NotificationItem::updateIcon()
 {
-    _iconPath = iconPath;
-    _iconName = iconName;
-
-    if (_iconPath.isEmpty() || _iconName.isEmpty()) {
-        _iconPath = "Icons";
-        _iconName = getSeverityIcon(getSeverity());
+    
+    if(notification->isLoading()){
+        qCritical() << notification << " LOADING";
+        auto movie = Theme::theme()->getGif("Icons", "loading");
+        label_icon->setMovie(movie);
+    }else{
+        qCritical() << notification << " NOT LOADING";
+        auto icon_path = notification->iconPath();
+        auto icon_name = notification->iconName();
+        if (icon_path.isEmpty() || icon_name.isEmpty()) {
+            icon_path = "Icons";
+            icon_name = getSeverityIcon(notification->severity());
+        }
+        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, getSeverityColor(getSeverity()));
+        label_icon->setMovie(0);
+        label_icon->setPixmap(pixmap);
     }
 
-    if (!loadingOn) {
-        iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
-    }
 }
 
 
@@ -276,9 +235,9 @@ void NotificationItem::iconChanged(QString iconPath, QString iconName)
  * @brief NotificationItem::timestampChanged
  * @param time
  */
-void NotificationItem::timestampChanged(QTime time)
+void NotificationItem::timestampChanged()
 {
-    timestampLabel->setText(time.toString("H:mm a"));
+    label_time->setText(notification->time().toString("H:mm:ss"));
 }
 
 
@@ -288,6 +247,8 @@ void NotificationItem::timestampChanged(QTime time)
  */
 void NotificationItem::loading(bool on)
 {
+    return;
+    /*
     if (loadingOn == on) {
         return;
     }
@@ -304,21 +265,8 @@ void NotificationItem::loading(bool on)
     } else {
         loadingGif->stop();
         iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
-    }
+    }*/
 }
-
-
-/**
- * @brief NotificationItem::updateEllapsedTime
- */
-/*
-void NotificationItem::updateEllapsedTime()
-{
-    int timeElapsed = creationDateTime.time().elapsed();
-    timestampLabel->setText(QString::number(timeElapsed/1000) + "s ago");
-}
-*/
-
 
 /**
  * @brief NotificationItem::mouseReleaseEvent
@@ -364,63 +312,11 @@ void NotificationItem::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  + theme->getToolBarStyleSheet());
-}
-
-
-/**
- * @brief NotificationItem::updateVisibility
- * @param filterMatched
- */
-void NotificationItem::updateVisibility(bool filterMatched)
-{
-    if (isVisible() != filterMatched) {
-
-        bool showItem = filterMatched;
-        if (filterMatched) {
-            foreach (bool visible, filterVisibility.values()) {
-                if (!visible) {
-                    showItem = false;
-                    break;
-                }
-            }
-            if (showItem) {
-                foreach (bool visible, customFilterVisibility.values()) {
-                    if (!visible) {
-                        showItem = false;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // de-select this item if it is hidden
-        if (!showItem && selected) {
-            emit itemClicked(this, selected, true);
-        }
-
-        setVisible(showItem);
+                  + theme->getToolBarStyleSheet()
+                  + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
+    );
+    
+    if (action_delete) {
+        action_delete->setIcon(theme->getIcon("Icons", "cross"));
     }
-}
-
-
-/**
- * @brief NotificationItem::updateVisibility
- * This is called when a filter has been triggered.
- * It updates the visibily of this item based on whether all of its filters match the currently checked filters.
- * @param filter
- * @param filterMatched
- */
-void NotificationItem::filtersChanged(NOTIFICATION_FILTER filter, bool filterMatched)
-{
-    if (filterVisibility.contains(filter)) {
-        filterVisibility[filter] = filterMatched;
-        updateVisibility(filterMatched);
-    }
-}
-
-
-inline uint qHash(QVariant key, uint seed)
-{
-    return ::qHash(key.toUInt(), seed);
 }

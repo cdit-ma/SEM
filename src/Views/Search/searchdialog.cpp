@@ -16,6 +16,8 @@ SearchDialog::SearchDialog(QWidget *parent)
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+
+    
 }
 
 
@@ -50,12 +52,14 @@ void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> 
         data_filters->setResetButtonText("All (" + QString::number(results.count()) + ")");
     }
 
+    current_search_items.clear();
 
     for(auto key : results.uniqueKeys()){
         auto view_items = results.values(key);
         for(auto item : view_items){
             auto search_item = constructSearchItem(item);
             search_item->addMatchedKey(key);
+            current_search_items.insert(item->getID());
         }
         data_filters->addOption(key, key + " (" + QString::number(view_items.count()) + ")", "Data", key);
     }
@@ -71,8 +75,8 @@ void SearchDialog::themeChanged()
     auto theme = Theme::theme();
     
     setStyleSheet(
-                    "#SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";} " +
-                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0);} " +
+                    "#SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";}" +
+                    "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                     "QLabel {color:" + theme->getTextColorHex() + ";} " + 
                     theme->getToolBarStyleSheet() +
                     theme->getSplitterStyleSheet()
@@ -85,10 +89,14 @@ void SearchDialog::themeChanged()
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
     refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
+    reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
+    
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
-    
+    //status_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    //status_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    //->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 }
 
      
@@ -102,6 +110,7 @@ void SearchDialog::filtersChanged()
     auto checked_aspect_set = aspect_filters->getCheckedOptions<VIEW_ASPECT>().toSet();
     auto checked_key_list = data_filters->getCheckedOptions<QString>();
 
+    int visible_count = 0;
     for(auto item : search_items){
         auto view_aspect = item->getViewAspect();
         //Edges are allowed
@@ -116,8 +125,21 @@ void SearchDialog::filtersChanged()
                 }
             }
         }
-        item->setVisible(matched_aspect && matched_key);
+        bool visible = matched_aspect && matched_key;
+        item->setVisible(visible);
+        if(visible){
+            visible_count ++;
+        }
     }
+
+    //Calculate the number of hidden items
+    auto search_count = current_search_items.size();
+    bool all_visible = visible_count == search_count;
+    if(!all_visible){
+        status_label->setText("[" + QString::number(search_count - visible_count) + "/" + QString::number(search_count) + "] entities hidden by filters");
+    }
+    //Hide and show the 
+    result_status_widget->setVisible(!all_visible);
 }
 
 
@@ -177,71 +199,109 @@ void SearchDialog::resetPanel()
  */
 void SearchDialog::setupLayout()
 {
+    auto left_widget = new QWidget(this);
     auto right_widget = new QWidget(this);
-    auto v_layout = new QVBoxLayout(right_widget);
-    //Add Padding to the top
-    v_layout->setContentsMargins(0, 5, 0, 0);
-    v_layout->setSpacing(5);
 
+    {
+         //LEFT WIDGET
+         left_widget->setContentsMargins(5,5,1,5);
+         auto v_layout = new QVBoxLayout(left_widget);
+         v_layout->setMargin(0);
+ 
+         filters_widget = new QWidget(this);
+         filters_widget->setContentsMargins(5,0,5,5);
+         filters_layout = new QVBoxLayout(filters_widget);
+         filters_layout->setAlignment(Qt::AlignTop);
+         filters_layout->setMargin(0);
+         filters_layout->setSpacing(0);
+ 
+         filters_scroll = new QScrollArea(this);
+         filters_scroll->setWidget(filters_widget);
+         filters_scroll->setWidgetResizable(true);
+ 
+         v_layout->addWidget(filters_scroll, 1);
+    }
+
+    {
+        //RIGHT WIDGET
+        right_widget->setContentsMargins(1,5,5,5);
+        auto v_layout = new QVBoxLayout(right_widget);
+        v_layout->setMargin(0);
+        v_layout->setSpacing(5);
+
+        search_label = new QLabel("Search Query: ", this);
+        query_label = new QLabel(this);
+        query_label->setFont(QFont(font().family(), 12));
+
+        top_toolbar = new QToolBar(this);
+        top_toolbar->setIconSize(QSize(16, 16));
+        top_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
+
+        search_action = top_toolbar->addAction("Search Again");
+        refresh_action = top_toolbar->addAction("Refresh Search Results");
+        top_toolbar->addSeparator();
+        center_action = top_toolbar->addAction("Center On Selection");
+        popup_action = top_toolbar->addAction("Popup On Selection");
     
-    search_label = new QLabel("Search Query: ", this);
-    query_label = new QLabel(this);
-    query_label->setFont(QFont(font().family(), 12));
+
+        auto top_layout = new QHBoxLayout();
+        {
+            //Construct the top bar layout
+            top_layout->setContentsMargins(0, 0, 0, 0);
+            top_layout->addWidget(search_label);
+            top_layout->addWidget(query_label, 1);
+            top_layout->addWidget(top_toolbar);
+        }
+
+        results_widget = new QWidget(this);
+        {
+            results_layout = new QVBoxLayout(results_widget);
+            results_layout->setAlignment(Qt::AlignTop);
+            results_layout->setSpacing(0);
+            results_layout->setMargin(0);
+
+            info_label = new QLabel("No results matching the query", this);
+            info_label->setAlignment(Qt::AlignCenter);
+            info_label->setFont(QFont(font().family(), 25));
+            info_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
+
+            //Add the No Results info label to the results layout
+            results_layout->addWidget(info_label);
+        }
     
-    info_label = new QLabel("No results matching the query.", this);
-    info_label->setAlignment(Qt::AlignCenter);
-    info_label->setFont(QFont(font().family(), 25));
-    
-    
-    top_toolbar = new QToolBar(this);
-    top_toolbar->setIconSize(QSize(16, 16));
-    
-    //Construct the top layout
-    auto top_layout = new QHBoxLayout();
-    top_layout->addWidget(search_label);
-    top_layout->addWidget(query_label, 1);
-    top_layout->addWidget(top_toolbar);
+        results_scroll = new QScrollArea(this);
+        results_scroll->setObjectName("RIGHTWIDGET");
+        results_scroll->setWidget(results_widget);
+        results_scroll->setWidgetResizable(true);
+            
+        result_status_widget = new QWidget(this);
+        {
+            status_label = new QLabel(this);
+            status_label->setAlignment(Qt::AlignCenter);
+            status_label->setFont(QFont(font().family(), 12));
+            status_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
 
-    search_action = top_toolbar->addAction("Search Again");
-    refresh_action = top_toolbar->addAction("Refresh Search Results");
-    top_toolbar->addSeparator();
-    center_action = top_toolbar->addAction("Center On Selection");
-    popup_action = top_toolbar->addAction("Popup On Selection");
+            bottom_toolbar = new QToolBar(this);
+            bottom_toolbar->setIconSize(QSize(16, 16));
+            bottom_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
+            reset_filters_action = bottom_toolbar->addAction("Reset Filters");
 
+            result_status_widget->hide();
+            auto status_layout = new QHBoxLayout(result_status_widget);
+            status_layout->setContentsMargins(0, 0, 0, 0);
+            status_layout->addWidget(status_label, 1);
+            status_layout->addWidget(bottom_toolbar);
+            
 
-    filters_widget = new QWidget(this);
-    filters_layout = new QVBoxLayout(filters_widget);
-    filters_layout->setAlignment(Qt::AlignTop);
-    filters_layout->setMargin(5);
-    filters_layout->setSpacing(0);
-    filters_layout->setSizeConstraint(QLayout::SetMinimumSize);
+        }
 
-    auto filter_scroll = new QScrollArea(this);
-    filter_scroll->setWidget(filters_widget);
-    filter_scroll->setWidgetResizable(true);
-
-
-    
-    results_widget = new QWidget(this);
-
-
-    results_layout = new QVBoxLayout(results_widget);
-    results_layout->setAlignment(Qt::AlignTop);
-    results_layout->setSpacing(0);
-    results_layout->setMargin(0);
-    //Add the No Results info label to the results layout
-    results_layout->addWidget(info_label);
-
-    auto results_scroll = new QScrollArea(this);
-    results_scroll->setWidget(results_widget);
-    results_scroll->setWidgetResizable(true);
-
-    v_layout->addLayout(top_layout);
-    v_layout->addWidget(results_scroll, 1);
-
+        v_layout->addLayout(top_layout);
+        v_layout->addWidget(results_scroll, 1);
+        v_layout->addWidget(result_status_widget);
+    }
 
     splitter = new QSplitter(this);
-    splitter->addWidget(filter_scroll);
+    splitter->addWidget(left_widget);
     splitter->addWidget(right_widget);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
@@ -250,18 +310,15 @@ void SearchDialog::setupLayout()
     auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-    //layout->setContentsMargins(1, 1, 1, 1);
     layout->addWidget(splitter, 1);
     
-
+    setupFilters();
 
     connect(center_action, &QAction::triggered, this, [=](){emit CenterOn(selected_id);});
     connect(popup_action, &QAction::triggered, this, [=](){emit Popup(selected_id);});
 
     connect(search_action, &QAction::triggered, this, &SearchDialog::SearchPopup);
     connect(refresh_action, &QAction::triggered, this, [=](){emit SearchQuery(query_text);});
-
-    setupFilters();
 }
 
 
@@ -282,6 +339,9 @@ void SearchDialog::setupFilters()
 
     connect(aspect_filters, &OptionGroupBox::checkedOptionsChanged, this, &SearchDialog::filtersChanged);
     connect(data_filters, &OptionGroupBox::checkedOptionsChanged, this, &SearchDialog::filtersChanged);
+
+    connect(reset_filters_action, &QAction::triggered, aspect_filters, &OptionGroupBox::reset);
+    connect(reset_filters_action, &QAction::triggered, data_filters, &OptionGroupBox::reset);
 }
 
 

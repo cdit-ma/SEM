@@ -38,12 +38,13 @@ public:
     QString description();
     QString iconPath();
     QString iconName();
+    QDateTime time() const;
+    bool isLoading();
 
     NOTIFICATION_TYPE type();
     NOTIFICATION_CATEGORY category();
     NOTIFICATION_SEVERITY severity();
 
-    QDateTime creationDateTime();
  
 signals:
     // These signals should only be triggered by the setter functions above to keep the object/item state in sync
@@ -57,7 +58,7 @@ private:
     static int _NotificationID;
     int _ID;
     int _entityID;
-
+    bool _loading = false;
     QString _title;
     QString _description;
     QString _iconPath;
