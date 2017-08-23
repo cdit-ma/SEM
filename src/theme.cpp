@@ -554,6 +554,7 @@ QMovie* Theme::getGif(QString path, QString name){
     
     if(!gifLookup.contains(lookupName)){
         auto movie = new QMovie();
+        movie->setCacheMode(QMovie::CacheAll);
         movie->setFileName(":/" % lookupName);
         movie->setScaledSize(QSize(16,16));
         movie->start();
@@ -1244,6 +1245,9 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
     setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
+
+
+    setIconToggledImage("Icons", "notificationSeen", "Icons", "clock", "Icons", "exclamation");
 
     setIconToggledImage("Icons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
 }

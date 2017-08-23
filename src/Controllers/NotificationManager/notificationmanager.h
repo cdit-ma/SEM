@@ -30,12 +30,9 @@ protected:
 public:
     static NotificationManager* manager();
 
-    static NotificationDialog* constructPanel();
-    static NotificationToolbar* constructToolbar();
-    NotificationPopup* getNotificationPopup();
-
-    QList<int> getSelectionIDs();
-
+    NotificationDialog* getPanel();
+    NotificationToolbar* getToolbar();
+    NotificationPopup* getToast();
 
     static int displayNotification(QString description,
                                    QString iconPath = "",
@@ -56,38 +53,32 @@ public:
     static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity);
     static bool setNotificationLoading(int ID, bool on);
 
-    QList<NotificationObject*> getNotificationItems();
-    QList<int> getNotificationsOfType(Notification::Type type);
-    QList<int> getNotificationsOfSeverity(Notification::Severity severity);
-    QList<int> getNotificationsOfCategory(Notification::Category category);
+    QList<NotificationObject*> getNotifications();
+    
+    QList<NotificationObject*> getNotificationsOfType(Notification::Type type);
+    QList<NotificationObject*> getNotificationsOfSeverity(Notification::Severity severity);
+    QList<NotificationObject*> getNotificationsOfCategory(Notification::Category category);
 
-    NotificationObject* getNotificationItem(int id);
-    NotificationObject* getLastNotificationItem();
-
-    void clearModelNotifications();
+    NotificationObject* getNotification(int id);
+    NotificationObject* getLatestNotification();
 
 signals:
-    void notificationAlert();
-    void notificationSeen();
-
-    void notificationAdded(QString iconPath, QString iconName, QString description);
-    void notificationItemAdded(NotificationObject* obj);
+    void toastNotification(NotificationObject* notification);
+    void notificationUpdated(int ID);
     void notificationDeleted(int ID);
-
-    void updateSeverityCount(Notification::Severity severity, int count);
-    void updateNotificationToolbarSize();
-
-    void lastNotificationDeleted();
-    void req_lastNotificationID();
-
-    void showNotificationPanel(bool show = true);
+    void notificationAdded(NotificationObject* notification);
+    
+    void notificationsSeen();
+    void showNotificationPanel();
 
 public slots:
-    void popupLatestNotification();
-    void centerPopup();
+    void toastLatestNotification();
     void deleteNotification(int ID);
-    void setLastNotificationItem(int ID);
+private slots:
+    void centerPopup();
 private:
+    void NotificationUpdated(NotificationObject* notification);
+
     int addNotification(QString description,
                         QString iconPath,
                         QString iconName,
@@ -97,19 +88,17 @@ private:
                         Notification::Category c,
                         bool toast = true);
 
-    void updateSeverityCountHash(Notification::Severity severity, bool increment);
-
-    QHash<Notification::Severity, int> severityCount;
 
     static NotificationManager* managerSingleton;
-    static NotificationObject* lastNotificationObject;
-    static QHash<int, NotificationObject*> notificationObjects;
-
-
+    
+    
+    QMap<int, NotificationObject*> notifications;
+    
+    NotificationObject* latest_notification = 0;
+    NotificationDialog* notification_panel = 0;
     NotificationPopup* notification_popup = 0;
-
-    ViewController* viewController;
-
+    NotificationToolbar* notification_toolbar = 0;
+    ViewController* viewController = 0;
 };
 
 #endif // NOTIFICATIONMANAGER_H

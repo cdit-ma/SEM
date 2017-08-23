@@ -23,7 +23,7 @@ public:
 signals:
     void mouseEntered();
 private slots:
-    void notificationAdded(NotificationObject* obj);
+    void notificationAdded(NotificationObject* notification);
     void notificationDeleted(int ID);
     void selectionChanged();
 private slots:

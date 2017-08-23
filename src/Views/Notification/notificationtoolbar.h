@@ -1,52 +1,37 @@
 #ifndef NOTIFICATIONTOOLBAR_H
 #define NOTIFICATIONTOOLBAR_H
 
-#include "../../enumerations.h"
-#include "../../Controllers/ViewController/viewcontroller.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationenumerations.h"
 
 #include <QToolBar>
+#include <QHash>
 #include <QLabel>
 #include <QMovie>
-
 
 class NotificationToolbar : public QToolBar
 {
     Q_OBJECT
 public:
     explicit NotificationToolbar(QWidget *parent = 0);
-
-signals:
-    void toggleDialog();
-    void showLastNotification();
-public slots:
+private slots:
     void themeChanged();
-
-    void notificationReceived();
+    void notificationAdded();
     void notificationsSeen();
-
-    void lastNotificationDeleted();
-
-    void displayLoadingGif(bool show = true);
-    void updateIconFrame(int);
-    void updateSeverityCount(Notification::Severity severity, int count);
-
+    void loadingGifTicked();
 private:
+    void setLoadingMode(bool loading);
+
+    void updateCount();
     void setupLayout();
     void initialiseToolbar();
     void updateButtonIcon();
 
-    QAction* toggleNotificationsDialog;
-    QAction* showMostRecentAction;
+    QAction* show_notification_dialog_action = 0;
+    QAction* show_most_recent_action = 0;
+    QMovie* loading_gif = 0;
 
-    QIcon defaultIcon;
-    QIcon notificationIcon;
-    QMovie* loadingGif;
-    bool loadingGifDisplayed;
-
-    QHash<Notification::Severity, QLabel*> severityCount;
-
+    QIcon default_icon;
+    QHash<Notification::Severity, QLabel*> severity_labels;
 };
 
 #endif // NOTIFICATIONTOOLBAR_H

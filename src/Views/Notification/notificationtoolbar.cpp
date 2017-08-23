@@ -1,5 +1,6 @@
 #include "notificationtoolbar.h"
-#include "notificationobject.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../theme.h"
 
 #include <QGraphicsDropShadowEffect>
@@ -12,16 +13,26 @@
 NotificationToolbar::NotificationToolbar(QWidget *parent) :
     QToolBar(parent)
 {
-    //toggleNotificationsDialog = vc->getActionController()->window_showNotifications;
-    loadingGifDisplayed = false;
-
     setupLayout();
-    themeChanged();
-    initialiseToolbar();
-
-    //connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
-    //connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
+    updateCount();
+    
+    
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
+    
+    auto manager = NotificationManager::manager();
+    connect(show_notification_dialog_action, &QAction::triggered, manager, &NotificationManager::showNotificationPanel);
+    connect(show_most_recent_action, &QAction::triggered, manager, &NotificationManager::toastLatestNotification);
+    //Enforce the button to always return to an unchecked state
+    connect(show_most_recent_action, &QAction::triggered, [=](){show_most_recent_action->setChecked(false);});
+
+
+    connect(manager, &NotificationManager::notificationUpdated, this, &NotificationToolbar::updateCount);
+    connect(manager, &NotificationManager::notificationDeleted, this, &NotificationToolbar::updateCount);
+    
+    connect(manager, &NotificationManager::notificationsSeen, this, &NotificationToolbar::notificationsSeen);
+
+    
+    themeChanged();
 }
 
 
@@ -34,18 +45,17 @@ void NotificationToolbar::themeChanged()
     QString borderRadiusLeft = "border-top-right-radius: 0px; border-bottom-right-radius: 0px; ";
     QString borderRadiusRight = "border-top-left-radius: 0px; border-bottom-left-radius: 0px;";
 
-    setStyleSheet("QToolBar{ spacing: 0px; padding: 0px; border-radius: 4px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QToolBar::separator{ width: 3px; background:" + theme->getBackgroundColorHex() + ";}"
+    setStyleSheet("QToolBar{ spacing: 0px; padding: 0px; border-radius: 5px; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QToolBar::separator{ width: 2px; background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton{ padding: 2px; }"
                   "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
-                  "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}");
+                  "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
+                  "QLabel{background:transparent;font-weight:bold;}"
+                );
+    
+    default_icon = theme->getIcon("Icons", "notificationSeen");
+    show_notification_dialog_action->setIcon(theme->getIcon("Icons", "popOut"));
 
-    //defaultIcon = theme->getIcon("Actions", "Exclamation");
-    //notificationIcon = theme->getIcon(lastNotification.iconPath, lastNotification.iconName);
-
-    defaultIcon = theme->getIcon("Icons", "clock");
-    notificationIcon = theme->getIcon("Icons", "exclamation");
-    toggleNotificationsDialog->setIcon(theme->getIcon("Icons", "popOut"));
     updateButtonIcon();
 }
 
@@ -55,21 +65,9 @@ void NotificationToolbar::themeChanged()
  * This slot is called when a new notification is received.
  * It highlights the showMostRecentAction and updates its icon.
  */
-void NotificationToolbar::notificationReceived()
+void NotificationToolbar::notificationAdded()
 {
-    // re-enable notification button
-    if (!showMostRecentAction->isEnabled()) {
-        showMostRecentAction->setEnabled(true);
-    }
-
-    // highlight notification button
-    if (!showMostRecentAction->isCheckable()) {
-        showMostRecentAction->setCheckable(true);
-    }
-    showMostRecentAction->setChecked(true);
-
-    // update notification button's icon
-    //notificationIcon = Theme::theme()->getIcon(iconPath, iconName);
+    show_most_recent_action->setChecked(true);
     updateButtonIcon();
 }
 
@@ -81,153 +79,76 @@ void NotificationToolbar::notificationReceived()
  */
 void NotificationToolbar::notificationsSeen()
 {
-    if (showMostRecentAction->isCheckable()) {
-        showMostRecentAction->setCheckable(false);
-        showMostRecentAction->setChecked(false);
-        updateButtonIcon();
-    }
+    show_most_recent_action->setChecked(false);
+    updateButtonIcon();
 }
-
-
-/**
- * @brief NotificationToolbar::lastNotificationDeleted
- * This slot disables the showMostRecentAction when there are no notifications in the dialog.
- */
-void NotificationToolbar::lastNotificationDeleted()
-{
-    showMostRecentAction->setIcon(defaultIcon);
-    showMostRecentAction->setEnabled(false);
-}
-
-
-/**
- * @brief NotificationToolbar::displayLoadingGif
- * This slot turns the loading gif on and off.
- * @param show
- */
-void NotificationToolbar::displayLoadingGif(bool show)
-{
-    if (loadingGifDisplayed != show) {
-        if (show) {
-            connect(loadingGif, SIGNAL(frameChanged(int)), this, SLOT(updateIconFrame(int)));
-        } else {
-            disconnect(loadingGif, SIGNAL(frameChanged(int)), this, SLOT(updateIconFrame(int)));
-            showMostRecentAction->setIcon(notificationIcon);
-        }
-        loadingGifDisplayed = show;
-    }
-}
-
-
-/**
- * @brief NotificationToolbar::updateIconFrame
- */
-void NotificationToolbar::updateIconFrame(int)
-{
-    showMostRecentAction->setIcon(QIcon(loadingGif->currentPixmap()));
-}
-
-
-/**
- * @brief NotificationToolbar::updateSeverityCount
- * This slot updates the number displayed on the notification label for the specified severity.
- * @param severity
- * @param count
- */
-void NotificationToolbar::updateSeverityCount(Notification::Severity severity, int count)
-{
-    QLabel* countLabel = severityCount.value(severity, 0);
-    if (countLabel) {
-        countLabel->setText(QString::number(count));
-        //setMinimumWidth(sizeHint().width());
-    }
-}
-
 
 /**
  * @brief NotificationToolbar::setupLayout
  */
 void NotificationToolbar::setupLayout()
 {
-    // create a label for the following severities of notifications
-    severityCount[Notification::Severity::WARNING] = new QLabel("0", this);
-    severityCount[Notification::Severity::ERROR] = new QLabel("0", this);
-
-    showMostRecentAction = addAction("");
-    showMostRecentAction->setToolTip("Show Most Recent Notification");
-    showMostRecentAction->setCheckable(true);
-    showMostRecentAction->setChecked(false);
-    showMostRecentAction->setEnabled(false);
+    show_most_recent_action = addAction("Show most recent notification");
+    show_most_recent_action->setCheckable(true);
+    show_most_recent_action->setChecked(false);
+    show_most_recent_action->setEnabled(false);
+    
     addSeparator();
-
-    connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
-    connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::showLastNotification);
+   
 
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    for(auto s : Notification::getSeverities()) {
-        QLabel* label = severityCount.value(s, 0);
-        if (label) {
-            label->setFont(labelFont);
-            label->setMinimumWidth(labelWidth);
-            label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(Notification::getSeverityString(s) + " Count");
-            auto color = Theme::QColorToHex(Notification::getSeverityColor(s));
-            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + color + ";}");
-            addWidget(label);
-            addSeparator();
+    auto severities = Notification::getSeverities().toList();
+    qSort(severities.begin(), severities.end());
+    //Remove Info?
+    
+    //Get them in order
+    for(auto severity : severities){
+        auto severity_label = new QLabel(this);
+        severity_labels[severity] = severity_label;
+        
+        severity_label->setFont(labelFont);
+        severity_label->setMinimumWidth(labelWidth);
+        severity_label->setAlignment(Qt::AlignCenter);
+        severity_label->setToolTip("Number of " + Notification::getSeverityString(severity) + " Notifications");
+        auto color = Theme::QColorToHex(Notification::getSeverityColor(severity));
+        severity_label->setStyleSheet("QLabel{color: " + color + ";}");
+        
+        addWidget(severity_label);
+        addSeparator();
 
-            // add shadow to the label's text
-            QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(this);
-            effect->setBlurRadius(0);
-            effect->setColor(Theme::theme()->black());
-            effect->setOffset(1,1);
-            label->setGraphicsEffect(effect);
-        }
+        // add shadow to the label's text
+        auto effect = new QGraphicsDropShadowEffect(this);
+        //effect->setBlurRadius(2);
+        effect->setColor(Theme::theme()->black());
+        effect->setOffset(1,1);
+        severity_label->setGraphicsEffect(effect);
     }
 
-    toggleNotificationsDialog = new QAction(this);
-    toggleNotificationsDialog->setToolTip("Show Notifications Panel");
-    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
-    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
-    addAction(toggleNotificationsDialog);
+    show_notification_dialog_action = addAction("Show notifications panel");
 
     // set object names for the two actions - used in the stylesheet
-    widgetForAction(showMostRecentAction)->setObjectName("LEFT_ACTION");
-    widgetForAction(toggleNotificationsDialog)->setObjectName("RIGHT_ACTION");
-
-    loadingGif = new QMovie(this);
-    loadingGif->setFileName(":/Actions/Waiting");
-    loadingGif->start();
+    widgetForAction(show_most_recent_action)->setObjectName("LEFT_ACTION");
+    widgetForAction(show_notification_dialog_action)->setObjectName("RIGHT_ACTION");
 }
 
-
-/**
- * @brief NotificationToolbar::initialiseToolbar
- * Check if any notifications were received before this toolbar was constructed.
- * Update the displayed warning/error count and highlight showMostRecent button if necessary.
- */
-void NotificationToolbar::initialiseToolbar()
-{
-    QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
-    if (!notifications.isEmpty()) {
-        QHash<Notification::Severity, int> severityCount;
-        foreach (NotificationObject* obj, notifications) {
-            Notification::Severity s = obj->severity();
-            int count = severityCount.value(s,0);
-            severityCount[s] = count + 1;
-        }
-        foreach (Notification::Severity s, severityCount.keys()) {
-            updateSeverityCount(s, severityCount.value(s));
-        }
-        notificationReceived();
-    } else {
-        notificationsSeen();
+void NotificationToolbar::loadingGifTicked(){
+    if(loading_gif){
+        auto pixmap = loading_gif->currentPixmap();
+        show_most_recent_action->setIcon(pixmap);
     }
 }
-
-
+void NotificationToolbar::setLoadingMode(bool loading){
+    if(loading && !loading_gif){
+        loading_gif = Theme::theme()->getGif("Icons", "loading");
+        connect(loading_gif, &QMovie::frameChanged, this, &NotificationToolbar::loadingGifTicked);
+    }else if(!loading && loading_gif){
+        //Disconnect all signals from loading_gif to this
+        disconnect(loading_gif, 0, this, 0);
+        loading_gif = 0;
+    }
+}
 /**
  * @brief NotificationToolbar::updateButtonIcon
  * This updates the showMostRecentAction's icon based on whether
@@ -235,11 +156,31 @@ void NotificationToolbar::initialiseToolbar()
  */
 void NotificationToolbar::updateButtonIcon()
 {
-    if (!loadingGifDisplayed) {
-        if (showMostRecentAction->isChecked()) {
-            showMostRecentAction->setIcon(notificationIcon);
-        } else {
-            showMostRecentAction->setIcon(defaultIcon);
+    auto last_notification = NotificationManager::manager()->getLatestNotification();
+
+    if(last_notification && last_notification->getInProgressState()){
+        setLoadingMode(true);
+    }else{
+        setLoadingMode(false);
+        show_most_recent_action->setIcon(default_icon);
+    }
+    show_most_recent_action->setEnabled(last_notification);
+}
+
+void NotificationToolbar::updateCount(){
+    QHash<Notification::Severity, int> severity_counts;
+
+    for(auto notification : NotificationManager::manager()->getNotifications()){
+        auto severity = notification->getSeverity();
+        severity_counts[severity] ++;
+    }
+
+    for(auto severity : Notification::getSeverities()){
+        auto label = severity_labels.value(severity, 0);
+        auto count = severity_counts.value(severity, 0);
+        if(label){
+            label->setText(QString::number(count));
         }
     }
+    updateButtonIcon();
 }

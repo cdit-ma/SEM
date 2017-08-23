@@ -26,9 +26,7 @@ private slots:
     void themeChanged();
     void descriptionChanged();
     void updateIcon();
-    void timestampChanged();
-    void loading(bool on);
-
+    void timeChanged();
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
     void enterEvent(QEvent*);

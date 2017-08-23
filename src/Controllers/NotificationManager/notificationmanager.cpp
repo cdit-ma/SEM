@@ -1,17 +1,15 @@
 #include "notificationmanager.h"
+#include "notificationobject.h"
+
 #include "../WindowManager/windowmanager.h"
 #include "../ViewController/viewcontroller.h"
 #include "../../Widgets/Windows/mainwindow.h"
-#include "../../Views/Notification/notificationobject.h"
 #include "../../Views/Notification/notificationdialog.h"
 #include "../../Views/Notification/notificationtoolbar.h"
 #include "../../Views/Notification/notificationpopup.h"
 #include "../../Widgets/Dialogs/popupwidget.h"
 
 NotificationManager* NotificationManager::managerSingleton = 0;
-NotificationObject* NotificationManager::lastNotificationObject = 0;
-QHash<int, NotificationObject*> NotificationManager::notificationObjects;
-
 
 /**
  * @brief NotificationManager::NotificationManager
@@ -20,7 +18,7 @@ QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 NotificationManager::NotificationManager(ViewController* controller)
 {
     viewController = controller;
-    getNotificationPopup();
+    getToast();
     auto theme = Theme::theme();
 
     QString notification_str("Notification");
@@ -47,17 +45,10 @@ NotificationManager::NotificationManager(ViewController* controller)
 }
 
 
-/**
- * @brief NotificationManager::~NotificationManager
- */
-NotificationManager::~NotificationManager() {}
+NotificationManager::~NotificationManager(){
+    //TODO Clear up memory
+}
 
-
-/**
- * @brief NotificationManager::construct_singleton
- * @param controller
- * @return
- */
 bool NotificationManager::construct_singleton(ViewController* controller)
 {
     if (!managerSingleton) {
@@ -67,10 +58,6 @@ bool NotificationManager::construct_singleton(ViewController* controller)
     return false;
 }
 
-
-/**
- * @brief NotificationManager::destruct_singleton
- */
 void NotificationManager::destruct_singleton()
 {
     if (managerSingleton) {
@@ -91,41 +78,43 @@ NotificationManager* NotificationManager::manager()
 
 
 
-/**
- * @brief NotificationManager::constructPanel
- * @return
- */
-NotificationDialog* NotificationManager::constructPanel()
+NotificationDialog* NotificationManager::getPanel()
 {
-    NotificationDialog* panel = new NotificationDialog(manager()->viewController);
-    
-    return panel;
+    if(!notification_panel){
+        notification_panel = new NotificationDialog(viewController);
+    }
+    return notification_panel;
+}
+
+NotificationPopup* NotificationManager::getToast()
+{
+    if(!notification_popup){
+        notification_popup = new NotificationPopup();
+        connect(this, &NotificationManager::toastNotification, [=](NotificationObject* notification){
+            notification_popup->DisplayNotification(notification);
+            notification_popup->show();
+            WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+        });
+    }
+    return notification_popup;
 }
 
 
-/**
- * @brief NotificationManager::constructToolbar
- * @return
- */
-NotificationToolbar* NotificationManager::constructToolbar()
+NotificationToolbar* NotificationManager::getToolbar()
 {
-    NotificationToolbar* toolbar = new NotificationToolbar();
-    connect(manager(), &NotificationManager::notificationAlert, toolbar, &NotificationToolbar::notificationReceived);
-    connect(manager(), &NotificationManager::notificationSeen, toolbar, &NotificationToolbar::notificationsSeen);
-    connect(manager(), &NotificationManager::updateSeverityCount, toolbar, &NotificationToolbar::updateSeverityCount);
-    connect(manager(), &NotificationManager::lastNotificationDeleted, toolbar, &NotificationToolbar::lastNotificationDeleted);
-    connect(toolbar, &NotificationToolbar::showLastNotification, manager(), &NotificationManager::popupLatestNotification);
-    return toolbar;
+    if(!notification_toolbar){
+        notification_toolbar = new NotificationToolbar();
+    }
+    return notification_toolbar;
 }
-
 
 /**
  * @brief NotificationManager::getNotificationItems
  * @return
  */
-QList<NotificationObject*> NotificationManager::getNotificationItems()
+QList<NotificationObject*> NotificationManager::getNotifications()
 {
-    return notificationObjects.values();
+    return notifications.values();
 }
 
 
@@ -134,15 +123,15 @@ QList<NotificationObject*> NotificationManager::getNotificationItems()
  * @param type
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfType(Notification::Type type)
+QList<NotificationObject*> NotificationManager::getNotificationsOfType(Notification::Type type)
 {
-    QList<int> IDs;
-    foreach (NotificationObject* obj, notificationObjects.values()) {
-        if (obj->type() == type) {
-            IDs.append(obj->ID());
+    QList<NotificationObject*> list;
+    for (auto notification : notifications.values()) {
+        if (notification->getType() == type) {
+            list << notification;
         }
     }
-    return IDs;
+    return list;
 }
 
 
@@ -151,15 +140,15 @@ QList<int> NotificationManager::getNotificationsOfType(Notification::Type type)
  * @param severity
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
+QList<NotificationObject*> NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
 {
-    QList<int> IDs;
-    foreach (NotificationObject* obj, notificationObjects.values()) {
-        if (obj->severity() == severity) {
-            IDs.append(obj->ID());
+    QList<NotificationObject*> list;
+    for (auto notification : notifications.values()) {
+        if (notification->getSeverity() == severity) {
+            list << notification;
         }
     }
-    return IDs;
+    return list;
 }
 
 
@@ -168,28 +157,17 @@ QList<int> NotificationManager::getNotificationsOfSeverity(Notification::Severit
  * @param category
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfCategory(Notification::Category category)
+QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notification::Category category)
 {
-    QList<int> IDs;
-    foreach (NotificationObject* obj, notificationObjects.values()) {
-        if (obj->category() == category) {
-            IDs.append(obj->ID());
+    QList<NotificationObject*> list;
+    for (auto notification : notifications.values()) {
+        if (notification->getCategory() == category) {
+            list << notification;
         }
     }
-    return IDs;
+    return list;
 }
 
-
-/**
- * @brief NotificationManager::clearModelNotifications
- */
-void NotificationManager::clearModelNotifications()
-{
-    // only clear Notification::Type::MODEL notifications
-    foreach (int ID, getNotificationsOfType(Notification::Type::MODEL)) {
-        deleteNotification(ID);
-    }
-}
 
 
 /**
@@ -230,30 +208,23 @@ int NotificationManager::displayLoadingNotification(QString description, QString
     return ID;
 }
 
-void NotificationManager::popupLatestNotification(){
-    auto popup = getNotificationPopup();
-    auto latest_notification = getLastNotificationItem();
-    if(popup && latest_notification){
-        popup->DisplayNotification(latest_notification);
-        popup->show();
-        WindowManager::MoveWidget(popup, 0, Qt::AlignBottom);
+void NotificationManager::toastLatestNotification(){
+    auto popup = getToast(); 
+
+    if(latest_notification){
+        emit toastNotification(latest_notification);
     }
+    
+    
 }
 
 void NotificationManager::centerPopup(){
-
-    WindowManager::MoveWidget(getNotificationPopup(), 0, Qt::AlignBottom);
-    getNotificationPopup()->show();
+    auto popup = getToast();
+    WindowManager::MoveWidget(popup, 0, Qt::AlignBottom);
+    popup->show();
 }
 
 
-NotificationPopup* NotificationManager::getNotificationPopup(){
-    if(!notification_popup){
-        notification_popup = new NotificationPopup();
-        connect(this, &NotificationManager::notificationAdded, this, &NotificationManager::popupLatestNotification);
-    }
-    return notification_popup;
-}
 
 /**
  * @brief NotificationManager::updateNotification
@@ -266,21 +237,15 @@ NotificationPopup* NotificationManager::getNotificationPopup(){
  */
 bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity)
 {
-    if (!notificationObjects.contains(ID)) {
-        return false;
+    auto notification = manager()->notifications.value(ID, 0);
+    if(notification){
+        notification->setDescription(description);
+        notification->setIcon(iconPath, iconName);
+        notification->setSeverity(severity);
+        notification->setInProgressState(false);
+        return true;
     }
-
-    NotificationObject* obj = notificationObjects.value(ID);
-    obj->setDateTime(QDateTime::currentDateTime());
-    obj->setDescription(description);
-    obj->setIcon(iconPath, iconName);
-    obj->setSeverity(severity);
-    obj->setLoading(false);
-
-    // toast updated notification
-    emit manager()->notificationAdded(iconPath, iconName, description);
-
-    return true;
+    return false;
 }
 
 
@@ -292,13 +257,11 @@ bool NotificationManager::updateNotification(int ID, QString description, QStrin
  */
 bool NotificationManager::setNotificationLoading(int ID, bool on)
 {
-    if (!notificationObjects.contains(ID)) {
-        return false;
+    auto notification = manager()->notifications.value(ID,0);
+    if(notification){
+        notification->setInProgressState(on);
     }
-
-    NotificationObject* obj = notificationObjects.value(ID);
-    obj->setLoading(on);
-    return true;
+    return notification != 0;
 }
 
 
@@ -310,115 +273,63 @@ bool NotificationManager::setNotificationLoading(int ID, bool on)
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    if (!notificationObjects.contains(ID)) {
-        qWarning() << "NotificationManager::deleteNotification - Requesting to delete a notification item that's not contained in the hash.";
-        return;
+    if(notifications.contains(ID)){
+        auto notification = notifications.take(ID);
+        auto notifications_count = notifications.count();
+        
+        if(notification == latest_notification){
+            if(notifications_count > 0){
+                //Get the last notification
+                latest_notification = notifications.first();
+            }else{
+                //Unset
+                latest_notification = 0;
+            }
+        }
+
+        // delete the item from the notification dialog
+        emit notificationDeleted(ID);
+        
+        delete notification;
     }
+}
 
-    // if the deleted notification is the top-most currently, update the lastNotification object
-    bool topNotificationDeleted = false;
-    if (lastNotificationObject && (lastNotificationObject->ID() == ID)) {
-        lastNotificationObject = 0;
-        topNotificationDeleted = true;
-        emit notificationSeen();
-    }
+NotificationObject* NotificationManager::getNotification(int id){
+    return notifications.value(id, 0);
+}
 
-    // delete the item from the notification dialog
-    emit notificationDeleted(ID);
+NotificationObject* NotificationManager::getLatestNotification(){
+    return latest_notification;
+}
 
-    // remove item from hash before deleting it and update the severity count hash
-    NotificationObject* obj = notificationObjects.take(ID);
-    updateSeverityCountHash(obj->severity(), false);
-    delete obj;
+int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast)
+{
+    auto notification = new NotificationObject();
+    notification->setDescription(description);
+    notification->setIcon(iconPath, iconName);
+    notification->setSeverity(severity);
+    notification->setEntityID(entityID);
+    notification->setType(type);
+    notification->setCategory(category);
+    notification->setToastable(toast);
 
-    if (notificationObjects.isEmpty()) {
-        emit lastNotificationDeleted();
-    } else {
-        if (topNotificationDeleted) {
-            // request the new top-most notification's ID
-            emit req_lastNotificationID();
+    auto notification_id = notification->getID();
+    notifications[notification_id] = notification;
+    connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated);
+
+    emit notificationAdded(notification);
+    NotificationUpdated(notification);
+    return notification_id;
+}
+
+void NotificationManager::NotificationUpdated(NotificationObject* notification){
+    if(notification){
+        auto notification_id = notification->getID();
+        latest_notification = notification;
+        emit notificationUpdated(notification_id);
+    
+        if (notification->getToastable()) {
+            emit toastNotification(notification);
         }
     }
-}
-
-
-/**
- * @brief NotificationManager::setLastNotificationItem
- * @param item
- */
-void NotificationManager::setLastNotificationItem(int ID)
-{
-    lastNotificationObject = notificationObjects.value(ID, 0);
-
-    // if there is no last notification, disable the showMostRecentNotification button in the toolbar
-    if (!lastNotificationObject) {
-        emit lastNotificationDeleted();
-    }
-}
-
-NotificationObject* NotificationManager::getNotificationItem(int id){
-    return notificationObjects.value(id, 0);
-}
-
-NotificationObject* NotificationManager::getLastNotificationItem(){
-    return lastNotificationObject;
-}
-
-
-
-
-
-
-/**
- * @brief NotificationManager::addNotification
- * @param description
- * @param iconPath
- * @param iconName
- * @param entityID
- * @param s
- * @param t
- * @param c
- * @param toast
- * @return
- */
-int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c, bool toast)
-{
-    // construct notification item
-    NotificationObject* obj = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
-    notificationObjects[obj->ID()] = obj;
-    lastNotificationObject = obj;
-
-    // send signal to the notifications widget; highlight showMostRecentNotification button
-    emit notificationAlert();
-
-    // send signal to the notification dialog; add notification item
-    emit notificationItemAdded(obj);
-
-    // send signal to main window; display notification toast
-    if (toast) {
-        emit notificationAdded(iconPath, iconName, description);
-    }
-
-    // update severity count
-    updateSeverityCountHash(s, true);
-    return obj->ID();
-}
-
-
-/**
- * @brief NotificationManager::updateSeverityCountHash
- * Update severity count hash and send a signal to update the displayed severity count in the notification display toolbar(s).
- * @param severity
- * @param increment
- */
-void NotificationManager::updateSeverityCountHash(Notification::Severity severity, bool increment)
-{
-    int count = severityCount.value(severity, 0);
-    if (increment) {
-        count = count + 1;
-    } else {
-        count = qMax(count - 1, 0);
-    }
-    severityCount[severity] = count;
-    emit updateSeverityCount(severity, count);
 }

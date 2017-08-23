@@ -3,8 +3,8 @@
 
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationenumerations.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
-#include "notificationobject.h"
 #include <QApplication>
 
 
@@ -29,9 +29,9 @@ NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *
     connect(popup_action, &QAction::triggered, this, &NotificationDialog::popupEntity);
 
     auto manager = NotificationManager::manager();
-    connect(manager, &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationAdded);
+    connect(manager, &NotificationManager::notificationAdded, this, &NotificationDialog::notificationAdded);
     connect(manager, &NotificationManager::notificationDeleted, this, &NotificationDialog::notificationDeleted);
-    connect(this, &NotificationDialog::mouseEntered, manager, &NotificationManager::notificationSeen);
+    connect(this, &NotificationDialog::mouseEntered, manager, &NotificationManager::notificationsSeen);
     
     themeChanged();
 }
@@ -60,12 +60,12 @@ void NotificationDialog::updateNotificationVisibility(QList<NotificationItem*> i
 
     for(auto item : items){
         auto notification = item->getNotification();
-        bool matches_severity = checked_severity_set.contains(notification->severity());
-        bool matches_category = checked_category_set.contains(notification->category());
-        bool matches_type = checked_type_set.contains(notification->type());
+        bool matches_severity = checked_severity_set.contains(notification->getSeverity());
+        bool matches_category = checked_category_set.contains(notification->getCategory());
+        bool matches_type = checked_type_set.contains(notification->getType());
         bool matches_context = true;
         if(check_selection){
-            matches_context = selected_ids.contains(notification->entityID());
+            matches_context = selected_ids.contains(notification->getEntityID());
         }
 
         item->setVisible(matches_severity && matches_category && matches_type && matches_context);
@@ -183,7 +183,7 @@ void NotificationDialog::toggleSort(){
     //Sort the list by ascending or descending time
     qSort(ordered_list.begin(), ordered_list.end(), 
     [sort_ascending](const NotificationItem* a, const NotificationItem* b) -> bool{
-            bool agtb = a->getNotification()->time() > b->getNotification()->time();
+            bool agtb = a->getNotification()->getModifiedTime() > b->getNotification()->getModifiedTime();
             return sort_ascending ? agtb : !agtb;
         });
     
@@ -200,25 +200,22 @@ void NotificationDialog::toggleSort(){
  */
 void NotificationDialog::notificationAdded(NotificationObject* notification)
 {
-    if (!notification) {
-        return;
-    }
-    auto id = notification->ID();
-    if(!notification_items.contains(id)){
-        auto notification_item = new NotificationItem(notification, this);
-
-        //Add to start or end based on ascending/descending state
-        int position = sort_time_action->isChecked() ? 0 : -1;
-        
-        notifications_layout->insertWidget(position, notification_item);
-        //Add to map
-        notification_items[id] = notification_item;
+    if(notification){
+        auto id = notification->getID();
+        if(!notification_items.contains(id)){
+            auto notification_item = new NotificationItem(notification, this);
     
-        connect(notification_item, &NotificationItem::highlightEntity, viewController, &ViewController::vc_highlightItem);
+            //Add to start or end based on ascending/descending state
+            int position = sort_time_action->isChecked() ? 0 : -1;
+            
+            notifications_layout->insertWidget(position, notification_item);
+            //Add to map
+            notification_items[id] = notification_item;
         
-
-        //Update this notifications visibility
-        updateNotificationVisibility({notification_item});
+            connect(notification_item, &NotificationItem::highlightEntity, viewController, &ViewController::vc_highlightItem);
+            //Update this notifications visibility
+            updateNotificationVisibility({notification_item});
+        }
     }
 }
 
@@ -248,7 +245,7 @@ void NotificationDialog::notificationDeleted(int ID)
 void NotificationDialog::initialisePanel()
 {
     //Add all current notifications to the panel
-    for(auto notification : NotificationManager::manager()->getNotificationItems()){
+    for(auto notification : NotificationManager::manager()->getNotifications()){
         notificationAdded(notification);
     }
 }
@@ -262,7 +259,8 @@ void NotificationDialog::initialisePanel()
 void NotificationDialog::enterEvent(QEvent* event)
 {
     QWidget::enterEvent(event);
-    if (QApplication::activeWindow() == this) {
+
+    if (QApplication::activeWindow()->isAncestorOf(this)){
         emit mouseEntered();
     }
 }

@@ -1,7 +1,7 @@
 #include "notificationitem.h"
 
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "notificationobject.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
 
 #include <QMouseEvent>
 #include <QToolBar>
@@ -24,9 +24,8 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
 
     setupLayout();
 
-
-    connect(notification, &NotificationObject::loading, this, &NotificationItem::updateIcon);
-    connect(notification, &NotificationObject::timestampChanged, this, &NotificationItem::timestampChanged);
+    connect(notification, &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
+    connect(notification, &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
     connect(notification, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(notification, &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
     
@@ -34,7 +33,7 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     themeChanged();
 
     connect(action_delete, &QAction::triggered, [=](){
-        NotificationManager::manager()->deleteNotification(notification->ID());
+        NotificationManager::manager()->deleteNotification(getID());
     });
 }
 
@@ -56,7 +55,6 @@ void NotificationItem::setupLayout(){
     label_icon->setAlignment(Qt::AlignCenter);
 
     label_text = new QLabel(this);
-
     label_time = new QLabel(this);
 
     auto toolbar = new QToolBar(this);
@@ -67,9 +65,10 @@ void NotificationItem::setupLayout(){
     layout->addWidget(label_text, 1);
     layout->addWidget(label_time);
     layout->addWidget(toolbar);
+    layout->addStretch();
 
     descriptionChanged();
-    timestampChanged();
+    timeChanged();
 }
 
 
@@ -80,7 +79,7 @@ void NotificationItem::setupLayout(){
 int NotificationItem::getID()
 {
     if (notification) {
-        return notification->ID();
+        return notification->getID();
     }
     return -1;
 }
@@ -97,7 +96,7 @@ NotificationObject* NotificationItem::getNotification() const{
 int NotificationItem::getEntityID()
 {
     if (notification) {
-        return notification->entityID();
+        return notification->getEntityID();
     }
     return -1;
 }
@@ -144,7 +143,7 @@ void NotificationItem::themeChanged()
  */
 void NotificationItem::descriptionChanged()
 {
-    auto description = notification->description();
+    auto description = notification->getDescription();
     if (description.isEmpty()) {
         description = "...";
     }
@@ -159,24 +158,23 @@ void NotificationItem::descriptionChanged()
  */
 void NotificationItem::updateIcon()
 {
-    
-    if(notification->isLoading()){
+    if(notification->getInProgressState()){
+        //Use a GIF if we are loading
         auto movie = Theme::theme()->getGif("Icons", "loading");
         label_icon->setMovie(movie);
     }else{
-        auto icon_path = notification->iconPath();
-        auto icon_name = notification->iconName();
-        if (icon_path.isEmpty() || icon_name.isEmpty()) {
-            icon_path = "Notification";
-            icon_name = Notification::getSeverityString(notification->severity());
+        auto severity = notification->getSeverity();
+        //Use an icon otherwise
+        auto icon = notification->getIcon();
+        if (icon.first.isEmpty() || icon.second.isEmpty()) {
+            icon.first = "Notification";
+            icon.second = Notification::getSeverityString(severity);
         }
-        auto tint_color = Notification::getSeverityColor(notification->severity());
+        auto icon_color = Notification::getSeverityColor(severity);
 
-        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, tint_color);
-        label_icon->setMovie(0);
+        auto pixmap = Theme::theme()->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);
     }
-
 }
 
 
@@ -184,38 +182,11 @@ void NotificationItem::updateIcon()
  * @brief NotificationItem::timestampChanged
  * @param time
  */
-void NotificationItem::timestampChanged()
+void NotificationItem::timeChanged()
 {
-    label_time->setText(notification->time().toString("H:mm:ss"));
+    label_time->setText(notification->getModifiedTime().toString("H:mm:ss"));
 }
 
-
-/**
- * @brief NotificationItem::loading
- * @param on
- */
-void NotificationItem::loading(bool on)
-{
-    return;
-    /*
-    if (loadingOn == on) {
-        return;
-    }
-
-    if (!loadingGif) {
-        loadingGif = new QMovie(this);
-        loadingGif->setFileName(":/Images/Icons/loading");
-        loadingGif->setScaledSize(QSize(16,16));
-    }
-
-    if (on) {
-        loadingGif->start();
-        iconLabel->setMovie(loadingGif);
-    } else {
-        loadingGif->stop();
-        iconLabel->setPixmap(Theme::theme()->getImage(_iconPath, _iconName, QSize(28,28), getSeverityColor(getSeverity())));
-    }*/
-}
 
 /**
  * @brief NotificationItem::mouseReleaseEvent

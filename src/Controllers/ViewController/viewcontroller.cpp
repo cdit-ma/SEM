@@ -11,6 +11,8 @@
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 #include "../../Controllers/SearchManager/searchmanager.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
 
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
@@ -982,9 +984,14 @@ void ViewController::TeardownController()
         controller->disconnect(this);
         emit controller->InitiateTeardown();
         controller = 0;
-        // reset the notification manager
-        NotificationManager::manager()->clearModelNotifications();
-        //Stop the auto save
+
+
+        auto manager = NotificationManager::manager();
+        
+        // Clear previous validation notification items
+        for (auto notification : manager->getNotificationsOfType(Notification::Type::MODEL)) {
+            manager->deleteNotification(notification->getID());
+        }
     }
 }
 

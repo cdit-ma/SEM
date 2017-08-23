@@ -107,9 +107,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationobject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.cpp
@@ -212,7 +213,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationobject.h
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h

@@ -6,7 +6,7 @@
 
 #include "../../Utils/filehandler.h"
 #include "../NotificationManager/notificationmanager.h"
-#include "../../Views/Notification/notificationobject.h"
+#include "../NotificationManager/notificationobject.h"
 #include "../ViewController/viewcontroller.h"
 
 ExecutionManager::ExecutionManager(ViewController *view_controller)
@@ -41,12 +41,11 @@ void ExecutionManager::ValidateModel(QString model_path)
 {
     auto manager =  NotificationManager::manager();
     // Clear previous validation notification items
-    for (auto ID : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
-        auto notification = manager->getNotificationItem(ID);
-        if(notification->description().startsWith("model validation", Qt::CaseInsensitive)){
+    for (auto notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
+        if(notification->getDescription().startsWith("model validation", Qt::CaseInsensitive)){
             continue;
         }
-        manager->deleteNotification(ID);
+        manager->deleteNotification(notification->getID());
     }
 
     // Construct a notification item with a loading gif as its icon

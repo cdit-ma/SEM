@@ -19,7 +19,7 @@
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"
 
-#include "../Notification/notificationobject.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
 
 
 #define ZOOM_INCREMENTOR 1.05
@@ -60,7 +60,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     themeChanged();
 
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
-    connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NodeView::notification_Added);
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &NodeView::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &NodeView::notification_Destructed);
 }
 
@@ -1632,11 +1632,12 @@ void NodeView::resizeEvent(QResizeEvent *event)
 
 void NodeView::notification_Added(NotificationObject* obj){
     //Check for IDs
-    auto entity = getEntityItem(obj->entityID());
+    auto entity = getEntityItem(obj->getEntityID());
     if(entity){
-        auto color = getSeverityColor(obj->severity());
-        entity->AddNotification(obj->iconPath(), obj->iconName(), color);
-        notification_id_lookup[obj->ID()] = entity->getID();
+        auto tint_color = Notification::getSeverityColor(obj->getSeverity());
+        auto icon = obj->getIcon();
+        entity->AddNotification(icon.first, icon.second, tint_color);
+        notification_id_lookup[obj->getID()] = entity->getID();
     }
 }
 

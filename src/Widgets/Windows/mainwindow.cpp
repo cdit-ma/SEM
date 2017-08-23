@@ -10,7 +10,7 @@
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 #include "../../Widgets/optiongroupbox.h"
-#include "../../Views/Notification/notificationobject.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
 #include "../../theme.h"
 
 #include "../../Utils/filtergroup.h"
@@ -717,12 +717,10 @@ void MainWindow::setupMenuCornerWidget()
                                       "QToolButton::menu-indicator{ image: none; }");
 
     //notificationToolbar = new NotificationToolbar(viewController, this);
-    notificationToolbar = NotificationManager::constructToolbar();
+    notificationToolbar = NotificationManager::manager()->getToolbar();
     notificationToolbar->setParent(this); 
-    connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::showNotificationDialog);
-    //connect(notificationToolbar, &NotificationToolbar::showLastNotification, this, &MainWindow::popupLatestNotification);
     
-    connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
+    //connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
 
     QToolBar* tb = new QToolBar(this);
     tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
@@ -760,7 +758,7 @@ void MainWindow::setupDockablePanels()
     dockwidget_Search->setIconVisible(true);
     dockwidget_Search->setProtected(true);
     
-    auto notificationPanel = NotificationManager::constructPanel();
+    auto notificationPanel = NotificationManager::manager()->getPanel();
     
     
 
