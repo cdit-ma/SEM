@@ -1,41 +1,29 @@
 #ifndef NOTIFICATIONITEM_H
 #define NOTIFICATIONITEM_H
 
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "notificationobject.h"
-
 #include <QFrame>
 #include <QLabel>
-#include <QMovie>
-#include <QToolButton>
-//#include <QTimer>
+#include <QAction>
 
+#include "../../Controllers/NotificationManager/notificationEnumerations.h"
+
+class NotificationObject;
 class NotificationItem : public QFrame
 {
     Q_OBJECT
 public:
     explicit NotificationItem(NotificationObject* obj, QWidget* parent = 0);
+    ~NotificationItem();
 
     int getID();
     int getEntityID();
     NotificationObject* getNotification() const;
-    QString getIconPath();
-    QString getIconName();
-    NOTIFICATION_SEVERITY getSeverity();
-    NOTIFICATION_TYPE getType();
-    NOTIFICATION_CATEGORY getCategory();
-
     void setSelected(bool select);
-
-    signals:
-    void hoverEnter(int ID);
-    void hoverLeave(int ID);
-    void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
-
-public slots:
-    void themeChanged();
-
+signals:
+    void highlightEntity(int entityID, bool highlight);
+    void itemClicked(NotificationItem* item);
 private slots:
+    void themeChanged();
     void descriptionChanged();
     void updateIcon();
     void timestampChanged();

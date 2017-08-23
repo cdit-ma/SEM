@@ -82,18 +82,11 @@ signals:
 
     void showNotificationPanel(bool show = true);
 
-    void clearNotifications(NOTIFICATION_FILTER filter = NOTIFICATION_FILTER::NOFILTER, int filterVal = -1);
-
-    void selectionChanged(int selectedID);
-
 public slots:
     void popupLatestNotification();
     void centerPopup();
     void deleteNotification(int ID);
     void setLastNotificationItem(int ID);
-
-    void activeSelectionChanged(ViewItem* item, bool isActive);
-
 private:
     int addNotification(QString description,
                         QString iconPath,

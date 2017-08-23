@@ -71,9 +71,8 @@ SearchDialog* SearchManager::getSearchDialog(){
 
         connect(search_dialog, &SearchDialog::CenterOn, viewController, &ViewController::centerOnID);
         connect(search_dialog, &SearchDialog::Popup, viewController, &ViewController::popupItem);
-        connect(search_dialog, &SearchDialog::itemHoverEnter, viewController->getToolbarController(), &ToolbarController::actionHoverEnter);
-        connect(search_dialog, &SearchDialog::itemHoverLeave, viewController->getToolbarController(), &ToolbarController::actionHoverLeave);
 
+        connect(search_dialog, &SearchDialog::itemHoverEnter, viewController->getToolbarController(), &ToolbarController::actionHoverEnter);
         connect(search_dialog, &SearchDialog::itemHoverLeave, viewController->getToolbarController(), &ToolbarController::actionHoverLeave);
 
 

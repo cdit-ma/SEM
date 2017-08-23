@@ -5,50 +5,34 @@
 #include <QScrollArea>
 #include <QSplitter>
 #include <QToolBar>
-#include <QToolButton>
 #include <QLabel>
 
-#include "../../theme.h"
-#include "../../enumerations.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationEnumerations.h"
-#include "../../Utils/actiongroup.h"
-#include "../../Utils/filtergroup.h"
 #include "../../Widgets/optiongroupbox.h"
 
 class ViewController;
 class NotificationItem;
+class NotificationObject;
+
 class NotificationDialog : public QFrame
 {
     Q_OBJECT
 
 public:
-    explicit NotificationDialog(ViewController* controller, QWidget *parent = 0);
+    NotificationDialog(ViewController* viewController, QWidget *parent = 0);
 
 signals:
-    void centerOn(int entityID);
-    void popup(int entityID);
-
-    void deleteNotification(int ID);
-    void lastNotificationID(int ID);
-
     void mouseEntered();
-
-    void itemHoverEnter(int ID);
-    void itemHoverLeave(int ID);
-
-public slots:
-    void initialisePanel();
-
+private slots:
     void notificationAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
     void selectionChanged();
-
 private slots:
     void themeChanged();
     void filtersChanged();
-
+    void popupEntity();
+    void centerEntity();
 private:
+    void initialisePanel();
     void toggleSort();
     void updateNotificationVisibility(QList<NotificationItem*> items);
     void setupLayout();

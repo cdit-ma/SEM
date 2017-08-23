@@ -1,5 +1,8 @@
 #include "notificationitem.h"
 
+#include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "notificationobject.h"
+
 #include <QMouseEvent>
 #include <QToolBar>
 
@@ -33,6 +36,12 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     connect(action_delete, &QAction::triggered, [=](){
         NotificationManager::manager()->deleteNotification(notification->ID());
     });
+}
+
+NotificationItem::~NotificationItem(){
+    //Dehighlight
+    leaveEvent(0);
+
 }
 
 
@@ -93,66 +102,6 @@ int NotificationItem::getEntityID()
     return -1;
 }
 
-
-/**
- * @brief NotificationItem::getIconPath
- * @return
- */
-QString NotificationItem::getIconPath()
-{
-    return "";
-}
-
-
-/**
- * @brief NotificationItem::getIconName
- * @return
- */
-QString NotificationItem::getIconName()
-{
-    return "";
-}
-
-
-/**
- * @brief NotificationItem::getSeverity
- * @return
- */
-NOTIFICATION_SEVERITY NotificationItem::getSeverity()
-{
-    if (notification) {
-        return notification->severity();
-    }
-    return NOTIFICATION_SEVERITY::INFO;
-}
-
-
-/**
- * @brief NotificationItem::getType
- * @return
- */
-NOTIFICATION_TYPE NotificationItem::getType()
-{
-    if (notification) {
-        return notification->type();
-    }
-    return NOTIFICATION_TYPE::MODEL;
-}
-
-
-/**
- * @brief NotificationItem::getCategory
- * @return
- */
-NOTIFICATION_CATEGORY NotificationItem::getCategory()
-{
-    if (notification) {
-        return notification->category();
-    }
-    return NOTIFICATION_CATEGORY::NONE;
-}
-
-
 /**
  * @brief NotificationItem::setSelected
  * @param select
@@ -212,18 +161,16 @@ void NotificationItem::updateIcon()
 {
     
     if(notification->isLoading()){
-        qCritical() << notification << " LOADING";
         auto movie = Theme::theme()->getGif("Icons", "loading");
         label_icon->setMovie(movie);
     }else{
-        qCritical() << notification << " NOT LOADING";
         auto icon_path = notification->iconPath();
         auto icon_name = notification->iconName();
         if (icon_path.isEmpty() || icon_name.isEmpty()) {
             icon_path = "Icons";
             icon_name = getSeverityIcon(notification->severity());
         }
-        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, getSeverityColor(getSeverity()));
+        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, getSeverityColor(notification->severity()));
         label_icon->setMovie(0);
         label_icon->setPixmap(pixmap);
     }
@@ -275,7 +222,7 @@ void NotificationItem::loading(bool on)
  */
 void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
-    emit itemClicked(this, selected, event->modifiers().testFlag(Qt::ControlModifier));
+    emit itemClicked(this);
 }
 
 
@@ -284,7 +231,10 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
  */
 void NotificationItem::enterEvent(QEvent *)
 {
-    emit hoverEnter(getEntityID());
+    auto entity_id = getEntityID();
+    if(entity_id != -1){
+        emit highlightEntity(entity_id, true);
+    }
 }
 
 
@@ -292,8 +242,11 @@ void NotificationItem::enterEvent(QEvent *)
  * @brief NotificationItem::leaveEvent
  */
 void NotificationItem::leaveEvent(QEvent *)
-{
-    emit hoverLeave(getEntityID());
+{   
+    auto entity_id = getEntityID();
+    if(entity_id != -1){
+        emit highlightEntity(entity_id, false);
+    }
 }
 
 

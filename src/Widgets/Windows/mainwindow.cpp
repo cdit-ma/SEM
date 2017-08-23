@@ -790,16 +790,6 @@ void MainWindow::setupDockablePanels()
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Jenkins, false);
     innerWindow->tabifyDockWidget(dockwidget_Search, dockwidget_Notification);
-
-
-    if (viewController) {
-        
-        
-        connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
-        connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
-        connect(notificationPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
-        connect(notificationPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
-    }
 }
 
 

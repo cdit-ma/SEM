@@ -67,9 +67,6 @@ NotificationManager* NotificationManager::manager()
 }
 
 
-QList<int> getSelectionIDs(){
-
-}
 
 /**
  * @brief NotificationManager::constructPanel
@@ -78,13 +75,7 @@ QList<int> getSelectionIDs(){
 NotificationDialog* NotificationManager::constructPanel()
 {
     NotificationDialog* panel = new NotificationDialog(manager()->viewController);
-    //connect(manager(), &NotificationManager::req_lastNotificationID, panel, &NotificationDialog::getLastNotificationID);
-    connect(manager(), &NotificationManager::notificationItemAdded, panel, &NotificationDialog::notificationAdded);
-    connect(manager(), &NotificationManager::notificationDeleted, panel, &NotificationDialog::notificationDeleted);
-    connect(manager(), &NotificationManager::selectionChanged, panel, &NotificationDialog::selectionChanged);
-    connect(panel, &NotificationDialog::deleteNotification, manager(), &NotificationManager::deleteNotification);
-    connect(panel, &NotificationDialog::lastNotificationID, manager(), &NotificationManager::setLastNotificationItem);
-    connect(panel, &NotificationDialog::mouseEntered, manager(), &NotificationManager::notificationSeen);
+    
     return panel;
 }
 
@@ -345,6 +336,7 @@ void NotificationManager::setLastNotificationItem(int ID)
 NotificationObject* NotificationManager::getNotificationItem(int id){
     return notificationObjects.value(id, 0);
 }
+
 NotificationObject* NotificationManager::getLastNotificationItem(){
     return lastNotificationObject;
 }
@@ -352,19 +344,6 @@ NotificationObject* NotificationManager::getLastNotificationItem(){
 
 
 
-/**
- * @brief NotificationManager::activeSelectionChanged
- * @param item
- * @param isActive
- */
-void NotificationManager::activeSelectionChanged(ViewItem* item, bool isActive)
-{
-    if (!item || !isActive) {
-        emit selectionChanged(-1);
-    } else {
-        emit selectionChanged(item->getID());
-    }
-}
 
 
 /**

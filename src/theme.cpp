@@ -551,7 +551,7 @@ QString Theme::getWidgetStyleSheet(QString widgetName)
 
 QMovie* Theme::getGif(QString path, QString name){
     auto lookupName = getResourceName(path, name);
-    qCritical() << lookupName;
+    
     if(!gifLookup.contains(lookupName)){
         auto movie = new QMovie();
         movie->setFileName(":/" % lookupName);
@@ -559,7 +559,6 @@ QMovie* Theme::getGif(QString path, QString name){
         movie->start();
         gifLookup[lookupName] = movie;
     }
-
     return gifLookup[lookupName];
 }
 

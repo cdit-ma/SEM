@@ -94,9 +94,6 @@ void SearchDialog::themeChanged()
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
-    //status_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    //status_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    //->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 }
 
      

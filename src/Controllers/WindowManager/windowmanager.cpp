@@ -714,7 +714,6 @@ void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alig
 
 void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment){
    
-    qCritical() << "WindowManager::MoveWidgetEvent()";
     if(!parent_widget){
         parent_widget = QApplication::activeWindow();
         //Check

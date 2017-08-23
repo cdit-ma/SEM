@@ -5,15 +5,56 @@
 #include <QColor>
 #include <QMetaType>
 
+namespace Notification{
+    enum class Context{NOT_SELECTED, SELECTED};
+    enum class Type{APPLICATION, MODEL};
+    enum class Category{NONE, FILE, JENKINS, VALIDATION};
+    enum class Severity{INFO, WARNING, ERROR};
+
+    //Enum getters
+    extern QSet<Notification::Context> getContexts();
+    extern QSet<Notification::Type> getTypes();
+    extern QSet<Notification::Category> getCategories();
+    extern QSet<Notification::Severity> getSeverities();
+
+    //String Getters
+    extern QString getContextString(Notification::Context context);
+    extern QString getTypeString(Notification::Type type);
+    extern QString getCategoryString(Notification::Category category);
+    extern QString getSeverityString(Notification::Severity severity);
+
+    //Color Getters
+    extern QColor getSeverityColor(Notification::Severity severity);
+
+
+    inline uint qHash(Notification::Context key, uint seed){
+        return ::qHash(static_cast<uint>(key), seed);
+    };
+    
+    inline uint qHash(Notification::Type key, uint seed){
+        return ::qHash(static_cast<uint>(key), seed);
+    };
+    
+    inline uint qHash(Notification::Category key, uint seed){
+        return ::qHash(static_cast<uint>(key), seed);
+    };
+    
+    inline uint qHash(Notification::Severity key, uint seed){
+        return ::qHash(static_cast<uint>(key), seed);
+    };
+};
+Q_DECLARE_METATYPE(Notification::Context);
+Q_DECLARE_METATYPE(Notification::Type);
+Q_DECLARE_METATYPE(Notification::Category);
+Q_DECLARE_METATYPE(Notification::Severity);
+
 
 enum class NOTIFICATION_CONTEXT{NOT_SELECTED, SELECTED};
 enum class NOTIFICATION_TYPE{APPLICATION, MODEL};
 enum class NOTIFICATION_CATEGORY{NONE, FILE, JENKINS, VALIDATION};
 enum class NOTIFICATION_SEVERITY{INFO, WARNING, ERROR};
-enum class NOTIFICATION_FILTER{NOFILTER, SEVERITY, TYPE, CATEGORY};
 
 extern QList<NOTIFICATION_CONTEXT> getNotificationContexts();
-extern QList<NOTIFICATION_FILTER> getNotificationFilters();
 extern QList<NOTIFICATION_TYPE> getNotificationTypes();
 extern QList<NOTIFICATION_CATEGORY> getNotificationCategories();
 extern QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
@@ -31,12 +72,6 @@ extern QString getTypeIcon(NOTIFICATION_TYPE type);
 extern QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
 extern QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
 
-
-inline uint qHash(NOTIFICATION_FILTER key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(NOTIFICATION_FILTER)
 
 inline uint qHash(NOTIFICATION_SEVERITY key, uint seed)
 {
