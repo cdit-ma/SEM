@@ -29,11 +29,10 @@ if(git_url == null){
     return
 }
 
-//Check that the correct params are specified in the jenkins configuration
 def git_credential_id = ""
 git_credential_id = env.GIT_CREDENTIAL_ID
 if(git_credential_id == null){
-    print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
+    print("ERROR: \"GIT_CREDENTIAL_ID\" credential parameter missing in build configuration")
     currentBuild.result = 'FAILURE'
     return
 }
