@@ -1,9 +1,16 @@
-// This method collects a list of Node names from the current Jenkins instance
+/* This Jenkinsfile:
+    1. Pulls the latest logan source from a specified git repo (defaults to github.com)
+    2. Stashes+pops this repo to all nodes with the "logan" tag
+    3. Builds logan for production use on these nodes
+*/
+
+//Collect a list of Node names from the current Jenkins instance
 @NonCPS
 def nodeNames() {
   return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
 }
 
+//Get labels attached to node name
 def getLabels(String name){
     def computer = Jenkins.getInstance().getComputer(name)
     def node = computer.getNode()
@@ -13,8 +20,27 @@ def getLabels(String name){
     return ""
 }
 
+//Check that the correct params are specified in the jenkins configuration
+def git_url = ""
+git_url = env.GIT_URL
+if(git_url == null){
+    print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
+    currentBuild.result = 'FAILURE'
+    return
+}
+
+//Check that the correct params are specified in the jenkins configuration
+def git_credential_id = ""
+git_credential_id = env.GIT_CREDENTIAL_ID
+if(git_credential_id == null){
+    print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
+    currentBuild.result = 'FAILURE'
+    return
+}
+
 def names = nodeNames()
-//filter nodes
+
+//Filter out non logan nodes
 def filtered_names = []
 for(n in names){
     if(getLabels(n).contains("logan")){
@@ -23,9 +49,24 @@ for(n in names){
     }
 }
 
+//If param is empty, use default
+def default_git_url = "https://github.com/cdit-ma/logan.git"
+if(!git_url){
+    git_url = default_git_url
+}
 
-def git_user = input(id: 'git_user', message: 'Select GitHub Credentials', parameters: [[$class: 'CredentialsParameterDefinition', defaultValue: '', description: 'Git User', name: 'git_user']])
+//Checkout logan on master node and stash
+stage('Checkout'){
+    node("master"){
+        dir("logan"){
+            deleteDir()
+            checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])    
+            stash includes: "**", name: "logan_source"
+        }
+    }
+}
 
+//Unstash on all logan nodes
 stage('Checkout'){   
     def builders = [:]
     for(n in filtered_names){
@@ -34,7 +75,7 @@ stage('Checkout'){
             node(node_name){
             def loganPath = "${LOGAN_PATH}"
                 dir(loganPath){
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_user, url: 'https://github.com/cdit-ma/logan.git']]])    
+                    unstash "logan_source"
                 }
             }
         }
@@ -42,6 +83,7 @@ stage('Checkout'){
     parallel builders
 }
 
+//Build on all logan nodes
 stage('Build'){
     def builders = [:]
     for(n in filtered_names){
