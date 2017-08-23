@@ -77,12 +77,12 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     /*
     auto group_box = new OptionGroupBox("Test group", this);
     for(auto s : getNotificationSeverities()){
-        group_box->addOption(static_cast<uint>(s), getSeverityString(s), "Icons", getSeverityIcon(s));
+        group_box->addOption(static_cast<uint>(s), Notification::getSeverityString(s), "Icons", getSeverityIcon(s));
     }
     group_box->addOption("HELLO", "HELLO", "Icons", "circle");
-    auto vals = group_box->getOptions<NOTIFICATION_SEVERITY>();
+    auto vals = group_box->getOptions<Notification::Severity>();
     for (auto v : vals){
-        qCritical() << getSeverityString(v);
+        qCritical() << Notification::getSeverityString(v);
     }
 
      auto vals2 = group_box->getOptions<QVariant>();

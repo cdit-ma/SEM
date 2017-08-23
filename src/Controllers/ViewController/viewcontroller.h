@@ -161,9 +161,9 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);*/
 
-    //void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c);
-    //void vc_showNotification(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
-    //void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
+    //void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type2 t, Notification::Category c);
+    //void vc_showNotification(Notification::Severity severity, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
+    //void vc_showNotification(Notification::Type type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
     void vc_executeJenkinsJob(QString filePath);
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);

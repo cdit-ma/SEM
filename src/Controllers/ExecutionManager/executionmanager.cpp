@@ -41,7 +41,7 @@ void ExecutionManager::ValidateModel(QString model_path)
 {
     auto manager =  NotificationManager::manager();
     // Clear previous validation notification items
-    for (auto ID : manager->getNotificationsOfCategory(NOTIFICATION_CATEGORY::VALIDATION)) {
+    for (auto ID : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
         auto notification = manager->getNotificationItem(ID);
         if(notification->description().startsWith("model validation", Qt::CaseInsensitive)){
             continue;
@@ -50,7 +50,7 @@ void ExecutionManager::ValidateModel(QString model_path)
     }
 
     // Construct a notification item with a loading gif as its icon
-    int nID = manager->displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = manager->displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
     //NotificationManager::manager()->deleteNotification(nID);
 
@@ -80,7 +80,7 @@ void ExecutionManager::ValidateModel(QString model_path)
                         auto id = get_xml_attribute(xml, "id");
                         auto warning = get_xml_attribute(xml, "warning") == "true";
                         auto error_code = xml.readElementText();
-                        manager->displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? NOTIFICATION_SEVERITY::WARNING : NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+                        manager->displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? Notification::Severity::WARNING : Notification::Severity::ERROR, Notification::Type::MODEL, Notification::Category::VALIDATION);
                     }else if(result == "true"){
                         success_count ++;
                     }
@@ -92,10 +92,10 @@ void ExecutionManager::ValidateModel(QString model_path)
         if (success_count < count) {
             emit manager->showNotificationPanel();
         }
-        manager->updateNotification(nID, "Model validation - [" + QString::number(success_count) + "/" + QString::number(count) + "] tests passed", "Icons", "shield", success_count == count ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR);
+        manager->updateNotification(nID, "Model validation - [" + QString::number(success_count) + "/" + QString::number(count) + "] tests passed", "Icons", "shield", success_count == count ? Notification::Severity::INFO : Notification::Severity::ERROR);
 
     } else {
-        manager->updateNotification(nID, "XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", NOTIFICATION_SEVERITY::ERROR);
+        manager->updateNotification(nID, "XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", Notification::Severity::ERROR);
     }
 }
 
@@ -126,7 +126,7 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
     auto datatypes = GenerateDatatypes(document_path, output_directory);
 
     if(components && datatypes){
-        NotificationManager::manager()->displayNotification("Generated Model Workspace in '" + output_directory + "'", "Icons", "bracketsAngled", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+        NotificationManager::manager()->displayNotification("Generated Model Workspace in '" + output_directory + "'", "Icons", "bracketsAngled", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
     }
 }
 
@@ -139,11 +139,11 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
     }
 
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Generating Component C++ ...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = NotificationManager::displayLoadingNotification("Generating Component C++ ...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
 
     if(!results.success){
-        NotificationManager::updateNotification(nID, "XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", NOTIFICATION_SEVERITY::ERROR);
+        NotificationManager::updateNotification(nID, "XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", Notification::Severity::ERROR);
     }else{
         NotificationManager::manager()->deleteNotification(nID);
     }
@@ -153,11 +153,11 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
 bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory)
 {
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Generating Datatypes C++ ...", "Icons", "shield", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::VALIDATION);
+    int nID = NotificationManager::displayLoadingNotification("Generating Datatypes C++ ...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
 
     if(!results.success){
-        NotificationManager::updateNotification(nID, "XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", NOTIFICATION_SEVERITY::ERROR);
+        NotificationManager::updateNotification(nID, "XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", Notification::Severity::ERROR);
     }else{
         NotificationManager::manager()->deleteNotification(nID);
     }

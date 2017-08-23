@@ -134,7 +134,7 @@ void NotificationToolbar::updateIconFrame(int)
  * @param severity
  * @param count
  */
-void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, int count)
+void NotificationToolbar::updateSeverityCount(Notification::Severity severity, int count)
 {
     QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
@@ -150,8 +150,8 @@ void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, in
 void NotificationToolbar::setupLayout()
 {
     // create a label for the following severities of notifications
-    severityCount[NOTIFICATION_SEVERITY::WARNING] = new QLabel("0", this);
-    severityCount[NOTIFICATION_SEVERITY::ERROR] = new QLabel("0", this);
+    severityCount[Notification::Severity::WARNING] = new QLabel("0", this);
+    severityCount[Notification::Severity::ERROR] = new QLabel("0", this);
 
     showMostRecentAction = addAction("");
     showMostRecentAction->setToolTip("Show Most Recent Notification");
@@ -166,14 +166,15 @@ void NotificationToolbar::setupLayout()
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    foreach (NOTIFICATION_SEVERITY s, getNotificationSeverities()) {
+    for(auto s : Notification::getSeverities()) {
         QLabel* label = severityCount.value(s, 0);
         if (label) {
             label->setFont(labelFont);
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(getSeverityString(s) + " Count");
-            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + getSeverityColorStr(s) + ";}");
+            label->setToolTip(Notification::getSeverityString(s) + " Count");
+            auto color = Theme::QColorToHex(Notification::getSeverityColor(s));
+            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + color + ";}");
             addWidget(label);
             addSeparator();
 
@@ -211,13 +212,13 @@ void NotificationToolbar::initialiseToolbar()
 {
     QList<NotificationObject*> notifications = NotificationManager::manager()->getNotificationItems();
     if (!notifications.isEmpty()) {
-        QHash<NOTIFICATION_SEVERITY, int> severityCount;
+        QHash<Notification::Severity, int> severityCount;
         foreach (NotificationObject* obj, notifications) {
-            NOTIFICATION_SEVERITY s = obj->severity();
+            Notification::Severity s = obj->severity();
             int count = severityCount.value(s,0);
             severityCount[s] = count + 1;
         }
-        foreach (NOTIFICATION_SEVERITY s, severityCount.keys()) {
+        foreach (Notification::Severity s, severityCount.keys()) {
             updateSeverityCount(s, severityCount.value(s));
         }
         notificationReceived();

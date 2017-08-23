@@ -42,7 +42,7 @@
 
 
 ViewController::ViewController() : QObject(){
-    //qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
+    //qRegisterMetaType<Notification::Type>("Notification::Type");
     controller = 0;
 
     codeViewer = 0;
@@ -509,16 +509,16 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
 {
     emit vc_JenkinsReady(success);
     QString message = success ? "Settings validated successfully" : errorString;
-    NOTIFICATION_SEVERITY severity = success ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
-    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::JENKINS);
+    Notification::Severity severity = success ? Notification::Severity::INFO : Notification::Severity::ERROR;
+    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, Notification::Type::APPLICATION, Notification::Category::JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     emit vc_JavaReady(java);
-    NOTIFICATION_SEVERITY severity = java ? NOTIFICATION_SEVERITY::INFO : NOTIFICATION_SEVERITY::ERROR;
+    Notification::Severity severity = java ? Notification::Severity::INFO : Notification::Severity::ERROR;
     QString message = java ? "Found java: " + javaVersion: "Cannot find java";
-    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NOTIFICATION_TYPE::APPLICATION);
+    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, Notification::Type::APPLICATION);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -859,22 +859,22 @@ NodeView *ViewController::getActiveNodeView()
 }
 
 void ViewController::modelNotification(MODEL_SEVERITY severity, QString description, int ID){
-    NOTIFICATION_SEVERITY ns = NOTIFICATION_SEVERITY::INFO;
+    Notification::Severity ns = Notification::Severity::INFO;
     switch(severity){
         case MODEL_SEVERITY::ERROR:
-            ns = NOTIFICATION_SEVERITY::ERROR;
+            ns = Notification::Severity::ERROR;
             break;
         case MODEL_SEVERITY::WARNING:
-            ns = NOTIFICATION_SEVERITY::WARNING;
+            ns = Notification::Severity::WARNING;
             break;
         case MODEL_SEVERITY::INFO:
-            ns = NOTIFICATION_SEVERITY::INFO;
+            ns = Notification::Severity::INFO;
             break;
         default:
             break;
     }
 
-    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::NONE);
+    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, Notification::Type::MODEL, Notification::Category::NONE);
 }
 
 void ViewController::setControllerReady(bool ready)
@@ -1003,7 +1003,7 @@ void ViewController::autoSaveProject(){
             auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
             if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
                 //Display a notification of the autosave
-                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::APPLICATION, NOTIFICATION_CATEGORY::FILE, true);
+                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, true);
                 //update the autosave id
                 autosave_id_ = project_action_count;
                 emit vc_addProjectToRecentProjects(autosave_path);

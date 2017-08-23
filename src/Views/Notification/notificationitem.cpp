@@ -167,10 +167,12 @@ void NotificationItem::updateIcon()
         auto icon_path = notification->iconPath();
         auto icon_name = notification->iconName();
         if (icon_path.isEmpty() || icon_name.isEmpty()) {
-            icon_path = "Icons";
-            icon_name = getSeverityIcon(notification->severity());
+            icon_path = "Notification";
+            icon_name = Notification::getSeverityString(notification->severity());
         }
-        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, getSeverityColor(notification->severity()));
+        auto tint_color = Notification::getSeverityColor(notification->severity());
+
+        auto pixmap = Theme::theme()->getImage(icon_path, icon_name, icon_size, tint_color);
         label_icon->setMovie(0);
         label_icon->setPixmap(pixmap);
     }

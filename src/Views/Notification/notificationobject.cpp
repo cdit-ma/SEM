@@ -16,7 +16,7 @@ int NotificationObject::_NotificationID  = 0;
  * @param severity
  * @param parent
  */
-NotificationObject::NotificationObject(QString title, QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE type, NOTIFICATION_CATEGORY category, QObject *parent)
+NotificationObject::NotificationObject(QString title, QString description, QString iconPath, QString iconName, int entityID, Notification::Severity severity, Notification::Type type, Notification::Category category, QObject *parent)
     : QObject(parent)
 {
     _ID = ++_NotificationID;
@@ -85,7 +85,7 @@ void NotificationObject::setIcon(QString path, QString name)
  * @brief NotificationObject::setSeverity
  * @param severity
  */
-void NotificationObject::setSeverity(NOTIFICATION_SEVERITY severity)
+void NotificationObject::setSeverity(Notification::Severity severity)
 {
     _severity = severity;
     emit iconChanged(_iconPath, _iconName);
@@ -178,7 +178,7 @@ QString NotificationObject::iconName()
  * @brief NotificationObject::type
  * @return
  */
-NOTIFICATION_TYPE NotificationObject::type()
+Notification::Type NotificationObject::type()
 {
     return _type;
 }
@@ -188,7 +188,7 @@ NOTIFICATION_TYPE NotificationObject::type()
  * @brief NotificationObject::category
  * @return
  */
-NOTIFICATION_CATEGORY NotificationObject::category()
+Notification::Category NotificationObject::category()
 {
     return _category;
 }
@@ -198,7 +198,7 @@ NOTIFICATION_CATEGORY NotificationObject::category()
  * @brief NotificationObject::severity
  * @return
  */
-NOTIFICATION_SEVERITY NotificationObject::severity()
+Notification::Severity NotificationObject::severity()
 {
     return _severity;
 }

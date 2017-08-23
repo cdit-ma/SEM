@@ -17,16 +17,16 @@ protected:
                                 QString iconPath = "",
                                 QString iconName = "",
                                 int entityID = -1,
-                                NOTIFICATION_SEVERITY severity = NOTIFICATION_SEVERITY::INFO,
-                                NOTIFICATION_TYPE type = NOTIFICATION_TYPE::MODEL,
-                                NOTIFICATION_CATEGORY category = NOTIFICATION_CATEGORY::NONE,
+                                Notification::Severity severity = Notification::Severity::INFO,
+                                Notification::Type type = Notification::Type::MODEL,
+                                Notification::Category category = Notification::Category::NONE,
                                 QObject *parent = 0);
     ~NotificationObject();
 
     void setTitle(QString title);
     void setDescription(QString description);
     void setIcon(QString path, QString name);
-    void setSeverity(NOTIFICATION_SEVERITY severity);
+    void setSeverity(Notification::Severity severity);
     void setDateTime(QDateTime dateTime);
     void setLoading(bool on);
 
@@ -41,9 +41,9 @@ public:
     QDateTime time() const;
     bool isLoading();
 
-    NOTIFICATION_TYPE type();
-    NOTIFICATION_CATEGORY category();
-    NOTIFICATION_SEVERITY severity();
+    Notification::Type type();
+    Notification::Category category();
+    Notification::Severity severity();
 
  
 signals:
@@ -64,9 +64,9 @@ private:
     QString _iconPath;
     QString _iconName;
 
-    NOTIFICATION_TYPE _type;
-    NOTIFICATION_CATEGORY _category;
-    NOTIFICATION_SEVERITY _severity;
+    Notification::Type _type;
+    Notification::Category _category;
+    Notification::Severity _severity;
 
     QDateTime _creationDateTime;
 

@@ -170,9 +170,9 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
 
     if(success){
         emit GotJenkinsNodes(data);
-        NotificationManager::displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::INFO, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
+        NotificationManager::displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
     }else{
-        NotificationManager::displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, NOTIFICATION_SEVERITY::ERROR, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::JENKINS);
+        NotificationManager::displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, Notification::Severity::ERROR, Notification::Type::MODEL, Notification::Category::JENKINS);
     }
 }
 

@@ -21,6 +21,29 @@ NotificationManager::NotificationManager(ViewController* controller)
 {
     viewController = controller;
     getNotificationPopup();
+    auto theme = Theme::theme();
+
+    QString notification_str("Notification");
+    QString icon_prefix("Icons");
+
+    //Setup Context Icons
+    theme->setIconAlias(notification_str, Notification::getContextString(Notification::Context::NOT_SELECTED), icon_prefix, "tiles");
+    theme->setIconAlias(notification_str, Notification::getContextString(Notification::Context::SELECTED), icon_prefix, "tiles");
+    
+    //Setup Severity Icons
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::INFO), icon_prefix, "circleInfoDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::WARNING), icon_prefix, "triangleCritical");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "pointyCircleCriticalDark");
+
+    //Setup Category Icons
+    theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::JENKINS), icon_prefix, "jenkinsFlat");
+    theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::FILE), icon_prefix, "file");
+    theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::VALIDATION), icon_prefix, "shieldTick");
+    theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::NONE), icon_prefix, "tiles");
+
+    //Setup Type Icons
+    theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::MODEL), icon_prefix, "dotsInRectangle");
+    theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::APPLICATION), icon_prefix, "circleQuestion");
 }
 
 
@@ -111,7 +134,7 @@ QList<NotificationObject*> NotificationManager::getNotificationItems()
  * @param type
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfType(NOTIFICATION_TYPE type)
+QList<int> NotificationManager::getNotificationsOfType(Notification::Type type)
 {
     QList<int> IDs;
     foreach (NotificationObject* obj, notificationObjects.values()) {
@@ -128,7 +151,7 @@ QList<int> NotificationManager::getNotificationsOfType(NOTIFICATION_TYPE type)
  * @param severity
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity)
+QList<int> NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
 {
     QList<int> IDs;
     foreach (NotificationObject* obj, notificationObjects.values()) {
@@ -145,7 +168,7 @@ QList<int> NotificationManager::getNotificationsOfSeverity(NOTIFICATION_SEVERITY
  * @param category
  * @return
  */
-QList<int> NotificationManager::getNotificationsOfCategory(NOTIFICATION_CATEGORY category)
+QList<int> NotificationManager::getNotificationsOfCategory(Notification::Category category)
 {
     QList<int> IDs;
     foreach (NotificationObject* obj, notificationObjects.values()) {
@@ -162,8 +185,8 @@ QList<int> NotificationManager::getNotificationsOfCategory(NOTIFICATION_CATEGORY
  */
 void NotificationManager::clearModelNotifications()
 {
-    // only clear NOTIFICATION_TYPE::MODEL notifications
-    foreach (int ID, getNotificationsOfType(NOTIFICATION_TYPE::MODEL)) {
+    // only clear Notification::Type::MODEL notifications
+    foreach (int ID, getNotificationsOfType(Notification::Type::MODEL)) {
         deleteNotification(ID);
     }
 }
@@ -180,7 +203,7 @@ void NotificationManager::clearModelNotifications()
  * @param c
  * @return
  */
-int NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
+int NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c)
 {
     if (managerSingleton) {
         return managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c);
@@ -200,7 +223,7 @@ int NotificationManager::displayNotification(QString description, QString iconPa
  * @param c
  * @return
  */
-int NotificationManager::displayLoadingNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c)
+int NotificationManager::displayLoadingNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c)
 {
     int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
     setNotificationLoading(ID, true);
@@ -241,7 +264,7 @@ NotificationPopup* NotificationManager::getNotificationPopup(){
  * @param severity
  * @return
  */
-bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity)
+bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity)
 {
     if (!notificationObjects.contains(ID)) {
         return false;
@@ -358,7 +381,7 @@ NotificationObject* NotificationManager::getLastNotificationItem(){
  * @param toast
  * @return
  */
-int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE t, NOTIFICATION_CATEGORY c, bool toast)
+int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c, bool toast)
 {
     // construct notification item
     NotificationObject* obj = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
@@ -388,7 +411,7 @@ int NotificationManager::addNotification(QString description, QString iconPath, 
  * @param severity
  * @param increment
  */
-void NotificationManager::updateSeverityCountHash(NOTIFICATION_SEVERITY severity, bool increment)
+void NotificationManager::updateSeverityCountHash(Notification::Severity severity, bool increment)
 {
     int count = severityCount.value(severity, 0);
     if (increment) {

@@ -77,10 +77,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(NOTIFICATION_SEVERITY::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
+            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
         }
     }else{
-        _notification(NOTIFICATION_SEVERITY::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
+        _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
     }
     return fileData;
 }
@@ -112,14 +112,14 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
             out << fileData;
             file.close();
         }else{
-            _notification(NOTIFICATION_SEVERITY::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk");
+            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk");
             return false;
         }
     }else{
         return false;
     }
     if(notify){
-        _notification(NOTIFICATION_SEVERITY::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+        _notification(Notification::Severity::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
     }
     return true;
 }
@@ -136,9 +136,9 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-            _notification(NOTIFICATION_SEVERITY::INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
+            _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
         }else{
-            _notification(NOTIFICATION_SEVERITY::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder");
+            _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder");
             return false;
         }
     }
@@ -149,7 +149,7 @@ bool FileHandler::removeFile(QString path){
     bool success = QFile::remove(path);
 
     if(success){
-        _notification(NOTIFICATION_SEVERITY::INFO, "File: '" % path % "' removed!", "Icons", "file");
+        _notification(Notification::Severity::INFO, "File: '" % path % "' removed!", "Icons", "file");
     }
     return success;
 }
@@ -160,7 +160,7 @@ bool FileHandler::removeDirectory(QString path)
     bool success = dir.removeRecursively();
 
     if(success){
-        _notification(NOTIFICATION_SEVERITY::INFO, "Dir: '" % dir.absolutePath() % "' removed!", "Icons", "folder");
+        _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' removed!", "Icons", "folder");
     }
     return success;
 }
@@ -199,9 +199,9 @@ FileHandler *FileHandler::getFileHandler()
     return handler;
 }
 
-void FileHandler::_notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName)
+void FileHandler::_notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName)
 {
-    NotificationManager::manager()->displayNotification(notificationText, iconPath, iconName, -1, severity, NOTIFICATION_TYPE::MODEL, NOTIFICATION_CATEGORY::FILE);
+    NotificationManager::manager()->displayNotification(notificationText, iconPath, iconName, -1, severity, Notification::Type::MODEL, Notification::Category::FILE);
 }
 
 QString FileHandler::getAutosaveFilePath(QString path){

@@ -4,7 +4,7 @@
 #include "../../enumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationEnumerations.h"
+#include "../../Controllers/NotificationManager/notificationenumerations.h"
 
 #include <QToolBar>
 #include <QLabel>
@@ -30,7 +30,7 @@ public slots:
 
     void displayLoadingGif(bool show = true);
     void updateIconFrame(int);
-    void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
+    void updateSeverityCount(Notification::Severity severity, int count);
 
 private:
     void setupLayout();
@@ -45,7 +45,7 @@ private:
     QMovie* loadingGif;
     bool loadingGifDisplayed;
 
-    QHash<NOTIFICATION_SEVERITY, QLabel*> severityCount;
+    QHash<Notification::Severity, QLabel*> severityCount;
 
 };
 

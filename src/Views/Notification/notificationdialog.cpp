@@ -2,7 +2,7 @@
 #include "notificationitem.h"
 
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationEnumerations.h"
+#include "../../Controllers/NotificationManager/notificationenumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 #include "notificationobject.h"
 #include <QApplication>
@@ -46,13 +46,13 @@ void NotificationDialog::filtersChanged()
 }
 
 void NotificationDialog::updateNotificationVisibility(QList<NotificationItem*> items){
-    auto checked_context_set = context_filters->getCheckedOptions<NOTIFICATION_CONTEXT>().toSet();
-    auto checked_severity_set = severity_filters->getCheckedOptions<NOTIFICATION_SEVERITY>().toSet();
-    auto checked_category_set = category_filters->getCheckedOptions<NOTIFICATION_CATEGORY>().toSet();
-    auto checked_type_set = source_filters->getCheckedOptions<NOTIFICATION_TYPE>().toSet();
+    auto checked_context_set = context_filters->getCheckedOptions<Notification::Context>().toSet();
+    auto checked_severity_set = severity_filters->getCheckedOptions<Notification::Severity>().toSet();
+    auto checked_category_set = category_filters->getCheckedOptions<Notification::Category>().toSet();
+    auto checked_type_set = source_filters->getCheckedOptions<Notification::Type>().toSet();
     
     //We only need to check selection when the SELECTED is exclusively selected.
-    bool check_selection = checked_context_set.size() == 1 && checked_context_set.contains(NOTIFICATION_CONTEXT::SELECTED);
+    bool check_selection = checked_context_set.size() == 1 && checked_context_set.contains(Notification::Context::SELECTED);
     QSet<int> selected_ids;
     if(viewController && check_selection){
         selected_ids = viewController->getSelectionController()->getSelectionIDs().toSet();
@@ -169,8 +169,8 @@ void NotificationDialog::ToggleSelection(NotificationItem* item){
 
 
 void NotificationDialog::selectionChanged(){
-    auto checked_context_set = context_filters->getCheckedOptions<NOTIFICATION_CONTEXT>().toSet();
-    if(checked_context_set.contains(NOTIFICATION_CONTEXT::SELECTED)){
+    auto checked_context_set = context_filters->getCheckedOptions<Notification::Context>().toSet();
+    if(checked_context_set.contains(Notification::Context::SELECTED)){
         filtersChanged();
     }
 }
@@ -396,31 +396,35 @@ void NotificationDialog::setupLayout()
 void NotificationDialog::setupFilters()
 {
     context_filters = new OptionGroupBox("CONTEXT", this);
-    for(auto context : getNotificationContexts()){
-        context_filters->addOption(QVariant::fromValue(context), getContextString(context), "Icons", getContextIcon(context));
+    for(auto context : Notification::getContexts()){
+        auto context_str = Notification::getContextString(context);
+        context_filters->addOption(QVariant::fromValue(context), context_str, "Notification", context_str);
     }
     //Hide the NOT_SELECTED option
-    context_filters->setOptionVisible(QVariant::fromValue(NOTIFICATION_CONTEXT::NOT_SELECTED), false);
+    context_filters->setOptionVisible(QVariant::fromValue(Notification::Context::NOT_SELECTED), false);
 
     filters_layout->addWidget(context_filters);
 
 
     severity_filters = new OptionGroupBox("SEVERITY", this);
-    for (auto severity : getNotificationSeverities()) {
-        severity_filters->addOption(QVariant::fromValue(severity), getSeverityString(severity), "Icons", getSeverityIcon(severity));
+    for (auto severity : Notification::getSeverities()) {
+        auto severity_str = Notification::getSeverityString(severity);
+        severity_filters->addOption(QVariant::fromValue(severity), severity_str, "Notification", severity_str);
     }
     filters_layout->addWidget(severity_filters);
 
     category_filters = new OptionGroupBox("CATEGORY", this);
-    for (auto category : getNotificationCategories()) {
-        category_filters->addOption(QVariant::fromValue(category), getCategoryString(category), "Icons", getCategoryIcon(category));
+    for (auto category : Notification::getCategories()) {
+        auto category_str = Notification::getCategoryString(category);
+        category_filters->addOption(QVariant::fromValue(category), category_str, "Notification", category_str);
     }
-    category_filters->setOptionVisible(QVariant::fromValue(NOTIFICATION_CATEGORY::NONE), false);
+    category_filters->setOptionVisible(QVariant::fromValue(Notification::Category::NONE), false);
     filters_layout->addWidget(category_filters);
 
     source_filters = new OptionGroupBox("SOURCE", this);
-    for (auto type : getNotificationTypes()) {
-        source_filters->addOption(QVariant::fromValue(type), getTypeString(type), "Icons", getTypeIcon(type));
+    for (auto type : Notification::getTypes()) {
+        auto type_str = Notification::getTypeString(type);
+        source_filters->addOption(QVariant::fromValue(type), type_str, "Notification", type_str);
     }
     filters_layout->addWidget(source_filters);
 

@@ -2,7 +2,7 @@
 #define NOTIFICATIONMANAGER_H
 
 #include "../../enumerations.h"
-#include "notificationEnumerations.h"
+#include "notificationenumerations.h"
 #include "../ActionController/actioncontroller.h"
 
 #include <QObject>
@@ -41,25 +41,25 @@ public:
                                    QString iconPath = "",
                                    QString iconName = "",
                                    int entityID = -1,
-                                   NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
-                                   NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
-                                   NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NONE);
+                                   Notification::Severity s = Notification::Severity::INFO,
+                                   Notification::Type t = Notification::Type::MODEL,
+                                   Notification::Category c = Notification::Category::NONE);
 
     static int displayLoadingNotification(QString description,
                                           QString iconPath = "",
                                           QString iconName = "",
                                           int entityID = -1,
-                                          NOTIFICATION_SEVERITY s = NOTIFICATION_SEVERITY::INFO,
-                                          NOTIFICATION_TYPE t = NOTIFICATION_TYPE::MODEL,
-                                          NOTIFICATION_CATEGORY c = NOTIFICATION_CATEGORY::NONE);
+                                          Notification::Severity s = Notification::Severity::INFO,
+                                          Notification::Type t = Notification::Type::MODEL,
+                                          Notification::Category c = Notification::Category::NONE);
 
-    static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, NOTIFICATION_SEVERITY severity);
+    static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity);
     static bool setNotificationLoading(int ID, bool on);
 
     QList<NotificationObject*> getNotificationItems();
-    QList<int> getNotificationsOfType(NOTIFICATION_TYPE type);
-    QList<int> getNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
-    QList<int> getNotificationsOfCategory(NOTIFICATION_CATEGORY category);
+    QList<int> getNotificationsOfType(Notification::Type type);
+    QList<int> getNotificationsOfSeverity(Notification::Severity severity);
+    QList<int> getNotificationsOfCategory(Notification::Category category);
 
     NotificationObject* getNotificationItem(int id);
     NotificationObject* getLastNotificationItem();
@@ -74,7 +74,7 @@ signals:
     void notificationItemAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
 
-    void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
+    void updateSeverityCount(Notification::Severity severity, int count);
     void updateNotificationToolbarSize();
 
     void lastNotificationDeleted();
@@ -92,14 +92,14 @@ private:
                         QString iconPath,
                         QString iconName,
                         int entityID,
-                        NOTIFICATION_SEVERITY s,
-                        NOTIFICATION_TYPE t,
-                        NOTIFICATION_CATEGORY c,
+                        Notification::Severity s,
+                        Notification::Type t,
+                        Notification::Category c,
                         bool toast = true);
 
-    void updateSeverityCountHash(NOTIFICATION_SEVERITY severity, bool increment);
+    void updateSeverityCountHash(Notification::Severity severity, bool increment);
 
-    QHash<NOTIFICATION_SEVERITY, int> severityCount;
+    QHash<Notification::Severity, int> severityCount;
 
     static NotificationManager* managerSingleton;
     static NotificationObject* lastNotificationObject;

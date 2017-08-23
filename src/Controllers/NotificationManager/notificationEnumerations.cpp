@@ -1,215 +1,76 @@
-#include "notificationEnumerations.h"
+#include "notificationenumerations.h"
 #include "../../theme.h"
 
 
-extern QList<NOTIFICATION_CONTEXT> getNotificationContexts(){
-    return {
-        NOTIFICATION_CONTEXT::SELECTED,
-        NOTIFICATION_CONTEXT::NOT_SELECTED
-    };
+QSet<Notification::Context> Notification::getContexts(){
+    return {Context::NOT_SELECTED, Context::SELECTED};
+}
+QSet<Notification::Type> Notification::getTypes(){
+    return {Type::APPLICATION, Type::MODEL};
 }
 
-/**
- * @brief getNotificationTypes
- * @return
- */
-QList<NOTIFICATION_TYPE> getNotificationTypes()
-{
-    return {
-        NOTIFICATION_TYPE::MODEL,
-        NOTIFICATION_TYPE::APPLICATION
-    };
+QSet<Notification::Category> Notification::getCategories(){
+    return {Category::NONE, Category::FILE, Category::JENKINS, Category::VALIDATION};
 }
 
-
-/**
- * @brief getNotificationCategories
- * @return
- */
-QList<NOTIFICATION_CATEGORY> getNotificationCategories()
-{
-    return {
-        NOTIFICATION_CATEGORY::NONE,
-        NOTIFICATION_CATEGORY::FILE,
-        NOTIFICATION_CATEGORY::JENKINS,
-        NOTIFICATION_CATEGORY::VALIDATION
-    };
+QSet<Notification::Severity> Notification::getSeverities(){
+    return {Severity::INFO, Severity::WARNING, Severity::ERROR};
 }
 
-
-/**
- * @brief getNotificationSeverities
- * @return
- */
-QList<NOTIFICATION_SEVERITY> getNotificationSeverities()
+QString Notification::getTypeString(Notification::Type type)
 {
-    return {
-        NOTIFICATION_SEVERITY::INFO,
-        NOTIFICATION_SEVERITY::WARNING,
-        NOTIFICATION_SEVERITY::ERROR
-    };
-}
-
-
-/**
- * @brief getTypeString
- * @param type
- * @return
- */
-QString getTypeString(NOTIFICATION_TYPE type)
-{
-    switch (type) {
-    case NOTIFICATION_TYPE::MODEL:
+    switch (type){
+    case Type::MODEL:
         return "Model";
-    case NOTIFICATION_TYPE::APPLICATION:
+    case Type::APPLICATION:
         return "Application";
-    default:
-        return "Unknown Type";
     }
 }
 
-
-/**
- * @brief getSeverityString
- * @param severity
- * @return
- */
-QString getSeverityString(NOTIFICATION_SEVERITY severity)
+QString Notification::getSeverityString(Notification::Severity severity)
 {
-    switch (severity) {
-    case NOTIFICATION_SEVERITY::INFO:
+    switch (severity){
+    case Severity::INFO:
         return "Information";
-    case NOTIFICATION_SEVERITY::WARNING:
+    case Severity::WARNING:
         return "Warning";
-    case NOTIFICATION_SEVERITY::ERROR:
+    case Severity::ERROR:
         return "Error";
-    default:
-        return "Unknown Severity";
     }
 }
 
-QString getContextString(NOTIFICATION_CONTEXT context)
+QString Notification::getContextString(Notification::Context context)
 {
-    switch (context) {
-    case NOTIFICATION_CONTEXT::SELECTED:
+    switch (context){
+    case Context::SELECTED:
         return "Selected";
-    case NOTIFICATION_CONTEXT::NOT_SELECTED:
+    case Context::NOT_SELECTED:
         return "Not Selected";
-    default:
-        return "Unknown Context";
     }
 }
 
-/**
- * @brief getCategoryString
- * @param category
- * @return
- */
-QString getCategoryString(NOTIFICATION_CATEGORY category)
+QString Notification::getCategoryString(Notification::Category category)
 {
-    switch (category) {
-    case NOTIFICATION_CATEGORY::FILE:
+    switch (category){
+    case Category::FILE:
         return "File";
-    case NOTIFICATION_CATEGORY::JENKINS:
+    case Category::JENKINS:
         return "Jenkins";
-    case NOTIFICATION_CATEGORY::VALIDATION:
+    case Category::VALIDATION:
         return "Validation";
-    default:
+    case Category::NONE:
         return "No Category";
     }
 }
 
-
-/**
- * @brief getSeverityIcongetSeverityIcon
- * @param severity
- * @return
- */
-QString getSeverityIcon(NOTIFICATION_SEVERITY severity)
+QColor Notification::getSeverityColor(Notification::Severity severity)
 {
     switch (severity) {
-    case NOTIFICATION_SEVERITY::INFO:
-        return "circleInfoDark";
-    case NOTIFICATION_SEVERITY::WARNING:
-        return "triangleCritical";
-    case NOTIFICATION_SEVERITY::ERROR:
-        return "pointyCircleCriticalDark";
-    default:
-        return "circleQuestion";
-    }
-}
-QString getContextIcon(NOTIFICATION_CONTEXT context){
-    switch (context) {
-        default:
-            return "tiles" ;
-    }
-}
-
-QString getTypeIcon(NOTIFICATION_TYPE type){
-    switch (type) {
-    case NOTIFICATION_TYPE::MODEL:
-        return "dotsInRectangle";
-    case NOTIFICATION_TYPE::APPLICATION:
-        return "circleQuestion";
-    }
-}
-
-/**
- * @brief getCategoryIcon
- * @param category
- * @return
- */
-QString getCategoryIcon(NOTIFICATION_CATEGORY category)
-{
-    switch (category) {
-    case NOTIFICATION_CATEGORY::JENKINS:
-        return "jenkinsFlat";
-    case NOTIFICATION_CATEGORY::FILE:
-        return "file";
-    case NOTIFICATION_CATEGORY::VALIDATION:
-        return "shieldTick";
-    default:
-        return "tiles";
-    }
-}
-
-
-/**
- * @brief getSeverityColor
- * @param severity
- * @return
- */
-QColor getSeverityColor(NOTIFICATION_SEVERITY severity)
-{
-    switch (severity) {
-    case NOTIFICATION_SEVERITY::INFO:
+    case Notification::Severity::INFO:
         return Theme::theme()->getTextColor();
-        //return QColor(0,180,180);
-    case NOTIFICATION_SEVERITY::WARNING:
+    case Notification::Severity::WARNING:
         return QColor(255,200,0);
-    case NOTIFICATION_SEVERITY::ERROR:
+    case Notification::Severity::ERROR:
         return QColor(255,50,50);
-    default:
-        return Qt::white;
-    }
-}
-
-
-/**
- * @brief getSeverityColorStr
- * @param severity
- * @return
- */
-QString getSeverityColorStr(NOTIFICATION_SEVERITY severity)
-{
-    switch (severity) {
-    case NOTIFICATION_SEVERITY::INFO:
-        return "rgb(0,180,180)";
-    case NOTIFICATION_SEVERITY::WARNING:
-        return "rgb(255,200,0)";
-    case NOTIFICATION_SEVERITY::ERROR:
-        return "rgb(255,50,50)";
-    default:
-        return "white";
     }
 }

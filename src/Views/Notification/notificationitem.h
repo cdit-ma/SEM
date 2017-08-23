@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QAction>
 
-#include "../../Controllers/NotificationManager/notificationEnumerations.h"
+#include "../../Controllers/NotificationManager/notificationenumerations.h"
 
 class NotificationObject;
 class NotificationItem : public QFrame

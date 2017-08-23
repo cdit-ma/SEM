@@ -36,7 +36,7 @@ public:
 private:
     static bool _writeTextFile(QString filePath, QString fileData, bool notify);
 
-    static void _notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName);
+    static void _notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName);
 
 
     static QString getTimestamp();
