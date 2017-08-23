@@ -91,14 +91,19 @@ NotificationPopup* NotificationManager::getToast()
     if(!notification_popup){
         notification_popup = new NotificationPopup();
         connect(this, &NotificationManager::toastNotification, [=](NotificationObject* notification){
-            notification_popup->DisplayNotification(notification);
-            notification_popup->show();
-            WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+            if(!viewController->isWelcomeScreenShowing()){
+                notification_popup->DisplayNotification(notification);
+                WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+                notification_popup->show();
+            }
         });
     }
     return notification_popup;
 }
 
+void NotificationManager::hideToast(){
+    getToast()->hide();
+}
 
 NotificationToolbar* NotificationManager::getToolbar()
 {
@@ -280,7 +285,7 @@ void NotificationManager::deleteNotification(int ID)
         if(notification == latest_notification){
             if(notifications_count > 0){
                 //Get the last notification
-                latest_notification = notifications.first();
+                latest_notification = notifications.last();
             }else{
                 //Unset
                 latest_notification = 0;

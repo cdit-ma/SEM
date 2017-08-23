@@ -72,6 +72,7 @@ signals:
     void showNotificationPanel();
 
 public slots:
+    void hideToast();
     void toastLatestNotification();
     void deleteNotification(int ID);
 private slots:

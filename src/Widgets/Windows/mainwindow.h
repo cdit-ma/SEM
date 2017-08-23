@@ -44,6 +44,7 @@ signals:
     void requestSuggestions();
     void preloadImages();
     void jenkins_validated(bool);
+    void welcomeScreenToggled(bool);
 public slots:
     void setModelTitle(QString modelTitle="");
 

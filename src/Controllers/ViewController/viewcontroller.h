@@ -34,6 +34,8 @@ public:
 
     void connectModelController(ModelController* c);
 
+    bool isWelcomeScreenShowing();
+
     JenkinsManager* getJenkinsManager();
     ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
@@ -187,7 +189,7 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
 public slots:
-    
+    void welcomeScreenToggled(bool visible);
     void highlight(QList<int> ids);
 
 
@@ -358,7 +360,8 @@ private:
     QTimer* autosave_timer_ = 0;
     int autosave_id_ = 0;
     bool showSearchSuggestions;
-
+    
+    bool showingWelcomeScreen = true;
 
 };
 

@@ -58,6 +58,7 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
+    connect(this, &MainWindow::welcomeScreenToggled, viewController, &ViewController::welcomeScreenToggled);
 
     SettingsController* s = SettingsController::settings();
 
@@ -377,6 +378,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
         //NotificationManager::manager()->popupLatestNotification();
         //QMetaObject::invokeMethod(NotificationManager::manager(), "popupLatestNotification", Qt::QueuedConnection);
     }
+    emit welcomeScreenToggled(on);
 }
 
 

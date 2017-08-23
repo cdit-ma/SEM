@@ -155,6 +155,21 @@ ToolbarController *ViewController::getToolbarController()
     return toolbarController;
 }
 
+bool ViewController::isWelcomeScreenShowing(){
+    return showingWelcomeScreen;
+}
+
+
+void ViewController::welcomeScreenToggled(bool visible){
+    showingWelcomeScreen = visible;
+    auto notification_manager = NotificationManager::manager();
+    if(visible){
+        notification_manager->hideToast();
+    }else{
+        notification_manager->toastLatestNotification();
+    }
+}
+
 QList<ViewItem *> ViewController::getWorkerFunctions()
 {
     QList<ViewItem*> workers;
