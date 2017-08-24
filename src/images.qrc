@@ -247,5 +247,6 @@
         <file alias="thumbsUp">Resources/Icons/thumbsUp.png</file>
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
+        <file alias="home">Resources/Icons/home.png</file>
     </qresource>
 </RCC>

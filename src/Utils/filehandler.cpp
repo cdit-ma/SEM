@@ -77,10 +77,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
+            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file", true);
         }
     }else{
-        _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
+        _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' doesn't exist to be read!", "Icons", "file", true);
     }
     return fileData;
 }
@@ -112,7 +112,7 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
             out << fileData;
             file.close();
         }else{
-            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk");
+            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk", true);
             return false;
         }
     }else{
@@ -138,7 +138,7 @@ bool FileHandler::ensureDirectory(QString path)
         if(dir.mkpath(".")){
             _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
         }else{
-            _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder");
+            _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder", true);
             return false;
         }
     }
@@ -199,9 +199,9 @@ FileHandler *FileHandler::getFileHandler()
     return handler;
 }
 
-void FileHandler::_notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName)
+void FileHandler::_notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName, bool toast)
 {
-    NotificationManager::manager()->displayNotification(notificationText, iconPath, iconName, -1, severity, Notification::Type::MODEL, Notification::Category::FILE);
+    NotificationManager::manager()->AddNotification(notificationText, iconPath, iconName, severity, Notification::Type::APPLICATION, Notification::Category::FILE, toast);
 }
 
 QString FileHandler::getAutosaveFilePath(QString path){

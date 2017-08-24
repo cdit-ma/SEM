@@ -211,8 +211,9 @@ void JenkinsRequest::RunGroovyScript(QString groovy_script)
     emit Finished();
 }
 
-void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QString configuration)
-{
+
+JOB_STATE JenkinsRequest::getJobConsoleOutput(QString job_name, int build_number, QString configuration){
+    JOB_STATE job_state = NO_JOB;
     if(BlockUntilValidatedSettings()){
         //Get the cached url
         QString console_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/consoleText";
@@ -221,7 +222,7 @@ void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QSt
         auto console_request = getAuthenticatedRequest(console_url);
 
         //Use these to store info
-        JOB_STATE job_state = NO_JOB;
+        
         QString console_output;
 
         //While the job is either building or not yet existant.
@@ -256,7 +257,12 @@ void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QSt
 
         emit GotJobConsoleOutput(job_name, build_number, configuration, console_output);
     }
+    return job_state;
+}
 
+void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QString configuration)
+{
+    getJobConsoleOutput(job_name, build_number, configuration);
     //Call the SIGNAL to teardown the JenkinsRequest
     emit Finished();
 }
@@ -264,11 +270,11 @@ void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QSt
 void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters)
 {
     int build_number = -1;
-    int notificationID = -1;
-
+    JOB_STATE job_state = NO_JOB;
+    
+    NotificationObject* notification = 0;
     if(BlockUntilValidatedSettings()){
-        //Emit a notification to say we are running a job
-        //emit NotificationManager::manager()->backgroundProcess(true, BACKGROUND_PROCESS::RUNNING_JOB);
+        notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS, true);
 
         QUrlQuery query;
         //Add Parameters
@@ -305,22 +311,43 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
         }
 
         if (build_number > 0) {
-            notificationID = NotificationManager::displayLoadingNotification("Started Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
-            //If the build started, monitor the job, this will call Finished() once complete
-            GetJobConsoleOutput(job_name, build_number);
+            notification->setDescription("Started Jenkins job: '" + job_name + "' #" + QString::number(build_number));
+            
+            job_state = getJobConsoleOutput(job_name, build_number, "");
         }
     }
 
-    //emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::RUNNING_JOB);
-
-    //Emit failures if the build job failed to get a build number!
-    if (build_number == -1) {
-        emit Finished();
-    } else {
-        //NotificationManager::displayNotification("Jenkins Job: " + job_name + " #" + QString::number(build_number) + " finished!" , "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
-        NotificationManager::setNotificationLoading(notificationID, false);
-        NotificationManager::updateNotification(notificationID, "Jenkins Job: " + job_name + " #" + QString::number(build_number) + " finished!", "Icons", "jenkins", Notification::Severity::INFO);
+    if(notification){
+        notification->setInProgressState(false);
+        if (build_number == -1) {
+            notification->setDescription("Failed to request Jenkins build '" + job_name + "'");
+            notification->setSeverity(Notification::Severity::ERROR);
+        }else{
+            auto severity = Notification::Severity::INFO;
+            auto description = "Jenkins job: '" + job_name + "' #" + QString::number(build_number);
+            auto icon_name = "sphereBlue";
+            switch(job_state){
+                case FAILED:
+                    severity = Notification::Severity::ERROR;
+                    description += " failed";
+                    icon_name = "sphereRed";
+                    break;
+                case ABORTED:
+                    severity = Notification::Severity::WARNING;
+                    description += " was aborted";
+                    icon_name = "sphereGray";
+                    break;
+                default:
+                    description += " finished";
+                    break;
+            }
+            //Use Jenkins Icons!
+            notification->setIcon("Icons", icon_name);
+            notification->setSeverity(severity);
+            notification->setDescription(description);
+        }
     }
+    emit Finished();
 }
 
 void JenkinsRequest::StopJob(QString job_name, int build_number, QString configuration)
@@ -329,10 +356,12 @@ void JenkinsRequest::StopJob(QString job_name, int build_number, QString configu
         auto stop_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/stop";
         auto stop_request = getAuthenticatedRequest(stop_url);
 
-        NotificationManager::displayNotification("Stopping Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
+        auto notification = NotificationManager::manager()->AddNotification("Requesting to stop Jenkins job '" + job_name + "' #" + QString::number(build_number), "Icons", "jenkinsFlat", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS, true);
+        notification->setToastable(false);
         auto stop_result = GetRunner()->HTTPPost(stop_request);
+        notification->setInProgressState(false);
         if(stop_result.success){
-            NotificationManager::displayNotification("Stopped Jenkins Job: " + job_name + " #" + QString::number(build_number) , "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
+            notification->setDescription("Successfully requested to stop Jenkins job '" + job_name + "' #" + QString::number(build_number));
         }
     }
 

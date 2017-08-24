@@ -41,7 +41,7 @@ NotificationManager::NotificationManager(ViewController* controller)
 
     //Setup Type Icons
     theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::MODEL), icon_prefix, "dotsInRectangle");
-    theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::APPLICATION), icon_prefix, "circleQuestion");
+    theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::APPLICATION), icon_prefix, "home");
 }
 
 
@@ -86,17 +86,20 @@ NotificationDialog* NotificationManager::getPanel()
     return notification_panel;
 }
 
+
+void NotificationManager::displayToastNotification(NotificationObject* notification){
+    if(!viewController->isWelcomeScreenShowing()){
+        notification_popup->DisplayNotification(notification);
+        WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+        notification_popup->show();
+    }
+}
+
 NotificationPopup* NotificationManager::getToast()
 {
     if(!notification_popup){
         notification_popup = new NotificationPopup();
-        connect(this, &NotificationManager::toastNotification, [=](NotificationObject* notification){
-            if(!viewController->isWelcomeScreenShowing()){
-                notification_popup->DisplayNotification(notification);
-                WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
-                notification_popup->show();
-            }
-        });
+        connect(this, &NotificationManager::toastNotification, this, &NotificationManager::displayToastNotification, Qt::QueuedConnection);
     }
     return notification_popup;
 }
@@ -173,45 +176,27 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notif
     return list;
 }
 
+NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading, bool toast, int entity_id){
+    auto notification = new NotificationObject();
+    notification->setDescription(description);
+    notification->setIcon(icon_path, icon_name);
+    notification->setSeverity(severity);
+    notification->setType(type);
+    notification->setCategory(category);
+    notification->setEntityID(entity_id);
+    notification->setInProgressState(is_loading);
+    notification->setToastable(toast);
 
+    auto notification_id = notification->getID();
+    notifications[notification_id] = notification;
+    connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated, Qt::QueuedConnection);
 
-/**
- * @brief NotificationManager::displayNotification
- * @param description
- * @param iconPath
- * @param iconName
- * @param entityID
- * @param s
- * @param t
- * @param c
- * @return
- */
-int NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c)
-{
-    if (managerSingleton) {
-        return managerSingleton->addNotification(description, iconPath, iconName, entityID, s, t, c);
-    }
-    return -1;
+    emit notificationAdded(notification);
+    NotificationUpdated(notification);
+    return notification;
 }
 
 
-/**
- * @brief NotificationManager::displayLoadingNotification
- * @param description
- * @param iconPath
- * @param iconName
- * @param entityID
- * @param s
- * @param t
- * @param c
- * @return
- */
-int NotificationManager::displayLoadingNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type t, Notification::Category c)
-{
-    int ID = displayNotification(description, iconPath, iconName, entityID, s, t, c);
-    setNotificationLoading(ID, true);
-    return ID;
-}
 
 void NotificationManager::toastLatestNotification(){
     auto popup = getToast(); 
@@ -231,44 +216,6 @@ void NotificationManager::centerPopup(){
 
 
 
-/**
- * @brief NotificationManager::updateNotification
- * @param ID
- * @param description
- * @param iconPath
- * @param iconName
- * @param severity
- * @return
- */
-bool NotificationManager::updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity)
-{
-    auto notification = manager()->notifications.value(ID, 0);
-    if(notification){
-        notification->setDescription(description);
-        notification->setIcon(iconPath, iconName);
-        notification->setSeverity(severity);
-        notification->setInProgressState(false);
-        return true;
-    }
-    return false;
-}
-
-
-/**
- * @brief NotificationManager::setNotificationLoading
- * @param ID
- * @param on
- * @return
- */
-bool NotificationManager::setNotificationLoading(int ID, bool on)
-{
-    auto notification = manager()->notifications.value(ID,0);
-    if(notification){
-        notification->setInProgressState(on);
-    }
-    return notification != 0;
-}
-
 
 /**
  * @brief NotificationManager::deleteNotification
@@ -280,22 +227,24 @@ void NotificationManager::deleteNotification(int ID)
 {
     if(notifications.contains(ID)){
         auto notification = notifications.take(ID);
-        auto notifications_count = notifications.count();
-        
-        if(notification == latest_notification){
-            if(notifications_count > 0){
-                //Get the last notification
-                latest_notification = notifications.last();
-            }else{
-                //Unset
-                latest_notification = 0;
+        if(!notification->getInProgressState()){
+            auto notifications_count = notifications.count();
+            
+            if(notification == latest_notification){
+                if(notifications_count > 0){
+                    //Get the last notification
+                    latest_notification = notifications.last();
+                }else{
+                    //Unset
+                    latest_notification = 0;
+                }
             }
+    
+            // delete the item from the notification dialog
+            emit notificationDeleted(ID);
+            
+            delete notification;
         }
-
-        // delete the item from the notification dialog
-        emit notificationDeleted(ID);
-        
-        delete notification;
     }
 }
 

@@ -7,7 +7,7 @@
 
 namespace Notification{
     enum class Context{NOT_SELECTED, SELECTED};
-    enum class Type{APPLICATION, MODEL};
+    enum class Type{MODEL, APPLICATION};
     enum class Category{NONE, FILE, JENKINS, VALIDATION};
     enum class Severity{INFO, WARNING, ERROR};
 

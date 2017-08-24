@@ -4,13 +4,13 @@
 #include "../../enumerations.h"
 #include "notificationenumerations.h"
 #include "../ActionController/actioncontroller.h"
+#include "notificationobject.h"
 
 #include <QObject>
 
 class ViewController;
 class NotificationDialog;
 class NotificationToolbar;
-class NotificationObject;
 class NotificationPopup;
 class PopupWidget;
 
@@ -34,24 +34,7 @@ public:
     NotificationToolbar* getToolbar();
     NotificationPopup* getToast();
 
-    static int displayNotification(QString description,
-                                   QString iconPath = "",
-                                   QString iconName = "",
-                                   int entityID = -1,
-                                   Notification::Severity s = Notification::Severity::INFO,
-                                   Notification::Type t = Notification::Type::MODEL,
-                                   Notification::Category c = Notification::Category::NONE);
-
-    static int displayLoadingNotification(QString description,
-                                          QString iconPath = "",
-                                          QString iconName = "",
-                                          int entityID = -1,
-                                          Notification::Severity s = Notification::Severity::INFO,
-                                          Notification::Type t = Notification::Type::MODEL,
-                                          Notification::Category c = Notification::Category::NONE);
-
-    static bool updateNotification(int ID, QString description, QString iconPath, QString iconName, Notification::Severity severity);
-    static bool setNotificationLoading(int ID, bool on);
+    NotificationObject* AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading = false, bool toast = true, int entity_id = -1);
 
     QList<NotificationObject*> getNotifications();
     
@@ -77,6 +60,7 @@ public slots:
     void deleteNotification(int ID);
 private slots:
     void centerPopup();
+    void displayToastNotification(NotificationObject* notification);
 private:
     void NotificationUpdated(NotificationObject* notification);
 

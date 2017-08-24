@@ -40,6 +40,7 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 void ExecutionManager::ValidateModel(QString model_path)
 {
     auto manager =  NotificationManager::manager();
+
     // Clear previous validation notification items
     for (auto notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
         if(notification->getDescription().startsWith("model validation", Qt::CaseInsensitive)){
@@ -48,38 +49,32 @@ void ExecutionManager::ValidateModel(QString model_path)
         manager->deleteNotification(notification->getID());
     }
 
-    // Construct a notification item with a loading gif as its icon
-    int nID = manager->displayLoadingNotification("Model validation in progress...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
+    auto validation_noti = manager->AddNotification("Model validation in progress", "Icons", "shield", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION, true);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
-    //NotificationManager::manager()->deleteNotification(nID);
+    validation_noti->setInProgressState(false);
 
     if (results.success) {
-
-        int count = 0;
+        int test_count = 0;
         int success_count = 0;
 
         QString report = results.standard_output.join("");
         QXmlStreamReader xml(report);
-        QString current_test;
 
         while (!xml.atEnd()) {
             //Read each line of the xml document.
             xml.readNext();
-            auto tag_name = xml.name();
-
             if(xml.isStartElement()){
-                if(tag_name == "test"){
-                    current_test = get_xml_attribute(xml, "name");
-
-                }else if(tag_name == "result"){
+                if(xml.name() == "result"){
+                    test_count ++;
                     auto result = get_xml_attribute(xml, "success");
-                    count ++;
 
                     if(result == "false"){
-                        auto id = get_xml_attribute(xml, "id");
-                        auto warning = get_xml_attribute(xml, "warning") == "true";
-                        auto error_code = xml.readElementText();
-                        manager->displayNotification(error_code, "Icons", "circleHalo", id.toInt(), warning? Notification::Severity::WARNING : Notification::Severity::ERROR, Notification::Type::MODEL, Notification::Category::VALIDATION);
+                        auto entity_id = get_xml_attribute(xml, "id").toInt();
+                        auto is_warning = get_xml_attribute(xml, "warning") == "true";
+                        auto result_text = xml.readElementText();
+                        auto severity = is_warning ? Notification::Severity::WARNING : Notification::Severity::ERROR;
+                        
+                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, false, entity_id);
                     }else if(result == "true"){
                         success_count ++;
                     }
@@ -88,13 +83,17 @@ void ExecutionManager::ValidateModel(QString model_path)
         }
 
         // Show the notification panel on validation failure
-        if (success_count < count) {
+        if (success_count < test_count) {
             emit manager->showNotificationPanel();
         }
-        manager->updateNotification(nID, "Model validation - [" + QString::number(success_count) + "/" + QString::number(count) + "] tests passed", "Icons", "shield", success_count == count ? Notification::Severity::INFO : Notification::Severity::ERROR);
 
+        ///Update the original notification
+        validation_noti->setDescription("Model validation - [" + QString::number(success_count) + "/" + QString::number(test_count) + "] tests passed");
+        validation_noti->setSeverity(test_count == success_count ? Notification::Severity::INFO : Notification::Severity::ERROR);
     } else {
-        manager->updateNotification(nID, "XSL Validation failed: '" + results.standard_error.join("") + "'", "Icons", "shield", Notification::Severity::ERROR);
+        ///Update the original notification
+        validation_noti->setDescription("Model validation failed to execute: '" + results.standard_error.join("") + "'");
+        validation_noti->setSeverity(Notification::Severity::ERROR);
     }
 }
 
@@ -121,15 +120,22 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
 
 void ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory)
 {
-    auto components = GenerateComponents(document_path, output_directory);
-    auto datatypes = GenerateDatatypes(document_path, output_directory);
+    auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
 
+    auto components = GenerateComponents(document_path, output_directory, {}, false);
+    auto datatypes = GenerateDatatypes(document_path, output_directory, false);
+    notification->setInProgressState(false);
+
+    
     if(components && datatypes){
-        NotificationManager::manager()->displayNotification("Generated Model Workspace in '" + output_directory + "'", "Icons", "bracketsAngled", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
+        notification->setDescription("Successfully generated model workspace C++ in '" + output_directory + "'");
+    }else{
+        notification->setDescription("Generated model workspace C++ failed!");
+        notification->setSeverity(Notification::Severity::ERROR);
     }
 }
 
-bool ExecutionManager::GenerateComponents(QString document_path, QString output_directory, QStringList component_names)
+bool ExecutionManager::GenerateComponents(QString document_path, QString output_directory, QStringList component_names, bool toast_notify)
 {
     QStringList args;
     if(component_names.size() > 0){
@@ -137,28 +143,32 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
         args << "preview=true";
     }
 
-    // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Generating Component C++ ...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
+    auto notification = NotificationManager::manager()->AddNotification("Generating component C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true, toast_notify);
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
-
+    notification->setInProgressState(false);
+    
     if(!results.success){
-        NotificationManager::updateNotification(nID, "XSL Generation of Components Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", Notification::Severity::ERROR);
+        notification->setDescription("Generating component C++ failed! '" + results.standard_error.join("") + "'");
+        notification->setSeverity(Notification::Severity::ERROR);
     }else{
-        NotificationManager::manager()->deleteNotification(nID);
+        notification->setDescription("Successfully generated component C++");
     }
+
     return results.success;
 }
 
-bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory)
+bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify)
 {
     // Construct a notification item with a loading gif as its icon
-    int nID = NotificationManager::displayLoadingNotification("Generating Datatypes C++ ...", "Icons", "shield", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION);
+    auto notification = NotificationManager::manager()->AddNotification("Generating datatype C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true, toast_notify);
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-
+    notification->setInProgressState(false);
+    
     if(!results.success){
-        NotificationManager::updateNotification(nID, "XSL Generation of Datatypes Failed: '" + results.standard_error.join("") + "'", "Icons", "bracketsAngled", Notification::Severity::ERROR);
+        notification->setDescription("Generating datatype C++ failed! '" + results.standard_error.join("") + "'");
+        notification->setSeverity(Notification::Severity::ERROR);
     }else{
-        NotificationManager::manager()->deleteNotification(nID);
+        notification->setDescription("Successfully generated datatype C++");
     }
 
     return results.success;

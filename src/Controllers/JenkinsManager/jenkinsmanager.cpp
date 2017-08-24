@@ -4,6 +4,7 @@
 #include "../ViewController/viewcontroller.h"
 #include "../ActionController/actioncontroller.h"
 #include "../NotificationManager/notificationmanager.h"
+
 #include "../../Utils/filehandler.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 #include "../../Widgets/Jenkins/jenkinsstartjobwidget.h"
@@ -142,7 +143,8 @@ void JenkinsManager::GetNodes()
         //Set the requesting nodes
         requesting_nodes_ = true;
         auto request = GetJenkinsRequest();
-
+        
+        jenkins_request_noti = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS, true);
         connect(request, &JenkinsRequest::GotGroovyScriptOutput, this, &JenkinsManager::GotJenkinsNodes_);
         auto r = connect(this, &JenkinsManager::RunGroovyScript_, request, &JenkinsRequest::RunGroovyScript);
 
@@ -166,13 +168,14 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
     QMutexLocker(&this->mutex_);
     requesting_nodes_ = false;
 
-    //emit NotificationManager::manager()->backgroundProcess(false, BACKGROUND_PROCESS::IMPORT_JENKINS);
-
     if(success){
         emit GotJenkinsNodes(data);
-        NotificationManager::displayNotification("Successfully requested Jenkins Nodes", "Icons", "jenkins", -1, Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS);
-    }else{
-        NotificationManager::displayNotification("Failed to request Jenkins Nodes", "Icons", "jenkins", -1, Notification::Severity::ERROR, Notification::Type::MODEL, Notification::Category::JENKINS);
+    }
+    if(jenkins_request_noti){
+        jenkins_request_noti->setInProgressState(false);
+        jenkins_request_noti->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes");
+        jenkins_request_noti->setSeverity(success ? Notification::Severity::INFO : Notification::Severity::ERROR);
+        jenkins_request_noti = 0;
     }
 }
 

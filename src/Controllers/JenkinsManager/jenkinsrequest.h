@@ -79,6 +79,7 @@ private slots:
     //Called if the JenkinsManager has been destroyed.
     void Teardown_();
 private:
+    JOB_STATE getJobConsoleOutput(QString job_name, int build_number, QString configuration);
     QString getURL();
     QString getJobName();
     bool gotValidatedSettings();

@@ -17,8 +17,8 @@ signals:
     void GotCodeForComponent(QString file_name, QString file_data);
     void GotJava(bool ready, QString message);
 private:
-    bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList());
-    bool GenerateDatatypes(QString document_path, QString output_directory);
+    bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);
+    bool GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify = true);
     QStringList GetMiddlewareArgs();
 
     bool GotJava_();

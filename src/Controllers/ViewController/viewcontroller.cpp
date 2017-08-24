@@ -525,17 +525,19 @@ void ViewController::showCodeViewer(QString tabName, QString content)
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
 {
     emit vc_JenkinsReady(success);
-    QString message = success ? "Settings validated successfully" : errorString;
-    Notification::Severity severity = success ? Notification::Severity::INFO : Notification::Severity::ERROR;
-    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, Notification::Type::APPLICATION, Notification::Category::JENKINS);
+
+    auto description = success ? "Settings validated successfully" : errorString;
+    auto severity = success ? Notification::Severity::INFO : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(description, "Icons", "jenkins", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS, false);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     emit vc_JavaReady(java);
-    Notification::Severity severity = java ? Notification::Severity::INFO : Notification::Severity::ERROR;
-    QString message = java ? "Found java: " + javaVersion: "Cannot find java";
-    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, Notification::Type::APPLICATION);
+
+    auto description = java ? "Got Java: " + javaVersion : "Cannot find Java";
+    auto severity = java ? Notification::Severity::INFO : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE, false, !java);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -890,8 +892,7 @@ void ViewController::modelNotification(MODEL_SEVERITY severity, QString descript
         default:
             break;
     }
-
-    NotificationManager::manager()->displayNotification(description, "Icons", "medeaLogo", ID, ns, Notification::Type::MODEL, Notification::Category::NONE);
+    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, false, true, ID);
 }
 
 void ViewController::setControllerReady(bool ready)

@@ -394,7 +394,10 @@ void NotificationDialog::setupLayout()
 void NotificationDialog::setupFilters()
 {
     context_filters = new OptionGroupBox("CONTEXT", this);
-    for(auto context : Notification::getContexts()){
+
+    auto contexts = Notification::getContexts().toList();
+    qSort(contexts.begin(), contexts.end());
+    for(auto context : contexts){
         auto context_str = Notification::getContextString(context);
         context_filters->addOption(QVariant::fromValue(context), context_str, "Notification", context_str);
     }
@@ -405,14 +408,19 @@ void NotificationDialog::setupFilters()
 
 
     severity_filters = new OptionGroupBox("SEVERITY", this);
-    for (auto severity : Notification::getSeverities()) {
+    
+    auto severities = Notification::getSeverities().toList();
+    qSort(severities.begin(), severities.end());
+    for (auto severity : severities) {
         auto severity_str = Notification::getSeverityString(severity);
         severity_filters->addOption(QVariant::fromValue(severity), severity_str, "Notification", severity_str);
     }
     filters_layout->addWidget(severity_filters);
 
     category_filters = new OptionGroupBox("CATEGORY", this);
-    for (auto category : Notification::getCategories()) {
+    auto categories = Notification::getCategories().toList();
+    qSort(categories.begin(), categories.end());
+    for (auto category : categories) {
         auto category_str = Notification::getCategoryString(category);
         category_filters->addOption(QVariant::fromValue(category), category_str, "Notification", category_str);
     }
@@ -420,7 +428,9 @@ void NotificationDialog::setupFilters()
     filters_layout->addWidget(category_filters);
 
     source_filters = new OptionGroupBox("SOURCE", this);
-    for (auto type : Notification::getTypes()) {
+    auto types = Notification::getTypes().toList();
+    qSort(types.begin(), types.end());
+    for (auto type : types) {
         auto type_str = Notification::getTypeString(type);
         source_filters->addOption(QVariant::fromValue(type), type_str, "Notification", type_str);
     }

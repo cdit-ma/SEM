@@ -23,9 +23,10 @@ NotificationToolbar::NotificationToolbar(QWidget *parent) :
     connect(show_notification_dialog_action, &QAction::triggered, manager, &NotificationManager::showNotificationPanel);
     connect(show_most_recent_action, &QAction::triggered, manager, &NotificationManager::toastLatestNotification);
     //Enforce the button to always return to an unchecked state
-    connect(show_most_recent_action, &QAction::triggered, [=](){show_most_recent_action->setChecked(false);});
+    connect(show_most_recent_action, &QAction::triggered, [=](){show_most_recent_action->setChecked(!show_most_recent_action->isChecked());});
 
 
+    connect(manager, &NotificationManager::notificationUpdated, this, &NotificationToolbar::notificationAdded);
     connect(manager, &NotificationManager::notificationUpdated, this, &NotificationToolbar::updateCount);
     connect(manager, &NotificationManager::notificationDeleted, this, &NotificationToolbar::updateCount);
     

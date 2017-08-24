@@ -17,6 +17,8 @@ class ActionController;
 class JenkinsJobMonitorWidget;
 class ViewController;
 
+class NotificationObject;
+
 class JenkinsManager: public QObject
 {
     //Define Jenkins Request as friend to enable use of private methods
@@ -87,6 +89,8 @@ private:
     bool requesting_nodes_ = false;
     bool got_java_ = false;
 
+
+    NotificationObject* jenkins_request_noti = 0;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;
     //Vector of all Active JenkinsRequest objects created from this.
