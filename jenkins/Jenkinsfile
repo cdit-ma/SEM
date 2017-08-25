@@ -98,6 +98,6 @@ stage('Build'){
                     }
             }
         }
-        parallel builders
     }
+    parallel builders
 }
