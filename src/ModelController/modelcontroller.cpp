@@ -714,7 +714,7 @@ void ModelController::triggerAction(QString actionName)
 void ModelController::undo()
 {   
     if(canUndo()){
-        emit ShowProgress(true, "Undoing");
+        ProgressUpdated_("Undoing");
         setModelAction(MODEL_ACTION::UNDO);
         undoRedo();
         unsetModelAction(MODEL_ACTION::UNDO);
@@ -726,7 +726,7 @@ void ModelController::undo()
 void ModelController::redo()
 {
     if(canRedo()){
-        emit ShowProgress(true, "Redoing");
+        ProgressUpdated_("Redoing");
         setModelAction(MODEL_ACTION::REDO);
         undoRedo();
         unsetModelAction(MODEL_ACTION::REDO);
@@ -1494,7 +1494,7 @@ bool ModelController::undoRedo()
     for(auto action : reverse_actions){
         if(reverseAction(action)){
             actions_reversed ++;
-            emit ProgressChanged(++actions_reversed / action_count);
+            ProgressChanged_(++actions_reversed / action_count);
         }else{
             success = false;
             qCritical() << "FAILED TO UNDO";
@@ -2158,7 +2158,7 @@ void ModelController::importProjects(QStringList xml_list)
 {
     QWriteLocker lock(&lock_);
     bool success = true;
-    emit ShowProgress(true, "Importing Projects");
+    ProgressUpdated_("Importing Projects");
     if(xml_list.length() > 0){
         triggerAction("Importing GraphML Projects.");
         setModelAction(MODEL_ACTION::IMPORT);
@@ -2180,6 +2180,22 @@ bool ModelController::isDataVisual(Data* data){
         return isKeyNameVisual(data->getKeyName());
     }else{
         return false;
+    }
+}
+
+
+void ModelController::ProgressChanged_(int progress){
+    if(progress != last_progress){
+        last_progress = progress;
+        emit ProgressChanged(progress);
+    }
+}
+
+void ModelController::ProgressUpdated_(QString description){
+    if(description != last_description){
+        last_description = description;
+        emit ShowProgress(true, description);
+        last_progress = -2;
     }
 }
 
@@ -2226,8 +2242,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
 
     if(show_progress){
-        emit ShowProgress(true, "Parsing Project");
-        emit ProgressChanged(-1);
+        ProgressUpdated_("Parsing Project");
+        ProgressChanged_(-1);
     }
 
     while(xml.readNext() != QXmlStreamReader::EndDocument){
@@ -2412,7 +2428,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     double entities_made = 0;
 
     if(show_progress){
-        emit ShowProgress(true, "Constructing Nodes");
+        ProgressUpdated_("Constructing Nodes");
     }
 
     //Construct all nodes
@@ -2507,7 +2523,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
 
         if(show_progress){
-            emit ProgressChanged(++entities_made / entities_total_perc);
+            ProgressChanged_(++entities_made / entities_total_perc);
         }
     }
 
@@ -2576,7 +2592,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     if(show_progress){
-        emit ShowProgress(true, "Constructing Edges");
+        ProgressUpdated_("Constructing Edges");
     }
 
     int edge_itterations = 0;
@@ -2642,7 +2658,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
             if(edge){
                 if(show_progress){
-                    emit ProgressChanged(++entities_made / entities_total_perc);
+                    ProgressChanged_(++entities_made / entities_total_perc);
                 }
                 constructed_edges++;
             }else{
@@ -2674,7 +2690,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     if(show_progress){
-        emit ProgressChanged(100);
+        ProgressChanged_(100);
     }
 
     if(edge_ids.size() > 0){

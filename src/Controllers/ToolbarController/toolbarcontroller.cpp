@@ -5,7 +5,7 @@
 #include "../../ModelController/entityfactory.h"
 #include "../../Utils/rootaction.h"
 #include "../WindowManager/windowmanager.h"
-#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 
 #include <QDebug>
 
@@ -195,12 +195,12 @@ void ToolbarController::actionFinished()
         selectionChanged(selectionController->getSelectionCount());
     }
 }
+
 QPointF ToolbarController::getViewCenterPoint(){
     auto active_dock = WindowManager::manager()->getActiveViewDockWidget();;
 
-    if(active_dock && active_dock->isNodeViewDock()){
-        auto node_view_dock = (NodeViewDockWidget*) active_dock;
-        return node_view_dock->getNodeView()->getTopLeftOfSelection();
+    if(active_dock){
+        return active_dock->getNodeView()->getTopLeftOfSelection();
     }
     return QPointF(0, 0);
 }

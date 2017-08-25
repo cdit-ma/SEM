@@ -387,6 +387,7 @@ QIcon Theme::getIcon(QString prefix, QString alias, bool ignore_checked_colors)
             auto toggled_normal_color = ignore_checked_colors ? getMenuIconColor(CR_NORMAL) : getMenuIconColor(CR_SELECTED);
             //Set the toggled states.
             icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), toggled_normal_color), QIcon::Normal, QIcon::On);
+            
             if(isToggledTinted){
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
@@ -914,36 +915,27 @@ QString Theme::getToolButtonStyleSheet()
            "}";
 }
 
-QString Theme::getLineEditStyleSheet()
+QString Theme::getLineEditStyleSheet(QString widget_name)
 {
-    return "QLineEdit {"
+    return widget_name + " {"
            "margin: 0px;"
            "padding: 0px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "border-radius: 0px;"
-           "}"
-           "QLineEdit:focus {"
-           "border: 1px solid " % getHighlightColorHex() % ";"
+           "selection-background-color:" % getHighlightColorHex() % ";"
+           "selection-color: " % getTextColorHex(CR_SELECTED) % ";"
+           "}" + 
+           widget_name +":focus {"
+           "border: 1px solid "% getHighlightColorHex() % ";"
            "}";
 }
 
 QString Theme::getTextEditStyleSheet()
 {
-    return "QPlainTextEdit {"
-           "margin: 0px;"
-           "padding: 0px;"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "border-radius: 0px;"
-           "}"
-           "QPlainTextEdit:focus {"
-           "border: 1px solid " % getHighlightColorHex() % ";"
-           "}";
+    return getLineEditStyleSheet("QPlainTextEdit");
 }
-
 
 QString Theme::getRadioButtonStyleSheet()
 {
@@ -1246,10 +1238,10 @@ void Theme::setupToggledIcons()
     setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
     setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
 
-
     setIconToggledImage("Icons", "notificationSeen", "Icons", "clock", "Icons", "exclamation");
-
     setIconToggledImage("Icons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
+
+    
 }
 
 void Theme::setupAliasIcons(){

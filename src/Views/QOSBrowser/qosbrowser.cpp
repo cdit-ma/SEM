@@ -6,13 +6,10 @@
 #include "qosprofilemodel.h"
 #include "../../theme.h"
 
-QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
+QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QFrame(parent)
 {
     this->vc = vc;
     qosModel = new QOSProfileModel(this);
-    setStyleSheet("QOSBrowser{padding:0px;margin:0px;}");
-
-
     connect(vc, &ViewController::vc_viewItemConstructed, qosModel, &QOSProfileModel::viewItem_Constructed);
     connect(vc, &ViewController::vc_viewItemDestructing, qosModel, &QOSProfileModel::viewItem_Destructed);
 
@@ -29,6 +26,8 @@ QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
 void QOSBrowser::themeChanged()
 {
     Theme* theme = Theme::theme();
+
+    setStyleSheet("QOSBrowser{padding:0px;margin:0px;background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}");
 
     mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
     toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
@@ -60,6 +59,9 @@ void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)
     }else{
         elementView->setModel(0);
     }
+    tableView->setModel(0);
+    elementViewSelectionModel->clear();
+    
     removeSelection->setEnabled(index1.isValid());
 }
 
@@ -154,13 +156,10 @@ void QOSBrowser::setupLayout()
     horizontalSplitter->addWidget(profileWidget);
     horizontalSplitter->addWidget(policyWidget);
     horizontalSplitter->addWidget(attributeWidget);
-    //horizontalSplitter->addWidget(elementView);
-    //horizontalSplitter->addWidget(tableView);
 
     mainWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
-    mainLayout->setMargin(1);
-    mainLayout->setSpacing(DIALOG_SPACING);
+    mainLayout->setMargin(5);
     mainLayout->addWidget(horizontalSplitter);
 
     QVBoxLayout* layout = new QVBoxLayout(this);

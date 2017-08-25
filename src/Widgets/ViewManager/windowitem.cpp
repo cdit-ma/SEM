@@ -1,7 +1,7 @@
 #include "windowitem.h"
 #include "dockitem.h"
 #include "../../theme.h"
-#include "../../Widgets/DockWidgets/viewdockwidget.h"
+#include "../../Widgets/DockWidgets/defaultdockwidget.h"
 
 WindowItem::WindowItem(ViewManagerWidget *manager, BaseWindow *window)
 {
@@ -46,9 +46,8 @@ void WindowItem::titleChanged(QString)
 void WindowItem::dockWidgetAdded(BaseDockWidget *widget)
 {
     if(widget){
-        if(widget->getDockType() == BaseDockWidget::MDW_VIEW){
-            ViewDockWidget* viewWidget = (ViewDockWidget*) widget;
-            if(viewWidget->isNodeViewDock()){
+        if(widget->getBaseDockType() == BaseDockType::DOCK){
+            if(WindowManager::manager()->isViewDockWidget(widget)){
                 viewContainerLayout->addWidget(manager->getDockItem(widget->getID()));
             }else{
                 toolContainerLayout->addWidget(manager->getDockItem(widget->getID()));

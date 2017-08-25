@@ -50,7 +50,7 @@ NotificationItem::~NotificationItem(){
 void NotificationItem::setupLayout(){
 
     auto layout = new QHBoxLayout(this);
-    layout->setMargin(5);
+    layout->setMargin(2);
     layout->setSpacing(5);
 
     label_icon = new QLabel(this);
@@ -243,7 +243,7 @@ void NotificationItem::updateStyleSheet()
                   "color:" + theme->getTextColorHex() + ";"
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px;}"
                   + theme->getToolBarStyleSheet()
                   + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
     );

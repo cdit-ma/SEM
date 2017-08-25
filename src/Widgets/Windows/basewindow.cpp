@@ -132,7 +132,7 @@ void BaseWindow::removeDockWidget(QDockWidget *widget)
     QMainWindow::removeDockWidget(widget);
 
     if(!terminating && currentDockWidgets.isEmpty()){
-        WindowManager::destructWindow(this);
+        WindowManager::manager()->destructWindow(this);
     }
 }
 
@@ -216,7 +216,7 @@ void BaseWindow::_setDockWidgetVisibility(int ID, bool visible)
 void BaseWindow::tryClose()
 {
     removeAllDockWidgets();
-    WindowManager::destructWindow(this);
+    WindowManager::manager()->destructWindow(this);
 }
 
 void BaseWindow::removeAllDockWidgets()

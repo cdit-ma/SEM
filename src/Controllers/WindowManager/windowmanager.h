@@ -4,12 +4,16 @@
 #include <QObject>
 #include <QSignalMapper>
 #include <QAction>
+#include <QSet>
 
 //Forward Class Declarations
 class BaseDockWidget;
-class ToolDockWidget;
+class DefaultDockWidget;
 class ViewDockWidget;
-class NodeViewDockWidget;
+class ToolDockWidget;
+class DockReparenterPopup;
+
+
 class BaseWindow;
 class ViewController;
 class ViewManagerWidget;
@@ -17,6 +21,8 @@ class ViewItem;
 
 class WindowManager : public QObject
 {
+    friend class BaseWindow;
+    friend class BaseDockWidget;
     Q_OBJECT
 public:
     //Public Static functions.
@@ -24,90 +30,81 @@ public:
     static void teardown();
 
     static void MoveWidget(QWidget* widget, QWidget* parent_widget = 0, Qt::Alignment = Qt::AlignCenter);
-    
-    static BaseWindow* getMainWindow();
-    
-    //Factory constructor Functions
-    static BaseWindow* constructMainWindow(ViewController* vc);
-    static BaseWindow* constructSubWindow(QString title="");
-    static BaseWindow* constructCentralWindow(QString title="");
-    static NodeViewDockWidget* constructNodeViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    static ViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    static ToolDockWidget* constructToolDockWidget(QString title="");
-    
-    //Factory destructor functions
-    static void destructWindow(BaseWindow* window);
-    static void destructDockWidget(BaseDockWidget* widget);
-protected:
-    WindowManager();
-    ~WindowManager();
-    signals:
-    void windowConstructed(BaseWindow* window);
-    void windowDestructed(int ID);
-    void viewDockWidgetConstructed(BaseDockWidget* widget);
-    void viewDockWidgetDestructed(int ID);
-    
-    void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevWidget = 0);
-public:
+    static bool isViewDockWidget(BaseDockWidget* base_dock_widget);
+
+    BaseWindow* getMainWindow();
     BaseWindow* getCentralWindow();
     ViewManagerWidget* getViewManagerGUI();
     BaseWindow* getActiveWindow();
-    ViewDockWidget* getActiveViewDockWidget();
-    void setActiveDockWidget(BaseDockWidget *dockWidget = 0);
-    void setActiveDockWidget(int ID);
-    QList<ViewDockWidget*> getViewDockWidgets();
-    QList<NodeViewDockWidget*> getNodeViewDockWidgets();
-    NodeViewDockWidget* getNodeViewDockWidget(ViewItem* item);
-
-    void showDockWidget(BaseDockWidget* widget);
+protected:
+    WindowManager();
+    ~WindowManager();
     
-    void currentDockWidget(BaseDockWidget *dockWidget);
-    private slots:
+    DockReparenterPopup* getDockPopup();
+    void destructWindow(BaseWindow* window);
+public:
+    void destructDockWidget(BaseDockWidget* widget);
+public:
+    //Factory constructor Functions
+    BaseWindow* constructMainWindow(ViewController* vc);
+    BaseWindow* constructSubWindow(QString title="");
+    BaseWindow* constructCentralWindow(QString title="");
+    
+    ViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    DefaultDockWidget* constructDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    ToolDockWidget* constructToolDockWidget(QString title="");
+
+    bool reparentDockWidget(BaseDockWidget* dockWidget);
+    bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
+    void showDockWidget(BaseDockWidget* widget);
+signals:
+    void windowConstructed(BaseWindow* window);
+    void windowDestructed(int ID);
+    
+    void dockWidgetConstructed(BaseDockWidget* widget);
+    void dockWidgetDestructed(int ID);
+    
+    void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevWidget = 0);
+public:
+    //Getters
+    ViewDockWidget* getActiveViewDockWidget();
+
+    void setActiveViewDockWidget(ViewDockWidget *view = 0);
+    void setActiveViewDockWidget(int ID);
+
+
+    BaseWindow* getWindow(int ID);
+    QList<BaseWindow*> getWindows();
+    QList<BaseDockWidget*> getDockWidgets();
+    QList<ViewDockWidget*> getViewDockWidgets();
+    ViewDockWidget* getViewDockWidget(ViewItem* item);
+private slots:
     void focusChanged(QWidget *old, QWidget *now);
     void dockWidget_Close(int ID);
     void dockWidget_PopOut(int ID);
-    
-    void reparentDockWidgetAction(int windowID);
-    
     void activeDockWidgetVisibilityChanged();
-    
-private:
-    //Helper functions
-    BaseWindow* _constructMainWindow(ViewController *vc);
-    BaseWindow* _constructSubWindow(QString title="");
-    BaseWindow* _constructCentralWindow(QString title);
-    ToolDockWidget* _constructToolDockWidget(QString title);
-    ViewDockWidget* _constructViewDockWidget(QString title, Qt::DockWidgetArea area);
-    NodeViewDockWidget* _constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area);
-    
-    void _destructWindow(BaseWindow* window);
-    void _destructDockWidget(BaseDockWidget* widget);
-    void _reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
+
 private:
     void addWindow(BaseWindow *window);
     void removeWindow(BaseWindow *window);
     void addDockWidget(BaseDockWidget* dockWidget);
     void removeDockWidget(BaseDockWidget* dockWidget);
-    void destructWindowIfEmpty(BaseWindow* window);
     
-    void showPopOutDialog(BaseDockWidget* dw);
-    QAction* constructPopOutWindowAction(QSignalMapper* mapper, BaseWindow* window=0);
+    BaseWindow* mainWindow = 0;
+    BaseWindow* centralWindow = 0;
+    ViewDockWidget* activeViewDockWidget = 0;
     
-    BaseWindow* mainWindow;
-    BaseWindow* centralWindow;
-    ViewDockWidget* activeViewDockWidget;
-    BaseDockWidget* currentDockWidget_ = 0;
+    ViewManagerWidget* viewManagerWidget = 0;
+
+    DockReparenterPopup* dock_popup = 0;
     
-    
-    
-    ViewManagerWidget* viewManagerWidget;
     QHash<int, BaseWindow*> windows;
     QHash<int, BaseDockWidget*> dockWidgets;
-    QList<int> windowIDs;
-    QList<int> viewDockIDs;
-    
-private:
+
+    QSet<int> window_ids;
+    QSet<int> view_dock_ids;
     Q_INVOKABLE void MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment);
+    
     static WindowManager* managerSingleton;
 };
 

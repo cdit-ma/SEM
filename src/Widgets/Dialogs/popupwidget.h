@@ -9,10 +9,11 @@ class PopupWidget : public QDialog
     Q_OBJECT
 
 public:
-    enum class TYPE{DIALOG, POPUP, TOOL};
+    enum class TYPE{DIALOG, POPUP, TOOL, SPLASH};
     explicit PopupWidget(PopupWidget::TYPE type, QWidget* parent = 0);
     void setWidget(QWidget* widget);
 protected:
+    Q_INVOKABLE void adjustSize();
     void paintEvent(QPaintEvent* event);
 private:
     void themeChanged();

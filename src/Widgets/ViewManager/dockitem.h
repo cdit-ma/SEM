@@ -2,7 +2,7 @@
 #define DOCKITEM_H
 
 #include "../../Widgets/DockWidgets/basedockwidget.h"
-#include "../../Widgets/DockWidgets/viewdockwidget.h"
+#include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 
 #include <QToolBar>

@@ -5,11 +5,8 @@ DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 {
     this->manager = manager;
     this->dockWidget = dockWidget;
-    isNodeViewDockWidget = false;
 
-    if (dockWidget && (dockWidget->getDockType() == BaseDockWidget::MDW_VIEW)) {
-        isNodeViewDockWidget = ((ViewDockWidget*)dockWidget)->isNodeViewDock();
-    }
+    isNodeViewDockWidget = WindowManager::isViewDockWidget(dockWidget);
 
     setFocusPolicy(Qt::ClickFocus);
     setProperty("ID", dockWidget->getID());

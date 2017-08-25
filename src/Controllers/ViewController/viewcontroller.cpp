@@ -3,7 +3,7 @@
 #include "../WindowManager/windowmanager.h"
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
-#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Views/ContextToolbar/contexttoolbar.h"
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
@@ -265,21 +265,21 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     return results;
 }
 
-NodeViewDockWidget *ViewController::constructNodeViewDockWidget(QString label)
+ViewDockWidget *ViewController::constructViewDockWidget(QString label)
 {
-    BaseDockWidget *dw = WindowManager::constructNodeViewDockWidget(label);
-    NodeView* nodeView = new NodeView(dw);
-    dw->setWidget(nodeView);
+    ViewDockWidget* dock_widget = WindowManager::manager()->constructViewDockWidget(label);
+    auto node_view = new NodeView(dock_widget);
+    dock_widget->setWidget(node_view);
 
     if(actionController){
         //Add all actions which need focus!
-        dw->addActions(actionController->getNodeViewActions());
+        dock_widget->addActions(actionController->getNodeViewActions());
     }
 
     //Setup NodeView
-    nodeView->setViewController(this);
+    node_view->setViewController(this);
 
-    return (NodeViewDockWidget*)dw;
+    return (ViewDockWidget*)dock_widget;
 }
 
 QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND kind)
@@ -502,7 +502,7 @@ void ViewController::importGraphMLExtract(QString data)
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
     if(!codeViewer){
-        codeViewer = WindowManager::constructViewDockWidget("Code Browser");
+        codeViewer = WindowManager::manager()->constructViewDockWidget("Code Browser");
         codeViewer->setCloseVisible(false);
         CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
         codeViewer->setWidget(codeBrowser);
@@ -687,28 +687,25 @@ QString ViewController::getTempFileForModel()
 void ViewController::spawnSubView(ViewItem * item)
 {
     if(item && item->isNode()){
-        auto dockWidget = WindowManager::manager()->getNodeViewDockWidget(item);
+        auto dockWidget = WindowManager::manager()->getViewDockWidget(item);
         if(dockWidget){
             dockWidget->setVisible(true);
         }else{
-            //Construct a dockWidget
-            dockWidget = constructNodeViewDockWidget();
-            //Setup Dock Widget
+            auto label = item->getData("label").toString();
+            dockWidget = constructViewDockWidget(label);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-            dockWidget->setIcon(item->getIcon());
-            dockWidget->setTitle(item->getData("label").toString());
 
-            //Set the NodeView to be contained on this NodeViewItem
-            dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
-
-            //Show the reparent DockWidget Widget
-            WindowManager::manager()->currentDockWidget(dockWidget);
-
-            //Fit the contents of the dockwidget to screen
-            dockWidget->getNodeView()->fitToScreen();
+            if(WindowManager::manager()->reparentDockWidget(dockWidget)){
+                //Construct a dockWidget
+                dockWidget->setIcon(item->getIcon());
+                //Set the NodeView to be contained on this NodeViewItem
+                dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
+                //Fit the contents of the dockwidget to screen
+                dockWidget->getNodeView()->fitToScreen();
+            }else{
+                WindowManager::manager()->destructDockWidget(dockWidget);
+            }
         }
-
-
     }
 }
 
@@ -817,11 +814,11 @@ QList<NodeView *> ViewController::getNodeViewsContainingID(int ID)
 {
     QList<NodeView *> nodeViews;
 
-    foreach(NodeViewDockWidget* dock, WindowManager::manager()->getNodeViewDockWidgets()){
+    for(auto dock : WindowManager::manager()->getViewDockWidgets()){
         if(dock){
-            NodeView* view = dock->getNodeView();
-            if(view && view->getIDsInView().contains(ID)){
-                nodeViews.append(view);
+            auto node_view = dock->getNodeView();
+            if(node_view && node_view->getIDsInView().contains(ID)){
+                nodeViews.append(node_view);
             }
         }
     }
@@ -868,11 +865,9 @@ NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem 
 
 NodeView *ViewController::getActiveNodeView()
 {
-    ViewDockWidget* dock = WindowManager::manager()->getActiveViewDockWidget();
-    if(dock && dock->isNodeViewDock()){
-        NodeViewDockWidget* viewDock = (NodeViewDockWidget*) dock;
-        NodeView* nodeView = viewDock->getNodeView();
-        return nodeView;
+    auto dock = WindowManager::manager()->getActiveViewDockWidget();
+    if(dock){
+        return dock->getNodeView();
     }
     return 0;
 }

@@ -1,25 +1,23 @@
-#ifndef VIEWDOCKWIDGET_H
-#define VIEWDOCKWIDGET_H
+#ifndef NODEVIEWDOCKWIDGET_H
+#define NODEVIEWDOCKWIDGET_H
 
-#include "basedockwidget.h"
-class ViewDockWidget : public BaseDockWidget
+#include "defaultdockwidget.h"
+#include "../../Views/NodeView/nodeview.h"
+#include "../../Controllers/SelectionController/selectionhandler.h"
+
+class ViewDockWidget : public DefaultDockWidget
 {
     friend class WindowManager;
     Q_OBJECT
-public:
-    enum VIEWDOCKWIDGET_TYPE {MVDW_NONE, MVDW_NODEVIEW};
 protected:
-    ViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, VIEWDOCKWIDGET_TYPE type = MVDW_NONE);
+    ViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     ~ViewDockWidget();
 public:
-    bool isNodeViewDock();
-    void themeChanged();
-
-    void setWidget(QWidget *widget);
-
+    SelectionHandler* getSelectionHandler();
+    NodeView* getNodeView();
+    void setWidget(QWidget* widget);
 private:
-    VIEWDOCKWIDGET_TYPE type;
-
+    NodeView* nodeView = 0;
 };
 
-#endif // VIEWDOCKWIDGET_H
+#endif // NODEVIEWDOCKWIDGET_H

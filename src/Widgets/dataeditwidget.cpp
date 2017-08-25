@@ -460,6 +460,7 @@ void DataEditWidget::setupLayout()
     }
 
     if(editWidget_1){
+        editWidget_1->setAttribute(Qt::WA_MacShowFocusRect, false);
         if(editLabel){
             editLabel->setFocusPolicy(Qt::ClickFocus);
             editLabel->setFocusProxy(editWidget_1);

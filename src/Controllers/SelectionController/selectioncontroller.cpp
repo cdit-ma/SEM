@@ -1,8 +1,8 @@
 #include "selectioncontroller.h"
 
 #include "../ViewController/viewcontroller.h"
+#include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
-#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
 #include "../WindowManager/windowmanager.h"
 
 #include <QDebug>
@@ -140,21 +140,15 @@ void SelectionController::cycleActiveSelectedItem(bool forward)
     }
 }
 
-void SelectionController::setCurrentViewDockWidget(ViewDockWidget *d)
+void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
 {
-    NodeViewDockWidget* newDock = 0;
-
-    if(d && d->isNodeViewDock()){
-        newDock = (NodeViewDockWidget*)d;
-    }
-
-    if(newDock != currentViewDockWidget){
+    if(new_dock != currentViewDockWidget){
         if(currentViewDockWidget){
             NodeView* nodeView = currentViewDockWidget->getNodeView();
             disconnect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
             disconnect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }
-        currentViewDockWidget = newDock;
+        currentViewDockWidget = new_dock;
 
         SelectionHandler* selectionHandler = 0;
         if(currentViewDockWidget){

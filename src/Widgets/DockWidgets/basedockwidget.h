@@ -5,20 +5,22 @@
 #include "docktitlebar.h"
 
 class BaseWindow;
+enum class BaseDockType{DOCK, TOOL};
+
 class BaseDockWidget : public QDockWidget
 {
     Q_OBJECT
 public:
-    enum DOCKWIDGET_TYPE {MDW_VIEW, MDW_TOOL};
     friend class WindowManager;
+    
 protected:
-    BaseDockWidget(DOCKWIDGET_TYPE type);
+    BaseDockWidget(BaseDockType type);
     ~BaseDockWidget();
 
 public:
     void setTitleIcon(QString path, QString alias);
     int getID();
-    DOCKWIDGET_TYPE getDockType();
+    BaseDockType getBaseDockType();
     Qt::DockWidgetArea getDockWidgetArea();
     void setDockWidgetArea(Qt::DockWidgetArea area);
     void setSourceWindow(BaseWindow* window);
@@ -105,7 +107,7 @@ protected:
     bool eventFilter(QObject *object, QEvent *event);
 
 private:
-    DOCKWIDGET_TYPE type;
+    BaseDockType type;
     bool _isProtected;
     bool _isActive;
     bool _isFocusEnabled;

@@ -18,7 +18,6 @@ NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *
     : QFrame(parent)
 {
     this->viewController = viewController;
-
     setupLayout();
     initialisePanel();
 
@@ -101,7 +100,7 @@ void NotificationDialog::themeChanged()
     auto theme = Theme::theme();
     
     setStyleSheet(
-                    "#NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";}" +
+                    "NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
                     "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                     "QLabel {color:" + theme->getTextColorHex() + ";} " + 
                     theme->getToolBarStyleSheet() +
@@ -121,7 +120,7 @@ void NotificationDialog::themeChanged()
     auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
     clock_label->setPixmap(pixmap);
 
-    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";font-size:14px;");
 }
 
 void popupEntity();
@@ -326,7 +325,6 @@ void NotificationDialog::setupLayout()
 
         info_label = new QLabel("No notifications", this);
         info_label->setAlignment(Qt::AlignCenter);
-        info_label->setFont(QFont(font().family(), 25));
         info_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
         
         //Used for the ScrollArea

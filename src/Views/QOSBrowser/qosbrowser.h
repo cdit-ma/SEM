@@ -2,6 +2,7 @@
 #define QOSBROWSER_H
 
 #include <QObject>
+#include <QFrame>
 #include <QWidget>
 #include <QTreeView>
 #include <QListView>
@@ -12,7 +13,7 @@
 #include "../Table/datatableview.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
 
-class QOSBrowser : public QWidget
+class QOSBrowser : public QFrame
 {
     Q_OBJECT
 public:

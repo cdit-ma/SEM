@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "../DockWidgets/viewdockwidget.h"
-#include "../DockWidgets/nodeviewdockwidget.h"
 #include "../DockWidgets/tooldockwidget.h"
 
 
@@ -15,6 +14,7 @@
 
 #include "../../Utils/filtergroup.h"
 #include "../../Widgets/customgroupbox.h"
+#include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Controllers/SearchManager/searchmanager.h"
 
 #include <QDebug>
@@ -44,8 +44,6 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     viewController = vc;
     initializeApplication();
     setContextMenuPolicy(Qt::NoContextMenu);
-    
-
     setupTools();
     setupInnerWindow();
     
@@ -155,60 +153,6 @@ void MainWindow::showNotificationDialog()
     WindowManager::manager()->showDockWidget(dockwidget_Notification);
 }
 
-/**
- * @brief MedeaMainWindow::showProgressBar
- * @param show
- * @param description
- */
-void MainWindow::showProgressBar(bool show, QString description)
-{
-    if (show && progressLabel->text() != description) {
-        progressLabel->setText(description);
-    }
-
-    if (show) {
-        Qt::Alignment alignment = welcomeScreenOn ? Qt::AlignBottom : Qt::AlignCenter;
-        moveWidget(progressPopup, innerWindow, alignment);
-    } else {
-        progressBar->reset();
-    }
-
-    progressPopup->setVisible(show);
-}
-
-
-/**
- * @brief MedeaMainWindow::updateProgressBar
- * This updates the value in the progress bar and hides it when 100% is reached.
- * @param value
- */
-void MainWindow::updateProgressBar(int value)
-{
-    if (progressPopup->isVisible()) {
-        if (value == -1) {
-            progressBar->setRange(0, 0);
-        } else {
-            progressBar->setRange(0, 100);
-            progressBar->setValue(value);
-            if (value >= 100) {
-                progressPopup->setVisible(false);
-            }
-        }
-    }
-}
-
-
-/**
- * @brief MainWindow::updateMenuBarSize
- * This is called when the displayed notification count is updated in the menu corner widget.
- * It updates the menubar's size if necessary.
- */
-void MainWindow::updateMenuBarSize()
-{
-    menuBar->adjustSize();
-    menuBar->updateGeometry();
-}
-
 
 /**
  * @brief MedeaMainWindow::resetToolDockWidgets
@@ -247,10 +191,6 @@ void MainWindow::themeChanged()
     actionController->menu_help->setStyleSheet(menuStyle);
     actionController->menu_options->setStyleSheet(menuStyle);
 
-    progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
-    progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
-
     restoreToolsButton->setIcon(theme->getIcon("Icons", "spanner"));
     restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
 
@@ -266,8 +206,8 @@ void MainWindow::themeChanged()
 void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock)
 {
     //Unattach old view
-    if(prevDock && prevDock->isNodeViewDock()){
-        auto prev_node_view = ((NodeViewDockWidget*) prevDock)->getNodeView();
+    if(prevDock){
+        auto prev_node_view = prevDock->getNodeView();
         
         if(prev_node_view){
             minimap->disconnect(prev_node_view);
@@ -278,8 +218,8 @@ void MainWindow::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockW
     NodeView* node_view = 0;
 
     //Attach new view
-    if(viewDock && viewDock->isNodeViewDock()){
-        node_view = ((NodeViewDockWidget*) viewDock)->getNodeView();
+    if(viewDock){
+        node_view = viewDock->getNodeView();
     }
 
     if(node_view){
@@ -439,10 +379,6 @@ void MainWindow::setupTools()
     tableWidget = 0;
     minimap = 0;
 
-    progressPopup = 0;
-    progressBar = 0;
-    progressLabel = 0;
-
 
     restoreToolsButton = 0;
     restoreToolsAction = 0;
@@ -465,13 +401,13 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {   
-    innerWindow = WindowManager::constructCentralWindow("Main Window");
-
+    innerWindow = WindowManager::manager()->constructCentralWindow("Main Window");
     //Construct dockWidgets.
-    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interfaces");
-    NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
-    NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
-    NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
+    auto dwInterfaces = viewController->constructViewDockWidget("Interfaces");
+    auto dwBehaviour = viewController->constructViewDockWidget("Behaviour");
+    auto dwAssemblies = viewController->constructViewDockWidget("Assemblies");
+    auto dwHardware = viewController->constructViewDockWidget("Hardware");
+
 
     //Set each NodeView with there contained aspects
     dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
@@ -601,33 +537,9 @@ void MainWindow::setupToolBar()
  */
 void MainWindow::setupProgressBar()
 {
-    progressLabel = new QLabel("", this);
-    progressLabel->setFont(QFont(font().family(), 11));
-    progressLabel->setFixedHeight(progressLabel->sizeHint().height());
-    progressLabel->setAlignment(Qt::AlignCenter);
-    progressLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    progressBar = new QProgressBar(this);
-    progressBar->setRange(0,100);
-    progressBar->setTextVisible(false);
-
-    QWidget* widget = new QWidget(this);
-    widget->setStyleSheet("QWidget{ background: rgba(0,0,0,0); border: 0px; }");
-
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setSpacing(5);
-    layout->setMargin(2);
-    layout->addWidget(progressLabel);
-    layout->addWidget(progressBar);
-
-    progressPopup = new PopupWidget(PopupWidget::TYPE::TOOL, 0);
-    progressPopup->setWidget(widget);
-    //progressPopup->setWidth(widget->sizeHint().width() + 200);
-    //progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
-    progressPopup->hide();
-
-    connect(viewController, &ViewController::mc_showProgress, this, &MainWindow::showProgressBar);
-    connect(viewController, &ViewController::mc_progressChanged, this, &MainWindow::updateProgressBar);
+    auto popup = new ProgressPopup();
+    connect(viewController, &ViewController::mc_showProgress, popup, &ProgressPopup::ProgressUpdated);
+    connect(viewController, &ViewController::mc_progressChanged, popup, &ProgressPopup::UpdateProgressBar);
 }
 
 
@@ -641,7 +553,7 @@ void MainWindow::setupDock()
     dockTabWidget->setMaximumWidth(150);
 
 
-    dockwidget_Dock = WindowManager::constructToolDockWidget("Dock");
+    dockwidget_Dock = WindowManager::manager()->constructToolDockWidget("Dock");
     dockwidget_Dock->setWidget(dockTabWidget);
     dockwidget_Dock->setAllowedAreas(Qt::LeftDockWidgetArea);
 
@@ -657,7 +569,7 @@ void MainWindow::setupDock()
  */
 void MainWindow::setupDataTable()
 {
-    dockwidget_Table = WindowManager::constructToolDockWidget("Table");
+    dockwidget_Table = WindowManager::manager()->constructToolDockWidget("Table");
     tableWidget = new DataTableWidget(viewController, dockwidget_Table);
     tableWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred));
     tableWidget->setMinimumHeight(200);
@@ -688,7 +600,7 @@ void MainWindow::setupMinimap()
     minimap->setMaximumWidth(200);
     
 
-    dockwidget_Minimap = WindowManager::constructToolDockWidget("Minimap");
+    dockwidget_Minimap = WindowManager::manager()->constructToolDockWidget("Minimap");
     dockwidget_Minimap->setWidget(minimap);
     dockwidget_Minimap->setAllowedAreas(Qt::RightDockWidgetArea);
 
@@ -721,8 +633,6 @@ void MainWindow::setupMenuCornerWidget()
     //notificationToolbar = new NotificationToolbar(viewController, this);
     notificationToolbar = NotificationManager::manager()->getToolbar();
     notificationToolbar->setParent(this); 
-    
-    //connect(NotificationManager::manager(), &NotificationManager::updateNotificationToolbarSize, this, &MainWindow::updateMenuBarSize);
 
     QToolBar* tb = new QToolBar(this);
     tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
@@ -745,8 +655,9 @@ void MainWindow::setupMenuCornerWidget()
  * This sets up the search and notification dialogs.
  */
 void MainWindow::setupDockablePanels()
-{
-    auto dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
+{   
+    auto manager = WindowManager::manager();
+    auto dwQOSBrowser = manager->constructDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
     dwQOSBrowser->setIconVisible(true);
     dwQOSBrowser->setIcon("Icons", "speedGauge");
@@ -754,7 +665,7 @@ void MainWindow::setupDockablePanels()
 
     auto searchPanel = SearchManager::manager()->getSearchDialog();
     
-    dockwidget_Search = WindowManager::constructViewDockWidget("Search Results");
+    dockwidget_Search = manager->constructDockWidget("Search Results");
     dockwidget_Search->setWidget(searchPanel);
     dockwidget_Search->setIcon("Icons", "zoomInPage");
     dockwidget_Search->setIconVisible(true);
@@ -764,19 +675,18 @@ void MainWindow::setupDockablePanels()
     
     
 
-    dockwidget_Notification = WindowManager::constructViewDockWidget("Notifications");
+    dockwidget_Notification = manager->constructDockWidget("Notifications");
     dockwidget_Notification->setWidget(notificationPanel);
     dockwidget_Notification->setIcon("Icons", "exclamationInBubble");
     dockwidget_Notification->setIconVisible(true);
     dockwidget_Notification->setProtected(true);
 
-    dockwidget_Jenkins = WindowManager::constructViewDockWidget("Jenkins");
+    dockwidget_Jenkins = manager->constructDockWidget("Jenkins");
     dockwidget_Jenkins->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dockwidget_Jenkins->setIcon("Icons", "jenkinsFlat");
     dockwidget_Jenkins->setIconVisible(true);
     dockwidget_Jenkins->setProtected(true);
 
-    //dwQOSBrowser->widget()->setMinimumSize(dockwidget_Search->widget()->minimumSize());
 
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
@@ -798,11 +708,12 @@ void MainWindow::setupDockablePanels()
  */
 void MainWindow::setupViewManager()
 {
-    viewManager = WindowManager::manager()->getViewManagerGUI();
+    auto manager = WindowManager::manager();
+    viewManager = manager->getViewManagerGUI();
     viewManager->setMinimumHeight(100);
     viewManager->setMinimumWidth(200);
 
-    dockwidget_ViewManager = WindowManager::constructToolDockWidget("View Manager");
+    dockwidget_ViewManager = manager->constructToolDockWidget("View Manager");
     dockwidget_ViewManager->setWidget(viewManager);
     dockwidget_ViewManager->setAllowedAreas(Qt::RightDockWidgetArea);
 

@@ -25,9 +25,7 @@ int launchMEDEA(int argc, char *argv[]){
     
     auto view_controller = new ViewController();
     
-
-    auto window = WindowManager::constructMainWindow(view_controller);
-
+    auto window = WindowManager::manager()->constructMainWindow(view_controller);
     if (argc == 2) {
         QString projectPath = QString::fromUtf8(argv[1]);
         if(!projectPath.isEmpty()){

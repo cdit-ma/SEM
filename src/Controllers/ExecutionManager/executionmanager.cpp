@@ -3,6 +3,7 @@
 #include <QStringBuilder>
 #include <QDebug>
 #include <QXmlStreamReader>
+#include <QMutexLocker>
 
 #include "../../Utils/filehandler.h"
 #include "../NotificationManager/notificationmanager.h"
@@ -39,6 +40,13 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 
 void ExecutionManager::ValidateModel(QString model_path)
 {
+    {
+        QMutexLocker locker(&this->mutex_);
+        if(running_validation){
+            return;
+        }
+        running_validation = true;
+    }
     auto manager =  NotificationManager::manager();
 
     // Clear previous validation notification items
@@ -94,6 +102,11 @@ void ExecutionManager::ValidateModel(QString model_path)
         ///Update the original notification
         validation_noti->setDescription("Model validation failed to execute: '" + results.standard_error.join("") + "'");
         validation_noti->setSeverity(Notification::Severity::ERROR);
+    }
+
+    {
+        QMutexLocker locker(&this->mutex_);
+        running_validation = false;
     }
 }
 

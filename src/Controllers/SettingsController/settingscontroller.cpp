@@ -209,8 +209,8 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_DELETE)->setDefaultValue(true);
-    _getSetting(SETTINGS::TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
-    _getSetting(SETTINGS::TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
+    _getSetting(SETTINGS::TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(false);
+    _getSetting(SETTINGS::TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(false);
     _getSetting(SETTINGS::TOOLBAR_EXPAND)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_CONTRACT)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_VALIDATE)->setDefaultValue(true);

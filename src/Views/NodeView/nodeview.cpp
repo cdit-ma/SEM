@@ -14,7 +14,7 @@
 #include "SceneItems/Node/hardwarenodeitem.h"
 
 #include "../../Controllers/WindowManager/windowmanager.h"
-#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"

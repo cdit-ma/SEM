@@ -84,7 +84,6 @@ void AppSettings::themeChanged()
     clearSettingsAction->setIcon(theme->getIcon("Icons", "cross"));
     applySettingsAction->setIcon(theme->getIcon("Icons", "tick"));
 
-    //setWindowIcon(theme->getIcon("Icons", "gear"));
 }
 
 void AppSettings::dataValueChanged(QVariant data)
@@ -221,6 +220,7 @@ void AppSettings::setupSettingsLayouts()
         auto key = setting->getID();
 
         auto box = getSectionBox(category, section);
+        box->setCheckable(false);
 
         if(!dataEditWidgets.contains(key)){
             DataEditWidget* widget = new DataEditWidget(setting->getName(), setting->getType(), setting->getValue(), this);

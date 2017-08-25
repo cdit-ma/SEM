@@ -134,7 +134,7 @@ public:
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getToolButtonStyleSheet();
-    QString getLineEditStyleSheet();
+    QString getLineEditStyleSheet(QString widget_name="QLineEdit");
     QString getTextEditStyleSheet();
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();

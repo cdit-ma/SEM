@@ -86,6 +86,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
@@ -99,13 +100,15 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/nodeviewdockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
     
@@ -190,6 +193,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.h
@@ -201,14 +205,15 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/nodeviewdockwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h

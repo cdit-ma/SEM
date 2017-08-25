@@ -20,8 +20,11 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
     case TYPE::TOOL:
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
         break;
-    case TYPE::POPUP:
+    case TYPE::SPLASH:
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::SplashScreen);
+        break;
+    case TYPE::POPUP:
+        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
         break;
     }
     
@@ -29,6 +32,11 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
     connect(Theme::theme(), &Theme::theme_Changed, this, &PopupWidget::themeChanged);
     themeChanged();
 }
+
+void PopupWidget::adjustSize(){
+    QWidget::adjustSize();
+}
+
 
 void PopupWidget::themeChanged(){
     auto theme = Theme::theme();

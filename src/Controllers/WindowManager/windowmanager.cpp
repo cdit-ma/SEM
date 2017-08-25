@@ -14,10 +14,13 @@
 #include "../../Widgets/Windows/subwindow.h"
 
 #include "../../Widgets/DockWidgets/basedockwidget.h"
-#include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
-#include "../../Widgets/DockWidgets/tooldockwidget.h"
+#include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
+#include "../../Widgets/DockWidgets/tooldockwidget.h"
+
+
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
+#include "../../Widgets/ViewManager/dockreparenterpopup.h"
 
 #include "../../theme.h"
 
@@ -34,6 +37,18 @@ WindowManager* WindowManager::manager()
     }
     return managerSingleton;
 }
+
+
+bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
+    if(base_dock_widget && base_dock_widget->getBaseDockType() == BaseDockType::DOCK){
+        auto dock_widget = (DefaultDockWidget*) base_dock_widget;
+        if(dock_widget->getDefaultDockType() == DefaultDockType::VIEW){
+            return true;
+        }
+    }
+    return false;
+};
+
 
 void WindowManager::showDockWidget(BaseDockWidget* widget){
     if(widget){
@@ -55,67 +70,64 @@ void WindowManager::showDockWidget(BaseDockWidget* widget){
 
 BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
 {
-    return manager()->_constructMainWindow(vc);
+    if(!mainWindow){
+        mainWindow = new MainWindow(vc);
+    }
+    return mainWindow;
 }
 
-BaseWindow *WindowManager::constructSubWindow(QString title)
-{
-    return manager()->_constructSubWindow(title);
+BaseWindow* WindowManager::constructSubWindow(QString title){
+    auto window = new SubWindow();
+    window->setWindowTitle(title);
+    addWindow(window);
+    return window;
 }
 
-BaseWindow *WindowManager::constructCentralWindow(QString title)
-{
-    return manager()->_constructCentralWindow(title);
+BaseWindow* WindowManager::constructCentralWindow(QString title){
+    if(!centralWindow){
+        auto window = new CentralWindow();
+        window->setWindowTitle(title);
+        centralWindow = window;
+        addWindow(window);
+    }
+    return centralWindow;
 }
 
-NodeViewDockWidget *WindowManager::constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area)
-{
-    return manager()->_constructNodeViewDockWidget(title, area);
+ViewDockWidget* WindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area){
+    auto dock = new ViewDockWidget(title, area);
+    addDockWidget(dock);
+    return dock;
 }
 
-ViewDockWidget *WindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area)
-{
-    return manager()->_constructViewDockWidget(title, area);
+DefaultDockWidget* WindowManager::constructDockWidget(QString title, Qt::DockWidgetArea area){
+    auto dock = new DefaultDockWidget(title, area);
+    addDockWidget(dock);
+    return dock;
 }
 
-ToolDockWidget *WindowManager::constructToolDockWidget(QString title)
-{
-    return manager()->_constructToolDockWidget(title);
+ToolDockWidget* WindowManager::constructToolDockWidget(QString title){
+    auto dock = new ToolDockWidget(title);
+    addDockWidget(dock);
+    return dock;
 }
-
 
 void WindowManager::destructWindow(BaseWindow *window)
 {
-    return manager()->_destructWindow(window);
-}
-
-void WindowManager::destructDockWidget(BaseDockWidget *widget)
-{
-    return manager()->_destructDockWidget(widget);
-}
-
-void WindowManager::_destructWindow(BaseWindow *window)
-{
     if(window){
-        int wID = window->getID();
+        auto window_id = window->getID();
 
-        //Teardown
-        if(window->getType() == BaseWindow::MAIN_WINDOW && windows.contains(wID)){
-            delete this;
-        }else{
-            if(centralWindow != window){
-                removeWindow(window);
-                window->deleteLater();
-            }
+        if(window != mainWindow && window != centralWindow){
+            removeWindow(window);
+            window->deleteLater();
         }
     }
 }
 
-void WindowManager::_destructDockWidget(BaseDockWidget *dockWidget)
+void WindowManager::destructDockWidget(BaseDockWidget *widget)
 {
-    if(dockWidget){
-        removeDockWidget(dockWidget);
-        dockWidget->deleteLater();
+    if(widget){
+        removeDockWidget(widget);
+        widget->deleteLater();
     }
 }
 
@@ -129,50 +141,48 @@ void WindowManager::teardown()
 
 BaseWindow *WindowManager::getMainWindow()
 {
-    if(managerSingleton){
-        return managerSingleton->mainWindow;
-    }
-    return 0;
+    return managerSingleton->mainWindow;
 }
 
 WindowManager::WindowManager():QObject(0)
 {
-    activeViewDockWidget = 0;
-    mainWindow = 0;
-    centralWindow = 0;
     viewManagerWidget = new ViewManagerWidget(this);
 
-    QApplication* a = (QApplication*) QApplication::instance();
-
+    auto a = (QApplication*) QApplication::instance();
     connect(a, &QApplication::focusChanged, this, &WindowManager::focusChanged);
 }
 
 WindowManager::~WindowManager()
 {
     if(centralWindow){
-        int ID = centralWindow->getID();
+        auto ID = centralWindow->getID();
         windows.remove(ID);
-        windowIDs.removeAll(ID);
+        window_ids.remove(ID);
     }
     if(mainWindow){
-        int ID = mainWindow->getID();
+        auto ID = mainWindow->getID();
         windows.remove(ID);
-        windowIDs.removeAll(ID);
+        window_ids.remove(ID);
     }
 
     //Delete all subwindows.
     while(!windows.isEmpty()){
-        int ID = windows.keys().first();
-        BaseWindow* window = windows[ID];
+        auto id = windows.keys().first();
+        auto window = windows[id];
         if(window){
-            _destructWindow(window);
+            destructWindow(window);
         }
     }
+
 	if(centralWindow){
-		_destructWindow(centralWindow);
+        auto window = centralWindow;
+        centralWindow = 0;
+		destructWindow(window);
 	}
 	if(mainWindow){
-		_destructWindow(mainWindow);
+        auto window = mainWindow;
+        mainWindow = 0;
+		destructWindow(window);
     }
 }
 
@@ -186,6 +196,13 @@ ViewManagerWidget *WindowManager::getViewManagerGUI()
     return viewManagerWidget;
 }
 
+DockReparenterPopup* WindowManager::getDockPopup(){
+    if(!dock_popup){
+        dock_popup = new DockReparenterPopup();
+    }
+    return dock_popup;
+}
+
 BaseWindow *WindowManager::getActiveWindow()
 {
     if(activeViewDockWidget){
@@ -194,210 +211,86 @@ BaseWindow *WindowManager::getActiveWindow()
     return centralWindow;
 }
 
-BaseWindow *WindowManager::_constructMainWindow(ViewController* vc)
-{
-    MainWindow* window = 0;
-    if(!mainWindow){
-        window = new MainWindow(vc);
-        mainWindow = window;
-        addWindow(window);
-    }
-    return window;
-}
-
-BaseWindow *WindowManager::_constructSubWindow(QString title)
-{
-    BaseWindow* window = new SubWindow();
-    window->setWindowTitle(title);
-    addWindow(window);
-    return window;
-}
-
-BaseWindow *WindowManager::_constructCentralWindow(QString title)
-{
-    BaseWindow* window = 0;
-    if(!centralWindow){
-        window = new CentralWindow();
-        window->setWindowTitle(title);
-        centralWindow = window;
-        addWindow(window);
-    }
-    return window;
-}
-
-ToolDockWidget *WindowManager::_constructToolDockWidget(QString title)
-{
-    //Construct new DockWidget
-    ToolDockWidget* dockWidget = new ToolDockWidget(title);
-
-    
-    addDockWidget(dockWidget);
-    return dockWidget;
-
-}
-
-ViewDockWidget *WindowManager::_constructViewDockWidget(QString title, Qt::DockWidgetArea area)
-{
-    //Construct new DockWidget
-    ViewDockWidget* dockWidget = new ViewDockWidget(title, area);
-    addDockWidget(dockWidget);
-    return dockWidget;
-}
-
-NodeViewDockWidget *WindowManager::_constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area)
-{
-    //Construct new DockWidget
-    NodeViewDockWidget* dockWidget = new NodeViewDockWidget(title, area);
-    addDockWidget(dockWidget);
-    return dockWidget;
-}
-
-
 ViewDockWidget *WindowManager::getActiveViewDockWidget()
 {
     return activeViewDockWidget;
 }
 
-void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
+void WindowManager::setActiveViewDockWidget(ViewDockWidget *view)
 {
-    /*
-    //Don't bother setting the activeWidget, if it's already active
-    if (dockWidget && dockWidget == activeViewDockWidget){
-        return;
-    }
-
-    //Don't allow any non-view windows to have active selection
-    if (dockWidget && dockWidget->getDockType() != BaseDockWidget::MDW_VIEW) {
-        return;
-    }
-
-    ViewDockWidget* viewDockWidget = (ViewDockWidget*) dockWidget;
-
-    if (viewDockWidget && viewDockWidget->isNodeViewDock()) {
-
-        ViewDockWidget* prevDock = activeViewDockWidget;
-        if (prevDock) {
-            prevDock->setActive(false);
-            disconnect(prevDock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
-        }
-
-        activeViewDockWidget = viewDockWidget;
-        activeViewDockWidget->setActive(true);
-        connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
-
-        emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
-    }
-    */
-    
-
-    
-    if(dockWidget != activeViewDockWidget){
-        ViewDockWidget* prevDock = activeViewDockWidget;
-        activeViewDockWidget = 0;
-
-        //Unset the old
-        if(prevDock){
-            prevDock->setActive(false);
-            disconnect(prevDock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
-        }
-
+    if(view != activeViewDockWidget){
+        ViewDockWidget* prev_dock = activeViewDockWidget;
+        ViewDockWidget* current_dock = 0;
 
         //Set the New.
-        if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
-            auto view_dock = (ViewDockWidget*) dockWidget;
-            if(view_dock->isNodeViewDock() && view_dock->isVisible()){
-                activeViewDockWidget = view_dock;
-                dockWidget->setActive(true);
-                connect(activeViewDockWidget, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+        if(view){
+            if(view->isVisible()){
+                current_dock = view;
+            }else{
+                current_dock = prev_dock;
             }
         }
 
-        emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
+        if(current_dock != prev_dock){
+            if(prev_dock){
+                prev_dock->setActive(false);
+                disconnect(prev_dock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+            }
+            if(current_dock){
+                connect(current_dock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
+                current_dock->setActive(true);
+            }
+            activeViewDockWidget = current_dock;
+            emit activeViewDockWidgetChanged(current_dock, prev_dock);
+        }
     }
 }
 
-void WindowManager::setActiveDockWidget(int ID)
+void WindowManager::setActiveViewDockWidget(int ID)
 {
+    return;/*
     BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
     if(dockWidget && dockWidget != activeViewDockWidget && dockWidget->isFocusEnabled()){
-        setActiveDockWidget(dockWidget);
-    }
+        setActiveViewDockWidget(dockWidget);
+    }*/
+}
+
+QList<BaseWindow*> WindowManager::getWindows(){
+    return windows.values();
 }
 
 QList<ViewDockWidget *> WindowManager::getViewDockWidgets()
 {
     QList<ViewDockWidget*> views;
-    foreach(int ID, viewDockIDs){
-        BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
-        if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
-            views.append((ViewDockWidget*)dockWidget);
+
+    for(auto id : view_dock_ids){
+        auto dock_widget = dockWidgets.value(id, 0);
+        if(dock_widget){
+            views.append((ViewDockWidget*)dock_widget);
         }
     }
     return views;
 }
 
-QList<NodeViewDockWidget *> WindowManager::getNodeViewDockWidgets()
-{
-    QList<NodeViewDockWidget*> views;
-    foreach(ViewDockWidget* dock, getViewDockWidgets()){
-        if(dock->isNodeViewDock()){
-            views.append((NodeViewDockWidget*) dock);
-        }
-    }
-    return views;
-}
 
-NodeViewDockWidget *WindowManager::getNodeViewDockWidget(ViewItem *item)
-{
-    foreach(ViewDockWidget* dock, getViewDockWidgets()){
-        if(dock->isNodeViewDock()){
-            auto viewDock = (NodeViewDockWidget*) dock;
-
-            if(viewDock->getNodeView()->getContainedViewItem() == item){
-                return viewDock;
-            }
+ViewDockWidget* WindowManager::getViewDockWidget(ViewItem *item){
+    for(auto dock : getViewDockWidgets()){
+        if(dock->getNodeView()->getContainedViewItem() == item){
+            return dock;
         }
     }
     return 0;
 }
 
-void WindowManager::currentDockWidget(BaseDockWidget *dockWidget)
-{
-    showPopOutDialog(dockWidget);
-}
-
 void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
-    //qCritical() << "FOCUS CHANGE: " << prev << " TO : " << now;
     if(now){
-        //bool okay;
-        //int ID = now->property("ID").toInt(&okay);
-        //if(okay){
-        //    setActiveDockWidget(ID);
-        //    return;
-        //}
-
-        bool okay;
-        int ID = -1;
-        auto p = now;
-        while(p){
-            if(p){
-                ID = p->property("ID").toInt(&okay);
-                if(okay){
-                    //qCritical() << "FOUND ID: " << ID;
-                    setActiveDockWidget(ID);
-                    return;
-                }
-                p = p->parentWidget();
-            }
-        }
-
-        auto parent = now->window();
-        //qCritical() << "WINDOW PARENT: " << parent;
-        if(parent){
-            ID = parent->property("ID").toInt(&okay);
-            if(okay){
-                setActiveDockWidget(ID);
+        //Check to see if the widget is a child of one of the view docks
+        for(auto id : view_dock_ids){
+            auto dock = dockWidgets.value(id, 0);
+            if(dock && dock->isAncestorOf(now)){
+                //We should set
+                setActiveViewDockWidget((ViewDockWidget*)dock);
                 return;
             }
         }
@@ -408,13 +301,12 @@ void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 void WindowManager::addWindow(BaseWindow *window)
 {
     if(window){
-        int ID = window->getID();
-        if(!windows.contains(ID)){
-            windows[ID] = window;
-
+        auto id = window->getID();
+        if(!windows.contains(id)){
+            windows[id] = window;
             emit windowConstructed(window);
         }else{
-            qCritical() << "MedeaWindowManager::addWindow() " << ID << " - Got duplicated MedeaWindow ID.";
+            qCritical() << "MedeaWindowManager::addWindow() " << id  << " - Got duplicated MedeaWindow ID.";
         }
     }
 }
@@ -422,17 +314,17 @@ void WindowManager::addWindow(BaseWindow *window)
 void WindowManager::removeWindow(BaseWindow *window)
 {
     if(window){
-        int ID = window->getID();
-        emit windowDestructed(ID);
-        if(windows.contains(ID)){
+        auto id = window->getID();
+        emit windowDestructed(id);
 
+        if(windows.contains(id)){
             if(mainWindow == window){
                 mainWindow = 0;
             }
             if(centralWindow == window){
                 centralWindow = 0 ;
             }
-            windows.remove(ID);
+            windows.remove(id);
         }
     }
 }
@@ -440,45 +332,46 @@ void WindowManager::removeWindow(BaseWindow *window)
 void WindowManager::addDockWidget(BaseDockWidget *dockWidget)
 {
     if(dockWidget){
-        int ID = dockWidget->getID();
-        if(!dockWidgets.contains(ID)){
-            if(dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
-                viewDockIDs.append(ID);
+        auto id = dockWidget->getID();
+        if(!dockWidgets.contains(id)){
 
-                emit viewDockWidgetConstructed(dockWidget);
+            if(isViewDockWidget(dockWidget)){
+                view_dock_ids.insert(id);
             }
-
+            
             dockWidget->setObjectName(dockWidget->getTitle());
-
-
-            dockWidgets[ID] = dockWidget;
+            
+            
+            dockWidgets[id] = dockWidget;
             connect(dockWidget, &BaseDockWidget::req_PopOut, this, &WindowManager::dockWidget_PopOut);
             connect(dockWidget, &BaseDockWidget::req_Close, this, &WindowManager::dockWidget_Close);
+            emit dockWidgetConstructed(dockWidget);
         }else{
             qCritical() << "MedeaWindowManager::addDockWidget() - Got duplicated MedeaDockWidget ID.";
         }
     }
 }
 
+
+
 void WindowManager::removeDockWidget(BaseDockWidget *dockWidget)
 {
     if(dockWidget){
-        int ID = dockWidget->getID();
-        if(dockWidgets.contains(ID)){
-            //Clear the active flag.
+        int id = dockWidget->getID();
+        if(dockWidgets.contains(id)){
             if(activeViewDockWidget == dockWidget){
-                setActiveDockWidget();
+                setActiveViewDockWidget(0);
             }
 
-            emit viewDockWidgetDestructed(ID);
+            emit dockWidgetDestructed(id);
 
-            if(dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){
-                viewDockIDs.removeAll(ID);
+            if(isViewDockWidget(dockWidget)){
+                view_dock_ids.remove(id);
             }
 
             disconnect(dockWidget, &BaseDockWidget::req_PopOut, this, &WindowManager::dockWidget_PopOut);
             disconnect(dockWidget, &BaseDockWidget::req_Close, this, &WindowManager::dockWidget_Close);
-            dockWidgets.remove(ID);
+            dockWidgets.remove(id);
 
             BaseWindow* window = dockWidget->getCurrentWindow();
             if(window){
@@ -492,224 +385,82 @@ void WindowManager::removeDockWidget(BaseDockWidget *dockWidget)
 
 void WindowManager::dockWidget_Close(int ID)
 {
-    BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
-    if(dockWidget){
-        BaseWindow* sourceWindow = dockWidget->getSourceWindow();
-        BaseWindow* currentWindow = dockWidget->getCurrentWindow();
-
+    auto dock_widget = dockWidgets.value(ID, 0);
+    if(dock_widget){
+        auto sourceWindow = dock_widget->getSourceWindow();
+        auto currentWindow = dock_widget->getCurrentWindow();
+        
         if(currentWindow){
             //Remove it from the current window
-            currentWindow->removeDockWidget(dockWidget);
-            dockWidget->setCurrentWindow(0);
+            currentWindow->removeDockWidget(dock_widget);
+            dock_widget->setCurrentWindow(0);
         }
 
         if(sourceWindow == currentWindow || sourceWindow == 0){
             //If the source window is the current window we should destruct the dock.
-            _destructDockWidget(dockWidget);
+            destructDockWidget(dock_widget);
         }else{
             //Reparent back into source window.
-            _reparentDockWidget(dockWidget, sourceWindow);
+            reparentDockWidget(dock_widget, sourceWindow);
         }
-        //destructWindowIfEmpty(currentWindow);
     }
 }
 
 void WindowManager::dockWidget_PopOut(int ID)
 {
-    BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
-    if(dockWidget){
-        showPopOutDialog(dockWidget);
+    auto dock_widget = dockWidgets.value(ID, 0);
+    if(dock_widget){
+        reparentDockWidget(dock_widget);
     }
 }
-
-void WindowManager::reparentDockWidgetAction(int wID)
-{
-    BaseWindow* window = 0;
-    bool newWindow = wID == -1;
-    if(newWindow){
-        window = _constructSubWindow();
-        window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
-        window->show();
-        window->activateWindow();
-    }else{
-        if(windows.contains(wID)){
-            window = windows[wID];
-        }else{
-            qCritical() << "MedeaWindowManager::reparentDockWidget_ButtonPressed() - Can't find MedeaWindow with ID: " << wID;
-        }
-    }
-    if(currentDockWidget_ && window){
-        _reparentDockWidget(currentDockWidget_, window);
-    }
-}
-
 
 void WindowManager::activeDockWidgetVisibilityChanged()
 {
-    if(activeViewDockWidget && !activeViewDockWidget->isVisible()){
-        //Look for next widget.
-        BaseWindow* parent = activeViewDockWidget->getCurrentWindow();
-        if(parent){
-            BaseDockWidget* nextVisible = 0;
-            foreach(BaseDockWidget* dockWidget, parent->getDockWidgets()){
-                if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW && dockWidget->isVisible()){
-                    nextVisible = dockWidget;
+    if(activeViewDockWidget){
+        auto parent = activeViewDockWidget->getCurrentWindow();
+
+        if(parent && !activeViewDockWidget->isVisible()){
+            ViewDockWidget* next_dock = 0;
+            
+            for(auto dock_widget : parent->getDockWidgets()){
+                if(dock_widget->isVisible() && isViewDockWidget(dock_widget)){
+                    next_dock = (ViewDockWidget*)dock_widget;
                     break;
                 }
             }
-            setActiveDockWidget(nextVisible);
+            setActiveViewDockWidget(next_dock);
         }
     }
 }
 
-void WindowManager::destructWindowIfEmpty(BaseWindow *window)
-{
-    if(window){
-        int wID = window->getID();
-        if(windows.contains(wID) && !window->hasDockWidgets()){
-            if(window != mainWindow && window != centralWindow){
-                _destructWindow(window);
-            }
-        }
-    }
+BaseWindow* WindowManager::getWindow(int ID){
+    return windows.value(ID, 0);
 }
 
-void WindowManager::_reparentDockWidget(BaseDockWidget *dockWidget, BaseWindow *window)
+bool WindowManager::reparentDockWidget(BaseDockWidget* dockWidget){
+    return getDockPopup()->ReparentDockWidget(dockWidget);
+}
+
+bool WindowManager::reparentDockWidget(BaseDockWidget* dock_widget, BaseWindow *window)
 {
-    if(dockWidget && window){
-        BaseWindow* previousWindow = dockWidget->getCurrentWindow();
-        if(previousWindow){
+    if(dock_widget && window){
+        auto previous_window = dock_widget->getCurrentWindow();
+        if(previous_window){
             //Remove it from its previousWindow
-            previousWindow->removeDockWidget(dockWidget);
+            previous_window->removeDockWidget(dock_widget);
         }
 
-
-
-        window->addDockWidget(dockWidget);
-        emit dockWidget->req_Visible(dockWidget->getID(), true);
+        window->addDockWidget(dock_widget);
+        emit dock_widget->req_Visible(dock_widget->getID(), true);
         window->raise();
+        return true;
     }
+    return false;
 }
-
-void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
-{
-    BaseWindow* window = getActiveWindow();
-    currentDockWidget_ = dockWidget;
-
-    //if(dockWidget != activeViewDockWidget){
-     //   setActiveDockWidget(dockWidget);
-    //}
-    Theme* theme = Theme::theme();
-    PopupWidget* popupDialog = new PopupWidget(PopupWidget::TYPE::DIALOG, window);
-
-    QFont titleFont;
-    titleFont.setPixelSize(15);
-
-    QWidget* widget = new QWidget(popupDialog);
-
-    QPushButton* invisAcceptButton = new QPushButton(widget);
-    invisAcceptButton->setFixedSize(1,1);
-    invisAcceptButton->setDefault(true);
-
-    QVBoxLayout* vlayout = new QVBoxLayout(widget);
-    QHBoxLayout* topLayout = new QHBoxLayout();
-    vlayout->addLayout(topLayout);
-
-    QLabel* titleLabel = new QLabel("Select Destination Window", mainWindow);
-    titleLabel->setAlignment(Qt::AlignCenter);
-    titleLabel->setFont(titleFont);
-
-    QToolBar* topToolbar = new QToolBar(widget);
-    topLayout->addWidget(titleLabel, 1);
-    topLayout->addWidget(topToolbar);
-
-    QAction* cancelAction = topToolbar->addAction(theme->getIcon("Icons", "cross"), "Cancel");
-
-    QWidget* toolbarContainer = new QWidget(widget);
-    toolbarContainer->setMaximumWidth(1220);
-    QHBoxLayout* toolbarLayout = new QHBoxLayout(toolbarContainer);
-
-    QToolBar* windowToolbar = new QToolBar(widget);
-
-    QWidget* leftSpacer = new QWidget(windowToolbar);
-    QWidget* rightSpacer = new QWidget(windowToolbar);
-
-    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    windowToolbar->setIconSize(QSize(150,100));
-    windowToolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-
-    vlayout->addWidget(toolbarContainer);
-
-    toolbarLayout->addWidget(leftSpacer);
-    toolbarLayout->addWidget(invisAcceptButton);
-    toolbarLayout->addWidget(windowToolbar);
-
-    QSignalMapper* windowActionMapper = new QSignalMapper(popupDialog);
-
-    BaseWindow* currentWindow = dockWidget->getCurrentWindow();
-    //Construct buttons for all of the windows.
-    foreach(BaseWindow* w, windows.values()){
-        if(w != currentWindow && w != mainWindow){
-            QAction* wAction = constructPopOutWindowAction(windowActionMapper, w);
-            windowToolbar->addAction(wAction);
-        }
-    }
-
-    //Construct a new Window Action
-    QAction* wAction = constructPopOutWindowAction(windowActionMapper);
-    connect(invisAcceptButton, &QPushButton::clicked, wAction, &QAction::trigger);
-    windowToolbar->addAction(wAction);
-
-    toolbarLayout->addWidget(rightSpacer);
-
-    //Accept the dialog and then reparent
-    connect(cancelAction, &QAction::triggered, popupDialog, &QDialog::reject);
-    connect(windowActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped), popupDialog, &QDialog::accept);
-    connect(windowActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &WindowManager::reparentDockWidgetAction);
-
-    popupDialog->setWidget(widget);
-
-    popupDialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton::!hover{background:rgba(0,0,0,0);border:none;}");
-    titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";");
-
-    popupDialog->exec();
-    delete popupDialog;
-}
-
-QAction *WindowManager::constructPopOutWindowAction(QSignalMapper *mapper, BaseWindow *window)
-{
-    QAction* action = new QAction(mapper);
-
-    int wID = -1;
-    if(window){
-        QPixmap image = window->grab();
-        action->setIcon(QIcon(image.scaledToHeight(100)));
-        QString text = window->windowTitle();
-        action->setText(text);
-        wID = window->getID();
-    }else{
-        QPixmap image = Theme::theme()->getImage("Icons", "medeaLogo");
-        action->setIcon(QIcon(image.scaledToHeight(100)));
-        action->setText("New Window");
-    }
-
-    if(mapper){
-        connect(action, &QAction::triggered, mapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-        mapper->setMapping(action, wID);
-    }
-
-    return action;
-}
-
-
 void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment)
 {
     //Add an event to the event loop to move the widget in the next server tick.
     QMetaObject::invokeMethod(manager(), "MoveWidgetEvent", Qt::QueuedConnection, Q_ARG(QWidget*, widget), Q_ARG(QWidget*, parent_widget), Q_ARG(Qt::Alignment, alignment));
-    //manager()->MoveWidgetEvent(widget, parent_widget, alignment);
 }
 
 void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment){
@@ -717,7 +468,7 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
     if(!parent_widget){
         parent_widget = QApplication::activeWindow();
         //Check
-        if(!parent_widget || !parent_widget->isWindowType()){
+        if(!parent_widget || !parent_widget->isWindow()){
             parent_widget = manager()->getActiveWindow();
         }
     }
@@ -731,6 +482,7 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
             pos.ry() += parent_widget->height() / 2;
             //Offset by the height of the widget
             pos.ry() -= widget_size.height();
+            pos.ry() -= 5;
             break;
         default:
             //Offset by the half the height of the widget

@@ -15,7 +15,6 @@ public:
     void DisplayNotification(NotificationObject* notification);
 
 private:
-    Q_INVOKABLE void adjustSize();
     void themeChanged();
     void setupLayout();
 

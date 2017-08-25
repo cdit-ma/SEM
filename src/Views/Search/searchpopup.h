@@ -15,6 +15,7 @@ class SearchPopup : public PopupWidget
 public:
     explicit SearchPopup();
     void updateSearchSuggestions(QStringList suggestions);
+    void takeFocus();
 private:
     void SearchRequested();
     void themeChanged();

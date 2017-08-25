@@ -40,7 +40,7 @@ private:
     void setCurrentViewDockWidget(ViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);
 
-    NodeViewDockWidget* currentViewDockWidget;
+    ViewDockWidget* currentViewDockWidget;
     SelectionHandler* currentHandler;
 
     QHash<QObject*, int> selectionHandlerIDLookup;

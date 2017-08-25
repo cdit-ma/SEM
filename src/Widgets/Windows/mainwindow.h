@@ -48,11 +48,6 @@ signals:
 public slots:
     void setModelTitle(QString modelTitle="");
 
-    void showProgressBar(bool show, QString description = "");
-    void updateProgressBar(int value);
-
-    void updateMenuBarSize();
-
     void resetToolDockWidgets();
 private slots:
 
@@ -115,10 +110,6 @@ private:
     DataTableWidget* tableWidget;
     NodeViewMinimap* minimap;
     ViewManagerWidget* viewManager;
-
-    PopupWidget* progressPopup;
-    QProgressBar* progressBar;
-    QLabel* progressLabel;
 
     NotificationToolbar* notificationToolbar = 0;
 

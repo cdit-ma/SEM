@@ -9,7 +9,7 @@
 #include "../Windows/basewindow.h"
 
 int BaseDockWidget::_DockWidgetID = 0;
-BaseDockWidget::BaseDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
+BaseDockWidget::BaseDockWidget(BaseDockType type):QDockWidget()
 {
     ID = ++_DockWidgetID;
 
@@ -66,7 +66,7 @@ int BaseDockWidget::getID()
     return ID;
 }
 
-BaseDockWidget::DOCKWIDGET_TYPE BaseDockWidget::getDockType()
+BaseDockType BaseDockWidget::getBaseDockType()
 {
     return type;
 }
@@ -132,8 +132,10 @@ void BaseDockWidget::setWidget(QWidget *w)
         widget()->removeEventFilter(this);
         widget()->setFocusProxy(0);
     }
-    w->installEventFilter(this);
-    setFocusProxy(w);
+    if(w){
+        w->installEventFilter(this);
+        setFocusProxy(w);
+    }
     QDockWidget::setWidget(w);
 }
 
@@ -298,7 +300,7 @@ void BaseDockWidget::_visibilityChanged(bool visible)
 
 void BaseDockWidget::destruct()
 {
-    WindowManager::destructDockWidget(this);
+    WindowManager::manager()->destructDockWidget(this);
 }
 
 void BaseDockWidget::showContextMenu(const QPoint &point)

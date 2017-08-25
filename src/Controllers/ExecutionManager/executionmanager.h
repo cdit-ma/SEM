@@ -3,6 +3,7 @@
 
 #include "../../Utils/processrunner.h"
 #include <QObject>
+#include <QMutex>
 class ViewController;
 class ExecutionManager: public QObject
 {
@@ -29,6 +30,10 @@ private:
     ViewController* view_controller_;
     QString saxon_jar_path_;
     QString transforms_path_;
+
+    QMutex mutex_;
+    bool running_validation = false;
+    
     bool got_java_;
 };
 

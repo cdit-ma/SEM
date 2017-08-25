@@ -12,7 +12,6 @@ SearchDialog::SearchDialog(QWidget *parent)
     : QFrame(parent)
 {
     setupLayout();
-    setObjectName("SearchDialog");
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -75,7 +74,7 @@ void SearchDialog::themeChanged()
     auto theme = Theme::theme();
     
     setStyleSheet(
-                    "#SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";}" +
+                    "SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
                     "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                     "QLabel {color:" + theme->getTextColorHex() + ";} " + 
                     theme->getToolBarStyleSheet() +
@@ -93,7 +92,7 @@ void SearchDialog::themeChanged()
     
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";font-size:14px;");
 }
 
      

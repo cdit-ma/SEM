@@ -4,6 +4,8 @@
 #include "../../Views/Search/searchpopup.h"
 #include "../WindowManager/windowmanager.h"
 
+#include <QApplication>
+
 #include <QDebug>
 
 SearchManager* SearchManager::manager_singleton = 0;
@@ -51,8 +53,9 @@ void SearchManager::PopupSearch(){
     if(popup){
         auto search_suggestions = viewController->_getSearchSuggestions();
         popup->updateSearchSuggestions(search_suggestions);
-        popup->show();
         WindowManager::MoveWidget(popup);
+        popup->show();
+        popup->takeFocus();
     }
 }
 

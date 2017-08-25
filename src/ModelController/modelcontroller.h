@@ -270,13 +270,16 @@ private:
     void setModelAction(MODEL_ACTION action);
     bool isModelAction(MODEL_ACTION action);
     void unsetModelAction(MODEL_ACTION action);
-
     bool isUserAction();
-  
+    
     Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
-
+    
     QList<Node*> getNodes(QList<int> IDs);
 private:
+    void ProgressChanged_(int ID);
+    void ProgressUpdated_(QString description);
+    QString last_description;
+    int last_progress = -2;
     //List of undeleteable nodes
     QList<Node*> protected_nodes;
 

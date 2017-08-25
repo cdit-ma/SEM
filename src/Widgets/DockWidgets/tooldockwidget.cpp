@@ -1,7 +1,7 @@
 #include "tooldockwidget.h"
 #include "../../theme.h"
 
-ToolDockWidget::ToolDockWidget(QString title) : BaseDockWidget(BaseDockWidget::MDW_TOOL)
+ToolDockWidget::ToolDockWidget(QString title) : BaseDockWidget(BaseDockType::TOOL)
 {
     setTitle(title, Qt::AlignCenter);
     setFocusEnabled(false);
@@ -21,12 +21,6 @@ void ToolDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getDockWidgetStyleSheet());
-
-    /*
-    if (focusProxy()) {
-        focusProxy()->setStyleSheet("QWidget:focus{ background: red; }");
-    }
-    */
 
     if (getTitleBar()) {
         getTitleBar()->setStyleSheet(theme->getToolDockWidgetTitleBarStyleSheet());

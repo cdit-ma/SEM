@@ -16,8 +16,8 @@ ViewManagerWidget::ViewManagerWidget(WindowManager *manager) : QWidget(0)
     connect(manager, &WindowManager::windowConstructed, this, &ViewManagerWidget::windowConstructed);
     connect(manager, &WindowManager::windowDestructed, this, &ViewManagerWidget::windowDestructed);
 
-    connect(manager, &WindowManager::viewDockWidgetConstructed, this, &ViewManagerWidget::dockWidgetConstructed);
-    connect(manager, &WindowManager::viewDockWidgetDestructed, this, &ViewManagerWidget::dockWidgetDestructed);
+    connect(manager, &WindowManager::dockWidgetConstructed, this, &ViewManagerWidget::dockWidgetConstructed);
+    connect(manager, &WindowManager::dockWidgetDestructed, this, &ViewManagerWidget::dockWidgetDestructed);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ViewManagerWidget::themeChanged);
     themeChanged();
