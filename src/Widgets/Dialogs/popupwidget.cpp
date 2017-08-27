@@ -21,7 +21,8 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
         break;
     case TYPE::SPLASH:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::SplashScreen);
+        setAttribute(Qt::WA_ShowWithoutActivating);
+        setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::NoDropShadowWindowHint | Qt::SplashScreen);
         break;
     case TYPE::POPUP:
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
