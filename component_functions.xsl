@@ -389,10 +389,8 @@
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="code" select="cdit:get_key_value($root, 'code')" />
 
-        <xsl:value-of select="concat(o:t($tab), '{', o:nl())" />
-        <xsl:value-of select="o:tabbed_cpp_comment(concat('User entered C++ Code [', $id, ']'), $tab + 1)" />
-        <xsl:value-of select="concat(o:t($tab + 1), $code, o:nl())" />
-        <xsl:value-of select="concat(o:t($tab), '}', o:nl())" />
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('User entered Header [', $id, ']'), $tab)" />
+        <xsl:value-of select="concat(o:t($tab), $code, o:nl())" />
     </xsl:function>
 
     <xsl:function name="cdit:generate_VectorProcess">
@@ -1151,7 +1149,16 @@
 
         <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
         <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'InEventPortImpl')" />
+        <xsl:variable name="headers" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'Header')" />
         <xsl:variable name="worker_constructors" select="distinct-values(cdit:get_required_worker_constructors($component_root))" />
+
+        <xsl:variable name="headers" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'Header')" />
+
+
+        <!-- Include Header files -->
+        <xsl:for-each select="$headers">
+            <xsl:value-of select="cdit:generate_workload_cpp(.,., 0)" />
+        </xsl:for-each>
 
         <xsl:value-of select="o:tabbed_cpp_comment(concat('ComponentImpl ', o:square_wrap($component_id), ': ', $class_name), 0)" />
 
