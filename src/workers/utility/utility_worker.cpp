@@ -6,6 +6,7 @@
 
 Utility_Worker::Utility_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Utility_Worker_Impl();
+    impl_->SetRandomSeed(GetTimeOfDay());
 }
 
 Utility_Worker::~Utility_Worker(){
@@ -46,4 +47,39 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
         }
         std::cout << message << std::endl;
     }
+}
+
+
+
+void Utility_Worker::USleep(int microseconds){
+    return impl_->USleep(microseconds);
+}
+void Utility_Worker::Sleep(int seconds){
+    return impl_->Sleep(seconds);
+}
+
+
+ 
+void Utility_Worker::SetRandomSeed(unsigned int seed){
+    return impl_->SetRandomSeed(seed);
+}
+
+int Utility_Worker::RandomUniformInt(int lower_bound, int upper_bound){
+    return impl_->RandomUniformInt(lower_bound, upper_bound);
+}
+
+double Utility_Worker::RandomUniformReal(double lower_bound, double upper_bound){
+    return impl_->RandomUniformReal(lower_bound, upper_bound);
+}
+
+double Utility_Worker::RandomNormalReal(double mean, double stddev){
+    return impl_->RandomNormalReal(mean, stddev);
+}
+
+double Utility_Worker::RandomExponentialReal(double lambda){
+    return impl_->RandomExponentialReal(lambda);
+}
+
+std::string Utility_Worker::GenerateUUID(){
+    return impl_->GenerateUUID();
 }
