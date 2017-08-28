@@ -173,7 +173,7 @@ void NotificationItem::updateIcon()
             icon.first = "Notification";
             icon.second = Notification::getSeverityString(severity);
         }
-        auto icon_color = Notification::getSeverityColor(severity);
+        auto icon_color = Theme::theme()->getSeverityColor(severity);
 
         auto pixmap = Theme::theme()->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);

@@ -7,6 +7,8 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThreadPool>
 
+
+
 Theme* Theme::themeSingleton = 0;
 
 Theme::Theme() : QObject(0)
@@ -199,6 +201,17 @@ void Theme::setTextColor(Theme::COLOR_ROLE role, QColor color)
         textColor[role] = color;
         updateValid();
     }
+}
+
+void Theme::setSeverityColor(Notification::Severity severity, QColor color){
+    if(severityColor[severity] != color){
+        severityColor[severity] = color;
+        updateValid();
+    }
+}
+
+QColor Theme::getSeverityColor(Notification::Severity severity){
+    return severityColor.value(severity, QColor());
 }
 
 QColor Theme::getMenuIconColor(Theme::COLOR_ROLE role)
@@ -1141,6 +1154,25 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         resetAspectTheme(false);
         break;
     }
+
+    case SETTINGS::THEME_SEVERITY_INFO_COLOR:{
+        setSeverityColor(Notification::Severity::INFO, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_WARNING_COLOR:{
+        setSeverityColor(Notification::Severity::WARNING, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_ERROR_COLOR:{
+        setSeverityColor(Notification::Severity::ERROR, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_SUCCESS_COLOR:{
+        setSeverityColor(Notification::Severity::SUCCESS, color);
+        break;
+    }
+
+    
     case SETTINGS::THEME_SETASPECT_COLORBLIND:{
         resetAspectTheme(true);
         break;
@@ -1280,6 +1312,15 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
         emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
         emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
+
+
+        emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
+        emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+        emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+        emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(50,205,50));
+
+
+
     }else if(themePreset == VT_LIGHT_THEME){
         QColor bgColor = QColor(170,170,170);
         emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
@@ -1294,6 +1335,11 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
         emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
         emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
+
+        emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, black());
+        emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+        emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+        emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(0,128,0));
     }
 
 }
@@ -1339,6 +1385,12 @@ void Theme::updateValid()
             if(color.isValid()){
                continue;
             }else{
+                gotAllColors = false;
+                break;
+            }
+        }
+        for(auto severity : Notification::getSeverities()){
+            if(!severityColor.contains(severity)){
                 gotAllColors = false;
                 break;
             }

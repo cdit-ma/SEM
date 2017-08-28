@@ -9,7 +9,7 @@ namespace Notification{
     enum class Context{NOT_SELECTED, SELECTED};
     enum class Type{MODEL, APPLICATION};
     enum class Category{NONE, FILE, JENKINS, VALIDATION};
-    enum class Severity{INFO, WARNING, ERROR};
+    enum class Severity{INFO, WARNING, ERROR, SUCCESS};
 
     //Enum getters
     extern QSet<Notification::Context> getContexts();
@@ -22,9 +22,6 @@ namespace Notification{
     extern QString getTypeString(Notification::Type type);
     extern QString getCategoryString(Notification::Category category);
     extern QString getSeverityString(Notification::Severity severity);
-
-    //Color Getters
-    extern QColor getSeverityColor(Notification::Severity severity);
 
 
     inline uint qHash(Notification::Context key, uint seed){

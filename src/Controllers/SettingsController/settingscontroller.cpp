@@ -185,7 +185,11 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_SETASPECT_COLORBLIND, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
-
+    createSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::INFO), "Notification", Notification::getSeverityString(Notification::Severity::INFO));
+    createSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::WARNING), "Notification", Notification::getSeverityString(Notification::Severity::WARNING));
+    createSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::ERROR), "Notification", Notification::getSeverityString(Notification::Severity::ERROR));
+    createSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::SUCCESS), "Notification", Notification::getSeverityString(Notification::Severity::SUCCESS));
+    
 
     createSetting(SETTINGS::THEME_APPLY, SETTING_TYPE::NONE, "Theme", "Theme", "Apply Theme");
 

@@ -405,7 +405,7 @@ void NotificationDialog::setupFilters()
     filters_layout->addWidget(context_filters);
 
 
-    severity_filters = new OptionGroupBox("SEVERITY", this);
+    severity_filters = new OptionGroupBox("STATUS", this);
     
     auto severities = Notification::getSeverities().toList();
     qSort(severities.begin(), severities.end());

@@ -14,7 +14,7 @@ QSet<Notification::Category> Notification::getCategories(){
 }
 
 QSet<Notification::Severity> Notification::getSeverities(){
-    return {Severity::INFO, Severity::WARNING, Severity::ERROR};
+    return {Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
 }
 
 QString Notification::getTypeString(Notification::Type type)
@@ -36,6 +36,8 @@ QString Notification::getSeverityString(Notification::Severity severity)
         return "Warning";
     case Severity::ERROR:
         return "Error";
+    case Severity::SUCCESS:
+        return "Success";
     }
 }
 
@@ -60,17 +62,5 @@ QString Notification::getCategoryString(Notification::Category category)
         return "Validation";
     case Category::NONE:
         return "No Category";
-    }
-}
-
-QColor Notification::getSeverityColor(Notification::Severity severity)
-{
-    switch (severity) {
-    case Notification::Severity::INFO:
-        return Theme::theme()->getTextColor();
-    case Notification::Severity::WARNING:
-        return QColor(255,200,0);
-    case Notification::Severity::ERROR:
-        return QColor(255,50,50);
     }
 }

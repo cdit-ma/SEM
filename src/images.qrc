@@ -259,5 +259,7 @@
         <file alias="bed">Resources/Icons/bed.png</file>
         <file alias="dice">Resources/Icons/dice.png</file>
         <file alias="clockDark">Resources/Icons/clockDark.png</file>
+        <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
+        <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
     </qresource>
 </RCC>

@@ -33,7 +33,7 @@ void NotificationPopup::DisplayNotification(NotificationObject* notification){
         icon->setMovie(movie);
     }else{
         auto icon = notification->getIcon();
-        auto icon_color = Notification::getSeverityColor(notification->getSeverity());
+        auto icon_color = Theme::theme()->getSeverityColor(notification->getSeverity());
         auto pixmap = Theme::theme()->getImage(icon.first, icon.second, QSize(16,16), icon_color);
         
         if (pixmap.isNull()) {

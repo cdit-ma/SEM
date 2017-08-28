@@ -15,6 +15,7 @@
 #include "ModelController/nodekinds.h"
 #include "enumerations.h"
 #include "Controllers/SettingsController/settingscontroller.h"
+#include "Controllers/NotificationManager/notificationenumerations.h"
 
 
 #define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
@@ -22,7 +23,6 @@
 #define THEME_STYLE_QPUSHBUTTON_JENKINS "THEME_STYLE_QPUSHBUTTON_JENKINS"
 #define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
 #define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
-
 
 typedef QPair<QString, QString> IconPair;
 class Theme: public QObject
@@ -102,6 +102,9 @@ public:
     void setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias);
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
+
+    void setSeverityColor(Notification::Severity severity, QColor color);
+    QColor getSeverityColor(Notification::Severity);
 
     void applyTheme();
     bool isValid() const;
@@ -184,6 +187,8 @@ private:
     QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
+
+    QHash<Notification::Severity, QColor> severityColor;
 
     QHash<COLOR_ROLE, QColor> textColor;
     QHash<COLOR_ROLE, QColor> menuIconColor;

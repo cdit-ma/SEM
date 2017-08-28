@@ -32,6 +32,7 @@ NotificationManager::NotificationManager(ViewController* controller)
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::INFO), icon_prefix, "circleInfoDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::WARNING), icon_prefix, "triangleCritical");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "pointyCircleCriticalDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::SUCCESS), icon_prefix, "circleTickDark");
 
     //Setup Category Icons
     theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::JENKINS), icon_prefix, "jenkinsFlat");

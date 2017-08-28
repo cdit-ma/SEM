@@ -53,7 +53,15 @@ void NotificationToolbar::themeChanged()
                   "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
                   "QLabel{background:transparent;font-weight:bold;}"
                 );
-    
+            
+
+    for(auto severity : Notification::getSeverities()){
+        auto severity_label = severity_labels.value(severity, 0);
+        if(severity_label){
+            auto color = Theme::QColorToHex(Theme::theme()->getSeverityColor(severity));
+            severity_label->setStyleSheet("QLabel{color: " + color + ";}");
+        }
+    }
     default_icon = theme->getIcon("Icons", "notificationSeen");
     show_notification_dialog_action->setIcon(theme->getIcon("Icons", "popOut"));
 
@@ -103,6 +111,7 @@ void NotificationToolbar::setupLayout()
     auto severities = Notification::getSeverities().toList();
     qSort(severities.begin(), severities.end());
     //Remove Info?
+    severities.removeAll(Notification::Severity::SUCCESS);
     
     //Get them in order
     for(auto severity : severities){
@@ -113,8 +122,6 @@ void NotificationToolbar::setupLayout()
         severity_label->setMinimumWidth(labelWidth);
         severity_label->setAlignment(Qt::AlignCenter);
         severity_label->setToolTip("Number of " + Notification::getSeverityString(severity) + " Notifications");
-        auto color = Theme::QColorToHex(Notification::getSeverityColor(severity));
-        severity_label->setStyleSheet("QLabel{color: " + color + ";}");
         
         addWidget(severity_label);
         addSeparator();

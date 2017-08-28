@@ -1634,7 +1634,8 @@ void NodeView::notification_Added(NotificationObject* obj){
     //Check for IDs
     auto entity = getEntityItem(obj->getEntityID());
     if(entity){
-        auto tint_color = Notification::getSeverityColor(obj->getSeverity());
+
+        auto tint_color = Theme::theme()->getSeverityColor(obj->getSeverity());
         auto icon = obj->getIcon();
         entity->AddNotification(icon.first, icon.second, tint_color);
         notification_id_lookup[obj->getID()] = entity->getID();

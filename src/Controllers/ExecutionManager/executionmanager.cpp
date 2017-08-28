@@ -97,7 +97,7 @@ void ExecutionManager::ValidateModel(QString model_path)
 
         ///Update the original notification
         validation_noti->setDescription("Model validation - [" + QString::number(success_count) + "/" + QString::number(test_count) + "] tests passed");
-        validation_noti->setSeverity(test_count == success_count ? Notification::Severity::INFO : Notification::Severity::ERROR);
+        validation_noti->setSeverity(test_count == success_count ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     } else {
         ///Update the original notification
         validation_noti->setDescription("Model validation failed to execute: '" + results.standard_error.join("") + "'");

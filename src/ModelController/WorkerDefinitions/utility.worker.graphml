@@ -231,7 +231,7 @@
                             <data key="label">Value</data>
                             <data key="type">Integer</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">dice</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The random integer</data>
                         </node>
                     </graph>
@@ -270,7 +270,7 @@
                             <data key="label">Value</data>
                             <data key="type">Double</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">dice</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
                         </node>
                     </graph>
@@ -309,7 +309,7 @@
                             <data key="label">Value</data>
                             <data key="type">Double</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">dice</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
                         </node>
                     </graph>
@@ -340,7 +340,7 @@
                             <data key="label">Value</data>
                             <data key="type">Double</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">dice</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
                         </node>
                     </graph>
@@ -362,7 +362,7 @@
                             <data key="label">UUID</data>
                             <data key="type">String</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">dice</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The uuid</data>
                         </node>
                     </graph>
