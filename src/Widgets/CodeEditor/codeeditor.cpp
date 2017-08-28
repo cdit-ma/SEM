@@ -15,6 +15,11 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
     gotoLine->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     connect(gotoLine, SIGNAL(triggered(bool)), this, SLOT(gotoLine()));
 
+    setTabStopWidth(24);
+    QFont font("courier");
+    font.setPointSize(12);
+    setFont(font);
+
     addAction(gotoLine);
 
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);

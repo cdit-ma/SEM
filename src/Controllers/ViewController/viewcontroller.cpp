@@ -502,7 +502,7 @@ void ViewController::importGraphMLExtract(QString data)
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
     if(!codeViewer){
-        codeViewer = WindowManager::manager()->constructViewDockWidget("Code Browser");
+        codeViewer = WindowManager::manager()->constructDockWidget("Code Browser");
         codeViewer->setCloseVisible(false);
         CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
         codeViewer->setWidget(codeBrowser);

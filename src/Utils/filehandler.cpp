@@ -201,7 +201,7 @@ FileHandler *FileHandler::getFileHandler()
 
 void FileHandler::_notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName, bool toast)
 {
-    NotificationManager::manager()->AddNotification(notificationText, iconPath, iconName, severity, Notification::Type::APPLICATION, Notification::Category::FILE, toast);
+    NotificationManager::manager()->AddNotification(notificationText, iconPath, iconName, severity, Notification::Type::APPLICATION, Notification::Category::FILE, false, toast);
 }
 
 QString FileHandler::getAutosaveFilePath(QString path){

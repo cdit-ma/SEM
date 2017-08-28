@@ -410,7 +410,7 @@ void MainWindow::setupInnerWindow()
 
 
     //Set each NodeView with there contained aspects
-    dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::WORKERS);
+    dwInterfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dwBehaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
     dwAssemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
     dwHardware->getNodeView()->setContainedViewAspect(VIEW_ASPECT::HARDWARE);
