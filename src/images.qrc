@@ -248,5 +248,16 @@
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
         <file alias="home">Resources/Icons/home.png</file>
+        <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
+        <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
+        <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
+        <file alias="arrowLineLeft">Resources/Icons/arrowLineLeft.png</file>
+        <file alias="arrowLineRight">Resources/Icons/arrowLineRight.png</file>
+        <file alias="chartMean">Resources/Icons/chartMean.png</file>
+        <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
+        <file alias="chartLambda">Resources/Icons/chartLambda.png</file>
+        <file alias="bed">Resources/Icons/bed.png</file>
+        <file alias="dice">Resources/Icons/dice.png</file>
+        <file alias="clockDark">Resources/Icons/clockDark.png</file>
     </qresource>
 </RCC>
