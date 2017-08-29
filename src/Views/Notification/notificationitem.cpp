@@ -112,10 +112,14 @@ void NotificationItem::setSelected(bool select)
 {
     if (selected != select) {
         selected = select;
+        auto entity_id = getEntityID();
         if (selected) {
             backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
         } else {
             backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        }
+        if(entity_id != -1){
+            emit highlightEntity(entity_id, selected);
         }
         updateStyleSheet();
     }
@@ -203,31 +207,6 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
     emit itemClicked(this);
 }
-
-
-/**
- * @brief NotificationItem::enterEvent
- */
-void NotificationItem::enterEvent(QEvent *)
-{
-    auto entity_id = getEntityID();
-    if(entity_id != -1){
-        emit highlightEntity(entity_id, true);
-    }
-}
-
-
-/**
- * @brief NotificationItem::leaveEvent
- */
-void NotificationItem::leaveEvent(QEvent *)
-{   
-    auto entity_id = getEntityID();
-    if(entity_id != -1){
-        emit highlightEntity(entity_id, false);
-    }
-}
-
 
 /**
  * @brief NotificationItem::updateStyleSheet

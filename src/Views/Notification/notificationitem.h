@@ -29,8 +29,6 @@ private slots:
     void timeChanged();
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
-    void enterEvent(QEvent*);
-    void leaveEvent(QEvent*);
 
 private:
     void setupLayout();

@@ -177,7 +177,7 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notif
     return list;
 }
 
-NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading, bool toast, int entity_id){
+NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading, bool toast, int entity_id, bool defer_update){
     auto notification = new NotificationObject();
     notification->setDescription(description);
     notification->setIcon(icon_path, icon_name);
@@ -192,11 +192,12 @@ NotificationObject* NotificationManager::AddNotification(QString description, QS
     notifications[notification_id] = notification;
     connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated, Qt::QueuedConnection);
 
-    emit notificationAdded(notification);
+    if(!defer_update){
+        emit notificationAdded(notification);
+    }
     NotificationUpdated(notification);
     return notification;
 }
-
 
 
 void NotificationManager::toastLatestNotification(){

@@ -38,7 +38,7 @@ private slots:
 public slots:
     void viewItemDestructed(int ID);
 private:
-    void onResultScrollBarValueChanged();
+    void scrollBarValueChanged();
     void loadNextResults();
     void setQuery(QString query);
     void setupLayout();

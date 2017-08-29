@@ -68,6 +68,7 @@ void ExecutionManager::ValidateModel(QString model_path)
         QString report = results.standard_output.join("");
         QXmlStreamReader xml(report);
 
+        auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
         while (!xml.atEnd()) {
             //Read each line of the xml document.
             xml.readNext();
@@ -82,13 +83,16 @@ void ExecutionManager::ValidateModel(QString model_path)
                         auto result_text = xml.readElementText();
                         auto severity = is_warning ? Notification::Severity::WARNING : Notification::Severity::ERROR;
                         
-                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, false, entity_id);
+                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, false, entity_id, true);
                     }else if(result == "true"){
                         success_count ++;
                     }
                 }
             }
         }
+        auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Panel rendering notifications: " <<  finish - start << "MS";
+        
 
         // Show the notification panel on validation failure
         if (success_count < test_count) {

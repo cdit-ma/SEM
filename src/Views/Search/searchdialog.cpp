@@ -110,7 +110,6 @@ void SearchDialog::filtersChanged()
     auto checked_aspect_set = aspect_filters->getCheckedOptions<VIEW_ASPECT>().toSet();
     auto checked_key_set = data_filters->getCheckedOptions<QString>().toSet();
 
-    int visible_count = 0;
     current_visible = 0;
     filtered_match_count = 0;
 
