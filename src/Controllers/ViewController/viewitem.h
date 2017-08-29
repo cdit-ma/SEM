@@ -5,7 +5,7 @@
 #include "../../enumerations.h"
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
-
+#include "../../ModelController/nodekinds.h"
 #include "../../ModelController/kinds.h"
 
 
@@ -29,6 +29,8 @@ public:
     bool isNode() const;
     bool isEdge() const;
     virtual bool isInModel();
+
+    VIEW_ASPECT getViewAspect();
 
     QVariant getData(QString keyName) const;
     QStringList getKeys() const;
@@ -91,5 +93,6 @@ private:
 
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;
+    VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
 };
 #endif // VIEWITEM_H

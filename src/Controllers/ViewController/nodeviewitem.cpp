@@ -7,7 +7,6 @@
 
 NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller)
 {
-    aspect = VIEW_ASPECT::NONE;
     nodeKind = kind;
     changeData("kind", EntityFactory::getNodeKindString(kind));
     changeData("label", label);
@@ -15,7 +14,6 @@ NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString l
 
 NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
-    aspect = VIEW_ASPECT::NONE;
     nodeKind = kind;
     changeData("x", 0);
     changeData("y", 0);
@@ -37,14 +35,6 @@ NodeViewItem *NodeViewItem::getParentNodeViewItem()
     return 0;
 }
 
-VIEW_ASPECT NodeViewItem::getViewAspect()
-{
-    //Get Once
-    if(aspect == VIEW_ASPECT::NONE){
-        aspect = getController()->getNodeViewAspect(getID());
-    }
-    return aspect;
-}
 
 int NodeViewItem::getParentID()
 {

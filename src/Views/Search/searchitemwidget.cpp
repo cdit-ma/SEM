@@ -40,6 +40,12 @@ SearchItemWidget::~SearchItemWidget()
     }
 }
 
+void SearchItemWidget::addMatchedKeys(QSet<QString> keys){
+    for(auto key : keys){
+        addMatchedKey(key);
+    }
+}
+
 void SearchItemWidget::addMatchedKey(QString key){
     matched_keys.insert(key);
     setupDataKey(key);
@@ -77,10 +83,12 @@ void SearchItemWidget::setSelected(bool selected)
 
     this->selected = selected;
     if (selected) {
-        emit itemSelected(ID);
         backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
+        emit itemSelected(ID);
+        emit hoverEnter(ID);
     } else {
         backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        emit hoverLeave(ID);
     }
 
     updateStyleSheet();
@@ -198,21 +206,6 @@ void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent *)
     doubleClicked = true;
 }
 
-/**
- * @brief SearchItemWidget::enterEvent
- */
-void SearchItemWidget::enterEvent(QEvent *)
-{
-    emit hoverEnter(ID);
-}
-
-/**
- * @brief SearchItemWidget::leaveEvent
- */
-void SearchItemWidget::leaveEvent(QEvent *)
-{
-    emit hoverLeave(ID);
-}
 
 /**
  * @brief SearchItemWidget::updateStyleSheet

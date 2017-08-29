@@ -2,6 +2,7 @@
 #include "viewcontroller.h"
 #include "../../ModelController/modelcontroller.h"
 
+
 #include <QDebug>
 #include <QStack>
 
@@ -30,6 +31,15 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
+}
+
+VIEW_ASPECT ViewItem::getViewAspect()
+{
+    //Get Once
+    if(aspect == VIEW_ASPECT::NONE){
+        aspect = getController()->getNodeViewAspect(getID());
+    }
+    return aspect;
 }
 
 int ViewItem::getID() const

@@ -19,7 +19,6 @@ public:
 
     NODE_KIND getNodeKind() const;
     NodeViewItem* getParentNodeViewItem();
-    VIEW_ASPECT getViewAspect();
     int getParentID();
     bool isNodeOfType(NODE_TYPE type);
     bool isInModel();
@@ -38,7 +37,6 @@ signals:
 private:
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND nodeKind;
-    VIEW_ASPECT aspect;
     int parent_id = -1;
 };
 #endif // VIEWITEM_H

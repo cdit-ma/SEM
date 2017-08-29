@@ -32,6 +32,9 @@ private slots:
     void popupEntity();
     void centerEntity();
 private:
+    NotificationItem* constructNotificationItem(NotificationObject* notification);
+    NotificationItem* getNotificationItem(NotificationObject* notification);
+
     void initialisePanel();
     void toggleSort();
     void updateNotificationVisibility(QList<NotificationItem*> items);
@@ -43,6 +46,9 @@ private:
     void clearAll();
     void clearSelection();
     void updateVisibleCount();
+
+    void scrollBarValueChanged();
+    void loadNextResults();
 private:
     QLabel* info_label = 0;
     QLabel* status_label = 0;
@@ -58,6 +64,7 @@ private:
     QToolBar* top_toolbar = 0;
     QToolBar* bottom_toolbar = 0;
 
+    QToolButton* load_more_button = 0;
     QAction* center_action = 0;
     QAction* popup_action = 0;
     QAction* sort_time_action = 0;
@@ -73,6 +80,10 @@ private:
     OptionGroupBox* severity_filters = 0;
     OptionGroupBox* category_filters = 0;
     OptionGroupBox* source_filters = 0;
+
+    int current_visible = 0;
+    int filtered_match_count = 0;
+    int max_visible = 0;
 
     QHash<int, NotificationItem*> notification_items;
     NotificationItem* selected_notification = 0;

@@ -1,5 +1,6 @@
 #include "searchdialog.h"
 #include "../../theme.h"
+#include <QScrollBar>
 
 #define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 300
@@ -12,6 +13,12 @@ SearchDialog::SearchDialog(QWidget *parent)
     : QFrame(parent)
 {
     setupLayout();
+
+    auto v_scrollbar = results_scroll->verticalScrollBar();
+    connect(v_scrollbar, &QScrollBar::valueChanged, this, &SearchDialog::scrollBarValueChanged);
+    connect(v_scrollbar, &QScrollBar::rangeChanged, this, &SearchDialog::scrollBarValueChanged);
+    connect(load_more_button, &QToolButton::clicked, this, &SearchDialog::loadNextResults);
+    
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -44,25 +51,20 @@ void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> 
     auto has_results = !results.isEmpty();
     
     info_label->setVisible(!has_results);
-    if(!has_results) {
-        data_filters->setResetButtonText("All");
-        return;
-    }else{
-        data_filters->setResetButtonText("All (" + QString::number(results.count()) + ")");
-    }
-
-    current_search_items.clear();
-
-    for(auto key : results.uniqueKeys()){
-        auto view_items = results.values(key);
-        for(auto item : view_items){
-            auto search_item = constructSearchItem(item);
-            search_item->addMatchedKey(key);
-            current_search_items.insert(item->getID());
+    if(has_results){
+        
+        for(auto key : results.uniqueKeys()){
+            auto view_items = results.values(key);
+            for(auto item : view_items){
+                search_key_lookups.insertMulti(item, key);
+            }
+            data_filters->addOption(key, key + " (" + QString::number(view_items.count()) + ")", "Data", key);
         }
-        data_filters->addOption(key, key + " (" + QString::number(view_items.count()) + ")", "Data", key);
+        //Update the All Button
+        data_filters->setResetButtonText("All (" + QString::number(search_key_lookups.uniqueKeys().count()) + ")");
+    }else{
+        data_filters->setResetButtonText("All");
     }
-
     filtersChanged();
 }
 
@@ -80,6 +82,8 @@ void SearchDialog::themeChanged()
                     theme->getToolBarStyleSheet() +
                     theme->getSplitterStyleSheet()
                 );
+
+    load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{font-size:10px;border-radius:0px;}");
 
     results_widget->setStyleSheet("background: rgba(0,0,0,0);");
     filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
@@ -104,38 +108,55 @@ void SearchDialog::themeChanged()
 void SearchDialog::filtersChanged()
 {
     auto checked_aspect_set = aspect_filters->getCheckedOptions<VIEW_ASPECT>().toSet();
-    auto checked_key_list = data_filters->getCheckedOptions<QString>();
+    auto checked_key_set = data_filters->getCheckedOptions<QString>().toSet();
 
     int visible_count = 0;
-    for(auto item : search_items){
-        auto view_aspect = item->getViewAspect();
-        //Edges are allowed
-        bool matched_aspect = checked_aspect_set.contains(view_aspect) || view_aspect == VIEW_ASPECT::NONE;
-        
-        bool matched_key = false;
-        if(matched_aspect){
-            for(auto key : checked_key_list){
-                if(item->gotMatchedKey(key)){
-                    matched_key = true;
-                    break;
-                }
-            }
+    current_visible = 0;
+    filtered_match_count = 0;
+
+    for(auto view_item : search_key_lookups.uniqueKeys()){
+        auto matched_keys = search_key_lookups.values(view_item).toSet();
+        auto view_aspect = view_item->getViewAspect();
+
+        //Test our cases
+        auto got_matched_aspect = checked_aspect_set.contains(view_aspect);
+        auto got_matched_keys = checked_key_set.intersects(matched_keys);
+        auto got_match = got_matched_aspect && got_matched_keys;
+
+        if(got_match){
+            filtered_match_count ++;
         }
-        bool visible = matched_aspect && matched_key;
-        item->setVisible(visible);
-        if(visible){
-            visible_count ++;
+        
+        auto set_visible = got_match && current_visible < max_visible;
+
+        //If we've got a match WE have to construct a search item, else if we don't need, we only need to hide the previously constructed items
+        auto search_item = set_visible ? constructSearchItem(view_item) : getSearchItem(view_item);
+        
+        if(search_item){
+            //Show the item
+            search_item->setVisible(set_visible);
+            if(set_visible){
+                //Add All matching search keys
+                search_item->addMatchedKeys(matched_keys);
+                current_visible ++;
+            }
         }
     }
 
     //Calculate the number of hidden items
-    auto search_count = current_search_items.size();
-    bool all_visible = visible_count == search_count;
-    if(!all_visible){
-        status_label->setText("[" + QString::number(search_count - visible_count) + "/" + QString::number(search_count) + "] entities hidden by filters");
-    }
-    //Hide and show the 
-    result_status_widget->setVisible(!all_visible);
+    auto search_count = search_key_lookups.uniqueKeys().size();
+    //Check if there are search results which are hidden by the filters
+    bool any_filtered = search_count > filtered_match_count;
+    //Check if all the matched filter results are being shown
+    bool all_showing = current_visible == filtered_match_count;
+
+    //Update the text for the status_label
+    if(any_filtered){
+        status_label->setText(QString::number(search_count - filtered_match_count) + "/" + QString::number(search_count) + " entities hidden by filters");
+    } 
+    result_status_widget->setVisible(any_filtered);
+
+    load_more_button->setVisible(!all_showing);
 }
 
 
@@ -164,7 +185,6 @@ void SearchDialog::viewItemDestructed(int ID)
 {
     SearchItemWidget* widget = search_items.value(ID, 0);
     if (widget) {
-        qCritical()  << "DELETING WIDGET:" << ID << " " << widget;
         search_items.take(ID);
         delete widget;
     }
@@ -251,7 +271,11 @@ void SearchDialog::setupLayout()
 
         results_widget = new QWidget(this);
         {
-            results_layout = new QVBoxLayout(results_widget);
+            auto v2_layout = new QVBoxLayout(results_widget);
+            v2_layout->setAlignment(Qt::AlignTop);
+            v2_layout->setSpacing(0);
+            v2_layout->setMargin(0);
+            results_layout = new QVBoxLayout();
             results_layout->setAlignment(Qt::AlignTop);
             results_layout->setSpacing(0);
             results_layout->setMargin(0);
@@ -262,7 +286,13 @@ void SearchDialog::setupLayout()
             info_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
 
             //Add the No Results info label to the results layout
-            results_layout->addWidget(info_label);
+            v2_layout->addWidget(info_label);
+            v2_layout->addLayout(results_layout);
+            load_more_button = new QToolButton(this);
+            load_more_button->setText("Load next 20 entities");
+            load_more_button->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
+            load_more_button->setVisible(false);
+            v2_layout->addWidget(load_more_button);
         }
     
         results_scroll = new QScrollArea(this);
@@ -350,6 +380,25 @@ void SearchDialog::clearSearchItems()
         i->clearMatchedKeys();
         i->hide();
     }
+    search_key_lookups.clear();
+    searchItemSelected(-1);
+    max_visible = 20;
+}
+
+void SearchDialog::scrollBarValueChanged()
+{
+    auto v_scroll = results_scroll->verticalScrollBar();
+    if(v_scroll && v_scroll->value() > 0 && v_scroll->value() == v_scroll->maximum()){
+        loadNextResults();
+    }
+}
+
+void SearchDialog::loadNextResults(){
+    if(current_visible < filtered_match_count){
+        //Load more!
+        max_visible += 20;
+        filtersChanged();
+    }
 }
 
 
@@ -378,4 +427,12 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
         connect(search_item, &SearchItemWidget::hoverLeave, this, &SearchDialog::itemHoverLeave);
     }
     return search_item;
+}
+
+
+SearchItemWidget* SearchDialog::getSearchItem(ViewItem* item){
+    if(item){
+        return search_items.value(item->getID(), 0);
+    }
+    return 0;
 }
