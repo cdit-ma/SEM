@@ -16,14 +16,10 @@ SearchDialog::SearchDialog(QWidget *parent)
 
     auto v_scrollbar = results_scroll->verticalScrollBar();
     connect(v_scrollbar, &QScrollBar::valueChanged, this, &SearchDialog::scrollBarValueChanged);
-    connect(v_scrollbar, &QScrollBar::rangeChanged, this, &SearchDialog::scrollBarValueChanged);
     connect(load_more_button, &QToolButton::clicked, this, &SearchDialog::loadNextResults);
-    
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
-
-    
 }
 
 
@@ -145,9 +141,9 @@ void SearchDialog::filtersChanged()
     //Calculate the number of hidden items
     auto search_count = search_key_lookups.uniqueKeys().size();
     //Check if there are search results which are hidden by the filters
-    bool any_filtered = search_count > filtered_match_count;
+    auto any_filtered = search_count > filtered_match_count;
     //Check if all the matched filter results are being shown
-    bool all_showing = current_visible == filtered_match_count;
+    auto all_showing = current_visible == filtered_match_count;
 
     //Update the text for the status_label
     if(any_filtered){
@@ -171,6 +167,7 @@ void SearchDialog::searchItemSelected(int ID)
         if (search_items.contains(selected_id)) {
             SearchItemWidget* item = search_items.value(selected_id);
             item->setSelected(false);
+            
         }
         selected_id = ID;
     }
@@ -180,12 +177,14 @@ void SearchDialog::searchItemSelected(int ID)
 /**
  * @brief SearchDialog::viewItemDestructed
  */
-void SearchDialog::viewItemDestructed(int ID)
+void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
 {
     SearchItemWidget* widget = search_items.value(ID, 0);
+    search_key_lookups.remove(item);
     if (widget) {
         search_items.take(ID);
-        delete widget;
+        widget->hide();
+        widget->deleteLater();
     }
     if (selected_id == ID) {
         selected_id = -1;
@@ -288,7 +287,7 @@ void SearchDialog::setupLayout()
             v2_layout->addWidget(info_label);
             v2_layout->addLayout(results_layout);
             load_more_button = new QToolButton(this);
-            load_more_button->setText("Load next 20 entities");
+            load_more_button->setText("Load next 10 entities");
             load_more_button->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
             load_more_button->setVisible(false);
             v2_layout->addWidget(load_more_button);
@@ -381,7 +380,7 @@ void SearchDialog::clearSearchItems()
     }
     search_key_lookups.clear();
     searchItemSelected(-1);
-    max_visible = 20;
+    max_visible = 30;
 }
 
 void SearchDialog::scrollBarValueChanged()
@@ -395,7 +394,7 @@ void SearchDialog::scrollBarValueChanged()
 void SearchDialog::loadNextResults(){
     if(current_visible < filtered_match_count){
         //Load more!
-        max_visible += 20;
+        max_visible += 10;
         filtersChanged();
     }
 }

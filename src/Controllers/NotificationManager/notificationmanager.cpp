@@ -258,26 +258,6 @@ NotificationObject* NotificationManager::getLatestNotification(){
     return latest_notification;
 }
 
-int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast)
-{
-    auto notification = new NotificationObject();
-    notification->setDescription(description);
-    notification->setIcon(iconPath, iconName);
-    notification->setSeverity(severity);
-    notification->setEntityID(entityID);
-    notification->setType(type);
-    notification->setCategory(category);
-    notification->setToastable(toast);
-
-    auto notification_id = notification->getID();
-    notifications[notification_id] = notification;
-    connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated);
-
-    emit notificationAdded(notification);
-    NotificationUpdated(notification);
-    return notification_id;
-}
-
 void NotificationManager::NotificationUpdated(NotificationObject* notification){
     if(notification){
         auto notification_id = notification->getID();

@@ -1021,7 +1021,7 @@ void ViewController::autoSaveProject(){
             auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
             if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
                 //Display a notification of the autosave
-                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, true);
+                NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, false, false);
                 //update the autosave id
                 autosave_id_ = project_action_count;
                 emit vc_addProjectToRecentProjects(autosave_path);

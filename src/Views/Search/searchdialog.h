@@ -36,7 +36,7 @@ private slots:
     void searchItemSelected(int ID);
     void resetPanel();
 public slots:
-    void viewItemDestructed(int ID);
+    void viewItemDestructed(int ID, ViewItem* item);
 private:
     void scrollBarValueChanged();
     void loadNextResults();

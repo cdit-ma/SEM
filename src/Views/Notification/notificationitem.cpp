@@ -41,8 +41,6 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
 }
 
 NotificationItem::~NotificationItem(){
-    //Dehighlight
-    leaveEvent(0);
 
 }
 
@@ -205,6 +203,7 @@ void NotificationItem::timeChanged()
  */
 void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
+    qCritical() << "RELEASED";
     emit itemClicked(this);
 }
 

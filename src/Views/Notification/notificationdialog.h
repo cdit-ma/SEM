@@ -19,7 +19,6 @@ class NotificationDialog : public QFrame
 
 public:
     NotificationDialog(ViewController* viewController, QWidget *parent = 0);
-    void updatePanel();
 signals:
     void mouseEntered();
 private slots:
@@ -36,9 +35,8 @@ private:
     NotificationItem* getNotificationItem(NotificationObject* notification);
 
     void initialisePanel();
-    void toggleSort();
-    void updateNotificationObjVisibility();
-    void updateNotificationVisibility(QList<NotificationItem*> items);
+    void updateNotificationsVisibility();
+    
     void setupLayout();
     void setupFilters();
 
@@ -46,10 +44,10 @@ private:
 
     void clearAll();
     void clearSelection();
-    void updateVisibleCount();
 
     void scrollBarValueChanged();
     void loadNextResults();
+    void updateLabels();
 private:
     QLabel* info_label = 0;
     QLabel* status_label = 0;
@@ -84,7 +82,13 @@ private:
 
     int current_visible = 0;
     int filtered_match_count = 0;
-    int max_visible = 20;
+
+    int max_visible = 0;
+
+    int total_notifications = 0;
+    int current_matched_notifications = 0;
+    int current_visible_notifications = 0;
+
     int notification_count = 0;
 
     QHash<int, NotificationItem*> notification_items;

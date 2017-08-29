@@ -63,16 +63,6 @@ private slots:
 private:
     void NotificationUpdated(NotificationObject* notification);
 
-    int addNotification(QString description,
-                        QString iconPath,
-                        QString iconName,
-                        int entityID,
-                        Notification::Severity s,
-                        Notification::Type t,
-                        Notification::Category c,
-                        bool toast = true);
-
-
     static NotificationManager* managerSingleton;
     
     
