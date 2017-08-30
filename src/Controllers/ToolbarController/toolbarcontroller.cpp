@@ -18,7 +18,6 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     connectedNodeEdgeKinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
     connectedNodeEdgeKinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
     connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
-    connectedNodeEdgeKinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
     connectedNodeEdgeKinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;
     connectedNodeEdgeKinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
@@ -28,7 +27,7 @@ ToolbarController::ToolbarController(ViewController *viewController):QObject(vie
     kindsWithSubActions << "BlackBoxInstance" << "ComponentInstance" << "ComponentImpl";
     kindsWithSubActions << "AggregateInstance" << "VectorInstance" << "InEventPort";
     kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
-    kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess" << "EnumInstance";
+    kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
 
     infoActionKeyHash["BlackBoxInstance"] = "INFO_NO_BLACKBOXES";
     infoActionKeyHash["ComponentInstance"] = "INFO_NO_COMPONENTS";

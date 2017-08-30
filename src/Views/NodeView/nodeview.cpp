@@ -968,7 +968,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             default:
-                nodeItem = new StackNodeItem(item, parentNode);
+                //nodeItem = new StackNodeItem(item, parentNode);
                 break;
             }
 

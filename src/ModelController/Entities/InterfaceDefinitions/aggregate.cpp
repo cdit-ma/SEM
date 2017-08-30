@@ -56,8 +56,6 @@ bool Aggregate::canAdoptChild(Node *child)
     NODE_KIND kind = child->getNodeKind();
 
     switch(kind){
-    case NODE_KIND::ENUM_INSTANCE:
-        break;
     case NODE_KIND::AGGREGATE_INSTANCE:
         break;
     case NODE_KIND::MEMBER:
@@ -91,5 +89,4 @@ bool Aggregate::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }
-
 

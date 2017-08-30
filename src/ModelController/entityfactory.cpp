@@ -80,9 +80,6 @@
 #include "Entities/InterfaceDefinitions/member.h"
 #include "Entities/InterfaceDefinitions/outeventport.h"
 #include "Entities/InterfaceDefinitions/vector.h"
-#include "Entities/InterfaceDefinitions/enum.h"
-#include "Entities/InterfaceDefinitions/enummember.h"
-#include "Entities/InterfaceDefinitions/enuminstance.h"
 
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
@@ -338,9 +335,6 @@ EntityFactory::EntityFactory()
     Member(this);
     OutEventPort(this);
     Vector(this);
-    Enum(this);
-    EnumMember(this);
-    EnumInstance(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);
@@ -497,7 +491,7 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, int id)
     }
 
     if(!node){
-        qCritical() << "Node Kind: " << (uint)kind << " : " << getNodeKindString(kind) << " Not Implemented!";
+        qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
     }
 
     //Only store 

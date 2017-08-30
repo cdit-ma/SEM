@@ -1,10 +1,6 @@
 #ifndef NOTIFICATIONENUMERATIONS_H
 #define NOTIFICATIONENUMERATIONS_H
 
-//Undefine the ERROR/SUCCESS MACROS on windows
-#undef ERROR
-#undef SUCCESS
-
 #include <QSet>
 #include <QColor>
 #include <QMetaType>

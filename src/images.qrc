@@ -74,7 +74,6 @@
         <file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
         <file alias="VariadicParameter">Resources/EntityIcons/VariadicParameter.png</file>
         <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
-        <file alias="Enum">Resources/EntityIcons/Enum.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -262,16 +261,5 @@
         <file alias="clockDark">Resources/Icons/clockDark.png</file>
         <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
         <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
-        <file alias="number0">Resources/Icons/number0.png</file>
-        <file alias="number1">Resources/Icons/number1.png</file>
-        <file alias="number2">Resources/Icons/number2.png</file>
-        <file alias="number3">Resources/Icons/number3.png</file>
-        <file alias="number4">Resources/Icons/number4.png</file>
-        <file alias="number5">Resources/Icons/number5.png</file>
-        <file alias="number6">Resources/Icons/number6.png</file>
-        <file alias="number7">Resources/Icons/number7.png</file>
-        <file alias="number8">Resources/Icons/number8.png</file>
-        <file alias="number9">Resources/Icons/number9.png</file>
-        <file alias="number9+">Resources/Icons/number9+.png</file>
     </qresource>
 </RCC>

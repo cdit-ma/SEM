@@ -115,9 +115,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/outeventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vectorinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminstance.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
@@ -231,9 +228,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/outeventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vector.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vectorinstance.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminstance.h
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h

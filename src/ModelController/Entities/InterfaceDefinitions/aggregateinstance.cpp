@@ -32,7 +32,6 @@ bool AggregateInstance::canAdoptChild(Node *child)
     case NODE_KIND::AGGREGATE_INSTANCE:
     case NODE_KIND::MEMBER_INSTANCE:
     case NODE_KIND::VECTOR_INSTANCE:
-    case NODE_KIND::ENUM_INSTANCE:
         break;
     default:
         return false;

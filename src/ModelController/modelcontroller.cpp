@@ -1715,7 +1715,7 @@ void ModelController::bindData(Node *defn, Node *child)
         if(child_kind == NODE_KIND::COMPONENT_INSTANCE || child_kind == NODE_KIND::BLACKBOX_INSTANCE){
             //Allow ComponentInstance and BlackBoxInstance to have unique labels
             bind_labels = false;
-        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE || child_kind == NODE_KIND::ENUM_INSTANCE){
+        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE){
             if(parent_kind == NODE_KIND::AGGREGATE){
                 //Allow Aggregates to contain Aggregate Instances with unique labels
                 bind_labels = false;
