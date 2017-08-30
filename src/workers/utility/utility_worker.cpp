@@ -60,9 +60,9 @@ void Utility_Worker::USleep(int microseconds){
 }
 void Utility_Worker::Sleep(int seconds){
     auto id = get_new_work_id();
-    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(seconds) + " s");
+    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(seconds) + " s");
     impl_->Sleep(seconds);
-    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
+    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
 }
 
 
