@@ -18,7 +18,7 @@
         bool got_match = false;
     };
 
-    enum class ELEMENT{MODULE, STRUCT, MEMBER, END_BRACKET, IS_KEY};
+    enum class ELEMENT{MODULE, STRUCT, MEMBER, END_BRACKET, IS_KEY, COMMENT, BLOCK_COMMENT};
 
     
     class IdlParser{
@@ -28,7 +28,6 @@
     
     public:
         static std::string ParseIdl(std::string idl_path, bool pretty);
-        //static std::string ParseIdl(std::string idl_path, bool pretty);
     private:
         IdlParser(std::string idl_path, bool pretty);
         ~IdlParser();

@@ -17,13 +17,16 @@
 const std::regex re_include("#include\\s+[<|\"](\\S+)[>|\"]");
 const std::regex re_module("module\\s+(\\S+)\\s*\\{");
 const std::regex re_struct("struct\\s+(\\S+)\\s*\\{");
+const std::regex re_block_comment("/\\*((.|\n)*?)\\*/");
+const std::regex re_comment("//(.*)");
  
 const std::regex re_split_path("(.*[/\\\\])*(.*)");
-const std::regex re_member("\\s*(" NO_SYNTAX_GROUP "+)\\s*;(\\s*//@key)?");
+//const std::regex re_member("\\s*(" NO_SYNTAX_GROUP "+)\\s*;(\\s*//@key)?");
+const std::regex re_member("(.*?)\\s*;(\\s*//@key)?");
 
 const std::regex re_is_pragma_key("#pragma\\s+keylist\\s+(\\S+)\\s+(\\S+)");
 const std::regex re_end_bracket("\\}\\s*;*");
-const std::regex re_complex_member("(\\S*)::(\\S+)");
+const std::regex re_complex_member("(\\S*::)?(\\S+)");
 
 const std::regex re_sequence_member("sequence\\s*\\<(.*)>");
 //const std::regex re_sequence_member("sequence\\s*\\<\\s*([^\\s\\,]+)\\s*(?:\\,\\s*(\\S+))?\\s*\\>");
@@ -41,8 +44,9 @@ bool caseless_compare(std::string const& a, std::string const& b)
     return false;
 };
 
-std::string convert_idl_type(const std::string type){
-    std::string return_type = "String";
+//Gets the primitive RE type from the IDL type
+std::string get_primitive_type(const std::string type){
+    std::string return_type;
     if(type == "short"){
         return_type = "Integer";
     }else if(type == "long"){
@@ -70,7 +74,7 @@ std::string convert_idl_type(const std::string type){
     }
 
     if(!caseless_compare(type, return_type)){
-        std::cerr << "Warning: Type '" << type << "' converted to '" << return_type << "'" << std::endl;
+        //std::cerr << "Warning: Type '" << type << "' converted to '" << return_type << "'" << std::endl;
     }
     return return_type;
 };
@@ -192,6 +196,13 @@ IdlParser::Member* IdlParser::construct_member(RegexMatch* m){
 
     std::string member_data = m->match[1];
 
+
+    /*
+    std::cerr << "0|" << m->match[0] << "|0" << std::endl;
+    std::cerr << "1|" <<  m->match[1] << "|1" << std::endl;
+    std::cerr << "2|" <<  m->match[2] << "|2" << std::endl<< std::endl;
+*/
+    std::cerr << "MEMBER DATA: [" << member_data << "]" << std::endl;
     //Tokenize on chunks of whitespace
     auto tokens = split(member_data, "\\s+");
     if(tokens.size() > 1){
@@ -203,12 +214,16 @@ IdlParser::Member* IdlParser::construct_member(RegexMatch* m){
         std::string type;
         //Construct a new single space seperated type
         for(auto s : tokens){
-            type += s + " ";
+            if(s != ""){
+                type += s + " ";
+            }
         }
         //Remove the last space lel
         type.pop_back();
         entity->type = type;
     }
+
+    std::cerr << "Member: " << entity->label << " [" << entity->type << "]" << std::endl; 
 
     std::smatch match;
     //Search for sequence bruush
@@ -229,10 +244,20 @@ IdlParser::Member* IdlParser::construct_member(RegexMatch* m){
             }
         }
 
-        //Check if it's a complex sequence
-        if(std::regex_search(entity->sequence_type, match, re_complex_member)){
-            auto modules_label = match[1];
-            auto struct_label = match[2];
+        auto primitive_type = get_primitive_type(entity->sequence_type);
+        if(primitive_type == ""){
+            std::string modules_label = "";
+            std::string struct_label = "";
+            //Check if it's a complex sequence
+            if(std::regex_search(entity->sequence_type, match, re_complex_member)){
+                modules_label = match[1];
+                struct_label = match[2];
+            }
+
+            if(modules_label == "::"){
+                //Look in global scope
+                modules_label = "";
+            }
 
             auto struct_entity = get_struct(struct_label, modules_label);
             if(struct_entity){
@@ -242,24 +267,38 @@ IdlParser::Member* IdlParser::construct_member(RegexMatch* m){
                 std::cerr << "IdlParser: Can't find Struct (For Sequence): '" << struct_label << "' in Module: '" << modules_label << "'" << std::endl;
             }
         }else{
-            entity->sequence_type = convert_idl_type(entity->sequence_type);
-        }
-    }else if(std::regex_search(entity->type, match, re_complex_member)){
-        auto modules_label = match[1];
-        auto struct_label = match[2];
-
-        auto struct_entity = get_struct(struct_label, modules_label);
-        if(struct_entity){
-            entity->definition_id = struct_entity->id;
-        }else{
-            std::cerr << "IdlParser: Can't find Struct: '" << struct_label << "' in Module: '" << modules_label << "'" << std::endl;
+            entity->sequence_type = primitive_type;
         }
     }else{
-        entity->type = convert_idl_type(entity->type);
-    }
+        //Check for primitive types, otherwise probably a complex type
+        auto primitive_type = get_primitive_type(entity->type);
+        if(primitive_type == ""){
+            std::string modules_label = "";
+            std::string struct_label = "";
+            
+            std::cerr << "ENTTITY TYPE: "<< entity->type << std::endl;
+            //Try get module
+            if(std::regex_search(entity->type, match, re_complex_member)){
+                modules_label = match[1];
+                struct_label = match[2];
+            }
 
-    
-    
+            if(modules_label == "::"){
+                //Look in global scope
+                modules_label = "";
+            }
+
+            auto struct_entity = get_struct(struct_label, modules_label);
+            if(struct_entity){
+                entity->definition_id = struct_entity->id;
+                std::cerr << "DEFINITION ID: " << struct_entity->id << std::endl;
+            }else{
+                std::cerr << "IdlParser: Can't find Struct: '" << struct_label << "' in Module: '" << modules_label << "'" << std::endl;
+            }
+        }else{
+            entity->type = primitive_type;
+        }
+    }    
     
     return entity;
 };
@@ -268,8 +307,12 @@ IdlParser::Entity* IdlParser::construct_entity(RegexMatch* match){
     auto entity = new Entity(match->kind);
     entity->id = entities_.size();
     entity->label = match->match[1];
+
     if(entity->getKind() == ELEMENT::STRUCT){
+        std::cerr << "Struct: " << entity->label << std::endl;
         struct_ids_.insert(entity->id);
+    }else{
+        std::cerr << "Module: " << entity->label << std::endl;
     }
     return entity;
 };
@@ -277,7 +320,7 @@ IdlParser::Entity* IdlParser::construct_entity(RegexMatch* match){
 
 
 int IdlParser::process_member(Member* member, Member* member_inst, Entity* top_struct_entity, int current_index){
-    if(member->definition_id > 0){
+    if(member->definition_id >= 0){
         //If we have a member, which has a definition, we should call into the process_struct function, with member as the instance
         auto definition = entities_[member->definition_id];
         current_index = process_struct(definition, member, top_struct_entity, current_index);
@@ -291,7 +334,7 @@ int IdlParser::process_member(Member* member, Member* member_inst, Entity* top_s
         if(member->is_sequence){
             exporter_->export_data("kind", is_instance ? "VectorInstance" : "Vector");
             exporter_->export_data("label", member->label);      
-            exporter_->export_data("type", member->sequence_type);
+            exporter_->export_data("type", "Vector::" + member->sequence_type);
             exporter_->export_data("index", std::to_string(member->index));
             exporter_->export_graph();
 
@@ -480,6 +523,8 @@ void IdlParser::parse_file(std::string idl_path){
         auto member_match = re_search(search_str, ELEMENT::MEMBER, re_member);
         auto end_match = re_search(search_str, ELEMENT::END_BRACKET, re_end_bracket);
         auto key_match = re_search(search_str, ELEMENT::IS_KEY, re_is_pragma_key);
+        auto comment_match = re_search(search_str, ELEMENT::COMMENT, re_comment);
+        auto block_comment_match = re_search(search_str, ELEMENT::BLOCK_COMMENT, re_block_comment);
         
         //Place all successful matches into map (Ordered by their position in the string)
         if(module_match){
@@ -491,7 +536,6 @@ void IdlParser::parse_file(std::string idl_path){
         }
 
         if(member_match){
-            
             ordered_matches[member_match->match.position()] = member_match;
         }
 
@@ -503,6 +547,14 @@ void IdlParser::parse_file(std::string idl_path){
             ordered_matches[key_match->match.position()] = key_match;
         }
 
+        if(comment_match){
+            ordered_matches[comment_match->match.position()] = comment_match;
+        }
+
+        if(block_comment_match){
+            ordered_matches[block_comment_match->match.position()] = block_comment_match;
+        }
+
         std::string next_search_str;
 
 
@@ -512,6 +564,7 @@ void IdlParser::parse_file(std::string idl_path){
             
             Entity* entity = 0;
             Entity* parent = 0;
+
             //Get the parent entity
             if(!parent_entity.empty()){
                 parent = parent_entity.top();
@@ -551,6 +604,10 @@ void IdlParser::parse_file(std::string idl_path){
                     }
                     break;
                 }
+                case ELEMENT::COMMENT:
+                case ELEMENT::BLOCK_COMMENT:
+                    break;
+                
             }
 
             if(entity){

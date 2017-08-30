@@ -144,11 +144,11 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
     notification->setInProgressState(false);
 
     
+    notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(components && datatypes){
         notification->setDescription("Successfully generated model workspace C++ in '" + output_directory + "'");
     }else{
         notification->setDescription("Generated model workspace C++ failed!");
-        notification->setSeverity(Notification::Severity::ERROR);
     }
 }
 
@@ -164,9 +164,9 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
     notification->setInProgressState(false);
     
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
         notification->setDescription("Generating component C++ failed! '" + results.standard_error.join("") + "'");
-        notification->setSeverity(Notification::Severity::ERROR);
     }else{
         notification->setDescription("Successfully generated component C++");
     }
@@ -181,9 +181,9 @@ bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_d
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
     notification->setInProgressState(false);
     
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
         notification->setDescription("Generating datatype C++ failed! '" + results.standard_error.join("") + "'");
-        notification->setSeverity(Notification::Severity::ERROR);
     }else{
         notification->setDescription("Successfully generated datatype C++");
     }

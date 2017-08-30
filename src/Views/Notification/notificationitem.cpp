@@ -203,7 +203,6 @@ void NotificationItem::timeChanged()
  */
 void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
-    qCritical() << "RELEASED";
     emit itemClicked(this);
 }
 
