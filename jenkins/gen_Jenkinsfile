@@ -19,9 +19,8 @@ def getLabels(String name){
 def runScriptPid(String script){
     def out = ""
     if(isUnix()){
-        def command = script + " > /dev/null 2>&1 & echo \$!"
-        out = sh(returnStdout: true, script: command)
-        return out.trim()
+        def command = script + " &"
+        sh(script: command)
     }
     else{
         //TODO: do windows things here
@@ -255,7 +254,7 @@ withEnv(["model=''"]){
                     loganServers_shutdown[nodeName] = {
                         node(nodeName){
                             dir(buildDir){
-                                blockingKill(out)
+                                //blockingKill(out)
                                 archiveArtifacts databaseFile
                             }
                         }
@@ -278,7 +277,7 @@ withEnv(["model=''"]){
                     def out = runScriptPid(clientRun)
                     loganClients_shutdown[nodeName] = {
                         node(nodeName){
-                            blockingKill(out)
+                            //blockingKill(out)
                         }
                     }
                 }
