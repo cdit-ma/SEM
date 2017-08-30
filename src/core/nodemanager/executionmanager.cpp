@@ -441,7 +441,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
     PushMessage("*", passivate);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     std::cout << "* Sending TERMINATE" << std::endl;
     //Send Terminate Function
