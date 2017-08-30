@@ -26,6 +26,9 @@ enum class NODE_KIND
         OUTEVENTPORT,
         IDL,
         VECTOR,
+        ENUM,
+        ENUM_MEMBER,
+        ENUM_INSTANCE,
 
         COMPONENT_ASSEMBLY,
         MANAGEMENT_COMPONENT,

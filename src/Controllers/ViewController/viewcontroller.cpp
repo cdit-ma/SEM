@@ -78,6 +78,8 @@ ViewController::ViewController() : QObject(){
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
+
+    Theme::theme()->setIconAlias("EntityIcons", "EnumInstance", "EntityIcons", "Enum");
 }
 
 void ViewController::connectModelController(ModelController* c){
@@ -439,6 +441,26 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 alias = "Icons";
                 image = "medeaLogo";
                 break;
+            case NODE_KIND::ENUM_MEMBER:{
+                QString icon;
+                int number = viewItem->getData("index").toInt();
+                icon = "number";
+                if(number < 0){
+                    icon += "0";
+                }else{
+                    bool add_plus = number > 9;
+                    if(add_plus){
+                        number = 9;
+                    }
+                    icon += QString::number(number);
+                    if(add_plus){
+                        icon += "+";
+                    }
+                }
+                alias = "Icons";
+                image = icon;
+                break;
+            }
             default:
                 break;
             }
