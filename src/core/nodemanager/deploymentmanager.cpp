@@ -76,8 +76,11 @@ void DeploymentManager::ProcessControlQueue(){
             //Gain Mutex
             std::unique_lock<std::mutex> lock(notify_mutex_);
             
-            //Check terminate flag
-            notify_lock_condition_.wait(lock);
+            //If we have no messages, we should wait for a signal
+            if(control_message_queue_.empty()){
+                //Check terminate flag
+                notify_lock_condition_.wait(lock);
+            }
             //Swap out the queue's and release the mutex
             control_message_queue_.swap(queue_);
         }
