@@ -174,7 +174,7 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
     if(jenkins_request_noti){
         jenkins_request_noti->setInProgressState(false);
         jenkins_request_noti->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes");
-        jenkins_request_noti->setSeverity(success ? Notification::Severity::INFO : Notification::Severity::ERROR);
+        jenkins_request_noti->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
         jenkins_request_noti = 0;
     }
 }

@@ -527,8 +527,8 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     emit vc_JenkinsReady(success);
 
     auto description = success ? "Settings validated successfully" : errorString;
-    auto severity = success ? Notification::Severity::INFO : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "jenkins", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS, false);
+    auto severity = success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(description, "Icons", "jenkinsFlat", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS, false);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
@@ -536,7 +536,7 @@ void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
     emit vc_JavaReady(java);
 
     auto description = java ? "Got Java: " + javaVersion : "Cannot find Java";
-    auto severity = java ? Notification::Severity::INFO : Notification::Severity::ERROR;
+    auto severity = java ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
     NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE, false, !java);
 }
 

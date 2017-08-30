@@ -119,7 +119,7 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
         return false;
     }
     if(notify){
-        _notification(Notification::Severity::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+        _notification(Notification::Severity::SUCCESS, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
     }
     return true;
 }
@@ -135,9 +135,7 @@ bool FileHandler::ensureDirectory(QString path)
     QFileInfo fileInfo(file);
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
-        if(dir.mkpath(".")){
-            _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
-        }else{
+        if(!dir.mkpath(".")){
             _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder", true);
             return false;
         }
@@ -148,8 +146,8 @@ bool FileHandler::ensureDirectory(QString path)
 bool FileHandler::removeFile(QString path){
     bool success = QFile::remove(path);
 
-    if(success){
-        _notification(Notification::Severity::INFO, "File: '" % path % "' removed!", "Icons", "file");
+    if(!success){
+        _notification(Notification::Severity::ERROR, "File: '" % path % "' failed to be removed!", "Icons", "file");
     }
     return success;
 }
@@ -159,8 +157,8 @@ bool FileHandler::removeDirectory(QString path)
     QDir dir(path);
     bool success = dir.removeRecursively();
 
-    if(success){
-        _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' removed!", "Icons", "folder");
+    if(!success){
+        _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' failed to be removed!", "Icons", "folder");
     }
     return success;
 }

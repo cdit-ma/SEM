@@ -148,8 +148,8 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
         notification->setDescription("Successfully generated model workspace C++ in '" + output_directory + "'");
     }else{
         notification->setDescription("Generated model workspace C++ failed!");
-        notification->setSeverity(Notification::Severity::ERROR);
     }
+    notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
 }
 
 bool ExecutionManager::GenerateComponents(QString document_path, QString output_directory, QStringList component_names, bool toast_notify)
@@ -166,10 +166,11 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
     
     if(!results.success){
         notification->setDescription("Generating component C++ failed! '" + results.standard_error.join("") + "'");
-        notification->setSeverity(Notification::Severity::ERROR);
     }else{
         notification->setDescription("Successfully generated component C++");
     }
+
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
 
     return results.success;
 }
@@ -183,10 +184,12 @@ bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_d
     
     if(!results.success){
         notification->setDescription("Generating datatype C++ failed! '" + results.standard_error.join("") + "'");
-        notification->setSeverity(Notification::Severity::ERROR);
     }else{
         notification->setDescription("Successfully generated datatype C++");
     }
+    notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+
+    
 
     return results.success;
 }
