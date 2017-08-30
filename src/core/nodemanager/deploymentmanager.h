@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 #include <mutex>
+#include <queue>
+#include <thread>
 
 #include "nodecontainer.h"
 #include "../modellogger.h"
@@ -26,17 +28,24 @@ class DeploymentManager{
         NodeContainer* get_deployment();
 
     private:
-        void ProcessControlMessage(NodeManager::ControlMessage* message);
+        void ProcessControlQueue();
+
         zmq::ProtoReceiver* subscriber_ = 0;
 
         void Terminate();
 
         std::string library_path_;
-        std::mutex mutex_;
         
         Execution* execution_;
 
         NodeContainer* deployment_ = 0;
+
+        std::queue<NodeManager::ControlMessage*> control_message_queue_;
+        std::mutex mutex_;
+        std::mutex notify_mutex_;
+        
+        std::thread* control_queue_thread_ = 0;
+        std::condition_variable notify_lock_condition_;
 };
 
 #endif //DEPLOYMENTMANAGER_H
