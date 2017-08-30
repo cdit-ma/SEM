@@ -261,5 +261,6 @@
         <file alias="clockDark">Resources/Icons/clockDark.png</file>
         <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
         <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
+        <file alias="drop">Resources/Icons/drop.png</file>
     </qresource>
 </RCC>

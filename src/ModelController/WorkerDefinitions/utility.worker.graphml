@@ -140,7 +140,7 @@
                     <data key="file">utility_worker</data>
                     <data key="operation">SetRandomSeed</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">book</data>
+                    <data key="icon">drop</data>
                     <data key="description">Sets the seed for the Random Number Generator used by this worker.</data>
                     <data key="workerID">utility_worker</data>
                     <graph id="n0::n4:">
@@ -200,7 +200,7 @@
                 </node>
                 <node id="n0::n7">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">RandomUniformInt</data>
+                    <data key="label">GetRandomUniformInt</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
@@ -239,7 +239,7 @@
 
                 <node id="n0::n8">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">RandomUniformReal</data>
+                    <data key="label">GetRandomUniformReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
@@ -278,7 +278,7 @@
 
                 <node id="n0::n9">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">RandomNormalReal</data>
+                    <data key="label">GetRandomNormalReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
@@ -317,7 +317,7 @@
 
                 <node id="n0::n10">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">RandomExponentialReal</data>
+                    <data key="label">GetRandomExponentialReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
@@ -347,7 +347,7 @@
                 </node>
                 <node id="n0::n11">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">GenerateUUID</data>
+                    <data key="label">GetUUID</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
