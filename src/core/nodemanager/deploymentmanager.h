@@ -5,6 +5,7 @@
 #include <string>
 #include <mutex>
 #include <queue>
+#include <condition_variable>
 #include <thread>
 
 #include "nodecontainer.h"
