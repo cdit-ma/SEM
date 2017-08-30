@@ -34,10 +34,14 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
 
 DeploymentManager::~DeploymentManager(){
     if(deployment_){
-        std::cout << "~1DeploymentManager" << std::endl;
         delete deployment_;
         deployment_ = 0;
-        std::cout << "~2DeploymentManager" << std::endl;
+    }
+
+    if(control_queue_thread_){
+        control_queue_thread_->join();
+        delete control_queue_thread_;
+        control_queue_thread_ = 0;
     }
 }
 
@@ -104,17 +108,13 @@ void DeploymentManager::ProcessControlQueue(){
                     break;
                 case NodeManager::ControlMessage::PASSIVATE:
                     if(deployment_){
-                        std::cout << "Got PassivateAll Message" << std::endl;
                         deployment_->PassivateAll();
-                        std::cout << "Finished PassivateAll Message" << std::endl;
                     }
                     break;
                 case NodeManager::ControlMessage::TERMINATE:
                     if(deployment_){
-                        std::cout << "Got TERMINATE Message" << std::endl;
                         Terminate();
                         terminate = true;
-                        std::cout << "Finished TERMINATE message" << std::endl;
                     }
                     break;
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:
@@ -138,10 +138,4 @@ NodeContainer* DeploymentManager::get_deployment(){
 void DeploymentManager::Terminate(){
     deployment_->Teardown();
     execution_->Interrupt();
-
-    if(control_queue_thread_){
-        control_queue_thread_->join();
-        delete control_queue_thread_;
-        control_queue_thread_ = 0;
-    }
 }
