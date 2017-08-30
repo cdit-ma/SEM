@@ -94,6 +94,7 @@ withEnv(["model=''"]){
             //Generate deployment json
             def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
             sh(script: executionParser)
+            archiveArtifacts "execution.json"
 
             def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
             sh(script: execution_debug)
