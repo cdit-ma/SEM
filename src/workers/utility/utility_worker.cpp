@@ -53,15 +53,22 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
 
 
 void Utility_Worker::USleep(int microseconds){
-    return impl_->USleep(microseconds);
+    auto id = get_new_work_id();
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(microseconds) + " us");
+    impl_->USleep(microseconds);
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
 }
 void Utility_Worker::Sleep(int seconds){
-    return impl_->Sleep(seconds);
+    auto id = get_new_work_id();
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(seconds) + " s");
+    impl_->Sleep(seconds);
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
 }
 
 
  
 void Utility_Worker::SetRandomSeed(unsigned int seed){
+    Worker::Log("SetRandomSeed", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Set random seed: " + std::to_string(seed));
     return impl_->SetRandomSeed(seed);
 }
 
