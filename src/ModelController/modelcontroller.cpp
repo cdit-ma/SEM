@@ -467,6 +467,11 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_for_condition_node(parent_node);
             break;
         }
+        case NODE_KIND::COMPONENT:{
+            node = construct_component_node(parent_node);
+            break;
+        }
+        
         default:
             node = construct_child_node(parent_node, kind);
     }
@@ -676,6 +681,20 @@ void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, i
 }
 
 
+
+
+Node* ModelController::construct_component_node(Node* parent){
+    if(parent){
+        triggerAction("Constructing Component");
+
+        auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        if(node){
+            auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
+            return node;
+        }
+    }
+    return 0;
+}
 
 
 
