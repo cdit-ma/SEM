@@ -19,11 +19,16 @@ def getLabels(String name){
 def runScriptPid(String script){
     def out = ""
     if(isUnix()){
+<<<<<<< HEAD
         def command = script + " > /dev/null 2>&1 & echo \$!"
         withEnv(['JENKINS_NODE_COOKIE=do_not_kill']){
             out = sh(returnStdout: true, script: command)
         }
         return out.trim()
+=======
+        def command = script + " &"
+        sh(script: command)
+>>>>>>> ea0e1dda031f1c930f9e316a3738ac67f02937d3
     }
     else{
         //TODO: do windows things here
@@ -96,6 +101,7 @@ withEnv(["model=''"]){
             //Generate deployment json
             def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
             sh(script: executionParser)
+            archiveArtifacts "execution.json"
 
             def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
             sh(script: execution_debug)
@@ -256,7 +262,7 @@ withEnv(["model=''"]){
                     loganServers_shutdown[nodeName] = {
                         node(nodeName){
                             dir(buildDir){
-                                blockingKill(out)
+                                //blockingKill(out)
                                 archiveArtifacts databaseFile
                             }
                         }
@@ -279,7 +285,7 @@ withEnv(["model=''"]){
                     def out = runScriptPid(clientRun)
                     loganClients_shutdown[nodeName] = {
                         node(nodeName){
-                            blockingKill(out)
+                            //blockingKill(out)
                         }
                     }
                 }

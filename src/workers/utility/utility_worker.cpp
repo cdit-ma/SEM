@@ -6,6 +6,8 @@
 
 Utility_Worker::Utility_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Utility_Worker_Impl();
+    //Need to get down into the small itty bitty time differences to get nice random between nodes happenning! hahaa XD
+    impl_->SetRandomSeed(GetTimeOfDay() * 100000);
 }
 
 Utility_Worker::~Utility_Worker(){
@@ -46,4 +48,46 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
         }
         std::cout << message << std::endl;
     }
+}
+
+
+
+void Utility_Worker::USleep(int microseconds){
+    auto id = get_new_work_id();
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(microseconds) + " us");
+    impl_->USleep(microseconds);
+    Worker::Log("USleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
+}
+void Utility_Worker::Sleep(int seconds){
+    auto id = get_new_work_id();
+    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Sleeping for: " + std::to_string(seconds) + " s");
+    impl_->Sleep(seconds);
+    Worker::Log("Sleep", ModelLogger::WorkloadEvent::MESSAGE, id, "Woken");
+}
+
+
+ 
+void Utility_Worker::SetRandomSeed(unsigned int seed){
+    Worker::Log("SetRandomSeed", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), "Set random seed: " + std::to_string(seed));
+    return impl_->SetRandomSeed(seed);
+}
+
+int Utility_Worker::RandomUniformInt(int lower_bound, int upper_bound){
+    return impl_->RandomUniformInt(lower_bound, upper_bound);
+}
+
+double Utility_Worker::RandomUniformReal(double lower_bound, double upper_bound){
+    return impl_->RandomUniformReal(lower_bound, upper_bound);
+}
+
+double Utility_Worker::RandomNormalReal(double mean, double stddev){
+    return impl_->RandomNormalReal(mean, stddev);
+}
+
+double Utility_Worker::RandomExponentialReal(double lambda){
+    return impl_->RandomExponentialReal(lambda);
+}
+
+std::string Utility_Worker::GenerateUUID(){
+    return impl_->GenerateUUID();
 }
