@@ -20,7 +20,9 @@ def runScriptPid(String script){
     def out = ""
     if(isUnix()){
         def command = script + " > /dev/null 2>&1 & echo \$!"
-        out = sh(returnStdout: true, script: command)
+        withEnv(['JENKINS_NODE_COOKIE=do_not_kill']){
+            out = sh(returnStdout: true, script: command)
+        }
         return out.trim()
     }
     else{
