@@ -295,8 +295,8 @@ endif()
 
 #Link against things
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
-target_link_libraries(${PROJ_NAME} medea_modelcontroller)
-target_link_libraries(${PROJ_NAME} medea_idl2graphml)
+target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
+target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
 
 #Install should copy the MEDEA app into a MEDEA folder
 #Install should copy the MEDEA app into a MEDEA folder

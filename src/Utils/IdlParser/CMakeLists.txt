@@ -14,11 +14,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #Requires Qt5_DIR and QTIFWDIR to be set
 set(EXEC_NAME idl2graphml)
-set(LIB_NAME medea_idl2graphml)
+set(LIB_NAME medea_idl2graphml_lib)
 
 project(${EXEC_NAME})
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
+)
+
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
 )
