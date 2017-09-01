@@ -10,26 +10,124 @@
 #include <map>
 #include <set>
 #include <list>
-#include <ctype.h>
-//Define the regex functions
 
-#define NO_SYNTAX_GROUP "[^\\{\\}\\;]"
-const std::regex re_include("#include\\s+[<|\"](\\S+)[>|\"]");
-const std::regex re_module("module\\s+(\\S+)\\s*\\{");
-const std::regex re_struct("struct\\s+(\\S+)\\s*\\{");
-const std::regex re_block_comment("/\\*((.|\n)*?)\\*/");
+//Some constants to clean up the regex
+#define WS "\\s+"
+#define OPTIONAL_WS "\\s*"
+#define NOT_WS "\\S+"
+
+//IDL REGEXES
+//typedef NAME TYPE;
+const std::regex re_type_def("typedef" WS "(.+?)" OPTIONAL_WS ";");
+//#include "INCLUDE_H"
+//#include <INCLUDE_H>
+const std::regex re_include("#include" WS "([<" NOT_WS ">|\"" NOT_WS "\"])");
+//module MODULE_NAME {
+const std::regex re_module("module" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
+//struct STRUCT_NAME {
+const std::regex re_struct("struct" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
+//enum ENUM_LABEL {ENUM_VALUES};
+const std::regex re_enum("enum" WS "(" NOT_WS ")" OPTIONAL_WS "\\{(.*?)\\};");
+//type label; (with )
+const std::regex re_member("(" NOT_WS ".+?)" OPTIONAL_WS ";" OPTIONAL_WS "(#@key)?");
+//RTI's setting of key | //@key
+const std::regex re_is_key("//" OPTIONAL_WS "@key(.*)");
+//OpenSplice setting of key | #pragma keylist STRUCT_LABEL MEMBER_LABEL
+const std::regex re_is_pragma_key("#pragma" WS "keylist" WS "(" NOT_WS ")" WS "(" NOT_WS ")");
+//An array in IDL is listed always after the label | LABEL[SIZE]
+const std::regex re_array("(.*?)" OPTIONAL_WS "\\[(.*)\\]");
+//sequence <SEQUENCE_TYPE>
+const std::regex re_sequence("sequence" OPTIONAL_WS "<" OPTIONAL_WS "(.*)" OPTIONAL_WS ">");
+
+//Comment structures
+const std::regex re_comment_block("/\\*" "([" WS "|" NOT_WS "]*)" "\\*/");
 const std::regex re_comment("//(.*)");
- 
+
+//Helper Regexes
 const std::regex re_split_path("(.*[/\\\\])*(.*)");
-//const std::regex re_member("\\s*(" NO_SYNTAX_GROUP "+)\\s*;(\\s*//@key)?");
-const std::regex re_member("(.*?)\\s*;(\\s*//@key)?");
 
-const std::regex re_is_pragma_key("#pragma\\s+keylist\\s+(\\S+)\\s+(\\S+)");
-const std::regex re_end_bracket("\\}\\s*;*");
-const std::regex re_complex_member("(\\S*::)?(\\S+)");
+//END bracket
+const std::regex re_end_bracket("\\}");
 
-const std::regex re_sequence_member("sequence\\s*\\<(.*)>");
-//const std::regex re_sequence_member("sequence\\s*\\<\\s*([^\\s\\,]+)\\s*(?:\\,\\s*(\\S+))?\\s*\\>");
+//Trim Helpers
+const std::regex re_trim_start("^" WS);
+const std::regex re_trim_end(WS "$");
+
+//Splits a string into a list, split by the regex token
+std::list<std::string> split(const std::string& input, const std::string& regex) {
+    // passing -1 as the submatch index parameter performs splitting
+    std::regex re(regex);
+    std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
+    std::sregex_token_iterator last;
+    return {first, last};
+};
+
+std::string toString(ELEMENT ele){
+    switch(ele){
+        case ELEMENT::MODULE:
+            return "MODULE";
+        case ELEMENT::STRUCT:
+            return "STRUCT";
+        case ELEMENT::MEMBER:
+            return "MEMBER";
+        case ELEMENT::END_BRACKET:
+            return "END_BRACKET";
+        case ELEMENT::IS_KEY:
+            return "IS_KEY";
+        case ELEMENT::PRAGMA_KEY:
+            return "PRAGMA_KEY";
+        case ELEMENT::COMMENT:
+            return "COMMENT";
+        case ELEMENT::BLOCK_COMMENT:
+            return "BLOCK_COMMENT";
+        case ELEMENT::TYPEDEF:
+            return "TYPEDEF";
+        case ELEMENT::ENUM:
+            return "ENUM";
+        case ELEMENT::NONE:
+            return "NONE";
+    }
+    return "";
+}
+
+std::pair<std::string, std::string> split_label_and_type(std::string def_string){
+    std::pair<std::string, std::string> results;
+
+    //Tokenize on chunks of whitespace
+    auto tokens = split(def_string, WS);
+    if(tokens.size() > 1){
+        //The label will always be the last element
+        results.first = tokens.back();
+        //Remove the label from the tokens list
+        tokens.pop_back();
+        
+        //Construct a new single space seperated type
+        for(auto s : tokens){
+            if(s != ""){
+                results.second += s + " ";
+            }
+        }
+        //Remove the last space lel
+        results.second.pop_back();
+    }
+    return results;
+}
+
+//Given a file path, get the relative directory
+std::string get_file_path(const std::string file_path){
+    std::smatch match;
+    if(std::regex_search(file_path, match, re_split_path)){
+        return match[1];
+    }
+    return "";
+}
+
+//Removes any white space at the start and end of a string
+std::string trim(std::string str){
+    str = std::regex_replace(str, re_trim_start, "");
+    str = std::regex_replace(str, re_trim_end, "");
+    return str;
+}
 
 
 bool compare_char(char a, char b){
@@ -73,74 +171,20 @@ std::string get_primitive_type(const std::string type){
         return_type = "String";
     }
 
-    if(!caseless_compare(type, return_type)){
-        //std::cerr << "Warning: Type '" << type << "' converted to '" << return_type << "'" << std::endl;
+    if(return_type != "" && !caseless_compare(type, return_type)){
+        std::cerr << "IDL Parser: Type '" << type << "' converted to '" << return_type << "'" << std::endl;
     }
     return return_type;
 };
 
-std::vector<std::string> split(const std::string& input, const std::string& regex) {
-    // passing -1 as the submatch index parameter performs splitting
-    std::regex re(regex);
-    std::sregex_token_iterator first{input.begin(), input.end(), re, -1};
-    std::sregex_token_iterator last;
-    return {first, last};
-};
+
 
 IdlParser::Entity* IdlParser::get_parent(Entity* entity){
-    if(entities_.count(entity->parent_id)){
+    if(entity && entities_.count(entity->parent_id)){
         return entities_[entity->parent_id];
     }
     return 0;
 };
-
-std::set<IdlParser::Entity*> IdlParser::get_entities(ELEMENT kind, std::string entity_name){
-    std::set<Entity*> entities;
-
-    for(auto e : entities_){
-        //Look for members
-        auto entity = e.second;
-
-        if(entity->label == entity_name && entity->getKind() == kind){
-            entities.insert(entity);
-        }
-    }
-    return entities;
-};
-
-IdlParser::Entity* IdlParser::get_struct(std::string struct_label, std::string module_label){
-    //Split the module label into a list of strings, so we can get the parent
-    auto labels = split(module_label, "::");
-    if(module_label.empty()){
-        //If it's empty, clear the list, otherwise it's length 1
-        labels.clear();
-    }
-
-    //Get all the structs labelled struct_label
-    for(auto entity : get_entities(ELEMENT::STRUCT, struct_label)){
-        //Get the parent
-        auto parent = get_parent(entity);
-        //If we don't have any modules prefixing, give back the first struct.
-        bool got_match = true;
-        
-        //Itterate backwards through the labels
-        for(int i = labels.size() - 1; i >= 0; i--){
-            //If we have a parent and our labels match, continue
-            if(parent && parent->label == labels[i]){
-                parent = get_parent(parent);
-            }else{
-                got_match = false;
-                break;
-            }
-        }
-
-        if(got_match){
-            return entity;
-        }
-    }
-
-    return 0;
-}
 
 inline RegexMatch* re_search(std::string &str, ELEMENT kind, const std::regex re){
     auto me = new RegexMatch();
@@ -153,237 +197,302 @@ inline RegexMatch* re_search(std::string &str, ELEMENT kind, const std::regex re
     return me;
 };
 
-std::string get_file_path(const std::string file_path){
-    std::smatch match;
-    if(std::regex_search(file_path, match, re_split_path)){
-        return match[1];
-    }
-    return "";
-}
+
 
 std::string IdlParser::ParseIdl(std::string idl_path, bool pretty){
     auto parser = IdlParser(idl_path, pretty);
     return parser.ToGraphml();
 };
 
-IdlParser::Entity* IdlParser::get_entity(Entity* parent, std::string child_label){
-    if(parent){
-        for(auto c_id : parent->children_ids){
-            auto entity = entities_[c_id];
-            if(entity->label == child_label){
-                return entity;
-            }
+
+//Searches up the Entity tree, checking all siblings for a matching label
+IdlParser::Entity* IdlParser::get_ancestor_entity_by_label(IdlParser::Entity* current, std::string label){
+    while(current){
+        auto child = get_child_entity(current, label);
+        if(child){
+            return child;
         }
-    }else{
-        //Maybe a top level entity
-        for(auto c_id : struct_ids_){
-            auto entity = entities_[c_id];
-            if(entity->label == child_label){
-                return entity;
+        current = get_parent(current);
+    }
+    return 0;
+}
+
+//Gets a direct child of parent, with label
+IdlParser::Entity* IdlParser::get_child_entity(IdlParser::Entity* parent, std::string label){
+    if(parent){
+        for(auto id : parent->children_ids){
+            auto child = get_entity(id);
+            if(child && child->label == label){
+                return child;
             }
         }
     }
     return 0;
-};
+}
 
+//Gets an entity which matches the namespace provided
+IdlParser::Entity* IdlParser::get_namespaced_entity(std::string type){
+    auto current = get_entity(0);
+
+    auto tokens = split(type, "::");
+    
+    while(current && tokens.size()){
+        //Take the front of the token, this should be the lowest named element
+        auto front_label = trim(tokens.front());
+        tokens.pop_front();
+
+        //If we have a child with this label, continue down the child stack
+        auto child = get_child_entity(current, front_label);
+        if(child){
+            current = child;
+        }else{
+            return 0;
+        }
+    }
+    return current;
+}
+
+//Get an entity by its id
+IdlParser::Entity* IdlParser::get_entity(int id){
+    if(entities_.count(id)){
+        return entities_[id];
+    }
+    return 0;
+}
+
+bool IdlParser::resolve_member_type(IdlParser::Member* member, std::string type){
+    auto unresolved_type = trim(type);
+    auto primitive_type = get_primitive_type(unresolved_type);
+
+    //need to further resolve
+    if(primitive_type == ""){
+        auto sequence_match = re_search(unresolved_type, ELEMENT::NONE, re_sequence);
+        if(sequence_match){
+            if(member->is_sequence){
+                std::cerr << "IDL Parser: Cannot have a sequence of sequences." << std::endl;
+                return false;
+            }else{
+                member->is_sequence = true;
+                //Resolve the rest of the sequence type
+                return resolve_member_type(member, sequence_match->match[1]);
+            }
+        }else{
+            //Check for complex types and type defs
+            //Split on namespaces
+            auto parent = get_parent(member);
+            //std::cerr << "\t\t\t Need to resolve Resolve_type: $" << unresolved_type << "$" << std::endl;
+            
+            auto tokens = split(unresolved_type, "::");
+
+            Entity* resolved_entity = 0;
+            //Look only in parent chain
+            if(tokens.size() == 1){
+                resolved_entity = get_ancestor_entity_by_label(parent, tokens.back());
+            }else{
+                resolved_entity = get_namespaced_entity(unresolved_type);
+            }
+
+            if(resolved_entity){
+                if(resolved_entity->getKind() == ELEMENT::TYPEDEF){
+                    auto type_def = (Member*) resolved_entity;
+                    if(type_def->is_complex){
+                        if(!member->is_complex){
+                            member->is_complex = true;
+                            member->complex_type_id = type_def->complex_type_id;
+                        }
+                    }else{
+                        member->primitive_type = type_def->primitive_type;
+                    }
+
+                    if(type_def->is_sequence){
+                        if(member->is_sequence){
+                            std::cerr << "IDL Parser: Cannot have a sequence of sequences." << std::endl;
+                            return false;
+                        }else{
+                            member->is_sequence = true;
+                        }
+                    }
+                }else if(resolved_entity->getKind() == ELEMENT::STRUCT){
+                    member->is_complex = true;
+                    member->complex_type_id = resolved_entity->id;
+                }
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }else{
+        member->primitive_type = primitive_type;
+        return true;
+    }
+    return false;
+}
+void IdlParser::attach_entity(IdlParser::Entity* parent, IdlParser::Entity* child){
+    auto id = entities_.size();
+    child->id = id;
+    //Insert into the map
+    entities_[id] = child;
+
+    if(parent){
+        child->parent_id = parent->id;
+        //Set the index of the entity
+        child->index = parent->children_ids.size();
+        //Add as a child
+        parent->children_ids.insert(id);
+    }
+}
+
+void IdlParser::remove_entity(IdlParser::Entity* parent, IdlParser::Entity* child){
+    if(child){
+        auto id = child->id;
+        entities_.erase(id);
+        if(parent){
+            parent->children_ids.erase(id);
+        }
+    }
+}
+
+bool IdlParser::resolve_member_label(IdlParser::Member* member, std::string label){
+    std::smatch match;
+    if(member){
+        if(std::regex_search(label, match, re_array)){
+            //Is an array
+            member->label = match[1];
+            member->is_sequence = true;
+            std::cerr << "IDL Parser: Resolved " << label << " as a sequence." << std::endl;
+        }else{
+            member->label = label;
+        }
+        return !member->label.empty();
+    }
+    return false;
+}
 
 //Make GraphML Structures
-IdlParser::Member* IdlParser::construct_member(RegexMatch* m){
+IdlParser::Member* IdlParser::construct_member(IdlParser::Entity* parent, RegexMatch* m){
     auto entity = new Member();
-    //Fill in values
-    entity->id = entities_.size();
-    entity->is_key = m->match[2].length();
-
-    std::string member_data = m->match[1];
-
-
-    /*
-    std::cerr << "0|" << m->match[0] << "|0" << std::endl;
-    std::cerr << "1|" <<  m->match[1] << "|1" << std::endl;
-    std::cerr << "2|" <<  m->match[2] << "|2" << std::endl<< std::endl;
-*/
-    std::cerr << "MEMBER DATA: [" << member_data << "]" << std::endl;
-    //Tokenize on chunks of whitespace
-    auto tokens = split(member_data, "\\s+");
-    if(tokens.size() > 1){
-        //The label will always be the last element
-        entity->label = tokens.back();
-        //Remove the label from the tokens list
-        tokens.pop_back();
-
-        std::string type;
-        //Construct a new single space seperated type
-        for(auto s : tokens){
-            if(s != ""){
-                type += s + " ";
-            }
-        }
-        //Remove the last space lel
-        type.pop_back();
-        entity->type = type;
-    }
-
-    std::cerr << "Member: " << entity->label << " [" << entity->type << "]" << std::endl; 
-
-    std::smatch match;
-    //Search for sequence bruush
-    if(std::regex_search(entity->type, match, re_sequence_member)){
-        entity->is_sequence = true; 
-
-        std::string sequence_type = match[1];
-
-        //Get rid of all space
-        sequence_type.erase(std::remove(sequence_type.begin(), sequence_type.end(), ' '), sequence_type.end());
-
-        //Tokenize by comma
-        auto tokens = split(sequence_type, "\\,");
-        if(tokens.size() > 0){
-            entity->sequence_type = tokens[0];
-            if(tokens.size() > 1){
-                std::cerr << "Warning: Sequence Size '" << tokens[1] << "' ignored!" << std::endl;
-            }
-        }
-
-        auto primitive_type = get_primitive_type(entity->sequence_type);
-        if(primitive_type == ""){
-            std::string modules_label = "";
-            std::string struct_label = "";
-            //Check if it's a complex sequence
-            if(std::regex_search(entity->sequence_type, match, re_complex_member)){
-                modules_label = match[1];
-                struct_label = match[2];
-            }
-
-            if(modules_label == "::"){
-                //Look in global scope
-                modules_label = "";
-            }
-
-            auto struct_entity = get_struct(struct_label, modules_label);
-            if(struct_entity){
-                entity->sequence_type_id = struct_entity->id;
-                entity->sequence_type = struct_label;
-            }else{
-                std::cerr << "IdlParser: Can't find Struct (For Sequence): '" << struct_label << "' in Module: '" << modules_label << "'" << std::endl;
-            }
-        }else{
-            entity->sequence_type = primitive_type;
-        }
-    }else{
-        //Check for primitive types, otherwise probably a complex type
-        auto primitive_type = get_primitive_type(entity->type);
-        if(primitive_type == ""){
-            std::string modules_label = "";
-            std::string struct_label = "";
-            
-            std::cerr << "ENTTITY TYPE: "<< entity->type << std::endl;
-            //Try get module
-            if(std::regex_search(entity->type, match, re_complex_member)){
-                modules_label = match[1];
-                struct_label = match[2];
-            }
-
-            if(modules_label == "::"){
-                //Look in global scope
-                modules_label = "";
-            }
-
-            auto struct_entity = get_struct(struct_label, modules_label);
-            if(struct_entity){
-                entity->definition_id = struct_entity->id;
-                std::cerr << "DEFINITION ID: " << struct_entity->id << std::endl;
-            }else{
-                std::cerr << "IdlParser: Can't find Struct: '" << struct_label << "' in Module: '" << modules_label << "'" << std::endl;
-            }
-        }else{
-            entity->type = primitive_type;
-        }
-    }    
+    attach_entity(parent, entity);
     
-    return entity;
-};
+    
+    //Gets the entire type and label so we can resolve it.
+    auto label_type_pair = split_label_and_type(m->match[1]);
+    
+    auto resolved_label = resolve_member_label(entity, label_type_pair.first);
+    auto resolved_type = resolve_member_type(entity, label_type_pair.second);
 
-IdlParser::Entity* IdlParser::construct_entity(RegexMatch* match){
-    auto entity = new Entity(match->kind);
-    entity->id = entities_.size();
-    entity->label = match->match[1];
-
-    if(entity->getKind() == ELEMENT::STRUCT){
-        std::cerr << "Struct: " << entity->label << std::endl;
-        struct_ids_.insert(entity->id);
-    }else{
-        std::cerr << "Module: " << entity->label << std::endl;
+    if(m->match[2].length()){
+        entity->is_key = true;
     }
-    return entity;
+
+    if(resolved_label && resolved_type){
+        return entity;
+    }else{
+        remove_entity(parent, entity);
+        delete entity;
+        std::cerr << "IDL Parser: Cannot Resolve type: " << label_type_pair.second << std::endl;
+        return 0;
+    }
 };
 
+//Make GraphML Structures
+IdlParser::Member* IdlParser::construct_typedef(IdlParser::Entity* parent, RegexMatch* m){
+    auto entity = new Member(ELEMENT::TYPEDEF);
+    attach_entity(parent, entity);
+    
+    //Gets the entire type and label so we can resolve it.
+    auto label_type_pair = split_label_and_type(m->match[1]);
+    
+    auto resolved_label = resolve_member_label(entity, label_type_pair.first);
+    auto resolved_type = resolve_member_type(entity, label_type_pair.second);
 
+    if(resolved_label && resolved_type){
+        return entity;
+    }else{
+        remove_entity(parent, entity);
+        delete entity;
+        std::cerr << "IDL Parser: Cannot Resolve TypeDef type: " << label_type_pair.second << std::endl;
+        return 0;
+    }
+};
+
+IdlParser::Entity* IdlParser::construct_entity(IdlParser::Entity* parent, RegexMatch* match){
+    auto entity = new Entity(match->kind);
+    attach_entity(parent, entity);
+    entity->label = match->match[1];
+    return entity;
+};
 
 int IdlParser::process_member(Member* member, Member* member_inst, Entity* top_struct_entity, int current_index){
-    if(member->definition_id >= 0){
-        //If we have a member, which has a definition, we should call into the process_struct function, with member as the instance
-        auto definition = entities_[member->definition_id];
-        current_index = process_struct(definition, member, top_struct_entity, current_index);
-    }else{
+    bool is_instance = member_inst != 0;
+
+    if(member->is_sequence){
         auto graphml_id = exporter_->export_node();
-        //Insert the item into the lookup
         top_struct_entity->id_lookup[current_index] = graphml_id;
 
-        bool is_instance = member_inst;
-
-        if(member->is_sequence){
-            exporter_->export_data("kind", is_instance ? "VectorInstance" : "Vector");
-            exporter_->export_data("label", member->label);      
-            exporter_->export_data("type", "Vector::" + member->sequence_type);
-            exporter_->export_data("index", std::to_string(member->index));
+        //If we are sequence
+        exporter_->export_data("kind", is_instance ? "VectorInstance" : "Vector");
+        exporter_->export_data("label", member->label);      
+        exporter_->export_data("index", std::to_string(member->index));
+        
+        if(member->is_complex){
+            auto complex_type = entities_[member->complex_type_id];
+            exporter_->export_data("type", "Vector::" + complex_type->label);
             exporter_->export_graph();
-
-            if(member->sequence_type_id == -1){
-                //Increment the index
-                current_index ++;
-                auto member_graphml_id = exporter_->export_node();
-                //Insert the item into the lookup
-                top_struct_entity->id_lookup[current_index] = member_graphml_id;
-                exporter_->export_data("kind", is_instance ? "MemberInstance" : "Member");
-                exporter_->export_data("label", member->label); 
-                exporter_->export_data("type", member->sequence_type);
-                exporter_->export_data("index", std::to_string(member->index));
-                exporter_->close_element();
-            }else{
-                auto definition = entities_[member->sequence_type_id];
-                current_index = process_struct(definition, member, top_struct_entity, current_index);
-            }
-            //Close the graph
-            exporter_->close_element();
+            current_index = process_struct(complex_type, member, top_struct_entity, current_index);
         }else{
+            exporter_->export_data("type", "Vector::" + member->primitive_type);
+            exporter_->export_graph();
+            //Primitive type
+            current_index ++;
+            auto member_graphml_id = exporter_->export_node();
+            //Insert the item into the lookup
+            top_struct_entity->id_lookup[current_index] = member_graphml_id;
             exporter_->export_data("kind", is_instance ? "MemberInstance" : "Member");
             exporter_->export_data("label", member->label); 
-            exporter_->export_data("type", member->type);
+            exporter_->export_data("type", member->primitive_type);
+            exporter_->export_data("index", std::to_string(member->index));
+            exporter_->close_element();
+        }
+        //Close the graph
+        exporter_->close_element();
+        //Close the node
+        exporter_->close_element();
+    }else{
+        if(member->is_complex){
+            auto complex_type = entities_[member->complex_type_id];
+            current_index = process_struct(complex_type, member, top_struct_entity, current_index);
+        }else{
+            auto graphml_id = exporter_->export_node();
+            top_struct_entity->id_lookup[current_index] = graphml_id;
+
+            exporter_->export_data("kind", is_instance ? "MemberInstance" : "Member");
+            exporter_->export_data("label", member->label); 
+            exporter_->export_data("type", member->primitive_type);
             exporter_->export_data("index", std::to_string(member->index));
             if(!is_instance && member->is_key){
                 exporter_->export_data("key", "true");
             }
+            exporter_->close_element();
         }
-        //Close the node
-        exporter_->close_element();
     }
     return current_index;
 }
-std::string IdlParser::get_namespace(Entity* entity){
 
+std::string IdlParser::get_namespace(Entity* entity){
     auto parent = get_parent(entity);
-    std::string name_str;
+    std::string namespace_str;
     while(parent){
-        name_str = parent->label + name_str;
+        auto p_label = parent->label;
         parent = get_parent(parent);
         if(parent){
-            name_str = "::" + name_str;
+            namespace_str = "::" + p_label + namespace_str;
         }
     }
-    return name_str;
+    return namespace_str;
 };
 
 int IdlParser::process_struct(Entity* struct_entity, Member* member_inst, Entity* top_struct_entity, int current_index){
+    
     //If we haven't got a top_struct_entity, it means this is a top level struct.
     if(!top_struct_entity){
         //Set our top_struct_entity
@@ -395,9 +504,11 @@ int IdlParser::process_struct(Entity* struct_entity, Member* member_inst, Entity
 
     //Get the Graphml_id of the exported <node> representation
     auto graphml_id = exporter_->export_node();
+
     exporter_->export_data("kind", is_instance ? "AggregateInstance" : "Aggregate");
     //Either use the member_instance label, or the structs label
     exporter_->export_data("label", is_instance ? member_inst->label : struct_entity->label);
+    
     if(is_top_level){
         //Add the namespace for top level structs
         exporter_->export_data("namespace", get_namespace(struct_entity));
@@ -421,10 +532,8 @@ int IdlParser::process_struct(Entity* struct_entity, Member* member_inst, Entity
 
         //Only do edge construction if we are parsing the top most element
         if(is_top_level){
-            if(member->definition_id > 0){
-                definition = entities_[member->definition_id];
-            }else if(member->sequence_type_id > 0){
-                definition = entities_[member->sequence_type_id];
+            if(member->is_complex){
+                definition = entities_[member->complex_type_id];
             }
         }
 
@@ -451,12 +560,14 @@ int IdlParser::process_struct(Entity* struct_entity, Member* member_inst, Entity
     exporter_->close_element();
     //Close node
     exporter_->close_element();
+    
     return current_index;
 }
 
 
 IdlParser::IdlParser(std::string idl_path, bool pretty){
-    path = get_file_path(idl_path);
+    
+
     exporter_ = new GraphmlExporter(pretty);
     //Setup the Model/InterfaceDefinitions
     exporter_->export_node();
@@ -474,7 +585,6 @@ IdlParser::IdlParser(std::string idl_path, bool pretty){
         auto entity = entities_[s_id];
         process_struct(entity);
     }
-
     //Close the exporter
     exporter_->close();
 };
@@ -483,16 +593,21 @@ void IdlParser::parse_file(std::string idl_path){
     if(parsed_files_.count(idl_path)){
         return;
     }
+
+    auto file_path = get_file_path(idl_path);
     
     std::cerr << "Parsing: " << idl_path << std::endl;
     parsed_files_.insert(idl_path);
 
     //Read the file
-    std::ifstream input(idl_path);
-    std::stringstream buffer;
-    buffer << input.rdbuf();
-    input.close();
-    auto file = buffer.str();
+    std::string file;
+    {
+        std::ifstream input(idl_path);
+        std::stringstream buffer;
+        buffer << input.rdbuf();
+        input.close();
+        file = buffer.str();
+    }
 
     //Preprocess parse the file to find the other files to import
     {
@@ -501,84 +616,132 @@ void IdlParser::parse_file(std::string idl_path){
         //Keep parsing through the file
         while(std::regex_search(search_str, import_match, re_include)){
             //Get the matching group, and parse that file first
-            auto include_idl_path = path + std::string(import_match[1]);
+            auto include_idl_path = file_path + std::string(import_match[1]);
 
             //Append on the relative path to files
             parse_file(include_idl_path);
-            //Get the tail of the document
             search_str = import_match.suffix();
         }
     }
 
     std::stack<Entity*> parent_entity;
+    if(!entities_.size()){
+        auto entity = new Entity(ELEMENT::MODULE);
+        entity->label = "ROOT";
+        attach_entity(0, entity);
+    }
+
+    auto top_parent = get_entity(0);
+    if(top_parent){
+        parent_entity.push(get_entity(0));
+    }
+
 
     auto search_str = file;
+    //LOSE ALL COMMENTS
+    //Replace the Syntactical //@key with #@key//
+    search_str = std::regex_replace(search_str, re_is_key, "#@key//");
+    search_str = std::regex_replace(search_str, re_comment, "");
+    search_str = std::regex_replace(search_str, re_comment_block, "");
+    
     while(true){
         //Ordered map, to work out what is first element to parse
         std::map<int, RegexMatch*> ordered_matches;
 
+        std::list<RegexMatch*> matches;
+
+        ELEMENT parent_kind = ELEMENT::NONE;
+        //Get the parent entity
+        if(!parent_entity.empty()){
+            auto parent = parent_entity.top();
+            parent_kind = parent->getKind();
+        }
+
+        std::set<ELEMENT> valid_syntax;
+        switch(parent_kind){
+            case ELEMENT::MODULE:
+                //Module can have everything NONE can have, and a closing brace
+                valid_syntax.insert(ELEMENT::END_BRACKET);
+            case ELEMENT::NONE: 
+                valid_syntax.insert(ELEMENT::TYPEDEF);
+                valid_syntax.insert(ELEMENT::MODULE);
+                valid_syntax.insert(ELEMENT::STRUCT);
+                valid_syntax.insert(ELEMENT::ENUM);
+                valid_syntax.insert(ELEMENT::PRAGMA_KEY);
+                break;
+            case ELEMENT::STRUCT:
+                //Members and closing braces are the only thing which can be defined inside a Struct    
+                valid_syntax.insert(ELEMENT::MEMBER);
+                valid_syntax.insert(ELEMENT::END_BRACKET);
+                break;
+            default:
+                break;
+        }
+
         //Try and match the regex elements with the search_str (Returns 0 on no match)
-        auto module_match = re_search(search_str, ELEMENT::MODULE, re_module);
-        auto struct_match = re_search(search_str, ELEMENT::STRUCT, re_struct);
-        auto member_match = re_search(search_str, ELEMENT::MEMBER, re_member);
-        auto end_match = re_search(search_str, ELEMENT::END_BRACKET, re_end_bracket);
-        auto key_match = re_search(search_str, ELEMENT::IS_KEY, re_is_pragma_key);
-        auto comment_match = re_search(search_str, ELEMENT::COMMENT, re_comment);
-        auto block_comment_match = re_search(search_str, ELEMENT::BLOCK_COMMENT, re_block_comment);
+        //Order these in the order which they need to be dealt with
+        if(valid_syntax.count(ELEMENT::TYPEDEF)){
+            matches.push_back(re_search(search_str, ELEMENT::TYPEDEF, re_type_def));
+        }
+        if(valid_syntax.count(ELEMENT::MODULE)){
+            matches.push_back(re_search(search_str, ELEMENT::MODULE, re_module));
+        }
+        if(valid_syntax.count(ELEMENT::STRUCT)){
+            matches.push_back(re_search(search_str, ELEMENT::STRUCT, re_struct));
+        }
+        if(valid_syntax.count(ELEMENT::END_BRACKET)){
+            matches.push_back(re_search(search_str, ELEMENT::END_BRACKET, re_end_bracket));
+        }
+        if(valid_syntax.count(ELEMENT::PRAGMA_KEY)){
+            matches.push_back(re_search(search_str, ELEMENT::PRAGMA_KEY, re_is_pragma_key));
+        }
+        if(valid_syntax.count(ELEMENT::MEMBER)){
+            matches.push_back(re_search(search_str, ELEMENT::MEMBER, re_member));
+        }
+
+        if(valid_syntax.count(ELEMENT::ENUM)){
+            matches.push_back(re_search(search_str, ELEMENT::ENUM, re_enum));
+        }
+
         
-        //Place all successful matches into map (Ordered by their position in the string)
-        if(module_match){
-            ordered_matches[module_match->match.position()] = module_match;
-        }
-
-        if(struct_match){
-            ordered_matches[struct_match->match.position()] = struct_match;
-        }
-
-        if(member_match){
-            ordered_matches[member_match->match.position()] = member_match;
-        }
-
-        if(end_match){
-            ordered_matches[end_match->match.position()] = end_match;
-        }
-
-        if(key_match){
-            ordered_matches[key_match->match.position()] = key_match;
-        }
-
-        if(comment_match){
-            ordered_matches[comment_match->match.position()] = comment_match;
-        }
-
-        if(block_comment_match){
-            ordered_matches[block_comment_match->match.position()] = block_comment_match;
+        
+        for(auto match : matches){
+            if(match){
+                auto pos = match->match.position();
+                if(!ordered_matches.count(pos)){
+                    //std::cerr << "Matched: " << toString(match->kind) << " @ " << pos << std::endl;
+                    //Place all successful matches into map (Ordered by their position in the string)
+                    ordered_matches[match->match.position()] = match;
+                }
+            }
         }
 
         std::string next_search_str;
 
-
-
         for(auto m : ordered_matches){
             auto match = m.second;
-            
+
             Entity* entity = 0;
-            Entity* parent = 0;
-
-            //Get the parent entity
-            if(!parent_entity.empty()){
-                parent = parent_entity.top();
-            }
-
+            Entity* parent = parent_entity.empty() ? 0 : parent_entity.top();
+            
             switch(match->kind){
-                case ELEMENT::MODULE:
-                case ELEMENT::STRUCT:{
-                    entity = construct_entity(match);
+                case ELEMENT::MODULE:{
+                    entity = construct_entity(parent, match);
                     parent_entity.push(entity);
                     break;
                 }
+                case ELEMENT::STRUCT:{
+                   entity = construct_entity(parent, match);
+                   struct_ids_.insert(entity->id);
+                   parent_entity.push(entity);
+                   break;
+                }
+                case ELEMENT::TYPEDEF:{
+                    entity = construct_typedef(parent, match);
+                    break;
+                }
                 case ELEMENT::MEMBER:{
-                    entity = construct_member(match);
+                    entity = construct_member(parent, match);
                     break;
                 }
                 case ELEMENT::END_BRACKET:{
@@ -594,8 +757,8 @@ void IdlParser::parse_file(std::string idl_path){
                     //This should mean that our current parent should contain a struct, and a member
                     auto struct_label = match->match[1];
                     auto member_label = match->match[2];
-                    auto struct_entity = get_entity(parent, struct_label);
-                    auto member_entity = get_entity(struct_entity, member_label);
+                    auto struct_entity = get_child_entity(parent, struct_label);
+                    auto member_entity = get_child_entity(struct_entity, member_label);
                     if(member_entity && member_entity->getKind() == ELEMENT::MEMBER){
                         auto member = (Member*) member_entity;
                         member->is_key = true;
@@ -604,22 +767,8 @@ void IdlParser::parse_file(std::string idl_path){
                     }
                     break;
                 }
-                case ELEMENT::COMMENT:
-                case ELEMENT::BLOCK_COMMENT:
+                default:
                     break;
-                
-            }
-
-            if(entity){
-                //Put into the map of entities
-                entities_[entity->id] = entity;
-                if(parent){
-                    entity->parent_id = parent->id;
-                    //Set the index of the entity
-                    entity->index = parent->children_ids.size();
-                    //Add as a child
-                    parent->children_ids.push_back(entity->id);
-                }
             }
 
             //Get the suffix of the string of the first element we matched
