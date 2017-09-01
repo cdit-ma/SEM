@@ -19,13 +19,15 @@ set(LIB_NAME medea_idl2graphml_lib)
 project(${EXEC_NAME})
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlkinds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlkinds.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.h
 )
 
 add_library(${LIB_NAME} SHARED ${SOURCE})

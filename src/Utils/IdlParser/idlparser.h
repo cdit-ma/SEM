@@ -5,53 +5,66 @@
 #include <regex>
 #include <map>
 #include <set>
-#include <list>
 
-    //Forward Declare
-    enum class ELEMENT;
-    class GraphmlExporter;
-   
+//Forward Declare
+enum class IDL_ELEMENT;
+class GraphmlExporter;
 
-    struct RegexMatch{
-        ELEMENT kind;
-        std::smatch match;
-        bool got_match = false;
-    };
+namespace Graphml{
+    class Model;
+}
 
-    enum class ELEMENT{
-        NONE,
-        MODULE,
-        STRUCT,
-        MEMBER,
-        END_BRACKET,
-        IS_KEY,
-        PRAGMA_KEY,
-        COMMENT,
-        BLOCK_COMMENT,
-        TYPEDEF,
-        ENUM
-    };
-    std::string toString(ELEMENT);
+struct RegexMatch{
+    IDL_ELEMENT kind;
+    std::smatch match;
+    bool got_match = false;
+};
 
-    
-    class IdlParser{
+enum class IDL_ELEMENT{
+    NONE,
+    MODULE,
+    STRUCT,
+    MEMBER,
+    END_BRACKET,
+    IS_KEY,
+    PRAGMA_KEY,
+    COMMENT,
+    BLOCK_COMMENT,
+    TYPEDEF,
+    ENUM
+};
+std::string toString(IDL_ELEMENT);
+
+
+class IdlParser{
+    public:
+        static std::string ParseIdl(std::string idl_path, bool pretty);
     private:
         class Entity;
         class Member;
-    
-    public:
-        static std::string ParseIdl(std::string idl_path, bool pretty);
     private:
         IdlParser(std::string idl_path, bool pretty);
         ~IdlParser();
         void parse_file(std::string idl_path);
         std::string ToGraphml();
+    private:
 
+    struct MemberType{
+        std::string label;
+        bool is_sequence = false;
+        bool is_complex = false;
+        std::string primitive_type;
+
+        Graphml::Entity* parent = 0;
+        Graphml::Entity* complex_type = 0;
+        bool valid = true;
+    };
+        std::string get_namespace(Entity* entity);
         bool resolve_member_label(Member* member, std::string label);
         bool resolve_member_type(Member* member, std::string type);
 
-        std::string get_namespace(Entity* entity);
-
+        MemberType* resolve_member_label(MemberType* member, std::string type);
+        MemberType* resolve_member_type(MemberType* member, std::string type);
 
         Entity* get_parent(Entity* entity);
 
@@ -77,6 +90,10 @@
         std::set<std::string> parsed_files_;
         std::set<int> struct_ids_;
         std::map<int, Entity*> entities_;
+
+        std::map<std::string, MemberType*> type_defs;
+
+        Graphml::Model* model = 0;
         
         
         GraphmlExporter* exporter_ = 0;
@@ -84,10 +101,10 @@
 
     private:
         struct Entity{
-                Entity(ELEMENT kind){
+                Entity(IDL_ELEMENT kind){
                     this->kind = kind;
                 };
-                ELEMENT getKind(){
+                IDL_ELEMENT getKind(){
                     return this->kind;
                 }
                 int id = -1;
@@ -99,12 +116,12 @@
                 //Hold a map for id > graphml id lookup of children
                 std::map<int, int> id_lookup;
             protected:
-                ELEMENT kind;
+                IDL_ELEMENT kind;
         };
 
         struct Member : public Entity{
-            Member() : Entity(ELEMENT::MEMBER){};
-            Member(ELEMENT element) : Entity(element){};
+            Member() : Entity(IDL_ELEMENT::MEMBER){};
+            Member(IDL_ELEMENT IDL_ELEMENT) : Entity(IDL_ELEMENT){};
 
             bool is_key = false;
 
