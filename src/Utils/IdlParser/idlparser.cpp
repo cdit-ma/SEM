@@ -179,15 +179,6 @@ std::string get_primitive_type(const std::string type){
     return return_type;
 };
 
-
-
-IdlParser::Entity* IdlParser::get_parent(Entity* entity){
-    if(entity && entities_.count(entity->parent_id)){
-        return entities_[entity->parent_id];
-    }
-    return 0;
-};
-
 inline RegexMatch* re_search(std::string &str, IDL_ELEMENT kind, const std::regex re){
     auto me = new RegexMatch();
     me->got_match = std::regex_search(str, me->match, re);
@@ -199,135 +190,26 @@ inline RegexMatch* re_search(std::string &str, IDL_ELEMENT kind, const std::rege
     return me;
 };
 
-
-
 std::string IdlParser::ParseIdl(std::string idl_path, bool pretty){
     auto parser = IdlParser(idl_path, pretty);
     return parser.ToGraphml();
 };
 
-
-//Searches up the Entity tree, checking all siblings for a matching label
-IdlParser::Entity* IdlParser::get_ancestor_entity_by_label(IdlParser::Entity* current, std::string label){
-    while(current){
-        auto child = get_child_entity(current, label);
-        if(child){
-            return child;
-        }
-        current = get_parent(current);
-    }
-    return 0;
-}
-
-//Gets a direct child of parent, with label
-IdlParser::Entity* IdlParser::get_child_entity(IdlParser::Entity* parent, std::string label){
-    if(parent){
-        for(auto id : parent->children_ids){
-            auto child = get_entity(id);
-            if(child && child->label == label){
-                return child;
-            }
-        }
-    }
-    return 0;
-}
-
-//Gets an entity which matches the namespace provided
-IdlParser::Entity* IdlParser::get_namespaced_entity(std::string type){
-    auto current = get_entity(0);
-
-    auto tokens = split(type, "::");
+bool IdlParser::resolve_member_label(MemberType* member, std::string label){
+    auto unresolved_label = trim(label);
+    auto sequence_match = re_search(unresolved_label, IDL_ELEMENT::NONE, re_array);
     
-    while(current && tokens.size()){
-        //Take the front of the token, this should be the lowest named IDL_ELEMENT
-        auto front_label = trim(tokens.front());
-        tokens.pop_front();
-
-        //If we have a child with this label, continue down the child stack
-        auto child = get_child_entity(current, front_label);
-        if(child){
-            current = child;
-        }else{
-            return 0;
-        }
-    }
-    return current;
-}
-
-//Get an entity by its id
-IdlParser::Entity* IdlParser::get_entity(int id){
-    if(entities_.count(id)){
-        return entities_[id];
-    }
-    return 0;
-}
-MemberType* IdlParser::resolve_member(MemberType* member, std::string label, std::string type){
-    auto unresolved_type = trim(type);
-    auto primitive_type = get_primitive_type(unresolved_type);
-
-    //need to further resolve
-    if(primitive_type == ""){
-        auto sequence_match = re_search(unresolved_type, IDL_ELEMENT::NONE, re_sequence);
-        if(sequence_match){
-            if(member->is_sequence){
-                std::cerr << "IDL Parser: Cannot have a sequence of sequences." << std::endl;
-                return 0;
-            }else{
-                member->is_sequence = true;
-                //Resolve the rest of the sequence type
-                return resolve_member_type(member, sequence_match->match[1]);
-            }
-        }else{
-            auto parent = member->parent;
-            
-            auto tokens = split(unresolved_type, "::");
-
-            Entity* resolved_entity = 0;
-            //Look only in parent chain
-            if(tokens.size() == 1){
-                resolved_entity = get_ancestor_entity_by_label(parent, tokens.back());
-            }else{
-                resolved_entity = get_namespaced_entity(unresolved_type);
-            }
-
-            if(resolved_entity){
-                if(resolved_entity->getKind() == IDL_ELEMENT::TYPEDEF){
-                    auto type_def = (Member*) resolved_entity;
-                    if(type_def->is_complex){
-                        if(!member->is_complex){
-                            member->is_complex = true;
-                            member->complex_type_id = type_def->complex_type_id;
-                        }
-                    }else{
-                        member->primitive_type = type_def->primitive_type;
-                    }
-
-                    if(type_def->is_sequence){
-                        if(member->is_sequence){
-                            std::cerr << "IDL Parser: Cannot have a sequence of sequences." << std::endl;
-                            return false;
-                        }else{
-                            member->is_sequence = true;
-                        }
-                    }
-                }else if(resolved_entity->getKind() == IDL_ELEMENT::STRUCT){
-                    member->is_complex = true;
-                    member->complex_type_id = resolved_entity->id;
-                }
-                return true;
-            }else{
-                return false;
-            }
-        }
+    if(sequence_match){
+        std::cerr << "IDL Parser: '" << unresolved_label << "' converted to Sequence." << std::endl;
+        member->label = sequence_match->match[1];
+        member->is_sequence = true;
     }else{
-        member->primitive_type = primitive_type;
-        return true;
+        member->label = unresolved_label;
     }
-    return false;
-
-
+    return member->label != "";
 }
-bool IdlParser::resolve_member_type(IdlParser::Member* member, std::string type){
+
+bool IdlParser::resolve_member_type(MemberType* member, std::string type){
     auto unresolved_type = trim(type);
     auto primitive_type = get_primitive_type(unresolved_type);
 
@@ -340,330 +222,104 @@ bool IdlParser::resolve_member_type(IdlParser::Member* member, std::string type)
                 return false;
             }else{
                 member->is_sequence = true;
-                //Resolve the rest of the sequence type
+                //Resolve the rest of the sequence type (By removing the sequence part)
                 return resolve_member_type(member, sequence_match->match[1]);
             }
         }else{
-            //Check for complex types and type defs
-            //Split on namespaces
-            auto parent = get_parent(member);
-            //std::cerr << "\t\t\t Need to resolve Resolve_type: $" << unresolved_type << "$" << std::endl;
-            
-            auto tokens = split(unresolved_type, "::");
-
-            Entity* resolved_entity = 0;
-            //Look only in parent chain
-            if(tokens.size() == 1){
-                resolved_entity = get_ancestor_entity_by_label(parent, tokens.back());
-            }else{
-                resolved_entity = get_namespaced_entity(unresolved_type);
+            //Split the type into a list of trimmed tokens (Split on ::)
+            std::list<std::string> tokens;
+            for(auto token : split(unresolved_type, "::")){
+                tokens.push_back(trim(token));
             }
 
-            if(resolved_entity){
-                if(resolved_entity->getKind() == IDL_ELEMENT::TYPEDEF){
-                    auto type_def = (Member*) resolved_entity;
-                    if(type_def->is_complex){
-                        if(!member->is_complex){
-                            member->is_complex = true;
-                            member->complex_type_id = type_def->complex_type_id;
-                        }
+            Graphml::Entity* resolved_entity = 0;
+            if(tokens.size() == 1){
+                //If we only have one token, we should look in the current namespace stack
+                resolved_entity = model_->get_ancestor_entity(member->parent, tokens.back());
+            }else{
+                //Try get an entire element 
+                resolved_entity = model_->get_namespaced_entity(tokens);
+            }
+
+            //Check if the resolved_entity is an Aggregate
+            if(resolved_entity && resolved_entity->get_kind() == Graphml::Kind::AGGREGATE){
+                member->complex_type = resolved_entity;
+                return true;
+            }else{
+                //Maybe it's a typedef, check for the entire unresolved_type
+                auto type_def = find_typedef(member->parent, unresolved_type);
+                if(type_def){
+                    //Set the state on the member
+                    if(type_def->complex_type){
+                        member->complex_type = type_def->complex_type;
                     }else{
                         member->primitive_type = type_def->primitive_type;
                     }
-
+                    
                     if(type_def->is_sequence){
-                        if(member->is_sequence){
+                        if(!member->is_sequence){
+                            member->is_sequence = true;
+                        }else{
                             std::cerr << "IDL Parser: Cannot have a sequence of sequences." << std::endl;
                             return false;
-                        }else{
-                            member->is_sequence = true;
                         }
                     }
-                }else if(resolved_entity->getKind() == IDL_ELEMENT::STRUCT){
-                    member->is_complex = true;
-                    member->complex_type_id = resolved_entity->id;
+
+                    return true;
                 }
-                return true;
-            }else{
-                return false;
             }
+
+            std::cerr << "IDL Parser: Cannot find an entity named '" << unresolved_type << "'" << std::endl;
+            return false;
         }
     }else{
         member->primitive_type = primitive_type;
         return true;
     }
-    return false;
 }
-void IdlParser::attach_entity(IdlParser::Entity* parent, IdlParser::Entity* child){
-    auto id = entities_.size();
-    child->id = id;
-    //Insert into the map
-    entities_[id] = child;
-
-    if(parent){
-        child->parent_id = parent->id;
-        //Set the index of the entity
-        child->index = parent->children_ids.size();
-        //Add as a child
-        parent->children_ids.insert(id);
-    }
-}
-
-void IdlParser::remove_entity(IdlParser::Entity* parent, IdlParser::Entity* child){
-    if(child){
-        auto id = child->id;
-        entities_.erase(id);
-        if(parent){
-            parent->children_ids.erase(id);
-        }
-    }
-}
-
-bool IdlParser::resolve_member_label(IdlParser::Member* member, std::string label){
-    std::smatch match;
-    if(member){
-        if(std::regex_search(label, match, re_array)){
-            //Is an array
-            member->label = match[1];
-            member->is_sequence = true;
-            std::cerr << "IDL Parser: Resolved " << label << " as a sequence." << std::endl;
-        }else{
-            member->label = label;
-        }
-        return !member->label.empty();
-    }
-    return false;
-}
-
-//Make GraphML Structures
-IdlParser::Member* IdlParser::construct_member(IdlParser::Entity* parent, RegexMatch* m){
-    auto entity = new Member();
-    attach_entity(parent, entity);
-    
-    
-    //Gets the entire type and label so we can resolve it.
-    auto label_type_pair = split_label_and_type(m->match[1]);
-    
-    auto resolved_label = resolve_member_label(entity, label_type_pair.first);
-    auto resolved_type = resolve_member_type(entity, label_type_pair.second);
-
-    if(m->match[2].length()){
-        entity->is_key = true;
-    }
-
-    if(resolved_label && resolved_type){
-        return entity;
-    }else{
-        remove_entity(parent, entity);
-        delete entity;
-        std::cerr << "IDL Parser: Cannot Resolve type: " << label_type_pair.second << std::endl;
-        return 0;
-    }
-};
-
-//Make GraphML Structures
-IdlParser::Member* IdlParser::construct_typedef(IdlParser::Entity* parent, RegexMatch* m){
-    auto entity = new Member(IDL_ELEMENT::TYPEDEF);
-    attach_entity(parent, entity);
-    
-    //Gets the entire type and label so we can resolve it.
-    auto label_type_pair = split_label_and_type(m->match[1]);
-    
-    auto resolved_label = resolve_member_label(entity, label_type_pair.first);
-    auto resolved_type = resolve_member_type(entity, label_type_pair.second);
-
-    if(resolved_label && resolved_type){
-        return entity;
-    }else{
-        remove_entity(parent, entity);
-        delete entity;
-        std::cerr << "IDL Parser: Cannot Resolve TypeDef type: " << label_type_pair.second << std::endl;
-        return 0;
-    }
-};
-
-IdlParser::Entity* IdlParser::construct_entity(IdlParser::Entity* parent, RegexMatch* match){
-    auto entity = new Entity(match->kind);
-    attach_entity(parent, entity);
-    entity->label = match->match[1];
-    return entity;
-};
-
-int IdlParser::process_member(Member* member, Member* member_inst, Entity* top_struct_entity, int current_index){
-    bool is_instance = member_inst != 0;
-
-    if(member->is_sequence){
-        auto graphml_id = exporter_->export_node();
-        top_struct_entity->id_lookup[current_index] = graphml_id;
-
-        //If we are sequence
-        exporter_->export_data("kind", is_instance ? "VectorInstance" : "Vector");
-        exporter_->export_data("label", member->label);      
-        exporter_->export_data("index", std::to_string(member->index));
-        if(!is_instance && member->is_key){
-            exporter_->export_data("key", "true");
-        }
-        
-        if(member->is_complex){
-            auto complex_type = entities_[member->complex_type_id];
-            exporter_->export_data("type", "Vector::" + complex_type->label);
-            exporter_->export_graph();
-            current_index = process_struct(complex_type, member, top_struct_entity, current_index);
-        }else{
-            exporter_->export_data("type", "Vector::" + member->primitive_type);
-            exporter_->export_graph();
-            //Primitive type
-            current_index ++;
-            auto member_graphml_id = exporter_->export_node();
-            //Insert the item into the lookup
-            top_struct_entity->id_lookup[current_index] = member_graphml_id;
-            exporter_->export_data("kind", is_instance ? "MemberInstance" : "Member");
-            exporter_->export_data("label", member->label); 
-            exporter_->export_data("type", member->primitive_type);
-            exporter_->export_data("index", std::to_string(member->index));
-            exporter_->close_element();
-        }
-        //Close the graph
-        exporter_->close_element();
-        //Close the node
-        exporter_->close_element();
-    }else{
-        if(member->is_complex){
-            auto complex_type = entities_[member->complex_type_id];
-            current_index = process_struct(complex_type, member, top_struct_entity, current_index);
-        }else{
-            auto graphml_id = exporter_->export_node();
-            top_struct_entity->id_lookup[current_index] = graphml_id;
-
-            exporter_->export_data("kind", is_instance ? "MemberInstance" : "Member");
-            exporter_->export_data("label", member->label); 
-            exporter_->export_data("type", member->primitive_type);
-            exporter_->export_data("index", std::to_string(member->index));
-            if(!is_instance && member->is_key){
-                exporter_->export_data("key", "true");
-            }
-            exporter_->close_element();
-        }
-    }
-    return current_index;
-}
-int IdlParser::process_struct(Entity* struct_entity, Member* member_inst, Entity* top_struct_entity, int current_index){
-    
-    //If we haven't got a top_struct_entity, it means this is a top level struct.
-    if(!top_struct_entity){
-        //Set our top_struct_entity
-        top_struct_entity = struct_entity;
-    }
-
-    bool is_top_level = top_struct_entity == struct_entity;
-    bool is_instance = member_inst != 0;
-
-    //Get the Graphml_id of the exported <node> representation
-    auto graphml_id = exporter_->export_node();
-
-    exporter_->export_data("kind", is_instance ? "AggregateInstance" : "Aggregate");
-    //Either use the member_instance label, or the structs label
-    exporter_->export_data("label", is_instance ? member_inst->label : struct_entity->label);
-    
-    if(is_top_level){
-        //Add the namespace for top level structs
-        exporter_->export_data("namespace", get_namespace(struct_entity));
-    }
-    if(is_instance){
-        //Attach the index, if we are an index
-        exporter_->export_data("index", std::to_string(member_inst->index));
-    }
-
-    //Export a graph to contain children
-    exporter_->export_graph();
-
-    //Insert the graphml_id into the id_lookup in the top_struct
-    top_struct_entity->id_lookup[current_index] = graphml_id;
-
-
-    //Go through all IDL_ELEMENTs (a struct can only have children members)
-    for(auto c_id : struct_entity->children_ids){
-        auto member = (Member*) entities_[c_id];
-        Entity* definition = 0;
-
-        //Only do edge construction if we are parsing the top most IDL_ELEMENT
-        if(is_top_level){
-            if(member->is_complex){
-                definition = entities_[member->complex_type_id];
-            }
-        }
-
-        //Keep track of the old index
-        auto start_index = ++current_index;
-        //Export the member, and get the new ID
-        current_index = process_member(member, member_inst, top_struct_entity, current_index);
-
-        //If we have a definition to link against, we should construct edges
-        if(definition){
-            //Itterate through all IDL_ELEMENTs we added
-            for(int i = 0; i + start_index <= current_index; i++){
-                //Get the source/target of the edge
-                auto source_id = top_struct_entity->id_lookup[start_index + i];
-                auto target_id = definition->id_lookup[i];
-                //Construct edge
-                exporter_->export_edge(source_id, target_id);
-                exporter_->export_data("kind", "Edge_Definition");
-                exporter_->close_element();
-            }
-        }
-    }
-    //Close graph
-    exporter_->close_element();
-    //Close node
-    exporter_->close_element();
-    
-    return current_index;
-}
-
-std::string IdlParser::get_namespace(Entity* entity){
-    auto parent = get_parent(entity);
-    std::string namespace_str;
-    while(parent){
-        auto p_label = parent->label;
-        parent = get_parent(parent);
-        if(parent){
-            namespace_str = "::" + p_label + namespace_str;
-        }
-    }
-    return namespace_str;
-};
-
-
-
 
 IdlParser::IdlParser(std::string idl_path, bool pretty){
     
-
-    exporter_ = new GraphmlExporter(pretty);
-    model = new Graphml::Model();
+    model_ = new Graphml::Model();
     //Setup the Model/InterfaceDefinitions
+    /*
+    exporter_ = new GraphmlExporter(pretty);
     exporter_->export_node();
     exporter_->export_data("kind", "Model");
     exporter_->export_graph();
     exporter_->export_node();
     exporter_->export_data("kind", "InterfaceDefinitions");
     exporter_->export_graph();
-
-    //Parse the files 
-    parse_file(idl_path);
-    
-    //Export each struct
-    for(auto s_id : struct_ids_){
-        auto entity = entities_[s_id];
-        process_struct(entity);
-    }
     //Close the exporter
     exporter_->close();
+    */
+
+    //Parse the files 
+    auto success = parse_file(idl_path);
+    
 };
 
-void IdlParser::parse_file(std::string idl_path){
+std::string combine_namespace(std::string parent_namespace, std::string label){
+    return (parent_namespace == "" ? "" : parent_namespace + "::") + label;
+}
+
+IdlParser::MemberType* IdlParser::find_typedef(Graphml::Entity* current, std::string label){
+    while(current){
+        auto namespace_str = combine_namespace(current->get_namespace(), label);
+
+        //Check if the current parent contains a namespace typedef
+        if(type_defs.count(namespace_str)){
+            return type_defs[namespace_str];
+        }
+        //Go up a parent
+        current = current->get_parent();
+    }
+    return 0;
+}
+
+bool IdlParser::parse_file(std::string idl_path){
     if(parsed_files_.count(idl_path)){
-        return;
+        return true;
     }
 
     auto file_path = get_file_path(idl_path);
@@ -696,21 +352,8 @@ void IdlParser::parse_file(std::string idl_path){
         }
     }
 
-    std::stack<Entity*> parent_entity;
-    if(!entities_.size()){
-        auto entity = new Entity(IDL_ELEMENT::MODULE);
-        entity->label = "ROOT";
-        attach_entity(0, entity);
-    }
-
-    auto top_parent = get_entity(0);
-    if(top_parent){
-        parent_entity.push(get_entity(0));
-    }
-
-
     std::stack<Graphml::Entity*> parent_entities;
-    parent_entities.push(model->get_root());
+    parent_entities.push(model_->get_root());
 
 
     auto search_str = file;
@@ -726,26 +369,25 @@ void IdlParser::parse_file(std::string idl_path){
 
         std::list<RegexMatch*> matches;
 
-        IDL_ELEMENT parent_kind = IDL_ELEMENT::NONE;
+        Graphml::Kind parent_kind = Graphml::Kind::NONE;
+
         //Get the parent entity
-        if(!parent_entity.empty()){
-            auto parent = parent_entity.top();
-            parent_kind = parent->getKind();
+        if(!parent_entities.empty()){
+            auto parent = parent_entities.top();
+            parent_kind = parent->get_kind();
         }
 
         std::set<IDL_ELEMENT> valid_syntax;
         switch(parent_kind){
-            case IDL_ELEMENT::MODULE:
-                //Module can have everything NONE can have, and a closing brace
-                valid_syntax.insert(IDL_ELEMENT::END_BRACKET);
-            case IDL_ELEMENT::NONE: 
+            case Graphml::Kind::NAMESPACE:
                 valid_syntax.insert(IDL_ELEMENT::TYPEDEF);
                 valid_syntax.insert(IDL_ELEMENT::MODULE);
                 valid_syntax.insert(IDL_ELEMENT::STRUCT);
                 valid_syntax.insert(IDL_ELEMENT::ENUM);
                 valid_syntax.insert(IDL_ELEMENT::PRAGMA_KEY);
+                valid_syntax.insert(IDL_ELEMENT::END_BRACKET);
                 break;
-            case IDL_ELEMENT::STRUCT:
+            case Graphml::Kind::AGGREGATE:
                 //Members and closing braces are the only thing which can be defined inside a Struct    
                 valid_syntax.insert(IDL_ELEMENT::MEMBER);
                 valid_syntax.insert(IDL_ELEMENT::END_BRACKET);
@@ -796,9 +438,6 @@ void IdlParser::parse_file(std::string idl_path){
         for(auto m : ordered_matches){
             auto match = m.second;
 
-            Entity* entity = 0;
-            Entity* parent = parent_entity.empty() ? 0 : parent_entity.top();
-
             auto new_parent = parent_entities.top();
             
             switch(match->kind){
@@ -806,31 +445,59 @@ void IdlParser::parse_file(std::string idl_path){
                     auto label = match->match[1];
                     auto namespace_parent = Graphml::AsNamespace(new_parent);
                     //Construct a namespace
-                    auto new_entity = model->construct_namespace(namespace_parent, label);
+                    auto new_entity = model_->construct_namespace(namespace_parent, label);
                     parent_entities.push(new_entity);
                     break;
                 }
                 case IDL_ELEMENT::STRUCT:{
                     auto label = match->match[1];
                     auto namespace_parent = Graphml::AsNamespace(new_parent);
-                    auto new_entity = model->construct_aggregate(namespace_parent, label);
+                    auto new_entity = model_->construct_aggregate(namespace_parent, label);
                     parent_entities.push(new_entity);
                     break;
                 }
-                case IDL_ELEMENT::TYPEDEF:{
-                    //Gets the entire type and label so we can resolve it.
-                    auto label_type_pair = split_label_and_type(match->match[1]);
-                    auto unresolved_label = label_type_pair.first;
-                    auto unresolved_type = label_type_pair.second;
-
-                    break;
-                }
+                case IDL_ELEMENT::TYPEDEF:
                 case IDL_ELEMENT::MEMBER:{
                     //Gets the entire type and label so we can resolve it.
                     auto label_type_pair = split_label_and_type(match->match[1]);
                     auto unresolved_label = label_type_pair.first;
-                    auto unresolved_type = label_type_pair.second;
+                    //Remove all spaces in the unresolved_type
+                    auto unresolved_type = std::regex_replace(label_type_pair.second, std::regex(WS), "");
+                    
+                    
+                    auto member = new MemberType();
+                    member->parent = new_parent;
 
+                    auto resolved_label = resolve_member_label(member, unresolved_label);
+                    auto resolved_type = resolve_member_type(member, unresolved_type);
+                    
+                    if(resolved_label && resolved_type){
+                        if(match->kind == IDL_ELEMENT::TYPEDEF){
+                            auto typedef_ns = combine_namespace(member->parent->get_namespace(), member->label);
+
+                            //add it to the typedef map
+                            if(!type_defs.count(typedef_ns)){
+                                type_defs[typedef_ns] = member;
+                            }else{
+                                std::cerr << "IDL Parser: Got duplicate typedef with resolved namespace '" << typedef_ns << "'" << std::endl;
+                            }
+                        
+                        }else{
+                            //A Member
+                            auto namespace_parent = Graphml::AsAggregate(member->parent);
+                            if(namespace_parent){
+                                if(member->complex_type){
+                                    model_->construct_complex_member(namespace_parent, member->label, member->complex_type, member->is_sequence);
+                                }else{
+                                    model_->construct_primitive_member(namespace_parent, member->label, member->primitive_type, member->is_sequence);
+                                }
+    
+                            }
+                        }
+                    }else{
+                        //Free up memory
+                        delete member;
+                    }
                     break;
                 }
                 case IDL_ELEMENT::END_BRACKET:{
@@ -866,12 +533,13 @@ void IdlParser::parse_file(std::string idl_path){
             break;
         }
     }
+    return true;
 }
 
 IdlParser::~IdlParser(){
-    delete exporter_;
+    delete model_;
 };
 
 std::string IdlParser::ToGraphml(){
-    return exporter_->ToGraphml();
+    return model_->ToGraphml();
 };

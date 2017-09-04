@@ -1,12 +1,12 @@
 #include "graphmlexporter.h"
 
 
-GraphmlExporter::GraphmlExporter(bool pretty){
+Graphml::Exporter::Exporter(bool pretty){
     this->pretty = pretty;
     begin();
 };
 
-void GraphmlExporter::begin(){
+void Graphml::Exporter::begin(){
     ss.clear();
     ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     export_new_line();
@@ -27,7 +27,7 @@ void GraphmlExporter::begin(){
 };
 
 
-int GraphmlExporter::export_edge(int edge_src, int edge_dst){
+int Graphml::Exporter::export_edge(int edge_src, int edge_dst){
     std::stringstream attr_ss;
     attr_ss << "source=\"" << edge_src << "\" target=\"" << edge_dst << "\"";
     auto id = export_element(++id_count_, "edge", attr_ss.str());
@@ -35,7 +35,7 @@ int GraphmlExporter::export_edge(int edge_src, int edge_dst){
     return id;
 }
 
-int GraphmlExporter::export_key(std::string key_name, std::string key_type){
+int Graphml::Exporter::export_key(std::string key_name, std::string key_type){
     if(!key_ids_.count(key_name)){
         std::stringstream attr_ss;
         attr_ss << "attr.name=\"" << key_name << "\" attr.type=\"" << key_type << "\"";
@@ -48,13 +48,13 @@ int GraphmlExporter::export_key(std::string key_name, std::string key_type){
     return -1;
 };
 
-int GraphmlExporter::export_node(){
+int Graphml::Exporter::export_node(){
     auto id = export_element(++id_count_, "node");
     export_new_line(); 
     return id;
 };
 
-void GraphmlExporter::export_data(std::string key_name, std::string key_value){
+void Graphml::Exporter::export_data(std::string key_name, std::string key_value){
     auto key_id = get_key_id(key_name);
 
     std::stringstream attr_ss;
@@ -67,10 +67,10 @@ void GraphmlExporter::export_data(std::string key_name, std::string key_value){
     close_element_(false);
 };
 
-bool GraphmlExporter::close_element(){
+bool Graphml::Exporter::close_element(){
     return close_element_();
 }
-bool GraphmlExporter::close_element_(bool tab){
+bool Graphml::Exporter::close_element_(bool tab){
     if(element_stack_.size()){
         auto element = element_stack_.top();
         element_stack_.pop();
@@ -84,7 +84,7 @@ bool GraphmlExporter::close_element_(bool tab){
     return false;
 };
 
-int GraphmlExporter::get_key_id(std::string key_name){
+int Graphml::Exporter::get_key_id(std::string key_name){
     auto key_id = -1;
     if(key_ids_.count(key_name)){
         key_id = key_ids_[key_name];
@@ -92,21 +92,21 @@ int GraphmlExporter::get_key_id(std::string key_name){
     return key_id;
 };
 
-void GraphmlExporter::close(){
+void Graphml::Exporter::close(){
     while(close_element());
 };
 
-std::string GraphmlExporter::ToGraphml(){
+std::string Graphml::Exporter::ToGraphml(){
     return ss.str();
 }
 
-void GraphmlExporter::export_graph(){
+void Graphml::Exporter::export_graph(){
     
     export_element(++id_count_, "graph", "edgedefault=\"directed\"");
     export_new_line();
 };
 
-int GraphmlExporter::export_element(int id, std::string element, std::string attributes, bool one_line){
+int Graphml::Exporter::export_element(int id, std::string element, std::string attributes, bool one_line){
     export_tab();
     ss << "<" << element;
     
@@ -129,7 +129,7 @@ int GraphmlExporter::export_element(int id, std::string element, std::string att
     return id;
 };
 
-void GraphmlExporter::export_tab(){
+void Graphml::Exporter::export_tab(){
     if(pretty){
         auto tab = get_tab();
         if(tab > 0){
@@ -138,12 +138,12 @@ void GraphmlExporter::export_tab(){
     }
 };
 
-void GraphmlExporter::export_new_line(){
+void Graphml::Exporter::export_new_line(){
     if(pretty){
         ss << '\n';
     }
 };
 
-int GraphmlExporter::get_tab(){
+int Graphml::Exporter::get_tab(){
     return element_stack_.size();
 }

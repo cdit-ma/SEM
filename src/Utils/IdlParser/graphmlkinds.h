@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <list>
 
 namespace Graphml{
     enum class Kind{
@@ -15,6 +16,7 @@ namespace Graphml{
         MEMBER
     };
     class Model;
+    class Exporter;
 
     class Entity{
         friend class Model;
@@ -30,6 +32,10 @@ namespace Graphml{
             std::set<Entity*> get_children() const;
             std::string get_label() const;
             Kind get_kind() const;
+            Entity* get_parent() const;
+            std::string get_namespace() const;
+
+            Entity* get_child(std::string label) const;
         private:
             Kind kind_;
             int id_ = -1;
@@ -93,14 +99,23 @@ namespace Graphml{
             Aggregate* construct_aggregate(Namespace* parent, std::string label);
             Member* construct_complex_member(Aggregate* parent, std::string label, Entity* complex_type, bool is_sequence = false);
             Member* construct_primitive_member(Aggregate* parent, std::string label, std::string primitive_type, bool is_sequence = false);
+
+            Entity* get_ancestor_entity(Entity* entity, std::string label);
+            Entity* get_namespaced_entity(std::list<std::string> namespace_tokens);
         private:
+            int export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
+            int export_member(Exporter* exporter, Member* aggregate, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
+            Entity* get_entity(int id);
+
             void insert_into_map(Entity* entity);
             std::map<int, Entity*> entities_;
+            std::list<int> aggregate_ids_;
             Namespace* root_ = 0;
     };
 
     Namespace* AsNamespace(Entity* entity);
     Aggregate* AsAggregate(Entity* entity);
+    Member* AsMember(Entity* entity);
 };
 
 #endif //GRAPHML_KINDS_H
