@@ -880,14 +880,72 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_
     auto parent_node = entity_factory->GetNode(parentID);
     auto temp_node = construct_temp_node(parent_node, kind);
     if(temp_node){
-        nodes = _getConnectableNodes(QList<Node*>{temp_node}, edge_kind);
+        nodes = _getConnectableNodes({temp_node}, edge_kind);
         entity_factory->DestructEntity(temp_node);
     }
     return getIDs(nodes);
 }
 
-QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDGE_KIND edge_kind)
-{
+QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodeIds2(QList<int> src_ids, EDGE_KIND edge_kind){
+    QWriteLocker lock(&lock_);
+    
+    QMap<EDGE_DIRECTION, int> id_map;
+    qCritical() << EntityFactory::getEdgeKindString(edge_kind);
+    auto node_map = _getConnectableNodes2(getNodes(src_ids), edge_kind);
+
+    for(auto key : node_map.uniqueKeys()){
+        qCritical() << (key == EDGE_DIRECTION::SOURCE ? " SRC2DST: " : " DST2SRC: ");
+        for(auto value : node_map.values(key)){
+            qCritical() << "\t NODE: " << value;
+            id_map.insertMulti(key, value->getID());
+        }
+    }
+    return id_map;
+}
+
+QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> src_nodes, EDGE_KIND edge_kind){
+    QMap<EDGE_DIRECTION, Node*> node_map;
+    
+    bool srcs_require_edge = true;
+    
+    //Check if they can all accept edges of the kind we care about.
+    for(auto src : src_nodes){
+        //Check to see if the src Node requires an edge of edge_kind
+        if(!src->requiresEdgeKind(edge_kind)){
+            srcs_require_edge = false;
+            break;
+        }
+    }
+
+    //Only itterate if we have nodes
+    if(srcs_require_edge && src_nodes.size()){
+        for(auto id : node_ids_){
+            auto dst = entity_factory->GetNode(id);
+            if(dst && dst->acceptsEdgeKind(edge_kind)){
+                qCritical() << "Trying Dst: " << dst;
+                bool src2dst_valid = true;
+                bool dst2src_valid = true;
+
+                
+                for(auto src : src_nodes){
+                    //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
+                    src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
+                    dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
+                }
+                
+                if(src2dst_valid){
+                    node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
+                }
+                if(dst2src_valid){
+                    node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
+                }
+            }
+        }
+    }
+    return node_map;
+}
+
+QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDGE_KIND edge_kind){
     QList<Node*> valid_nodes;
 
     bool srcs_require_edge = true;

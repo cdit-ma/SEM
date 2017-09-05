@@ -71,6 +71,7 @@ public:
 
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
+    QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
     QList<int> getWorkerFunctions();
     
 
@@ -164,6 +165,7 @@ private:
     QList<Entity*> getUnorderedEntities(QList<int> IDs);
 
     QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
+    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
 
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
     Node* construct_node(Node* parent_node, NODE_KIND kind, int id = -1);
