@@ -522,6 +522,33 @@ void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND ed
     emit ActionFinished();
 }
 
+void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE_KIND edge_kind){
+    QWriteLocker lock(&lock_);
+    
+    auto src_nodes = getNodes(src_ids);
+    auto dst_nodes = getNodes(dst_ids);
+    bool success = true;
+    
+    //Have to go all to one
+    if(src_nodes.count() == 1 || dst_nodes.count() == 1){
+        qCritical() << "VALID YO HOLMES";
+        for(auto src : src_nodes){
+            for(auto dst : dst_nodes){
+                qCritical() << src << dst;
+                auto edge = construct_edge(edge_kind, src, dst);
+                if(!edge){
+                    success = false;
+                    break;
+                }else{
+                    qCritical() << edge;
+                }
+            }
+        }
+    }
+    emit ActionFinished();
+}
+
+
 void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
 {
     QWriteLocker lock(&lock_);
@@ -661,16 +688,23 @@ Node* ModelController::construct_for_condition_node(Node* parent)
 }
 
 
-void ModelController::constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos)
+void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
 {
     QWriteLocker lock(&lock_);
 
-    Node* parent = entity_factory->GetNode(parentID);
-    Node* dst = entity_factory->GetNode(dstID);
+    auto parent_node = entity_factory->GetNode(id);
+    auto dst_node = entity_factory->GetNode(dst_id);
 
-    if(parent && dst){
+    if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
-        auto node = construct_connected_node(parent, nodeKind, dst, edgeKind);
+
+        Node* node = 0;
+        if(node_kind == NODE_KIND::WORKER_PROCESS){
+            node = cloneNode(dst_node, parent_node);
+        }else{
+            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
+        }
+
         if(node){
             //Use position?
             setData_(node, "x", pos.x());
@@ -868,6 +902,7 @@ QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edg
 {
     QReadLocker lock(&lock_);
     auto nodes = _getConnectableNodes(getNodes(srcs), edgeKind);
+    
     return getIDs(nodes);
 }
 
@@ -883,6 +918,7 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_
         nodes = _getConnectableNodes({temp_node}, edge_kind);
         entity_factory->DestructEntity(temp_node);
     }
+    //qCritical() << nodes;
     return getIDs(nodes);
 }
 
@@ -922,7 +958,6 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> 
         for(auto id : node_ids_){
             auto dst = entity_factory->GetNode(id);
             if(dst && dst->acceptsEdgeKind(edge_kind)){
-                qCritical() << "Trying Dst: " << dst;
                 bool src2dst_valid = true;
                 bool dst2src_valid = true;
 

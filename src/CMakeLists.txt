@@ -59,6 +59,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.cpp
@@ -165,6 +167,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.h

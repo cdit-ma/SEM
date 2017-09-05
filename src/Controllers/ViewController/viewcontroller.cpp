@@ -5,6 +5,7 @@
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Views/ContextToolbar/contexttoolbar.h"
+#include "../../Views/ContextToolbar/contextmenu.h"
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
 
@@ -64,13 +65,15 @@ ViewController::ViewController() : QObject(){
     actionController = new ActionController(this);
     toolbarController = new ToolbarController(this);
     toolbar = new ContextToolbar(this);
+    auto menu = new ContextMenu(this);
 
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
     //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
-    connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
+    //connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
+    connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 
     //Every minute
     //60000
@@ -107,6 +110,8 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
     connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
+    connect(this, &ViewController::vc_constructEdges, controller, &ModelController::constructEdges);
+    
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
@@ -201,6 +206,24 @@ QList<ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
         QList<int> selectedIDs = selectionController->getSelectionIDs();
         QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
         items = getViewItems(IDs);
+    }
+    return items;
+}
+
+QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges2(EDGE_KIND kind){
+    QHash<EDGE_DIRECTION, ViewItem*>  items;
+    if(selectionController && controller){
+        auto selection = selectionController->getSelectionIDs();
+        auto id_map = controller->getConnectableNodeIds2(selection, kind);
+        
+        for(auto direction : id_map.uniqueKeys()){
+            for(auto id : id_map.values(direction)){
+                auto view_item = getViewItem(id);
+                if(view_item){
+                    items.insertMulti(direction, view_item);
+                }
+            }
+        }
     }
     return items;
 }

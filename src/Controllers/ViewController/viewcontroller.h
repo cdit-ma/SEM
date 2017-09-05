@@ -49,6 +49,7 @@ public:
     QStringList _getSearchSuggestions();
 
     QMap<QString, ViewItem*> getSearchResults(QString result);
+    QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString label="");
 
@@ -115,6 +116,8 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
     void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+
+    void vc_constructEdges(QList<int> sourceIDs, QList<int> dstID, EDGE_KIND edgeKind);
 
     void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
     void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);

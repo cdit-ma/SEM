@@ -131,7 +131,7 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 Node* pDef = parentNode->getDefinition();
                 if(pDef && !pDef->isAncestorOf(dst)){
                     //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
-                    return false;
+                    //return false;
                 }
             }else{
                 if(dst->getDefinition()){
@@ -175,11 +175,11 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
 
-
-    if(!dst->isInModel()){
+    //Needed for cool edges
+    //if(!dst->isInModel()){
         //Don't allow edges to outside the model.
-        return false;
-    }
+        //return false;
+    //}
 
     if(dst == this){
         //Don't allow edges to self.
