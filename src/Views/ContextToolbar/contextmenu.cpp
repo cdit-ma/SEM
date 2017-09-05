@@ -21,6 +21,7 @@ class BigMenuStyle : public QProxyStyle{
  
 
 ContextMenu::ContextMenu(ViewController *vc){
+    //Setup the complex relationship nodes
     connect_node_edge_kinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
@@ -85,16 +86,22 @@ void ContextMenu::themeChanged(){
 }
 
 void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
+    //Test the other popup
+    //auto value = add_node_menu_hash[NODE_KIND::COMPONENT_INSTANCE];//remove_edge_menu_hash[EDGE_KIND::ASSEMBLY];
+    //auto value = add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY}];
     main_menu->popup(global_pos);
+    
 }
 
-QMenu* construct_menu(QMenu* parent, QString label){
+QMenu* ContextMenu::construct_menu(QMenu* parent, QString label){
     auto menu = parent ? parent->addMenu(label) : new QMenu(label);
     menu->setStyle(new BigMenuStyle);
+    connect(menu, &QMenu::triggered, this, &ContextMenu::action_triggered);
     return menu;
 }
 
 void ContextMenu::action_triggered(QAction* action){
+    qCritical() << "MENU ACTION";
     auto node_kind = action->property("node_kind").value<NODE_KIND>();
     auto edge_kind = action->property("edge_kind").value<EDGE_KIND>();
     auto action_kind = action->property("action_kind").value<ACTION_KIND>();
@@ -243,6 +250,7 @@ void ContextMenu::update_add_node_menu(QMenu* menu){
         auto node_kind = node_action->property("node_kind").value<NODE_KIND>();
         node_action->setVisible(visible_node_kinds.contains(node_kind));
     }
+    qCritical() << "Updated all old node menu";
 }
 
 QAction* ContextMenu::get_view_item_action(QMenu* parent, ViewItem* item){
@@ -310,7 +318,7 @@ void ContextMenu::setupMenus(){
         add_edge_kind_src_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
         add_edge_kind_src_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
         add_edge_kind_src_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
-        
+
         auto add_edge_kind_dst_menu = construct_menu(add_edge_kind_menu, "To");
         add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
         add_edge_kind_dst_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));

@@ -33,6 +33,7 @@ private:
     void update_add_node_menu(QMenu* menu);
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
+    QMenu* construct_menu(QMenu* parent, QString label);
 private:
     QAction* get_view_item_action(QMenu* parent, ViewItem* item);
     QMenu* get_view_item_menu(QMenu* parent, ViewItem* item);

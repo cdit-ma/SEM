@@ -16,7 +16,6 @@ ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
     setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
     setDefinitionKind(NODE_KIND::COMPONENT);
 }
 
