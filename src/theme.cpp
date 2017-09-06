@@ -260,13 +260,28 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
     return Theme::QColorToHex(color);
 }
 
-void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias){
+void Theme::setWindowIcon(QString window_title, QString visible_icon_prefix, QString visible_icon_alias){
+    setIconToggledImage("WindowIcon", window_title, visible_icon_prefix, visible_icon_alias, "Icons", "transparent");
+}
+
+void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias, bool ignore_toggle_coloring){
     QString name = getResourceName(prefix, alias);
+    
     //Construct pairs
     auto toggled_on = getIconPair(toggledOnPrefix, toggledOnAlias);
     auto toggled_off = getIconPair(toggledOffPrefix, toggleOffAlias);
 
+    IconToggle icon_toggle;
+    icon_toggle.on = getIconPair(toggledOnPrefix, toggledOnAlias);
+    icon_toggle.off = getIconPair(toggledOffPrefix, toggleOffAlias);
+    icon_toggle.got_toggle = true;
+
+    if(ignore_toggle_coloring){
+        icon_toggle.on_normal = icon_toggle.off_normal;
+    }
+
     iconToggledLookup[name] = QPair<IconPair, IconPair>(toggled_on, toggled_off);
+    iconToggledLookup2[name] = icon_toggle;
 }
 
 QColor Theme::getDefaultImageTintColor()
@@ -355,58 +370,62 @@ QIcon Theme::getIcon(IconPair icon)
     return getIcon(icon.first, icon.second);
 }
 
-QIcon Theme::getIcon(QString prefix, QString alias, bool ignore_checked_colors)
+QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_colors)
 {
+    bool ignore_checked_colors = false;
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QString lookupName = getResourceName(prefix, alias);
 
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
+        
         QIcon icon;
-        QPair<IconPair, IconPair> toggledPaths;
-        bool gotToggle = false;
+
+        IconToggle icon_toggle;
+
 
         //Check if we have a toggled Icon
-        if(iconToggledLookup.contains(lookupName)){
-            toggledPaths = iconToggledLookup[lookupName];
-            gotToggle = true;
+        if(iconToggledLookup2.contains(lookupName)){
+            icon_toggle = iconToggledLookup2.value(lookupName);
+        }else{
+            icon_toggle.off.first = prefix;
+            icon_toggle.off.second = alias;
         }
 
-        if(gotToggle){
-            //Load in the first path.
-            prefix = toggledPaths.first.first;
-            alias = toggledPaths.first.second;
-        }
+        auto off_rn = getResourceName(icon_toggle.off);
+        auto on_rn = getResourceName(icon_toggle.on);
 
-        //getImage(prefix, alias);
+        bool is_off_tinted = tintIcon(off_rn);
+        bool is_on_tinted = tintIcon(on_rn);
 
-        bool isTinted = tintIcon(prefix, alias);
+        QSize blank_size;
 
-        //Set the default states.
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        
-        if(isTinted){
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
-        }
-
-        if(gotToggle){
-            QString toggledPrefixName = toggledPaths.second.first;
-            QString toggledAliasName = toggledPaths.second.second;
-
-            bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
-
-            auto toggled_normal_color = ignore_checked_colors ? getMenuIconColor(CR_NORMAL) : getMenuIconColor(CR_SELECTED);
-            //Set the toggled states.
-            icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), toggled_normal_color), QIcon::Normal, QIcon::On);
+        //Handle Off State
+        {
+            //Set the default states.
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_normal)), QIcon::Normal, QIcon::Off);
             
-            if(isToggledTinted){
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
+            if(is_off_tinted){
+                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_active)), QIcon::Active, QIcon::Off);
+                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_disabled)), QIcon::Disabled, QIcon::Off);
+            }
+        }
+
+        if(alias == "visibleToggle"){
+            qCritical() << lookupName << (icon_toggle.got_toggle ? " TOGGLE:" : " DOESN'T TOGGLE");
+        }
+        //Handle On State
+        if(icon_toggle.got_toggle){
+            icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+
+            if(is_on_tinted){
+                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_active)), QIcon::Active, QIcon::On);
+                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
             }
         }else{
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
         }
 
         iconLookup[lookupName] = icon;
@@ -679,21 +698,21 @@ QString Theme::getMenuBarStyleSheet()
            "}";
 }
 
-QString Theme::getMenuStyleSheet()
+QString Theme::getMenuStyleSheet(int icon_size_int)
 {
+    QString icon_size = QString::number(icon_size_int);
     return "QMenu {"
            "background:" % getAltBackgroundColorHex() % ";"
-           //"border-radius:" % getCornerRadius() % ";"
            "border-radius:" % getSharpCornerRadius() % ";"
-           "margin: 2px; "
+           "margin: 2px;"
            "}"
            "QMenu::item {"
-           "padding: 2px 15px 2px 25px;"
+           "margin:2px;"
+           "padding: 4px 4px 4px " % QString::number(icon_size_int + 8) % "px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
-           //"border-radius: " % getCornerRadius() % ";"
            "border-radius: " % getSharpCornerRadius() % ";"
-           "border: 0px;"
+           "border: none;"
            "}"
            "QMenu::item:disabled {"
            "color:" % getTextColorHex(CR_DISABLED) % ";"
@@ -704,12 +723,23 @@ QString Theme::getMenuStyleSheet()
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QMenu::icon {"
-           "position: absolute;"
+           /*"position: relative;"
            "top: 2px;"
-           "right: 4px;"
-           "bottom: 2px;"
-           "left: 4px;"
-           "}";
+           "right: 2px;"
+           "bottom: 2px;"*/
+           "left: 2px;"
+           "}"
+           "QMenu::right-arrow{"
+               "width:4px;"
+               "height:4px;"
+               "margin:4px;"
+               "border-radius:2px;"
+               "background:" % getTextColorHex() % ";"
+           "}"
+           "QMenu::right-arrow:selected{"
+               "background:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+       ;
 }
 
 QString Theme::getToolBarStyleSheet()
@@ -1260,18 +1290,16 @@ QString Theme::getResourceName(IconPair icon) const
 
 void Theme::setupToggledIcons()
 {
-    setIconToggledImage("Icons", "gridToggle", "Icons", "grid", "Icons", "gridStriked");
-    setIconToggledImage("Icons", "fullscreenToggle", "Icons", "fullscreen", "Icons", "cross");
-    setIconToggledImage("Icons", "arrowHeadVerticalToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadUp");
-    setIconToggledImage("Icons", "minimapToggle", "Icons", "map", "Icons", "eyeStriked");
-    setIconToggledImage("Icons", "searchOptionToggle", "Icons", "zoom", "Icons", "arrowHeadDown");
-    setIconToggledImage("Icons", "maximizeToggle", "Icons", "maximize", "Icons", "minimize");
-    setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
-    setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
-    setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
+    setIconToggledImage("ToggleIcons", "arrowVertical", "Icons", "arrowHeadUp", "Icons", "arrowHeadDown");
+    setIconToggledImage("ToggleIcons", "groupToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadRight");
+    setIconToggledImage("ToggleIcons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
 
-    setIconToggledImage("Icons", "notificationSeen", "Icons", "clock", "Icons", "exclamation");
-    setIconToggledImage("Icons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
+
+    setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
+    setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
+    setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
+
+    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "exclamation", "Icons", "clock", false);
 
     
 }
@@ -1449,18 +1477,16 @@ IconPair Theme::splitImagePath(QString path)
     return pair;
 }
 
-bool Theme::tintIcon(QString prefix, QString alias)
-{
-    QString key = getResourceName(prefix, alias);
-    if(pixmapSizeLookup.contains(key)){
-        return tintIcon(pixmapSizeLookup[key]);
-    }
-    return false;
+bool Theme::tintIcon(IconPair pair){
+    return tintIcon(getResourceName(pair));
 }
 
+bool Theme::tintIcon(QString resource_name){
+    return tintIcon(pixmapSizeLookup.value(resource_name, QSize(0, 0)));
+}
 bool Theme::tintIcon(QSize size)
 {
-    return size.width() % 96 == 0;
+    return size.width() > 0 && size.width() % 96 == 0;
 }
 
 QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
@@ -1493,6 +1519,14 @@ void Theme::teardownTheme()
     themeSingleton = 0;
 }
 
+CustomMenuStyle::CustomMenuStyle(int icon_size){
+    this->icon_size = icon_size;
+}
 
-
-
+int CustomMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const{
+    auto s = QProxyStyle::pixelMetric(metric, option, widget);
+    if (metric == QStyle::PM_SmallIconSize) {
+        s = icon_size;
+    }
+    return s;
+}

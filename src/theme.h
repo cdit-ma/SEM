@@ -11,6 +11,7 @@
 #include <QMovie>
 #include <QObject>
 #include <QFuture>
+#include <QProxyStyle>
 
 #include "ModelController/nodekinds.h"
 #include "enumerations.h"
@@ -77,7 +78,7 @@ public:
     QColor getMainImageColor(IconPair path);
 
     QIcon getIcon(IconPair icon);
-    QIcon getIcon(QString prefix, QString alias, bool ignore_checked_colors = false);
+    QIcon getIcon(QString prefix, QString alias);
 
 private:
     QPixmap _getPixmap(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
@@ -97,7 +98,9 @@ public:
     void setTextColor(COLOR_ROLE role, QColor color);
     void setMenuIconColor(COLOR_ROLE role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
-    void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias);
+    void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias, bool ignore_toggle_coloring = true);
+
+    void setWindowIcon(QString window_title, QString visible_icon_prefix, QString visible_icon_alias);
 
     void setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias);
     void setDefaultImageTintColor(QColor color);
@@ -129,7 +132,7 @@ public:
     QString getDockTitleBarStyleSheet(bool isActive=false, QString widgetName="DockTitleBar");
     QString getToolDockWidgetTitleBarStyleSheet();
     QString getMenuBarStyleSheet();
-    QString getMenuStyleSheet();
+    QString getMenuStyleSheet(int icon_size = 32);
     QString getToolBarStyleSheet();
     QString getAbstractItemViewStyleSheet();
     QString getAltAbstractItemViewStyleSheet();
@@ -170,8 +173,10 @@ private:
 
     IconPair splitImagePath(QString path);
 
+    bool tintIcon(IconPair pair);
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
+    bool tintIcon(QString resource_name);
 
     QSet<QString> image_names;
 
@@ -183,7 +188,22 @@ private:
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QColor> pixmapTintLookup;
 
+    struct IconToggle{
+        IconPair on;
+        IconPair off;
+        bool got_toggle = false;
+
+        COLOR_ROLE on_normal = CR_SELECTED;
+        COLOR_ROLE on_active = CR_SELECTED;
+        COLOR_ROLE on_disabled = CR_DISABLED;
+
+        COLOR_ROLE off_normal = CR_NORMAL;
+        COLOR_ROLE off_active = CR_SELECTED;
+        COLOR_ROLE off_disabled = CR_DISABLED;
+    };
+
     QHash<QString, QPair<IconPair, IconPair> > iconToggledLookup;
+    QHash<QString, IconToggle > iconToggledLookup2;
     QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
@@ -220,6 +240,15 @@ public:
     static IconPair getIconPair(QString prefix, QString alias);
 private:
     static Theme* themeSingleton;
+};
+
+
+class CustomMenuStyle : public QProxyStyle{
+    public:
+        CustomMenuStyle(int icon_size = 32);
+        int pixelMetric(PixelMetric metric, const QStyleOption* option = 0, const QWidget* widget = 0) const;
+    private:
+        int icon_size = 32;
 };
 
 #endif // THEME_H

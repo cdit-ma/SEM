@@ -40,7 +40,7 @@ QList<QAction *> DockTitleBar::getToolActions()
 void DockTitleBar::setToolBarIconSize(int height)
 {
     setIconSize(QSize(height, height));
-    iconLabel->setFixedSize(height +2,height);
+    //iconLabel->setFixedSize(height, height);
 }
 
 void DockTitleBar::setIcon(QString iconPath, QString iconName){
@@ -94,12 +94,12 @@ void DockTitleBar::addToolAction(QAction* action, Qt::Alignment alignment)
 }
 void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName){
     if(action){
-        action->setIcon(Theme::theme()->getIcon(iconPath, iconName, true));
+        action->setIcon(Theme::theme()->getIcon(iconPath, iconName));//, true));
     }
 }
 void DockTitleBar::updateIcon(QLabel* action, QString iconPath, QString iconName){
     if(action){
-        action->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(16,16)));
+        action->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(16,16), QIcon::Normal, QIcon::On));
     }
 }
 
@@ -109,10 +109,10 @@ void DockTitleBar::themeChanged()
     Theme* theme = Theme::theme();
 
     updateIcon(closeAction, "Icons", "cross");
-    updateIcon(maximizeAction, "Icons", "maximizeToggle");
     updateIcon(popOutAction, "Icons", "popOut");
-    updateIcon(protectAction, "Icons", "lockToggle");
-    updateIcon(hideAction, "Icons", "visibleToggle");
+    updateIcon(maximizeAction, "ToggleIcons", "maximize");
+    updateIcon(protectAction, "ToggleIcons", "lock");
+    updateIcon(hideAction, "ToggleIcons", "visible");
     updateIcon(iconLabel, icon_path.first, icon_path.second);
 }
 
@@ -126,6 +126,7 @@ void DockTitleBar::setupToolBar()
     iconLabel = new QLabel(this);
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setStyleSheet("margin-right: 2px;");
+    iconLabel->setFixedSize(16,16);
 
     titleLabel = new QLabel(this);
     titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

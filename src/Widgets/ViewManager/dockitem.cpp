@@ -26,7 +26,7 @@ void DockItem::updateIcon()
 {
     if(iconLabel && dockWidget){
         QPair<QString, QString> icon = dockWidget->getIcon();
-        iconLabel->setPixmap(Theme::theme()->getIcon(icon.first, icon.second, true).pixmap(16,16));
+        iconLabel->setPixmap(Theme::theme()->getIcon(icon.first, icon.second).pixmap(16,16, QIcon::Normal, QIcon::On));
     }
 }
 

@@ -29,6 +29,7 @@
 #include <QDesktopWidget>
 
 #define TOOLBAR_HEIGHT 32
+#define MENU_ICON_SIZE 16
 
 
 /**
@@ -179,7 +180,7 @@ void MainWindow::themeChanged()
             " QToolBar::handle:vertical{image: url(:/Images/Icons/dotsHorizontal);}"
     );
 
-    QString menuStyle = theme->getMenuStyleSheet();
+    QString menuStyle = theme->getMenuStyleSheet(MENU_ICON_SIZE);
     ActionController* actionController = viewController->getActionController();
 
     actionController->menu_file->setStyleSheet(menuStyle);
@@ -190,6 +191,8 @@ void MainWindow::themeChanged()
     actionController->menu_jenkins->setStyleSheet(menuStyle);
     actionController->menu_help->setStyleSheet(menuStyle);
     actionController->menu_options->setStyleSheet(menuStyle);
+
+    applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
 
     restoreToolsButton->setIcon(theme->getIcon("Icons", "spanner"));
     restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
@@ -307,6 +310,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
     welcomeScreenOn = on;
 
     // show/hide the menu bar and close all dock widgets
+    
     menuBar->setVisible(!on);
     setDockWidgetsVisible(!on);
     if(on){
@@ -422,10 +426,18 @@ void MainWindow::setupInnerWindow()
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
-    dwInterfaces->setIcon("EntityIcons", "InterfaceDefinitions");
-    dwBehaviour->setIcon("EntityIcons", "BehaviourDefinitions");
-    dwAssemblies->setIcon("EntityIcons", "AssemblyDefinitions");
-    dwHardware->setIcon("EntityIcons", "HardwareDefinitions");
+
+    //Setip
+    auto theme = Theme::theme();
+    theme->setIconToggledImage("WindowIcon", "InterfaceDefinitions", "EntityIcons", "InterfaceDefinitions", "Icons", "eyeStriked");
+    theme->setIconToggledImage("WindowIcon", "BehaviourDefinitions", "EntityIcons", "BehaviourDefinitions", "Icons", "eyeStriked");
+    theme->setIconToggledImage("WindowIcon", "AssemblyDefinitions", "EntityIcons", "AssemblyDefinitions", "Icons", "eyeStriked");
+    theme->setIconToggledImage("WindowIcon", "HardwareDefinitions", "EntityIcons", "HardwareDefinitions", "Icons", "eyeStriked");
+    
+    dwInterfaces->setIcon("WindowIcon", "InterfaceDefinitions");
+    dwBehaviour->setIcon("WindowIcon", "BehaviourDefinitions");
+    dwAssemblies->setIcon("WindowIcon", "AssemblyDefinitions");
+    dwHardware->setIcon("WindowIcon", "HardwareDefinitions");
 
 
     //Set Icon Visibility
@@ -483,6 +495,15 @@ void MainWindow::setupMenuBar()
     menuBar->addMenu(ac->menu_options);
     menuBar->addMenu(ac->menu_help);
 
+    auto menu_style = new CustomMenuStyle(MENU_ICON_SIZE);
+
+    for(auto action : menuBar->actions()){
+        auto menu = action->menu();
+        if(menu){
+            menu->setStyle(menu_style);
+        }
+    }
+
     // moved the connection here otherwise this action won't be connected unless there's a notification toolbar
     //QAction* showNotificationPanel = ac->window_showNotifications;
     //connect(showNotificationPanel, &QAction::triggered, this, &MainWindow::ensureNotificationPanelVisible);
@@ -517,6 +538,9 @@ void MainWindow::setupToolBar()
     applicationToolbar->setMovable(true);
     applicationToolbar->setFloatable(true);
     applicationToolbar->setIconSize(QSize(16,16));
+    Theme::theme()->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
+
+    
     
     applicationToolbar_spacer1 = new QWidget(this);
     applicationToolbar_spacer2 = new QWidget(this);
@@ -559,6 +583,9 @@ void MainWindow::setupDock()
 
     connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockwidget_Dock, SLOT(setVisible(bool)));
 
+    Theme::theme()->setWindowIcon(dockwidget_Dock->getTitle(), "Icons", "circleCirclesDark");
+    dockwidget_Dock->setIcon("WindowIcon", dockwidget_Dock->getTitle());
+
     //Check visibility state.
     addDockWidget(Qt::LeftDockWidgetArea, dockwidget_Dock, Qt::Vertical);
 }
@@ -569,13 +596,17 @@ void MainWindow::setupDock()
  */
 void MainWindow::setupDataTable()
 {
-    dockwidget_Table = WindowManager::manager()->constructToolDockWidget("Table");
+    dockwidget_Table = WindowManager::manager()->constructToolDockWidget("Data Table");
     tableWidget = new DataTableWidget(viewController, dockwidget_Table);
     tableWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred));
     tableWidget->setMinimumHeight(200);
     tableWidget->setMinimumWidth(200);
     dockwidget_Table->setWidget(tableWidget);
     dockwidget_Table->setAllowedAreas(Qt::RightDockWidgetArea);
+
+    
+    Theme::theme()->setWindowIcon(dockwidget_Table->getTitle(), "Icons", "sliders");
+    dockwidget_Table->setIcon("WindowIcon", dockwidget_Table->getTitle());
 
     //Add the rename action to the dockwidget so that it'll handle rename shortcut
     dockwidget_Table->addAction(viewController->getActionController()->edit_renameActiveSelection);
@@ -599,10 +630,13 @@ void MainWindow::setupMinimap()
     minimap->setMinimumWidth(200);
     minimap->setMaximumWidth(200);
     
-
+    
     dockwidget_Minimap = WindowManager::manager()->constructToolDockWidget("Minimap");
     dockwidget_Minimap->setWidget(minimap);
     dockwidget_Minimap->setAllowedAreas(Qt::RightDockWidgetArea);
+
+    Theme::theme()->setWindowIcon(dockwidget_Minimap->getTitle(), "Icons", "map");
+    dockwidget_Minimap->setIcon("WindowIcon", dockwidget_Minimap->getTitle());
 
     addDockWidget(Qt::RightDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
 }
@@ -660,14 +694,21 @@ void MainWindow::setupDockablePanels()
     auto dwQOSBrowser = manager->constructDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
     dwQOSBrowser->setIconVisible(true);
-    dwQOSBrowser->setIcon("Icons", "speedGauge");
+    
+    auto theme = Theme::theme();
+    theme->setWindowIcon("QOS Browser", "Icons", "speedGauge");
+    theme->setWindowIcon("Search Results", "Icons", "zoomInPage");
+    theme->setWindowIcon("Notifications", "Icons", "exclamationInBubble");
+    theme->setWindowIcon("Jenkins", "Icons", "jenkinsFlat");
+
+    dwQOSBrowser->setIcon("WindowIcon", "QOS Browser");
     dwQOSBrowser->setProtected(true);
 
     auto searchPanel = SearchManager::manager()->getSearchDialog();
     
     dockwidget_Search = manager->constructDockWidget("Search Results");
     dockwidget_Search->setWidget(searchPanel);
-    dockwidget_Search->setIcon("Icons", "zoomInPage");
+    dockwidget_Search->setIcon("WindowIcon", "Search Results");
     dockwidget_Search->setIconVisible(true);
     dockwidget_Search->setProtected(true);
     
@@ -677,13 +718,13 @@ void MainWindow::setupDockablePanels()
 
     dockwidget_Notification = manager->constructDockWidget("Notifications");
     dockwidget_Notification->setWidget(notificationPanel);
-    dockwidget_Notification->setIcon("Icons", "exclamationInBubble");
+    dockwidget_Notification->setIcon("WindowIcon", "Notifications");
     dockwidget_Notification->setIconVisible(true);
     dockwidget_Notification->setProtected(true);
 
     dockwidget_Jenkins = manager->constructDockWidget("Jenkins");
     dockwidget_Jenkins->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dockwidget_Jenkins->setIcon("Icons", "jenkinsFlat");
+    dockwidget_Jenkins->setIcon("WindowIcon", "Jenkins");
     dockwidget_Jenkins->setIconVisible(true);
     dockwidget_Jenkins->setProtected(true);
 
@@ -716,6 +757,10 @@ void MainWindow::setupViewManager()
     dockwidget_ViewManager = manager->constructToolDockWidget("View Manager");
     dockwidget_ViewManager->setWidget(viewManager);
     dockwidget_ViewManager->setAllowedAreas(Qt::RightDockWidgetArea);
+
+    Theme::theme()->setWindowIcon(dockwidget_ViewManager->getTitle(), "Icons", "gridCombo");
+    dockwidget_ViewManager->setIcon("WindowIcon", dockwidget_ViewManager->getTitle());
+
 
     addDockWidget(Qt::RightDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
 }

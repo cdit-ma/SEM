@@ -161,7 +161,12 @@ void BaseDockWidget::setIcon(QString prefix, QString alias)
         titleIcon.first = prefix;
         titleIcon.second = alias;
         titleBar->setIcon(prefix, alias);
+
+        
         emit iconChanged(); 
+
+        auto action = toggleViewAction();
+        action->setIcon(Theme::theme()->getIcon(prefix, alias));
     }
 
 }

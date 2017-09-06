@@ -158,7 +158,7 @@ void SearchItemWidget::themeChanged()
     updateIcon();
 
     if (button_expand) {
-        button_expand->setIcon(theme->getIcon("Icons", "arrowHeadVerticalToggle"));
+        button_expand->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
         button_expand->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
 }

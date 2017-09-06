@@ -25,6 +25,7 @@ public:
     void setDockWidgetArea(Qt::DockWidgetArea area);
     void setSourceWindow(BaseWindow* window);
     BaseWindow* getSourceWindow();
+    
 
     virtual void themeChanged();
     

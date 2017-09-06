@@ -164,7 +164,7 @@ void NotificationDialog::themeChanged()
 
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
-    sort_time_action->setIcon(theme->getIcon("Icons", "sort", true));
+    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     
     auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());

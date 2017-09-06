@@ -28,11 +28,13 @@ private:
     void themeChanged();
     void setupMenus();
     void action_triggered(QAction* action);
-
+    void update_main_menu(QMenu* menu);
     void update_add_edge_menu(QMenu* menu);
+    void update_remove_edge_menu(QMenu* menu);
     void update_add_node_menu(QMenu* menu);
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
+    void popuplate_dynamic_remove_edge_menu(QMenu* menu);
     QMenu* construct_menu(QMenu* parent, QString label);
 private:
     QAction* get_view_item_action(QMenu* parent, ViewItem* item);
@@ -46,10 +48,6 @@ private:
     QMenu* get_add_edge_menu(EDGE_DIRECTION direction, EDGE_KIND edge_kind);
     QMenu* get_remove_edge_menu(EDGE_KIND edge_kind);
 
-    QAction* add_node_action = 0;
-    QAction* add_edge_action = 0;
-    QAction* remove_edge_action = 0;
-    
     QMenu* main_menu = 0;
     QMenu* add_node_menu = 0;
     QMenu* add_edge_menu = 0;

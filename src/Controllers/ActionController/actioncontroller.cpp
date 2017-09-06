@@ -807,7 +807,6 @@ void ActionController::setupActions()
 
     toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
 }
-
 void ActionController::setupMainMenu()
 {
     menu_file = new QMenu("File");

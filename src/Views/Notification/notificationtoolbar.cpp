@@ -62,7 +62,7 @@ void NotificationToolbar::themeChanged()
             severity_label->setStyleSheet("QLabel{color: " + color + ";}");
         }
     }
-    default_icon = theme->getIcon("Icons", "notificationSeen");
+    default_icon = theme->getIcon("ToggleIcons", "newNotification");
     show_notification_dialog_action->setIcon(theme->getIcon("Icons", "popOut"));
 
     updateButtonIcon();

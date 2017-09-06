@@ -96,6 +96,7 @@
         <file alias="arrowUpload">Resources/Icons/arrowUpload.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
+        <file alias="transparent">Resources/Icons/transparent.png</file>
         <file alias="book">Resources/Icons/book.png</file>
         <file alias="bracketsAngled">Resources/Icons/bracketsAngled.png</file>
         <file alias="bracketsCurly">Resources/Icons/bracketsCurly.png</file>
@@ -262,5 +263,11 @@
         <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
         <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
         <file alias="drop">Resources/Icons/drop.png</file>
+        <file alias="bookmark">Resources/Icons/bookmark.png</file>
+        <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
+        <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
+        <file alias="sliders">Resources/Icons/sliders.png</file>
+        
+        
     </qresource>
 </RCC>

@@ -3,20 +3,11 @@
 
 #include "../../ModelController/entityfactory.h"
 
-#include <QProxyStyle>
+
 #include <QDebug>
 
 #define MENU_ICON_SIZE 32
-class BigMenuStyle : public QProxyStyle{
-    public:
-    int pixelMetric(PixelMetric metric, const QStyleOption* option = 0, const QWidget* widget = 0) const{
-        auto s = QProxyStyle::pixelMetric(metric, option, widget);
-        if (metric == QStyle::PM_SmallIconSize) {
-            s = MENU_ICON_SIZE;
-        }
-        return s;
-    }
- };
+
 
  
 
@@ -45,7 +36,7 @@ ContextMenu::ContextMenu(ViewController *vc){
 
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
-    main_menu->setStyleSheet(theme->getMenuStyleSheet() + " QMenu{font-size:12pt;} QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }");
+    main_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:12pt;}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
@@ -94,7 +85,7 @@ void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
 
 QMenu* ContextMenu::construct_menu(QMenu* parent, QString label){
     auto menu = parent ? parent->addMenu(label) : new QMenu(label);
-    menu->setStyle(new BigMenuStyle);
+    menu->setStyle(new CustomMenuStyle(32));
     return menu;
 }
 
@@ -134,6 +125,14 @@ void ContextMenu::action_triggered(QAction* action){
                 auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
                 auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
                 emit view_controller->vc_constructEdges(src_ids, dst_ids, edge_kind);
+            }
+            break;
+        }
+        case ACTION_KIND::REMOVE_EDGE:{
+            auto selection = view_controller->getSelectionController()->getSelectionIDs();
+            if(selection.size()){
+                qCritical() << "Deleting Edge: " << selection << " TO " << id << " " << EntityFactory::getEdgeKindString(edge_kind);
+                emit view_controller->vc_destructEdges(selection, id, edge_kind);
             }
             break;
         }
@@ -191,6 +190,44 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
     }
 }
 
+void ContextMenu::popuplate_dynamic_remove_edge_menu(QMenu* menu){
+    if(menu){
+        auto edge_kind = menu->property("edge_kind").value<EDGE_KIND>();
+
+        //Clear all the old items
+        menu->clear();
+
+        
+        //Keep a hash to keep track of previous 
+        QHash<int, QMenu*> sub_menus;
+
+        auto item_list = view_controller->getExistingEdgeEndPointsForSelection(edge_kind);
+
+
+        for(auto view_item : item_list){
+            auto parent_view_item = view_item->getParentItem();
+            QMenu* parent_menu = menu;
+            
+            if(parent_view_item){
+                auto parent_id = parent_view_item->getID();
+                //Construct
+                parent_menu = sub_menus.value(parent_id, 0);
+                if(!parent_menu){
+                    parent_menu = get_view_item_menu(menu, parent_view_item);
+                    sub_menus.insert(parent_id, parent_menu);
+                }
+            }
+            auto action = get_view_item_action(parent_menu, view_item);
+            
+            
+            //Set the properties on the action
+            action->setProperty("node_kind", menu->property("node_kind"));
+            action->setProperty("edge_kind", menu->property("edge_kind"));
+            action->setProperty("action_kind", menu->property("action_kind"));
+        }
+    }
+}
+
 void ContextMenu::populate_dynamic_add_node_menu(QMenu* menu){
     if(menu){
         auto node_kind = menu->property("node_kind").value<NODE_KIND>();
@@ -231,6 +268,25 @@ void ContextMenu::update_add_edge_menu(QMenu* menu){
         auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
         edge_menu->menuAction()->setVisible(visible_edge_kinds.contains(edge_kind));
     }
+}
+
+void ContextMenu::update_remove_edge_menu(QMenu* menu){
+    auto visible_edge_kinds = view_controller->getExistingEdgeKindsForSelection().toSet();
+    
+    for(auto edge_menu : remove_edge_menu_hash.values()){
+        auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
+        edge_menu->menuAction()->setVisible(visible_edge_kinds.contains(edge_kind));
+    }
+}
+
+void ContextMenu::update_main_menu(QMenu* menu){
+    bool can_add_node = view_controller->getAdoptableNodeKinds2().size();
+    bool can_add_edge = view_controller->getValidEdgeKindsForSelection().size();
+    bool can_remove_edge = view_controller->getExistingEdgeKindsForSelection().size();
+    
+    add_node_menu->menuAction()->setVisible(can_add_node);
+    add_edge_menu->menuAction()->setVisible(can_add_edge);
+    remove_edge_menu->menuAction()->setVisible(can_remove_edge);
 }
 
 void ContextMenu::update_add_node_menu(QMenu* menu){
@@ -335,12 +391,16 @@ void ContextMenu::setupMenus(){
 
         auto remove_edge_kind_menu = construct_menu(remove_edge_menu, edge_kind_str);
         remove_edge_kind_menu->setProperty("edge_kind", QVariant::fromValue(edge_kind));
+        remove_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
         remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
 
         connect(add_edge_kind_menu, &QMenu::aboutToShow, [=](){populate_dynamic_add_edge_menu(add_edge_kind_menu);});
+        connect(remove_edge_kind_menu, &QMenu::aboutToShow, [=](){popuplate_dynamic_remove_edge_menu(remove_edge_kind_menu);});
         
     }
     connect(add_edge_menu, &QMenu::aboutToShow, [=](){update_add_edge_menu(add_edge_menu);});
+    connect(remove_edge_menu, &QMenu::aboutToShow, [=](){update_remove_edge_menu(remove_edge_menu);});
+    connect(main_menu, &QMenu::aboutToShow, [=](){update_main_menu(main_menu);});
 
     
     main_menu->addAction(action_controller->view_viewConnections->constructSubAction(true));
