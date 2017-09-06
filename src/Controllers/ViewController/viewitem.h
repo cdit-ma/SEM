@@ -18,6 +18,10 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
+
+    static bool SortByLabel(const ViewItem *a, const ViewItem *b);
+    static bool SortByKind(const ViewItem *a, const ViewItem *b);
+
     ViewItem(ViewController* controller);
     ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind);
     ~ViewItem();

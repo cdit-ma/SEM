@@ -653,11 +653,20 @@ void ViewController::setupEntityKindItems()
         nodeKindItems.append(item);
     }
 
+    
+
     for(auto kind : EntityFactory::getEdgeKinds()){
-        auto item = new EdgeViewItem(this, kind);
+        auto label = EntityFactory::getEdgeKindString(kind);
+        //Trim the Edge_ from the label
+        label.remove(0, 5);
+        auto item = new EdgeViewItem(this, kind, label);
         setDefaultIcon(item);
         edgeKindItems.append(item);
     }
+
+    //Sort the lists to be alphabetical
+    std::sort(nodeKindItems.begin(), nodeKindItems.end(), ViewItem::SortByLabel);
+    std::sort(edgeKindItems.begin(), edgeKindItems.end(), ViewItem::SortByLabel);
 }
 
 

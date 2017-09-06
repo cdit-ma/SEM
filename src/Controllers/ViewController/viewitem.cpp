@@ -6,6 +6,18 @@
 #include <QDebug>
 #include <QStack>
 
+bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
+    auto a_kind = a->getData("label").toString();
+    auto b_kind = b->getData("label").toString();
+    return a_kind < b_kind;
+}
+
+bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
+    auto a_kind = a->getData("kind").toString();
+    auto b_kind = b->getData("kind").toString();
+    return a_kind < b_kind;
+}
+
 ViewItem::ViewItem(ViewController *controller)
 {
     this->controller = controller;

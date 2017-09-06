@@ -798,7 +798,7 @@ void ActionController::setupActions()
 
 
 
-    toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Icons", "book");
+    toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
 

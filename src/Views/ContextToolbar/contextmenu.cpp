@@ -41,12 +41,11 @@ ContextMenu::ContextMenu(ViewController *vc){
     themeChanged();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
-    connect(main_menu, &QMenu::triggered, this, &ContextMenu::action_triggered);
 }
 
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
-    main_menu->setStyleSheet(theme->getMenuStyleSheet() + "QMenu::item { padding: 2px " + QString::number(MENU_ICON_SIZE) + "px 2px " + QString::number(MENU_ICON_SIZE + 4) + "px; }");
+    main_menu->setStyleSheet(theme->getMenuStyleSheet() + " QMenu{font-size:12pt;} QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }");
 
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
@@ -96,12 +95,10 @@ void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
 QMenu* ContextMenu::construct_menu(QMenu* parent, QString label){
     auto menu = parent ? parent->addMenu(label) : new QMenu(label);
     menu->setStyle(new BigMenuStyle);
-    connect(menu, &QMenu::triggered, this, &ContextMenu::action_triggered);
     return menu;
 }
 
 void ContextMenu::action_triggered(QAction* action){
-    qCritical() << "MENU ACTION";
     auto node_kind = action->property("node_kind").value<NODE_KIND>();
     auto edge_kind = action->property("edge_kind").value<EDGE_KIND>();
     auto action_kind = action->property("action_kind").value<ACTION_KIND>();
@@ -136,8 +133,6 @@ void ContextMenu::action_triggered(QAction* action){
                 auto id_list = {id};
                 auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
                 auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
-
-                qCritical() << "CONNECTING: " << src_ids << " TO " << dst_ids;
                 emit view_controller->vc_constructEdges(src_ids, dst_ids, edge_kind);
             }
             break;
@@ -180,7 +175,8 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
                     }
                 }
                 auto action = get_view_item_action(parent_menu, view_item);
-    
+                
+                
                 //Set the properties on the action
                 action->setProperty("node_kind", menu->property("node_kind"));
                 action->setProperty("edge_kind", menu->property("edge_kind"));
@@ -259,6 +255,8 @@ QAction* ContextMenu::get_view_item_action(QMenu* parent, ViewItem* item){
         auto action = parent->addAction(item->getData("label").toString());
         action->setIcon(Theme::theme()->getIcon(item->getIcon()));
         action->setProperty("id", id);
+
+        connect(action, &QAction::triggered, [=](){action_triggered(action);});
         return action;
     }
     return 0;
@@ -278,21 +276,27 @@ QMenu* ContextMenu::get_view_item_menu(QMenu* parent, ViewItem* item){
 
 void ContextMenu::setupMenus(){
     main_menu = construct_menu(0, "");
+    main_menu->setTearOffEnabled(true);
     add_node_menu = construct_menu(main_menu, "Add Node");
+    auto action_controller = view_controller->getActionController();
+    main_menu->addAction(action_controller->edit_delete->constructSubAction(true));
+    main_menu->addSeparator();
+
     add_edge_menu = construct_menu(main_menu, "Connect");
     remove_edge_menu = construct_menu(main_menu, "Disconnect");
+    main_menu->addSeparator();
 
 
     connect(add_node_menu, &QMenu::aboutToShow, [=](){update_add_node_menu(add_node_menu);});
-
-    for(auto node_kind : EntityFactory::getNodeKinds()){
+    
+    for(auto node_view_item : view_controller->getNodeKindItems()){
+        auto node_kind = node_view_item->getNodeKind();
         auto node_kind_str = EntityFactory::getNodeKindString(node_kind);
-
         auto required_edge_kind = connect_node_edge_kinds.value(node_kind, EDGE_KIND::NONE);
 
         if(required_edge_kind == EDGE_KIND::NONE){
             //Make an action
-            auto add_node_action = add_node_menu->addAction(node_kind_str);
+            auto add_node_action = get_view_item_action(add_node_menu, node_view_item);
             add_node_action->setProperty("node_kind", QVariant::fromValue(node_kind));
             add_node_action->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_NODE));
             add_node_action_hash[node_kind] = add_node_action;
@@ -307,9 +311,9 @@ void ContextMenu::setupMenus(){
         }
     }
 
-    for(auto edge_kind : EntityFactory::getEdgeKinds()){
-        auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
-        edge_kind_str.remove(0, 5);
+    for(auto edge_view_item : view_controller->getEdgeKindItems()){
+        auto edge_kind = edge_view_item->getEdgeKind();
+        auto edge_kind_str = edge_view_item->getData("label").toString();
         
         auto add_edge_kind_menu = construct_menu(add_edge_menu, edge_kind_str);
         add_edge_kind_menu->setProperty("edge_kind", QVariant::fromValue(edge_kind));
@@ -337,4 +341,14 @@ void ContextMenu::setupMenus(){
         
     }
     connect(add_edge_menu, &QMenu::aboutToShow, [=](){update_add_edge_menu(add_edge_menu);});
+
+    
+    main_menu->addAction(action_controller->view_viewConnections->constructSubAction(true));
+    main_menu->addAction(action_controller->model_getCodeForComponent->constructSubAction(true));
+    main_menu->addSeparator();
+    main_menu->addAction(action_controller->toolbar_replicateCount->constructSubAction(true));
+    main_menu->addAction(action_controller->view_viewInNewWindow->constructSubAction(true));
+    main_menu->addAction(action_controller->toolbar_wiki->constructSubAction(true));
+    //Add Menu actions
+
 }
