@@ -168,6 +168,8 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     case EDGE_KIND::DEPLOYMENT:{
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
+        }else{
+            return true;
         }
         break;
     }

@@ -705,10 +705,11 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "background:" % getAltBackgroundColorHex() % ";"
            "border-radius:" % getSharpCornerRadius() % ";"
            "margin: 2px;"
+           "spacing: 2px;"
            "}"
            "QMenu::item {"
            "margin:2px;"
-           "padding: 4px 4px 4px " % QString::number(icon_size_int + 8) % "px;"
+           "padding: 4px 8px 4px " % QString::number(icon_size_int + 8) % "px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
            "border-radius: " % getSharpCornerRadius() % ";"
@@ -739,6 +740,13 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "QMenu::right-arrow:selected{"
                "background:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
+           "QMenu::separator {"
+            "height: 1px;"
+            "background: " % getTextColorHex(CR_DISABLED) % ";"
+            "margin:4px;"
+            "margin-left: 8px;"
+            "margin-right: 8px;"
+            "}"
        ;
 }
 

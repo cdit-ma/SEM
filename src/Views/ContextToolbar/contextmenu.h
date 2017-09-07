@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QHash>
 #include <QAction>
+#include <QWidgetAction>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 enum class ACTION_KIND{
@@ -24,6 +25,8 @@ class ContextMenu : public QObject{
 public:
     ContextMenu(ViewController *vc);
     void popup(QPoint global_pos, QPointF item_pos);
+    QMenu* getAddMenu();
+    QMenu* getDeployMenu();
 private:
     void themeChanged();
     void setupMenus();
@@ -34,6 +37,8 @@ private:
     void update_add_node_menu(QMenu* menu);
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
+
+    void populate_deploy_menu();
     void popuplate_dynamic_remove_edge_menu(QMenu* menu);
     QMenu* construct_menu(QMenu* parent, QString label);
 private:
@@ -52,6 +57,10 @@ private:
     QMenu* add_node_menu = 0;
     QMenu* add_edge_menu = 0;
     QMenu* remove_edge_menu = 0;
+
+    QMenu* parts_menu = 0;
+
+    QMenu* deploy_menu = 0;
     
     QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
@@ -61,6 +70,11 @@ private:
     QHash <NODE_KIND, QMenu*> add_node_menu_hash;
     QHash <NODE_KIND, QAction*> add_node_action_hash;
 
+    QHash <int, QAction*> node_action_hash;
+
+    QWidgetAction* available_nodes_action = 0;
+    QWidgetAction* deployed_nodes_action = 0;
+    QWidgetAction* available_parts_action = 0;
 
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;

@@ -1,16 +1,9 @@
 #include "docktabwidget.h"
-#include "dockwidgetactionitem.h"
-#include "dockwidgetparentactionitem.h"
-
-
-#include "../../ModelController/entityfactory.h"
-#include "../../Controllers/ToolbarController/nodeviewitemaction.h"
-#include "../../Utils/rootaction.h"
 #include "../../theme.h"
+#include "../../Views/ContextToolbar/contextmenu.h"
 
 #include <QToolBar>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
@@ -24,14 +17,22 @@
  */
 DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(parent)
 {
-    viewController = vc;
-    toolActionController = viewController->getToolbarController();
+    view_controller = vc;
 
     setupLayout();
-    setupConnections();
+    setupDocks();
 
+    connect(Theme::theme(), &Theme::theme_Changed, this, &DockTabWidget::themeChanged);
+
+    auto theme = Theme::theme();
+    theme->setIconToggledImage("DockIcons", "PartsDock", "Icons", "plus", "Icons", "eyeStriked", false);
+    theme->setIconToggledImage("DockIcons", "DeployDock", "Icons", "screen", "Icons", "eyeStriked", false);
     themeChanged();
-    selectionChanged();
+    refreshSize();
+
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, [=](){refreshSize();});
+
+    dockActionTriggered(parts_action);
 }
 
 
@@ -41,7 +42,7 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet() +
+    /*setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
                   "QToolButton {"
                   "background:" + theme->getAltBackgroundColorHex() + ";"
@@ -58,474 +59,134 @@ void DockTabWidget::themeChanged()
                   "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
+    */
+    parts_action->setIcon(theme->getIcon("Icons", "plus"));
+    deploy_action->setIcon(theme->getIcon("Icons", "screen"));
 
-    QIcon partIcon;
-    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
-    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
-
-    QIcon hardwareIcon;
-    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
-    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
-
-    partsButton->setIcon(partIcon);
-    hardwareButton->setIcon(hardwareIcon);
+    setStyleSheet(
+        theme->getToolBarStyleSheet() +
+        "QScrollArea {background: rgba(0,0,0,0);} "
+        "QToolButton{"
+        "border-radius: " + theme->getCornerRadius() + ";"
+        "border-bottom-left-radius: 0px;"
+        "border-bottom-right-radius: 0px;"
+        
+        "}"
+    );
 }
-
-
-/**
- * @brief DockTabWidget::selectionChanged
- */
-void DockTabWidget::selectionChanged()
-{
-    refreshDock();
-}
-
-
-/**
- * @brief DockTabWidget::tabClicked
- * This slot treats the dock buttons like tabs; it toggles between the parts and hardware docks.
- * @param checked
- */
-void DockTabWidget::tabClicked(bool checked)
-{
-    QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
-
-    // disallow sender button from being un-checked; ignore action
-    if (!checked) {
-        senderButton->setChecked(true);
-        return;
-    }
-
-    QToolButton* otherButton = 0;
-    DockWidget* dockWidget = 0;
-
-    if (senderButton == partsButton) {
-        otherButton = hardwareButton;
-        dockWidget = partsDock;
-    } else if (senderButton == hardwareButton) {
-        otherButton = partsButton;
-        dockWidget = hardwareDock;
-    } else {
-        qWarning() << "DockTabWidget::tabClicked - Tab button not handled.";
-        return;
-    }
-
-    // if sender button is checked, un-check the other button
-    otherButton->setChecked(false);
-    openRequiredDock(dockWidget);
-}
-
-
-/**
- * @brief DockTabWidget::dockActionClicked
- * This is called when a DockWidgetActionItem is clicked.
- * @param action
- */
-void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
-{
-    DockWidget* dock = qobject_cast<DockWidget*>(sender());
-    ToolbarController::DOCK_TYPE dt = dock->getDockType();
-    triggeredAdoptableKind = "";
-
-    switch (dt) {
-    case ToolbarController::PARTS:
-    {
-        triggeredAdoptableKind = action->getProperty("kind").toString();;
-        if (action->requiresSubAction()) {
-            if (triggeredAdoptableKind == "WorkerProcess") {
-                openRequiredDock(functionsDock);
-            } else {
-                openRequiredDock(definitionsDock);
-            }
-        } else {
-            NODE_KIND kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
-            toolActionController->addChildNode(kind);
-        }
-        break;
-    }
-    case ToolbarController::DEFINITIONS:
-    {
-        auto id = action->getProperty("ID").toInt();
-        auto kind_str = action->getProperty("parent-kind").toString();
-        NODE_KIND kind = EntityFactory::getNodeKind(kind_str);
-        toolActionController->addConnectedChildNode(id, kind);
-        // re-open the parts dock
-        openRequiredDock(partsDock);
-        break;
-    }
-    case ToolbarController::FUNCTIONS:{
-        // construct WorkerProcess
-        QVariant ID = action->getProperty("ID");
-        toolActionController->addWorkerProcess(ID.toInt());
-        // re-open the parts dock
-        openRequiredDock(partsDock);
-        break;
-    }
-    case ToolbarController::HARDWARE:
-    {
-        int ID = action->getProperty("ID").toInt();
-
-        //Disconnect all deployement edges from selection
-        toolActionController->removeAllEdges(EDGE_KIND::DEPLOYMENT);
-
-        if(!action->isHighlighted()){
-            toolActionController->addEdge(ID, EDGE_KIND::DEPLOYMENT);
-        }
-        break;
-    }
-    }
-}
-
-
-/**
- * @brief DockTabWidget::dockBackButtonClicked
- * This is triggered whenever the back button of the definitions or functions dock is clicked.
- * It returns the list of displayed dock items to the adoptable list.
- */
-void DockTabWidget::dockBackButtonClicked()
-{
-    openRequiredDock(partsDock);
-}
-
-
-/**
- * @brief DockTabWidget::onActionFinished
- */
-void DockTabWidget::onActionFinished()
-{
-    refreshDock();
-}
-
 
 /**
  * @brief DockTabWidget::setupLayout
  */
 void DockTabWidget::setupLayout()
 {
-    partsButton = new QToolButton(this);
-    hardwareButton = new QToolButton(this);
-    stackedWidget = new QStackedWidget(this);
+    stack_widget = new QStackedWidget(this);
 
-    partsButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    partsButton->setToolTip("Parts Dock");
-    partsButton->setIconSize(QSize(24,24));
-    partsButton->setCheckable(true);
-    partsButton->setChecked(true);
-    partsButton->setObjectName("DOCK_BUTTON");
+    toolbar = new QToolBar(this);
+    toolbar->setStyleSheet("QToolBar{ spacing: 2px; padding: 2px; }");
+    {
+        auto button = new QToolButton(this);
+        button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        parts_action = toolbar->addWidget(button);
+        //Connect the button to it's action so we don't need to worry about QToolButton stuff
+        button->setDefaultAction(parts_action);
+        parts_action->setCheckable(true);
+        parts_action->setChecked(false);
+    }
 
-    hardwareButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    hardwareButton->setToolTip("Hardware Dock");
-    hardwareButton->setIconSize(QSize(24,24));
-    hardwareButton->setCheckable(true);
-    hardwareButton->setChecked(false);
-    hardwareButton->setObjectName("DOCK_BUTTON");
+    {
+        auto button = new QToolButton(this);
+        button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        deploy_action = toolbar->addWidget(button);
+        //Connect the button to it's action so we don't need to worry about QToolButton stuff
+        button->setDefaultAction(deploy_action);
+        parts_action->setCheckable(true);
+        parts_action->setChecked(false);
+    }
 
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setStyleSheet("QToolBar{ spacing: 1px; padding: 0px; }");
-    toolbar->addWidget(partsButton);
-    toolbar->addWidget(hardwareButton);
+    toolbar->setIconSize(QSize(32,32));
 
-    QVBoxLayout* vLayout = new QVBoxLayout(this);
-    vLayout->setMargin(0);
-    vLayout->setSpacing(2);
-    vLayout->addWidget(toolbar);
-    vLayout->addWidget(stackedWidget, 1);
 
-    setContentsMargins(1,2,1,1);
+    auto layout = new QVBoxLayout(this);
     
+    layout->setMargin(0);
+    layout->setSpacing(2);
+    layout->addWidget(toolbar);
+    layout->addWidget(stack_widget, 1);
 
-    setupDocks();
+   
 }
 
+
+void DockTabWidget::dockActionTriggered(QAction* action){
+    auto current_menu = action == parts_action ? add_part_menu : deploy_menu;
+    auto current_dock = action == parts_action ? parts_dock : deploy_dock;
+    auto other = action == parts_action ? deploy_action : parts_action;
+    if(action && other){
+        action->setChecked(true);
+        other->setChecked(false);
+        stack_widget->setCurrentWidget(current_dock);
+        current_menu->show();
+    }
+}
 
 /**
  * @brief DockTabWidget::setupDocks
  */
 void DockTabWidget::setupDocks()
 {
-    if (!toolActionController) {
-        return;
-    }
+    add_part_menu = view_controller->getContextMenu()->getAddMenu();
+    add_part_menu->setFixedWidth(width());
+    add_part_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    //add_part_menu->setFixedWidth(130);
 
-    partsDock = new DockWidget(toolActionController, ToolbarController::PARTS, this);
-    definitionsDock = new DockWidget(toolActionController, ToolbarController::DEFINITIONS, this);
-    functionsDock = new DockWidget(toolActionController, ToolbarController::FUNCTIONS, this);
-    hardwareDock = new DockWidget(toolActionController, ToolbarController::HARDWARE, this);
+    deploy_menu = view_controller->getContextMenu()->getDeployMenu();
+    deploy_menu->setFixedWidth(width());
+    deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(deploy_menu, &QMenu::aboutToHide, deploy_menu, &QMenu::show);
+    connect(add_part_menu, &QMenu::aboutToHide, add_part_menu, &QMenu::show);
+    //deploy_menu->setMinimumWidth(130);
 
-    stackedWidget->addWidget(partsDock);
-    stackedWidget->addWidget(definitionsDock);
-    stackedWidget->addWidget(functionsDock);
-    stackedWidget->addWidget(hardwareDock);
+    parts_dock = new QScrollArea();
+    parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    parts_dock->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    parts_dock->setWidgetResizable(true);
+    parts_dock->setWidget(add_part_menu);
+    parts_dock->setAlignment(Qt::AlignHCenter);
+    
+    deploy_dock = new QScrollArea();
+    //deploy_dock->setMargins(0);
+    deploy_dock->setContentsMargins(0,0,0,0);
+    deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //deploy_dock->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    deploy_dock->setWidgetResizable(true);
+    deploy_dock->setWidget(deploy_menu);
+    deploy_dock->setAlignment(Qt::AlignHCenter);
+    
 
-    // information shown when the dock is empty
-    partsDock->updateInfoLabel("The selected entity does not have any adoptable entities");
-    functionsDock->updateInfoLabel("No worker definitions have been imported");
-    hardwareDock->updateInfoLabel("There are no available hardware nodes");
+    //deploy_menu->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    stack_widget->addWidget(parts_dock);
+    stack_widget->addWidget(deploy_dock);
+    connect(parts_action, &QAction::triggered, [=](){dockActionTriggered(parts_action);});
+    connect(deploy_action, &QAction::triggered, [=](){dockActionTriggered(deploy_action);});
 
-    initialiseDocks();
+    parts_action->setCheckable(true);
+    deploy_action->setCheckable(true);
+
+    installEventFilter(this);
 }
 
+void DockTabWidget::refreshSize(){
+    add_part_menu->setFixedWidth(parts_dock->viewport()->size().width());
+    deploy_menu->setFixedWidth(deploy_dock->viewport()->size().width());
+}
 
-/**
- * @brief DockTabWidget::initialiseDocks
- * This populates both the parts and functions docks.
- */
-void DockTabWidget::initialiseDocks()
+bool DockTabWidget::eventFilter(QObject *object, QEvent *event)
 {
-    // populate the parts dock
-    adoptableKindAction = toolActionController->getAdoptableKindsAction(false);
-    foreach (QAction* action, toolActionController->getAdoptableKindsActions(true)) {
-        DockWidgetActionItem* dockItem = new DockWidgetActionItem(action, this);
-        QString actionKind = action->text();
-        if (toolActionController->kindsWithSubActions.contains(actionKind)) {
-            dockItem->setSubActionRequired(true);
-        }
-        partsDock->addItem(dockItem);
+    if (object && event->type() == QEvent::Resize) {
+        refreshSize();
     }
-
-    // populate the functions dock - get functions list from controller
-    QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-    if (!actions.isEmpty()) {
-        functionsDock->displayInfoLabel(false);
-        populateDock(functionsDock, actions, true);
-    }
+    return false;
 }
-
-void DockTabWidget::resetDocks(bool ready){
-    if(ready){
-        // populate the functions dock - get functions list from controller
-        QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-        if (!actions.isEmpty()) {
-            functionsDock->displayInfoLabel(false);
-            populateDock(functionsDock, actions, true);
-        }
-    }
-}
-
-
-/**
- * @brief DockTabWidget::setupConnections
- */
-void DockTabWidget::setupConnections()
-{
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(viewController, &ViewController::vc_ActionFinished, this, &DockTabWidget::onActionFinished);
-    connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
-
-    connect(viewController, &ViewController::vc_ProjectLoaded, this, &DockTabWidget::resetDocks);
-
-    connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
-    connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
-
-    connect(partsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
-    connect(definitionsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
-    connect(functionsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
-    connect(hardwareDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
-
-    connect(definitionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
-    connect(functionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
-
-    connect(toolActionController, SIGNAL(hardwareCreated(int)), hardwareDock, SLOT(viewItemConstructed(int)));
-    connect(toolActionController, SIGNAL(hardwareDestructed(int)), hardwareDock, SLOT(viewItemDestructed(int)));
-
-    connect(toolActionController, SIGNAL(workerProcessCreated(int)), functionsDock, SLOT(viewItemConstructed(int)));
-    connect(toolActionController, SIGNAL(workerWorkloadCreated(int)), functionsDock, SLOT(viewItemGroupConstructed(int)));
-    connect(toolActionController, SIGNAL(workerProcessDestructed(int)), functionsDock, SLOT(viewItemDestructed(int)));
-}
-
-
-/**
- * @brief DockTabWidget::openRequiredDock
- * @param dockWidget
- */
-void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
-{
-    if (dockWidget) {
-
-        ToolbarController::DOCK_TYPE dockType = dockWidget->getDockType();
-        bool isDefinitionsDock = false;
-        bool showInfoLabel = false;
-
-        switch (dockType) {
-        case ToolbarController::PARTS:
-            showInfoLabel = !adoptableKindAction->isEnabled();
-            break;
-        case ToolbarController::DEFINITIONS:
-        {
-            // update header text; update entity kind to construct
-            dockWidget->updateHeaderText(triggeredAdoptableKind);
-            isDefinitionsDock = true;
-            NODE_KIND node_kind = EntityFactory::getNodeKind(triggeredAdoptableKind);
-            // get definitions list from controller
-            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(node_kind);
-            populateDock(dockWidget, actions, true);
-            break;
-        }
-        case ToolbarController::FUNCTIONS:
-        {
-            // update header text; update entity kind to construct
-            dockWidget->updateHeaderText(triggeredAdoptableKind);
-            if (dockWidget->isEmpty()) {
-                // get functions list from controller then populate the functions dock
-                QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-                populateDock(dockWidget, actions, true);
-            }
-            break;
-        }
-        case ToolbarController::HARDWARE:
-        {
-            refreshDock(hardwareDock);
-            break;
-        }
-        default:
-            break;
-        }
-
-        if (dockType != ToolbarController::PARTS) {
-            showInfoLabel = dockWidget->isEmpty();
-        }
-
-        // if the dock is empty, show its information label
-        if (showInfoLabel && isDefinitionsDock) {
-            QString hashKey = toolActionController->getInfoActionKeyForAdoptableKind(triggeredAdoptableKind);
-            QAction* infoAction = toolActionController->getToolAction(hashKey, true);
-            if (infoAction) {
-                dockWidget->updateInfoLabel(infoAction->text());
-            }
-        }
-        dockWidget->displayInfoLabel(showInfoLabel);
-
-        // set the required dock
-        stackedWidget->setCurrentWidget(dockWidget);
-    }
-}
-
-
-/**
- * @brief DockTabWidget::populateDock
- * @param dockWidget
- * @param actions
- */
-void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent)
-{
-    // clear the dock first
-    dockWidget->clearDock();
-
-    if (groupByParent) {
-
-        QHash<NodeViewItemAction*, QList<DockWidgetActionItem*> > dockItemsHash;
-
-        // group by the parent view item actions
-        foreach (NodeViewItemAction* action, actions) {
-            NodeViewItemAction* parentViewItemAction = action->getParentViewItemAction();
-            if (parentViewItemAction) {
-                DockWidgetActionItem* dockItem = constructDockActionItem(action);
-                dockItemsHash[parentViewItemAction].append(dockItem);
-            }
-        }
-
-        // add the parent item and then its children to the dock
-        foreach (NodeViewItemAction* parentViewItemAction, dockItemsHash.keys()) {
-            QAction* parentAction = parentViewItemAction->constructSubAction(false);
-            parentAction->setProperty("ID", parentViewItemAction->getID());
-            DockWidgetParentActionItem* parentItem = new DockWidgetParentActionItem(parentAction, this);
-            dockWidget->addItem(parentItem);
-            foreach (DockWidgetActionItem* item, dockItemsHash.value(parentViewItemAction)) {
-                dockWidget->addItem(item);
-                parentItem->addToChildrenActions(item->getAction());
-            }
-            // this initially contracts the parent dock items
-            parentItem->setToggledState(false);
-        }
-
-    } else {
-        foreach (NodeViewItemAction* action, actions) {
-            DockWidgetActionItem* dockItem = constructDockActionItem(action);
-            dockWidget->addItem(dockItem);
-        }
-    }
-}
-
-
-/**
- * @brief DockTabWidget::refreshDock
- * This is called whenever the selection has changed and when actionFinished is called.
- * It's also used to update the hardware dock when it is opened.
- * @param dockWidget
- */
-void DockTabWidget::refreshDock(DockWidget* dockWidget)
-{
-    bool updatePartsDock = false;
-    if (dockWidget) {
-        updatePartsDock = dockWidget == partsDock;
-    } else {
-        updatePartsDock = partsButton->isChecked();
-    }
-
-    if (updatePartsDock) {
-        // if either of the definitions or functions list is displayed, close them and re-open the parts list
-        if (stackedWidget->currentWidget() != partsDock) {
-            openRequiredDock(partsDock);
-        } else {
-            partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
-        }
-    } else {
-        // update hardware dock; update highlighted dock item
-        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(EDGE_KIND::DEPLOYMENT);
-        // clear previous highlighted item
-        hardwareDock->highlightItem();
-        if (connectedHardwareItems.count() == 1) {
-            int connectedItemID = connectedHardwareItems.at(0)->getID();
-            hardwareDock->highlightItem(connectedItemID);
-        }
-    }
-}
-
-
-/**
- * @brief DockTabWidget::getDock
- * @param dt
- * @return
- */
-DockWidget* DockTabWidget::getDock(ToolbarController::DOCK_TYPE dt)
-{
-    switch (dt) {
-    case ToolbarController::PARTS:
-        return partsDock;
-    case ToolbarController::DEFINITIONS:
-        return definitionsDock;
-    case ToolbarController::FUNCTIONS:
-        return functionsDock;
-    case ToolbarController::HARDWARE:
-        return hardwareDock;
-    default:
-        qWarning() << "DockTabWidget::getDock - Dock type is unknown.";
-        return 0;
-    }
-}
-
-
-/**
- * @brief DockTabWidget::constructDockActionItem
- * @param action
- * @return
- */
-DockWidgetActionItem *DockTabWidget::constructDockActionItem(NodeViewItemAction* action)
-{
-    // construct a sub-action for the nodeviewitemaction and use that action for the dock item
-    QAction* subAction = action->constructSubAction(false);
-    subAction->setProperty("ID", action->getID());
-    if (!triggeredAdoptableKind.isEmpty()) {
-        subAction->setProperty("parent-kind", triggeredAdoptableKind);
-    }
-    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
-    return dockItem;
-}
-
-
-
-
-
-
-
-

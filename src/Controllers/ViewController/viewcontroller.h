@@ -7,6 +7,7 @@
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+
 #include "../ExecutionManager/executionmanager.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
@@ -23,6 +24,7 @@ class ModelController;
 class ContextToolbar;
 class NodeView;
 class JenkinsManager;
+class ContextMenu;
 
 class ViewController : public QObject
 {
@@ -35,6 +37,7 @@ public:
     void connectModelController(ModelController* c);
 
     bool isWelcomeScreenShowing();
+    ContextMenu* getContextMenu();
 
     JenkinsManager* getJenkinsManager();
     ExecutionManager* getExecutionManager();
@@ -358,6 +361,7 @@ private:
     JenkinsManager* jenkins_manager;
 
     ContextToolbar* toolbar;
+    ContextMenu* menu = 0;
     ModelController* controller;
     QMutex mutex;
     QTimer* autosave_timer_ = 0;

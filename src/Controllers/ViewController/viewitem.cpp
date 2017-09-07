@@ -15,7 +15,11 @@ bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
 bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
     auto a_kind = a->getData("kind").toString();
     auto b_kind = b->getData("kind").toString();
-    return a_kind < b_kind;
+    if(a_kind == b_kind){
+        return SortByLabel(a, b);
+    }else{
+        return a_kind < b_kind;
+    }
 }
 
 ViewItem::ViewItem(ViewController *controller)

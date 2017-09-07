@@ -42,9 +42,9 @@ bool ComponentAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
     //Can only have one Deployed Node
     if(edgeKind == EDGE_KIND::DEPLOYMENT){
-        if(!getEdges(0, edgeKind).empty()){
-            return false;
-        }
+        //if(!getEdges(0, edgeKind).empty()){
+        //    return false;
+        //}
     }
 
     return Node::canAcceptEdge(edgeKind, dst);

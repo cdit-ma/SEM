@@ -481,6 +481,7 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
         setData_(node, "x", pos.x());
         setData_(node, "y", pos.y());
     }
+    emit ActionFinished();
 }
 
 void ModelController::constructWorkerProcess(int parent_id, int dst_id, QPointF pos){
@@ -710,6 +711,7 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
             setData_(node, "x", pos.x());
             setData_(node, "y", pos.y());
         }
+
     }
     emit ActionFinished();
 }

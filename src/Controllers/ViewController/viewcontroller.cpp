@@ -6,6 +6,7 @@
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Views/ContextToolbar/contexttoolbar.h"
 #include "../../Views/ContextToolbar/contextmenu.h"
+
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
 
@@ -65,7 +66,7 @@ ViewController::ViewController() : QObject(){
     actionController = new ActionController(this);
     toolbarController = new ToolbarController(this);
     toolbar = new ContextToolbar(this);
-    auto menu = new ContextMenu(this);
+    menu = new ContextMenu(this);
 
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
@@ -81,6 +82,10 @@ ViewController::ViewController() : QObject(){
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
+}
+
+ContextMenu* ViewController::getContextMenu(){
+    return menu;
 }
 
 void ViewController::connectModelController(ModelController* c){

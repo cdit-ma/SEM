@@ -429,11 +429,11 @@ void MainWindow::setupInnerWindow()
 
     //Setip
     auto theme = Theme::theme();
-    theme->setIconToggledImage("WindowIcon", "InterfaceDefinitions", "EntityIcons", "InterfaceDefinitions", "Icons", "eyeStriked");
-    theme->setIconToggledImage("WindowIcon", "BehaviourDefinitions", "EntityIcons", "BehaviourDefinitions", "Icons", "eyeStriked");
-    theme->setIconToggledImage("WindowIcon", "AssemblyDefinitions", "EntityIcons", "AssemblyDefinitions", "Icons", "eyeStriked");
-    theme->setIconToggledImage("WindowIcon", "HardwareDefinitions", "EntityIcons", "HardwareDefinitions", "Icons", "eyeStriked");
-    
+    theme->setWindowIcon("InterfaceDefinitions", "EntityIcons", "InterfaceDefinitions");
+    theme->setWindowIcon("BehaviourDefinitions", "EntityIcons", "BehaviourDefinitions");
+    theme->setWindowIcon("AssemblyDefinitions", "EntityIcons", "AssemblyDefinitions");
+    theme->setWindowIcon("HardwareDefinitions", "EntityIcons", "HardwareDefinitions");
+
     dwInterfaces->setIcon("WindowIcon", "InterfaceDefinitions");
     dwBehaviour->setIcon("WindowIcon", "BehaviourDefinitions");
     dwAssemblies->setIcon("WindowIcon", "AssemblyDefinitions");
@@ -573,8 +573,8 @@ void MainWindow::setupProgressBar()
 void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
-    dockTabWidget->setMinimumWidth(150);
-    dockTabWidget->setMaximumWidth(150);
+    dockTabWidget->setFixedWidth(180);
+    //dockTabWidget->setMaximumWidth(250);
 
 
     dockwidget_Dock = WindowManager::manager()->constructToolDockWidget("Dock");

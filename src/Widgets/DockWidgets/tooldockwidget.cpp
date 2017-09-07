@@ -7,10 +7,12 @@ ToolDockWidget::ToolDockWidget(QString title) : BaseDockWidget(BaseDockType::TOO
     setFocusEnabled(false);
     setHideVisible(true);
 
-    setTitleBarIconSize(12);
+    setTitleBarIconSize(16);
     setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
     themeChanged();
+    auto title_bar = getTitleBar();
+    title_bar->getAction(DockTitleBar::DA_ICON)->setVisible(false);
 }
 
 ToolDockWidget::~ToolDockWidget()
