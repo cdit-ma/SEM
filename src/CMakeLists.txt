@@ -43,8 +43,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/nodeviewitemaction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/toolbarcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
@@ -58,8 +56,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
@@ -148,8 +145,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/nodeviewitemaction.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/toolbarcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
@@ -162,8 +157,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h

@@ -2,7 +2,6 @@
 #define VIEWCONTROLLER_H
 
 #include "../ActionController/actioncontroller.h"
-#include "../ToolbarController/toolbarcontroller.h"
 #include "../SelectionController/selectioncontroller.h"
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
@@ -21,7 +20,6 @@
 enum class MODEL_SEVERITY;
 class NotificationManager;
 class ModelController;
-class ContextToolbar;
 class NodeView;
 class JenkinsManager;
 class ContextMenu;
@@ -43,7 +41,6 @@ public:
     ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
-    ToolbarController* getToolbarController();
 
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
@@ -356,11 +353,9 @@ private:
 
     SelectionController* selectionController;
     ActionController* actionController;
-    ToolbarController* toolbarController;
     ExecutionManager* execution_manager;
     JenkinsManager* jenkins_manager;
 
-    ContextToolbar* toolbar;
     ContextMenu* menu = 0;
     ModelController* controller;
     QMutex mutex;

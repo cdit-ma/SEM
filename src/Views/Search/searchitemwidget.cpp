@@ -85,11 +85,10 @@ void SearchItemWidget::setSelected(bool selected)
     if (selected) {
         backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
         emit itemSelected(ID);
-        emit hoverEnter(ID);
     } else {
         backgroundColor =  Theme::theme()->getBackgroundColorHex();
-        emit hoverLeave(ID);
     }
+    emit itemHovered(ID, selected);
 
     updateStyleSheet();
 }

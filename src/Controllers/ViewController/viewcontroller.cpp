@@ -4,8 +4,7 @@
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
-#include "../../Views/ContextToolbar/contexttoolbar.h"
-#include "../../Views/ContextToolbar/contextmenu.h"
+#include "../../Views/ContextMenu/contextmenu.h"
 
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
@@ -64,8 +63,6 @@ ViewController::ViewController() : QObject(){
     SearchManager::construct_singleton(this);
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
-    toolbarController = new ToolbarController(this);
-    toolbar = new ContextToolbar(this);
     menu = new ContextMenu(this);
 
     jenkins_manager = new JenkinsManager(this);
@@ -73,7 +70,6 @@ ViewController::ViewController() : QObject(){
 
     //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
-    //connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
 
     //Every minute
@@ -160,10 +156,6 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-ToolbarController *ViewController::getToolbarController()
-{
-    return toolbarController;
-}
 
 bool ViewController::isWelcomeScreenShowing(){
     return showingWelcomeScreen;

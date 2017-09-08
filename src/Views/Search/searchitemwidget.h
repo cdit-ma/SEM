@@ -35,8 +35,7 @@ public:
 
     VIEW_ASPECT getViewAspect();
 signals:
-    void hoverEnter(int ID);
-    void hoverLeave(int ID);
+    void itemHovered(int ID, bool hovered);
     void itemSelected(int ID);
 public slots:
     void themeChanged();

@@ -1,6 +1,6 @@
 #include "docktabwidget.h"
 #include "../../theme.h"
-#include "../../Views/ContextToolbar/contextmenu.h"
+#include "../../Views/ContextMenu/contextmenu.h"
 
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -107,7 +107,6 @@ void DockTabWidget::dockActionTriggered(QAction* action){
         other->setChecked(false);
         stack_widget->setCurrentWidget(current_dock);
 
-        emit current_menu->aboutToShow();
         current_menu->show();
     }
 }

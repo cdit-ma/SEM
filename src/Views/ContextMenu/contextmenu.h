@@ -28,9 +28,11 @@ public:
     QMenu* getAddMenu();
     QMenu* getDeployMenu();
 private:
+    void set_hovered_id(int id);
     void themeChanged();
     void setupMenus();
     void action_triggered(QAction* action);
+    void action_hovered(QAction* action);
     
     void update_main_menu();
     void update_add_edge_menu();
@@ -94,6 +96,8 @@ private:
     QHash <QMenu*, DeployLabels*> deploy_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
+
+    int current_hovered_id = 0;
 };
 
 #endif // CONTEXTMENU_H

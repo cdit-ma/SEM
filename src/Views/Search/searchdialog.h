@@ -21,12 +21,10 @@ public:
 
     void DisplaySearchResults(QString query, QMap<QString, ViewItem*> results);
 signals:
-    void itemHoverEnter(int ID);
-    void itemHoverLeave(int ID);
 
     void SearchQuery(QString query);
     void SearchPopup();
-
+    void HighlightEntity(int ID, bool highlight);
     void CenterOn(int ID);
     void Popup(int ID);
 private slots:

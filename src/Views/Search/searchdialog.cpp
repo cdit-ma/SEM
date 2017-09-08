@@ -421,8 +421,8 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 
     if (item) {
         connect(search_item, &SearchItemWidget::itemSelected, this, &SearchDialog::searchItemSelected);
-        connect(search_item, &SearchItemWidget::hoverEnter, this, &SearchDialog::itemHoverEnter);
-        connect(search_item, &SearchItemWidget::hoverLeave, this, &SearchDialog::itemHoverLeave);
+        connect(search_item, &SearchItemWidget::itemHovered, this, &SearchDialog::HighlightEntity);
+        
     }
     return search_item;
 }

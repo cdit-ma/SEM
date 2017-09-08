@@ -127,6 +127,22 @@ QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu){
     return menu;
 }
 
+void ContextMenu::set_hovered_id(int id){
+    if(id != current_hovered_id){
+        if(current_hovered_id > 0){
+            emit view_controller->vc_highlightItem(current_hovered_id, false);
+        }
+        current_hovered_id = id;
+        if(current_hovered_id > 0){
+            emit view_controller->vc_highlightItem(current_hovered_id, true);
+        }
+    }
+}
+
+void ContextMenu::action_hovered(QAction* action){
+    set_hovered_id(action->property("id").value<int>());
+}
+
 void ContextMenu::action_triggered(QAction* action){
     auto node_kind = action->property("node_kind").value<NODE_KIND>();
     auto edge_kind = action->property("edge_kind").value<EDGE_KIND>();
@@ -184,6 +200,7 @@ void ContextMenu::action_triggered(QAction* action){
         default:
         break;
     }
+    set_hovered_id(0);
 }
 
 void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
@@ -432,6 +449,9 @@ QAction* ContextMenu::construct_viewitem_action(ViewItem* item){
             auto edge_item = (EdgeViewItem*)item;
             action->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
         }
+
+        connect(action, &QAction::hovered, [=](){action_hovered(action);});
+        
         updateAction(action, item);
         return action;
     }
@@ -473,7 +493,9 @@ QMenu* ContextMenu::construct_viewitem_menu(ViewItem* item, QMenu* parent_menu){
             menu_action->setProperty("edge_kind", menu->property("edge_kind"));
         }
 
-        updateAction(menu->menuAction(), item);
+        connect(menu_action, &QAction::hovered, [=](){action_hovered(menu_action);});
+
+        updateAction(menu_action, item);
         return menu;
     }
     return 0;
@@ -590,10 +612,8 @@ QWidgetAction* construct_menu_label(QString label){
     auto label_widget = new QLabel(label);
     label_widget->setAlignment(Qt::AlignCenter);
     label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    label_widget->show();
     auto action = new QWidgetAction(0); 
     action->setDefaultWidget(label_widget);
-    action->setVisible(true);
     return action;
 }
 
