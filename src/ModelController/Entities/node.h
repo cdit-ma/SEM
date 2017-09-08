@@ -111,6 +111,8 @@ class Node : public Entity
     bool gotEdgeTo(Node* node, EDGE_KIND edgeKind);
 
     QList<Edge*> getAllEdges();
+
+    bool gotEdgeKind(EDGE_KIND kind);
     QList<Edge *> getEdges(int depth, EDGE_KIND edgeKind);
     QList<Key *> getKeys(int depth=-1);
 

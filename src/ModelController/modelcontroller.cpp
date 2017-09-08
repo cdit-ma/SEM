@@ -532,16 +532,12 @@ void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDG
     
     //Have to go all to one
     if(src_nodes.count() == 1 || dst_nodes.count() == 1){
-        qCritical() << "VALID YO HOLMES";
         for(auto src : src_nodes){
             for(auto dst : dst_nodes){
-                qCritical() << src << dst;
                 auto edge = construct_edge(edge_kind, src, dst);
                 if(!edge){
                     success = false;
                     break;
-                }else{
-                    qCritical() << edge;
                 }
             }
         }
@@ -928,13 +924,10 @@ QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodeIds2(QList<int> src
     QWriteLocker lock(&lock_);
     
     QMap<EDGE_DIRECTION, int> id_map;
-    qCritical() << EntityFactory::getEdgeKindString(edge_kind);
     auto node_map = _getConnectableNodes2(getNodes(src_ids), edge_kind);
 
     for(auto key : node_map.uniqueKeys()){
-        qCritical() << (key == EDGE_DIRECTION::SOURCE ? " SRC2DST: " : " DST2SRC: ");
         for(auto value : node_map.values(key)){
-            qCritical() << "\t NODE: " << value;
             id_map.insertMulti(key, value->getID());
         }
     }

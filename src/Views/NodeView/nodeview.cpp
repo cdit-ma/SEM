@@ -1199,8 +1199,10 @@ void NodeView::_clearSelection()
     if(selectionHandler){
         //Depending on the type of NodeView we are.
         if(containedNodeViewItem){
-            //If we are the aspect select the aspect.
-            selectionHandler->toggleItemsSelection(containedNodeViewItem);
+            if(selectionHandler->getSelectionCount() != 1 && selectionHandler->getActiveSelectedItem() != containedNodeViewItem){
+                //If we are the aspect select the aspect.
+                selectionHandler->toggleItemsSelection(containedNodeViewItem);
+            }
         }else{
             //If we aren't an aspect clear the selection.
             selectionHandler->clearSelection();

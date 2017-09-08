@@ -168,8 +168,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     case EDGE_KIND::DEPLOYMENT:{
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
-        }else{
-            return true;
         }
         break;
     }
@@ -526,6 +524,10 @@ QList<int> Node::getChildrenIDs(int depth)
 
 QList<Edge*> Node::getAllEdges(){
     return getEdges(-1, EDGE_KIND::NONE);
+}
+
+bool Node::gotEdgeKind(EDGE_KIND kind){
+    return edges.contains(kind);
 }
 
 QList<Edge *> Node::getEdges(int depth, EDGE_KIND edgeKind)

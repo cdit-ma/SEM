@@ -62,10 +62,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetparentactionitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
@@ -169,10 +165,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contextmenu.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetparentactionitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.h

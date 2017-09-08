@@ -157,7 +157,7 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
             connect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
             connect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }
-
+        
         setCurrentSelectionHandler(selectionHandler);
     }
 }

@@ -574,8 +574,6 @@ void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
     dockTabWidget->setFixedWidth(180);
-    //dockTabWidget->setMaximumWidth(250);
-
 
     dockwidget_Dock = WindowManager::manager()->constructToolDockWidget("Dock");
     dockwidget_Dock->setWidget(dockTabWidget);

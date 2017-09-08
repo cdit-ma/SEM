@@ -45,6 +45,9 @@ private:
 
     QMenu* construct_menu(QString label, QMenu* parent_menu);
 private:
+    QAction* get_no_valid_items_action(QString label="No Valid Entities");
+    QAction* construct_base_action(QMenu* menu, QString label);
+    QAction* construct_remove_all_action(QMenu* menu, int number);
     QAction* construct_viewitem_action(ViewItem* item);
     QAction* get_deploy_viewitem_action(ACTION_KIND kind, ViewItem* item);
     QAction* get_viewitem_menu(ACTION_KIND kind, ViewItem* item);
@@ -67,6 +70,8 @@ private:
 
     QMenu* dock_add_node_menu = 0;
     QMenu* dock_deploy_menu = 0;
+
+    QAction* no_valid_action = 0;
 
     
     QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;

@@ -52,9 +52,9 @@ bool ComponentInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case EDGE_KIND::DEPLOYMENT:{
-        //if(!getEdges(0, edgeKind).empty()){
-        //    return false;
-        //}
+        if(gotEdgeKind(edgeKind)){
+            return false;
+        }
         break;
     }
     default:

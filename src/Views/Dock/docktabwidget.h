@@ -3,12 +3,9 @@
 
 #include <QWidget>
 #include <QStackedWidget>
-#include <QTabBar>
 #include <QScrollArea>
-#include <QToolButton>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
-#include "dockwidget.h"
 
 class DockTabWidget : public QWidget
 {
@@ -20,13 +17,12 @@ private:
     void themeChanged();
     void setupLayout();
     void setupDocks();
+    void dockActionTriggered(QAction* action);
 protected:
     void refreshSize();
     bool eventFilter(QObject *object, QEvent *event);
 private:
-    void dockActionTriggered(QAction* action);
-
-    ViewController* view_controller = 0 ;
+    ViewController* view_controller = 0;
 
     QMenu* add_part_menu = 0;
     QMenu* deploy_menu = 0;
