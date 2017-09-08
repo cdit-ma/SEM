@@ -25,7 +25,7 @@ bool EdgeViewItem::isInModel(){
     }
     return false;
 }
-EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString label): ViewItem(controller)
+EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString label): ViewItem(controller, GRAPHML_KIND::EDGE)
 {
     edgeKind = kind;
     changeData("kind", EntityFactory::getEdgeKindString(kind));

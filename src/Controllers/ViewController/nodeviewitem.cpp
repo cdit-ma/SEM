@@ -5,7 +5,7 @@
 #include "../../ModelController/entityfactory.h"
 
 
-NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller)
+NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller, GRAPHML_KIND::NODE)
 {
     nodeKind = kind;
     changeData("kind", EntityFactory::getNodeKindString(kind));

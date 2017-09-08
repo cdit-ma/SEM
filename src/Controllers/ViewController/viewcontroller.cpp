@@ -52,7 +52,7 @@ ViewController::ViewController() : QObject(){
     codeViewer = 0;
 
 
-    rootItem = new ViewItem(this);
+    rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
     setupEntityKindItems();

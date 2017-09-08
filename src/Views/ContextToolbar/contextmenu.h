@@ -31,24 +31,30 @@ private:
     void themeChanged();
     void setupMenus();
     void action_triggered(QAction* action);
-    void update_main_menu(QMenu* menu);
-    void update_add_edge_menu(QMenu* menu);
-    void update_remove_edge_menu(QMenu* menu);
-    void update_add_node_menu(QMenu* menu);
+    
+    void update_main_menu();
+    void update_add_edge_menu();
+    void update_remove_edge_menu();
+    void update_add_node_menu();
+    void update_deploy_menu();
+
+
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
-
-    void populate_deploy_menu();
     void popuplate_dynamic_remove_edge_menu(QMenu* menu);
-    QMenu* construct_menu(QMenu* parent, QString label);
+
+    QMenu* construct_menu(QString label, QMenu* parent_menu);
 private:
-    QAction* get_view_item_action(QMenu* parent, ViewItem* item);
-    QMenu* get_view_item_menu(QMenu* parent, ViewItem* item);
+    QAction* construct_viewitem_action(ViewItem* item);
+    QAction* get_deploy_viewitem_action(ACTION_KIND kind, ViewItem* item);
+    QAction* get_viewitem_menu(ACTION_KIND kind, ViewItem* item);
+    QMenu* construct_viewitem_menu(ViewItem* item, QMenu* parent_menu = 0);
     
     QHash<int, QAction*> view_item_actions;
     QHash<int, QMenu*> view_item_menu;
 
-    ViewController* view_controller;
+    ViewController* view_controller = 0;
+    ActionController* action_controller = 0;
     
     QMenu* get_add_edge_menu(EDGE_DIRECTION direction, EDGE_KIND edge_kind);
     QMenu* get_remove_edge_menu(EDGE_KIND edge_kind);
@@ -57,25 +63,30 @@ private:
     QMenu* add_node_menu = 0;
     QMenu* add_edge_menu = 0;
     QMenu* remove_edge_menu = 0;
-
-    QMenu* parts_menu = 0;
-
     QMenu* deploy_menu = 0;
+
+    QMenu* dock_add_node_menu = 0;
+    QMenu* dock_deploy_menu = 0;
+
     
     QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
     
     QHash <QPair<EDGE_DIRECTION, EDGE_KIND> , QMenu*> add_edge_menu_direct_hash;
     
+    
+    QHash <QPair<int, ACTION_KIND>, QAction*> deploy_view_item_hash; 
+    
     QHash <NODE_KIND, QMenu*> add_node_menu_hash;
     QHash <NODE_KIND, QAction*> add_node_action_hash;
 
     QHash <int, QAction*> node_action_hash;
 
-    QWidgetAction* available_nodes_action = 0;
-    QWidgetAction* deployed_nodes_action = 0;
-    QWidgetAction* available_parts_action = 0;
-
+    struct DeployLabels{
+        QWidgetAction* deployed_nodes_action = 0;
+        QWidgetAction* available_nodes_action = 0;
+    };
+    QHash <QMenu*, DeployLabels*> deploy_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
 };

@@ -22,10 +22,11 @@ bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
     }
 }
 
-ViewItem::ViewItem(ViewController *controller)
+ViewItem::ViewItem(ViewController *controller, GRAPHML_KIND entity_kind)
 {
     this->controller = controller;
     this->ID = -2;
+    this->entityKind = entity_kind;
     _parent = 0 ;
     tableModel = 0;
 }

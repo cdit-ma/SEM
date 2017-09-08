@@ -10,9 +10,6 @@
 
 #define MENU_ICON_SIZE 32
 
-
- 
-
 ContextMenu::ContextMenu(ViewController *vc){
     //Setup the complex relationship nodes
     connect_node_edge_kinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
@@ -29,34 +26,49 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
 
     view_controller = vc;
+    action_controller = view_controller->getActionController();
 
     setupMenus();
     themeChanged();
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
 
     
-    connect(vc->getSelectionController(), &SelectionController::selectionChanged, [=](){update_add_node_menu(add_node_menu);});
-    connect(vc->getSelectionController(), &SelectionController::selectionChanged, [=](){populate_deploy_menu();});
+    connect(main_menu, &QMenu::aboutToShow, this, &ContextMenu::update_main_menu);
+    connect(add_node_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_node_menu);
+    connect(add_edge_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_edge_menu);
+    connect(remove_edge_menu, &QMenu::aboutToShow, this, &ContextMenu::update_remove_edge_menu);
+    connect(deploy_menu, &QMenu::aboutToShow, this, &ContextMenu::update_deploy_menu);
 
-    connect(vc, &ViewController::vc_ActionFinished, [=](){populate_deploy_menu();update_add_node_menu(add_node_menu);});
 
-    populate_deploy_menu();update_add_node_menu(add_node_menu);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
+    
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &ContextMenu::update_add_node_menu);
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &ContextMenu::update_deploy_menu);
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &ContextMenu::update_deploy_menu);
+    connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::update_add_node_menu);
+    connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::update_deploy_menu);
+
+    update_deploy_menu();
+    update_add_node_menu();
 }
 
 QMenu* ContextMenu::getAddMenu(){
-    return parts_menu;
+    return dock_add_node_menu;
 }
 QMenu* ContextMenu::getDeployMenu(){
-    return deploy_menu;
+    return dock_deploy_menu;
 }
 
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
-    main_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:10pt;}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    main_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    //dock_add_node_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    //dock_deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+
+    //main_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
     
-    deploy_menu->setStyleSheet("QWidget{font-size:10pt;} " +theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
-    parts_menu->setStyleSheet("QWidget{font-size:10pt;} " +theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
+    //deploy_menu->setStyleSheet("QWidget{font-size:10pt;} " +theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
+    //parts_menu->setStyleSheet("QWidget{font-size:10pt;} " +theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
 
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
@@ -92,7 +104,8 @@ void ContextMenu::themeChanged(){
             edge_menu->setIcon(theme->getIcon("Icons", "arrowRight"));
         }
     }
-    
+
+    deploy_menu->setIcon(theme->getIcon("Icons", "screen"));
 }
 
 void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
@@ -103,8 +116,8 @@ void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
     
 }
 
-QMenu* ContextMenu::construct_menu(QMenu* parent, QString label){
-    auto menu = parent ? parent->addMenu(label) : new QMenu(label);
+QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu){
+    auto menu = parent_menu ? parent_menu->addMenu(label) : new QMenu(label);
     menu->setStyle(new CustomMenuStyle(32));
     return menu;
 }
@@ -146,6 +159,7 @@ void ContextMenu::action_triggered(QAction* action){
                 auto id_list = {id};
                 auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
                 auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
+                qCritical() << src_ids << " TO " << dst_ids << " = " << EntityFactory::getEdgeKindString(edge_kind);
                 emit view_controller->vc_constructEdges(src_ids, dst_ids, edge_kind);
             }
             break;
@@ -191,11 +205,11 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
                     //Construct
                     parent_menu = sub_menus.value(parent_id, 0);
                     if(!parent_menu){
-                        parent_menu = get_view_item_menu(menu, parent_view_item);
+                        parent_menu = construct_viewitem_menu(parent_view_item, menu);
                         sub_menus.insert(parent_id, parent_menu);
                     }
                 }
-                auto action = get_view_item_action(parent_menu, view_item);
+                auto action = construct_viewitem_action(view_item);
 
                 action->setCheckable(true);
                 action->setChecked(true);
@@ -207,6 +221,7 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
                 action->setProperty("edge_kind", menu->property("edge_kind"));
                 action->setProperty("action_kind", menu->property("action_kind"));
                 action->setProperty("edge_direction", menu->property("edge_direction"));
+                parent_menu->addAction(action);
             }
         }
 
@@ -239,17 +254,19 @@ void ContextMenu::popuplate_dynamic_remove_edge_menu(QMenu* menu){
                 //Construct
                 parent_menu = sub_menus.value(parent_id, 0);
                 if(!parent_menu){
-                    parent_menu = get_view_item_menu(menu, parent_view_item);
+                    parent_menu = construct_viewitem_menu(parent_view_item, menu);
+                    menu->addMenu(parent_menu);
                     sub_menus.insert(parent_id, parent_menu);
                 }
             }
-            auto action = get_view_item_action(parent_menu, view_item);
+            auto action = construct_viewitem_action(view_item);
             
             
             //Set the properties on the action
             action->setProperty("node_kind", menu->property("node_kind"));
             action->setProperty("edge_kind", menu->property("edge_kind"));
             action->setProperty("action_kind", menu->property("action_kind"));
+            parent_menu->addAction(action);
         }
     }
 }
@@ -274,20 +291,23 @@ void ContextMenu::populate_dynamic_add_node_menu(QMenu* menu){
                 //Construct
                 parent_menu = sub_menus.value(parent_id, 0);
                 if(!parent_menu){
-                    parent_menu = get_view_item_menu(menu, parent_view_item);
+                    parent_menu = construct_viewitem_menu(parent_view_item, menu);
+                    menu->addMenu(parent_menu);
                     sub_menus.insert(parent_id, parent_menu);
                 }
             }
-            auto action = get_view_item_action(parent_menu, view_item);
+            auto action = construct_viewitem_action( view_item);
 
             //Set the properties on the action
             action->setProperty("node_kind", menu->property("node_kind"));
             action->setProperty("edge_kind", menu->property("edge_kind"));
             action->setProperty("action_kind", menu->property("action_kind"));
+
+            parent_menu->addAction(action);
         }
     }
 }
-void ContextMenu::update_add_edge_menu(QMenu* menu){
+void ContextMenu::update_add_edge_menu(){
     auto visible_edge_kinds = view_controller->getValidEdgeKindsForSelection().toSet();
     
     for(auto edge_menu : add_edge_menu_hash.values()){
@@ -296,7 +316,7 @@ void ContextMenu::update_add_edge_menu(QMenu* menu){
     }
 }
 
-void ContextMenu::update_remove_edge_menu(QMenu* menu){
+void ContextMenu::update_remove_edge_menu(){
     auto visible_edge_kinds = view_controller->getExistingEdgeKindsForSelection().toSet();
     
     for(auto edge_menu : remove_edge_menu_hash.values()){
@@ -305,7 +325,7 @@ void ContextMenu::update_remove_edge_menu(QMenu* menu){
     }
 }
 
-void ContextMenu::update_main_menu(QMenu* menu){
+void ContextMenu::update_main_menu(){
     bool can_add_node = view_controller->getAdoptableNodeKinds2().size();
     bool can_add_edge = view_controller->getValidEdgeKindsForSelection().size();
     bool can_remove_edge = view_controller->getExistingEdgeKindsForSelection().size();
@@ -315,102 +335,135 @@ void ContextMenu::update_main_menu(QMenu* menu){
     remove_edge_menu->menuAction()->setVisible(can_remove_edge);
 }
 
-void ContextMenu::update_add_node_menu(QMenu* menu){
+void ContextMenu::update_add_node_menu(){
     auto visible_node_kinds = view_controller->getAdoptableNodeKinds2().toSet();
 
-    for(auto node_menu : add_node_menu_hash.values()){
-        auto node_kind = node_menu->property("node_kind").value<NODE_KIND>();
-
-        node_menu->menuAction()->setVisible(visible_node_kinds.contains(node_kind));
-    }
-
-    available_parts_action->setVisible(true);
-
+    //Get all the actions for the node kinds. Some of these actions are menu actions themselves
     for(auto node_action : add_node_action_hash.values()){
         auto node_kind = node_action->property("node_kind").value<NODE_KIND>();
         node_action->setVisible(visible_node_kinds.contains(node_kind));
     }
-    qCritical() << "Updated all old node menu";
 }
 
-QAction* ContextMenu::get_view_item_action(QMenu* parent, ViewItem* item){
+void updateAction(QAction* action, ViewItem* item){
+    if(action && item){
+        action->setText(item->getData("label").toString());
+        action->setIcon(Theme::theme()->getIcon(item->getIcon()));
+    }
+}
+
+QAction* ContextMenu::construct_viewitem_action(ViewItem* item){
     if(item){
         auto id = item->getID();
-        auto action = parent->addAction(item->getData("label").toString());
-        action->setIcon(Theme::theme()->getIcon(item->getIcon()));
-        action->setProperty("id", id);
+        
+        auto action = new QAction(this);
 
+        action->setProperty("id", id);
+        if(item->isNode()){
+            auto node_item = (NodeViewItem*)item;
+            action->setProperty("node_kind", QVariant::fromValue(node_item->getNodeKind()));
+        }else if(item->isEdge()){
+            auto edge_item = (EdgeViewItem*)item;
+            action->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
+        }
+
+        updateAction(action, item);
         connect(action, &QAction::triggered, [=](){action_triggered(action);});
         return action;
     }
     return 0;
 }
 
-QMenu* ContextMenu::get_view_item_menu(QMenu* parent, ViewItem* item){
+QAction* ContextMenu::get_deploy_viewitem_action(ACTION_KIND kind, ViewItem* item){
     if(item){
         auto id = item->getID();
-        auto menu = parent->addMenu(item->getData("label").toString());
-        menu->setIcon(Theme::theme()->getIcon(item->getIcon()));
+        auto action = deploy_view_item_hash.value({id, kind}, 0);
+        if(!action){
+            action = construct_viewitem_action(item);
+            action->setProperty("action_kind", QVariant::fromValue(kind));
+            //Insert into the action
+            deploy_view_item_hash[{id, kind}] = action;
+        }
+        //Run an update
+        updateAction(action, item);
+        return action;
+    }
+    return 0;
+}
+
+QMenu* ContextMenu::construct_viewitem_menu(ViewItem* item, QMenu* parent_menu){
+    if(item){
+        auto id = item->getID();
+        auto menu = construct_menu("", parent_menu);
+        
+        auto menu_action = menu->menuAction();
         menu->setProperty("id", id);
+        menu_action->setProperty("id", id);
+        if(item->isNode()){
+            auto node_item = (NodeViewItem*)item;
+            menu->setProperty("node_kind", QVariant::fromValue(node_item->getNodeKind()));
+            menu_action->setProperty("node_kind", menu->property("node_kind"));
+        }else if(item->isEdge()){
+            auto edge_item = (EdgeViewItem*)item;
+            menu->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
+            menu_action->setProperty("edge_kind", menu->property("edge_kind"));
+        }
+
+        updateAction(menu->menuAction(), item);
         return menu;
     }
     return 0;
 }
 
-void ContextMenu::populate_deploy_menu(){
-    if(deploy_menu){
-        auto menu = deploy_menu;
+void ContextMenu::update_deploy_menu(){
+    if(deploy_menu && dock_deploy_menu){
         auto edge_kind = EDGE_KIND::DEPLOYMENT;
-        menu->clear();
-        menu->setSeparatorsCollapsible(false);
-
-        if(!available_nodes_action){
-            auto label = new QLabel("Available Nodes");
-            label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-            label->setAlignment(Qt::AlignCenter);
-            auto action = new QWidgetAction(0); 
-            action->setDefaultWidget(label);
-            available_nodes_action = action;
-        }
-
-        if(!deployed_nodes_action){
-            auto label = new QLabel("Deployed Nodes");
-            label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-            label->setAlignment(Qt::AlignCenter);
-            auto action = new QWidgetAction(0); 
-            action->setDefaultWidget(label);
-            deployed_nodes_action = action;
-        }
-
         
+        auto menu_labels = deploy_labels[deploy_menu];
+        auto dock_labels = deploy_labels[dock_deploy_menu];
+        
+        deploy_menu->clear();
+        dock_deploy_menu->clear();
+        
+        //Get the existing nodes
         auto item_list = view_controller->getExistingEdgeEndPointsForSelection(edge_kind);
         qSort(item_list.begin(), item_list.end(), ViewItem::SortByKind);
+
+        //Show the current deployed label if we have any
         if(item_list.size()){
-            menu->addAction(deployed_nodes_action);
+            deploy_menu->addAction(menu_labels->deployed_nodes_action);
+            dock_deploy_menu->addAction(dock_labels->deployed_nodes_action);
         }
 
+        
         for(auto view_item : item_list){
-            auto action = get_view_item_action(menu, view_item);
-             //Set the properties on the action
-             action->setProperty("edge_kind", QVariant::fromValue(edge_kind));
-             action->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
+            //Get the remove_edge action for this item
+            auto remove_edge = get_deploy_viewitem_action(ACTION_KIND::REMOVE_EDGE, view_item);
+            deploy_menu->addAction(remove_edge);
+            dock_deploy_menu->addAction(remove_edge);
         }
 
+        //Get the deployable nodes
         auto item_map = view_controller->getValidEdges2(EDGE_KIND::DEPLOYMENT);
         
+        //Show the available deployed label if we have any
         if(item_map.size()){
-            menu->addAction(available_nodes_action);
+            deploy_menu->addAction(menu_labels->available_nodes_action);
+            dock_deploy_menu->addAction(dock_labels->available_nodes_action);
         }
 
         QHash<int, QMenu*> sub_menus;
+        
+        //Get only the Hardware end of the deployment edges
         auto hardware = item_map.values(EDGE_DIRECTION::TARGET);
+        //Sort by kind
         qSort(hardware.begin(), hardware.end(), ViewItem::SortByKind);
         
         for(auto view_item : hardware){
             auto node_view_item = (NodeViewItem*)view_item;
             auto parent_view_item = (NodeViewItem*)view_item->getParentItem();
             
-            auto parent_menu = menu;
+            QMenu* parent_menu = 0;
             
             auto id = view_item->getID();
 
@@ -418,6 +471,7 @@ void ContextMenu::populate_deploy_menu(){
             auto parent_node_kind = parent_view_item->getNodeKind();
 
             auto menu_node = parent_view_item;
+
             if(node_kind == NODE_KIND::HARDWARE_CLUSTER){
                 menu_node = node_view_item;
             }else if(parent_node_kind != NODE_KIND::HARDWARE_CLUSTER){
@@ -430,129 +484,168 @@ void ContextMenu::populate_deploy_menu(){
                 //Construct
                 parent_menu = sub_menus.value(menu_node_id, 0);
                 if(!parent_menu){
-                    parent_menu = get_view_item_menu(menu, menu_node);
+                    parent_menu = construct_viewitem_menu(menu_node, deploy_menu);
+                    
+                    dock_deploy_menu->addAction(parent_menu->menuAction());
+
                     sub_menus.insert(menu_node_id, parent_menu);
                 }
             }
 
-
-            auto action = node_action_hash.value(view_item->getID(), 0);
-            if(!action){
-                action = get_view_item_action(parent_menu, view_item);
-                action->setParent(0);
-                action->setProperty("edge_kind", QVariant::fromValue(edge_kind));
-                action->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
-                action->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
-                node_action_hash[view_item->getID()] = action;
-
-                if(sub_menus.contains(id)){
-                    action->setText("Any Node");
-                }
+            auto add_edge_action = get_deploy_viewitem_action(ACTION_KIND::ADD_EDGE, view_item);
+            add_edge_action->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
+            add_edge_action->setProperty("edge_kind", QVariant::fromValue(EDGE_KIND::DEPLOYMENT));
+            if(sub_menus.contains(id)){
+                add_edge_action->setText("Any Node");
             }
-            parent_menu->addAction(action);
+
+            if(parent_menu){
+                parent_menu->addAction(add_edge_action);
+            }else{
+                deploy_menu->addAction(add_edge_action);
+                dock_deploy_menu->addAction(add_edge_action);
+            }
         }
     }
 }
 
+QWidgetAction* construct_menu_label(QString label){
+    auto label_widget = new QLabel(label);
+    label_widget->setAlignment(Qt::AlignCenter);
+    label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    auto action = new QWidgetAction(0); 
+    action->setDefaultWidget(label_widget);
+    return action;
+}
+
+
 void ContextMenu::setupMenus(){
-    main_menu = construct_menu(0, "");
-    main_menu->setTearOffEnabled(true);
-    add_node_menu = construct_menu(main_menu, "Add Node");
-    auto action_controller = view_controller->getActionController();
-    main_menu->addAction(action_controller->edit_delete->constructSubAction(true));
-    main_menu->addSeparator();
-
-    add_edge_menu = construct_menu(main_menu, "Connect");
-    remove_edge_menu = construct_menu(main_menu, "Disconnect");
-
-    deploy_menu = construct_menu(0, "Deploy");
-    parts_menu  = construct_menu(0, "Parts");
-    main_menu->addSeparator();
-
+    main_menu = construct_menu("", 0);
+    add_edge_menu = construct_menu("Connect", main_menu);
+    deploy_menu = construct_menu("Deploy", main_menu);
+    remove_edge_menu = construct_menu("Disconnect", main_menu);
     
+    //Add a Label to thte Add Node Menu
+    add_node_menu = construct_menu("Add Node", main_menu);
+    add_node_menu->addAction(construct_menu_label("Available Entities"));
+    
+    //Setup the menus that will be going in the dock
+    dock_add_node_menu = construct_menu("Parts", 0);
+    dock_deploy_menu = construct_menu("Deploy", 0);
+    dock_add_node_menu->addAction(construct_menu_label("Available Entities"));
 
-    if(!available_parts_action){
-        auto label = new QLabel("Available Parts");
-        label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-        label->setAlignment(Qt::AlignCenter);
-        auto action = new QWidgetAction(0); 
-        action->setDefaultWidget(label);
-        available_parts_action = action;
+    {
+        auto dock_deploy_labels = new DeployLabels;
+        dock_deploy_labels->deployed_nodes_action = construct_menu_label("Deployed Nodes");
+        dock_deploy_labels->available_nodes_action = construct_menu_label("Available Nodes");
+        deploy_labels[dock_deploy_menu] = dock_deploy_labels;
     }
-    parts_menu->addAction(available_parts_action);
 
+    {
+        auto dock_deploy_labels = new DeployLabels;
+        dock_deploy_labels->deployed_nodes_action = construct_menu_label("Deployed Nodes");
+        dock_deploy_labels->available_nodes_action = construct_menu_label("Available Nodes");
+        deploy_labels[deploy_menu] = dock_deploy_labels;
+    }
     
-
-
-    connect(add_node_menu, &QMenu::aboutToShow, [=](){update_add_node_menu(add_node_menu);});
-    connect(main_menu, &QMenu::aboutToShow, [=](){update_add_node_menu(add_node_menu);});
     
+    
+    //Get the list of adoptable node kind items
     for(auto node_view_item : view_controller->getNodeKindItems()){
         auto node_kind = node_view_item->getNodeKind();
-        auto node_kind_str = EntityFactory::getNodeKindString(node_kind);
-        auto required_edge_kind = connect_node_edge_kinds.value(node_kind, EDGE_KIND::NONE);
+        auto edge_kind = connect_node_edge_kinds.value(node_kind, EDGE_KIND::NONE);
 
-        if(required_edge_kind == EDGE_KIND::NONE){
-            //Make an action
-            auto add_node_action = get_view_item_action(add_node_menu, node_view_item);
-            parts_menu->addAction(add_node_action);
-            add_node_action->setProperty("node_kind", QVariant::fromValue(node_kind));
-            add_node_action->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_NODE));
-            add_node_action_hash[node_kind] = add_node_action;
+        if(edge_kind == EDGE_KIND::NONE){
+            //Make an action for the Items which don't need a submenu
+            auto action = construct_viewitem_action(node_view_item);
+            action->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_NODE));
+            add_node_action_hash[node_kind] = action;
+
+            //Add to both the Dock and the add_node_menus
+            add_node_menu->addAction(action);
+            dock_add_node_menu->addAction(action);
         }else{
-            auto add_node_kind_menu = construct_menu(add_node_menu, node_kind_str);
-            parts_menu->addAction(add_node_kind_menu->menuAction());
-            add_node_kind_menu->setProperty("node_kind", QVariant::fromValue(node_kind));
-            add_node_kind_menu->setProperty("edge_kind", QVariant::fromValue(required_edge_kind));
-            add_node_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_NODE_WITH_EDGE));
-            add_node_menu_hash[node_kind] = add_node_kind_menu;
+            //Make a menu for the Nodes which need to be constructed with an edge
+            auto menu = construct_viewitem_menu(node_view_item, add_node_menu);
+            menu->setProperty("edge_kind", QVariant::fromValue(edge_kind));
+            menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_NODE_WITH_EDGE));
+            
+            add_node_menu_hash[node_kind] = menu;
+            auto menu_action = menu->menuAction();
 
-            connect(add_node_kind_menu, &QMenu::aboutToShow, [=](){populate_dynamic_add_node_menu(add_node_kind_menu);});
+            //Add the action to open the menu to both the dock and the add_node menus
+            //add_node_menu->addAction(menu_action);
+            dock_add_node_menu->addAction(menu_action);
+
+            add_node_action_hash[node_kind] = menu_action;
+
+            //We need to populate the menu dynamically when its about to show
+            connect(menu, &QMenu::aboutToShow, [=](){populate_dynamic_add_node_menu(menu);});
         }
     }
 
-    for(auto edge_view_item : view_controller->getEdgeKindItems()){
+    //Get the list of constructable edge kind items
+    auto edge_kinds = view_controller->getEdgeKindItems();
+    
+    for(auto edge_view_item : edge_kinds){
         auto edge_kind = edge_view_item->getEdgeKind();
-        auto edge_kind_str = edge_view_item->getData("label").toString();
+        if(edge_kind == EDGE_KIND::DEPLOYMENT){
+            continue;
+        }
         
-        auto add_edge_kind_menu = construct_menu(add_edge_menu, edge_kind_str);
-        add_edge_kind_menu->setProperty("edge_kind", QVariant::fromValue(edge_kind));
+        //Construct an Add Edge Kind Menu
+        auto add_edge_kind_menu = construct_viewitem_menu(edge_view_item, add_edge_menu);
+        add_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
 
-        auto add_edge_kind_src_menu =  construct_menu(add_edge_kind_menu, "From");
+        //Construct an Remove Edge Kind Menu
+        auto remove_edge_kind_menu = construct_viewitem_menu(edge_view_item, remove_edge_menu);
+        remove_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
+        
+        //Construct an Add Edge Kind From Menu
+        auto add_edge_kind_src_menu = construct_menu("From", add_edge_kind_menu);
         add_edge_kind_src_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
-        add_edge_kind_src_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
+        add_edge_kind_src_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
         add_edge_kind_src_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
 
-        auto add_edge_kind_dst_menu = construct_menu(add_edge_kind_menu, "To");
+        //Construct an Add Edge Kind To Menu
+        auto add_edge_kind_dst_menu = construct_menu("To", add_edge_kind_menu);
         add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
-        add_edge_kind_dst_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
+        add_edge_kind_dst_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
         add_edge_kind_dst_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
 
+        //Insert these menus into the hash
+        add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
+        remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
         add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, edge_kind}] = add_edge_kind_src_menu;
         add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, edge_kind}] = add_edge_kind_dst_menu;
-        add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
 
+        //Setup the edge menu
+        add_edge_kind_menu->addMenu(add_edge_kind_src_menu);
+        add_edge_kind_menu->addMenu(add_edge_kind_dst_menu);
+        add_edge_menu->addMenu(add_edge_kind_menu);
+        remove_edge_menu->addMenu(remove_edge_kind_menu);
 
-        auto remove_edge_kind_menu = construct_menu(remove_edge_menu, edge_kind_str);
-        remove_edge_kind_menu->setProperty("edge_kind", QVariant::fromValue(edge_kind));
-        remove_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
-        remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
-
+        //Setup the set
         connect(add_edge_kind_menu, &QMenu::aboutToShow, [=](){populate_dynamic_add_edge_menu(add_edge_kind_menu);});
         connect(remove_edge_kind_menu, &QMenu::aboutToShow, [=](){popuplate_dynamic_remove_edge_menu(remove_edge_kind_menu);});
     }
 
-    connect(add_edge_menu, &QMenu::aboutToShow, [=](){update_add_edge_menu(add_edge_menu);});
-    connect(remove_edge_menu, &QMenu::aboutToShow, [=](){update_remove_edge_menu(remove_edge_menu);});
-    connect(main_menu, &QMenu::aboutToShow, [=](){update_main_menu(main_menu);});
+    //Put our custom deploy menu into the edge hash
+    add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
 
-    
+    //Setup the main_menu
+    main_menu->addMenu(add_node_menu);
+    main_menu->addAction(action_controller->edit_delete->constructSubAction(true));
+    main_menu->addSeparator();
+
+    main_menu->addMenu(add_edge_menu);
+    main_menu->addMenu(deploy_menu);
+    main_menu->addMenu(remove_edge_menu);
+    main_menu->addSeparator();
     main_menu->addAction(action_controller->view_viewConnections->constructSubAction(true));
     main_menu->addAction(action_controller->model_getCodeForComponent->constructSubAction(true));
     main_menu->addSeparator();
     main_menu->addAction(action_controller->toolbar_replicateCount->constructSubAction(true));
     main_menu->addAction(action_controller->view_viewInNewWindow->constructSubAction(true));
     main_menu->addAction(action_controller->toolbar_wiki->constructSubAction(true));
-    //Add Menu actions
-
 }
