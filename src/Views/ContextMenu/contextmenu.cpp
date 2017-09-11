@@ -37,11 +37,16 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect(add_node_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_node_menu);
     connect(add_edge_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_edge_menu);
     connect(remove_edge_menu, &QMenu::aboutToShow, this, &ContextMenu::update_remove_edge_menu);
+
     
     connect(deploy_menu, &QMenu::aboutToShow, this, &ContextMenu::update_deploy_menu);
     
     connect(dock_deploy_menu, &QMenu::aboutToShow, this, &ContextMenu::update_deploy_menu);
     connect(dock_add_node_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_node_menu);
+
+    connect(main_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
+    connect(dock_deploy_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
+    connect(dock_add_node_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
 
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
@@ -51,6 +56,7 @@ ContextMenu::ContextMenu(ViewController *vc){
 
     connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::update_add_node_menu);
     connect(vc, &ViewController::vc_ActionFinished, this, &ContextMenu::update_deploy_menu);
+
 
     update_deploy_menu();
     update_add_node_menu();
@@ -127,6 +133,10 @@ QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu){
     return menu;
 }
 
+void ContextMenu::clear_hover(){
+    set_hovered_id(0);
+}
+
 void ContextMenu::set_hovered_id(int id){
     if(id != current_hovered_id){
         if(current_hovered_id > 0){
@@ -200,7 +210,6 @@ void ContextMenu::action_triggered(QAction* action){
         default:
         break;
     }
-    set_hovered_id(0);
 }
 
 void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){

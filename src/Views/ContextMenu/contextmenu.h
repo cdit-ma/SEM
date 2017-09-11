@@ -28,6 +28,7 @@ public:
     QMenu* getAddMenu();
     QMenu* getDeployMenu();
 private:
+    void clear_hover();
     void set_hovered_id(int id);
     void themeChanged();
     void setupMenus();
