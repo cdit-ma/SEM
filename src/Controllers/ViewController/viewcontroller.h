@@ -57,6 +57,8 @@ public:
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
 
+    QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
+
 
     ModelController* getModelController();
 

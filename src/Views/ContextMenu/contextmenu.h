@@ -24,10 +24,12 @@ class ContextMenu : public QObject{
     Q_OBJECT
 public:
     ContextMenu(ViewController *vc);
+    void popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
     void popup(QPoint global_pos, QPointF item_pos);
     QMenu* getAddMenu();
     QMenu* getDeployMenu();
 private:
+    void invalidate_menus();
     void clear_hover();
     void set_hovered_id(int id);
     void themeChanged();
@@ -44,14 +46,19 @@ private:
 
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
-    void popuplate_dynamic_remove_edge_menu(QMenu* menu);
+    void populate_dynamic_remove_edge_menu(QMenu* menu);
 
-    QMenu* construct_menu(QString label, QMenu* parent_menu);
+    QMenu* construct_menu(QString label, QMenu* parent_menu, int icon_size=0);
 private:
-    QAction* get_no_valid_items_action(QString label="No Valid Entities");
+    void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
+
+    bool menu_requires_update(QMenu* menu);
+    void menu_updated(QMenu* menu);
+
+    QAction* get_no_valid_items_action(QMenu* menu, QString label="No Valid Entities");
     QAction* construct_base_action(QMenu* menu, QString label);
     QAction* construct_remove_all_action(QMenu* menu, int number);
-    QAction* construct_viewitem_action(ViewItem* item);
+    QAction* construct_viewitem_action(ViewItem* item, QMenu* menu=0);
     QAction* get_deploy_viewitem_action(ACTION_KIND kind, ViewItem* item);
     QAction* get_viewitem_menu(ACTION_KIND kind, ViewItem* item);
     QMenu* construct_viewitem_menu(ViewItem* item, QMenu* parent_menu = 0);
@@ -74,8 +81,6 @@ private:
     QMenu* dock_add_node_menu = 0;
     QMenu* dock_deploy_menu = 0;
 
-    QAction* no_valid_action = 0;
-
     
     QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
@@ -89,6 +94,9 @@ private:
     QHash <NODE_KIND, QAction*> add_node_action_hash;
 
     QHash <int, QAction*> node_action_hash;
+
+
+    QSet<QMenu*> valid_menus;
 
     struct DeployLabels{
         QWidgetAction* deployed_nodes_action = 0;

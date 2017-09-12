@@ -7,6 +7,7 @@
 #include <QKeyEvent>
 #include <QDateTime>
 #include <QOpenGLWidget>
+#include "../ContextMenu/contextmenu.h"
 
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
@@ -328,6 +329,12 @@ void NodeView::node_ConnectMode(NodeItem *item)
     }
 }
 
+void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction){
+    auto global_pos = mapToGlobal(mapFromScene(scene_pos));
+    qCritical() << global_pos;
+    viewController->getContextMenu()->popup_edge_menu(global_pos, kind, direction);
+}
+
 void NodeView::node_PopOutRelatedNode(NodeViewItem *item, NODE_KIND kind)
 {
     //Get the edge
@@ -582,8 +589,16 @@ void NodeView::setupConnections(EntityItem *item)
         connect(node, &NodeItem::req_FinishResize, this, &NodeView::trans_Resizing2InActive);
 
         connect(node, &NodeItem::req_connectMode, this, &NodeView::node_ConnectMode);
+        connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::node_ConnectEdgeMode);
+        
         connect(node, &NodeItem::req_popOutRelatedNode, this, &NodeView::node_PopOutRelatedNode);
+        
+        
+        
+        
     }
+
+    
 }
 void NodeView::showItem(EntityItem* item){
     auto parent = item->getParent();
@@ -1583,13 +1598,13 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 
     if(state_Active_Connecting->active() && event->button() == Qt::LeftButton){
         emit trans_Connecting2InActive();
-        handledEvent = true;
+        //handledEvent = true;
     }
 
 
-    if(!handledEvent){
+    //if(!handledEvent){
         QGraphicsView::mouseReleaseEvent(event);
-    }
+    //}
 }
 
 void NodeView::drawForeground(QPainter *painter, const QRectF &r){

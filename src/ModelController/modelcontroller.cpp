@@ -2189,6 +2189,7 @@ QList<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> ID
 
 QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
+    node_set.remove(NODE_KIND::NONE);
     node_set.remove(NODE_KIND::IDL);
     node_set.remove(NODE_KIND::WORKLOAD);
     node_set.remove(NODE_KIND::PROCESS);

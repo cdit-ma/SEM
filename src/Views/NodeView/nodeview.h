@@ -59,6 +59,8 @@ signals:
 
 
 
+    void edgeToolbarRequested(QPoint screenPos, EDGE_KIND kind, EDGE_DIRECTION direction);
+    
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewport_changed(QRectF viewportRect, double zoom_factor);
     void viewFocussed(NodeView* view, bool focussed);
@@ -91,6 +93,8 @@ private slots:
     void notification_Destructed(int id);
     
     void node_ConnectMode(NodeItem* item);
+    void node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
+
     void node_PopOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);

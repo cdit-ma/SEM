@@ -151,7 +151,7 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
 
 QString EntityFactory::getEdgeKindString(EDGE_KIND kind)
 {
-    QString kind_str;
+    QString kind_str = "INVALID_EDGE";
     auto edge_struct = globalFactory()->getEdgeStruct(kind);
     if(edge_struct){
         kind_str = edge_struct->kind_str;
@@ -272,6 +272,8 @@ void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QV
 }   
 EntityFactory::EntityFactory()
 {
+   
+
     //Aspects
     Model(this);
     BehaviourDefinitions(this);

@@ -1159,10 +1159,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool caughtResize = false;
 
-    if(gotVisualEdgeKind() && isSelected() && event->button() == Qt::LeftButton){
+    if(gotVisualEdgeKind() && isSelected()){
         if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
-            caughtResize = true;
-            emit req_connectMode(this);
+            if(event->button() == Qt::LeftButton){
+                caughtResize = true;
+                emit req_connectMode(this);
+            }
         }
     }
 
@@ -1198,9 +1200,16 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
        emit req_FinishResize();
        selectedResizeVertex = RV_NONE;
        update();
-   }else{
-       EntityItem::mouseReleaseEvent(event);
    }
+
+   if(gotVisualEdgeKind() && isSelected()){
+        if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
+            if(event->button() == Qt::LeftButton){
+                emit req_connectEdgeMode(event->scenePos(), getVisualEdgeKind(), EDGE_DIRECTION::SOURCE);
+            }
+        }
+    }
+    EntityItem::mouseReleaseEvent(event);
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -1218,7 +1227,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(gotVisualButton()){
-        if(isSelected() && (gotVisualNodeKind() || gotVisualEdgeKind())){
+        if((gotVisualNodeKind() || gotVisualEdgeKind())){
             bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
 
             if(showHover != hoveredConnect){

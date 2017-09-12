@@ -39,14 +39,14 @@ private:
 
     struct NodeLookupStruct{
         NODE_KIND kind;
-        QString kind_str;
+        QString kind_str = "INVALID_NODE";
         std::function<Node* ()> constructor;
         QHash<QString, DefaultDataStruct*> default_data;
     };
 
     struct EdgeLookupStruct{
         EDGE_KIND kind;
-        QString kind_str;
+        QString kind_str = "INVALID_EDGE";
         std::function<Edge* (Node*, Node*)> constructor;
         QHash<QString, DefaultDataStruct*> default_data;
         Edge* edge = 0;

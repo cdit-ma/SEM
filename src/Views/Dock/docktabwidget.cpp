@@ -106,8 +106,8 @@ void DockTabWidget::dockActionTriggered(QAction* action){
         action->setChecked(true);
         other->setChecked(false);
         stack_widget->setCurrentWidget(current_dock);
-
         current_menu->show();
+        emit current_menu->aboutToShow();
     }
 }
 
@@ -124,6 +124,11 @@ void DockTabWidget::setupDocks()
     deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     deploy_menu->setFixedWidth(width());
 
+    
+    //Deselect the currently highlight item
+    connect(deploy_menu, &QMenu::aboutToHide, [=](){deploy_menu->setActiveAction(0);});
+    connect(add_part_menu, &QMenu::aboutToHide, [=](){add_part_menu->setActiveAction(0);});
+    
     //Always make these menus visible
     connect(deploy_menu, &QMenu::aboutToHide, deploy_menu, &QMenu::show);
     connect(add_part_menu, &QMenu::aboutToHide, add_part_menu, &QMenu::show);

@@ -185,6 +185,20 @@ QList<ViewItem *> ViewController::getWorkerFunctions()
     return workers;
 }
 
+QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)
+{
+    QSet<ViewItem*> parent_set;
+
+    for(auto view_item : entities){
+        if(view_item){
+            parent_set.insert(view_item->getParentItem());
+        }
+    }
+    auto parent_list = parent_set.toList();
+    std::sort(parent_list.begin(), parent_list.end(), ViewItem::SortByLabel);
+    return parent_list;
+}
+
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind)
 {
     QList<ViewItem*> items;
