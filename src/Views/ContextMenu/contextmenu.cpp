@@ -109,22 +109,18 @@ void ContextMenu::themeChanged(){
     remove_edge_menu->setIcon(theme->getIcon("Icons", "connectStriked"));
     deploy_menu->setIcon(theme->getIcon("Icons", "screen"));
 
-    for(auto node_menu : add_node_action_hash.values()){
-        auto node_kind = node_menu->property("node_kind").value<NODE_KIND>();
-        auto node_kind_str = EntityFactory::getNodeKindString(node_kind);
-        node_menu->setIcon(theme->getIcon("EntityIcons", node_kind_str));
+    for(auto action : add_node_action_hash.values()){
+        Theme::UpdateActionIcon(action, theme);
     }
 
-    for(auto edge_menu : add_edge_menu_hash.values()){
-        auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
-        auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
-        edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
+    for(auto menu : add_edge_menu_hash.values()){
+        auto action = menu->menuAction();
+        Theme::UpdateActionIcon(action, theme);
     }
 
-    for(auto edge_menu : remove_edge_menu_hash.values()){
-        auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
-        auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
-        edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
+    for(auto menu : remove_edge_menu_hash.values()){
+        auto action = menu->menuAction();
+        Theme::UpdateActionIcon(action, theme);
     }
 
     for(auto edge_menu : add_edge_menu_direct_hash.values()){
@@ -478,7 +474,7 @@ void ContextMenu::update_add_node_menu(){
 void updateAction(QAction* action, ViewItem* item){
     if(action && item){
         action->setText(item->getData("label").toString());
-        action->setIcon(Theme::theme()->getIcon(item->getIcon()));
+        Theme::StoreActionIcon(action, item->getIcon());
     }
 }
 
@@ -501,8 +497,6 @@ QAction* ContextMenu::construct_viewitem_action(ViewItem* item, QMenu* menu){
             auto edge_item = (EdgeViewItem*)item;
             action->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
         }
-
-        //connect(action, &QAction::hovered, [=](){action_hovered(action);});
         
         updateAction(action, item);
         return action;
@@ -674,6 +668,9 @@ void ContextMenu::setupMenus(){
     for(auto node_view_item : view_controller->getNodeKindItems()){
         auto node_kind = node_view_item->getNodeKind();
         auto edge_kind = connect_node_edge_kinds.value(node_kind, EDGE_KIND::NONE);
+
+
+        
 
         if(edge_kind == EDGE_KIND::NONE){
             //Make an action for the Items which don't need a submenu

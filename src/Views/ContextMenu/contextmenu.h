@@ -55,6 +55,9 @@ private:
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
 
+    
+
+
     QAction* get_no_valid_items_action(QMenu* menu, QString label="No Valid Entities");
     QAction* construct_base_action(QMenu* menu, QString label);
     QAction* construct_remove_all_action(QMenu* menu, int number);

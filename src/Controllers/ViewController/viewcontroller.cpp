@@ -473,6 +473,17 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 alias = "Icons";
                 image = "medeaLogo";
                 break;
+            case NODE_KIND::ENUM_INSTANCE:
+            case NODE_KIND::ENUM:{
+                alias = "Icons";
+                image = "circleCirclesDark";
+                break;
+            }
+            case NODE_KIND::ENUM_MEMBER:{
+                //alias = "Icons";
+                //image = "star";
+                break;
+            }
             default:
                 break;
             }

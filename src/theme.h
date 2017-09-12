@@ -26,6 +26,8 @@
 #define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
 
 typedef QPair<QString, QString> IconPair;
+Q_DECLARE_METATYPE(IconPair); 
+
 class Theme: public QObject
 {
 Q_OBJECT
@@ -238,6 +240,10 @@ public:
     static void teardownTheme();
     static QSize roundQSize(QSize size);
     static IconPair getIconPair(QString prefix, QString alias);
+
+    static void UpdateActionIcon(QAction* action, Theme* theme = 0);
+    static void StoreActionIcon(QAction* action, QString alias, QString name);
+    static void StoreActionIcon(QAction* action, IconPair icon);
 private:
     static Theme* themeSingleton;
 };
