@@ -45,9 +45,9 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect(dock_deploy_menu, &QMenu::aboutToShow, this, &ContextMenu::update_deploy_menu);
     connect(dock_add_node_menu, &QMenu::aboutToShow, this, &ContextMenu::update_add_node_menu);
 
-    connect(main_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
-    connect(dock_deploy_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
-    connect(dock_add_node_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
+    //connect(main_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
+    //connect(dock_deploy_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
+    //connect(dock_add_node_menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
 
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
@@ -156,6 +156,8 @@ QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu, int icon_s
     }
     auto menu = parent_menu ? parent_menu->addMenu(label) : new QMenu(label);
     menu->setStyle(new CustomMenuStyle(icon_size));
+
+    connect(menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
     return menu;
 }
 
@@ -208,14 +210,7 @@ void ContextMenu::action_triggered(QAction* action){
         case ACTION_KIND::ADD_EDGE:{
             auto edge_direction = action->property("edge_direction").value<EDGE_DIRECTION>();
 
-            auto selection = view_controller->getSelectionController()->getSelectionIDs();
-
-            if(!selection.isEmpty()){
-                auto id_list = {id};
-                auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
-                auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
-                emit view_controller->vc_constructEdges(src_ids, dst_ids, edge_kind);
-            }
+            view_controller->constructEdges(id, edge_kind, edge_direction);
             break;
         }
         case ACTION_KIND::REMOVE_EDGE:{
@@ -378,7 +373,7 @@ QAction* ContextMenu::get_no_valid_items_action(QMenu* menu, QString label){
     auto action = construct_base_action(menu, label);
     action->setEnabled(false);
     action->setText(label);
-    action->setIcon(Theme::theme()->getIcon("Icons", "circleInfoDark"));
+    Theme::StoreActionIcon(action, "Icons", "circleInfoDark");
     return action;
 }
 
@@ -622,6 +617,7 @@ QWidgetAction* construct_menu_label(QString label){
     label_widget->setAlignment(Qt::AlignCenter);
     label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     action->setDefaultWidget(label_widget);
+    
     return action;
 }
 
@@ -759,6 +755,7 @@ void ContextMenu::setupMenus(){
 
     //Put our custom deploy menu into the edge hash
     add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
+    add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
 
     //Setup the main_menu
     main_menu->addMenu(add_node_menu);

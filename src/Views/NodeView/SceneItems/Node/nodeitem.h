@@ -171,6 +171,8 @@ public:
 signals:
     //Request changes
     void req_connectMode(NodeItem* item);
+    
+    void req_connectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_connectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_popOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
 

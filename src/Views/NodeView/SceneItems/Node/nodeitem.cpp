@@ -1195,7 +1195,6 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind){
         double count = visual_edge_kinds.count(direction);
         auto top_left = rect.topLeft();
 
-        qCritical() << pos << "/" << count;
         //Adjust the height
         auto item_height = rect.height() / count;
         rect.setHeight(item_height);
@@ -1242,13 +1241,15 @@ QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPoint
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    EntityItem::mousePressEvent(event);
     bool caughtResize = false;
 
-    if(gotVisualEdgeKind() && isSelected()){
-        if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
-            if(event->button() == Qt::LeftButton){
+    for(auto direction : visual_edge_kinds.uniqueKeys()){
+        auto edge_kinds = visual_edge_kinds.values(direction);
+        for(auto edge_kind : edge_kinds){
+            if(getEdgeConnectRect(direction, edge_kind).contains(event->pos())){
+                emit req_connectEdgeMode(event->scenePos(), edge_kind, direction);
                 caughtResize = true;
-                emit req_connectMode(this);
             }
         }
     }
@@ -1271,12 +1272,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             caughtResize = true;
         }
     }
-
-
-
-    if(!caughtResize){
-        EntityItem::mousePressEvent(event);
-    }
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -1287,10 +1282,11 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
        update();
    }
 
-   if(gotVisualEdgeKind() && isSelected()){
-        if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
-            if(event->button() == Qt::LeftButton){
-                emit req_connectEdgeMode(event->scenePos(), getVisualEdgeKind(), EDGE_DIRECTION::SOURCE);
+   for(auto direction : visual_edge_kinds.uniqueKeys()){
+        auto edge_kinds = visual_edge_kinds.values(direction);
+        for(auto edge_kind : edge_kinds){
+            if(getEdgeConnectRect(direction, edge_kind).contains(event->pos())){
+                emit req_connectEdgeMenu(event->scenePos(), edge_kind, direction);
             }
         }
     }
@@ -1312,19 +1308,22 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     bool need_update = false;
-    
-    //Check if we have a visual edge kind
+
     for(auto direction : visual_edge_kinds.uniqueKeys()){
-        auto in_rect = getEdgeDirectionRect(direction).contains(event->pos());
-        QPair<EDGE_DIRECTION, EDGE_KIND> key = {direction, EDGE_KIND::NONE};
-        auto contains = hovered_edge_kinds.contains(key);
-        if(in_rect != contains){
-            if(in_rect){
-                hovered_edge_kinds.insert(key);
-            }else{
-                hovered_edge_kinds.remove(key);
+        auto edge_kinds = visual_edge_kinds.values(direction);
+        edge_kinds.push_front(EDGE_KIND::NONE);
+        for(auto edge_kind : edge_kinds){
+            auto in_rect = getEdgeConnectRect(direction, edge_kind).contains(event->pos());
+            QPair<EDGE_DIRECTION, EDGE_KIND> key = {direction, edge_kind};
+            auto contains = hovered_edge_kinds.contains(key);
+            if(in_rect != contains){
+                if(in_rect){
+                    hovered_edge_kinds.insert(key);
+                }else{
+                    hovered_edge_kinds.remove(key);
+                }
+                need_update = true;
             }
-            need_update = true;
         }
     }
 
@@ -1364,12 +1363,17 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(hoveredConnect){
-        hoveredConnect = false;
-        update();
+    bool needs_update = false;
+
+    if(!hovered_edge_kinds.empty()){
+        hovered_edge_kinds.clear();
+        needs_update = true;
     }
     if(hoveredResizeVertex != RV_NONE){
         hoveredResizeVertex = RV_NONE;
+        needs_update = true;
+    }
+    if(needs_update){
         update();
     }
     EntityItem::hoverLeaveEvent(event);

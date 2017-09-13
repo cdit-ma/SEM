@@ -86,6 +86,8 @@ public:
     QVariant getEntityDataValue(int ID, QString key_name);
     bool isNodeOfType(int ID, NODE_TYPE type);
     int getNodeParentID(int ID);
+
+    void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
 signals:
     //TO OTHER VIEWS SIGNALS
 

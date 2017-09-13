@@ -362,6 +362,18 @@ QList<EdgeViewItem *> ViewController::getEdgeKindItems()
     return edgeKindItems;
 }
 
+void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
+
+    auto selection = getSelectionController()->getSelectionIDs();
+    
+    if(!selection.isEmpty()){
+        auto id_list = {id};
+        auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
+        auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
+        emit vc_constructEdges(src_ids, dst_ids, edge_kind);
+    }
+}
+
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
     QList<EDGE_KIND> edgeKinds;
