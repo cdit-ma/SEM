@@ -28,7 +28,7 @@ public:
         EDGE,
         NODE,
     };
-    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW, ER_TERTIARY_ICON};
+    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW, ER_TERTIARY_ICON, ER_CONNECT_SOURCE, ER_CONNECT_TARGET};
     
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
@@ -63,6 +63,7 @@ public:
 
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, QRectF pos, QString imagePath, QString imageName, QColor tintColor=QColor());
 
 private:
 public:

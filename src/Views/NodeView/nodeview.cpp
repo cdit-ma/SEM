@@ -776,7 +776,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::QOS);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+
                 nodeItem->setSecondaryTextKey("mode");
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -817,7 +824,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::TERMINATION:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -829,17 +836,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "circleQuestion";
@@ -849,7 +856,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -863,7 +870,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operator");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -873,7 +880,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -881,14 +888,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -896,7 +903,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::AGGREGATE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -912,7 +919,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -938,7 +945,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
@@ -956,20 +963,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "clockCycle";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::BRANCH_STATE:
             case NODE_KIND::WHILELOOP:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CODE:
             case NODE_KIND::HEADER:
             case NODE_KIND::WORKLOAD:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
 
             case NODE_KIND::VECTOR:
@@ -977,7 +985,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 if(item->getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                    nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 }
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);

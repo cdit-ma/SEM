@@ -212,6 +212,14 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
     }
 }
 
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, QRectF image_rect, QString imagePath, QString imageName, QColor tintColor){
+    if(!image_rect.isEmpty()){
+        auto required_size = getPixmapSize(image_rect, lod);
+        auto pixmap = getPixmap(imagePath, imageName, required_size, tintColor);
+        paintPixmap(painter, image_rect, pixmap);
+    }
+}
+
 void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor)
 {
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);

@@ -80,6 +80,15 @@ public:
     virtual QRectF headerRect() const;
 
 
+    QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind);
+    QRectF getEdgeDirectionRect(EDGE_DIRECTION direction);
+
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos);
+
+
+    int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind);
+
+
     QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -133,7 +142,8 @@ public:
     void setSecondaryTextKey(QString key);
 
 
-    void setVisualEdgeKind(EDGE_KIND kind);
+    void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind);
+
     void setVisualNodeKind(NODE_KIND kind);
     EDGE_KIND getVisualEdgeKind() const;
     NODE_KIND getVisualNodeKind() const;
@@ -192,6 +202,10 @@ private:
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> visual_edge_kinds;
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
+
+
     NODE_KIND visualNodeKind = NODE_KIND::NONE;
     EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
     QString visualEntityIcon;
@@ -222,7 +236,12 @@ private:
     bool resizeEnabled;
 
 
+
+
     bool hoveredConnect;
+
+
+
     RECT_VERTEX hoveredResizeVertex;
     RECT_VERTEX selectedResizeVertex;
 

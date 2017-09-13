@@ -144,6 +144,10 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
         return connectRect();
     case ER_TERTIARY_ICON:
         return tertiaryIconRect();
+    case ER_CONNECT_TARGET:
+        return connectTargetRect();
+    case ER_CONNECT_SOURCE:
+        return connectSourceRect();
     default:
         break;
     }
@@ -188,6 +192,20 @@ QRectF BasicNodeItem::headerRect() const
 }
 
 QRectF BasicNodeItem::connectRect() const
+{
+    QRectF r = headerRect();
+    r.setLeft(r.right() - (smallIconSize().width() * 2));
+    return r;
+}
+
+QRectF BasicNodeItem::connectSourceRect() const
+{
+    QRectF r = headerRect();
+    r.setRight(r.left() + (smallIconSize().width() * 2));
+    return r;
+}
+
+QRectF BasicNodeItem::connectTargetRect() const
 {
     QRectF r = headerRect();
     r.setLeft(r.right() - (smallIconSize().width() * 2));

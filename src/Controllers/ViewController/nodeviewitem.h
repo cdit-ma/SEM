@@ -35,6 +35,8 @@ signals:
     void edgeRemoved(EDGE_KIND edgeKind);
 
 private:
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> required_edge_kinds;
+
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND nodeKind;
     int parent_id = -1;
