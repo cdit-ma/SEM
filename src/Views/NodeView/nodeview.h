@@ -8,6 +8,7 @@
 #include "SceneItems/entityitem.h"
 #include "SceneItems/Node/nodeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
+#include "SceneItems/arrowline.h"
 
 #include <QStateMachine>
 #include <QStaticText>
@@ -194,13 +195,8 @@ private:
     QState* state_Active_RubberbandMode_Selecting = 0;
     QState* state_Active_Connecting = 0;
 
-    bool inState(QState* state){
-        return viewStateMachine->configuration().contains(state);
-    }
 
-    QGraphicsLineItem* connectLineItem = 0;
-
-    QLineF connectLine;
+    ArrowLine* connect_line = 0;
 
 private slots:
     void activeViewDockChanged(ViewDockWidget* dw);

@@ -346,15 +346,15 @@ void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND edge_kind, EDGE
             emit viewController->vc_highlightItem(item->getID(), true);
         }
         
-        if(!connectLineItem){
-            connectLineItem = scene()->addLine(connectLine);
-            connectLineItem->setPen(Qt::DashLine);
-            connectLineItem->setZValue(100);
+        if(!connect_line){
+            connect_line = new ArrowLine();
+            scene()->addItem(connect_line);
+            connect_line->setPen(Qt::DashLine);
+            connect_line->setZValue(100);
         }
-        connectLine.setP1(scene_pos);
-        connectLine.setP2(scene_pos);
-        connectLineItem->setLine(connectLine);
-        connectLineItem->setVisible(true);
+        connect_line->set_begin_point(scene_pos);
+        connect_line->set_end_point(scene_pos);
+        connect_line->setVisible(true);
     }
 }
 
@@ -1473,14 +1473,14 @@ void NodeView::state_Connecting_Exited()
         emit viewController->vc_highlightItem(item->getID(), false);
     }
 
-    if(connectLineItem){
-        QPointF scenePos = connectLine.p2();
-        EntityItem* otherItem = getEntityAtPos(scenePos);
+    
+    if(connect_line){
+        QPointF scene_pos = edge_direction == EDGE_DIRECTION::SOURCE ? connect_line->get_end_point() : connect_line->get_begin_point();
+        EntityItem* otherItem = getEntityAtPos(scene_pos);
         if(otherItem){
-            
             viewController->constructEdges(otherItem->getID(), edge_kind, edge_direction);
         }
-        connectLineItem->setVisible(false);
+        connect_line->setVisible(false);
     }
 }
 
@@ -1580,8 +1580,21 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         handledEvent = true;
     }else if(state_Active_Connecting->active()){
-        connectLine.setP2(mapToScene(event->pos()));
-        connectLineItem->setLine(connectLine);
+        
+        auto edge_direction = state_Active_Connecting->property("edge_direction").value<EDGE_DIRECTION>();
+
+        auto item = getEntityAtPos(scenePos);
+        if(item){
+            item = item->isHighlighted() ? item : 0;
+        }
+
+        if(edge_direction == EDGE_DIRECTION::SOURCE){
+            connect_line->set_end_point(scenePos);
+        }else{
+            connect_line->set_begin_point(scenePos);
+        }
+        connect_line->setHighlighted(item);
+        //Check if what we have is 
     }
 
     //Only pass down if we haven't handled it.
