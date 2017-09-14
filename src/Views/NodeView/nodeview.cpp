@@ -957,6 +957,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            case NODE_KIND::ENUM_INSTANCE:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
+                secondary_icon.second = "tiles";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
             case NODE_KIND::MEMBER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);

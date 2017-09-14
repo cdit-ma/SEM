@@ -1069,18 +1069,21 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             auto edge_kind = pair.second;
             auto rect = getEdgeConnectRect(edge_direction, edge_kind);
             painter->drawRect(rect);
-            if(edge_kind != EDGE_KIND::NONE){
-                paintPixmap(painter, lod, rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
-            }
         }
 
+        painter->setBrush(QColor(255, 165, 70, 150));
         for(auto edge_direction : visual_edge_kinds.uniqueKeys()){
             bool is_direction_hovered = hovered_edge_kinds.contains({edge_direction, EDGE_KIND::NONE});
             if(is_direction_hovered){
                 for(auto edge_kind : visual_edge_kinds.values(edge_direction)){
                     if(edge_kind != EDGE_KIND::NONE){
                         auto rect = getEdgeConnectRect(edge_direction, edge_kind);
-                        paintPixmap(painter, lod, rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
+                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+
+                        if(hovered_edge_kinds.contains({edge_direction, edge_kind})){
+                            painter->drawRect(rect);
+                        }
+                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
                     }
                 }
             }
@@ -1185,6 +1188,19 @@ int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind){
     return index;
 }
 
+QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind){
+    auto rect = getEdgeConnectRect(direction, kind);
+    auto center = rect.center();
+    //Squarify
+    if(rect.height() > rect.width()){
+        rect.setHeight(rect.width());
+    }else if(rect.width() > rect.height()){
+        rect.setWidth(rect.height());
+    }
+    rect.moveCenter(center);
+    return rect;
+}
+
 QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind){
     //Get the total rect
     auto rect = getEdgeDirectionRect(direction);
@@ -1202,14 +1218,7 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind){
         top_left.ry() += (pos * item_height);
         rect.moveTopLeft(top_left);
         
-        auto center = rect.center();
-        //Squarify
-        if(rect.height() > rect.width()){
-            rect.setHeight(rect.width());
-        }else if(rect.width() > rect.height()){
-            rect.setWidth(rect.height());
-        }
-        rect.moveCenter(center);
+        
     }
     return rect;
 }
@@ -1247,8 +1256,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     for(auto direction : visual_edge_kinds.uniqueKeys()){
         auto edge_kinds = visual_edge_kinds.values(direction);
         for(auto edge_kind : edge_kinds){
-            if(getEdgeConnectRect(direction, edge_kind).contains(event->pos())){
-                emit req_connectEdgeMode(event->scenePos(), edge_kind, direction);
+            auto rect = getEdgeConnectRect(direction, edge_kind);
+            if(rect.contains(event->pos())){
+                auto pos = mapToScene(rect.center());
+                emit req_connectEdgeMode(pos, edge_kind, direction);
                 caughtResize = true;
             }
         }

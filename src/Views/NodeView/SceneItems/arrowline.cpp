@@ -21,9 +21,9 @@ QRectF ArrowLine::boundingRect() const{
 void ArrowLine::setHighlighted(bool highlight){
     auto pen_ = pen();
     auto theme = Theme::theme();
-    pen_.setStyle(highlight ? Qt::SolidLine : Qt::DashLine);
-    pen_.setColor(highlight ? QColor(Qt::red) : theme->black());
-    pen_.setWidth(highlight ? 2 : 1);
+    pen_.setStyle(highlight ? Qt::SolidLine : Qt::DotLine);
+    //pen_.setColor(highlight ? QColor(Qt::green) : QColor(Qt::red));
+    pen_.setWidthF(highlight ? 1 : 0.5);
     setPen(pen_);
     update();
 }
@@ -71,7 +71,10 @@ void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     auto pen_ = pen();
     painter->setPen(pen_);
     painter->drawLine(line);
-    painter->setPen(pen_.color());
+    pen_.setStyle(Qt::SolidLine);
+    painter->setPen(pen_);
     painter->setBrush(pen_.color());
     painter->drawPolygon(arrow_head);
 }
+
+

@@ -24,7 +24,7 @@ private:
     void update_head();
     QPolygonF arrow_head;
     QLineF line;
-    int arrow_head_size = 8;
+    int arrow_head_size = 5;
 };
 
 #endif

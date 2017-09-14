@@ -81,6 +81,7 @@ public:
 
 
     QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind);
+    QRectF getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind);
     QRectF getEdgeDirectionRect(EDGE_DIRECTION direction);
 
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos);
