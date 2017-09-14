@@ -47,6 +47,31 @@ int main(){
     else{
         std::cout << "Done FloatOp in " << ms.count() << " milliseconds" << std::endl;
     }
+
+    std::cout << "Running trivial matrix mult. 2*2 matrix, non zeroed output matrix." << std::endl;
+
+    std::vector<float> trivialMatA(2*2);
+    std::vector<float> trivialMatB(2*2);
+    std::vector<float> trivialMatC(2*2);
+
+    std::vector<float> expected {2, 3, 6, 11};
+
+    for (unsigned int index=0; index<4; index++) trivialMatA[index] = (float)index;
+	for (unsigned int index=0; index<4; index++) trivialMatB[index] = (float)index;
+    for (unsigned int index=0; index<4; index++) trivialMatC[index] = (float)index;
+    
+    result = worker.MatrixMult(trivialMatA, trivialMatB, trivialMatC);
+
+    if(result != 0){
+        std::cout << "Trivial MatrixMult failed, return code: " << result << std::endl;
+    }else{
+        if(trivialMatC == expected){
+            std::cout << "Success" << std::endl;
+        }else{
+            std::cout << "Failure" << std::endl;
+        }
+    }
+
     
     std::vector<float> matA(1024*1024);
     std::vector<float> matB(1024*1024);
