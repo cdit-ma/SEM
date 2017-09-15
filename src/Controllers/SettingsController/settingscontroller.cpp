@@ -156,6 +156,8 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Dark Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDLIGHTTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Light Theme");
 
     //Theme - Default Colors
     createSetting(SETTINGS::THEME_BG_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Background");
