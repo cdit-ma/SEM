@@ -12,19 +12,27 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     qRegisterMetaType<QProcess::ExitStatus>();
     qRegisterMetaType<ProcessResult>("ProcessResult");
     qRegisterMetaType<HTTPResult>("HTTPResult");
+    global_vars = QProcessEnvironment::systemEnvironment();
 }
 
+QString ProcessRunner::getEnvVar(QString key){
+    return global_vars.value(key, "");
+}
 ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory)
 {
     ProcessResult result;
 
     //Construct and setup the process
     QProcess process;
+    process.setProcessEnvironment(global_vars);
+
 
     //Set working directory if we have one
     if(!directory.isEmpty()){
         process.setWorkingDirectory(directory);
     }
+
+    qCritical() << "Running: " << program << " " << args.join(" ");
 
     //Start the program
     process.start(program, args);
@@ -69,7 +77,7 @@ ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QStri
         while(process.canReadLine()){
             QString line = process.readLine();
             result.standard_error << line;
-            emit GotProcessStdErrtLine(line);
+            emit GotProcessStdErrLine(line);
         }
 
         //Check if we are still running

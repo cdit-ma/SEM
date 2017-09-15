@@ -240,6 +240,7 @@ public slots:
     void importIdlFile();
 
     void generateWorkspace();
+    void executeModelLocal();
 
     void executeJenkinsJob();
 
@@ -351,7 +352,8 @@ private:
     QList<int> topLevelItems;
     ViewItem* rootItem;
 
-    BaseDockWidget *codeViewer;
+    BaseDockWidget* codeViewer = 0;
+    BaseDockWidget* execution_browser = 0;
 
     SelectionController* selectionController;
     ActionController* actionController;

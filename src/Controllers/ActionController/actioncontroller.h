@@ -139,7 +139,7 @@ public:
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
     RootAction* model_generateModelWorkspace;
-    //RootAction* model_executeLocalJob;
+    RootAction* model_executeLocalJob;
 
     RootAction* options_settings;
 

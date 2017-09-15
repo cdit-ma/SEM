@@ -155,8 +155,7 @@ bool FileHandler::removeFile(QString path){
 bool FileHandler::removeDirectory(QString path)
 {
     QDir dir(path);
-    bool success = dir.removeRecursively();
-
+    bool success = dir.exists() ? dir.removeRecursively() : true;
     if(!success){
         _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' failed to be removed!", "Icons", "folder");
     }

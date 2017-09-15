@@ -11,10 +11,15 @@ class ExecutionManager: public QObject
 public:
     ExecutionManager(ViewController* view_controller);
 
+    void ExecuteModel(QString document_path, QString output_directory);
     void ValidateModel(QString model_path);
     void GenerateCodeForComponent(QString document_path, QString component_name);
-    void GenerateWorkspace(QString document_path, QString output_directory);
+    bool GenerateWorkspace(QString document_path, QString output_directory);
+    QString get_env_var(QString key);
 signals:
+    void GotProcessStdOutLine(QString line);
+    void GotProcessStdErrLine(QString line);
+
     void GotCodeForComponent(QString file_name, QString file_data);
     void GotJava(bool ready, QString message);
 private:

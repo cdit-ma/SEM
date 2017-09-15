@@ -113,6 +113,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
+        connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
 
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
@@ -366,6 +367,8 @@ void ActionController::updateJenkinsActions()
     jenkins_importNodes->setEnabled(controller_ready && _jenkinsValidated);
     jenkins_executeJob->setEnabled(controller_ready && _jenkinsValidated);
     model_generateModelWorkspace->setEnabled(controller_ready && _gotJava);
+    model_executeLocalJob->setEnabled(controller_ready && _gotJava);
+    
     model_validateModel->setEnabled(controller_ready && _gotJava);
 }
 
@@ -749,8 +752,8 @@ void ActionController::setupActions()
     model_generateModelWorkspace = createRootAction("Model", "Generate Model Workspace", "", "Icons", "briefcase");
     model_generateModelWorkspace->setToolTip("Generate all the C++ artifacts for the model");
 
-    //model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
-    //model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
+    model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
+    model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
 
 
     jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
@@ -880,8 +883,7 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
     menu_model->addAction(model_generateModelWorkspace);
-
-    //menu_model->addAction(model_executeLocalJob);
+    menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
 

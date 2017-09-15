@@ -30,6 +30,7 @@
 #include <QListIterator>
 #include <QStringBuilder>
 #include <QDesktopServices>
+#include <QTextBrowser>
 #include <QFile>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
@@ -1455,6 +1456,38 @@ void ViewController::generateWorkspace()
     QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
     execution_manager->GenerateWorkspace(file_path, output_dir);
 }
+
+void ViewController::executeModelLocal()
+{
+    if(!execution_browser){
+        execution_browser = WindowManager::manager()->constructDockWidget("Execution Browser");
+        execution_browser->setCloseVisible(false);
+
+        auto text_browser = new QTextBrowser(execution_browser);
+        execution_browser->setWidget(text_browser);
+        execution_browser->setIcon("Icons", "bracketsAngled");
+        execution_browser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+        BaseWindow* window = WindowManager::manager()->getActiveWindow();
+        if(window){
+            window->addDockWidget(execution_browser);
+        }
+
+        connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, text_browser, &QTextEdit::append);
+        connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, text_browser, &QTextEdit::append);
+    }
+
+    if(execution_browser){
+        auto browser = qobject_cast<QTextBrowser*>(execution_browser->widget());
+        if(browser){
+            browser->clear();
+        }
+        execution_browser->show();
+    }
+    QString file_path = getTempFileForModel();
+    QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
+    execution_manager->ExecuteModel(file_path, output_dir);
+}
+
 
 
 void ViewController::executeJenkinsJob()

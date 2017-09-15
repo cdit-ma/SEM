@@ -5,6 +5,7 @@
 #include <QXmlStreamReader>
 #include <QMutexLocker>
 
+
 #include "../../Utils/filehandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../NotificationManager/notificationobject.h"
@@ -19,6 +20,8 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     got_java_ = false;
 
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::jenkinsManager_GotJava);
+    connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine);
+    connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine);
 
     //connect(this, &ExecutionManager::GotValidationReport, NotificationManager::manager(), &NotificationManager::modelValidated);
     //run check for java
@@ -135,7 +138,51 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
     FileHandler::removeDirectory(path);
 }
 
-void ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory)
+void ExecutionManager::ExecuteModel(QString document_path, QString output_directory){
+    auto generate = GenerateWorkspace(document_path, output_directory);
+    auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
+    if(generate){
+        auto build_dir = output_directory + "/build/";
+        auto lib_dir = output_directory + "/lib/";
+        qCritical() << "Making a build folder: " << build_dir;
+        bool failed = true;
+
+        auto re_path = runner_->getEnvVar("RE_PATH") + "/bin/";
+
+
+        //Clean and rerun
+        if(FileHandler::removeDirectory(build_dir) && FileHandler::ensureDirectory(build_dir)){
+            auto cmake_results =  runner_->RunProcess("cmake", {".."}, build_dir);
+
+            if(cmake_results.success){
+                notification->setDescription("Running CMake --build ..");
+                auto compile_results =  runner_->RunProcess("cmake", {"--build", "."}, build_dir);
+
+                if(compile_results.success){
+                    notification->setDescription("Running model");
+                    auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", "10"}, lib_dir);
+
+                    if(execute_results.success){
+                        notification->setDescription("Model successfully executed.");
+                        failed = false;
+                    }else{
+                        qCritical() << execute_results.standard_output;
+                        qCritical() << execute_results.standard_error;
+                        notification->setDescription("Failed to execute model");
+                    }
+                }else{
+                    notification->setDescription("Failed to compile model");
+                }
+            }else{
+                notification->setDescription("Failed to run CMake");
+            }
+            notification->setInProgressState(false);
+            notification->setSeverity(!failed ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+        }
+    }
+}       
+
+bool ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory)
 {
     auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
 
@@ -150,6 +197,7 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
         notification->setDescription("Generated model workspace C++ failed!");
     }
     notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    return components && datatypes;
 }
 
 bool ExecutionManager::GenerateComponents(QString document_path, QString output_directory, QStringList component_names, bool toast_notify)

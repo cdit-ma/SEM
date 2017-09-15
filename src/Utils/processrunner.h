@@ -6,7 +6,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-
+#include <QProcessEnvironment>
 struct ProcessResult{
     bool success = false;
     int error_code = 0;
@@ -30,14 +30,17 @@ public:
     ProcessResult RunProcess(QString program, QStringList args, QString directory="");
     HTTPResult HTTPGet(QNetworkRequest request);
     HTTPResult HTTPPost(QNetworkRequest request, QByteArray post_data = QByteArray());
+
+    QString getEnvVar(QString key);
 signals:
     void Cancel();
     void GotProcessStdOutLine(QString line);
-    void GotProcessStdErrtLine(QString line);
+    void GotProcessStdErrLine(QString line);
 private:
     HTTPResult WaitForNetworkReply(QNetworkReply* reply);
     QNetworkAccessManager* GetNetworkAccessManager();
     QNetworkAccessManager* network_access_manager_;
+    QProcessEnvironment global_vars;
 };
 
 #endif // PROCESSRUNNER_H
