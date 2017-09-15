@@ -4,6 +4,8 @@
 #include "../../../../Controllers/ViewController/edgeviewitem.h"
 #include "../entityitem.h"
 
+#include <QPolygonF>
+
 class NodeItem;
 class EdgeItem : public EntityItem{
     Q_OBJECT
@@ -17,6 +19,7 @@ public:
 
     QRectF boundingRect() const;
     QPointF getSceneEdgeTermination(bool left) const;
+    QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
     QRectF currentRect() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -50,6 +53,7 @@ private:
     QRectF centerCircleRect() const;
     QRectF sceneCenterCircleRect() const;
     QRectF translatedCenterCircleRect(QPointF center = QPointF()) const;
+    QPolygonF getTriangle() const;
 
     QPointF getCenterCircleTermination(bool left, QPointF center = QPointF()) const;
 
@@ -83,7 +87,7 @@ private:
     bool srcCurveEntersCenterLeft;
 
     QMarginsF margins;
-
+    EDGE_KIND kind;
     bool _isCentered;
     QPointF _centerPoint;
 

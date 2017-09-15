@@ -548,6 +548,27 @@ qreal NodeItem::getHeight() const
     }
 }
 
+QMultiMap<EDGE_DIRECTION, EDGE_KIND> NodeItem::getAllVisualEdgeKinds() const{
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> map = getVisualEdgeKinds();
+
+    if(!isExpanded()){
+        for(auto child : getChildNodes()){
+            auto child_map = child->getAllVisualEdgeKinds();
+            for(auto direction : child_map.uniqueKeys()){
+                for(auto edge_kind : child_map.values(direction)){
+                    if(!map.contains(direction, edge_kind)){
+                        map.insert(direction, edge_kind);
+                    }
+                }
+            }
+        }
+    }
+    return map;
+}
+
+QMultiMap<EDGE_DIRECTION, EDGE_KIND> NodeItem::getVisualEdgeKinds() const{
+    return visual_edge_kinds;
+}
 
 
 QPointF NodeItem::getCenterOffset() const
@@ -1072,10 +1093,13 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
         painter->setBrush(QColor(255, 165, 70, 150));
-        for(auto edge_direction : visual_edge_kinds.uniqueKeys()){
+
+        auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+
+        for(auto edge_direction : map.uniqueKeys()){
             bool is_direction_hovered = hovered_edge_kinds.contains({edge_direction, EDGE_KIND::NONE});
             if(is_direction_hovered){
-                for(auto edge_kind : visual_edge_kinds.values(edge_direction)){
+                for(auto edge_kind : map.values(edge_direction)){
                     if(edge_kind != EDGE_KIND::NONE){
                         auto rect = getEdgeConnectRect(edge_direction, edge_kind);
                         auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
@@ -1181,14 +1205,14 @@ QRectF NodeItem::getResizeArrowRect() const
     return rect;
 }
 
-int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind){
+int NodeItem::getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     //Values in list are backwards
-    auto list = visual_edge_kinds.values(direction);
+    auto list = getAllVisualEdgeKinds().values(direction);
     auto index = list.size() - (list.indexOf(kind) + 1);
     return index;
 }
 
-QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind){
+QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     auto rect = getEdgeConnectRect(direction, kind);
     auto center = rect.center();
     //Squarify
@@ -1201,14 +1225,14 @@ QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind
     return rect;
 }
 
-QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind){
+QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     //Get the total rect
     auto rect = getEdgeDirectionRect(direction);
 
     if(kind != EDGE_KIND::NONE){
         //Get our position 
         double pos = getEdgeConnectPos(direction, kind);
-        double count = visual_edge_kinds.count(direction);
+        double count = getAllVisualEdgeKinds().count(direction);
         auto top_left = rect.topLeft();
 
         //Adjust the height
@@ -1223,7 +1247,14 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind){
     return rect;
 }
 
-QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction){
+QPointF NodeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const{
+    auto rect = getEdgeConnectRect(direction, kind);
+    qreal y = rect.center().y();
+    qreal x = direction == EDGE_DIRECTION::SOURCE ? rect.left() : rect.right();
+    return mapToScene(x,y);
+}
+
+QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction) const{
     switch(direction){
         case EDGE_DIRECTION::SOURCE:{
             return getElementRect(ER_CONNECT_SOURCE);
@@ -1234,11 +1265,11 @@ QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction){
     }
 }
 
-QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPointF pos){
+QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPointF pos) const{
     QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > kinds;
-
-    for(auto direction : visual_edge_kinds.uniqueKeys()){
-        for(auto kind : visual_edge_kinds.values(direction)){
+    auto map = getAllVisualEdgeKinds();
+    for(auto direction : map.uniqueKeys()){
+        for(auto kind : map.values(direction)){
             if(getEdgeConnectRect(direction, kind).contains(pos)){
                 kinds.insert({direction, kind});
             }

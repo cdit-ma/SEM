@@ -769,7 +769,7 @@ QPen EntityItem::getPen()
 {
     QPen pen = defaultPen;
     pen.setJoinStyle(Qt::MiterJoin);
-    QColor penColor = QColor(115,115,115);//defaultPen.color();
+    QColor penColor = defaultPen.color();
 
     if(isSelected()){
         if(pen.style() == Qt::NoPen){

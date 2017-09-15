@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <math.h>
 
-#define ARROW_SIZE 4
+#define ARROW_SIZE 8
 EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination):EntityItem(edgeViewItem, parent, EDGE)
 {
     //Set the margins
@@ -45,8 +45,11 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
         parent->addChildEdge(this);
         pen.setColor(parent->getBaseBodyColor().darker(300));
     }
+    pen.setColor(Qt::black);
 
-    switch(edgeViewItem->getEdgeKind()){
+    kind = edgeViewItem->getEdgeKind();
+
+    switch(kind){
         case EDGE_KIND::DATA:
             pen.setStyle(Qt::DotLine);
         break;
@@ -56,7 +59,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     default:
         pen.setStyle(Qt::SolidLine);
     }
-
+    
     //Set the Pen.
     setDefaultPen(pen);
 
@@ -135,6 +138,10 @@ QPointF EdgeItem::getSceneEdgeTermination(bool left) const
     return getCenterCircleTermination(left, _centerPoint);
 }
 
+QPointF EdgeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const{
+    return getCenterCircleTermination(direction == EDGE_DIRECTION::SOURCE, _centerPoint);
+}
+
 /**
  * @brief EdgeItem::currentRect Gets the currentRect for the EdgeItem, this represents the position of the Circle which represents the center point of the edge.
  * @return
@@ -157,11 +164,15 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state > RENDER_STATE::BLOCK){
         painter->setPen(pen);
+
         painter->setBrush(Qt::NoBrush);
 
+        auto inactive_pen = pen;
+        inactive_pen.setWidthF(pen.widthF() / 2.0);
+
         //Paint the bezier curves
-        painter->strokePath(srcCurve, pen);
-        painter->strokePath(dstCurve, pen);
+        painter->strokePath(srcCurve, src == vSrc ? pen : inactive_pen);
+        painter->strokePath(dstCurve, dst == vDst ? pen : inactive_pen);
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(pen.color());
@@ -180,8 +191,8 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         path.setFillRule(Qt::WindingFill);
 
         //Draw the center Circle/Rectangle
-        path.addEllipse(translatedCenterCircleRect());
 
+        path.addEllipse(translatedCenterCircleRect());
         if(isSelected()){
             //If we are selected add the circles to the left/right
             path.addEllipse(srcIconCircle());
@@ -199,7 +210,6 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(state == RENDER_STATE::BLOCK){
         painter->setClipPath(getElementPath(ER_SELECTION));
     }
-
     paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
     if(state > RENDER_STATE::BLOCK && isSelected()){
         paintPixmap(painter, lod, ER_MAIN_ICON, src->getIconPath());
@@ -360,6 +370,38 @@ QRectF EdgeItem::srcIconCircle() const
     return r;
 }
 
+QPolygonF EdgeItem::getTriangle() const{
+    //http://www.mathopenref.com/triangleincircle.html
+
+    QRectF cr = translatedCenterCircleRect();
+
+
+    QPolygonF poly;
+
+    auto center = cr.center();
+    cr.setHeight(28);
+    cr.setWidth(15);
+    cr.moveCenter(center);
+
+    auto delta = 14;
+
+    
+    if(srcCurveEntersCenterLeft){
+        poly << cr.bottomLeft();
+        poly << cr.topLeft();
+        center.rx() += delta;
+    }else{
+        poly << cr.bottomRight();
+        poly << cr.topRight();
+        center.rx() -= delta;
+    }
+    poly << center;
+
+    //auto br = poly.boundingRect();
+    //auto diff = br.center() - center;
+    //poly.translate(diff);
+    return poly;
+}
 /**
  * @brief EdgeItem::dstIconCircle Gets the Destination Icon Circle
  * This swaps side depending on the whether the Destination Edge enters the left of the Center
@@ -573,8 +615,8 @@ void EdgeItem::updateEdge()
     }
 
     //Get the Left/Right positions for the Center Point
-    QPointF ctrLeft = getSceneEdgeTermination(true);
-    QPointF ctrRight = getSceneEdgeTermination(false);
+    QPointF ctrLeft = getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+    QPointF ctrRight = getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
 
     /*
      * Map of the position points.
@@ -582,12 +624,12 @@ void EdgeItem::updateEdge()
      * */
 
     //Check if given the current Center, the source/destination should exit the left side
-    bool useSrcLeft = srcExitsLeft();
-    bool useDstLeft = dstExitsLeft();
+    bool useSrcLeft = false;// srcExitsLeft();
+    bool useDstLeft = true;//dstExitsLeft();
 
     //Get the entry/exit points into the source/destinatino based off the above variables.
-    QPointF sP1 = vSrc->getSceneEdgeTermination(useSrcLeft);
-    QPointF dP2 = vDst->getSceneEdgeTermination(useDstLeft);
+    QPointF sP1 = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
+    QPointF dP2 = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
 
 
 
@@ -628,24 +670,11 @@ void EdgeItem::updateEdge()
 void EdgeItem::resetCenter()
 {
     if(vSrc && vDst){
-        QPointF srcCenter = vSrc->sceneBoundingRect().center();
-        QPointF dstCenter = vDst->sceneBoundingRect().center();
-
-        //Get the scene center of the 2 ends points to spoof the location of the center.
-        QPointF center = (srcCenter + dstCenter) / 2;
-        //Get the center coordinate in local coordinates
-        center = mapFromScene(center);
-
-        //Determine if, given the spoofed center, we should use the left or right or
-        bool useSrcLeft = srcExitsLeft(center);
-        bool useDstLeft = dstExitsLeft(center);
-
-        //Get the positions
-        srcCenter = vSrc->getSceneEdgeTermination(useSrcLeft);
-        dstCenter = vDst->getSceneEdgeTermination(useDstLeft);
-
+        auto srcCenter = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
+        auto dstCenter = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+        
         //Calculate new Center position
-        center = (srcCenter + dstCenter) / 2;
+        auto center = (srcCenter + dstCenter) / 2;
 
         setPos(mapFromScene(center));
 

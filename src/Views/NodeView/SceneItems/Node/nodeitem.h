@@ -80,14 +80,22 @@ public:
     virtual QRectF headerRect() const;
 
 
-    QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind);
-    QRectF getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind);
-    QRectF getEdgeDirectionRect(EDGE_DIRECTION direction);
+    QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+    QRectF getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+    QRectF getEdgeDirectionRect(EDGE_DIRECTION direction) const;
 
-    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos);
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos) const;
 
 
-    int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind);
+    int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+
+    QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+
+
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getAllVisualEdgeKinds() const;
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getVisualEdgeKinds() const;
+
+    
 
 
     QRectF childrenRect() const;

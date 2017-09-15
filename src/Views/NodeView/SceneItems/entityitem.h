@@ -2,6 +2,7 @@
 #define ENTITYITEM_H
 
 #include "../../../Controllers/ViewController/viewitem.h"
+#include "../../../Controllers/ViewController/edgeviewitem.h"
 #include "../../../theme.h"
 #include <QGraphicsObject>
 #include <QGraphicsSceneHoverEvent>
@@ -49,6 +50,7 @@ public:
     ViewItem* getViewItem() const;
 
     virtual QPointF getSceneEdgeTermination(bool left) const = 0;
+    virtual QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const = 0;
 
 
     QColor getBaseBodyColor() const;
