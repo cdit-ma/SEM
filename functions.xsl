@@ -1684,6 +1684,17 @@
         <xsl:variable name="enum_type" select="concat('Base::', if($enum_namespace != '') then concat($enum_namespace, '::') else '', $enum_def_label)" />
         <xsl:value-of select="$enum_type" />
     </xsl:function>
+
+    <xsl:function name="o:get_resolved_enum_member_type">
+        <xsl:param name="enum_member_root" />
+
+        <xsl:variable name="enum_def" select="o:get_parent_node($enum_member_root)" />
+        <xsl:variable name="enum_def_label" select="o:camel_case(cdit:get_key_value($enum_def, 'label'))" />
+        <xsl:variable name="enum_member_label" select="upper-case(cdit:get_key_value($enum_member_root, 'label'))" />
+        <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_def, 'namespace')" />
+        <xsl:variable name="enum_type" select="concat('Base::', if($enum_namespace != '') then concat($enum_namespace, '::') else '', $enum_def_label, '::', $enum_member_label)" />
+        <xsl:value-of select="$enum_type" />
+    </xsl:function>
                    
     <xsl:function name="o:get_translate_cpp">
         <xsl:param name="aggregate_root" />
