@@ -289,6 +289,7 @@
         <xsl:value-of select="contains(lower-case($member_type), 'integer') = true() and $dst_mw ='ospl'" />
     </xsl:function>
 
+
     <xsl:function name="o:process_member">
         <xsl:param name="member_root" />
 
@@ -296,7 +297,9 @@
         <xsl:param name="out_var" as="xs:string" />
         <xsl:param name="src_mw" as="xs:string" />
         <xsl:param name="dst_mw" as="xs:string" />
-        <xsl:param name="namespace" as="xs:string" />
+
+        
+        
 
         <xsl:variable name="member_label" select="cdit:get_key_value($member_root, 'label')" />
         <xsl:variable name="member_type" select="cdit:get_key_value($member_root, 'type')" />
@@ -440,11 +443,11 @@
 
         <!-- Translate Function from BASE to MIDDLEWARE-->
         <xsl:value-of select="o:cpp_comment('Translate from Base -> Middleware')" />
-        <xsl:value-of select="o:get_translate_cpp($members, $vectors, $aggregate_insts, $base_type, $mw_type, $base_mw, $mw, $mw)" />
+        <xsl:value-of select="o:get_translate_cpp($aggregate_root, $base_type, $mw_type, $base_mw, $mw)" />
 
         <!-- Translate Function from MIDDLEWARE to BASE-->
         <xsl:value-of select="o:cpp_comment('Translate from Middleware -> Base')" />
-        <xsl:value-of select="o:get_translate_cpp($members, $vectors, $aggregate_insts, $mw_type, $base_type, $mw, $base_mw, $mw)" />
+        <xsl:value-of select="o:get_translate_cpp($aggregate_root, $mw_type, $base_type, $mw, $base_mw)" />
 
         <xsl:if test="lower-case($mw) = 'proto'">
             <!-- Define decode functions -->
@@ -694,15 +697,17 @@
 
     <xsl:function name="o:get_base_data_type_h">
         <xsl:param name="aggregate_root" />
-        <xsl:param name="members"/>
-        <xsl:param name="vectors"/>
-        <xsl:param name="aggregate_insts"/>
-        <xsl:param name="aggregates"/>
 
-
+        <!-- Get the children we need -->
+        <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'Member')" />
+        <xsl:variable name="vector_def" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'Vector')" />
+        <xsl:variable name="vector_inst" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'VectorInstance')" />
+        <xsl:variable name="vectors" as="element()*" select="$vector_def, $vector_inst" />
+        <xsl:variable name="aggregate_insts" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <xsl:variable name="enum_insts" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
+        
         <!-- Get all AggregateInstance's -->
         <xsl:variable name="aggregate_instances" select="cdit:get_entities_of_kind($aggregate_root, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="o:get_definitions($aggregate_instances)" />
 
         <xsl:variable name="namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
@@ -727,8 +732,10 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
+
+        <xsl:variable name="definitions" as="element()*" select="o:get_definitions(($enum_insts, $aggregate_instances))" />
         <!-- Include other required base types -->
-        <xsl:if test="count($aggregate_definitions) > 0">
+        <xsl:if test="count($definitions) > 0">
             <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
 
              <xsl:variable name="rel_path">
@@ -744,7 +751,7 @@
         
 
             <!-- Get the required Aggregates -->
-            <xsl:for-each-group select="$aggregate_definitions" group-by=".">
+            <xsl:for-each-group select="$definitions" group-by=".">
                 <xsl:variable name="agg_id" select="lower-case(cdit:get_node_id(.))" />
                 <xsl:variable name="agg_la" select="lower-case(cdit:get_key_value(., 'label'))" />
                 <xsl:variable name="agg_ns" select="lower-case(cdit:get_key_value(., 'namespace'))" />
@@ -797,6 +804,22 @@
             <xsl:value-of select="o:declare_variable_functions($aggregate_label, $aggregate_cpp_type, 3)" />
         </xsl:for-each>
 
+         <!-- Handle Enums -->
+        <xsl:for-each select="$enum_insts">
+            <xsl:variable name="enum_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="enum_def" select="cdit:get_definition(.)" />
+            <xsl:variable name="enum_def_label" select="o:camel_case(cdit:get_key_value($enum_def, 'label'))" />
+
+
+            <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_def, 'namespace')" />
+            <xsl:variable name="enum_cpp_type" select="concat(if($enum_namespace != '') then concat($enum_namespace, '::') else '', $enum_def_label)" />
+
+            <xsl:value-of select="concat(o:nl(), o:t(2))" />
+            <xsl:value-of select="o:cpp_comment(concat('Enum Member: ', $enum_label, ' ', o:angle_wrap($enum_cpp_type)))" />
+            
+            <xsl:value-of select="o:declare_enum_functions($enum_label, $enum_cpp_type, 3)" />
+        </xsl:for-each>
+
         <xsl:if test="$namespace != ''">
             <xsl:value-of select="concat(o:t(2), '};', o:nl())" />
         </xsl:if>
@@ -808,10 +831,15 @@
 
     <xsl:function name="o:get_base_data_type_cpp">
         <xsl:param name="aggregate_root" />
-        <xsl:param name="members"/>
-        <xsl:param name="vectors"/>
-        <xsl:param name="aggregates"/>
 
+        <!-- Get the children we need -->
+        <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'Member')" />
+        <xsl:variable name="vector_def" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'Vector')" />
+        <xsl:variable name="vector_inst" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'VectorInstance')" />
+        <xsl:variable name="vectors" as="element()*" select="$vector_def, $vector_inst" />
+        <xsl:variable name="aggregate_insts" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <xsl:variable name="enum_insts" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
+        
 
         <!-- Get the label of the Aggregate -->
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
@@ -861,12 +889,132 @@
         </xsl:for-each>
 
         <!-- Handle Aggregates -->
-        <xsl:for-each select="$aggregates">
+        <xsl:for-each select="$aggregate_insts">
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_inst_cpp_type(.))" />
             <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
         </xsl:for-each>
+
+        <!-- Handle Enums -->
+        <xsl:for-each select="$enum_insts">
+            <xsl:variable name="enum_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="enum_def" select="cdit:get_definition(.)" />
+            <xsl:variable name="enum_def_label" select="o:camel_case(cdit:get_key_value($enum_def, 'label'))" />
+
+            <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_def, 'namespace')" />
+            <xsl:variable name="enum_cpp_type" select="concat('Base::', if($enum_namespace != '') then concat($enum_namespace, '::') else '', $enum_def_label)" />
+
+            <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
+
+            <xsl:variable name="aggregate_cpp_type" select="concat('Base::', cdit:get_aggregate_inst_cpp_type(.))" />
+            <xsl:value-of select="o:define_enum_functions($enum_label, $enum_cpp_type, $class_name)" />
+        </xsl:for-each>
     </xsl:function>
+
+
+    <xsl:function name="o:get_base_enum_h">
+        <xsl:param name="enum_root" />
+
+        <!-- Get the label of the Enum -->
+        <xsl:variable name="enum_label" select="cdit:get_key_value($enum_root, 'label')" />
+        <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_root, 'namespace')" />
+
+        <xsl:variable name="enum_members" select="cdit:get_child_entities_of_kind($enum_root, 'EnumMember')" />
+
+        <xsl:variable name="enum_label_cc" select="o:camel_case($enum_label)" />
+        <xsl:variable name="enum_label_lc" select="lower-case($enum_label)" />
+        <xsl:variable name="enum_label_uc" select="upper-case($enum_label)" />
+
+       <!-- Define Guard -->
+        <xsl:variable name="define_guard" select="upper-case(concat('ENUMS_', $enum_label_uc, '_HPP'))" />
+        <xsl:value-of select="o:define_guard($define_guard)" />
+
+        <!-- Include Base Types -->
+        <xsl:value-of select="o:cpp_comment('Include Statements')" />
+        <xsl:value-of select="o:lib_include('string')" />
+
+        <xsl:value-of select="concat('namespace Base{', o:nl())" />
+
+
+        <xsl:variable name="tab_offset" select="if($enum_namespace != '') then 2 else 1" />
+
+        <!-- Use the namespace if we've got one-->
+        <xsl:if test="$enum_namespace != ''">
+            <xsl:value-of select="concat(o:t(1), 'namespace ', $enum_namespace, '{', o:nl())" />
+        </xsl:if>
+
+        <!-- define the enum class -->
+        <xsl:value-of select="concat(o:t($tab_offset), ' enum class ', $enum_label_cc, '{', o:nl())" />
+        
+        <!-- Handle Enum Members -->
+        <xsl:for-each select="$enum_members">
+            <xsl:variable name="is_last" select="position() = last()" />
+            <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="member_label_uc" select="upper-case($member_label)" />
+            <xsl:value-of select="concat(o:t($tab_offset + 1), $member_label_uc, if($is_last) then '' else ',' , o:nl())" />
+        </xsl:for-each>
+
+        <xsl:value-of select="concat(o:t($tab_offset), '};', o:nl())" />
+        
+        <!--  Define a toString
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('enum ', $enum_label ,'::ToString()'), $tab_offset)" />
+        <xsl:value-of select="concat(o:t($tab_offset), 'std::string ToString(', $enum_label_cc, ' e){', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab_offset + 1), 'switch(e){', o:nl())" />
+        
+        <xsl:for-each select="$enum_members">
+            <xsl:variable name="is_last" select="position() = last()" />
+            <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="member_label_uc" select="upper-case($member_label)" />
+            <xsl:value-of select="concat(o:t($tab_offset + 2),'case ', $enum_label_cc, '::', $member_label_uc,':', o:nl())" />
+            <xsl:value-of select="concat(o:t($tab_offset + 3),'return ', o:dblquote_wrap($member_label_uc), ';', o:nl())" />
+        </xsl:for-each>
+        <xsl:value-of select="concat(o:t($tab_offset + 1), '};', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab_offset), '};', o:nl())" />
+        -->
+
+        <xsl:if test="$enum_namespace != ''">
+            <xsl:value-of select="concat(o:t(1), '};', o:nl())" />
+        </xsl:if>
+       
+        
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:define_guard_end($define_guard)" />
+    </xsl:function>
+
+    <xsl:function name="o:get_base_enum_cmake">
+        <xsl:param name="enum_root" />
+
+        <!-- Get the label of the Enum -->
+        <xsl:variable name="enum_label" select="cdit:get_key_value($enum_root, 'label')" />
+        <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_root, 'namespace')" />
+
+        <xsl:variable name="enum_members" select="cdit:get_child_entities_of_kind($enum_root, 'EnumMember')" />
+
+        <xsl:variable name="enum_label_cc" select="o:camel_case($enum_label)" />
+        <xsl:variable name="enum_label_lc" select="lower-case($enum_label)" />
+
+        <xsl:value-of select="o:cmake_set_re_path()" />
+        <xsl:variable name="proj_name" select="o:get_aggregate_lib_name($enum_root, 'base')" />
+        <xsl:variable name="PROJ_NAME" select="o:cmake_var_wrap('PROJ_NAME')" />
+        <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
+       
+
+        <!-- Set Headers files -->
+        <xsl:value-of select="concat('set(HEADERS', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $enum_label_lc, '.h', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:value-of select="concat('if (MSVC)', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)', o:nl())" />
+        <xsl:value-of select="concat('endif (MSVC)', o:nl(), o:nl())" />
+
+        <!-- add library/link -->
+        <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${HEADERS})', o:nl())" />
+    </xsl:function>
+
+    
 
      <xsl:function name="o:get_base_data_type_cmake">
         <xsl:param name="aggregate_root" />
@@ -1200,6 +1348,7 @@
         <xsl:param name="aggregate_root"/>
         
         <xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <xsl:variable name="enum_instances" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
 
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
@@ -1213,6 +1362,23 @@
                 <xsl:variable name="aggregate_label" select="lower-case(cdit:get_key_value(., 'label'))" />
                 <xsl:variable name="idl_path" select="concat($aggregate_label, '.idl')" />
                 <xsl:value-of select="o:lib_include($idl_path)" />
+            </xsl:for-each-group>
+            <xsl:value-of select="o:nl()" />
+        </xsl:if>
+
+        <!-- Declare the enums used -->
+        <xsl:if test="count($enum_instances)">
+            <xsl:value-of select="o:tabbed_cpp_comment('Declaring Enums requireds', 0)" />
+            <xsl:for-each-group select="cdit:get_definitions($enum_instances)" group-by=".">
+                <xsl:variable name="enum_label" select="o:camel_case(cdit:get_key_value(., 'label'))" />
+
+                <xsl:value-of select="concat('enum ', $enum_label, ' {', o:nl())" />
+                    <xsl:for-each select="cdit:get_child_entities_of_kind(., 'EnumMember')">
+                        <xsl:variable name="is_last" select="position() = last()" />
+                        <xsl:variable name="enum_member" select="upper-case(cdit:get_key_value(., 'label'))" />
+                        <xsl:value-of select="concat(o:t(1), $enum_member, if($is_last) then '' else ',',  o:nl())" />
+                    </xsl:for-each>
+                <xsl:value-of select="concat('};', o:nl())" />
             </xsl:for-each-group>
             <xsl:value-of select="o:nl()" />
         </xsl:if>
@@ -1280,6 +1446,12 @@
 
                     <xsl:value-of select="concat(o:t($tab_stop + 1), $aggregate_namespace, '::', $aggregate_type, ' ', $label, ';')" />
                 </xsl:when>
+                <xsl:when test="$kind = 'EnumInstance'">
+                    <xsl:variable name="enum_definition" select="cdit:get_definition(.)" />
+                    <xsl:variable name="enum_type" select="o:camel_case(cdit:get_key_value($enum_definition, 'label'))" />
+
+                    <xsl:value-of select="concat(o:t($tab_stop + 1), $enum_type, ' ', $label, ';')" />
+                </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="concat(o:t($tab_stop + 1), '// Kind ', $kind, ' Not implemented!')" />
                 </xsl:otherwise>
@@ -1313,6 +1485,7 @@
         <xsl:param name="aggregate_root"/>
 
         <xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <xsl:variable name="enum_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
 
@@ -1331,6 +1504,22 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
+        <!-- Declare the enums used -->
+        <xsl:if test="count($enum_instances)">
+            <xsl:value-of select="o:tabbed_cpp_comment('Declaring Enums requireds', 0)" />
+            <xsl:for-each-group select="cdit:get_definitions($enum_instances)" group-by=".">
+                <xsl:variable name="enum_label" select="o:camel_case(cdit:get_key_value(., 'label'))" />
+
+                <xsl:value-of select="concat('enum ', $enum_label, ' {', o:nl())" />
+                    <xsl:for-each select="cdit:get_child_entities_of_kind(., 'EnumMember')">
+                        <xsl:variable name="enum_member" select="upper-case(cdit:get_key_value(., 'label'))" />
+                        <xsl:value-of select="concat(o:t(1), $enum_member, ' = ', position() - 1, ';',  o:nl())" />
+                    </xsl:for-each>
+                <xsl:value-of select="concat('}', o:nl())" />
+            </xsl:for-each-group>
+            <xsl:value-of select="o:nl()" />
+        </xsl:if>
+
         <xsl:if test="$aggregate_namespace != ''">
             <xsl:value-of select="concat('package ', $aggregate_namespace, ';', o:nl())" />
         </xsl:if>
@@ -1342,7 +1531,7 @@
             <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
             <xsl:variable name="index" select="number(cdit:get_key_value(., 'index')) + 1" />
 
-            <xsl:variable name="label" select="cdit:get_key_value(.,'label')" />
+            <xsl:variable name="label" select="lower-case(cdit:get_key_value(.,'label'))" />
             <xsl:variable name="is_key" select="cdit:is_key_value_true(., 'key')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
 
@@ -1381,6 +1570,11 @@
 
                     <xsl:value-of select="concat(o:t(1), $aggregate_obj, ' ', $label, ' = ', $index, ';', o:nl())" />
                 </xsl:when>
+                <xsl:when test="$kind = 'EnumInstance'">
+                    <xsl:variable name="enum_definition" select="cdit:get_definition(.)" />
+                    <xsl:variable name="enum_type" select="o:camel_case(cdit:get_key_value($enum_definition, 'label'))" />
+                    <xsl:value-of select="concat(o:t(1), $enum_type, ' ', $label, ' = ', $index, ';', o:nl())" />
+                </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="concat(o:t(1), '// Kind ', $kind, ' Not implemented!')" />
                 </xsl:otherwise>
@@ -1410,7 +1604,9 @@
         <xsl:param name="out_var" as="xs:string" />
         <xsl:param name="src_mw" as="xs:string" />
         <xsl:param name="dst_mw" as="xs:string" />
-        <xsl:param name="namespace" as="xs:string" />
+
+        <!-- Get the Middleware which is used for the namespace functions -->
+        <xsl:variable name="class_namespace" select="if(lower-case($src_mw) = 'base') then $dst_mw else $src_mw" />
 
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_type" select="cdit:get_key_value($aggregate_root, 'type')" />
@@ -1422,7 +1618,7 @@
         
         <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($aggregate_type)), 1)" />
         <xsl:value-of select="concat(o:t(1), 'auto ', $src_var, ' = ', $get_value, ';', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'auto ', $dst_var, ' = ', $namespace, '::translate(',o:and(), $src_var, ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto ', $dst_var, ' = ', $class_namespace, '::translate(',o:and(), $src_var, ');', o:nl())" />
                 
         <xsl:value-of select="concat(o:t(1), 'if(', $dst_var, '){', o:nl())" />
             <xsl:choose>
@@ -1440,39 +1636,110 @@
             <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
     </xsl:function>
 
+    <xsl:function name="o:process_enum">
+        <xsl:param name="enum_root" />
+
+        <xsl:param name="in_var" as="xs:string" />
+        <xsl:param name="out_var" as="xs:string" />
+        <xsl:param name="src_mw" as="xs:string" />
+        <xsl:param name="dst_mw" as="xs:string" />
+
+        <xsl:variable name="enum_kind" select="cdit:get_key_value($enum_root, 'kind')" />
+        <xsl:variable name="enum_label" select="cdit:get_key_value($enum_root, 'label')" />
+        <xsl:variable name="enum_type" select="cdit:get_key_value($enum_root, 'type')" />
+
+        <!-- Get the Middleware which is used for the namespace functions -->
+        <xsl:variable name="enum_cast_type">
+            <xsl:choose>
+                <xsl:when test="$src_mw != 'base'">
+                    <!-- Protobuf have to use a swap function from the newly added element -->
+                    <xsl:value-of select="o:get_resolved_enum_inst_type($enum_root)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:variable name="enum_def" select="o:get_definition($enum_root)" />
+                    <xsl:variable name="enum_def_label" select="o:camel_case(cdit:get_key_value($enum_def, 'label'))" />
+                    <xsl:variable name="enum_parent" select="cdit:get_parent_node($enum_root)" />
+                    <xsl:variable name="parent_namespace" select="o:get_key_value($enum_parent, 'namespace')" />
+                    
+                    <xsl:value-of select="if($parent_namespace ='') then $enum_def_label else concat($parent_namespace, '::', $enum_def_label)" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+       
+
+        <xsl:variable name="value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($enum_label, $src_mw))" />
+        <xsl:variable name="static_cast_value" select="concat('(', $enum_cast_type, ')', ' static_cast', o:angle_wrap('int'), '(', $value, ')')" />
+
+        
+        <xsl:value-of select="concat(o:t(1), $out_var, o:fp(), o:cpp_mw_set_func($enum_label, $dst_mw, $static_cast_value), ';', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:get_resolved_enum_inst_type">
+        <xsl:param name="enum_root" />
+
+        <xsl:variable name="enum_def" select="o:get_definition($enum_root)" />
+        <xsl:variable name="enum_def_label" select="o:camel_case(cdit:get_key_value($enum_def, 'label'))" />
+        <xsl:variable name="enum_namespace" select="cdit:get_key_value($enum_def, 'namespace')" />
+        <xsl:variable name="enum_type" select="concat('Base::', if($enum_namespace != '') then concat($enum_namespace, '::') else '', $enum_def_label)" />
+        <xsl:value-of select="$enum_type" />
+    </xsl:function>
+                   
     <xsl:function name="o:get_translate_cpp">
-        <xsl:param name="members" />
-        <xsl:param name="vectors" />
-        <xsl:param name="aggregates" />
+        <xsl:param name="aggregate_root" />
         <xsl:param name="src_type" as="xs:string" />
         <xsl:param name="dst_type" as="xs:string" />
         <xsl:param name="src_mw" as="xs:string" />
         <xsl:param name="dst_mw" as="xs:string" />
-        <xsl:param name="namespace" as="xs:string" />
 
         <xsl:variable name="in_var" select="'src'" />
         <xsl:variable name="out_var" select="'dst_'" />
+        <xsl:variable name="tab_stop" select="0" />
 
-        <xsl:value-of select="concat($dst_type, '* ', $namespace, '::translate(const ', $src_type , ' *', $in_var, '){', o:nl())" />
+
+        <!-- Get the Middleware which is used for the namespace functions -->
+        <xsl:variable name="class_namespace" select="if(lower-case($src_mw) = 'base') then $dst_mw else $src_mw" />
+
+        
+
+        <xsl:value-of select="concat($dst_type, '* ', $class_namespace, '::translate(const ', $src_type , ' *', $in_var, '){', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'auto ', $out_var, ' = new ', $dst_type, '();', o:nl())" />
         
-        <xsl:for-each select="$members">
-            <xsl:value-of select="o:process_member(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
+
+        <!-- Handle things in order -->
+        <xsl:for-each select="cdit:get_child_nodes($aggregate_root)">
+            <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+
+            <xsl:choose>    
+                <xsl:when test="$kind = 'Member'">
+                    <xsl:value-of select="o:process_member(., $in_var, $out_var, $src_mw, $dst_mw)" />
+                </xsl:when>
+                <xsl:when test="$kind = 'Vector'">
+                    <xsl:value-of select="o:process_vector(., $in_var, $out_var, $src_mw, $dst_mw)" />
+                </xsl:when>
+                <xsl:when test="$kind = 'AggregateInstance'">
+                    <xsl:value-of select="o:process_aggregate(., $in_var, $out_var, $src_mw, $dst_mw)" />
+                </xsl:when>
+                <xsl:when test="$kind = 'EnumInstance'">
+                    <xsl:value-of select="o:process_enum(., $in_var, $out_var, $src_mw, $dst_mw)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat(o:t($tab_stop + 1), '// Kind ', $kind, ' Not implemented!', o:nl())" />
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:for-each>
 
-        <xsl:for-each select="$vectors">
-            <xsl:value-of select="o:process_vector(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
-        </xsl:for-each>
-
-        <xsl:for-each select="$aggregates">
-            <xsl:value-of select="o:process_aggregate(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
-        </xsl:for-each>
-
-        <!-- Return the Translated object -->
+         <!-- Return the Translated object -->
         <xsl:value-of select="concat(o:t(1), 'return ', $out_var, ';', o:nl())" />
         <xsl:value-of select="concat('};', o:nl())" />
         <xsl:value-of select="o:nl()" />
     </xsl:function>
+
+
+    
+
 
     <xsl:function name="o:process_vector">
         <xsl:param name="vector_root" />
@@ -1481,10 +1748,9 @@
         <xsl:param name="out_var" as="xs:string" />
         <xsl:param name="src_mw" as="xs:string" />
         <xsl:param name="dst_mw" as="xs:string" />
-        <xsl:param name="namespace" as="xs:string" />
 
         <!-- Get the Middleware which is used for the namespace functions -->
-        <xsl:variable name="translate_mw" select="if(lower-case($src_mw) = 'base') then $dst_mw else $src_mw" />
+        <xsl:variable name="class_namespace" select="if(lower-case($src_mw) = 'base') then $dst_mw else $src_mw" />
 
         <!-- Get the appropriate fields from the vector -->
         <xsl:variable name="vector_label" select="cdit:get_key_value($vector_root, 'label')" />
@@ -1531,7 +1797,7 @@
             <xsl:when test="$is_vector_complex">
                 <!-- Complex types -->
                 <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($vector_cpp_type)), 3)" />
-                <xsl:value-of select="concat(o:t(3), 'auto ', $dst_var, ' = ', $namespace, '::translate(',o:and(),  o:bracket_wrap($get_src_val), ');', o:nl())" />
+                <xsl:value-of select="concat(o:t(3), 'auto ', $dst_var, ' = ', $class_namespace, '::translate(',o:and(),  o:bracket_wrap($get_src_val), ');', o:nl())" />
                 
                 <xsl:value-of select="concat(o:t(3), 'if(', $dst_var, '){', o:nl())" />
                 <xsl:choose>
@@ -1942,6 +2208,69 @@
         <xsl:value-of select="concat(o:t($tab), 'private:', o:nl())" />
         <!-- Variable -->
         <xsl:value-of select="concat(o:t($tab + 1), o:cpp_var_decl($variable_type, concat($variable_name, '_')), ';', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:declare_enum_functions">
+        <xsl:param name="enum_name" as="xs:string" />
+        <xsl:param name="enum_type" as="xs:string" />
+        <xsl:param name="tab" />
+
+        <xsl:variable name="enum_ptr_type" select="concat($enum_type, o:and())" />
+
+        
+        <!-- Public Declarations -->
+        <xsl:value-of select="concat(o:t($tab), 'public:', o:nl())" />
+        <!-- Copy Setter -->
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def('void', '', o:cpp_base_set_func($enum_name), concat($enum_type, ' val')), ';', o:nl())" />
+        <!-- Pointer Setter -->
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def('void', '', o:cpp_base_set_func($enum_name), 'int val'), ';', o:nl())" />
+        
+        <!-- Copy Getter -->
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def($enum_type, '', o:cpp_base_get_func($enum_name), ''), ' const;', o:nl())" />
+        <!-- Inplace Getter -->
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def($enum_ptr_type, '', $enum_name, ''), ';', o:nl())" />
+
+        <!-- Private Declarations -->
+        <xsl:value-of select="concat(o:t($tab), 'private:', o:nl())" />
+        <!-- Variable -->
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_var_decl($enum_type, concat($enum_name, '_')), ';', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:define_enum_functions">
+        <xsl:param name="enum_name" as="xs:string" />
+        <xsl:param name="enum_type" as="xs:string" />
+        <xsl:param name="class_name" as="xs:string" />
+
+         <xsl:variable name="variable_var" select="concat($enum_name, '_')" />
+         <xsl:variable name="enum_ptr_type" select="concat($enum_type, o:and())" />
+
+        <!-- Copy Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($enum_name), concat($enum_type, ' val'))" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'this', o:fp(), $variable_var, ' = val;', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Int Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($enum_name), 'int val')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'this', o:fp(), $variable_var, ' = static_cast', o:angle_wrap($enum_type), '(val);', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Copy Getter -->
+        <xsl:value-of select="o:cpp_func_def($enum_type, $class_name, o:cpp_base_get_func($enum_name), '')" />
+        <xsl:value-of select="concat(' const {', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return this', o:fp(), $variable_var, ';', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+         <!-- Inplace Getter -->
+        <xsl:value-of select="o:cpp_func_def($enum_ptr_type, $class_name, $enum_name, '')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return this', o:fp(), $enum_name, '_;', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
     </xsl:function>
 
     <xsl:function name="o:define_variable_functions">
@@ -2475,19 +2804,16 @@
 
         <xsl:for-each select="$middlewares">
             <xsl:variable name="middleware" select="lower-case(.)" />
-            <xsl:value-of select="o:cmake_comment(concat('Middleware ', $middleware))" />
-            <xsl:for-each select="$aggregates">
-                <xsl:variable name="label" select="lower-case(cdit:get_key_value(., 'label'))" />
-                <xsl:variable name="namespace" select="lower-case(cdit:get_key_value(., 'namespace'))" />
-                <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'), '/', $middleware, '/', $namespace, '/', $label)" />
-                <xsl:value-of select="o:cmake_add_subdirectory($path)" />
-            </xsl:for-each>
+            <xsl:if test="$middleware != ''">
+                <xsl:value-of select="o:cmake_comment(concat('Middleware ', $middleware))" />
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="label" select="lower-case(cdit:get_key_value(., 'label'))" />
+                    <xsl:variable name="namespace" select="lower-case(cdit:get_key_value(., 'namespace'))" />
+
+                    <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'), '/', $middleware, '/', $namespace, '/', $label)" />
+                    <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+                </xsl:for-each>
+            </xsl:if>
         </xsl:for-each>
     </xsl:function>
-
-
-
-
-    
-
 </xsl:stylesheet>

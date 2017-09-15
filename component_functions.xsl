@@ -856,6 +856,9 @@
             <xsl:when test="$kind = 'MemberInstance'">
                 <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
             </xsl:when>
+            <xsl:when test="$kind = 'EnumInstance'">
+                <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
+            </xsl:when>
             <xsl:when test="$kind = 'VectorInstance'">
                 <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
             </xsl:when>
