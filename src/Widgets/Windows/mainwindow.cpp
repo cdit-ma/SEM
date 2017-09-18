@@ -573,7 +573,8 @@ void MainWindow::setupProgressBar()
 void MainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
-    dockTabWidget->setFixedWidth(180);
+    dockTabWidget->setMinimumWidth(180);
+    //dockTabWidget->setFixedWidth(180);
 
     dockwidget_Dock = WindowManager::manager()->constructToolDockWidget("Dock");
     dockwidget_Dock->setWidget(dockTabWidget);
