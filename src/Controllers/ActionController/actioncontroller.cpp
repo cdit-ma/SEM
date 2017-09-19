@@ -15,10 +15,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     selectionController = viewController->getSelectionController();
 
-    _controllerReady = false;
-    _modelReady = false;
-    _jenkinsValidated = false;
-    _gotJava = false;
+    got_valid_jenkins = false;
+    got_java = false;
     setupActions();
 
     setupMainMenu();
@@ -47,6 +45,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
+        connect(controller, &ViewController::vc_ReReady, this, &ActionController::gotRe);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);
@@ -247,17 +246,25 @@ void ActionController::settingChanged(SETTINGS key, QVariant value)
 
 void ActionController::jenkinsValidated(bool success)
 {
-    if(_jenkinsValidated != success){
-        _jenkinsValidated = success;
+    if(got_valid_jenkins != success){
+        got_valid_jenkins = success;
         updateJenkinsActions();
     }
 }
 
 void ActionController::gotJava(bool java)
 {
-    if(_gotJava != java){
-        _gotJava = java;
+    if(got_java != java){
+        got_java = java;
         updateJenkinsActions();
+    }
+}
+
+void ActionController::gotRe(bool re)
+{
+    if(got_re != re){
+        got_re = re;
+        updateReActions();
     }
 }
 
@@ -327,7 +334,7 @@ void ActionController::selectionChanged(int selection_size)
             auto node_item = (NodeViewItem*) active_item;
             auto node_kind = node_item->getNodeKind();
             toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
-            model_getCodeForComponent->setEnabled(_gotJava && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
+            model_getCodeForComponent->setEnabled(got_java && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
         }
 
         //applicationToolbar->updateSpacers();
@@ -364,12 +371,16 @@ void ActionController::updateJenkinsActions()
 {
     bool controller_ready = viewController->isControllerReady();
 
-    jenkins_importNodes->setEnabled(controller_ready && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(controller_ready && _jenkinsValidated);
-    model_generateModelWorkspace->setEnabled(controller_ready && _gotJava);
-    model_executeLocalJob->setEnabled(controller_ready && _gotJava);
+    jenkins_importNodes->setEnabled(controller_ready && got_valid_jenkins);
+    jenkins_executeJob->setEnabled(controller_ready && got_valid_jenkins);
+    model_generateModelWorkspace->setEnabled(controller_ready && got_java);
+    model_executeLocalJob->setEnabled(controller_ready && got_java);
     
-    model_validateModel->setEnabled(controller_ready && _gotJava);
+    model_validateModel->setEnabled(controller_ready && got_java);
+}
+void ActionController::updateReActions(){
+    bool controller_ready = viewController->isControllerReady();
+    model_executeLocalJob->setEnabled(controller_ready && got_re && got_java);
 }
 
 void ActionController::updateUndoRedo()
@@ -457,6 +468,7 @@ void ActionController::updateActions()
 
     updateUndoRedo();
     updateJenkinsActions();
+    updateReActions();
 }
 
 void ActionController::createRecentProjectAction(QString fileName)

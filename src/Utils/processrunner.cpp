@@ -18,39 +18,93 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
 QString ProcessRunner::getEnvVar(QString key){
     return global_vars.value(key, "");
 }
-ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory)
-{
-    ProcessResult result;
 
-    //Construct and setup the process
+/**
+ * @brief CUTSManager::getEnvFromScript Executes a .bat/.sh script and constructs a QProcessEnvironment to put the newly set environment variables into.
+ * @param scriptPath The path to the script file.
+ * @return
+ */
+ QProcessEnvironment ProcessRunner::RunEnvVarScript(QString scriptPath)
+ {
+    auto env_vars = global_vars;
     QProcess process;
-    process.setProcessEnvironment(global_vars);
+ 
+    QString program;
+    //Check if windows or *nix
+    QString command;
+     #ifdef _WIN32
+         program = "cmd.exe";
+         command = scriptPath + ">NUL&set&exit\n";
+     #else
+         program = "/bin/sh";
+         //Have to pass a path to the .sh script
+         command = ". " + scriptPath + ">/dev/null;set;exit\n";
+     #endif
+ 
+    process.start(program);
+    process.waitForStarted();
+
+    //Run the command
+    process.write(command.toUtf8());
+
+    //Wait for the process to finish.
+    process.waitForFinished(-1);
+
+    while(process.canReadLine()){
+        auto line = process.readLine().simplified();
+        auto split_pos = line.indexOf('=');
+        if(split_pos > 0){
+            auto key = line.left(split_pos);
+            auto value = line.mid(split_pos + 1);
+            if(key != ""){
+                env_vars.insert(key, value);
+            }
+        }
+    }
+    return env_vars;
+ }
+
+ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory, QProcessEnvironment env){
+    if(env.isEmpty()){
+        env = global_vars;
+    }
+    auto result = RunProcess_(program, args, directory, env, true);
+    //Clean up the QProcess and return
+    delete result.process;
+    result.process = 0;
+    return result;
+}
+
+ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QString directory, QProcessEnvironment env, bool emit_stdout){
+    ProcessResult result;
+    
+    //Construct and setup the process
+    result.process = new QProcess();
+    result.process->setProcessEnvironment(env);
 
 
     //Set working directory if we have one
     if(!directory.isEmpty()){
-        process.setWorkingDirectory(directory);
+        result.process->setWorkingDirectory(directory);
     }
 
-    qCritical() << "Running: " << program << " " << args.join(" ");
-
     //Start the program
-    process.start(program, args);
+    result.process->start(program, args);
     //Try and start
-    bool started = process.waitForStarted();
+    bool started = result.process->waitForStarted();
     while(started){
         //If started
-        if(process.state() != QProcess::NotRunning){
+        if(result.process->state() != QProcess::NotRunning){
             bool cancelled = false;
             //Construct a wait loop
             QEventLoop waitLoop;
 
             //Connect to Standard output/error signals
-            connect(&process, &QProcess::readyReadStandardError, &waitLoop, &QEventLoop::quit);
-            connect(&process, &QProcess::readyReadStandardOutput, &waitLoop, &QEventLoop::quit);
+            connect(result.process, &QProcess::readyReadStandardError, &waitLoop, &QEventLoop::quit);
+            connect(result.process, &QProcess::readyReadStandardOutput, &waitLoop, &QEventLoop::quit);
 
             //Connect to Process finish Signal (Use lambda to quit the waitloop
-            connect(&process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [&waitLoop](int, QProcess::ExitStatus) {waitLoop.quit();});
+            connect(result.process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [&waitLoop](int, QProcess::ExitStatus) {waitLoop.quit();});
 
             //Set a flag that we were cancelled
             connect(this, &ProcessRunner::Cancel, this, [&waitLoop, &cancelled](){cancelled = true; waitLoop.quit();});
@@ -65,36 +119,35 @@ ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QStri
         }
 
         //Read StandardOutput
-        process.setReadChannel(QProcess::StandardOutput);
-        while(process.canReadLine()){
-            QString line = process.readLine();
+        result.process->setReadChannel(QProcess::StandardOutput);
+        while(result.process->canReadLine()){
+            QString line = result.process->readLine();
             result.standard_output << line;
             emit GotProcessStdOutLine(line);
         }
 
         //Read StandardError
-        process.setReadChannel(QProcess::StandardError);
-        while(process.canReadLine()){
-            QString line = process.readLine();
+        result.process->setReadChannel(QProcess::StandardError);
+        while(result.process->canReadLine()){
+            QString line = result.process->readLine();
             result.standard_error << line;
             emit GotProcessStdErrLine(line);
         }
 
         //Check if we are still running
-        if(process.state() == QProcess::NotRunning){
+        if(result.process->state() == QProcess::NotRunning){
             break;
         }
     }
 
     if(started){
         //Set the result
-        result.error_code = process.exitCode();
-        result.success = process.exitStatus() == QProcess::NormalExit && result.error_code == 0;
+        result.error_code = result.process->exitCode();
+        result.success = result.process->exitStatus() == QProcess::NormalExit && result.error_code == 0;
     }
 
     return result;
 }
-
 
 
 HTTPResult ProcessRunner::HTTPGet(QNetworkRequest request)

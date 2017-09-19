@@ -17,17 +17,32 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
     saxon_jar_path_ = transforms_path_ % "saxon.jar";
     runner_ = new ProcessRunner(this);
-    got_java_ = false;
-
-    connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::jenkinsManager_GotJava);
+    connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
+    connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
     connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine);
     connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine);
 
-    //connect(this, &ExecutionManager::GotValidationReport, NotificationManager::manager(), &NotificationManager::modelValidated);
-    //run check for java
-    GotJava_();
+
+    auto settings = SettingsController::settings();
+    connect(settings, &SettingsController::settingChanged, this, &ExecutionManager::settingChanged);
+
+    
+    //Run tests
+    CheckForJava();
+
+    //Force a revalidatino
+    settingChanged(SETTINGS::GENERAL_RE_CONFIGURE_PATH, settings->getSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH));
 }
 
+bool ExecutionManager::HasJava(){
+    QReadLocker lock(&lock_);
+    return got_java_;
+}
+
+bool ExecutionManager::HasRe(){
+    QReadLocker lock(&lock_);
+    return got_re_;
+}
 
 QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 {
@@ -41,15 +56,18 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
     return val;
 }
 
+
 void ExecutionManager::ValidateModel(QString model_path)
 {
-    {
-        QMutexLocker locker(&this->mutex_);
-        if(running_validation){
-            return;
-        }
-        running_validation = true;
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!validate_thread.isRunning()){
+        validate_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ValidateModel_, model_path);
     }
+}
+
+void ExecutionManager::ValidateModel_(QString model_path)
+{
     auto manager =  NotificationManager::manager();
 
     // Clear previous validation notification items
@@ -110,11 +128,6 @@ void ExecutionManager::ValidateModel(QString model_path)
         validation_noti->setDescription("Model validation failed to execute: '" + results.standard_error.join("") + "'");
         validation_noti->setSeverity(Notification::Severity::ERROR);
     }
-
-    {
-        QMutexLocker locker(&this->mutex_);
-        running_validation = false;
-    }
 }
 
 void ExecutionManager::GenerateCodeForComponent(QString document_path, QString component_name)
@@ -138,51 +151,59 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
     FileHandler::removeDirectory(path);
 }
 
-void ExecutionManager::ExecuteModel(QString document_path, QString output_directory){
-    auto generate = GenerateWorkspace(document_path, output_directory);
-    auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
-    if(generate){
-        auto build_dir = output_directory + "/build/";
-        auto lib_dir = output_directory + "/lib/";
-        qCritical() << "Making a build folder: " << build_dir;
-        bool failed = true;
+void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory){
+    if(HasRe() && HasJava()){
+        QProcessEnvironment env_var;
+        {
+            QReadLocker lock(&lock_);
+            env_var = re_configured_env_;
+        }
 
-        auto re_path = runner_->getEnvVar("RE_PATH") + "/bin/";
+        auto generate = GenerateWorkspace(document_path, output_directory);
+        auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
+        if(generate){
+            auto build_dir = output_directory + "/build/";
+            auto lib_dir = output_directory + "/lib/";
+            qCritical() << "Making a build folder: " << build_dir;
+            bool failed = true;
 
-
-        //Clean and rerun
-        if(FileHandler::removeDirectory(build_dir) && FileHandler::ensureDirectory(build_dir)){
-            auto cmake_results =  runner_->RunProcess("cmake", {".."}, build_dir);
-
-            if(cmake_results.success){
-                notification->setDescription("Running CMake --build ..");
-                auto compile_results =  runner_->RunProcess("cmake", {"--build", "."}, build_dir);
-
-                if(compile_results.success){
-                    notification->setDescription("Running model");
-                    auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", "10"}, lib_dir);
-
-                    if(execute_results.success){
-                        notification->setDescription("Model successfully executed.");
-                        failed = false;
+            auto re_path = env_var.value("RE_PATH") + "/bin/";
+    
+    
+            //Clean and rerun
+            if(FileHandler::removeDirectory(build_dir) && FileHandler::ensureDirectory(build_dir)){
+                auto cmake_results =  runner_->RunProcess("cmake", {".."}, build_dir, env_var);
+    
+                if(cmake_results.success){
+                    notification->setDescription("Running CMake --build ..");
+                    auto compile_results =  runner_->RunProcess("cmake", {"--build", "."}, build_dir, env_var);
+    
+                    if(compile_results.success){
+                        notification->setDescription("Running model");
+                        auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", "10"}, lib_dir);
+    
+                        if(execute_results.success){
+                            notification->setDescription("Model successfully executed.");
+                            failed = false;
+                        }else{
+                            qCritical() << execute_results.standard_output;
+                            qCritical() << execute_results.standard_error;
+                            notification->setDescription("Failed to execute model");
+                        }
                     }else{
-                        qCritical() << execute_results.standard_output;
-                        qCritical() << execute_results.standard_error;
-                        notification->setDescription("Failed to execute model");
+                        notification->setDescription("Failed to compile model");
                     }
                 }else{
-                    notification->setDescription("Failed to compile model");
+                    notification->setDescription("Failed to run CMake");
                 }
-            }else{
-                notification->setDescription("Failed to run CMake");
+                notification->setInProgressState(false);
+                notification->setSeverity(!failed ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
             }
-            notification->setInProgressState(false);
-            notification->setSeverity(!failed ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
         }
     }
-}       
+}
 
-bool ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory)
+void ExecutionManager::GenerateWorkspace_(QString document_path, QString output_directory)
 {
     auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
 
@@ -250,19 +271,89 @@ QStringList ExecutionManager::GetMiddlewareArgs()
     return args;
 }
 
-bool ExecutionManager::GotJava_()
+void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
+    switch(setting){
+        case SETTINGS::GENERAL_RE_CONFIGURE_PATH:{
+            CheckForRe(value.toString());
+            break;
+        }
+        default:
+        break;
+    }
+}
+
+void ExecutionManager::CheckForRe(QString re_configure_path)
 {
-    if(!got_java_){
-        QString program = "java";
-        QStringList args;
-        args << "-version";
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!configure_thread.isRunning()){
+        configure_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::CheckForRe_, re_configure_path);
+    }
+}
 
-        auto result = runner_->RunProcess(program, args);
+void ExecutionManager::ExecuteModel(QString document_path, QString output_directory)
+{
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!execute_model_thread.isRunning()){
+        execute_model_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ExecuteModel_, document_path, output_directory);
+    }
+}
 
-        emit GotJava(result.success, result.standard_error.join(""));
+void ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory){
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!generate_workspace_thread.isRunning()){
+        generate_workspace_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::GenerateWorkspace_, document_path, output_directory);
+    }
+}
+
+void ExecutionManager::CheckForJava(){
+    //Gain write lock so we can set the thread object
+    QWriteLocker lock(&lock_);
+    if(!java_thread.isRunning()){
+        java_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::CheckForJava_);
+    }
+}
+
+//Designed to be run on a background thread
+void ExecutionManager::CheckForJava_(){
+    auto result = runner_->RunProcess("java", {"-version"});
+    {
+        QWriteLocker lock(&lock_);
         got_java_ = result.success;
     }
-    return got_java_;
+    emit GotJava(result.success, result.standard_error.join(""));
+}
+
+//Designed to be run on a background thread
+void ExecutionManager::CheckForRe_(QString re_configure_path){
+    //Run 
+    bool got_re = false;
+    QString status;
+
+    auto new_env = runner_->RunEnvVarScript(re_configure_path);
+    
+    //Check if we have RE_PATH
+    if(new_env.contains("RE_PATH")){
+        got_re = true;
+        status = "Found RE: '" + new_env.value("RE_PATH") + "'";
+    }else{
+        if(FileHandler::isFileReadable(re_configure_path)){
+            status = "RE configure script doesn't appear to define RE_PATH '" + re_configure_path + "'";
+        }else{
+            status = "RE configure script doesn't appear to point to a readable file '" + re_configure_path + "'";
+        }
+    }
+
+    {
+        QWriteLocker lock(&lock_);
+        got_re_ = got_re;
+        if(got_re_){
+            re_configured_env_ = new_env;
+        }
+    }
+    emit GotRe(got_re_, status);
 }
 
 ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)

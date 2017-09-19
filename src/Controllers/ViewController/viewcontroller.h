@@ -92,6 +92,7 @@ signals:
     void vc_showWelcomeScreen(bool);
     void vc_JenkinsReady(bool);
     void vc_JavaReady(bool);
+    void vc_ReReady(bool);
     void vc_controllerReady(bool);
     void vc_ProjectLoaded(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
@@ -205,7 +206,9 @@ public slots:
 
 
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
-    void jenkinsManager_GotJava(bool java, QString javaVersion);
+    void GotJava(bool java, QString javaVersion);
+    void GotRe(bool re, QString string);
+
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
 
 
