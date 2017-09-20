@@ -6,7 +6,8 @@
 #include <QStringBuilder>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThreadPool>
-
+#include <QFont>
+#include <QApplication>
 
 
 Theme* Theme::themeSingleton = 0;
@@ -680,10 +681,10 @@ QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
 QString Theme::getMenuBarStyleSheet()
 {
     return "QMenuBar {"
-           "padding: 3px;"
+           "padding: 2px;"
+           "spacing: 2px;"
            "background:" % getBackgroundColorHex() % ";"
            "border-bottom: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "border-radius:" % getCornerRadius() % ";"
            "}"
            "QMenuBar::item {"
            "background:" % getBackgroundColorHex() % ";"
@@ -1047,7 +1048,7 @@ QString Theme::getLabelStyleSheet()
 
 QString Theme::getTitleLabelStyleSheet()
 {
-    return "font-size:16pt;color: " % getTextColorHex() % ";";
+    return "color: " % getTextColorHex() % ";";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -1198,6 +1199,10 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
     }
     case SETTINGS::THEME_SETASPECT_CLASSIC:{
         resetAspectTheme(false);
+        break;
+    }
+    case SETTINGS::GENERAL_GENERAL_FONTSIZE:{
+        setFont(value.value<QFont>());
         break;
     }
 
@@ -1461,6 +1466,19 @@ void Theme::resetTheme(VIEW_THEME themePreset){
         }
         default:
             break;
+    }
+}
+
+
+QFont Theme::getFont() const{
+    return font;
+}
+void Theme::setFont(QFont font){
+    if(this->font != font){
+        this->font = font;
+        
+        QApplication::setFont(font);
+        emit theme_Changed();
     }
 }
 

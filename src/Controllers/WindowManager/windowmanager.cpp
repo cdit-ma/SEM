@@ -17,7 +17,7 @@
 #include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Widgets/DockWidgets/tooldockwidget.h"
-
+#include "../../Widgets/DockWidgets/invisibledockwidget.h"
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/ViewManager/dockreparenterpopup.h"
@@ -107,6 +107,12 @@ DefaultDockWidget* WindowManager::constructDockWidget(QString title, Qt::DockWid
 
 ToolDockWidget* WindowManager::constructToolDockWidget(QString title){
     auto dock = new ToolDockWidget(title);
+    addDockWidget(dock);
+    return dock;
+}
+
+InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title){
+    auto dock = new InvisibleDockWidget(title);
     addDockWidget(dock);
     return dock;
 }

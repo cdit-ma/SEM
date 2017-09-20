@@ -5,7 +5,7 @@
 #include "docktitlebar.h"
 
 class BaseWindow;
-enum class BaseDockType{DOCK, TOOL};
+enum class BaseDockType{DOCK, TOOL, INVISIBLE};
 
 class BaseDockWidget : public QDockWidget
 {
@@ -94,7 +94,8 @@ private:
     void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
 
-    DockTitleBar* titleBar;
+    QString title;
+    DockTitleBar* titleBar = 0;
     Qt::DockWidgetArea initialArea;
 
     BaseWindow* sourceWindow;

@@ -903,14 +903,6 @@ void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
 
-    /*
-    toggleDock->setCheckable(true);
-    toggleDock->setChecked(true);
-    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Icons", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
-
-    applicationToolbar->addAction(toggleDock);
-    applicationToolbar->addSeperator();
-    */
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));

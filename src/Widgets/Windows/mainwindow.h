@@ -37,30 +37,24 @@ class MainWindow : public BaseWindow
     Q_OBJECT
 protected:
     MainWindow(ViewController* vc, QWidget *parent=0);
-    ~MainWindow();
-
 public:
+
 signals:
-    void requestSuggestions();
-    void preloadImages();
-    void jenkins_validated(bool);
     void welcomeScreenToggled(bool);
-public slots:
-    void setModelTitle(QString modelTitle="");
-
-    void resetToolDockWidgets();
 private slots:
-
     void themeChanged();
-    void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevDock);
-
-    void toolbarOrientationChanged(Qt::Orientation orientation);
+    void resetToolDockWidgets();
 private:
-    void showSearchDialog();
-    void showNotificationDialog();
+    void updateMenuBar();
+    void setModelTitle(QString model_title="");
+
+    void setDockWidgetIcon(BaseDockWidget* dockwidget, QString icon_path, QString icon_alias, Theme* theme = 0);
+    void setupDockIcons();
+    
+    void setupRightToolPanel();
     
     void swapCentralWidget(QWidget* widget);
-    void setViewController(ViewController* vc);
+    void setViewController(ViewController* view_controller);
     void initializeApplication();
     void toggleWelcomeScreen(bool on);
     
@@ -73,56 +67,45 @@ private:
     void setupMenuBar();
     void setupToolBar();
     void setupProgressBar();
-    void setupDock();
-    void setupDataTable();
-    void setupViewManager();
-    void setupMinimap();
     void setupMenuCornerWidget();
     void setupDockablePanels();
 
-    void setupJenkinsManager();
-    void setupXMIImporter();
-
     void resizeToolWidgets();
-    void moveWidget(QWidget* widget, QWidget* parentWidget = 0, Qt::Alignment alignment = Qt::AlignCenter);
 
-    ViewController* viewController;
+    ViewController* view_controller = 0;
+    ActionController* action_controller = 0;
 
     BaseWindow* innerWindow = 0;
+    BaseWindow* rightWindow = 0;
+
+    //For the innew window
     BaseDockWidget* dockwidget_Jenkins = 0;
     BaseDockWidget* dockwidget_Search = 0;
+    BaseDockWidget* dockwidget_Qos = 0;
     BaseDockWidget* dockwidget_Notification = 0;
 
+    //Right hand tools
     BaseDockWidget* dockwidget_Table = 0;
     BaseDockWidget* dockwidget_ViewManager = 0;
     BaseDockWidget* dockwidget_Minimap = 0;
-    BaseDockWidget* dockwidget_Dock = 0;
-    BaseDockWidget* dockwidget_InnerWindow = 0;
 
-    QMenuBar* menuBar = 0;
-    QWidget* applicationToolbar_spacer1 = 0;
-    QWidget* applicationToolbar_spacer2 = 0;
+    //Main windows dock widgets
+    BaseDockWidget* dockwidget_Dock = 0;
+    BaseDockWidget* dockwidget_Center = 0;
+    BaseDockWidget* dockwidget_Right = 0;
+
+    
+    QMenuBar* menu_bar = 0;
     QToolBar* applicationToolbar = 0;
 
+    QAction* restoreToolsAction = 0;
 
 
-    DockTabWidget* dockTabWidget;
-    DataTableWidget* tableWidget;
-    NodeViewMinimap* minimap;
-    ViewManagerWidget* viewManager;
-
-    NotificationToolbar* notificationToolbar = 0;
-
-    QToolButton* restoreToolsButton;
-    QAction* restoreToolsAction;
 
     WelcomeScreenWidget* welcomeScreen = 0;
-    bool welcomeScreenOn = false;
-
 protected:
-    void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
-
+    bool eventFilter(QObject *object, QEvent *event);
 };
 
 #endif // MAINWINDOW_H

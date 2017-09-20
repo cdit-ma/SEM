@@ -16,6 +16,8 @@ DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent) : 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
 
+    
+    connect(viewController->getSelectionController(), &SelectionController::itemActiveSelectionChanged, this, &DataTableWidget::itemActiveSelectionChanged);
     connect(viewController, &ViewController::vc_editTableCell, tableView, &DataTableView::editDataValue);
     connect(entity_button, &QToolButton::clicked, this, &DataTableWidget::titleClicked);
 }

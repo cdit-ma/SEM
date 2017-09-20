@@ -119,7 +119,7 @@ QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window){
 
 void DockReparenterPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{font-size:15px;}");
+    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{}");
     close_action->setIcon(theme->getIcon("Icons", "cross"));
 }
 

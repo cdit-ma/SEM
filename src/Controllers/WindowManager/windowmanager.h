@@ -11,6 +11,7 @@ class BaseDockWidget;
 class DefaultDockWidget;
 class ViewDockWidget;
 class ToolDockWidget;
+class InvisibleDockWidget;
 class DockReparenterPopup;
 
 
@@ -53,6 +54,7 @@ public:
     ViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     DefaultDockWidget* constructDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     ToolDockWidget* constructToolDockWidget(QString title="");
+    InvisibleDockWidget* constructInvisibleDockWidget(QString title="");
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);

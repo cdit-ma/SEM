@@ -63,6 +63,7 @@ signals:
     
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewport_changed(QRectF viewportRect, double zoom_factor);
+    void scenerect_changed(QRectF sceneRect);
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -145,6 +146,8 @@ private:
     qreal distance(QPoint p1, QPoint p2);
 private:
     void setupStateMachine();
+
+    void topLevelItemMoved();
 
     EntityItem* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;

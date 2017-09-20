@@ -101,7 +101,7 @@ QMenu* ContextMenu::getDeployMenu(){
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
 
-    main_menu->setStyleSheet(theme->getMenuStyleSheet(MENU_ICON_SIZE) + " QMenu{font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    main_menu->setStyleSheet(theme->getMenuStyleSheet(MENU_ICON_SIZE) + " QLabel{color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     //Set Icons for top level icons
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));

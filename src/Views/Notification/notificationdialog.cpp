@@ -170,8 +170,8 @@ void NotificationDialog::themeChanged()
     auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
     clock_label->setPixmap(pixmap);
 
-    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";font-size:14px;");
-    load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{font-size:10px;border-radius:0px;}");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+    load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
 }
 
 void NotificationDialog::popupEntity(){

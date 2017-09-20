@@ -669,9 +669,20 @@ SelectionHandler *NodeView::getSelectionHandler()
     return selectionHandler;
 }
 
+void NodeView::topLevelItemMoved()
+{
+    auto new_scene_rect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
+    if(new_scene_rect != currentSceneRect){
+        currentSceneRect = new_scene_rect;
+        emit scenerect_changed(currentSceneRect);
+    }
+}
+
+
 
 void NodeView::update_minimap(){
     emit viewport_changed(viewportRect(), transform().m11());
+    emit scenerect_changed(currentSceneRect);
 }
 
 void NodeView::paintEvent(QPaintEvent *event){
@@ -1001,15 +1012,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
+
                     topLevelGUIItemIDs.append(ID);
+                    connect(nodeItem, &NodeItem::positionChanged, this, &NodeView::topLevelItemMoved);
+                    connect(nodeItem, &NodeItem::sizeChanged, this, &NodeView::topLevelItemMoved);
                 }
-
-
-                //We should care about position and expansion for any entity we visualise
-                //emit viewController->vc_setData(ID, "x", 0.0);
-                //emit viewController->vc_setData(ID, "y", 0.0);
-                //emit viewController->vc_setData(ID, "isExpanded", true);
-            
 
             }
         }

@@ -36,8 +36,8 @@ void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
-    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;font-size:10pt;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     parts_action->setIcon(theme->getIcon("Icons", "plus"));
     deploy_action->setIcon(theme->getIcon("Icons", "screen"));
