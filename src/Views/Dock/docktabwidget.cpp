@@ -39,16 +39,34 @@ void DockTabWidget::themeChanged()
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
-    parts_action->setIcon(theme->getIcon("Icons", "plus"));
-    deploy_action->setIcon(theme->getIcon("Icons", "screen"));
+    //parts_action->setIcon(theme->getIcon("Icons", "plus"));
+    //deploy_action->setIcon(theme->getIcon("Icons", "screen"));
+
+    QIcon partIcon;
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+
+    QIcon hardwareIcon;
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+
+    parts_action->setIcon(partIcon);
+    deploy_action->setIcon(hardwareIcon);
 
     setStyleSheet(
         theme->getToolBarStyleSheet() +
-        "QScrollArea {background: rgba(0,0,0,0);} "
-        "QToolButton{"
+        "QScrollArea {"
+        "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+        "background: rgba(0,0,0,0);"
+        "}"
+        "QToolButton {"
         "border-radius: " + theme->getCornerRadius() + ";"
         "border-bottom-left-radius: 0px;"
         "border-bottom-right-radius: 0px;"
+        "}"
+        "QToolButton::checked:!hover {"
+        "background:" + theme->getActiveWidgetBorderColorHex() + ";"
+        "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
         "}"
     );
 }
@@ -80,8 +98,8 @@ void DockTabWidget::setupLayout()
         deploy_action = toolbar->addWidget(button);
         //Connect the button to it's action so we don't need to worry about QToolButton stuff
         button->setDefaultAction(deploy_action);
-        parts_action->setCheckable(true);
-        parts_action->setChecked(false);
+        deploy_action->setCheckable(true);
+        deploy_action->setChecked(false);
     }
 
     toolbar->setIconSize(QSize(32,32));
@@ -107,6 +125,7 @@ void DockTabWidget::dockActionTriggered(QAction* action){
         other->setChecked(false);
         stack_widget->setCurrentWidget(current_dock);
         current_menu->show();
+        refreshSize();
         emit current_menu->aboutToShow();
     }
 }
@@ -117,11 +136,13 @@ void DockTabWidget::dockActionTriggered(QAction* action){
 void DockTabWidget::setupDocks()
 {
     add_part_menu = view_controller->getContextMenu()->getAddMenu();
-    add_part_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    add_part_menu->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    //add_part_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     add_part_menu->setFixedWidth(width());
 
     deploy_menu = view_controller->getContextMenu()->getDeployMenu();
-    deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    deploy_menu->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    //deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     deploy_menu->setFixedWidth(width());
 
     
@@ -134,17 +155,19 @@ void DockTabWidget::setupDocks()
     connect(add_part_menu, &QMenu::aboutToHide, add_part_menu, &QMenu::show);
 
     parts_dock = new QScrollArea();
-    parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    parts_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     parts_dock->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     parts_dock->setWidgetResizable(true);
     parts_dock->setWidget(add_part_menu);
-    parts_dock->setAlignment(Qt::AlignHCenter);
+    //parts_dock->setAlignment(Qt::AlignHCenter);
     
     deploy_dock = new QScrollArea();
-    deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    //deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     deploy_dock->setWidgetResizable(true);
     deploy_dock->setWidget(deploy_menu);
-    deploy_dock->setAlignment(Qt::AlignHCenter);
+    //deploy_dock->setAlignment(Qt::AlignHCenter);
     
 
     stack_widget->addWidget(parts_dock);
@@ -159,9 +182,14 @@ void DockTabWidget::setupDocks()
     installEventFilter(this);
 }
 
-void DockTabWidget::refreshSize(){
-    add_part_menu->setFixedWidth(parts_dock->viewport()->size().width() - 8);
-    deploy_menu->setFixedWidth(deploy_dock->viewport()->size().width() - 8);
+void DockTabWidget::refreshSize()
+{
+    //auto size_hint = add_part_menu->sizeHint().width();
+    //auto maxWidth = qMax(size_hint, parts_dock->viewport()->size().width());
+    //add_part_menu->setFixedWidth(maxWidth - 2);
+
+    add_part_menu->setFixedWidth(parts_dock->viewport()->size().width() - 2);
+    deploy_menu->setFixedWidth(deploy_dock->viewport()->size().width() - 2);
 }
 
 bool DockTabWidget::eventFilter(QObject *object, QEvent *event)

@@ -538,7 +538,13 @@ void MainWindow::setupMenuCornerWidget()
 }
 
 void MainWindow::updateMenuBar(){
-    
+    auto corner_widget = menu_bar->cornerWidget();
+    if(corner_widget){
+        qCritical() << "YO";
+        auto size = menu_bar->actionGeometry(action_controller->menu_file->menuAction());
+        corner_widget->setFixedHeight(size.height());
+        menu_bar->setFixedHeight(size.height() + 6);
+    }
 }
 
 
@@ -621,15 +627,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    if(object == menu_bar && event->type() == QEvent::Resize) {
-        auto corner_widget = menu_bar->cornerWidget();
-        if(corner_widget){
-            auto size = menu_bar->actionGeometry(action_controller->menu_file->menuAction());
-            qCritical() << "YO HOLMES" << size << " " << action_controller->menu_file->height();
-            corner_widget->setFixedHeight(size.height());
-            menu_bar->setFixedHeight(size.height() + 6);
+    if(object == menu_bar){
+        if(event->type() == QEvent::Resize || event->type() == QEvent::FontChange) {
+            QMetaObject::invokeMethod(this, "updateMenuBar", Qt::QueuedConnection);
         }
     }
-
     return QObject::eventFilter(object, event);
 }
