@@ -44,7 +44,6 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
 void BaseWindow::resetDockWidgets(){
     for(auto dock_widget : getDockWidgets()){
         dock_widget->setVisible(true);
-        qDebug() << "Dock widget: " << dock_widget->getTitle() << " visible: " << dock_widget->isVisible();
     }
     emit dockWidgetVisibilityChanged();
 }
