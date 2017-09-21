@@ -61,14 +61,13 @@ private:
     void toggleWelcomeScreen(bool on);
     
     void saveWindowState();
-    void restoreWindowState(bool restore_geo = true);
+    void restoreWindowState();
 
     void setupTools();
     void setupInnerWindow();
-    void setupWelcomeScreen();
     void setupMenuBar();
     void setupToolBar();
-    void setupProgressBar();
+
     void setupMenuCornerWidget();
     void setupDockablePanels();
 

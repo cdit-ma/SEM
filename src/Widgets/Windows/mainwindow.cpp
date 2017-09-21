@@ -233,7 +233,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
         swapCentralWidget(on ? welcomeScreen : 0);
         
         if(!on){
-            restoreWindowState(false);
+            restoreWindowState();
         }
         emit welcomeScreenToggled(on);
     }
@@ -261,7 +261,7 @@ void MainWindow::saveWindowState()
     }
 }
 
-void MainWindow::restoreWindowState(bool restore_geo){
+void MainWindow::restoreWindowState(){
     SettingsController* s = SettingsController::settings();
     if(s){
         auto load_dock = s->getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT).toBool();
@@ -359,16 +359,17 @@ void MainWindow::setupTools()
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
-
-    rightWindow = window_manager->constructInvisibleWindow(this, "Right Tools");
-    rightWindow->setDockNestingEnabled(true);
-
-    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
-    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
-    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
-
-    dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
-    dockwidget_Right->setWidget(rightWindow);
+    if(!rightWindow){
+        rightWindow = window_manager->constructInvisibleWindow(this, "Right Tools");
+        rightWindow->setDockNestingEnabled(true);
+    
+        rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
+        rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
+        rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
+    
+        dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
+        dockwidget_Right->setWidget(rightWindow);
+    }
 }
 
 
@@ -424,18 +425,6 @@ void MainWindow::setupInnerWindow()
     dockwidget_Center->setWidget(innerWindow);
 }
 
-void MainWindow::setMenu(){
-    
-}
-/**
- * @brief MedeaMainWindow::setupWelcomeScreen
- */
-void MainWindow::setupWelcomeScreen()
-{
-    if(!welcomeScreen){
-        welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
-    }
-}
 
 
 /**
@@ -475,49 +464,43 @@ void MainWindow::setupMenuBar()
  */
 void MainWindow::setupToolBar()
 {
-    applicationToolbar = new QToolBar("Toolbar", this);
-    applicationToolbar->setObjectName("APPLICATION_TOOLBAR");
-    applicationToolbar->setMovable(true);
-    applicationToolbar->setFloatable(true);
-    applicationToolbar->setIconSize(QSize(16,16));
+    if(!applicationToolbar){
+        applicationToolbar = new QToolBar("Toolbar", this);
+        applicationToolbar->setObjectName("APPLICATION_TOOLBAR");
+        applicationToolbar->setMovable(true);
+        applicationToolbar->setFloatable(true);
+        applicationToolbar->setIconSize(QSize(16,16));
 
-
-    auto applicationToolbar_spacer1 = new QWidget(applicationToolbar);
-    auto applicationToolbar_spacer2 = new QWidget(applicationToolbar);
-    applicationToolbar->addWidget(applicationToolbar_spacer1);
-    applicationToolbar->addActions(view_controller->getActionController()->applicationToolbar->actions());
-    applicationToolbar->addWidget(applicationToolbar_spacer2);
-
+        auto applicationToolbar_spacer1 = new QWidget(applicationToolbar);
+        auto applicationToolbar_spacer2 = new QWidget(applicationToolbar);
+        applicationToolbar->addWidget(applicationToolbar_spacer1);
+        applicationToolbar->addActions(view_controller->getActionController()->applicationToolbar->actions());
+        applicationToolbar->addWidget(applicationToolbar_spacer2);
     
-    connect(applicationToolbar, &QToolBar::orientationChanged, this, [applicationToolbar_spacer1, applicationToolbar_spacer2](Qt::Orientation orientation){
-        QSizePolicy::Policy  h_pol = QSizePolicy::Fixed;
-        QSizePolicy::Policy  v_pol = QSizePolicy::Fixed;
+        
+        connect(applicationToolbar, &QToolBar::orientationChanged, this, [applicationToolbar_spacer1, applicationToolbar_spacer2](Qt::Orientation orientation){
+            QSizePolicy::Policy  h_pol = QSizePolicy::Fixed;
+            QSizePolicy::Policy  v_pol = QSizePolicy::Fixed;
+    
+            switch(orientation){
+                case Qt::Horizontal:
+                    h_pol = QSizePolicy::Expanding;
+                    break;
+                case Qt::Vertical:
+                    v_pol = QSizePolicy::Expanding;
+                    break;
+            }
+    
+            applicationToolbar_spacer1->setSizePolicy(h_pol, v_pol);
+            applicationToolbar_spacer2->setSizePolicy(h_pol, v_pol);
+        });
+    
+        emit applicationToolbar->orientationChanged(Qt::Horizontal);
+        innerWindow->addToolBar(applicationToolbar);
+    }
+}
 
-        switch(orientation){
-            case Qt::Horizontal:
-                h_pol = QSizePolicy::Expanding;
-                break;
-            case Qt::Vertical:
-                v_pol = QSizePolicy::Expanding;
-                break;
-        }
 
-        applicationToolbar_spacer1->setSizePolicy(h_pol, v_pol);
-        applicationToolbar_spacer2->setSizePolicy(h_pol, v_pol);
-    });
-
-    emit applicationToolbar->orientationChanged(Qt::Horizontal);
-    innerWindow->addToolBar(applicationToolbar);
-}   
-
-
-
-
-/**
- * @brief MedeaMainWindow::setupMenuCornerWidget
- * NOTE: This neeeds to be called after the tool dock widgets
- * and both the central and inner windows are constructed.
- */
 void MainWindow::setupMenuCornerWidget()
 {
     reset_action = new QAction("Reset Tool Dock Widgets", this);
