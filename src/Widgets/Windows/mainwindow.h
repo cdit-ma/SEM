@@ -23,8 +23,6 @@ private slots:
     void themeChanged();
     void resetToolDockWidgets();
 private:
-    void setMenu();
-
     Q_INVOKABLE void updateMenuBar();
     void setModelTitle(QString model_title="");
 

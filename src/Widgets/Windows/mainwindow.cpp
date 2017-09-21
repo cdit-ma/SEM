@@ -43,13 +43,9 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-
-
+    initializeApplication();
     setViewController(view_controller);
     
-    initializeApplication();
-    setContextMenuPolicy(Qt::NoContextMenu);
-
 
     setupTools();
     setupInnerWindow();
@@ -58,15 +54,13 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Center);
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Right);
     
-    
+
     
     setupDockIcons();
 
    
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
-
-    connect(action_controller->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
 
     connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Search);});
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Notification);});
@@ -374,6 +368,9 @@ void MainWindow::setupTools()
         dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
         dockwidget_Right->setWidget(rightWindow);
     }
+
+
+    
 }
 
 
@@ -382,6 +379,8 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {   
+    
+
     innerWindow = WindowManager::manager()->constructCentralWindow(this, "Main Window");
     //Construct dockWidgets.
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces");
@@ -427,6 +426,11 @@ void MainWindow::setupInnerWindow()
 
     dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget");
     dockwidget_Center->setWidget(innerWindow);
+
+    if(action_controller){
+        //Add all actions which need focus!
+        innerWindow->addActions(action_controller->getAllActions());
+    }
 }
 
 

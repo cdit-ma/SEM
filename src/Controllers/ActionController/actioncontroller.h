@@ -30,6 +30,8 @@ public:
     QList<RootAction*> getRecentProjectActions();
 
     QList<QAction*> getNodeViewActions();
+
+    QList<QAction*> getAllActions();
 private:
 
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");

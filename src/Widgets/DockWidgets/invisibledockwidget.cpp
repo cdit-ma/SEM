@@ -11,7 +11,3 @@ InvisibleDockWidget::InvisibleDockWidget(QString title) : BaseDockWidget(BaseDoc
 InvisibleDockWidget::~InvisibleDockWidget()
 {
 }
-
-void InvisibleDockWidget::themeChanged()
-{
-}

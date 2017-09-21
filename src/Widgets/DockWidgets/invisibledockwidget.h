@@ -9,7 +9,6 @@ class InvisibleDockWidget : public BaseDockWidget
 protected:
     InvisibleDockWidget(QString title);
     ~InvisibleDockWidget();
-    void themeChanged();
 };
 
 #endif // INVISIBLEDOCKWIDGET_H
