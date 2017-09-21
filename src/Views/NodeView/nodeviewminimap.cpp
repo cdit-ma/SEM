@@ -12,6 +12,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setDragMode(NoDrag);
     setInteractive(false);
     setMouseTracking(true);
+    setMinimumSize(130,130);
 
     auto updateTimer = new QTimer(this);
     updateTimer->setInterval(1000);

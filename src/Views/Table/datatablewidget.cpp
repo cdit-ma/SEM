@@ -16,6 +16,7 @@ DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent) : 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
 
+    setMinimumSize(130,130);
     
     connect(viewController->getSelectionController(), &SelectionController::itemActiveSelectionChanged, this, &DataTableWidget::itemActiveSelectionChanged);
     connect(viewController, &ViewController::vc_editTableCell, tableView, &DataTableView::editDataValue);

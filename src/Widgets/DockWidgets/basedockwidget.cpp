@@ -134,7 +134,6 @@ void BaseDockWidget::setWidget(QWidget *w)
     }
     if(w){
         w->installEventFilter(this);
-        w->setMinimumSize(130,130);
         setFocusProxy(w);
     }
     QDockWidget::setWidget(w);

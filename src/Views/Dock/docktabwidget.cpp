@@ -17,6 +17,7 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 
     setupLayout();
     setupDocks();
+    setMinimumSize(130,130);
 
     auto theme = Theme::theme();
     connect(theme, &Theme::theme_Changed, this, &DockTabWidget::themeChanged);
@@ -77,7 +78,6 @@ void DockTabWidget::themeChanged()
 void DockTabWidget::setupLayout()
 {
     stack_widget = new QStackedWidget(this);
-    //stack_widget->setMinimumWidth(100);
 
     toolbar = new QToolBar(this);
     toolbar->setStyleSheet("QToolBar{ spacing: 2px; padding: 2px; }");
