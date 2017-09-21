@@ -520,13 +520,17 @@ void Theme::setAltTextColor(QColor color)
     altTextColor = color;
 }
 
-QString Theme::getWindowStyleSheet()
+QString Theme::getWindowStyleSheet(bool show_background_image)
 {
-    return "QMainWindow {"
-           "background: " % getBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
-            "}";
+    QString str;
+    str += "QMainWindow {";
+    str += "background: " % getBackgroundColorHex() % ";";
+    str += "color:" % getTextColorHex() % ";";
+    if(show_background_image){
+        str += "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;";
+    }
+    str += "}";
+    return str;
 }
 
 QString Theme::getScrollBarStyleSheet()

@@ -272,7 +272,8 @@ void BaseWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
     reset_action->setIcon(theme->getIcon("Icons", "refresh"));
-    setStyleSheet(theme->getWindowStyleSheet() %
+    bool show_image = windowType == VIEW_WINDOW;
+    setStyleSheet(theme->getWindowStyleSheet(show_image) %
                   theme->getMenuBarStyleSheet() %
                   theme->getMenuStyleSheet() %
                   theme->getToolBarStyleSheet() %

@@ -102,7 +102,6 @@ void MainWindow::setViewController(ViewController* view_controller)
  */
 void MainWindow::resetToolDockWidgets()
 {
-    qCritical() << "RESET";
     resetDockWidgets();
     rightWindow->resetDockWidgets();
 
@@ -117,7 +116,7 @@ QMenu* MainWindow::createPopupMenu(){
         menu->addAction(dock_widget->toggleViewAction());
     }
     menu->addSeparator();
-
+    
     menu->addAction(dockwidget_Dock->toggleViewAction());
 
     for(auto dock_widget : rightWindow->getDockWidgets()){
@@ -127,8 +126,6 @@ QMenu* MainWindow::createPopupMenu(){
 
     menu->addSeparator();
     menu->addAction(reset_action);
-    
-    
     return menu;
 }
 
@@ -198,9 +195,6 @@ void MainWindow::initializeApplication()
     QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Icons", "medeaLogo"));
 
-   
-
-    
     setCorner(Qt::TopLeftCorner, Qt::TopDockWidgetArea);
     setCorner(Qt::BottomLeftCorner, Qt::BottomDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
@@ -278,7 +272,7 @@ void MainWindow::restoreWindowState(bool restore_geo){
         auto right_state = s->getSetting(SETTINGS::WINDOW_RIGHT_STATE).toByteArray();
 
         //Check if any are invalid
-        bool invalid = outer_state.isEmpty() || inner_state.isEmpty();
+        bool invalid = outer_state.isEmpty() || inner_state.isEmpty() || right_state.isEmpty();
 
         if(invalid){
             resetToolDockWidgets();
@@ -328,14 +322,14 @@ void MainWindow::setupDockIcons(){
 void MainWindow::setupTools()
 {
     //Setup Welcome screen
-    welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
+    if(!welcomeScreen){
+        welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
+    }
     
     //Setup Progress Bar
     auto progress_bar = new ProgressPopup();
     connect(view_controller, &ViewController::mc_showProgress, progress_bar, &ProgressPopup::ProgressUpdated);
     connect(view_controller, &ViewController::mc_progressChanged, progress_bar, &ProgressPopup::UpdateProgressBar);
-
-
    
     setupMenuBar();
 
@@ -389,7 +383,6 @@ void MainWindow::setupInnerWindow()
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour");
     auto dockwidget_Assemblies = view_controller->constructViewDockWidget("Assemblies");
     auto dockwidget_Hardware = view_controller->constructViewDockWidget("Hardware");
-
 
     //Set each NodeView with there contained aspects
     dockwidget_Interfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
