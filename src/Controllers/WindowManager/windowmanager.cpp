@@ -12,6 +12,7 @@
 #include "../../Widgets/Windows/mainwindow.h"
 #include "../../Widgets/Windows/viewwindow.h"
 #include "../../Widgets/Windows/subwindow.h"
+#include "../../Widgets/Windows/invisiblewindow.h"
 
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/defaultdockwidget.h"
@@ -83,9 +84,16 @@ BaseWindow* WindowManager::constructSubWindow(QString title){
     return window;
 }
 
-BaseWindow* WindowManager::constructCentralWindow(QString title){
+BaseWindow* WindowManager::constructInvisibleWindow(BaseWindow* parent_window, QString title){
+    auto window = new InvisibleWindow(parent_window);
+    window->setWindowTitle(title);
+    addWindow(window);
+    return window;
+}
+
+BaseWindow* WindowManager::constructCentralWindow(BaseWindow* parent_window, QString title){
     if(!centralWindow){
-        auto window = new CentralWindow();
+        auto window = new CentralWindow(parent_window);
         window->setWindowTitle(title);
         centralWindow = window;
         addWindow(window);

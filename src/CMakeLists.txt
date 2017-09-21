@@ -93,6 +93,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.cpp

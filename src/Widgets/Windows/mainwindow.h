@@ -38,13 +38,15 @@ class MainWindow : public BaseWindow
 protected:
     MainWindow(ViewController* vc, QWidget *parent=0);
 public:
-
+    QMenu *createPopupMenu();
 signals:
     void welcomeScreenToggled(bool);
 private slots:
     void themeChanged();
     void resetToolDockWidgets();
 private:
+    void setMenu();
+
     Q_INVOKABLE void updateMenuBar();
     void setModelTitle(QString model_title="");
 
@@ -70,7 +72,7 @@ private:
     void setupMenuCornerWidget();
     void setupDockablePanels();
 
-    void resizeToolWidgets();
+    void resetToolWidgets();
 
     ViewController* view_controller = 0;
     ActionController* action_controller = 0;
@@ -98,9 +100,8 @@ private:
     QMenuBar* menu_bar = 0;
     QToolBar* applicationToolbar = 0;
 
-    QAction* restoreToolsAction = 0;
-
-
+    QToolButton* restore_toolbutton = 0;
+    QAction* reset_action = 0;
 
     WelcomeScreenWidget* welcomeScreen = 0;
 protected:

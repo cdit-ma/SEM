@@ -101,7 +101,7 @@ QMenu* ContextMenu::getDeployMenu(){
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
 
-    main_menu->setStyleSheet(theme->getMenuStyleSheet(MENU_ICON_SIZE) + " QLabel{color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    main_menu->setStyleSheet(theme->getMenuStyleSheet(MENU_ICON_SIZE) + " QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     //Set Icons for top level icons
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
@@ -625,9 +625,9 @@ void ContextMenu::update_deploy_menu(){
 QWidgetAction* construct_menu_label(QString label){
     auto action = new QWidgetAction(0); 
     auto label_widget = new QLabel(label);
-    label_widget->setAlignment(Qt::AlignLeft);
+    
     label_widget->setContentsMargins(4,8,4,8);
-    label_widget->setAlignment(Qt::AlignLeft);
+    label_widget->setAlignment(Qt::AlignCenter);
     label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     action->setDefaultWidget(label_widget);
     return action;

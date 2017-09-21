@@ -11,7 +11,7 @@ class BaseWindow : public QMainWindow{
 friend class WindowManager;
 
 public:
-    enum WindowType {MAIN_WINDOW, VIEW_WINDOW};
+    enum WindowType {MAIN_WINDOW, VIEW_WINDOW, INVISIBLE_WINDOW};
 protected:
     BaseWindow(QWidget* parent = 0, WindowType type = VIEW_WINDOW);
     ~BaseWindow();
@@ -30,10 +30,11 @@ public:
     void removeDockWidget(QDockWidget* widget);
 
     void setDockWidgetVisibility(BaseDockWidget* widget, bool visible);
-    QMenu *createPopupMenu();
+    virtual QMenu *createPopupMenu();
 
 signals:
     void dockWidgetAdded(BaseDockWidget* widget);
+    void dockWidgetVisibilityChanged();
 private slots:
     void themeChanged();
     void showContextMenu(const QPoint &point);
@@ -47,8 +48,9 @@ private:
     void removeAllDockWidgets();
     void updateActions();
 protected:
-    void resetDockWidgets();
 public:
+    void resetDockWidgets();
+private:
     QList<int> previouslyVisibleDockIDs;
     WindowType windowType;
 

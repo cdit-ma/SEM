@@ -102,12 +102,35 @@ void MainWindow::setViewController(ViewController* view_controller)
  */
 void MainWindow::resetToolDockWidgets()
 {
+    qCritical() << "RESET";
     resetDockWidgets();
+    rightWindow->resetDockWidgets();
+
     innerWindow->addToolBar(applicationToolbar);
     applicationToolbar->setVisible(true);
-    resizeToolWidgets();
+    resetToolWidgets();
 }
 
+QMenu* MainWindow::createPopupMenu(){
+    QMenu* menu = new QMenu(this);
+    for(auto dock_widget : innerWindow->getDockWidgets()){
+        menu->addAction(dock_widget->toggleViewAction());
+    }
+    menu->addSeparator();
+
+    menu->addAction(dockwidget_Dock->toggleViewAction());
+
+    for(auto dock_widget : rightWindow->getDockWidgets()){
+        menu->addAction(dock_widget->toggleViewAction());
+    }
+    menu->addAction(applicationToolbar->toggleViewAction());
+
+    menu->addSeparator();
+    menu->addAction(reset_action);
+    
+    
+    return menu;
+}
 
 /**
  * @brief MedeaMainWindow::themeChanged
@@ -140,9 +163,8 @@ void MainWindow::themeChanged()
     
     applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
 
-    restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
-
-    
+    restore_toolbutton->setIcon(theme->getIcon("Icons", "spanner"));
+    reset_action->setIcon(theme->getIcon("Icons", "refresh"));
 }
 
 /**
@@ -296,7 +318,8 @@ void MainWindow::setupDockIcons(){
     setDockWidgetIcon(dockwidget_Notification, "Icons", "exclamationInBubble", theme);
     setDockWidgetIcon(dockwidget_Jenkins, "Icons", "jenkinsFlat", theme);
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
-    
+
+    theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
 }
 
 /**
@@ -320,26 +343,30 @@ void MainWindow::setupTools()
     
     if(!dockwidget_Dock){
         dockwidget_Dock = window_manager->constructToolDockWidget("Dock");
+        dockwidget_Dock->setIconVisible(true);
         dockwidget_Dock->setWidget(new DockTabWidget(view_controller, this));
     }
 
     if(!dockwidget_Table){
         dockwidget_Table = window_manager->constructToolDockWidget("Data Table");
+        dockwidget_Table->setIconVisible(true);
         dockwidget_Table->setWidget(new DataTableWidget(view_controller, dockwidget_Table));
     }
 
     if(!dockwidget_Minimap){
         dockwidget_Minimap = window_manager->constructToolDockWidget("Minimap");
+        dockwidget_Minimap->setIconVisible(true);
         dockwidget_Minimap->setWidget(new NodeViewMinimap(this));
     }
 
     if(!dockwidget_ViewManager){
         dockwidget_ViewManager = window_manager->constructToolDockWidget("View Manager");
+        dockwidget_ViewManager->setIconVisible(true);
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
 
-    rightWindow = window_manager->constructSubWindow("Right Tools");
+    rightWindow = window_manager->constructInvisibleWindow(this, "Right Tools");
     rightWindow->setDockNestingEnabled(true);
 
     rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
@@ -356,7 +383,7 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {   
-    innerWindow = WindowManager::manager()->constructCentralWindow("Main Window");
+    innerWindow = WindowManager::manager()->constructCentralWindow(this, "Main Window");
     //Construct dockWidgets.
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces");
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour");
@@ -404,7 +431,9 @@ void MainWindow::setupInnerWindow()
     dockwidget_Center->setWidget(innerWindow);
 }
 
-
+void MainWindow::setMenu(){
+    
+}
 /**
  * @brief MedeaMainWindow::setupWelcomeScreen
  */
@@ -427,10 +456,8 @@ void MainWindow::setupMenuBar()
 
         menu_bar->installEventFilter(this);
         setMenuBar(menu_bar);
-        
-    
         //Add the required menus
-        qCritical() << "ADDED: " << menu_bar->addMenu(action_controller->menu_file);
+        menu_bar->addMenu(action_controller->menu_file);
         menu_bar->addMenu(action_controller->menu_edit);
         menu_bar->addMenu(action_controller->menu_view);
         menu_bar->addMenu(action_controller->menu_model);
@@ -500,28 +527,32 @@ void MainWindow::setupToolBar()
  */
 void MainWindow::setupMenuCornerWidget()
 {
-    QMenu* menu = QMainWindow::createPopupMenu();
-    //Add a hide/show for toolbar
-    menu->addAction(applicationToolbar->toggleViewAction());
-
-    restoreToolsAction = menu->addAction("Reset All Tools");
+    reset_action = new QAction("Reset Tool Dock Widgets", this);
+    connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
     
-
     auto notificationToolbar = NotificationManager::manager()->getToolbar();
     
     notificationToolbar->setParent(this); 
 
-    //Set
-    auto container_widget = new QFrame(this);
-    container_widget->setStyleSheet("QFrame{padding:0px;border: 1px solid red; margin:0px;}");
+    
+    auto container_widget = new QWidget(this);
     container_widget->setContentsMargins(0,0,0,0);
     
 
+    restore_toolbutton = new QToolButton(this);
+    restore_toolbutton->setToolTip("Restore Tool Dock Widgets");
+    restore_toolbutton->setStyleSheet("QToolButton{border-radius: 4px;} QToolButton::menu-indicator{image: none; }");
+    connect(restore_toolbutton, &QToolButton::clicked, [=](){
+        auto menu = createPopupMenu();
+        restore_toolbutton->setMenu(menu);
+        restore_toolbutton->showMenu();
+        delete menu;
+    });
+    
     auto toolbar = new QToolBar(this);
-    toolbar->addAction(restoreToolsAction);
+    toolbar->setStyleSheet("QToolBar{ padding: 0px; } ");
+    toolbar->addWidget(restore_toolbutton);
 
-   // notificationToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
-    //toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
 
     auto h_layout = new QHBoxLayout(container_widget);
     h_layout->setMargin(0);
@@ -529,21 +560,17 @@ void MainWindow::setupMenuCornerWidget()
     h_layout->addWidget(notificationToolbar);
     h_layout->addWidget(toolbar);
 
-    
-
     menu_bar->setCornerWidget(container_widget);
-    
-
     //connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
 }
 
 void MainWindow::updateMenuBar(){
     auto corner_widget = menu_bar->cornerWidget();
     if(corner_widget){
-        qCritical() << "YO";
         auto size = menu_bar->actionGeometry(action_controller->menu_file->menuAction());
-        corner_widget->setFixedHeight(size.height());
-        menu_bar->setFixedHeight(size.height() + 6);
+        corner_widget->setFixedHeight(size.height() + 6);
+        //Ignore the padding
+        menu_bar->setFixedHeight(size.height() + 12);
     }
 }
 
@@ -554,10 +581,6 @@ void MainWindow::updateMenuBar(){
  */
 void MainWindow::setupDockablePanels()
 {   
-    //Setup the icons
-    auto theme = Theme::theme();
-    
-
     auto window_manager = WindowManager::manager();
 
     //QOS Browser
@@ -605,7 +628,7 @@ void MainWindow::setupDockablePanels()
 /**
  * @brief MedeaMainWindow::resizeToolWidgets
  */
-void MainWindow::resizeToolWidgets()
+void MainWindow::resetToolWidgets()
 {
     resizeDocks({dockwidget_Dock, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
     rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
