@@ -221,6 +221,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
     if(welcome_screen_on != on){
         menu_bar->setVisible(!on);
         setDockWidgetsVisible(!on);
+        rightWindow->setDockWidgetsVisible(!on);
 
         //Swap between the welcome scree and 0
         swapCentralWidget(on ? welcomeScreen : 0);
@@ -607,7 +608,7 @@ void MainWindow::setupDockablePanels()
 void MainWindow::resetToolWidgets()
 {
     resizeDocks({dockwidget_Dock, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
-    //rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
+    rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
 }   
 
 /**
