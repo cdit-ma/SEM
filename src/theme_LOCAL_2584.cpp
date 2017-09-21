@@ -520,17 +520,17 @@ void Theme::setAltTextColor(QColor color)
     altTextColor = color;
 }
 
-QString Theme::getWindowStyleSheet(bool show_background_image)
-{
-    QString str;
-    str += "QMainWindow {";
-    str += "background: " % getBackgroundColorHex() % ";";
-    str += "color:" % getTextColorHex() % ";";
-    if(show_background_image){
-        str += "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;";
-    }
-    str += "}";
-    return str;
+QString Theme::getWindowStyleSheet()
+{    
+    return "QMainWindow {"
+           "background: " % getBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
+           "background-image: url(:/Images/Icons/medeaLogoTransparent);"
+           "background-position: center;"
+           "background-repeat: no-repeat;"
+           "}"
+           // This hides the watermark logo for invisible tool windows
+           "#INVISIBLE_TOOL_WINDOW{ background:  " % getBackgroundColorHex() % ";}";
 }
 
 QString Theme::getScrollBarStyleSheet()

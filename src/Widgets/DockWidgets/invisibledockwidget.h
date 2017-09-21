@@ -12,18 +12,6 @@ class InvisibleDockWidget : public BaseDockWidget
 protected:
     InvisibleDockWidget(QString title);
     ~InvisibleDockWidget();
-    void themeChanged();
-
-public slots:
-    void connectChildDockWidget(BaseDockWidget* dockWidget);
-    void childDockWidgetVisibilityChanged(bool visible);
-
-    // BaseDockWidget interface
-public:
-    void setWidget(QWidget *widget);
-
-private:
-    BaseWindow* window = 0;
 };
 
 #endif // INVISIBLEDOCKWIDGET_H

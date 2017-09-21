@@ -46,6 +46,7 @@ void BaseWindow::resetDockWidgets(){
         dock_widget->setVisible(true);
         qDebug() << "Dock widget: " << dock_widget->getTitle() << " visible: " << dock_widget->isVisible();
     }
+    emit dockWidgetVisibilityChanged();
 }
 
 BaseWindow::~BaseWindow()
@@ -105,6 +106,7 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
             currentDockWidgets.insert(ID, dockWidget);
             updateActions();
 
+            connect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
             connect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
             connect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
         }
@@ -124,6 +126,7 @@ void BaseWindow::removeDockWidget(QDockWidget *widget)
         previouslyVisibleDockIDs.removeAll(ID);
         updateActions();
 
+        disconnect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
         disconnect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
         disconnect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
     }
@@ -268,7 +271,8 @@ void BaseWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
     reset_action->setIcon(theme->getIcon("Icons", "refresh"));
-    setStyleSheet(theme->getWindowStyleSheet() %
+    bool show_image = windowType == VIEW_WINDOW;
+    setStyleSheet(theme->getWindowStyleSheet(show_image) %
                   theme->getMenuBarStyleSheet() %
                   theme->getMenuStyleSheet() %
                   theme->getToolBarStyleSheet() %

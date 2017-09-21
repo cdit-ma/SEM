@@ -121,7 +121,7 @@ public:
     QString getSharpCornerRadius();
 
     // Default StyleSheets
-    QString getWindowStyleSheet();
+    QString getWindowStyleSheet(bool show_background_image);
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();
     QString getSplitterStyleSheet();

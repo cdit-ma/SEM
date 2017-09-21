@@ -1,38 +1,34 @@
 #include "mainwindow.h"
-#include "welcomescreenwidget.h"
-
-#include "../../theme.h"
 #include "../DockWidgets/viewdockwidget.h"
 #include "../DockWidgets/tooldockwidget.h"
 #include "../DockWidgets/invisibledockwidget.h"
 
-#include "../../Widgets/Dialogs/popupwidget.h"
-#include "../../Widgets/Dialogs/progresspopup.h"
+#include "../../Controllers/SelectionController/selectioncontroller.h"
+#include "../../Controllers/SettingsController/settingscontroller.h"
+
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
-
-#include "../../Controllers/SearchManager/searchmanager.h"
-#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
-#include "../../Controllers/SettingsController/settingscontroller.h"
+#include "../../Widgets/optiongroupbox.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
-#include "../../Controllers/SelectionController/selectioncontroller.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../theme.h"
 
-#include "../../Views/NodeView/nodeview.h"
-#include "../../Views/Dock/docktabwidget.h"
-#include "../../Views/Search/searchdialog.h"
-#include "../../Views/Table/datatablewidget.h"
-#include "../../Views/QOSBrowser/qosbrowser.h"
-#include "../../Views/NodeView/nodeviewminimap.h"
-#include "../../Views/Notification/notificationdialog.h"
-#include "../../Views/Notification/notificationtoolbar.h"
+#include "../../Utils/filtergroup.h"
+#include "../../Widgets/customgroupbox.h"
+#include "../../Widgets/Dialogs/progresspopup.h"
+#include "../../Controllers/SearchManager/searchmanager.h"
 
 #include <QDebug>
+#include <QHeaderView>
+#include <QPushButton>
 #include <QMenuBar>
+#include <QDateTime>
 #include <QApplication>
 #include <QStringBuilder>
+#include <QStringListModel>
+#include <QTabWidget>
 #include <QDesktopWidget>
 
+#define TOOLBAR_HEIGHT 32
 #define MENU_ICON_SIZE 16
 
 
@@ -43,20 +39,24 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    initializeApplication();
     setViewController(view_controller);
     
+    initializeApplication();
+    setContextMenuPolicy(Qt::NoContextMenu);
+
     setupTools();
     setupInnerWindow();
     
-    addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Dock);
+    addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Left);
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Center);
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Right);
-
+    
     setupDockIcons();
    
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
+
+    connect(action_controller->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
 
     connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Search);});
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Notification);});
@@ -96,11 +96,23 @@ void MainWindow::setViewController(ViewController* view_controller)
 void MainWindow::resetToolDockWidgets()
 {
     resetDockWidgets();
+<<<<<<< HEAD
+    //innerWindow->addToolBar(applicationToolbar);
+    applicationToolbar->setVisible(true);
+
+    //rightWindow->setDockWidgetsVisible(true);
+    /*for (auto child : rightWindow->getDockWidgets()) {
+        child->setVisible(true);
+    }*/
+
+    resizeToolWidgets();
+=======
     rightWindow->resetDockWidgets();
 
     innerWindow->addToolBar(applicationToolbar);
     applicationToolbar->setVisible(true);
     resetToolWidgets();
+>>>>>>> 9a4be3e48e9cc1eb42474cc051f52e81b78b0d86
 }
 
 QMenu* MainWindow::createPopupMenu(){
@@ -352,6 +364,26 @@ void MainWindow::setupTools()
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
+<<<<<<< HEAD
+    leftWindow = window_manager->constructSubWindow("Left Tools");
+    leftWindow->setObjectName("INVISIBLE_TOOL_WINDOW");
+    leftWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Dock);
+
+    dockwidget_Left = window_manager->constructInvisibleDockWidget("Left Tools");
+    dockwidget_Left->setWidget(leftWindow);
+
+    rightWindow = window_manager->constructSubWindow("Right Tools");
+    rightWindow->setObjectName("INVISIBLE_TOOL_WINDOW");
+    rightWindow->setDockNestingEnabled(true);
+
+    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
+    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
+    rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
+
+    dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
+    dockwidget_Right->setWidget(rightWindow);
+
+=======
     if(!rightWindow){
         rightWindow = window_manager->constructInvisibleWindow(this, "Right Tools");
         rightWindow->setDockNestingEnabled(true);
@@ -363,6 +395,7 @@ void MainWindow::setupTools()
         dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
         dockwidget_Right->setWidget(rightWindow);
     }
+>>>>>>> 9a4be3e48e9cc1eb42474cc051f52e81b78b0d86
 }
 
 
@@ -371,8 +404,6 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {   
-    
-
     innerWindow = WindowManager::manager()->constructCentralWindow(this, "Main Window");
     //Construct dockWidgets.
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces");
@@ -418,11 +449,6 @@ void MainWindow::setupInnerWindow()
 
     dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget");
     dockwidget_Center->setWidget(innerWindow);
-
-    if(action_controller){
-        //Add all actions which need focus!
-        innerWindow->addActions(action_controller->getAllActions());
-    }
 }
 
 
@@ -507,6 +533,7 @@ void MainWindow::setupMenuCornerWidget()
     connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
     
     auto notificationToolbar = NotificationManager::manager()->getToolbar();
+    
     notificationToolbar->setParent(this); 
 
     
@@ -536,8 +563,13 @@ void MainWindow::setupMenuCornerWidget()
     h_layout->addWidget(toolbar);
 
     menu_bar->setCornerWidget(container_widget);
+<<<<<<< HEAD
+    
 
+    connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
+=======
     //connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
+>>>>>>> 9a4be3e48e9cc1eb42474cc051f52e81b78b0d86
 }
 
 void MainWindow::updateMenuBar(){
@@ -606,7 +638,7 @@ void MainWindow::setupDockablePanels()
  */
 void MainWindow::resetToolWidgets()
 {
-    resizeDocks({dockwidget_Dock, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
+    resizeDocks({dockwidget_Left, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
     //rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
 }   
 

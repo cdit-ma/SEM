@@ -549,6 +549,14 @@ QList<RootAction *> ActionController::getRecentProjectActions()
     return actions;
 }
 
+
+QList<QAction*> ActionController::getAllActions(){
+    QList<QAction*> actions;
+    for(auto action : allActions){
+        actions.append(action);
+    }
+    return actions;
+}
 QList<QAction *> ActionController::getNodeViewActions()
 {
     QList<QAction*> actions;

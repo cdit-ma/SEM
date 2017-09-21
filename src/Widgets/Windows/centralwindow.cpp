@@ -1,7 +1,9 @@
 #include "centralwindow.h"
 
-CentralWindow::CentralWindow():ViewWindow()
+
+CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow()
 {
+    this->parent_window = parent_window;
     setAcceptDrops(true);
     setDockNestingEnabled(true);
 
@@ -15,4 +17,11 @@ CentralWindow::~CentralWindow()
 {
 }
 
+QMenu* CentralWindow::createPopupMenu(){
+    if(parent_window){
+        return parent_window->createPopupMenu();
+    }else{
+        return new QMenu(this);
+    }
+}
 

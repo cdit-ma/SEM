@@ -90,7 +90,7 @@ void ShortcutDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    setStyleSheet(theme->getWindowStyleSheet() % theme->getScrollBarStyleSheet() % theme->getDialogStyleSheet());
+    setStyleSheet(theme->getWindowStyleSheet(false) % theme->getScrollBarStyleSheet() % theme->getDialogStyleSheet());
     tableWidget->verticalHeader()->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet() %
                                "QAbstractItemView::item {"

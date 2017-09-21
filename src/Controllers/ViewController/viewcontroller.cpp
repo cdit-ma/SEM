@@ -71,6 +71,8 @@ ViewController::ViewController() : QObject(){
     //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
+    connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
+
 
     //Every minute
     //60000
