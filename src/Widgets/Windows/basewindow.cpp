@@ -44,6 +44,7 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
 void BaseWindow::resetDockWidgets(){
     for(auto dock_widget : getDockWidgets()){
         dock_widget->setVisible(true);
+        qDebug() << "Dock widget: " << dock_widget->getTitle() << " visible: " << dock_widget->isVisible();
     }
 }
 
@@ -107,11 +108,9 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
             connect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
             connect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
         }
-    }
-    QMainWindow::addDockWidget(area, widget, orientation);
-    if(dockWidget){
         emit dockWidgetAdded(dockWidget);
     }
+    QMainWindow::addDockWidget(area, widget, orientation);
 }
 
 void BaseWindow::removeDockWidget(QDockWidget *widget)

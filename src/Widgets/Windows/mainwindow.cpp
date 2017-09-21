@@ -39,25 +39,19 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-
-
     setViewController(view_controller);
     
     initializeApplication();
     setContextMenuPolicy(Qt::NoContextMenu);
 
-
     setupTools();
     setupInnerWindow();
     
-    addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Dock);
+    addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Left);
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Center);
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Right);
     
-    
-    
     setupDockIcons();
-
    
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
@@ -68,7 +62,6 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Notification);});
     connect(view_controller, &ViewController::vc_executeJenkinsJob, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Jenkins);});
 
-    
     SettingsController* s = SettingsController::settings();
 
     auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
@@ -103,8 +96,14 @@ void MainWindow::setViewController(ViewController* view_controller)
 void MainWindow::resetToolDockWidgets()
 {
     resetDockWidgets();
-    innerWindow->addToolBar(applicationToolbar);
+    //innerWindow->addToolBar(applicationToolbar);
     applicationToolbar->setVisible(true);
+
+    //rightWindow->setDockWidgetsVisible(true);
+    /*for (auto child : rightWindow->getDockWidgets()) {
+        child->setVisible(true);
+    }*/
+
     resizeToolWidgets();
 }
 
@@ -338,8 +337,15 @@ void MainWindow::setupTools()
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
+    leftWindow = window_manager->constructSubWindow("Left Tools");
+    leftWindow->setObjectName("INVISIBLE_TOOL_WINDOW");
+    leftWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Dock);
+
+    dockwidget_Left = window_manager->constructInvisibleDockWidget("Left Tools");
+    dockwidget_Left->setWidget(leftWindow);
 
     rightWindow = window_manager->constructSubWindow("Right Tools");
+    rightWindow->setObjectName("INVISIBLE_TOOL_WINDOW");
     rightWindow->setDockNestingEnabled(true);
 
     rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
@@ -348,6 +354,7 @@ void MainWindow::setupTools()
 
     dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
     dockwidget_Right->setWidget(rightWindow);
+
 }
 
 
@@ -534,7 +541,7 @@ void MainWindow::setupMenuCornerWidget()
     menu_bar->setCornerWidget(container_widget);
     
 
-    //connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
+    connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
 }
 
 void MainWindow::updateMenuBar(){
@@ -607,8 +614,8 @@ void MainWindow::setupDockablePanels()
  */
 void MainWindow::resizeToolWidgets()
 {
-    resizeDocks({dockwidget_Dock, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
-    rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
+    resizeDocks({dockwidget_Left, dockwidget_Center, dockwidget_Right}, {3, 25, 4}, Qt::Horizontal);
+    //rightWindow->resizeDocks({dockwidget_Table, dockwidget_ViewManager, dockwidget_Minimap}, {2, 2, 1}, Qt::Vertical);
 }   
 
 /**

@@ -77,6 +77,7 @@ private:
 
     BaseWindow* innerWindow = 0;
     BaseWindow* rightWindow = 0;
+    BaseWindow* leftWindow = 0;
 
     //For the innew window
     BaseDockWidget* dockwidget_Jenkins = 0;
@@ -89,10 +90,13 @@ private:
     BaseDockWidget* dockwidget_ViewManager = 0;
     BaseDockWidget* dockwidget_Minimap = 0;
 
-    //Main windows dock widgets
+    // Left hand tools
     BaseDockWidget* dockwidget_Dock = 0;
+
+    //Main windows dock widgets
     BaseDockWidget* dockwidget_Center = 0;
     BaseDockWidget* dockwidget_Right = 0;
+    BaseDockWidget* dockwidget_Left = 0;
 
     
     QMenuBar* menu_bar = 0;
