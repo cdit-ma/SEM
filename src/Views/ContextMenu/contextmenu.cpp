@@ -625,7 +625,8 @@ QWidgetAction* construct_menu_label(QString label){
     auto label_widget = new QLabel(label);
     
     label_widget->setContentsMargins(4,8,4,8);
-    label_widget->setAlignment(Qt::AlignCenter);
+    //label_widget->setAlignment(Qt::AlignCenter);
+    label_widget->setAlignment(Qt::AlignLeft);
     label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     action->setDefaultWidget(label_widget);
     return action;
