@@ -221,6 +221,7 @@ void MainWindow::toggleWelcomeScreen(bool on)
     if(welcome_screen_on != on){
         menu_bar->setVisible(!on);
         setDockWidgetsVisible(!on);
+        rightWindow->setDockWidgetsVisible(!on);
 
         //Swap between the welcome scree and 0
         swapCentralWidget(on ? welcomeScreen : 0);

@@ -15,7 +15,7 @@ InvisibleWindow::InvisibleWindow(BaseWindow* parent_window):BaseWindow(0, BaseWi
 void InvisibleWindow::updateVisibility(){
     bool visible = false;
     for(auto dock_widget : getDockWidgets()){
-        if(dock_widget->isVisibleTo(this)){
+        if(dock_widget->isVisibleTo(this) && !dock_widget->isFloating()){
             visible = true; 
         }
     }
