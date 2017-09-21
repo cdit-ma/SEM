@@ -105,6 +105,8 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
             currentDockWidgets.insert(ID, dockWidget);
             updateActions();
 
+
+            connect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
             connect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
             connect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
             connect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
@@ -127,6 +129,8 @@ void BaseWindow::removeDockWidget(QDockWidget *widget)
         previouslyVisibleDockIDs.removeAll(ID);
         updateActions();
 
+
+        disconnect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
         disconnect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
         disconnect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
         disconnect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
