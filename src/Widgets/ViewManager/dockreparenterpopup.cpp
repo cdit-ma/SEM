@@ -39,8 +39,10 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
         new_window_button->show();
         //Add New Buttons for the other valid windows, and show them
         for(auto window : valid_windows){
-            auto window_button = getWindowAction(window);
-            window_button->show();
+            if(window->getType() != BaseWindow::INVISIBLE_WINDOW){
+                auto window_button = getWindowAction(window);
+                window_button->show();
+            }
         }
     
         //Forces a blocking size adjustment to ensure its the right width.

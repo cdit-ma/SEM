@@ -1,34 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QTableView>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QProgressBar>
-#include <QCompleter>
-#include <QStringListModel>
-#include <QTimer>
-
 #include "basewindow.h"
-#include "welcomescreenwidget.h"
-
-#include "../../Views/Dock/docktabwidget.h"
-#include "../../Views/Search/searchdialog.h"
-#include "../../Views/Table/datatablewidget.h"
-#include "../../Views/QOSBrowser/qosbrowser.h"
-
-#include "../../Views/NodeView/nodeview.h"
-#include "../../Views/NodeView/nodeviewminimap.h"
-
 #include "../../Controllers/ViewController/viewcontroller.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-
-#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
-
-#include "../../Widgets/Dialogs/popupwidget.h"
-#include "../../Views/Notification/notificationtoolbar.h"
-#include "../../Views/Notification/notificationdialog.h"
-
+#include <QMenu>
+#include <QToolButton>
+class Theme;
+class WelcomeScreenWidget;
 
 
 class MainWindow : public BaseWindow

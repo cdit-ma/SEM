@@ -1,34 +1,38 @@
 #include "mainwindow.h"
+#include "welcomescreenwidget.h"
+
+#include "../../theme.h"
 #include "../DockWidgets/viewdockwidget.h"
 #include "../DockWidgets/tooldockwidget.h"
 #include "../DockWidgets/invisibledockwidget.h"
 
-#include "../../Controllers/SelectionController/selectioncontroller.h"
-#include "../../Controllers/SettingsController/settingscontroller.h"
-
+#include "../../Widgets/Dialogs/popupwidget.h"
+#include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
-#include "../../Widgets/optiongroupbox.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
-#include "../../theme.h"
 
-#include "../../Utils/filtergroup.h"
-#include "../../Widgets/customgroupbox.h"
-#include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Controllers/SearchManager/searchmanager.h"
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+#include "../../Controllers/SettingsController/settingscontroller.h"
+#include "../../Controllers/NotificationManager/notificationobject.h"
+#include "../../Controllers/SelectionController/selectioncontroller.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
+
+#include "../../Views/NodeView/nodeview.h"
+#include "../../Views/Dock/docktabwidget.h"
+#include "../../Views/Search/searchdialog.h"
+#include "../../Views/Table/datatablewidget.h"
+#include "../../Views/QOSBrowser/qosbrowser.h"
+#include "../../Views/NodeView/nodeviewminimap.h"
+#include "../../Views/Notification/notificationdialog.h"
+#include "../../Views/Notification/notificationtoolbar.h"
 
 #include <QDebug>
-#include <QHeaderView>
-#include <QPushButton>
 #include <QMenuBar>
-#include <QDateTime>
 #include <QApplication>
 #include <QStringBuilder>
-#include <QStringListModel>
-#include <QTabWidget>
 #include <QDesktopWidget>
 
-#define TOOLBAR_HEIGHT 32
 #define MENU_ICON_SIZE 16
 
 
@@ -507,7 +511,6 @@ void MainWindow::setupMenuCornerWidget()
     connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
     
     auto notificationToolbar = NotificationManager::manager()->getToolbar();
-    
     notificationToolbar->setParent(this); 
 
     
