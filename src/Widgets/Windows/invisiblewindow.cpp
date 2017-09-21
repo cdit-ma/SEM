@@ -19,7 +19,11 @@ void InvisibleWindow::updateVisibility(){
             visible = true; 
         }
     }
-    setVisible(visible);
+    auto parent_widget = parentWidget();
+    if(parent_widget){
+        parent_widget->setVisible(visible);
+    }
+    
 }
 
 

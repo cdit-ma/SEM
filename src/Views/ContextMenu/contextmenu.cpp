@@ -369,7 +369,7 @@ void ContextMenu::populate_dynamic_add_node_menu(QMenu* menu){
     
         //Clear all the old items out of the menu (This should delete)
         ClearMenu(menu);
-        
+        qCritical() << "Recalculate";
         //Construct the view_item menu hiararchy
         construct_view_item_menus(menu, view_controller->getConstructableNodeDefinitions(node_kind, edge_kind));
 
@@ -501,8 +501,6 @@ QAction* ContextMenu::construct_viewitem_action(ViewItem* item, QMenu* menu){
             auto edge_item = (EdgeViewItem*)item;
             action->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
         }
-
-        //connect(action, &QAction::hovered, [=](){action_hovered(action);});
         
         updateAction(action, item);
         return action;
