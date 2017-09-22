@@ -279,7 +279,7 @@ QStringList ViewController::_getSearchSuggestions()
     return suggestions.toList();
 }
 
-QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
+QMap<QString, ViewItem *> ViewController::getSearchResults(QString query, QList<ViewItem*> view_items)
 {
     auto keys = getSearchableKeys();
     QMap<QString, ViewItem*> results;
@@ -287,8 +287,11 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     QRegExp rx("*" + query + "*");
     rx.setPatternSyntax(QRegExp::WildcardUnix);
     rx.setCaseSensitivity(Qt::CaseInsensitive);
-
-    for(auto item : getSearchableEntities()){
+    if(view_items.isEmpty()){
+        qCritical() << "GOT EMPTY";
+        view_items = getSearchableEntities();
+    }
+    for(auto item : view_items){
         for(auto key : keys){
             if(item->hasData(key)){
                 auto data = item->getData(key).toString();
@@ -299,6 +302,14 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
         }
     }
     return results;
+}
+
+QList<ViewItem*> ViewController::filterList(QString query, QList<ViewItem*> view_items){
+    if(view_items.isEmpty()){
+        return view_items;
+    }else{
+        return getSearchResults(query, view_items).values().toSet().toList();
+    }
 }
 
 ViewDockWidget *ViewController::constructViewDockWidget(QString label)
@@ -341,8 +352,25 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND
     }
     return list;
 }
+NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
+    return nodeKindItems.value(kind, 0);
+}
+QList<ViewItem*> ViewController::getAdoptableNodeKinds()
+{
+    QList<ViewItem*> kinds;
 
+    if(selectionController && controller && selectionController->getSelectionCount() == 1){
+        int ID = selectionController->getFirstSelectedItem()->getID();
 
+        for(auto kind : controller->getAdoptableNodeKinds(ID)){
+            auto kind_item  = nodeKindItems.value(kind, 0);
+            if(kind_item){
+                kinds.append(kind_item);
+            }
+        }
+    }
+    return kinds;
+}
 QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 {
     QList<NODE_KIND> kinds;
@@ -356,12 +384,16 @@ QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
 
 QList<NodeViewItem *> ViewController::getNodeKindItems()
 {
-    return nodeKindItems;
+    auto list = nodeKindItems.values();
+    std::sort(list.begin(), list.end(), ViewItem::SortByLabel);
+    return list;
 }
 
 QList<EdgeViewItem *> ViewController::getEdgeKindItems()
 {
-    return edgeKindItems;
+    auto list = edgeKindItems.values();
+    std::sort(list.begin(), list.end(), ViewItem::SortByLabel);
+    return list;
 }
 
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
@@ -663,7 +695,7 @@ void ViewController::setupEntityKindItems()
         auto item = new NodeViewItem(this, kind, label);
         //qCritical() << label;
         setDefaultIcon(item);
-        nodeKindItems.append(item);
+        nodeKindItems[kind] = item;
     }
 
     
@@ -674,12 +706,13 @@ void ViewController::setupEntityKindItems()
         label.remove(0, 5);
         auto item = new EdgeViewItem(this, kind, label);
         setDefaultIcon(item);
-        edgeKindItems.append(item);
+
+        edgeKindItems[kind] = item;
     }
 
     //Sort the lists to be alphabetical
-    std::sort(nodeKindItems.begin(), nodeKindItems.end(), ViewItem::SortByLabel);
-    std::sort(edgeKindItems.begin(), edgeKindItems.end(), ViewItem::SortByLabel);
+    //std::sort(nodeKindItems.begin(), nodeKindItems.end(), ViewItem::SortByLabel);
+    //std::sort(edgeKindItems.begin(), edgeKindItems.end(), ViewItem::SortByLabel);
 }
 
 

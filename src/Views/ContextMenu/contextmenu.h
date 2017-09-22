@@ -52,6 +52,8 @@ private:
 private:
     void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
 
+QWidgetAction* construct_menu_search(QMenu* parent);
+
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
 

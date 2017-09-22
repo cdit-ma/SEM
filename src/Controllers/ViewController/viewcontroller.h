@@ -48,14 +48,17 @@ public:
 
     QStringList _getSearchSuggestions();
 
-    QMap<QString, ViewItem*> getSearchResults(QString result);
+    QMap<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
+    QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
+
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString label="");
-
+    QList<ViewItem*> getAdoptableNodeKinds();
     QList<NODE_KIND> getAdoptableNodeKinds2();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
+    NodeViewItem* getNodeItem(NODE_KIND kind);
 
     QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
@@ -331,8 +334,8 @@ private:
     QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
 
 
-    QList<NodeViewItem*> nodeKindItems;
-    QList<EdgeViewItem*> edgeKindItems;
+    QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
+    QHash<EDGE_KIND, EdgeViewItem*> edgeKindItems;
 
     bool _controllerReady = false;
 
