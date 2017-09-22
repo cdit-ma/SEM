@@ -1,10 +1,8 @@
 #ifndef OCLBUFFER_H
 #define OCLBUFFER_H
 
-#include "cl2.hpp"
-
-#include "openclmanager.h"
 #include "openclutilities.h"
+#include "openclmanager.h"
 #include <vector>
 #include "genericbuffer.h"
 
@@ -30,7 +28,7 @@ public:
 
     Worker* GetWorkerReference() const;
 
-    const cl::Buffer& get_backing_ref() const;
+    //const cl::Buffer& get_backing_ref() const;
 
     static void ReleaseAll();
 
@@ -50,7 +48,6 @@ private:
 
     Worker* worker_reference_ = 0;
     OpenCLManager* manager_ = nullptr;
-    cl::Buffer buffer_;
     size_t length_;  // The number of elements, not bytes
 };
 
@@ -58,7 +55,6 @@ private:
 template <typename T>
 OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, int id, size_t num_elements, Worker* worker_reference)
     : GenericBuffer(id) , manager_(manager), length_(num_elements), worker_reference_(worker_reference){
-    std::cerr << "Called into OCLBuffer " << std::endl;
     
     cl_int err;
     buffer_ = cl::Buffer(manager_->GetContext(), CL_MEM_READ_WRITE,
@@ -73,7 +69,6 @@ OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, int id, size_t num_elements, Wor
 	}
 
     valid_ = true;
-    std::cout << "Called into OCLBuffer" << id_ << " " << this << std::endl;
 }
 
 template <typename T>
@@ -119,7 +114,6 @@ const std::vector<T> OCLBuffer<T>::ReadData(bool blocking, Worker* worker_refere
     // NEEDS TO HAVE LENGTH INITIALISED FIRST
     //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
     err = manager_->GetQueues().at(0).enqueueReadBuffer(buffer_, true, 0, length_*sizeof(T), data.data());
-    std::cout << "Internal : " << data.data()[0] << std::endl;
     if(err != CL_SUCCESS){
         LogError(worker_reference,
             __func__,
@@ -135,10 +129,10 @@ Worker* OCLBuffer<T>::GetWorkerReference() const{
     return worker_reference_;
 }
 
-template <typename T>
+/*template <typename T>
 const cl::Buffer& OCLBuffer<T>::get_backing_ref() const {
     return buffer_;
-}
+}*/
 
 template <typename T>
 void OCLBuffer<T>::LogError(Worker* worker_reference,

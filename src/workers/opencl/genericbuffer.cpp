@@ -13,3 +13,7 @@ bool GenericBuffer::is_valid() {
 int GenericBuffer::GetID() const {
     return id_;
 }
+
+const cl::Buffer& GenericBuffer::GetBackingRef() const {
+    return buffer_;
+}

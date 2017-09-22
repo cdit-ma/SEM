@@ -10,9 +10,6 @@
 
 #include <unordered_set>
 
-
-
-
 std::vector<OpenCLManager*> OpenCLManager::reference_list_;
 std::vector<cl::Platform> OpenCLManager::platform_list_;
 
@@ -22,7 +19,6 @@ std::vector<cl::Platform> OpenCLManager::platform_list_;
 
 
 OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* workerReference) {
-	std::cerr << "TRYING TO CONSTRUCT MATE!" << platformID << std::endl;
 	// If we haven't initialized the length of the reference list yet do so now
 	if (reference_list_.empty()) {
 		cl_int errCode = cl::Platform::get(&platform_list_);
@@ -47,7 +43,6 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* wor
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
 	if (reference_list_[platformID] == NULL) {
-		std::cout << "TRYING TO CONSTRUCT MATE!" << std::endl;
 		OpenCLManager* newManager = new OpenCLManager(platform_list_[platformID]);
 
 		if (!newManager->IsValid()) {
@@ -166,12 +161,12 @@ const std::vector<cl::CommandQueue> OpenCLManager::GetQueues() const {
 	return queues_;
 }
 
-const std::vector<cl::Kernel> OpenCLManager::CreateKernels(
+const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(
 											std::vector<std::string> filenames,
 											Worker* worker_reference /*= NULL*/) {
 	cl_int err;
 
-	std::vector<cl::Kernel> kernels;
+	std::vector<OpenCLKernel> kernels;
 
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
@@ -196,14 +191,20 @@ const std::vector<cl::Kernel> OpenCLManager::CreateKernels(
 		return kernels;
 	}
 
-	err = program_->createKernels(&kernels);
+	std::vector<cl::Kernel>* cl_kernels = new std::vector<cl::Kernel>();
+	kernel_vector_store_.push_back(cl_kernels);
+	err = program_->createKernels(cl_kernels);
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
 			std::string(__func__),
 			"An error occurred during the creation of OpenCL kernels from a built program",
 			err);
-		// Return an empty kernel list to avoid undefined behaviour
-		return std::vector<cl::Kernel>();
+		return kernels;
+	}
+
+	for (auto &cl_kernel : *cl_kernels) {
+		// kernels.push_back(new OpenCLKernel(*this, cl_kernel, worker_reference));
+		kernels.emplace_back(*this, cl_kernel, worker_reference);
 	}
 
 	return kernels;

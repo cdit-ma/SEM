@@ -2,11 +2,6 @@
 #define OPENCL_MANAGER_H
 
 
-//#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
-#define CL_HPP_TARGET_OPENCL_VERSION 200
-#define CL_HPP_MINIMUM_OPENCL_VERSION 120
-#include "cl2.hpp"
-
 #include <unordered_map>
 #include <map>
 #include <mutex>
@@ -14,7 +9,10 @@
 #include <core/modellogger.h>
 #include <core/worker.h>
 
+#include "openclutilities.h"
+
 #include "oclbuffer.hpp"
+#include "openclkernel.hpp"
 
 class OpenCLManager {
 	public:
@@ -38,7 +36,7 @@ class OpenCLManager {
 
 		const std::vector<cl::CommandQueue> GetQueues() const;
 
-		const std::vector<cl::Kernel> CreateKernels(std::vector<std::string> filenames, Worker* worker_reference = NULL);
+		const std::vector<OpenCLKernel> CreateKernels(std::vector<std::string> filenames, Worker* worker_reference = NULL);
 
 		template <typename KernelArg_t>
 		void SetKernelArg(cl::Kernel& kernel, cl_int index, KernelArg_t value);
@@ -59,6 +57,7 @@ class OpenCLManager {
 
 	private:
 		OpenCLManager(cl::Platform &platform, Worker* worker_reference=NULL);
+		~OpenCLManager() {};
 
 		template <typename T>
 		OCLBuffer<T>* TrackBuffer(OCLBuffer<T>* buffer);
@@ -91,6 +90,7 @@ class OpenCLManager {
 		std::vector<cl::Device> device_list_;
 		std::vector<cl::CommandQueue> queues_;
 		cl::Program* program_;
+		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
 		std::map<int, GenericBuffer*> buffer_store_;
 		int buffer_id_count_ = -1;

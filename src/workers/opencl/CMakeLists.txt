@@ -30,17 +30,23 @@ endif()
 #endif(NOT CLFFT_LIB)
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker.cpp
     )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cl2.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/oclbuffer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/rekernel.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cl2.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker.h
     )
 
 
@@ -51,7 +57,7 @@ include_directories("${OPENCL_ROOT}/include")
 
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} openclworkertests.cpp)
+add_executable(${TESTER_NAME} openclmanagertests.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
