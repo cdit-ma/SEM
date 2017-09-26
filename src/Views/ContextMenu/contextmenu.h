@@ -52,6 +52,8 @@ private:
 private:
     void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
 
+    QWidgetAction* construct_menu_search(QMenu* parent);
+
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
 
@@ -102,6 +104,8 @@ private:
         QWidgetAction* deployed_nodes_action = 0;
         QWidgetAction* available_nodes_action = 0;
     };
+
+    QHash<QMenu*, QWidgetAction*> search_actions_;
     QHash <QMenu*, DeployLabels*> deploy_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;

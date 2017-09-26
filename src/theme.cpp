@@ -413,9 +413,7 @@ QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_co
             }
         }
 
-        if(alias == "visibleToggle"){
-            qCritical() << lookupName << (icon_toggle.got_toggle ? " TOGGLE:" : " DOESN'T TOGGLE");
-        }
+        
         //Handle On State
         if(icon_toggle.got_toggle){
             icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
