@@ -82,6 +82,13 @@ ViewController::ViewController() : QObject(){
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
 }
 
+QList<ViewItem*> ViewController::ToViewItemList(QList<NodeViewItem*> &items){
+    return *(QList<ViewItem*>*)(&items);
+}
+QList<ViewItem*> ViewController::ToViewItemList(QList<EdgeViewItem*> &items){
+    return *(QList<ViewItem*>*)(&items);
+}
+
 ContextMenu* ViewController::getContextMenu(){
     return menu;
 }
@@ -355,31 +362,14 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND
 NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
     return nodeKindItems.value(kind, 0);
 }
-QList<ViewItem*> ViewController::getAdoptableNodeKinds()
-{
-    QList<ViewItem*> kinds;
 
+QSet<NODE_KIND> ViewController::getAdoptableNodeKinds()
+{
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
-
-        for(auto kind : controller->getAdoptableNodeKinds(ID)){
-            auto kind_item  = nodeKindItems.value(kind, 0);
-            if(kind_item){
-                kinds.append(kind_item);
-            }
-        }
+        return controller->getAdoptableNodeKinds(ID);
     }
-    return kinds;
-}
-QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
-{
-    QList<NODE_KIND> kinds;
-
-    if(selectionController && controller && selectionController->getSelectionCount() == 1){
-        int ID = selectionController->getFirstSelectedItem()->getID();
-        kinds = controller->getAdoptableNodeKinds(ID);
-    }
-    return kinds;
+    return {NODE_KIND::NONE};
 }
 
 QList<NodeViewItem *> ViewController::getNodeKindItems()
@@ -688,6 +678,9 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
+
+    constructableNodes.removeAll(NODE_KIND::BLACKBOX);
+    constructableNodes.removeAll(NODE_KIND::BLACKBOX_INSTANCE);
 
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getNodeKindString(kind);

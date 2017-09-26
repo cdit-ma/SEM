@@ -4,6 +4,7 @@
 
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QTimer>
 #include <QToolButton>
 
 /**
@@ -22,8 +23,7 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
     connect(theme, &Theme::theme_Changed, this, &DockTabWidget::themeChanged);
     themeChanged();
     
-    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &DockTabWidget::refreshSize);
-    
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &DockTabWidget::refreshSize);   
     dockActionTriggered(parts_action);
     refreshSize();
 }
@@ -38,9 +38,6 @@ void DockTabWidget::themeChanged()
 
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
-
-    //parts_action->setIcon(theme->getIcon("Icons", "plus"));
-    //deploy_action->setIcon(theme->getIcon("Icons", "screen"));
 
     QIcon partIcon;
     partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
@@ -185,12 +182,18 @@ void DockTabWidget::setupDocks()
 
 void DockTabWidget::refreshSize()
 {
-    //auto size_hint = add_part_menu->sizeHint().width();
-    //auto maxWidth = qMax(size_hint, parts_dock->viewport()->size().width());
-    //add_part_menu->setFixedWidth(maxWidth - 2);
+    auto current_menu = stack_widget->currentWidget() == parts_dock ? add_part_menu : deploy_menu;
+    auto dock_width = width() - 2;
+    
+    auto width = current_menu->width();
+    auto required_width = current_menu->sizeHint().width();
+    
+    if(required_width > width){
+        //Add the margin in
+        setMinimumWidth(required_width + 2);   
+    }
 
-    add_part_menu->setFixedWidth(parts_dock->viewport()->size().width() - 2);
-    deploy_menu->setFixedWidth(deploy_dock->viewport()->size().width() - 2);
+    current_menu->setFixedWidth(dock_width);
 }
 
 bool DockTabWidget::eventFilter(QObject *object, QEvent *event)

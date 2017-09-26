@@ -32,6 +32,10 @@ public:
     ViewController();
     ~ViewController();
 
+
+    static QList<ViewItem*> ToViewItemList(QList<NodeViewItem*> &items);
+    static QList<ViewItem*> ToViewItemList(QList<EdgeViewItem*> &items);
+
     void connectModelController(ModelController* c);
 
     bool isWelcomeScreenShowing();
@@ -50,12 +54,18 @@ public:
 
     QMap<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
     QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
+    QList<ViewItem*> filterList(QString query, QList<NodeViewItem*> view_items){
+        return filterList(query, ViewController::ToViewItemList(view_items));
+    }
+    QList<ViewItem*> filterList(QString query, QList<EdgeViewItem*> view_items){
+        return filterList(query, ViewController::ToViewItemList(view_items));
+    }
+
 
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString label="");
-    QList<ViewItem*> getAdoptableNodeKinds();
-    QList<NODE_KIND> getAdoptableNodeKinds2();
+    QSet<NODE_KIND> getAdoptableNodeKinds();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
     NodeViewItem* getNodeItem(NODE_KIND kind);

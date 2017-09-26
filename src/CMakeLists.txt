@@ -85,6 +85,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/enumerations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
@@ -188,6 +189,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/enumerations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.h
