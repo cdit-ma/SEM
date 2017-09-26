@@ -331,7 +331,6 @@ void NodeView::node_ConnectMode(NodeItem *item)
 
 void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction){
     auto global_pos = mapToGlobal(mapFromScene(scene_pos));
-    qCritical() << global_pos;
     viewController->getContextMenu()->popup_edge_menu(global_pos, kind, direction);
 }
 

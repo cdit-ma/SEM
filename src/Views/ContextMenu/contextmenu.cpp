@@ -391,17 +391,13 @@ void ContextMenu::populate_dynamic_add_node_menu(QMenu* menu){
         ClearMenu(menu);
         //Focus the search
 
-        auto widget_action = search_actions_.value(menu, 0);
-
-        qCritical() << "Recalculate";
+        
         //Construct the view_item menu hiararchy
         construct_view_item_menus(menu, view_controller->getConstructableNodeDefinitions(node_kind, edge_kind));
-
+        
         //Add menu into the set of validated menus to avoid recalculating unnecessarily
         menu_updated(menu);
-        if(widget_action){
-            widget_action->defaultWidget()->setFocus();
-        }
+        
     }
 }
 
@@ -481,6 +477,12 @@ bool ContextMenu::menu_requires_update(QMenu* menu){
 }
 void ContextMenu::menu_updated(QMenu* menu){
     valid_menus.insert(menu);
+
+    //Focus the search widget if it has one
+    auto widget_action = search_actions_.value(menu, 0);
+    if(widget_action){
+        widget_action->defaultWidget()->setFocus();
+    }
 }
 
 void ContextMenu::update_add_node_menu(){
