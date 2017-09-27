@@ -1631,7 +1631,7 @@ void Theme::teardownTheme()
     themeSingleton = 0;
 }
 
-CustomMenuStyle::CustomMenuStyle(int icon_size){
+CustomMenuStyle::CustomMenuStyle(int icon_size) : QProxyStyle("Windows"){
     this->icon_size = icon_size;
 }
 

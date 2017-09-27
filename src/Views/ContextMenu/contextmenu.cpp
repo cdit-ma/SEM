@@ -17,6 +17,7 @@
 //TODO: Integrate search into Deploy Dock
 
 ContextMenu::ContextMenu(ViewController *vc){
+    qCritical() << QStyleFactory::keys();    
     view_controller = vc;
     Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getNodeKindString(NODE_KIND::NONE) , "Icons", "tiles");
 
@@ -168,6 +169,7 @@ QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu, int icon_s
         icon_size = MENU_ICON_SIZE;
     }
     auto menu = parent_menu ? parent_menu->addMenu(label) : new QMenu(label);
+    
     menu->setStyle(new CustomMenuStyle(icon_size));
     return menu;
 }
@@ -290,89 +292,94 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
 
 void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu, QString empty_label){
     if(menu){
-        
-        qCritical() << " GOT MENU: " << menu->actions().count();
-       
-        auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        
-        
-        //auto filter_str = menu->property("filter").toString();
         auto filter_str = menu->property("filter").toString();
-        auto filtered_view_items = view_controller->filterList(filter_str, view_items);
-        auto finish1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "Filtering() took: " <<  finish1 - start << "MS.";
+        auto load_count = menu->property("load_count").toInt();
+        if(load_count <= 0){
+            load_count = 10;
+        }
         
-        //Get sorted lists of valid items and parents
+        //Filter the list of the view items 
+        auto filtered_view_items = view_controller->filterList(filter_str, view_items);
+
+        //Sort the filtered list
         std::sort(filtered_view_items.begin(), filtered_view_items.end(), ViewItem::SortByKind);
 
-        auto finish2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "SortByKind() took: " <<  finish2 - finish1 << "MS.";
-
+        //Get the unique parent_items
         auto parent_items = view_controller->getViewItemParents(filtered_view_items);
 
-        auto finish3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "parent_items() took: " <<  finish3 - finish2 << "MS.";
-        
+        //We should use a parent menu hiarachy, if we have more than 1 parent, and the use doesn't want flattened menus
         bool use_parent_menus = flatten_menu ? false : parent_items.size() > 1;
-        
-        //Keep a hash to keep track of the parent_menues
+        if(!use_parent_menus){
+            parent_items.clear();
+        }
+
+        //Keep a hash to keep track of the parent_menus
         QHash<int, QMenu*> parent_menus;
-    
+        
         //Construct the parent menus first
         for(auto view_item : parent_items){
-            if(use_parent_menus){
-                //By adding this menu to the parent_menu, we can clean up memory on clear
-                auto parent_menu = construct_viewitem_menu(view_item, menu);
-                parent_menus.insert(view_item->getID(), parent_menu);
-            }
+            //By adding this menu to the parent_menu, we can clean up memory on clear
+            auto parent_menu = construct_viewitem_menu(view_item, menu);
+            parent_menus.insert(view_item->getID(), parent_menu);
         }
-        auto finish4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "creating parent items took(): " <<  finish4 - finish3 << "MS.";
-        QList<QAction*> actions;
+
+        //Store a list of actions
+        QVector<QAction*> actions;
+
         for(auto view_item : filtered_view_items){
-            auto parent_view_item = view_item->getParentItem();
+            auto id = view_item->getID();
+            auto parent_item = view_item->getParentItem();
             auto parent_menu = menu;
             
-            if(use_parent_menus && parent_view_item){
-                parent_menu = parent_menus.value(parent_view_item->getID(), parent_menu);
+            if(parent_item){
+                //If we have a parent item, try check for a menu
+                parent_menu = parent_menus.value(parent_item->getID(), parent_menu);
             }
-            auto id = view_item->getID();
+            
+            
             //Check for a hash
             auto action = action_hash.value({menu, id}, 0);
             if(!action){
-                qCritical() << "Construct action";
-                action = construct_viewitem_action(view_item, parent_menu);
+                action = construct_viewitem_action(view_item, 0);
                 //Insert into hash
                 action_hash.insert({menu, id}, action);
             }
-            actions.append(action);
-
+            
             //Set the properties on the action
             action->setProperty("node_kind", menu->property("node_kind"));
             action->setProperty("edge_kind", menu->property("edge_kind"));
             action->setProperty("action_kind", menu->property("action_kind"));
             action->setProperty("edge_direction", menu->property("edge_direction"));
+
+            if(parent_menu == menu){
+                actions.append(action);
+            }else{
+                parent_menu->addAction(action);
+            }
         }
-        auto finish5 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "creating items took(): " <<  finish5 - finish4 << "MS.";
-        menu->setUpdatesEnabled(false);
-        auto was_visible = menu->isVisible();
-        if(was_visible){
-            menu->setVisible(false);
-        }
-        menu->addActions(actions);
-        auto finish6 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "Adding items took(): " <<  finish6 - finish5 << "MS.";
-       
-        auto finish7 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "SHOWING items took(): " <<  finish7 - finish6 << "MS.";
-        menu->setUpdatesEnabled(true);
-        if(was_visible){
-            menu->setVisible(true);
+
+        bool all_loaded = actions.size() <= load_count;
+
+        if(!all_loaded){
+            //Trim our list
+            actions.resize(load_count);
         }
         
+        menu->setUpdatesEnabled(false);
+        menu->addActions(actions.toList());
+        menu->setUpdatesEnabled(true);
 
-
+        if(!all_loaded){
+            //Add a special 
+            auto action = get_no_valid_items_action(menu, "Load more");
+            action->setEnabled(true);
+            connect(action, &QAction::triggered, this, [=](){
+                menu->setProperty("load_count", load_count + 10);
+                valid_menus.remove(menu);
+                emit menu->aboutToShow();
+                menu->show();
+            });
+        }
         
         auto hidden_count = view_items.size() - filtered_view_items.size();
         if(hidden_count > 0){
@@ -742,6 +749,7 @@ QWidgetAction* ContextMenu::construct_menu_search(QMenu* parent){
     
     connect(filter_widget, &FilterWidget::filterChanged, [=](const QString & text){
         parent->setProperty("filter", text);
+        parent->setProperty("load_count", 0);
         valid_menus.remove(parent);
         emit parent->aboutToShow();
     });
