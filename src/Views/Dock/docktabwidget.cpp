@@ -183,7 +183,9 @@ void DockTabWidget::setupDocks()
 void DockTabWidget::refreshSize()
 {
     auto current_menu = stack_widget->currentWidget() == parts_dock ? add_part_menu : deploy_menu;
-    auto dock_width = width() - 2;
+    auto current_dock =stack_widget->currentWidget() == parts_dock ? parts_dock : deploy_dock;
+
+    auto dock_width = current_dock->viewport()->width() - 2;
     
     auto width = current_menu->width();
     auto required_width = current_menu->sizeHint().width();
