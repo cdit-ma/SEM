@@ -96,7 +96,9 @@ private:
     QHash <NODE_KIND, QAction*> add_node_action_hash;
 
     QHash <int, QAction*> node_action_hash;
+    QHash<QMenu*, int> menu_action_ids;
 
+    QHash<QPair<QMenu*, int>, QAction*> action_hash;
 
     QSet<QMenu*> valid_menus;
 

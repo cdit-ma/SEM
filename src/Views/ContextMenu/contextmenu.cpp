@@ -290,14 +290,28 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
 
 void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu, QString empty_label){
     if(menu){
+        
+        qCritical() << " GOT MENU: " << menu->actions().count();
+       
+        auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        
+        
         //auto filter_str = menu->property("filter").toString();
         auto filter_str = menu->property("filter").toString();
         auto filtered_view_items = view_controller->filterList(filter_str, view_items);
+        auto finish1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Filtering() took: " <<  finish1 - start << "MS.";
         
         //Get sorted lists of valid items and parents
         std::sort(filtered_view_items.begin(), filtered_view_items.end(), ViewItem::SortByKind);
 
+        auto finish2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "SortByKind() took: " <<  finish2 - finish1 << "MS.";
+
         auto parent_items = view_controller->getViewItemParents(filtered_view_items);
+
+        auto finish3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "parent_items() took: " <<  finish3 - finish2 << "MS.";
         
         bool use_parent_menus = flatten_menu ? false : parent_items.size() > 1;
         
@@ -312,7 +326,9 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
                 parent_menus.insert(view_item->getID(), parent_menu);
             }
         }
-    
+        auto finish4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "creating parent items took(): " <<  finish4 - finish3 << "MS.";
+        QList<QAction*> actions;
         for(auto view_item : filtered_view_items){
             auto parent_view_item = view_item->getParentItem();
             auto parent_menu = menu;
@@ -320,16 +336,43 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
             if(use_parent_menus && parent_view_item){
                 parent_menu = parent_menus.value(parent_view_item->getID(), parent_menu);
             }
-    
-            //By adding the Action to the parent_menu, we can clean up memory on clear
-            auto action = construct_viewitem_action(view_item, parent_menu);
-    
+            auto id = view_item->getID();
+            //Check for a hash
+            auto action = action_hash.value({menu, id}, 0);
+            if(!action){
+                qCritical() << "Construct action";
+                action = construct_viewitem_action(view_item, parent_menu);
+                //Insert into hash
+                action_hash.insert({menu, id}, action);
+            }
+            actions.append(action);
+
             //Set the properties on the action
             action->setProperty("node_kind", menu->property("node_kind"));
             action->setProperty("edge_kind", menu->property("edge_kind"));
             action->setProperty("action_kind", menu->property("action_kind"));
             action->setProperty("edge_direction", menu->property("edge_direction"));
         }
+        auto finish5 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "creating items took(): " <<  finish5 - finish4 << "MS.";
+        menu->setUpdatesEnabled(false);
+        auto was_visible = menu->isVisible();
+        if(was_visible){
+            menu->setVisible(false);
+        }
+        menu->addActions(actions);
+        auto finish6 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Adding items took(): " <<  finish6 - finish5 << "MS.";
+       
+        auto finish7 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "SHOWING items took(): " <<  finish7 - finish6 << "MS.";
+        menu->setUpdatesEnabled(true);
+        if(was_visible){
+            menu->setVisible(true);
+        }
+        
+
+
         
         auto hidden_count = view_items.size() - filtered_view_items.size();
         if(hidden_count > 0){
@@ -340,6 +383,7 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
         if(view_items.empty() && !empty_label.isEmpty()){
             get_no_valid_items_action(menu, empty_label);
         }
+        
     }
 }
 
@@ -390,10 +434,13 @@ void ContextMenu::populate_dynamic_add_node_menu(QMenu* menu){
         //Clear all the old items out of the menu (This should delete)
         ClearMenu(menu);
         //Focus the search
-
+        auto search_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        auto items = view_controller->getConstructableNodeDefinitions(node_kind, edge_kind);
+        auto search_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "ViewController getConstructableNodeDefinitions() took: " <<  search_finish - search_start << "MS. Returned: " << items.size();
         
         //Construct the view_item menu hiararchy
-        construct_view_item_menus(menu, view_controller->getConstructableNodeDefinitions(node_kind, edge_kind));
+        construct_view_item_menus(menu, items);
         
         //Add menu into the set of validated menus to avoid recalculating unnecessarily
         menu_updated(menu);
@@ -543,9 +590,13 @@ QAction* ContextMenu::construct_base_action(QMenu* menu, QString label){
 
 QAction* ContextMenu::construct_viewitem_action(ViewItem* item, QMenu* menu){
     if(item){
-        auto action = construct_base_action(menu, 0);
-
-        action->setProperty("id", item->getID());
+        auto id = item->getID();
+        auto action = construct_base_action(0, 0);
+        if(action && menu){
+            menu->addAction(action);
+        }
+        
+        action->setProperty("id", id);
         if(item->isNode()){
             auto node_item = (NodeViewItem*)item;
             action->setProperty("node_kind", QVariant::fromValue(node_item->getNodeKind()));
@@ -553,7 +604,6 @@ QAction* ContextMenu::construct_viewitem_action(ViewItem* item, QMenu* menu){
             auto edge_item = (EdgeViewItem*)item;
             action->setProperty("edge_kind", QVariant::fromValue(edge_item->getEdgeKind()));
         }
-        
         updateAction(action, item);
         return action;
     }
