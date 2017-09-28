@@ -12,12 +12,7 @@
 
 #define MENU_ICON_SIZE 32
 
-//TODO: Style Search Bar widget
-//TODO: Integrate search into Add Node Parts Dock
-//TODO: Integrate search into Deploy Dock
-
 ContextMenu::ContextMenu(ViewController *vc){
-    qCritical() << QStyleFactory::keys();    
     view_controller = vc;
     Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getNodeKindString(NODE_KIND::NONE) , "Icons", "circleInfoDark");
 
@@ -302,9 +297,7 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
         if(load_count == 0){
             load_count = 10;
         }
-        if(load_all){
-            load_count = view_items.count();
-        }
+        
         
         //Filter the list of the view items 
         auto filtered_view_items = view_controller->filterList(filter_str, view_items);
@@ -319,6 +312,9 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
         bool use_parent_menus = flatten_menu ? false : parent_items.size() > 1;
         if(!use_parent_menus){
             parent_items.clear();
+        }else{
+            //If we are using parent_menus load all of the items
+            load_count = view_items.count();
         }
 
         //Keep a hash to keep track of the parent_menus
