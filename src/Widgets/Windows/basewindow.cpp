@@ -45,6 +45,7 @@ void BaseWindow::resetDockWidgets(){
     for(auto dock_widget : getDockWidgets()){
         dock_widget->setVisible(true);
     }
+    emit dockWidgetVisibilityChanged();
 }
 
 BaseWindow::~BaseWindow()
@@ -104,14 +105,16 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
             currentDockWidgets.insert(ID, dockWidget);
             updateActions();
 
+
+            connect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
+            connect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
+            connect(dockWidget, &QDockWidget::topLevelChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
             connect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
             connect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
         }
-    }
-    QMainWindow::addDockWidget(area, widget, orientation);
-    if(dockWidget){
         emit dockWidgetAdded(dockWidget);
     }
+    QMainWindow::addDockWidget(area, widget, orientation);
 }
 
 void BaseWindow::removeDockWidget(QDockWidget *widget)
@@ -125,6 +128,10 @@ void BaseWindow::removeDockWidget(QDockWidget *widget)
         previouslyVisibleDockIDs.removeAll(ID);
         updateActions();
 
+
+        disconnect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
+        disconnect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
+        disconnect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
         disconnect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
         disconnect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
     }
@@ -269,7 +276,8 @@ void BaseWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
     reset_action->setIcon(theme->getIcon("Icons", "refresh"));
-    setStyleSheet(theme->getWindowStyleSheet() %
+    bool show_image = windowType == VIEW_WINDOW;
+    setStyleSheet(theme->getWindowStyleSheet(show_image) %
                   theme->getMenuBarStyleSheet() %
                   theme->getMenuStyleSheet() %
                   theme->getToolBarStyleSheet() %

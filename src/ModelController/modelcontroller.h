@@ -65,7 +65,7 @@ public:
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
-    QList<NODE_KIND> getAdoptableNodeKinds(int ID);
+    QSet<NODE_KIND> getAdoptableNodeKinds(int ID);
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 

@@ -39,7 +39,7 @@ void ProgressPopup::UpdateProgressBar(int value){
 
 void ProgressPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getProgressBarStyleSheet() + " QFrame{background:transparent;}  QLabel{color: " + theme->getTextColorHex() + "; font-size:12px;}");
+    setStyleSheet(theme->getProgressBarStyleSheet() + " QFrame{background:transparent;}  QLabel{color: " + theme->getTextColorHex() + ";}");
 }
 
 void ProgressPopup::setupLayout(){

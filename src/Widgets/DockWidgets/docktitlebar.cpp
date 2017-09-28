@@ -40,7 +40,6 @@ QList<QAction *> DockTitleBar::getToolActions()
 void DockTitleBar::setToolBarIconSize(int height)
 {
     setIconSize(QSize(height, height));
-    //iconLabel->setFixedSize(height, height);
 }
 
 void DockTitleBar::setIcon(QString iconPath, QString iconName){
@@ -55,13 +54,19 @@ QPixmap DockTitleBar::getIcon()
 
 void DockTitleBar::setTitle(QString title, Qt::Alignment alignment)
 {
-    titleLabel->setText(title);
-    titleLabel->setAlignment(alignment | Qt::AlignVCenter);
+    if(titleLabel){
+        titleLabel->setText(title);
+        titleLabel->setAlignment(alignment | Qt::AlignVCenter);
+    }
+    
 }
 
 QString DockTitleBar::getTitle()
 {
-    return titleLabel->text();
+    if(titleLabel){
+        return titleLabel->text();
+    }
+    return "";
 }
 
 QAction *DockTitleBar::getAction(DockTitleBar::DOCK_ACTION action)

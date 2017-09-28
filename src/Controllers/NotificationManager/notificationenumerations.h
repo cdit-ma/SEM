@@ -9,7 +9,13 @@ namespace Notification{
     enum class Context{NOT_SELECTED, SELECTED};
     enum class Type{MODEL, APPLICATION};
     enum class Category{NONE, FILE, JENKINS, VALIDATION};
+//#undef INFO
+//#undef WARNING
+#undef ERROR
+//#undef SUCCESS
+//#ifndef ERROR
     enum class Severity{INFO, WARNING, ERROR, SUCCESS};
+//#endif
 
     //Enum getters
     extern QSet<Notification::Context> getContexts();

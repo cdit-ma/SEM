@@ -267,7 +267,6 @@
         <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
         <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
         <file alias="sliders">Resources/Icons/sliders.png</file>
-        
-        
+        <file alias="filterList">Resources/Icons/filterList.png</file>
     </qresource>
 </RCC>

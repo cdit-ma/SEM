@@ -11,6 +11,7 @@ class BaseDockWidget;
 class DefaultDockWidget;
 class ViewDockWidget;
 class ToolDockWidget;
+class InvisibleDockWidget;
 class DockReparenterPopup;
 
 
@@ -48,11 +49,13 @@ public:
     //Factory constructor Functions
     BaseWindow* constructMainWindow(ViewController* vc);
     BaseWindow* constructSubWindow(QString title="");
-    BaseWindow* constructCentralWindow(QString title="");
+    BaseWindow* constructCentralWindow(BaseWindow* parent_window, QString title="");
+    BaseWindow* constructInvisibleWindow(BaseWindow* parent_window, QString title="");
     
     ViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     DefaultDockWidget* constructDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     ToolDockWidget* constructToolDockWidget(QString title="");
+    InvisibleDockWidget* constructInvisibleDockWidget(QString title="");
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);

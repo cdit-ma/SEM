@@ -22,7 +22,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     QLabel* medeaLabel = new QLabel("MEDEA");
     QLabel* medeaVersionLabel = new QLabel("Version " % APP_VERSION());
     medeaLabel->setStyleSheet("font-size: 32pt; color: white; text-align: center;");
-    medeaVersionLabel->setStyleSheet("font-size: 12pt; color: gray; text-align: center;");
+    medeaVersionLabel->setStyleSheet("color: gray; text-align: center;");
 
     QPixmap pixMap = Theme::theme()->getImage("Icons", "medeaLogo");
     pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);

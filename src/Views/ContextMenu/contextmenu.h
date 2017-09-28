@@ -26,9 +26,11 @@ public:
     ContextMenu(ViewController *vc);
     void popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
     void popup(QPoint global_pos, QPointF item_pos);
+
     QMenu* getAddMenu();
     QMenu* getDeployMenu();
 private:
+    void load_more_actions(QMenu* menu);
     void invalidate_menus();
     void clear_hover();
     void set_hovered_id(int id);
@@ -37,9 +39,13 @@ private:
     void action_triggered(QAction* action);
     void action_hovered(QAction* action);
     
+    void update_dock_menus();
+    void update_menu(QMenu* menu);
+
     void update_main_menu();
     void update_add_edge_menu();
     void update_remove_edge_menu();
+
     void update_add_node_menu();
     void update_deploy_menu();
 
@@ -51,21 +57,24 @@ private:
     QMenu* construct_menu(QString label, QMenu* parent_menu, int icon_size=0);
 private:
     void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
+    void construct_view_item_menus2(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
+
+    QWidgetAction* construct_menu_search(QMenu* parent);
 
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
+    void menu_focussed(QMenu* menu);
+    void clear_menu_cache(QMenu* menu);
+
 
     QAction* get_no_valid_items_action(QMenu* menu, QString label="No Valid Entities");
+
     QAction* construct_base_action(QMenu* menu, QString label);
     QAction* construct_remove_all_action(QMenu* menu, int number);
     QAction* construct_viewitem_action(ViewItem* item, QMenu* menu=0);
-    QAction* get_deploy_viewitem_action(ACTION_KIND kind, ViewItem* item);
     QAction* get_viewitem_menu(ACTION_KIND kind, ViewItem* item);
     QMenu* construct_viewitem_menu(ViewItem* item, QMenu* parent_menu = 0);
     
-    QHash<int, QAction*> view_item_actions;
-    QHash<int, QMenu*> view_item_menu;
-
     ViewController* view_controller = 0;
     ActionController* action_controller = 0;
     
@@ -81,20 +90,13 @@ private:
     QMenu* dock_add_node_menu = 0;
     QMenu* dock_deploy_menu = 0;
 
-    
-    QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
+    QHash <EDGE_KIND, QMenu*> remove_edge_menu_hash;
     
     QHash <QPair<EDGE_DIRECTION, EDGE_KIND> , QMenu*> add_edge_menu_direct_hash;
     
     
-    QHash <QPair<int, ACTION_KIND>, QAction*> deploy_view_item_hash; 
-    
-    QHash <NODE_KIND, QMenu*> add_node_menu_hash;
     QHash <NODE_KIND, QAction*> add_node_action_hash;
-
-    QHash <int, QAction*> node_action_hash;
-
 
     QSet<QMenu*> valid_menus;
 
@@ -102,7 +104,10 @@ private:
         QWidgetAction* deployed_nodes_action = 0;
         QWidgetAction* available_nodes_action = 0;
     };
+
+    QHash<QMenu*, QWidgetAction*> search_actions_;
     QHash <QMenu*, DeployLabels*> deploy_labels;
+    QHash <QMenu*, QWidgetAction*> add_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
 

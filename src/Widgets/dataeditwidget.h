@@ -35,6 +35,7 @@ private slots:
 
     void pickColor();
     void pickPath();
+    void pickFont();
 signals:
     void valueChanged(QVariant data);
 private:

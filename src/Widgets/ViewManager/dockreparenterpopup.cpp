@@ -39,8 +39,10 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
         new_window_button->show();
         //Add New Buttons for the other valid windows, and show them
         for(auto window : valid_windows){
-            auto window_button = getWindowAction(window);
-            window_button->show();
+            if(window->getType() != BaseWindow::INVISIBLE_WINDOW){
+                auto window_button = getWindowAction(window);
+                window_button->show();
+            }
         }
     
         //Forces a blocking size adjustment to ensure its the right width.
@@ -119,7 +121,7 @@ QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window){
 
 void DockReparenterPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{font-size:15px;}");
+    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{}");
     close_action->setIcon(theme->getIcon("Icons", "cross"));
 }
 

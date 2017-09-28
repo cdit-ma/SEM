@@ -92,7 +92,7 @@ void SearchDialog::themeChanged()
     
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";font-size:14px;");
+    info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 }
 
      

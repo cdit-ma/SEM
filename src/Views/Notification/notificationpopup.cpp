@@ -54,7 +54,7 @@ void NotificationPopup::DisplayNotification(NotificationObject* notification){
 
 void NotificationPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; font-size:12px; }");
+    setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}");
 }
 
 void NotificationPopup::setupLayout(){
