@@ -889,13 +889,20 @@ void ContextMenu::setupMenus(){
         add_edge_kind_src_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
         add_edge_kind_src_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
 
-        add_edge_kind_src_menu->addAction(construct_menu_search(add_edge_kind_menu));
+        auto src_search = construct_menu_search(add_edge_kind_menu);
+        search_actions_[add_edge_kind_src_menu] = src_search;
+        add_edge_kind_src_menu->addAction(src_search);
+
+        
         //Construct an Add Edge Kind To Menu
         auto add_edge_kind_dst_menu = construct_menu("To", add_edge_kind_menu);
         add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
         add_edge_kind_dst_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
         add_edge_kind_dst_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
-        add_edge_kind_dst_menu->addAction(construct_menu_search(add_edge_kind_menu));
+
+        auto dst_search = construct_menu_search(add_edge_kind_menu);
+        search_actions_[add_edge_kind_dst_menu] = dst_search;
+        add_edge_kind_dst_menu->addAction(dst_search);
 
         //Insert these menus into the hash
         add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
