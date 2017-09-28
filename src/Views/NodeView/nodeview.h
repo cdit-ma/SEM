@@ -64,6 +64,7 @@ signals:
     
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewport_changed(QRectF viewportRect, double zoom_factor);
+    void scenerect_changed(QRectF sceneRect);
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -148,6 +149,8 @@ private:
 private:
     void setupStateMachine();
 
+    void topLevelItemMoved();
+
     EntityItem* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItem*> guiItems;
@@ -220,8 +223,8 @@ private slots:
 
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
+    //void keyPressEvent(QKeyEvent* event);
+    //void keyReleaseEvent(QKeyEvent* event);
     void wheelEvent(QWheelEvent* event);
 
     void mousePressEvent(QMouseEvent* event);

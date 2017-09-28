@@ -3,12 +3,7 @@
 
 WorkerProcess::WorkerProcess():Process(NODE_KIND::WORKER_PROCESS)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(NODE_KIND::WORKER_PROCESS);
-    setInstanceKind(NODE_KIND::WORKER_PROCESS);
 }
 
 WorkerProcess::WorkerProcess(EntityFactory* factory) : Process(factory, NODE_KIND::WORKER_PROCESS, "WorkerProcess"){
@@ -45,6 +40,7 @@ bool WorkerProcess::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             if(!isInModel()){
                 return false;
             }
+            return true;
             break;
         }
         default:

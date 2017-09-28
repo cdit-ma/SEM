@@ -1,296 +1,295 @@
 #include "nodeviewminimap.h"
+#include "../../Controllers/WindowManager/windowmanager.h"
+#include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include <QPainter>
 #include <QMouseEvent>
-#include <QTimer>
+#include <QPen>
+#include <QDebug>
 #include "../../theme.h"
-
+#include <QTimer>
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
+    setDragMode(NoDrag);
+    setInteractive(false);
     setMouseTracking(true);
+    setMinimumSize(130,130);
 
-    zoom_icon = Theme::theme()->getImage("Icons", "zoom", zoomIcon().size(), Qt::white);
-    
-    setMinimumWidth(200);
-    QTimer* updateTimer = new QTimer(this);
+    auto updateTimer = new QTimer(this);
     updateTimer->setInterval(1000);
     updateTimer->start();
-    connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::updateScene);
 
-    //Set font
-    zoom_font.setBold(true);
-    zoom_font.setPixelSize(12);
+    connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
+
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+
+    zoomPixmap = Theme::theme()->getImage("Icons", "zoom", QSize(16, 16), Qt::white);
+
+
+    connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeViewMinimap::activeViewDockWidgetChanged);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NodeViewMinimap::themeChanged);
+    themeChanged();
 }
 
+void NodeViewMinimap::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock){
+    //Unattach old view
+    if(prevDock){
+        auto prev_node_view = prevDock->getNodeView();
+        
+        if(prev_node_view){
+            disconnect(prev_node_view);
+            prev_node_view->disconnect(this);
+        }
+    }
+
+    NodeView* node_view = 0;
+
+    //Attach new view
+    if(viewDock){
+        node_view = viewDock->getNodeView();
+    }
+
+    if(node_view){
+        setBackgroundColor(node_view->getBackgroundColor());
+        setScene(node_view->scene());
+        
+        connect(this, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::fitToScreen);
+        connect(this, &NodeViewMinimap::minimap_Pan, node_view, &NodeView::minimap_Pan);
+        connect(this, &NodeViewMinimap::minimap_Zoom, node_view, &NodeView::minimap_Zoom);
+        connect(node_view, &NodeView::viewport_changed, this, &NodeViewMinimap::viewportRectChanged);
+        connect(node_view, &NodeView::scenerect_changed, this, &NodeViewMinimap::sceneRectChanged);
+        node_view->update_minimap();
+    }else{
+        setBackgroundColor(QColor(0,0,0));
+        setScene(0);
+    }
+}
+
+void NodeViewMinimap::centerView()
+{
+    if (scene()) {
+        QRectF rect = scene()->itemsBoundingRect();
+        if(rect.isValid()){
+            QPointF centerPoint = rect.center();
+            qreal width = qMax(1200.0, rect.width());
+            qreal height = qMax(800.0, rect.height());
+
+            rect.setWidth(width);
+            rect.setHeight(height);
+            rect.moveCenter(centerPoint);
+            fitInView(rect, Qt::KeepAspectRatio);
+            centerOn(centerPoint);
+            setSceneRect(rect);
+        }
+    }
+}
 
 void NodeViewMinimap::setMinimapPanning(bool pan)
 {
     if(pan != isPanning()){
-        is_panning = pan;
+        setUpdatesEnabled(false);
+        _isPanning = pan;
 
         if(isPanning()){
             setCursor(Qt::ClosedHandCursor);
         }else{
             unsetCursor();
         }
+        setUpdatesEnabled(true);
     }
 }
 
-void NodeViewMinimap::viewport_changed(QRectF viewport, double zoom_factor)
-{
-    viewport_rect = viewport;
-    zoom_str = QString::number(zoom_factor * 100, 'f', 2 ) + "%";
-    updateViewport();
+void NodeViewMinimap::themeChanged(){
+    setStyleSheet(Theme::theme()->getNodeViewStyleSheet());
 }
 
-QRect NodeViewMinimap::zoomIcon() const
+void NodeViewMinimap::viewportRectChanged(QRectF viewport, qreal zoom)
 {
-    QRect rect;
+    setUpdatesEnabled(false);
+    //Update the viewport Rect.
+    viewportRect = viewport;
+    zoomPercent = QString::number(zoom * 100, 'f' ,2) + "%";
+    setUpdatesEnabled(true);
+}
+
+QRectF NodeViewMinimap::zoomIcon() const
+{
+    QRectF rect;
     rect.setWidth(16);
     rect.setHeight(16);
-    rect.moveTopLeft(infoBox().topLeft() + QPoint(2, 2));
+    rect.moveTopLeft(infoBox().topLeft());
     return rect;
 }
 
-QRect NodeViewMinimap::zoomText() const
+QRectF NodeViewMinimap::zoomText() const
 {
-    auto rect = QRect(zoomIcon().topRight(), (infoBox().bottomRight() - QPoint(4,2)));
-    return rect;
+    return QRectF(zoomIcon().topRight(), infoBox().bottomRight());
 }
 
-QRect NodeViewMinimap::infoBox() const
+QRectF NodeViewMinimap::infoBox() const
 {
-    QRect rect;
-    rect.setWidth(85);
-    rect.setHeight(20);
+    QRectF rect;
+    rect.setWidth(80);
+    rect.setHeight(16);
 
     rect.moveBottomRight(this->rect().bottomRight());
     return rect;
 }
 
 
-bool NodeViewMinimap::viewportContainsPoint(QPoint pos)
+bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 {
-    return translated_viewport_rect.contains(pos);
+    QPointF scenePos = mapToScene(localPos.toPoint());
+    return viewportRect.contains(scenePos);
+}
+
+
+void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
+{
+    if(drawRect){
+        QRegion mainArea(rect.toAlignedRect());
+        QRegion viewArea(viewportRect.toAlignedRect());
+        QRegion maskArea = mainArea.xored(viewArea);
+
+        //Mask off the current viewportRect
+        painter->setClipRegion(maskArea);
+
+        painter->setBrush(QColor(0, 0, 0, 100));
+        painter->setPen(Qt::NoPen);
+        //Paint the background
+        painter->drawRect(rect);
+
+
+        painter->setClipping(false);
+
+        //Paint the viewportRect (With no Brush just a Pen)
+        QPen pen(Qt::white);
+        pen.setCosmetic(true);
+        if(isPanning()) {
+            pen.setColor(Qt::blue);
+        }
+        pen.setJoinStyle(Qt::MiterJoin);
+        pen.setWidth(2);
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
+        painter->drawRect(viewportRect);
+    }
+    painter->resetTransform();
+    QFont font;
+    font.setBold(true);
+    font.setPixelSize(12);
+    painter->setFont(font);
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Qt::darkGray);
+    painter->drawRect(infoBox());
+    painter->setPen(Qt::white);
+
+    painter->drawText(zoomText(), Qt::AlignCenter|Qt::AlignLeft, zoomPercent);
+    QRectF imageRect = zoomIcon();
+    painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
+}
+
+void NodeViewMinimap::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(backgroundColor);
+    painter->drawRect(rect);
+}
+
+void NodeViewMinimap::setEnabled(bool enabled)
+{
+    drawRect = enabled;
+    QGraphicsView::setEnabled(true);
 }
 
 void NodeViewMinimap::setBackgroundColor(QColor color)
 {
-    background_color = color;
+    backgroundColor = color;
+    update();
 }
 
 void NodeViewMinimap::setScene(QGraphicsScene *scene)
 {
-    this->scene = scene;
-    updateScene();
+    //Center View.
+    QGraphicsView::setScene(scene);
+    //Update
+    drawRect = scene != 0;
+    centerView();
 }
 
-void NodeViewMinimap::updateViewport(){
-    //Calculate the 
-    auto w_mult = viewport_rect.width() / scene_rect.width();
-    auto h_mult = viewport_rect.height() / scene_rect.height();
-
-    auto x_pos = viewport_rect.x() - scene_rect.x();
-    auto y_pos = viewport_rect.y() - scene_rect.y();
-
-    auto area_rect = renderArea();
-    //Calculate the offset for the top-left of the rectangle
-    auto x = x_pos * (area_rect.width() / scene_rect.width());
-    auto y = y_pos * (area_rect.height() / scene_rect.height());
-
-    //Calculate the proportional width/height
-    auto width = area_rect.width() * w_mult;
-    auto height = area_rect.height() * h_mult;
-
-    translated_viewport_rect = QRect(x, y, width, height);
-    update();
-}
-
-void NodeViewMinimap::updateScene(){
-    if(scene){
-        auto view_rect = renderArea();
-        //scene_rect = scene->sceneRect();;//;scene->itemsBoundingRect();
-        scene_rect = scene->itemsBoundingRect();
-
-        auto ratio = view_rect.width() / (double) view_rect.height();
-
-        auto width = scene_rect.width();
-        auto height = width / ratio;
-
-        if(height < scene_rect.height()){
-            //Doesn't contain
-            height = scene_rect.height();
-            width = height * ratio;
-        }
-
-        auto render_rect = QRectF(0, 0, width, height);
-        render_rect.moveCenter(scene_rect.center());
-
-        scene_rect = render_rect;
-
-        QPixmap pix(view_rect.size());
-        
-        if(!pix.isNull()){
-            pix.fill(Qt::transparent);
-            QPainter painter(&pix);
-            //Paint into the pixmap
-            scene->render(&painter, QRectF(), scene_rect);
-        }
-        pixmap.swap(pix);
-        updateViewport();
-    }else{
-        update();
-    }
-}
-
-bool NodeViewMinimap::isPanning() const
+bool NodeViewMinimap::isPanning()
 {
-    return is_panning;
+    return _isPanning;
+}
+
+void NodeViewMinimap::sceneRectChanged(QRectF sceneRect)
+{
+    if(sceneRect.isValid()){
+        QPointF centerPoint = sceneRect.center();
+        qreal width = qMax(1200.0, sceneRect.width());
+        qreal height = qMax(800.0, sceneRect.height());
+
+        sceneRect.setWidth(width);
+        sceneRect.setHeight(height);
+        sceneRect.moveCenter(centerPoint);
+        fitInView(sceneRect, Qt::KeepAspectRatio);
+        centerOn(centerPoint);
+        setSceneRect(sceneRect);
+    }
 }
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
-    if(scene){
-        if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton){
-            if(viewportContainsPoint(event->pos())){
-                previous_pos = getScenePos(event->pos());
-                setMinimapPanning(true);
-            }
+    if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton){
+        if(viewportContainsPoint(event->pos())){
+            previousScenePos = mapToScene(event->pos());
+            setMinimapPanning(true);
         }else if(event->button() == Qt::MiddleButton){
             emit minimap_CenterView();
         }
     }
 }
 
+void NodeViewMinimap::update(){
+    QGraphicsView::update();
+}
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *)
 {
     setMinimapPanning(false);
 }
 
-void NodeViewMinimap::paintEvent(QPaintEvent *event)
-{
-    if(!scene){
-        return;
-    }
-
-    QPainter painter(this);
-    
-    //Get the area 
-    auto widget_rect = event->rect();
-    painter.setClipRect(widget_rect);
-
-    painter.save();
-    painter.setPen(Qt::NoPen);
-    {
-        painter.save();
-        //Paint the backgound
-        painter.setBrush(background_color);
-        painter.drawRect(widget_rect);
-        painter.restore();
-    }
-
-    if(!pixmap.isNull()){
-        //Render the minimap pixmap in the space provided
-        painter.drawPixmap(renderArea(), pixmap);
-    }
-
-    {
-        //Paint the darker tinted region
-        painter.save();
-        //Calculate the area we should tint darker
-        QRegion widget_region(widget_rect);
-        QRegion view_region(translated_viewport_rect);
-        auto masked_region = widget_region.xored(view_region);
-
-        //Mask off the current translated_viewport_rect
-        painter.setClipRegion(masked_region);
-
-        //Paint the overlay
-        painter.setBrush(QColor(0, 0, 0, 100));
-        painter.drawRect(widget_rect);
-
-        painter.restore();
-    }
-
-    {
-        //Paint the current viewport rectangle
-        painter.save();
-   
-        //Paint the translated_viewport_rect (With no Brush just a Pen)
-        QPen pen(Qt::white);
-        pen.setCosmetic(true);
-
-        if(isPanning()) {
-            pen.setColor(Qt::blue);
-        }
-        pen.setJoinStyle(Qt::MiterJoin);
-        pen.setWidth(2);
-        painter.setBrush(Qt::NoBrush);
-        painter.setPen(pen);
-        painter.drawRect(translated_viewport_rect);
-
-        painter.restore();
-    }
-
-    {
-        //Paint overlayed info bar
-        painter.save();
-        painter.setFont(zoom_font);
-        painter.resetTransform();
-
-        painter.setBrush(Qt::darkGray);
-        painter.drawRect(infoBox());
-        painter.setPen(Qt::white);
-
-        painter.drawText(zoomText(), Qt::AlignCenter|Qt::AlignRight, zoom_str);
-        QRect imageRect = zoomIcon();
-        //painter.drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoom_icon);
-        painter.drawPixmap(imageRect, zoom_icon);
-        
-        painter.restore();
-    }
-    painter.restore();
-}
-
-QPointF NodeViewMinimap::getScenePos(QPoint mouse_pos){
-    auto r = renderArea();
-    auto x_mult = scene_rect.width() / (double)r.width();
-    auto y_mult = scene_rect.height() / (double)r.height();
-    return QPointF(mouse_pos.x() * x_mult, mouse_pos.y() * y_mult);
-}
-
 void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 {
-    if(scene && isPanning()){
-        auto delta = previous_pos - getScenePos(event->pos());
-        emit minimap_Pan(delta);
+    if(isPanning()){
+        QPointF sceneDelta = previousScenePos - mapToScene(event->pos());
+
+        emit minimap_Pan(sceneDelta);
+
         //Update the previous Scene position after the view has panned, such that we get smooth movement.
-        previous_pos = getScenePos(event->pos());
+        previousScenePos = mapToScene(event->pos());
     }
 }
 
 void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if(scene &&  event->button() == Qt::LeftButton){
-        auto delta = getScenePos(translated_viewport_rect.center()) - getScenePos(event->pos());
+    if(event->button() == Qt::LeftButton){
+        QPointF sceneDelta = viewportRect.center() - mapToScene(event->pos());
         setMinimapPanning(true);
-        emit minimap_Pan(delta);
+        emit minimap_Pan(sceneDelta);
         setMinimapPanning(false);
     }
 }
 
-QRect NodeViewMinimap::renderArea() const{
-    QRect area = rect();
-    area.setHeight(area.height() - infoBox().height());
-    return area;
-}
 void NodeViewMinimap::wheelEvent(QWheelEvent *event)
 {
-    if(scene){
-        emit minimap_Zoom(event->delta());
-    }
+    emit minimap_Zoom(event->delta());
 }
 
 void NodeViewMinimap::resizeEvent(QResizeEvent *)
 {
-    updateScene();
+    //Recenter the Minimap after a widget resize.
+    centerView();;
 }

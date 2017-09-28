@@ -12,6 +12,7 @@
 #include <QObject>
 #include <QFuture>
 #include <QProxyStyle>
+#include <QFont>
 
 #include "ModelController/nodekinds.h"
 #include "enumerations.h"
@@ -122,7 +123,7 @@ public:
     QString getSharpCornerRadius();
 
     // Default StyleSheets
-    QString getWindowStyleSheet();
+    QString getWindowStyleSheet(bool show_background_image);
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();
     QString getSplitterStyleSheet();
@@ -168,6 +169,8 @@ private:
     void setupToggledIcons();
     void setupAliasIcons();
     void updateValid();
+    QFont getFont() const;
+    void setFont(QFont GENERAL_FONTsize);
 
     QImage getImage(QString resource_name);
     QColor getTintColor(QString resource_name);
@@ -225,6 +228,8 @@ private:
     QColor selectedItemBorderColor;
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
+
+    QFont font;
 
     QReadWriteLock lock_;
 

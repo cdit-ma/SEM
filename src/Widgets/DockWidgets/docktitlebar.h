@@ -38,6 +38,7 @@ private:
 private:
     QLabel* iconLabel;
     QLabel* titleLabel;
+    
     bool _isActive;
 
     QList<QAction*> actions;

@@ -34,6 +34,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    setFocusPolicy(Qt::StrongFocus);
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
@@ -695,9 +696,20 @@ SelectionHandler *NodeView::getSelectionHandler()
     return selectionHandler;
 }
 
+void NodeView::topLevelItemMoved()
+{
+    auto new_scene_rect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
+    if(new_scene_rect != currentSceneRect){
+        currentSceneRect = new_scene_rect;
+        emit scenerect_changed(currentSceneRect);
+    }
+}
+
+
 
 void NodeView::update_minimap(){
     emit viewport_changed(viewportRect(), transform().m11());
+    emit scenerect_changed(currentSceneRect);
 }
 
 void NodeView::paintEvent(QPaintEvent *event){
@@ -1070,15 +1082,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
+
                     topLevelGUIItemIDs.append(ID);
+                    connect(nodeItem, &NodeItem::positionChanged, this, &NodeView::topLevelItemMoved);
+                    connect(nodeItem, &NodeItem::sizeChanged, this, &NodeView::topLevelItemMoved);
                 }
-
-
-                //We should care about position and expansion for any entity we visualise
-                //emit viewController->vc_setData(ID, "x", 0.0);
-                //emit viewController->vc_setData(ID, "y", 0.0);
-                //emit viewController->vc_setData(ID, "isExpanded", true);
-            
 
             }
         }
@@ -1496,7 +1504,7 @@ void NodeView::state_Default_Entered()
 {
     unsetCursor();
 }
-
+/*
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
@@ -1504,7 +1512,9 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(CONTROL && SHIFT){
         emit trans_InActive2RubberbandMode();
+        return;
     }
+    QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
@@ -1512,10 +1522,12 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
+
     if(!(CONTROL && SHIFT)){
         emit trans_RubberbandMode2InActive();
     }
-}
+    QGraphicsView::keyReleaseEvent(event);
+}*/
 
 void NodeView::wheelEvent(QWheelEvent *event)
 {

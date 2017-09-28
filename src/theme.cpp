@@ -7,6 +7,7 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThreadPool>
 #include <QAction>
+#include <QApplication>
 
 
 
@@ -434,9 +435,7 @@ QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_co
             }
         }
 
-        if(alias == "visibleToggle"){
-            qCritical() << lookupName << (icon_toggle.got_toggle ? " TOGGLE:" : " DOESN'T TOGGLE");
-        }
+        
         //Handle On State
         if(icon_toggle.got_toggle){
             icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
@@ -541,13 +540,17 @@ void Theme::setAltTextColor(QColor color)
     altTextColor = color;
 }
 
-QString Theme::getWindowStyleSheet()
+QString Theme::getWindowStyleSheet(bool show_background_image)
 {
-    return "QMainWindow {"
-           "background: " % getBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
-            "}";
+    QString str;
+    str += "QMainWindow {";
+    str += "background: " % getBackgroundColorHex() % ";";
+    str += "color:" % getTextColorHex() % ";";
+    if(show_background_image){
+        str += "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;";
+    }
+    str += "}";
+    return str;
 }
 
 QString Theme::getScrollBarStyleSheet()
@@ -702,10 +705,10 @@ QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
 QString Theme::getMenuBarStyleSheet()
 {
     return "QMenuBar {"
-           "padding: 3px;"
+           "padding: 2px;"
+           "spacing: 2px;"
            "background:" % getBackgroundColorHex() % ";"
            "border-bottom: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "border-radius:" % getCornerRadius() % ";"
            "}"
            "QMenuBar::item {"
            "background:" % getBackgroundColorHex() % ";"
@@ -1069,7 +1072,7 @@ QString Theme::getLabelStyleSheet()
 
 QString Theme::getTitleLabelStyleSheet()
 {
-    return "font-size:16pt;color: " % getTextColorHex() % ";";
+    return "color: " % getTextColorHex() % ";";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -1210,8 +1213,20 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         resetTheme(VT_LIGHT_THEME);
         break;
     }
+    case SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME:{
+        resetTheme(VT_SOLARIZED_DARK_THEME);
+        break;
+    }
+    case SETTINGS::THEME_SETTHEME_SOLARIZEDLIGHTTHEME:{
+        resetTheme(VT_SOLARIZED_LIGHT_THEME);
+        break;
+    }
     case SETTINGS::THEME_SETASPECT_CLASSIC:{
         resetAspectTheme(false);
+        break;
+    }
+    case SETTINGS::GENERAL_GENERAL_FONTSIZE:{
+        setFont(value.value<QFont>());
         break;
     }
 
@@ -1354,52 +1369,141 @@ void Theme::setIconAlias(QString prefix, QString alias, QString icon_prefix, QSt
 }
 
 
-void Theme::resetTheme(VIEW_THEME themePreset)
-{
-    if (themePreset == VT_DARK_THEME) {
-        QColor bgColor = QColor(70,70,70);
-        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
-        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter());
-        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
-        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
+void Theme::resetTheme(VIEW_THEME themePreset){
+    //Solarized
+    QColor base03("#002b36");
+    QColor base02("#073642");
+    QColor base01("#586e75");
+    QColor base00("#657b83");
+    QColor base0("#839496");
+    QColor base1("#93a1a1");
+    QColor base2("#eee8d5");
+    QColor base3("#fdf6e3");
+    QColor yellow("#b58900");
+    QColor orange("#cb4b16");
+    QColor red("#dc322f");
+    QColor magenta("#d33682");
+    QColor violet("#6c71c4");
+    QColor blue("#268bd2");
+    QColor cyan("#2aa198");
+    QColor green("#859900");
+
+    switch(themePreset){
+        case VT_DARK_THEME:{
+            QColor bgColor = QColor(70,70,70);
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter());
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
 
 
-        emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
-        emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
-        emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(50,205,50));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(50,205,50));
+            resetAspectTheme(true);
+            break;
+        }
+        case VT_LIGHT_THEME:{
+            QColor bgColor = QColor(170,170,170);
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
 
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(0,128,0));
+            resetAspectTheme(true);
+            break;
+        }
+        case VT_SOLARIZED_DARK_THEME:{
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, base2);
 
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, base01);
 
-    }else if(themePreset == VT_LIGHT_THEME){
-        QColor bgColor = QColor(170,170,170);
-        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
-        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
-        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
-        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
-        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, base03);
 
-        emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
-        emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
-        emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(0,128,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, orange);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, red);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, green);
+
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, base03);
+            break;
+        }
+        case VT_SOLARIZED_LIGHT_THEME:{
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, base3);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, base00);
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, base00);
+
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, base01);
+
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, base02);
+
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, orange);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, red);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, green);
+
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, base03);
+            break;
+        }
+        default:
+            break;
     }
+}
 
+
+QFont Theme::getFont() const{
+    return font;
+}
+void Theme::setFont(QFont font){
+    if(this->font != font){
+        this->font = font;
+        
+        QApplication::setFont(font);
+        emit theme_Changed();
+    }
 }
 
 void Theme::resetAspectTheme(bool colorBlind)
@@ -1549,7 +1653,7 @@ void Theme::teardownTheme()
     themeSingleton = 0;
 }
 
-CustomMenuStyle::CustomMenuStyle(int icon_size){
+CustomMenuStyle::CustomMenuStyle(int icon_size) : QProxyStyle("Windows"){
     this->icon_size = icon_size;
 }
 

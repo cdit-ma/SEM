@@ -1,64 +1,57 @@
 #ifndef NODEVIEWMINIMAP_H
 #define NODEVIEWMINIMAP_H
 
-#include <QWidget>
-#include <QGraphicsScene>
+#include <QGraphicsView>
 
+
+class ViewDockWidget;
 /**
  * @brief The NodeViewMinimap class
  */
-class NodeViewMinimap : public QWidget
+class NodeViewMinimap : public QGraphicsView
 {
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
+    void setEnabled(bool enabled);
     void setBackgroundColor(QColor color);
     void setScene(QGraphicsScene *scene);
+    bool isPanning();
+
 signals:
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
     void minimap_CenterView();
+
 public slots:
-    void viewport_changed(QRectF viewportRect, double zoom_factor);
+    void sceneRectChanged(QRectF sceneRect);
+
+
+    void viewportRectChanged(QRectF viewportRect, qreal zoom);
+private slots:
+    void activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock);
 private:
-    void updateScene();
-    bool isPanning() const;
-    QPointF getScenePos(QPoint mouse_pos);
-    void updateViewport();
-
-    QRect renderArea() const;
-    QRect zoomIcon() const;
-    QRect zoomText() const;
-    QRect infoBox() const;
-
-
+    void themeChanged();
+    void update();
+    QRectF zoomIcon() const;
+    QRectF zoomText() const;
+    QRectF infoBox() const;
+    void centerView();
     void setMinimapPanning(bool pan);
 
-    bool viewportContainsPoint(QPoint pos);
+    bool viewportContainsPoint(QPointF localPos);
 
-    QGraphicsScene* scene = 0;
-    
-    QRect translated_viewport_rect;
-    
-    QRectF scene_rect;
-    QRectF viewport_rect;
-    
-    QString zoom_str;
-
-    QPointF previous_pos;
-
-    bool is_panning = false;
-    
-    QPixmap zoom_icon;
-    
-    QColor background_color = Qt::darkGray;
-
-    QPixmap pixmap;
-
-    QFont zoom_font;
-
+    QPointF previousScenePos;
+    QRectF viewportRect;
+    QString zoomPercent;
+    bool _isPanning = false;
+    QPixmap zoomPixmap;
+    bool drawRect = false;
+    QColor backgroundColor;
 protected:
-    void paintEvent(QPaintEvent *event);
+    void drawForeground(QPainter *painter, const QRectF &rect);
+    void drawBackground(QPainter *painter, const QRectF &rect);
+
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);

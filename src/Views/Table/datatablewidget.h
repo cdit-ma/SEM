@@ -21,9 +21,8 @@ class DataTableWidget : public QWidget
 public:
     DataTableWidget(ViewController *controller, QWidget *parent = 0);
 
-public slots:
+private slots:
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
-
 
 private slots:
     void activeItem_IconChanged();

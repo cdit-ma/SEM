@@ -33,7 +33,13 @@ int launchMEDEA(int argc, char *argv[]){
         }
     }
     a.setActiveWindow(window);
-    return a.exec();
+
+    auto result = a.exec();
+
+    //Teardown singletons
+    SettingsController::teardownSettings();
+    Theme::teardownTheme();
+    return result;
 }
 
 int main(int argc, char *argv[])

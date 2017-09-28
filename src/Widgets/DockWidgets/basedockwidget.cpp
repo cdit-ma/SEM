@@ -168,7 +168,6 @@ void BaseDockWidget::setIcon(QString prefix, QString alias)
         auto action = toggleViewAction();
         action->setIcon(Theme::theme()->getIcon(prefix, alias));
     }
-
 }
 
 void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
@@ -178,15 +177,12 @@ void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
         QDockWidget::setWindowTitle(title);
         emit titleChanged();
     }
+    this->title = title;
 }
 
 QString BaseDockWidget::getTitle()
 {
-    QString title = "";
-    if(titleBar){
-        title = titleBar->getTitle();
-    }
-    return title;
+    return this->title;
 }
 
 void BaseDockWidget::setActive(bool active)
@@ -196,7 +192,10 @@ void BaseDockWidget::setActive(bool active)
         titleBar->setActive(active);
         themeChanged();
         emit dockSetActive(active);
-        raise();
+        if(active){
+            raise();
+            widget()->setFocus();
+        }
     }
 }
 

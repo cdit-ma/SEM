@@ -6,8 +6,11 @@
 #include <QDebug>
 #include "../../ModelController/nodekinds.h"
 #include "../../ModelController/modelcontroller.h"
+#include <QShortcut>
+#include <QApplication>
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
+    
 
     viewController = vc;
     shortcutDialog = 0;
@@ -549,6 +552,14 @@ QList<RootAction *> ActionController::getRecentProjectActions()
     return actions;
 }
 
+
+QList<QAction*> ActionController::getAllActions(){
+    QList<QAction*> actions;
+    for(auto action : allActions){
+        actions.append(action);
+    }
+    return actions;
+}
 QList<QAction *> ActionController::getNodeViewActions()
 {
     QList<QAction*> actions;
@@ -619,33 +630,33 @@ void ActionController::setupActions()
 
     edit_cut = createRootAction("Edit", "Cut", "", "Icons", "scissors");
     edit_cut->setToolTip("Cut selection.");
-    edit_cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_cut->setShortcutContext(Qt::ApplicationShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
     edit_copy = createRootAction("Edit", "Copy", "", "Icons", "copy");
     edit_copy->setToolTip("Copy selection.");
-    edit_copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_copy->setShortcutContext(Qt::ApplicationShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
     edit_paste = createRootAction("Edit", "Paste", "", "Icons", "clipboard");
     edit_paste->setToolTip("Paste clipboard into selected entity.");
-    edit_paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_paste->setShortcutContext(Qt::ApplicationShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
     edit_replicate = createRootAction("Edit", "Replicate", "", "Icons", "copyList");
     edit_replicate->setToolTip("Replicate the selected entities.");
-    edit_replicate->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_replicate->setShortcutContext(Qt::ApplicationShortcut);
     edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
 
     edit_delete = createRootAction("Edit", "Delete", "Delete", "Icons", "bin");
     edit_delete->setToolTip("Delete the selected entities.");
     edit_delete->setShortcut(QKeySequence::Delete);
-    edit_delete->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
     edit_renameActiveSelection = createRootAction("Edit", "Rename", "Rename", "Icons", "letterA");
     edit_renameActiveSelection->setToolTip("Rename the selected entity.");
     edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
-    edit_renameActiveSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    edit_renameActiveSelection->setShortcutContext(Qt::ApplicationShortcut);
 
 
 
@@ -903,14 +914,6 @@ void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
 
-    /*
-    toggleDock->setCheckable(true);
-    toggleDock->setChecked(true);
-    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Icons", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
-
-    applicationToolbar->addAction(toggleDock);
-    applicationToolbar->addSeperator();
-    */
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));

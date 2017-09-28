@@ -221,7 +221,7 @@ void SearchItemWidget::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
+                  "QLabel#KEY_LABEL{ color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}"
                   /*"QWidget{border:1px solid red;}"*/
                   + theme->getToolBarStyleSheet());
 }

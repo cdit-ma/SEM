@@ -279,6 +279,6 @@
         <file alias="number9">Resources/Icons/number9.png</file>
         <file alias="number9+">Resources/Icons/number9+.png</file>
         <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
-        
+        <file alias="filterList">Resources/Icons/filterList.png</file>
     </qresource>
 </RCC>

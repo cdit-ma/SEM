@@ -109,14 +109,20 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Dock Widgets State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
+    createSetting(SETTINGS::GENERAL_GENERAL_FONTSIZE, SETTING_TYPE::FONT, "General", "MEDEA", "Select Font", "Icons", "letterA");
     createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
+
+    
     
     createSetting(SETTINGS::GENERAL_RECENT_PROJECTS, SETTING_TYPE::STRINGLIST, "General", "MEDEA", "Recent Projects");
 
-    createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window Geometry");
-    createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window State");
+    createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window Geometry");
+    createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window State");
     createSetting(SETTINGS::WINDOW_OUTER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window Geometry");
     createSetting(SETTINGS::WINDOW_OUTER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window State");
+
+    createSetting(SETTINGS::WINDOW_RIGHT_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window Geometry");
+    createSetting(SETTINGS::WINDOW_RIGHT_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window State");
 
     
 
@@ -156,6 +162,8 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Dark Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDLIGHTTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Light Theme");
 
     //Theme - Default Colors
     createSetting(SETTINGS::THEME_BG_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Background");
@@ -198,6 +206,11 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
+    
+    QFont font("Verdana");
+    font.setStyleStrategy(QFont::PreferAntialias);
+    font.setPointSizeF(9);
+    _getSetting(SETTINGS::GENERAL_GENERAL_FONTSIZE)->setDefaultValue(font);
     
     _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
 

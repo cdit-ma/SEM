@@ -2196,10 +2196,10 @@ QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     return node_set;
 }
 
-QList<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
+QSet<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
 {
     QReadLocker lock(&lock_);
-    QList<NODE_KIND> kinds;
+    QSet<NODE_KIND> kinds;
 
     Node* parent = entity_factory->GetNode(ID);
 

@@ -9,6 +9,7 @@
 #include <QToolButton>
 #include <QFileDialog>
 #include <QColorDialog>
+#include <QFontDialog>
 #include <QPlainTextEdit>
 #include "../theme.h"
 
@@ -31,6 +32,7 @@ void DataEditWidget::updateIcon(){
     Theme* theme = Theme::theme();
     if(icon_path.first != "" && icon_path.second != ""){
         switch(type){
+            case SETTING_TYPE::FONT:
             case SETTING_TYPE::BUTTON:{
                 auto button = qobject_cast<QToolButton*>(editWidget_1);
                 if(button){
@@ -53,8 +55,17 @@ void DataEditWidget::setIcon(QString path, QString name){
     showIcon();
 }
 void DataEditWidget::showIcon(){
-    if(iconLabel && type != SETTING_TYPE::BUTTON){
-        iconLabel->show();
+
+    switch(type){
+        case SETTING_TYPE::FONT:
+        case SETTING_TYPE::BUTTON:{
+            break;
+        }
+        default:
+        if(iconLabel){
+            iconLabel->show();
+        }
+        break;
     }
 }
 void DataEditWidget::hideIcon(){
@@ -315,6 +326,20 @@ void DataEditWidget::pickColor()
     }
 }
 
+void DataEditWidget::pickFont()
+{
+    //Get the current Color from the string.
+    QFont current_font(currentData.value<QFont>());
+
+    bool okay = false;
+    //Select the new Color.
+    auto new_font  = QFontDialog::getFont(&okay, current_font);
+    if(okay){
+        dataChanged(new_font);
+        editFinished();
+    }
+}
+
 void DataEditWidget::pickPath()
 {
     QString path = "";
@@ -435,6 +460,24 @@ void DataEditWidget::setupLayout()
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);
+        break;
+    }
+    case SETTING_TYPE::FONT:{
+        QToolButton* button = new QToolButton(this);
+        button->setText(label);
+        button->setFixedHeight(SMALL_SQUARE);
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        connect(button, &QToolButton::released, this, &DataEditWidget::pickFont);
+
+        toolbar = new QToolBar(this);
+        toolbar->addWidget(button);
+        editWidget_1 = button;
+        editLayout->removeWidget(editLabel);
+
+        editLayout->addWidget(toolbar, 1);
+        editLabel->deleteLater();
+        editLabel = 0;
         break;
     }
     case SETTING_TYPE::BUTTON:{
