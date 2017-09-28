@@ -34,6 +34,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    setFocusPolicy(Qt::StrongFocus);
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
@@ -1466,7 +1467,7 @@ void NodeView::state_Default_Entered()
 {
     unsetCursor();
 }
-
+/*
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
@@ -1474,7 +1475,9 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(CONTROL && SHIFT){
         emit trans_InActive2RubberbandMode();
+        return;
     }
+    QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
@@ -1482,10 +1485,12 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
+
     if(!(CONTROL && SHIFT)){
         emit trans_RubberbandMode2InActive();
     }
-}
+    QGraphicsView::keyReleaseEvent(event);
+}*/
 
 void NodeView::wheelEvent(QWheelEvent *event)
 {

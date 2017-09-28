@@ -1,6 +1,4 @@
 #include "centralwindow.h"
-
-
 CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow()
 {
     this->parent_window = parent_window;

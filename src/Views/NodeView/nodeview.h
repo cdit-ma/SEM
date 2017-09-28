@@ -223,8 +223,8 @@ private slots:
 
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
+    //void keyPressEvent(QKeyEvent* event);
+    //void keyReleaseEvent(QKeyEvent* event);
     void wheelEvent(QWheelEvent* event);
 
     void mousePressEvent(QMouseEvent* event);

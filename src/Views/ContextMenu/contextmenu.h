@@ -39,9 +39,13 @@ private:
     void action_triggered(QAction* action);
     void action_hovered(QAction* action);
     
+    void update_dock_menus();
+    void update_menu(QMenu* menu);
+
     void update_main_menu();
     void update_add_edge_menu();
     void update_remove_edge_menu();
+
     void update_add_node_menu();
     void update_deploy_menu();
 
@@ -59,6 +63,7 @@ private:
 
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
+    void menu_focussed(QMenu* menu);
     void clear_menu_cache(QMenu* menu);
 
 
@@ -102,6 +107,7 @@ private:
 
     QHash<QMenu*, QWidgetAction*> search_actions_;
     QHash <QMenu*, DeployLabels*> deploy_labels;
+    QHash <QMenu*, QWidgetAction*> add_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
 

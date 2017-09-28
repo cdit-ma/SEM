@@ -37,8 +37,8 @@ void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
-    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     QIcon partIcon;
     partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
@@ -143,6 +143,11 @@ void DockTabWidget::setupDocks()
     //deploy_menu->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     deploy_menu->setFixedWidth(width());
 
+
+    add_part_menu->setObjectName("TOP_LEVEL");
+    deploy_menu->setObjectName("TOP_LEVEL");
+    
+
     
     //Deselect the currently highlight item
     connect(deploy_menu, &QMenu::aboutToHide, [=](){deploy_menu->setActiveAction(0);});
@@ -185,7 +190,7 @@ void DockTabWidget::refreshSize()
     auto current_menu = stack_widget->currentWidget() == parts_dock ? add_part_menu : deploy_menu;
     auto current_dock =stack_widget->currentWidget() == parts_dock ? parts_dock : deploy_dock;
 
-    auto dock_width = current_dock->viewport()->width() - 2;
+    auto dock_width = current_dock->viewport()->width();
     
     auto width = current_menu->width();
     auto required_width = current_menu->sizeHint().width();

@@ -325,10 +325,10 @@ ViewDockWidget *ViewController::constructViewDockWidget(QString label)
     auto node_view = new NodeView(dock_widget);
     dock_widget->setWidget(node_view);
 
-    if(actionController){
+    //if(actionController){
         //Add all actions which need focus!
-        dock_widget->addActions(actionController->getNodeViewActions());
-    }
+    //    dock_widget->addActions(actionController->getNodeViewActions());
+    //}
 
     //Setup NodeView
     node_view->setViewController(this);
