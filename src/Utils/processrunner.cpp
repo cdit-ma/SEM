@@ -13,6 +13,7 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     qRegisterMetaType<ProcessResult>("ProcessResult");
     qRegisterMetaType<HTTPResult>("HTTPResult");
     global_vars = QProcessEnvironment::systemEnvironment();
+
 }
 
 QString ProcessRunner::getEnvVar(QString key){
@@ -26,28 +27,32 @@ QString ProcessRunner::getEnvVar(QString key){
  */
  QProcessEnvironment ProcessRunner::RunEnvVarScript(QString scriptPath)
  {
-    auto env_vars = global_vars;
+    QProcessEnvironment env_vars;
+    QProcessEnvironment black_list_vars;
+    
     QProcess process;
- 
+    //Run with an empty environment
+    process.setProcessEnvironment(black_list_vars);
+
     QString program;
-    //Check if windows or *nix
-    QString command;
-     #ifdef _WIN32
-         program = "cmd.exe";
-         command = scriptPath + ">NUL&set&exit\n";
-     #else
-         program = "/bin/sh";
-         //Have to pass a path to the .sh script
-         command = ". " + scriptPath + ">/dev/null;set;exit\n";
-     #endif
+    QString shell_command;
+    QString print_vars = "set;exit\n";
+    
+    #ifdef _WIN32
+        program = "cmd.exe";
+        print_vars = "set&exit\n";
+        shell_command = scriptPath + ">NUL&" + print_vars;
+    #else
+        program = "/bin/sh";
+        print_vars = "set;exit\n";
+        shell_command = ". " + scriptPath + ">/dev/null 2>&1;" + print_vars;
+    #endif
+
  
+    //Print the env_vars for an empty shell environment(So we can ignore these keys)
     process.start(program);
     process.waitForStarted();
-
-    //Run the command
-    process.write(command.toUtf8());
-
-    //Wait for the process to finish.
+    process.write(print_vars.toUtf8());
     process.waitForFinished(-1);
 
     while(process.canReadLine()){
@@ -56,7 +61,32 @@ QString ProcessRunner::getEnvVar(QString key){
         if(split_pos > 0){
             auto key = line.left(split_pos);
             auto value = line.mid(split_pos + 1);
-            if(key != ""){
+            //Any keys we get, we want to ignore them
+            black_list_vars.insert(key, value);
+        }
+    }
+    
+    //Clear our environment again
+    process.setProcessEnvironment(env_vars);
+
+    //Run the shell script, and then print the env_vars
+    process.start(program);
+    process.waitForStarted();
+    process.write(shell_command.toUtf8());
+    process.waitForFinished(-1);
+
+    while(process.canReadLine()){
+        auto line = process.readLine().simplified();
+        auto split_pos = line.indexOf('=');
+        if(split_pos > 0){
+            auto key = line.left(split_pos);
+            auto value = line.mid(split_pos + 1);
+            
+            auto black_list_value = black_list_vars.value(key);
+
+            //Only care about the environment variables which exist soly in
+            if(black_list_value != value){
+                qCritical() << "Key: " << key << " Value: " << value;
                 env_vars.insert(key, value);
             }
         }
@@ -66,6 +96,7 @@ QString ProcessRunner::getEnvVar(QString key){
 
 ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory, QProcessEnvironment env){
     if(env.isEmpty()){
+        qCritical() << "GOT GLOBAL VARS";
         env = global_vars;
     }
     auto result = RunProcess_(program, args, directory, env, true);
@@ -80,13 +111,18 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
     
     //Construct and setup the process
     result.process = new QProcess();
-    result.process->setProcessEnvironment(env);
+    if(!env.isEmpty()){
+        qCritical() << "setting environments";
+        result.process->setProcessEnvironment(env);
+    }
 
 
     //Set working directory if we have one
     if(!directory.isEmpty()){
         result.process->setWorkingDirectory(directory);
     }
+
+    qCritical() << "Running: Program: '" << program << "' " << args.join(" ") << " IN: " << directory;
 
     //Start the program
     result.process->start(program, args);

@@ -16,17 +16,18 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     view_controller_ = view_controller;
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
     saxon_jar_path_ = transforms_path_ % "saxon.jar";
-    runner_ = new ProcessRunner(this);
+    //runner_ = new ProcessRunner(this);
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
     connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
-    connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine);
-    connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine);
+    //connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine, Qt::QueuedConnection);
+    //connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine, Qt::QueuedConnection);
 
 
     auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, this, &ExecutionManager::settingChanged);
 
-    
+    re_configured_env_ = QProcessEnvironment::systemEnvironment();
+
     //Run tests
     CheckForJava();
 
@@ -153,13 +154,24 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
 
 void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory){
     if(HasRe() && HasJava()){
+        ProcessRunner runner;
+        auto runner_ = &runner;
+        connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine, Qt::QueuedConnection);
+        connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine, Qt::QueuedConnection);
+
         QProcessEnvironment env_var;
         {
             QReadLocker lock(&lock_);
             env_var = re_configured_env_;
         }
 
-        auto generate = GenerateWorkspace(document_path, output_directory);
+        auto re_path = env_var.value("RE_PATH") + "/bin/";
+        qCritical() << "RE_PATH: '" << re_path << "'";
+
+        auto generate = GenerateWorkspace_(document_path, output_directory);
+        qCritical() << "SLEEPING";
+        QThread::sleep(5);
+        qCritical() << "WOKEN";
         auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
         if(generate){
             auto build_dir = output_directory + "/build/";
@@ -167,12 +179,12 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
             qCritical() << "Making a build folder: " << build_dir;
             bool failed = true;
 
-            auto re_path = env_var.value("RE_PATH") + "/bin/";
+          
     
     
             //Clean and rerun
             if(FileHandler::removeDirectory(build_dir) && FileHandler::ensureDirectory(build_dir)){
-                auto cmake_results =  runner_->RunProcess("cmake", {".."}, build_dir, env_var);
+                auto cmake_results = runner_->RunProcess("cmake", {".."}, build_dir, env_var);
     
                 if(cmake_results.success){
                     notification->setDescription("Running CMake --build ..");
@@ -203,7 +215,7 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
     }
 }
 
-void ExecutionManager::GenerateWorkspace_(QString document_path, QString output_directory)
+bool ExecutionManager::GenerateWorkspace_(QString document_path, QString output_directory)
 {
     auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
 
@@ -318,6 +330,8 @@ void ExecutionManager::CheckForJava(){
 
 //Designed to be run on a background thread
 void ExecutionManager::CheckForJava_(){
+    ProcessRunner runner;
+    auto runner_ = &runner;
     auto result = runner_->RunProcess("java", {"-version"});
     {
         QWriteLocker lock(&lock_);
@@ -328,6 +342,8 @@ void ExecutionManager::CheckForJava_(){
 
 //Designed to be run on a background thread
 void ExecutionManager::CheckForRe_(QString re_configure_path){
+    ProcessRunner runner;
+    auto runner_ = &runner;
     //Run 
     bool got_re = false;
     QString status;
@@ -358,6 +374,9 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
 
 ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)
 {
+    ProcessRunner runner;
+    auto runner_ = &runner;
+    
     QString program = "java";
 
     QStringList args;

@@ -48,8 +48,8 @@ private:
     void ExecuteModel_(QString document_path, QString output_directory);
 
     bool GenerateWorkspace_(QString document_path, QString output_directory);
-    bool GenerateComponents_(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);
-    bool GenerateDatatypes_(QString document_path, QString output_directory, bool toast_notify = true);
+    bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);
+    bool GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify = true);
 
 
 
@@ -61,7 +61,7 @@ private:
 
     ProcessResult RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments=QStringList());
 
-    ProcessRunner* runner_ = 0;
+    //ProcessRunner* runner_ = 0;
     ViewController* view_controller_ = 0;;
     
     QProcessEnvironment re_configured_env_;

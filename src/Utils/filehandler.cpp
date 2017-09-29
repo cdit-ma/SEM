@@ -4,9 +4,10 @@
 #include <QTextStream>
 #include <QStringBuilder>
 #include <QDebug>
-
+#include "../Controllers/WindowManager/windowmanager.h"
 #include "../Controllers/SettingsController/settingscontroller.h"
 #include "../theme.h"
+#include <QApplication>
 
 FileHandler* handler = 0;
 
@@ -14,6 +15,7 @@ FileHandler::FileHandler():QObject()
 {
     fileDialog = new QFileDialog(0);
     fileDialog->setModal(true);
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     //Get Path.
     QString directory = SettingsController::settings()->getSetting(SETTINGS::GENERAL_MODEL_PATH).toString();
     fileDialog->setDirectory(directory);
@@ -41,7 +43,6 @@ QStringList FileHandler::selectFiles(QWidget* parent, QString windowTitle, QFile
     fd->setFileMode(fileMode);
     fd->setConfirmOverwrite(write);
     fd->selectFile(initialFile);
-    fd->setParent(parent);
 
     if(write){
         fd->setAcceptMode(QFileDialog::AcceptSave);
@@ -49,9 +50,9 @@ QStringList FileHandler::selectFiles(QWidget* parent, QString windowTitle, QFile
         fd->setAcceptMode(QFileDialog::AcceptOpen);
     }
 
+    WindowManager::MoveWidget(fd);
+    //fd->setParent(parent);
     fd->setOption(QFileDialog::ShowDirsOnly, fileMode == QFileDialog::Directory);
-
-
     if(fd->exec()){
         foreach(QString file, fd->selectedFiles()){
             if(!file.endsWith(defaultSuffix)){

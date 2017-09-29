@@ -486,11 +486,14 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
         if(!parent_widget || !parent_widget->isWindow()){
             parent_widget = manager()->getActiveWindow();
         }
+    }else{
+        parent_widget = parent_widget->window();
     }
 
     if(widget && parent_widget){
         auto pos = parent_widget->mapToGlobal(parent_widget->rect().center());
-        auto widget_size = widget->frameGeometry().size();//.size();
+        //auto widget_size = widget->frameGeometry().size();
+        auto widget_size = widget->rect().size();
         switch (alignment) {
         case Qt::AlignBottom:
             //Move to the bottom
