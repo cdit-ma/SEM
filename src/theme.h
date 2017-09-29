@@ -116,6 +116,8 @@ public:
     bool gotImage(IconPair icon);
     bool gotImage(QString, QString);
 
+    QSize getIconSize();
+
     QString getBorderWidth();
     QString getCornerRadius();
     QString getSharpCornerRadius();

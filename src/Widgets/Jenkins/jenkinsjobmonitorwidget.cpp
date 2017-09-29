@@ -75,7 +75,6 @@ void JenkinsJobMonitorWidget::setupLayout()
     verticalLayout->addWidget(tabWidget,1);
 
     action_toolbar = new QToolBar(this);
-    action_toolbar->setIconSize(QSize(20,20));
     action_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     build_action = jenkins->GetActionController()->jenkins_executeJob->constructSubAction();
@@ -292,6 +291,9 @@ void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumb
 void JenkinsJobMonitorWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
+
+    action_toolbar->setIconSize(theme->getIconSize());
+
     setStyleSheet(theme->getWidgetStyleSheet("JenkinsJobMonitorWidget") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() % theme->getLabelStyleSheet() % theme->getWidgetStyleSheet("QTextBrowser"));
     action_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     job_label->setStyleSheet(theme->getTitleLabelStyleSheet());

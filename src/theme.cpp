@@ -575,6 +575,9 @@ QString Theme::getSplitterStyleSheet()
             "QSplitter::handle:vertical {image: url(:/Images/Icons/dotsHorizontal);}"
             ;
 }
+QSize Theme::getIconSize(){
+    return QSize(16,16);
+}
 
 QString Theme::getWidgetStyleSheet(QString widgetName)
 {

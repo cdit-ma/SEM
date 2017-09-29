@@ -410,6 +410,7 @@ void DataEditWidget::setupLayout()
     case SETTING_TYPE::INT:{
         QSpinBox* spinBox = new QSpinBox(this);
         spinBox->setMaximum(10000);
+        spinBox->setMinimum(-10000);
         spinBox->setValue(currentData.toInt());
 
         editWidget_1 = spinBox;

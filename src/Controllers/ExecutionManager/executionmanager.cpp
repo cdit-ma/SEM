@@ -11,6 +11,7 @@
 #include "../NotificationManager/notificationobject.h"
 #include "../ViewController/viewcontroller.h"
 
+
 ExecutionManager::ExecutionManager(ViewController *view_controller)
 {
     view_controller_ = view_controller;
@@ -152,10 +153,13 @@ void ExecutionManager::GenerateCodeForComponent(QString document_path, QString c
     FileHandler::removeDirectory(path);
 }
 
-void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory){
+void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory, int duration){
     if(HasRe() && HasJava()){
         ProcessRunner runner;
         auto runner_ = &runner;
+
+        
+        connect(this, &ExecutionManager::CancelModelExecution, runner_, &ProcessRunner::Cancel, Qt::QueuedConnection);
         connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine, Qt::QueuedConnection);
         connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine, Qt::QueuedConnection);
 
@@ -169,37 +173,34 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
         qCritical() << "RE_PATH: '" << re_path << "'";
 
         auto generate = GenerateWorkspace_(document_path, output_directory);
-        qCritical() << "SLEEPING";
-        QThread::sleep(5);
-        qCritical() << "WOKEN";
+
         auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
         if(generate){
             auto build_dir = output_directory + "/build/";
             auto lib_dir = output_directory + "/lib/";
-            qCritical() << "Making a build folder: " << build_dir;
-            bool failed = true;
+            auto cmake_generator = SettingsController::settings()->getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR).toString();
 
-          
-    
-    
+            QStringList cmake_flags = {"-G", cmake_generator, ".."};
+            QStringList cmake_build_flags = {"--build", ".", "--config", "Release"};
+
+            bool failed = true;
+            
             //Clean and rerun
             if(FileHandler::removeDirectory(build_dir) && FileHandler::ensureDirectory(build_dir)){
-                auto cmake_results = runner_->RunProcess("cmake", {".."}, build_dir, env_var);
+                auto cmake_results = runner_->RunProcess("cmake", cmake_flags, build_dir, env_var);
     
                 if(cmake_results.success){
                     notification->setDescription("Running CMake --build ..");
-                    auto compile_results =  runner_->RunProcess("cmake", {"--build", "."}, build_dir, env_var);
+                    auto compile_results =  runner_->RunProcess("cmake", cmake_build_flags, build_dir, env_var);
     
                     if(compile_results.success){
                         notification->setDescription("Running model");
-                        auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", "10"}, lib_dir);
+                        auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", QString::number(duration)}, lib_dir, env_var);
     
                         if(execute_results.success){
                             notification->setDescription("Model successfully executed.");
                             failed = false;
                         }else{
-                            qCritical() << execute_results.standard_output;
-                            qCritical() << execute_results.standard_error;
                             notification->setDescription("Failed to execute model");
                         }
                     }else{
@@ -303,13 +304,15 @@ void ExecutionManager::CheckForRe(QString re_configure_path)
     }
 }
 
-void ExecutionManager::ExecuteModel(QString document_path, QString output_directory)
+bool ExecutionManager::ExecuteModel(QString document_path, QString output_directory, int runtime_duration)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!execute_model_thread.isRunning()){
-        execute_model_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ExecuteModel_, document_path, output_directory);
+        execute_model_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ExecuteModel_, document_path, output_directory, runtime_duration);
+        return true;
     }
+    return false;
 }
 
 void ExecutionManager::GenerateWorkspace(QString document_path, QString output_directory){

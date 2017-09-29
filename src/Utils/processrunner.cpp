@@ -27,7 +27,8 @@ QString ProcessRunner::getEnvVar(QString key){
  */
  QProcessEnvironment ProcessRunner::RunEnvVarScript(QString scriptPath)
  {
-    QProcessEnvironment env_vars;
+    //Copy the global environment_vars
+    QProcessEnvironment env_vars = global_vars;
     QProcessEnvironment black_list_vars;
     
     QProcess process;
@@ -36,7 +37,7 @@ QString ProcessRunner::getEnvVar(QString key){
 
     QString program;
     QString shell_command;
-    QString print_vars = "set;exit\n";
+    QString print_vars;
     
     #ifdef _WIN32
         program = "cmd.exe";
@@ -96,10 +97,10 @@ QString ProcessRunner::getEnvVar(QString key){
 
 ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory, QProcessEnvironment env){
     if(env.isEmpty()){
-        qCritical() << "GOT GLOBAL VARS";
         env = global_vars;
     }
     auto result = RunProcess_(program, args, directory, env, true);
+    
     //Clean up the QProcess and return
     delete result.process;
     result.process = 0;
@@ -112,7 +113,6 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
     //Construct and setup the process
     result.process = new QProcess();
     if(!env.isEmpty()){
-        qCritical() << "setting environments";
         result.process->setProcessEnvironment(env);
     }
 
@@ -149,6 +149,15 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
             waitLoop.exec();
 
             if(cancelled){
+                emit GotProcessStdErrLine("ProcessRunner Interupted!");
+
+                //Forcefully terminate
+                result.cancelled = true;
+                result.process->terminate();
+                result.process->waitForFinished(-1);
+                if(result.process->state() != QProcess::NotRunning){
+                    result.process->kill();
+                }
                 //Break out
                 break;
             }
@@ -157,7 +166,7 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         //Read StandardOutput
         result.process->setReadChannel(QProcess::StandardOutput);
         while(result.process->canReadLine()){
-            QString line = result.process->readLine();
+            auto line = result.process->readLine().simplified();
             result.standard_output << line;
             emit GotProcessStdOutLine(line);
         }
@@ -165,7 +174,7 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         //Read StandardError
         result.process->setReadChannel(QProcess::StandardError);
         while(result.process->canReadLine()){
-            QString line = result.process->readLine();
+            auto line = result.process->readLine().simplified();
             result.standard_error << line;
             emit GotProcessStdErrLine(line);
         }

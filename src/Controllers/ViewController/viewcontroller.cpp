@@ -4,10 +4,12 @@
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
+#include "../../Widgets/Dialogs/variabledialog.h"
 #include "../../Views/ContextMenu/contextmenu.h"
 
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
+#include "../../Widgets/CodeEditor/consolewidget.h"
 
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -1494,30 +1496,47 @@ void ViewController::executeModelLocal()
     if(!execution_browser){
         execution_browser = WindowManager::manager()->constructDockWidget("Execution Browser");
         execution_browser->setCloseVisible(false);
+        auto console_browser = new ConsoleWidget(execution_browser);
 
-        auto text_browser = new QTextBrowser(execution_browser);
-        execution_browser->setWidget(text_browser);
-        execution_browser->setIcon("Icons", "bracketsAngled");
+        auto title = execution_browser->getTitle();
+        Theme::theme()->setWindowIcon(title, "Icons", "bracketsAngled");
+        execution_browser->setIcon("WindowIcon", title);
+        
+        execution_browser->setWidget(console_browser);
         execution_browser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         BaseWindow* window = WindowManager::manager()->getActiveWindow();
+        execution_browser->hide();
         if(window){
             window->addDockWidget(execution_browser);
         }
 
-        connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, text_browser, &QTextEdit::append);
-        connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, text_browser, &QTextEdit::append);
+        connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, console_browser, &ConsoleWidget::AppendLine);
+        connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, console_browser, &ConsoleWidget::AppendLine);
+        connect(console_browser, &ConsoleWidget::Cancel, execution_manager, &ExecutionManager::CancelModelExecution);
     }
 
-    if(execution_browser){
-        auto browser = qobject_cast<QTextBrowser*>(execution_browser->widget());
-        if(browser){
-            browser->clear();
+    auto browser = qobject_cast<ConsoleWidget*>(execution_browser ? execution_browser->widget(): 0);
+    
+    auto file_path = getTempFileForModel();
+    auto temp_dir = FileHandler::getTempFileName("/");
+
+    VariableDialog dialog("Local Deployment Options");
+    dialog.addOption("Duration", SETTING_TYPE::INT, 60);
+    dialog.setOptionIcon("Duration", "Icons", "clock");
+    dialog.addOption("Workspace", SETTING_TYPE::PATH, temp_dir);
+    dialog.setOptionIcon("Workspace", "Icons", "folder");
+    auto options = dialog.getOptions();
+
+    if(!options.isEmpty()){
+        auto duration = options.value("Duration").toInt();
+        auto workspace = options.value("Workspace").toString();
+        if(execution_manager->ExecuteModel(file_path, workspace, duration)){
+            if(browser){
+                browser->Clear();
+            }
+            execution_browser->show();
         }
-        execution_browser->show();
     }
-    QString file_path = getTempFileForModel();
-    QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
-    execution_manager->ExecuteModel(file_path, output_dir);
 }
 
 

@@ -25,9 +25,11 @@ public:
     void CheckForRe(QString re_configure_path);
     void CheckForJava();
 
+    
+
 
     void RunConfigure(QString configure_script_path);
-    void ExecuteModel(QString document_path, QString output_directory);
+    bool ExecuteModel(QString document_path, QString output_directory, int duration);
     void ValidateModel(QString model_path);
     void GenerateCodeForComponent(QString document_path, QString component_name);
     void GenerateWorkspace(QString document_path, QString output_directory);
@@ -35,6 +37,8 @@ public:
 signals:
     void GotProcessStdOutLine(QString line);
     void GotProcessStdErrLine(QString line);
+
+    void CancelModelExecution();
 
     void GotCodeForComponent(QString file_name, QString file_data);
 
@@ -45,7 +49,7 @@ private:
     void CheckForRe_(QString configure_script_path);
     void ValidateModel_(QString model_path);
     void CheckForJava_();
-    void ExecuteModel_(QString document_path, QString output_directory);
+    void ExecuteModel_(QString document_path, QString output_directory, int duration);
 
     bool GenerateWorkspace_(QString document_path, QString output_directory);
     bool GenerateComponents(QString document_path, QString output_directory, QStringList component_names=QStringList(), bool toast_notify = true);

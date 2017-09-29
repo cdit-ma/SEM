@@ -13,6 +13,7 @@ class ProcessRunner;
 struct ProcessResult{
     friend class ProcessRunner;
 public:
+    bool cancelled = false;
     bool success = false;
     int error_code = 0;
     QStringList standard_output;
