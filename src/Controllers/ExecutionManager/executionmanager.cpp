@@ -181,6 +181,10 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
             auto cmake_generator = SettingsController::settings()->getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR).toString();
 
             QStringList cmake_flags = {"-G", cmake_generator, ".."};
+
+            #ifdef WIN32
+                cmake_flags += "-DCMAKE_BUILD_TYPE=Release";
+            #endif
             QStringList cmake_build_flags = {"--build", ".", "--config", "Release"};
 
             bool failed = true;
