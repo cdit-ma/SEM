@@ -57,7 +57,7 @@ private:
     BaseWindow* leftWindow = 0;
 
     //For the innew window
-    BaseDockWidget* dockwidget_Jenkins = 0;
+    //BaseDockWidget* dockwidget_Jenkins = 0;
     BaseDockWidget* dockwidget_Search = 0;
     BaseDockWidget* dockwidget_Qos = 0;
     BaseDockWidget* dockwidget_Notification = 0;

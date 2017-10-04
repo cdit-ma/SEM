@@ -23,6 +23,9 @@ class ModelController;
 class NodeView;
 class JenkinsManager;
 class ContextMenu;
+class DefaultDockWidget;
+class CodeBrowser;
+class JobMonitor;
 
 class ViewController : public QObject
 {
@@ -32,6 +35,7 @@ public:
     ViewController();
     ~ViewController();
 
+    DefaultDockWidget* constructDockWidget(QString label, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window = 0);
 
     static QList<ViewItem*> ToViewItemList(QList<NodeViewItem*> &items);
     static QList<ViewItem*> ToViewItemList(QList<EdgeViewItem*> &items);
@@ -61,6 +65,7 @@ public:
         return filterList(query, ViewController::ToViewItemList(view_items));
     }
 
+    JobMonitor* getJobMonitor();
 
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
@@ -215,7 +220,9 @@ public slots:
     void modelValidated(QString reportPath);
     void importGraphMLFile(QString graphmlPath);
     void importGraphMLExtract(QString data);
+    
     void showCodeViewer(QString tabName, QString content);
+    void showExecutionMonitor();
 
 
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
@@ -369,7 +376,11 @@ private:
     ViewItem* rootItem;
 
     BaseDockWidget* codeViewer = 0;
-    BaseDockWidget* execution_browser = 0;
+    CodeBrowser* codeBrowser = 0;
+    BaseDockWidget* execution_monitor = 0;
+    JobMonitor* job_monitor = 0;
+
+    
 
     SelectionController* selectionController;
     ActionController* actionController;

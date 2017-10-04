@@ -3,6 +3,8 @@
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../theme.h"
 
+#include <QToolButton>
+
 #include <QGraphicsDropShadowEffect>
 
 /**
@@ -43,23 +45,33 @@ NotificationToolbar::NotificationToolbar(QWidget *parent) :
 void NotificationToolbar::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QString borderRadiusLeft = "border-top-right-radius: 0px; border-bottom-right-radius: 0px; ";
-    QString borderRadiusRight = "border-top-left-radius: 0px; border-bottom-left-radius: 0px;";
+    setIconSize(theme->getLargeIconSize());
 
-    setStyleSheet("QToolBar{ spacing: 0px; padding: 0px; border-radius: 5px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QToolBar::separator{ width: 2px; background:" + theme->getBackgroundColorHex() + ";}"
-                  "QToolButton{ padding: 2px; }"
+    auto border_radius = "border-radius: " + theme->getCornerRadius() + "; ";
+    QString borderRadiusLeft = border_radius + "border-top-right-radius: 0px; border-bottom-right-radius: 0px; ";
+    QString borderRadiusRight = border_radius + "border-top-left-radius: 0px; border-bottom-left-radius: 0px;";
+
+    setStyleSheet("QToolBar{spacing: 2px; background: none;}"
+                  "QToolButton{border-radius:none;padding:2px;}"
+                  "QToolButton#MID_ACTION{padding-left:0px;padding-right:0px;}"
+                  "QToolButton#MID_ACTION:hover{background:" + theme->getAltBackgroundColorHex() + ";color:" + theme->getTextColorHex() +";}"
                   "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
                   "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
-                  "QLabel{background:transparent;font-weight:bold;}"
                 );
             
 
     for(auto severity : Notification::getSeverities()){
+        auto severity_str = Notification::getSeverityString(severity);
         auto severity_label = severity_labels.value(severity, 0);
         if(severity_label){
-            auto color = Theme::QColorToHex(Theme::theme()->getSeverityColor(severity));
+            auto color = Theme::QColorToHex(theme->getSeverityColor(severity));
             severity_label->setStyleSheet("QLabel{color: " + color + ";}");
+        }
+
+        auto action = severity_actions.value(severity, 0);
+        if(action){
+            auto icon = theme->getImage("Notification", severity_str, QSize(), theme->getSeverityColor(severity));
+            action->setIcon(icon);
         }
     }
     default_icon = theme->getIcon("ToggleIcons", "newNotification");
@@ -97,48 +109,39 @@ void NotificationToolbar::notificationsSeen()
  */
 void NotificationToolbar::setupLayout()
 {
-    show_most_recent_action = addAction("Show most recent notification");
+    show_most_recent_action = addAction("Show most recent notifications");
     show_most_recent_action->setCheckable(true);
     show_most_recent_action->setChecked(false);
     show_most_recent_action->setEnabled(false);
     
-    addSeparator();
-   
-
-    QFont labelFont(QFont(font().family(), 11, 1));
-    int labelWidth = 30;
-
     auto severities = Notification::getSeverities().toList();
     qSort(severities.begin(), severities.end());
     //Remove Info?
+    severities.removeAll(Notification::Severity::NONE);
+    severities.removeAll(Notification::Severity::INFO);
     severities.removeAll(Notification::Severity::SUCCESS);
     
-    //Get them in order
-    for(auto severity : severities){
-        auto severity_label = new QLabel(this);
-        severity_labels[severity] = severity_label;
-        
-        severity_label->setFont(labelFont);
-        severity_label->setMinimumWidth(labelWidth);
-        severity_label->setAlignment(Qt::AlignCenter);
-        severity_label->setToolTip("Number of " + Notification::getSeverityString(severity) + " Notifications");
-        
-        addWidget(severity_label);
-        addSeparator();
+    setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-        // add shadow to the label's text
-        auto effect = new QGraphicsDropShadowEffect(this);
-        //effect->setBlurRadius(2);
-        effect->setColor(Theme::theme()->black());
-        effect->setOffset(1,1);
-        severity_label->setGraphicsEffect(effect);
+    for(auto severity : severities){
+        auto action = addAction("");
+        severity_actions[severity] = action;
+        action->setToolTip("Number of " + Notification::getSeverityString(severity) + " Notifications");
+
+        widgetForAction(action)->setObjectName("MID_ACTION");
     }
 
-    show_notification_dialog_action = addAction("Show notifications panel");
+    show_notification_dialog_action = addAction("Show notification browser");
 
-    // set object names for the two actions - used in the stylesheet
-    widgetForAction(show_most_recent_action)->setObjectName("LEFT_ACTION");
-    widgetForAction(show_notification_dialog_action)->setObjectName("RIGHT_ACTION");
+    
+    auto left_widget = (QToolButton*)widgetForAction(show_most_recent_action);
+    auto right_widget = (QToolButton*)widgetForAction(show_notification_dialog_action);
+    left_widget->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    right_widget->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    
+    left_widget->setObjectName("LEFT_ACTION");
+    right_widget->setObjectName("RIGHT_ACTION");
+
 }
 
 void NotificationToolbar::loadingGifTicked(){
@@ -166,7 +169,7 @@ void NotificationToolbar::updateButtonIcon()
 {
     auto last_notification = NotificationManager::manager()->getLatestNotification();
 
-    if(last_notification && last_notification->getInProgressState()){
+    if(last_notification && last_notification->getSeverity() == Notification::Severity::RUNNING){
         setLoadingMode(true);
     }else{
         setLoadingMode(false);
@@ -184,10 +187,14 @@ void NotificationToolbar::updateCount(){
     }
 
     for(auto severity : Notification::getSeverities()){
+        auto action = severity_actions.value(severity, 0); 
         auto label = severity_labels.value(severity, 0);
         auto count = severity_counts.value(severity, 0);
         if(label){
             label->setText(QString::number(count));
+        }
+        if(action){
+            action->setText(QString::number(count));
         }
     }
     updateButtonIcon();

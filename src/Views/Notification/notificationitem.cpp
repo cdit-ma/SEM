@@ -52,14 +52,15 @@ void NotificationItem::setupLayout(){
     layout->setSpacing(5);
 
     label_icon = new QLabel(this);
-    label_icon->setFixedSize(icon_size);
+    label_icon->setScaledContents(true);
+    
     label_icon->setAlignment(Qt::AlignCenter);
 
     label_text = new QLabel(this);
     label_time = new QLabel(this);
 
-    auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(icon_size/2);
+    toolbar = new QToolBar(this);
+    
     action_delete = toolbar->addAction("Delete Notification");
 
     layout->addWidget(label_icon);
@@ -136,6 +137,10 @@ void NotificationItem::themeChanged()
     } else {
         backgroundColor = theme->getBackgroundColorHex();
     }
+    auto icon_size = theme->getIconSize();
+    label_icon->setFixedSize(icon_size);
+    toolbar->setIconSize(icon_size);
+
     updateStyleSheet();
 
     updateIcon();
@@ -163,26 +168,28 @@ void NotificationItem::descriptionChanged()
  */
 void NotificationItem::updateIcon()
 {
-    if(notification->getInProgressState()){
+    auto theme = Theme::theme();
+    auto severity = notification->getSeverity();
+    auto is_running = severity == Notification::Severity::RUNNING;
+    if(is_running){
         //Use a GIF if we are loading
-        auto movie = Theme::theme()->getGif("Icons", "loading");
+        auto movie = theme->getGif("Icons", "loading");
         label_icon->setMovie(movie);
     }else{
-        auto severity = notification->getSeverity();
         //Use an icon otherwise
         auto icon = notification->getIcon();
         if (icon.first.isEmpty() || icon.second.isEmpty()) {
             icon.first = "Notification";
             icon.second = Notification::getSeverityString(severity);
         }
-        auto icon_color = Theme::theme()->getSeverityColor(severity);
+        auto icon_color = theme->getSeverityColor(severity);
 
-        auto pixmap = Theme::theme()->getImage(icon.first, icon.second, icon_size, icon_color);
+        auto pixmap = theme->getImage(icon.first, icon.second, theme->getIconSize(), icon_color);
         label_icon->setPixmap(pixmap);
     }
 
     //Can only delete finished notifications
-    action_delete->setEnabled(!notification->getInProgressState());
+    action_delete->setEnabled(!is_running);
 }
 
 
@@ -218,9 +225,10 @@ void NotificationItem::updateStyleSheet()
                   "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + backgroundColor + ";"
                   "color:" + theme->getTextColorHex() + ";"
+                  "padding:2px;"
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px;}"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   + theme->getToolBarStyleSheet()
                   + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
     );

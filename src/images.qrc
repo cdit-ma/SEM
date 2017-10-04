@@ -228,7 +228,8 @@
         <file alias="tiles">Resources/Icons/tiles.png</file>
         <file alias="triangleCritical">Resources/Icons/triangleCritical.png</file>
         <file alias="triangleNorthWest">Resources/Icons/triangleNorthWest.png</file>
-        <file alias="triangleSouth">Resources/Icons/triangleSouth.png</file>
+        <file alias="triangleDown">Resources/Icons/triangleDown.png</file>
+        <file alias="triangleUp">Resources/Icons/triangleUp.png</file>
         <file alias="triangleSouthEast">Resources/Icons/triangleSouthEast.png</file>
         <file alias="uml">Resources/Icons/uml.png</file>
         <file alias="wave">Resources/Icons/wave.png</file>
@@ -268,5 +269,6 @@
         <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
         <file alias="sliders">Resources/Icons/sliders.png</file>
         <file alias="filterList">Resources/Icons/filterList.png</file>
+        <file alias="running">Resources/Icons/running.png</file>
     </qresource>
 </RCC>

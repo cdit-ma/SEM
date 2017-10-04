@@ -94,7 +94,11 @@ QMenu* ContextMenu::getDeployMenu(){
 void ContextMenu::themeChanged(){
     auto theme = Theme::theme();
 
-    main_menu->setStyleSheet(theme->getMenuStyleSheet(MENU_ICON_SIZE) + " QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
+    auto icon_size = theme->getLargeIconSize();
+    auto menu_style = new CustomMenuStyle(icon_size.width());
+
+    main_menu->setStyle(menu_style);
+    main_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");
 
     //Set Icons for top level icons
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
@@ -150,12 +154,8 @@ void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
 }
 
 QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu, int icon_size){
-    if(icon_size <=0 ){
-        icon_size = MENU_ICON_SIZE;
-    }
     auto menu = parent_menu ? parent_menu->addMenu(label) : new QMenu(label);
     
-    menu->setStyle(new CustomMenuStyle(icon_size));
 
     connect(menu, &QMenu::aboutToShow, [=](){update_menu(menu);menu_focussed(menu);});
     connect(menu, &QMenu::aboutToHide, this, &ContextMenu::clear_hover);
@@ -769,7 +769,6 @@ QWidgetAction* ContextMenu::construct_menu_search(QMenu* parent){
     auto action = new QWidgetAction(0);
     action->setProperty("SearchBox", true);
     auto filter_widget = new FilterWidget();
-    filter_widget->setIconSize(QSize(16,16));
     
     
     connect(filter_widget, &FilterWidget::filterChanged, [=](const QString & text){

@@ -9,13 +9,17 @@
 
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
-#include "../../Widgets/CodeEditor/consolewidget.h"
+
+#include "../../Widgets/Monitors/jobmonitor.h"
+#include "../../Widgets/Monitors/consolemonitor.h"
+#include "../../Widgets/Monitors/jenkinsmonitor.h"
 
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
+
 
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
@@ -560,26 +564,55 @@ void ViewController::importGraphMLExtract(QString data)
     }
 }
 
+DefaultDockWidget* ViewController::constructDockWidget(QString title, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window){
+    auto window_manager = WindowManager::manager();
+    auto dock_widget = window_manager->constructDockWidget(title);
+    dock_widget->setCloseVisible(false);
+
+    Theme::theme()->setWindowIcon(title, icon_path, icon_name);
+
+    dock_widget->setWidget(widget);
+    dock_widget->setIcon("WindowIcon", title);
+    dock_widget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+
+    if(!window){
+        window = window_manager->getActiveWindow();
+    }
+    window->addDockWidget(dock_widget);
+
+    return dock_widget;
+}
+
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
+    auto window_manager = WindowManager::manager();
     if(!codeViewer){
-        codeViewer = WindowManager::manager()->constructDockWidget("Code Browser");
-        codeViewer->setCloseVisible(false);
-        CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
-        codeViewer->setWidget(codeBrowser);
-        codeViewer->setIcon("Icons", "bracketsAngled");
-        codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-        BaseWindow* window = WindowManager::manager()->getActiveWindow();
-        if(window){
-            window->addDockWidget(codeViewer);
-        }
+        codeBrowser = new CodeBrowser();
+        codeViewer = constructDockWidget("Code Browser", "Icons", "bracketsAngled", codeBrowser);
     }
-    if(codeViewer){
-        CodeBrowser* codeBrowser = qobject_cast<CodeBrowser*>(codeViewer->widget());
-        if(codeBrowser){
-            codeBrowser->showCode(tabName, content, false);
-        }
-        codeViewer->show();
+    if(codeViewer && codeBrowser){
+        codeBrowser->showCode(tabName, content, false);
+        window_manager->showDockWidget(codeViewer);
+    }
+}
+
+JobMonitor* ViewController::getJobMonitor(){
+    return job_monitor;
+}
+
+void ViewController::showExecutionMonitor(){
+    auto window_manager = WindowManager::manager();
+    if(!execution_monitor){
+        job_monitor = new JobMonitor();
+        auto toolbar = job_monitor->getToolbar();
+        toolbar->addAction(actionController->model_executeLocalJob);
+        toolbar->addAction(actionController->jenkins_executeJob);
+
+        execution_monitor = constructDockWidget("Execution Monitor", "Icons", "bracketsAngled", job_monitor);
+    }
+
+    if(execution_monitor){
+        window_manager->showDockWidget(execution_monitor);
     }
 }
 
@@ -589,19 +622,20 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
 
     auto description = success ? "Settings validated successfully" : errorString;
     auto severity = success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "jenkinsFlat", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS, false);
+    NotificationManager::manager()->AddNotification(description, "Icons", "jenkinsFlat", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS);
 }
 
 void ViewController::GotJava(bool java, QString javaVersion){
     emit vc_JavaReady(java);
     auto description = java ? "Got Java: " + javaVersion : "Cannot find Java";
     auto severity = java ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE, false, true);
+    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
+
 void ViewController::GotRe(bool re, QString re_version){
     emit vc_ReReady(re);
     auto severity = re ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(re_version, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE, false, true);
+    NotificationManager::manager()->AddNotification(re_version, "Icons", "servers", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
 
 
@@ -965,7 +999,7 @@ void ViewController::modelNotification(MODEL_SEVERITY severity, QString descript
         default:
             break;
     }
-    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, false, true, ID);
+    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, true, ID);
 }
 
 void ViewController::setControllerReady(bool ready)
@@ -1099,7 +1133,7 @@ void ViewController::autoSaveProject(){
             auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
             if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
                 //Display a notification of the autosave
-                NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, false, false);
+                NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, false);
                 //update the autosave id
                 autosave_id_ = project_action_count;
                 emit vc_addProjectToRecentProjects(autosave_path);
@@ -1493,30 +1527,6 @@ void ViewController::generateWorkspace()
 
 void ViewController::executeModelLocal()
 {
-    if(!execution_browser){
-        execution_browser = WindowManager::manager()->constructDockWidget("Execution Browser");
-        execution_browser->setCloseVisible(false);
-        auto console_browser = new ConsoleWidget(execution_browser);
-
-        auto title = execution_browser->getTitle();
-        Theme::theme()->setWindowIcon(title, "Icons", "bracketsAngled");
-        execution_browser->setIcon("WindowIcon", title);
-        
-        execution_browser->setWidget(console_browser);
-        execution_browser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-        BaseWindow* window = WindowManager::manager()->getActiveWindow();
-        execution_browser->hide();
-        if(window){
-            window->addDockWidget(execution_browser);
-        }
-
-        connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, console_browser, &ConsoleWidget::AppendLine);
-        connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, console_browser, &ConsoleWidget::AppendLine);
-        connect(console_browser, &ConsoleWidget::Cancel, execution_manager, &ExecutionManager::CancelModelExecution);
-    }
-
-    auto browser = qobject_cast<ConsoleWidget*>(execution_browser ? execution_browser->widget(): 0);
-    
     auto file_path = getTempFileForModel();
     auto temp_dir = FileHandler::getTempFileName("/");
 
@@ -1530,11 +1540,20 @@ void ViewController::executeModelLocal()
     if(!options.isEmpty()){
         auto duration = options.value("Duration").toInt();
         auto workspace = options.value("Workspace").toString();
+        //If starting a job was valid, connect in the monitor
         if(execution_manager->ExecuteModel(file_path, workspace, duration)){
-            if(browser){
-                browser->Clear();
+            showExecutionMonitor();
+            auto job_monitor = getJobMonitor();
+            auto local_monitor = job_monitor->getConsoleMonitor("Local Deployment");
+            if(!local_monitor){
+                local_monitor = job_monitor->constructConsoleMonitor("Local Deployment");
+                connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, local_monitor, &Monitor::AppendLine);
+                connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, local_monitor, &Monitor::AppendLine);
+                connect(execution_manager, &ExecutionManager::ModelExecutionStateChanged, local_monitor, &Monitor::StateChanged);
+                connect(local_monitor, &Monitor::Abort, execution_manager, &ExecutionManager::CancelModelExecution);
             }
-            execution_browser->show();
+            local_monitor->Clear();
+            showExecutionMonitor();
         }
     }
 }

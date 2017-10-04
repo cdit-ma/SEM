@@ -30,6 +30,8 @@ void SearchPopup::themeChanged(){
     search_bar->setStyleSheet(theme->getLineEditStyleSheet());
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
     search_completer->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
+
+    toolbar->setIconSize(theme->getIconSize());
 }
 
 void SearchPopup::SearchRequested(){
@@ -44,7 +46,6 @@ void SearchPopup::updateSearchSuggestions(QStringList suggestions){
 
 void SearchPopup::setupLayout(){
     toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(24,24));
     toolbar->setMovable(false);
     toolbar->setFloatable(false);
     toolbar->setFixedWidth(300);

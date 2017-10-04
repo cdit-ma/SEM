@@ -34,6 +34,7 @@ private:
     QAction* close_action = 0;
     QHash<int, QToolButton*> button_lookup;
     QHBoxLayout* h_layout = 0;
+    QToolBar* toolbar = 0;
 };
 
 #endif //DOCKREPARENTERPOPUP_H

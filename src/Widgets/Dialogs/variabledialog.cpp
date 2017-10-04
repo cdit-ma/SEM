@@ -26,6 +26,13 @@ void VariableDialog::setOptionIcon(QString option, QString icon_path, QString ic
     }
 }
 
+void VariableDialog::setOptionEnabled(QString option, bool enabled){
+    auto edit_widget = fields.value(option, 0);
+    if(edit_widget){
+        edit_widget->setEnabled(enabled);
+    }
+}
+
 QHash<QString, QVariant> VariableDialog::getOptions(){
     QHash<QString, QVariant> values;
     

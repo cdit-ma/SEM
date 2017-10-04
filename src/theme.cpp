@@ -576,7 +576,20 @@ QString Theme::getSplitterStyleSheet()
             ;
 }
 QSize Theme::getIconSize(){
-    return QSize(16,16);
+    return icon_size;
+}
+QSize Theme::getLargeIconSize(){
+    return icon_size * 2;
+}
+
+void Theme::setIconSize(int size){
+
+    auto new_size = roundQSize(QSize(size, size));
+    if(new_size != icon_size){
+        icon_size = new_size;
+        updateValid();
+    }
+
 }
 
 QString Theme::getWidgetStyleSheet(QString widgetName)
@@ -680,7 +693,11 @@ QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
             "}"
             % widgetName % " QToolButton::!hover {"
             "background:" % bgColor % ";"
+            "}"
+            % widgetName % " QToolButton#WINDOW_ICON::hover{"
+            "background:none;"
             "}";
+            
 }
 
 QString Theme::getMenuBarStyleSheet()
@@ -1206,8 +1223,16 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         resetAspectTheme(false);
         break;
     }
-    case SETTINGS::GENERAL_GENERAL_FONTSIZE:{
+    case SETTINGS::THEME_SIZE_FONTSIZE:{
         setFont(value.value<QFont>());
+        break;
+    }
+    case SETTINGS::THEME_SIZE_ICONSIZE:{
+        setIconSize(value.toInt());
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_RUNNING_COLOR:{
+        setSeverityColor(Notification::Severity::RUNNING, color);
         break;
     }
 
@@ -1386,6 +1411,7 @@ void Theme::resetTheme(VIEW_THEME themePreset){
             emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
 
 
+            emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, white());
             emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
             emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
             emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
@@ -1408,6 +1434,7 @@ void Theme::resetTheme(VIEW_THEME themePreset){
             emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
             emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
 
+            emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, black());
             emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, black());
             emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
             emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
@@ -1478,12 +1505,17 @@ void Theme::resetTheme(VIEW_THEME themePreset){
 QFont Theme::getFont() const{
     return font;
 }
+QFont Theme::getLargeFont() const{
+    auto large_font = font;
+    large_font.setPointSizeF(font.pointSizeF() * 1.2);
+    return large_font;
+}
 void Theme::setFont(QFont font){
     if(this->font != font){
         this->font = font;
         
         QApplication::setFont(font);
-        emit theme_Changed();
+        updateValid();
     }
 }
 

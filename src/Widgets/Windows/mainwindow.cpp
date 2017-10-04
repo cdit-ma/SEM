@@ -9,7 +9,6 @@
 #include "../../Widgets/Dialogs/popupwidget.h"
 #include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
-#include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
 
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -60,7 +59,6 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
 
     connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Search);});
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Notification);});
-    connect(view_controller, &ViewController::vc_executeJenkinsJob, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Jenkins);});
 
     SettingsController* s = SettingsController::settings();
 
@@ -137,26 +135,28 @@ void MainWindow::themeChanged()
             " QToolBar::handle:vertical{image: url(:/Images/Icons/dotsHorizontal);}"
     );
 
+    auto icon_size = theme->getIconSize();
+
     menu_bar->setStyleSheet(theme->getMenuBarStyleSheet());
 
-
-    QString menuStyle = theme->getMenuStyleSheet(MENU_ICON_SIZE);
-    ActionController* actionController = view_controller->getActionController();
-
-    actionController->menu_file->setStyleSheet(menuStyle);
-    actionController->menu_file_recentProjects->setStyleSheet(menuStyle);
-    actionController->menu_edit->setStyleSheet(menuStyle);
-    actionController->menu_view->setStyleSheet(menuStyle);
-    actionController->menu_model->setStyleSheet(menuStyle);
-    actionController->menu_jenkins->setStyleSheet(menuStyle);
-    actionController->menu_help->setStyleSheet(menuStyle);
-    actionController->menu_options->setStyleSheet(menuStyle);
+    auto menu_style = new CustomMenuStyle(icon_size.width());
+    QString menuStyle = theme->getMenuStyleSheet(icon_size.width());
+    
+    for(auto action : menu_bar->actions()){
+        auto menu = action->menu();
+        if(menu){
+            menu->setStyle(menu_style);
+            menu->setStyleSheet(menuStyle);
+        }
+    }
 
     
     applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
 
     restore_toolbutton->setIcon(theme->getIcon("Icons", "spanner"));
     reset_action->setIcon(theme->getIcon("Icons", "refresh"));
+
+    applicationToolbar->setIconSize(theme->getIconSize());
 }
 
 /**
@@ -306,10 +306,12 @@ void MainWindow::setupDockIcons(){
     setDockWidgetIcon(dockwidget_Qos, "Icons", "speedGauge", theme);
     setDockWidgetIcon(dockwidget_Search, "Icons", "zoomInPage", theme);
     setDockWidgetIcon(dockwidget_Notification, "Icons", "exclamationInBubble", theme);
-    setDockWidgetIcon(dockwidget_Jenkins, "Icons", "jenkinsFlat", theme);
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
 
     theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
+
+    
+
 }
 
 /**
@@ -456,14 +458,7 @@ void MainWindow::setupMenuBar()
         menu_bar->addMenu(action_controller->menu_help);
 
         //Construct and setup the correct style
-        auto menu_style = new CustomMenuStyle(MENU_ICON_SIZE);
-    
-        for(auto action : menu_bar->actions()){
-            auto menu = action->menu();
-            if(menu){
-                menu->setStyle(menu_style);
-            }
-        }
+        
     }
 }
 
@@ -477,7 +472,6 @@ void MainWindow::setupToolBar()
         applicationToolbar->setObjectName("APPLICATION_TOOLBAR");
         applicationToolbar->setMovable(true);
         applicationToolbar->setFloatable(true);
-        applicationToolbar->setIconSize(QSize(16,16));
 
         auto applicationToolbar_spacer1 = new QWidget(applicationToolbar);
         auto applicationToolbar_spacer2 = new QWidget(applicationToolbar);
@@ -585,24 +579,15 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setIconVisible(true);
     dockwidget_Notification->setProtected(true);
 
-    //Jenkins Panel
-    dockwidget_Jenkins = window_manager->constructDockWidget("Jenkins");
-    dockwidget_Jenkins->setWidget(view_controller->getJenkinsManager()->GetJobMonitorWidget());
-    
-    dockwidget_Jenkins->setIconVisible(true);
-    dockwidget_Jenkins->setProtected(true);
-
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Notification);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Qos);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Jenkins);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(dockwidget_Qos, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
-    innerWindow->setDockWidgetVisibility(dockwidget_Jenkins, false);
     
     // Tab the search and notifications
     innerWindow->tabifyDockWidget(dockwidget_Search, dockwidget_Notification);

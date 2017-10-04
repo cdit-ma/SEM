@@ -113,7 +113,7 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Dock Widgets State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
-    createSetting(SETTINGS::GENERAL_GENERAL_FONTSIZE, SETTING_TYPE::FONT, "General", "MEDEA", "Select Font", "Icons", "letterA");
+    
     createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
 
     
@@ -164,6 +164,9 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::JENKINC_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
     createSetting(SETTINGS::JENKINC_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
 
+    createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
+    createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
+
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
     createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Dark Theme");
@@ -197,6 +200,8 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_SETASPECT_COLORBLIND, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
+    
+    createSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::RUNNING), "Notification", Notification::getSeverityString(Notification::Severity::RUNNING));
     createSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::INFO), "Notification", Notification::getSeverityString(Notification::Severity::INFO));
     createSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::WARNING), "Notification", Notification::getSeverityString(Notification::Severity::WARNING));
     createSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::ERROR), "Notification", Notification::getSeverityString(Notification::Severity::ERROR));
@@ -214,13 +219,14 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
     
+    
+    _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
+    
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(9);
-    _getSetting(SETTINGS::GENERAL_GENERAL_FONTSIZE)->setDefaultValue(font);
-    
-    _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
-
+    _getSetting(SETTINGS::THEME_SIZE_FONTSIZE)->setDefaultValue(font);
+    _getSetting(SETTINGS::THEME_SIZE_ICONSIZE)->setDefaultValue(16);
     _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);
     _getSetting(SETTINGS::TOOLBAR_SEARCH)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_UNDO)->setDefaultValue(true);

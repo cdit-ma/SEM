@@ -37,8 +37,14 @@ void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
-    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(32) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    auto icon_size = theme->getLargeIconSize();
+    auto menu_style = new CustomMenuStyle(icon_size.width());
+
+    add_part_menu->setStyle(menu_style);
+    deploy_menu->setStyle(menu_style);
+
+    add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
 
     QIcon partIcon;
     partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
@@ -67,6 +73,7 @@ void DockTabWidget::themeChanged()
         "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
         "}"
     );
+    toolbar->setIconSize(icon_size);
 }
 
 /**
@@ -100,7 +107,6 @@ void DockTabWidget::setupLayout()
         deploy_action->setChecked(false);
     }
 
-    toolbar->setIconSize(QSize(32,32));
 
 
     auto layout = new QVBoxLayout(this);

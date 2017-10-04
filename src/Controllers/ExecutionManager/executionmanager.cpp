@@ -80,9 +80,8 @@ void ExecutionManager::ValidateModel_(QString model_path)
         manager->deleteNotification(notification->getID());
     }
 
-    auto validation_noti = manager->AddNotification("Model validation in progress", "Icons", "shield", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::VALIDATION, true);
+    auto validation_noti = manager->AddNotification("Model validation in progress", "Icons", "shield", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::VALIDATION);
     auto results = RunSaxonTransform(transforms_path_ + "g2validate.xsl", model_path, "");
-    validation_noti->setInProgressState(false);
 
     if (results.success) {
         int test_count = 0;
@@ -106,7 +105,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
                         auto result_text = xml.readElementText();
                         auto severity = is_warning ? Notification::Severity::WARNING : Notification::Severity::ERROR;
                         
-                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, false, entity_id, true);
+                        manager->AddNotification(result_text, "Icons", "circleHalo", severity, Notification::Type::MODEL, Notification::Category::VALIDATION, false, entity_id, true);
                     }else if(result == "true"){
                         success_count ++;
                     }
@@ -174,7 +173,8 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
 
         auto generate = GenerateWorkspace_(document_path, output_directory);
 
-        auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
+        auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
+        emit ModelExecutionStateChanged(notification->getSeverity());
         if(generate){
             auto build_dir = output_directory + "/build/";
             auto lib_dir = output_directory + "/lib/";
@@ -213,8 +213,9 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
                 }else{
                     notification->setDescription("Failed to run CMake");
                 }
-                notification->setInProgressState(false);
-                notification->setSeverity(!failed ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+
+                notification->setSeverity(failed ? Notification::Severity::ERROR : Notification::Severity::SUCCESS);
+                emit ModelExecutionStateChanged(notification->getSeverity());
             }
         }
     }
@@ -222,11 +223,10 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
 
 bool ExecutionManager::GenerateWorkspace_(QString document_path, QString output_directory)
 {
-    auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true);
+    auto notification = NotificationManager::manager()->AddNotification("Generating model workspace C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
 
     auto components = GenerateComponents(document_path, output_directory, {}, false);
     auto datatypes = GenerateDatatypes(document_path, output_directory, false);
-    notification->setInProgressState(false);
 
     
     if(components && datatypes){
@@ -246,9 +246,8 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
         args << "preview=true";
     }
 
-    auto notification = NotificationManager::manager()->AddNotification("Generating component C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true, toast_notify);
+    auto notification = NotificationManager::manager()->AddNotification("Generating component C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, toast_notify);
     auto results = RunSaxonTransform(transforms_path_ + "g2components.xsl", document_path, output_directory, args);
-    notification->setInProgressState(false);
     
     if(!results.success){
         notification->setDescription("Generating component C++ failed! '" + results.standard_error.join("") + "'");
@@ -264,9 +263,8 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
 bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_directory, bool toast_notify)
 {
     // Construct a notification item with a loading gif as its icon
-    auto notification = NotificationManager::manager()->AddNotification("Generating datatype C++ ...", "Icons", "bracketsAngled", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::FILE, true, toast_notify);
+    auto notification = NotificationManager::manager()->AddNotification("Generating datatype C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE, toast_notify);
     auto results = RunSaxonTransform(transforms_path_ + "g2datatypes.xsl", document_path, output_directory, GetMiddlewareArgs());
-    notification->setInProgressState(false);
     
     if(!results.success){
         notification->setDescription("Generating datatype C++ failed! '" + results.standard_error.join("") + "'");

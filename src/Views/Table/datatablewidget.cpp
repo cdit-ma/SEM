@@ -86,6 +86,7 @@ void DataTableWidget::themeChanged()
 
     entity_button->setStyleSheet("QToolButton{background:rgba(0,0,0,0);color:" % theme->getTextColorHex() % ";border-color:rgba(0,0,0,0);font-weight:bold;}");
     activeItem_IconChanged();
+    toolbar->setIconSize(theme->getIconSize());
 }
 
 void DataTableWidget::setupLayout()
@@ -97,7 +98,6 @@ void DataTableWidget::setupLayout()
 
     toolbar = new QToolBar(this);
 
-    toolbar->setIconSize(QSize(16,16));
     tableView = new DataTableView(this);
 
     entity_button = new QToolButton(this);

@@ -10,41 +10,30 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QFontDialog>
-#include <QPlainTextEdit>
 #include "../theme.h"
 
-#define SMALL_SQUARE 24
 DataEditWidget::DataEditWidget(QString label, SETTING_TYPE type, QVariant data, QWidget *parent) : QWidget(parent)
 {
-    isHighlighted = false;
-    this->label = label;
+
+    this->name = label;
     this->currentData = data;
     this->newData = data;
     this->type = type;
 
     setContentsMargins(0,0,0,0);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setupLayout();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), &Theme::theme_Changed, this, &DataEditWidget::themeChanged);
     themeChanged();
 }
 void DataEditWidget::updateIcon(){
     Theme* theme = Theme::theme();
     if(icon_path.first != "" && icon_path.second != ""){
-        switch(type){
-            case SETTING_TYPE::FONT:
-            case SETTING_TYPE::BUTTON:{
-                auto button = qobject_cast<QToolButton*>(editWidget_1);
-                if(button){
-                    button->setIcon(theme->getIcon(icon_path));
-                }
-                break;
-            }   
-            default:
-                iconLabel->setPixmap(theme->getIcon(icon_path).pixmap(16,16));
-                break;
-
+        if(icon_action){
+            icon_action->setIcon(theme->getIcon(icon_path));
         }
+        setIconVisible(true);
     }
 }
 
@@ -52,34 +41,23 @@ void DataEditWidget::setIcon(QString path, QString name){
     icon_path.first = path;
     icon_path.second = name;
     updateIcon();
-    showIcon();
+    
 }
-void DataEditWidget::showIcon(){
+void DataEditWidget::setIconVisible(bool visible){
+    if(icon_action && icon_action != button_action){
+        icon_action->setVisible(visible);
+    }
+}
 
-    switch(type){
-        case SETTING_TYPE::FONT:
-        case SETTING_TYPE::BUTTON:{
-            break;
-        }
-        default:
-        if(iconLabel){
-            iconLabel->show();
-        }
-        break;
-    }
-}
-void DataEditWidget::hideIcon(){
-    if(iconLabel){
-        iconLabel->hide();
-    }
-}
+
 
 SETTING_TYPE DataEditWidget::getType()
 {
     return type;
 }
+
 QString DataEditWidget::getLabel(){
-    return label;
+    return name;
 }
 
 void DataEditWidget::setHighlighted(bool highlighted)
@@ -90,16 +68,16 @@ void DataEditWidget::setHighlighted(bool highlighted)
 
 int DataEditWidget::getMinimumLabelWidth()
 {
-    if(editLabel){
-        return editLabel->fontMetrics().width(editLabel->text());
+    if(label){
+        return label->fontMetrics().width(label->text());
     }
     return -1;
 }
 
 void DataEditWidget::setLabelWidth(int width)
 {
-    if(editLabel){
-        editLabel->setFixedWidth(width);
+    if(label){
+        label->setFixedWidth(width);
     }
 }
 
@@ -109,16 +87,16 @@ void DataEditWidget::setValue(QVariant data)
 
     switch(type){
     case SETTING_TYPE::BOOL:{
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editWidget_1);
-        if(checkBox){
-            checkBox->setChecked(newData.toBool());
+        auto check_box = qobject_cast<QCheckBox*>(editWidget_1);
+        if(check_box){
+            check_box->setChecked(newData.toBool());
         }
         break;
     }
     case SETTING_TYPE::INT:{
-        QSpinBox* spinBox = qobject_cast<QSpinBox*>(editWidget_1);
-        if(spinBox){
-            spinBox->setValue(newData.toInt());
+        auto spin_box = qobject_cast<QSpinBox*>(editWidget_1);
+        if(spin_box){
+            spin_box->setValue(newData.toInt());
         }
         break;
     }
@@ -135,19 +113,12 @@ void DataEditWidget::setValue(QVariant data)
         }
         break;
     }
-    case SETTING_TYPE::STRING:{
-        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
-        if(textEdit){
-            textEdit->setPlainText(newData.toString());
-        }
-        break;
-    }
     case SETTING_TYPE::FILE:
-    case SETTING_TYPE::PATH:{
-        //Do the same things.
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        if(lineEdit){
-            lineEdit->setText(newData.toString());
+    case SETTING_TYPE::PATH:
+    case SETTING_TYPE::STRING:{
+        auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
+        if(line_edit){
+            line_edit->setText(newData.toString());
         }
         break;
     }
@@ -169,81 +140,59 @@ void DataEditWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
+    
     if(toolbar){
+        auto icon_size = theme->getIconSize();
+        toolbar->setMinimumHeight(icon_size.height());
         toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+        toolbar->setIconSize(icon_size);
+    }
+    auto label_ss = "color: " + theme->getTextColorHex() + ";";
+    
+    
+    if(isHighlighted){
+        label_ss = "color: " + theme->getHighlightColorHex() + "; text-decoration:underline;";
+    }
+    if(label){
+        label->setStyleSheet(label_ss);
     }
 
-    QToolButton* button = qobject_cast<QToolButton*>(editWidget_2);
-    if(button){
-        QString style = theme->getToolBarStyleSheet();
-        //QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
-        switch(type){
+    auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
+    auto spin_box = qobject_cast<QSpinBox*>(editWidget_1);
+
+    if(line_edit){
+        line_edit->setStyleSheet(theme->getLineEditStyleSheet());
+    }else if(spin_box){
+        editWidget_1->setStyleSheet(theme->getLineEditStyleSheet("QSpinBox"));
+    }else if(editWidget_1){
+        auto style = label_ss;
+        if(type != SETTING_TYPE::BOOL){
+            style += "background:" + Theme::theme()->getAltBackgroundColorHex() + "; border: 1px solid " + theme->getAltBackgroundColorHex() + ";";
+        }
+        editWidget_1->setStyleSheet(style);
+    }
+
+    switch(type){
         case SETTING_TYPE::FILE:{
-            button->setIcon(Theme::theme()->getIcon("Icons", "file"));
+            button_action->setIcon(theme->getIcon("Icons", "file"));
             break;
         }
         case SETTING_TYPE::PATH:{
-            button->setIcon(Theme::theme()->getIcon("Icons", "folder"));
+            button_action->setIcon(theme->getIcon("Icons", "folder"));
             break;
         }
         case SETTING_TYPE::COLOR:{
-            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-            if(lineEdit){
-                style += "QToolButton{background: " + lineEdit->text() + ";}";
+            auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
+            if(line_edit){
+                QColor color(line_edit->text());
+                button_action->setIcon(theme->getImage("Icons", "drop", QSize(), color));
             }
             break;
         }
-        
         default:{
             break;
         }
-
-        }
-        button->setStyleSheet(style);
     }
-
-    QString labelStyleSheet = "";
-
-    if(isHighlighted){
-        labelStyleSheet += "color: " + theme->getHighlightColorHex() + "; text-decoration:underline;";
-    }else{
-        labelStyleSheet += "color: " + theme->getTextColorHex() + "; text-decoration:normal;";
-    }
-
-    if(editLabel){
-        editLabel->setStyleSheet(labelStyleSheet);
-    }
-
-
-
-    if(editWidget_1){
-        QString style = "color:" + Theme::theme()->getTextColorHex() + ";";
-        if(type == SETTING_TYPE::BOOL){
-            style = labelStyleSheet;
-        }else{
-            style += "background:" + Theme::theme()->getAltBackgroundColorHex() + "; border: 1px solid " + theme->getAltBackgroundColorHex() + ";";
-        }
-
-        
-
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        QPlainTextEdit* textEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
-        QToolButton* button = qobject_cast<QToolButton*>(editWidget_1);
-
-        if(lineEdit){
-            lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
-        }else if(button){
-            button->setStyleSheet(theme->getToolButtonStyleSheet());
-            button->setIcon(theme->getIcon(icon_path));
-        }else if(textEdit){
-            textEdit->setStyleSheet(theme->getTextEditStyleSheet());
-        }else{
-            editWidget_1->setStyleSheet(style);
-        }
-
-    }
-
-    
     updateIcon();
 }
 
@@ -258,6 +207,7 @@ void DataEditWidget::editFinished()
     case SETTING_TYPE::BOOL:{
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(editWidget_1);
         if(checkBox){
+
             //Call dataChanged first
             dataChanged(checkBox->isChecked());
         }
@@ -271,36 +221,25 @@ void DataEditWidget::editFinished()
         }
         break;
     }
-        case SETTING_TYPE::COLOR:{
+    case SETTING_TYPE::COLOR:{
 
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
 
         //Validate color;
         QColor color(newData.toString());
-        if(color.isValid()){
-            if(lineEdit){
-                lineEdit->setText(newData.toString());
-            }
-            themeChanged();
-            break;
-        }else{
-            newData = currentData;
-            lineEdit->setText(currentData.toString());
-            return;
+        if(lineEdit){
+            lineEdit->setText(newData.toString());
         }
+        themeChanged();
         break;
     }
-    case SETTING_TYPE::STRING:{
-        QPlainTextEdit* lineEdit = qobject_cast<QPlainTextEdit*>(editWidget_1);
-        dataChanged(lineEdit->toPlainText());
-        break;
-    }
+    case SETTING_TYPE::STRING:
     case SETTING_TYPE::FILE:
     case SETTING_TYPE::PATH:{
         //Do the same things.
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
-        if(lineEdit){
-            lineEdit->setText(newData.toString());
+        auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
+        if(line_edit){
+            line_edit->setText(newData.toString());
         }
         break;
     }
@@ -340,6 +279,16 @@ void DataEditWidget::pickFont()
     }
 }
 
+QAction* DataEditWidget::getButtonAction(){
+    auto button = new QToolButton(this);
+    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    auto action = toolbar->addWidget(button);
+    //Connect the button to it's action so we don't need to worry about QToolButton stuff
+    button->setDefaultAction(action);
+    return action;
+}
+
 void DataEditWidget::pickPath()
 {
     QString path = "";
@@ -361,157 +310,138 @@ void DataEditWidget::pickPath()
 
 void DataEditWidget::setupLayout()
 {
-    QVBoxLayout* verticalLayout = new QVBoxLayout(this);
-    QHBoxLayout* editLayout = new QHBoxLayout();
-    verticalLayout->setMargin(0);
-    editLayout->setMargin(0);
+    toolbar = new QToolBar(this);
+    
+    
+    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    auto hbox_layout = new QHBoxLayout(this);
+    hbox_layout->setMargin(2);
+    hbox_layout->addWidget(toolbar);
 
+    icon_action = toolbar->addAction("");
+    icon_action->setVisible(false);
 
-    verticalLayout->addLayout(editLayout);
+    label = new QLabel(name, this);
+    auto label_action = toolbar->addWidget(label);
 
-    editWidget_1 = 0;
-    editWidget_2 = 0;
-    editLabel = new QLabel(label, this);
-    iconLabel = new QLabel(this);
-    editLayout->addWidget(iconLabel);
-    editLayout->addWidget(editLabel);
-    iconLabel->hide();
+    bool needs_label = true;
+    bool uses_button = false;
 
     switch(type){
         case SETTING_TYPE::STRING:{
-        QPlainTextEdit* textEdit = new QPlainTextEdit(this);
-        textEdit->setPlainText(currentData.toString());
-
-        textEdit->setTabChangesFocus(true);
-
-        textEdit->setFixedHeight(SMALL_SQUARE);
-
-        //Any CChange should change
-        connect(textEdit, &QPlainTextEdit::textChanged, this, [textEdit, this](){dataChanged(textEdit->toPlainText()); editFinished();});
-
-        editWidget_1 = textEdit;
-        editLayout->addWidget(editWidget_1, 1);
+            auto line_edit = new QLineEdit(this);
+            line_edit->setText(currentData.toString());
+            connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+            connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::editFinished);
+            editWidget_1 = line_edit;
+            toolbar->addWidget(line_edit);
         break;
     }
     case SETTING_TYPE::BOOL:{
-        QCheckBox* checkBox = new QCheckBox(label, this);
-        checkBox->setChecked(currentData.toBool());
+        needs_label = false;
+        auto check_box = new QCheckBox(name, this);
+        check_box->setChecked(currentData.toBool());
 
-        connect(checkBox, &QCheckBox::clicked, this, &DataEditWidget::editFinished);
+        connect(check_box, &QCheckBox::clicked, this, &DataEditWidget::editFinished);
 
-        editWidget_1 = checkBox;
-        editLayout->removeWidget(editLabel);
-
-        editLayout->addWidget(editWidget_1, 1);
-        editLabel->deleteLater();
-        editLabel = 0;
+        editWidget_1 = check_box;
+        toolbar->addWidget(check_box);
         break;
     }
     case SETTING_TYPE::INT:{
-        QSpinBox* spinBox = new QSpinBox(this);
-        spinBox->setMaximum(10000);
-        spinBox->setMinimum(-10000);
-        spinBox->setValue(currentData.toInt());
+        auto spin_box = new QSpinBox(this);
+        spin_box->setMaximum(10000);
+        spin_box->setMinimum(-10000);
+        spin_box->setValue(currentData.toInt());
 
-        editWidget_1 = spinBox;
+        editWidget_1 = spin_box;
 
-        connect(spinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [spinBox, this](int value){editFinished();});
-
-        editLayout->addWidget(editWidget_1, 1);
+        connect(spin_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &DataEditWidget::editFinished);
+        spin_box->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        toolbar->addWidget(spin_box);
         break;
     }
     case SETTING_TYPE::PATH:
     case SETTING_TYPE::FILE:{
-        QLineEdit* lineEdit = new QLineEdit(this);
+        auto line_edit = new QLineEdit(this);
+        line_edit->setText(currentData.toString());
 
-        lineEdit->setText(currentData.toString());
+        toolbar->addWidget(line_edit);
+        button_action = toolbar->addAction("Select File/Path");
 
-        QToolButton* button = new QToolButton(this);
-        button->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
 
-        toolbar = new QToolBar(this);
-        toolbar->addWidget(button);
-        //button->setFlat(true);
+        editWidget_1 = line_edit;
 
-        editWidget_1 = lineEdit;
-        editWidget_2 = button;
-        editLayout->addWidget(editWidget_1, 1);
-        editLayout->addWidget(toolbar);
-
-        connect(button, &QToolButton::released, this, &DataEditWidget::pickPath);
-        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
+        connect(button_action, &QAction::triggered, this, &DataEditWidget::pickPath);
+        connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::editFinished);
+        //connect(line_edit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
         break;
     }
     case SETTING_TYPE::COLOR:{
-        QLineEdit* lineEdit = new QLineEdit(this);
-        lineEdit->setText(currentData.toString());
+        auto line_edit = new QLineEdit(this);
+        line_edit->setText(currentData.toString());
+        toolbar->addWidget(line_edit);
+        button_action = toolbar->addAction("Select Color");
 
+        editWidget_1 = line_edit;
 
+        connect(button_action, &QAction::triggered, this, &DataEditWidget::pickColor);
+        connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::editFinished);
+        
+        //connect(line_edit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
+        //connect(line_edit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
 
-        QToolButton* button = new QToolButton(this);
-        button->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
-
-        editWidget_1 = lineEdit;
-        editWidget_2 = button;
-
-        connect(button, &QToolButton::released, this, &DataEditWidget::pickColor);//, Qt::QueuedConnection);
-        connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
-        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
-
-        editLayout->addWidget(editWidget_1, 1);
-        editLayout->addWidget(editWidget_2);
         break;
     }
     case SETTING_TYPE::FONT:{
-        QToolButton* button = new QToolButton(this);
-        button->setText(label);
-        button->setFixedHeight(SMALL_SQUARE);
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-        connect(button, &QToolButton::released, this, &DataEditWidget::pickFont);
+        uses_button = true;
+        needs_label = false;
+        button_action = getButtonAction();
+        button_action->setText(name);
 
-        toolbar = new QToolBar(this);
-        toolbar->addWidget(button);
-        editWidget_1 = button;
-        editLayout->removeWidget(editLabel);
-
-        editLayout->addWidget(toolbar, 1);
-        editLabel->deleteLater();
-        editLabel = 0;
+        connect(button_action, &QAction::triggered, this, &DataEditWidget::pickFont);
         break;
     }
     case SETTING_TYPE::BUTTON:{
-        QToolButton* button = new QToolButton(this);
-        button->setText(label);
-        button->setFixedHeight(SMALL_SQUARE);
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-        connect(button, &QToolButton::released, this, &DataEditWidget::editFinished);
+        uses_button = true;
+        needs_label = false;
+        button_action = getButtonAction();
+        button_action->setText(name);
 
-        toolbar = new QToolBar(this);
-        toolbar->addWidget(button);
-        editWidget_1 = button;
-        editLayout->removeWidget(editLabel);
-
-        editLayout->addWidget(toolbar, 1);
-        editLabel->deleteLater();
-        editLabel = 0;
+        connect(button_action, &QAction::triggered, this, &DataEditWidget::editFinished);
         break;
     }
     default:
         break;
     }
 
-    if(editWidget_1){
-        editWidget_1->setAttribute(Qt::WA_MacShowFocusRect, false);
-        if(editLabel){
-            editLabel->setFocusPolicy(Qt::ClickFocus);
-            editLabel->setFocusProxy(editWidget_1);
+    
+
+    if(uses_button){
+        delete icon_action;
+        icon_action = button_action;
+        auto tool_button = qobject_cast<QToolButton*>(toolbar->widgetForAction(button_action));
+        tool_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    }else{
+        auto tool_button = qobject_cast<QToolButton*>(toolbar->widgetForAction(icon_action));
+        if(tool_button){
+            tool_button->setAutoRaise(false);
+            tool_button->setStyleSheet("QToolButton{background:none;border:none;}");
         }
-        editWidget_1->setFixedHeight(SMALL_SQUARE);
     }
-    if(editWidget_2){
-        editWidget_2->setFixedHeight(SMALL_SQUARE);
+    if(!needs_label){
+        delete label;
+        label = 0;
+    }
+
+    if(editWidget_1){
+        editWidget_1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        editWidget_1->setAttribute(Qt::WA_MacShowFocusRect, false);
+        if(label){
+            label->setFocusPolicy(Qt::ClickFocus);
+            label->setFocusProxy(editWidget_1);
+        }
     }
 }

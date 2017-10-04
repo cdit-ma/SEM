@@ -108,12 +108,6 @@ void BaseDockWidget::removeTitleBar(){
     }
 }
 
-void BaseDockWidget::setTitleBarIconSize(int height)
-{
-    if(titleBar){
-        titleBar->setToolBarIconSize(height);
-    }
-}
 
 bool BaseDockWidget::isProtected()
 {

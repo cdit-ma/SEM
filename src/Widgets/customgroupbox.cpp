@@ -18,8 +18,6 @@ CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
     widgetsToolbar = 0;
 
     setupLayout();
-    setIconSize(QSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE));
-    //setCheckable(false);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
     
@@ -47,18 +45,6 @@ void CustomGroupBox::setTitle(QString title)
 QString CustomGroupBox::getTitle()
 {
     return groupTitle;
-}
-
-
-/**
- * @brief CustomGroupBox::setIconSize
- * @param size
- */
-void CustomGroupBox::setIconSize(QSize size)
-{
-    if (widgetsToolbar) {
-        widgetsToolbar->setIconSize(size);
-    }
 }
 
 
@@ -182,6 +168,9 @@ void CustomGroupBox::themeChanged()
                                         "}"
                                         + checkableStyle);
     }
+
+    widgetsToolbar->setIconSize(theme->getIconSize());
+    topToolbar->setIconSize(theme->getIconSize());
 }
 
 
@@ -213,8 +202,7 @@ void CustomGroupBox::setupLayout()
     rightTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
     rightTitleFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QToolBar* topToolbar = new QToolBar(this);
-    topToolbar->setIconSize(QSize(TITLE_ARROW_SIZE, TITLE_ARROW_SIZE));
+    topToolbar = new QToolBar(this);
     topToolbar->addWidget(groupTitleButton);
     //topToolbar->setLayoutDirection(Qt::RightToLeft);
 

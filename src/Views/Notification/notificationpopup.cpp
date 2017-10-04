@@ -27,17 +27,17 @@ void NotificationPopup::DisplayNotification(NotificationObject* notification){
         label->setText(notification_text);
     }
 
-    
-    if(notification->getInProgressState()){
+    auto icon_size = icon->size();
+    if(notification->getSeverity() == Notification::Severity::RUNNING){
         auto movie = Theme::theme()->getGif("Icons", "loading");
         icon->setMovie(movie);
     }else{
         auto icon = notification->getIcon();
         auto icon_color = Theme::theme()->getSeverityColor(notification->getSeverity());
-        auto pixmap = Theme::theme()->getImage(icon.first, icon.second, QSize(16,16), icon_color);
+        auto pixmap = Theme::theme()->getImage(icon.first, icon.second, icon_size, icon_color);
         
         if (pixmap.isNull()) {
-            pixmap = Theme::theme()->getImage("Icons", "circleInfo", QSize(16,16), icon_color);
+            pixmap = Theme::theme()->getImage("Icons", "circleInfo", icon_size, icon_color);
         }
     
         if(!this->icon->pixmap() || this->icon->pixmap()->cacheKey() != pixmap.cacheKey()){
@@ -55,17 +55,20 @@ void NotificationPopup::DisplayNotification(NotificationObject* notification){
 void NotificationPopup::themeChanged(){
     auto theme = Theme::theme();
     setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}");
+    label->setFont(theme->getLargeFont());
+    icon->setFixedSize(theme->getLargeIconSize());
 }
 
 void NotificationPopup::setupLayout(){
     widget = new QWidget(this);
     
     icon = new QLabel(this);
+    icon->setScaledContents(true);
     icon->setAlignment(Qt::AlignCenter);
-    icon->setFixedSize(QSize(24,24));
+    
     
     label = new QLabel(this);
-    label->setFont(QFont(font().family(), 11));
+    
     
     widget->setContentsMargins(5, 2, 5, 2);
     

@@ -3,6 +3,9 @@
 
 #include "../SettingsController/settingscontroller.h"
 
+#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
+
+
 #include <QObject>
 #include <QJsonDocument>
 #include <QString>
@@ -14,7 +17,6 @@
 //Forward Declare
 class JenkinsRequest;
 class ActionController;
-class JenkinsJobMonitorWidget;
 class ViewController;
 
 class NotificationObject;
@@ -32,6 +34,8 @@ public:
     void SetApiToken(QString api_token);
     void SetJobName(QString job_name);
 
+    SETTING_TYPE GetSettingType(QString type);
+
     QString GetUrl();
     QString GetUser();
     QString GetJobName();
@@ -40,7 +44,6 @@ public:
     QStringList GetJobConfigurations(QString job_name);
 
     ActionController* GetActionController();
-    JenkinsJobMonitorWidget* GetJobMonitorWidget();
 
     bool HasSettings();
     bool GotValidSettings();
@@ -60,6 +63,11 @@ signals:
     //To JenkinsRequests
     void ValidateSettings_();
     void RunGroovyScript_(QString script);
+
+    void getJobParameters(QString name);
+    void buildJob(QString jobName, Jenkins_JobParameters parameters);
+
+    void AbortJob(QString job_name, int build_number, QString active_configuration="");
 private slots:
     //From JenkinsRequests
     void GotJenkinsNodes_(bool success, QString data);
@@ -67,6 +75,12 @@ private slots:
 
     //From SettingsController
     void SettingChanged(SETTINGS key, QVariant value);
+
+    void gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity jobState);
+    void gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput);
+
+    void gotoJob(QString job_name, int build_number);
+    void abortJob(QString job_name, int build_number);
 private:
     void jenkinsRequestFinished(JenkinsRequest* request);
     void storeJobConfiguration(QString job_name, QJsonDocument json);
@@ -97,7 +111,6 @@ private:
     QList<JenkinsRequest*> requests;
 
     ViewController* view_controller_ = 0;
-    JenkinsJobMonitorWidget* job_monitor_widget_ = 0;
 };
 
 #endif // JENKINSMANAGER_H

@@ -1,6 +1,7 @@
 #ifndef EXECUTIONMANAGER_H
 #define EXECUTIONMANAGER_H
 
+#include "../../Widgets/Monitors/monitor.h"
 #include "../../Utils/processrunner.h"
 #include "../SettingsController/settingscontroller.h"
 
@@ -37,6 +38,7 @@ public:
 signals:
     void GotProcessStdOutLine(QString line);
     void GotProcessStdErrLine(QString line);
+    void ModelExecutionStateChanged(Notification::Severity state);
 
     void CancelModelExecution();
 

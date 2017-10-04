@@ -166,12 +166,16 @@ void NotificationDialog::themeChanged()
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
+    clock_action->setIcon(theme->getIcon("Icons", "clock"));
     
-    auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
-    clock_label->setPixmap(pixmap);
+    //auto pixmap = Theme::theme()->getImage("Icons", "clock", QSize(16,16), theme->getMenuIconColor());
+    //clock_label->setPixmap(pixmap);
 
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
+
+    top_toolbar->setIconSize(theme->getIconSize());
+    bottom_toolbar->setIconSize(theme->getIconSize());
 }
 
 void NotificationDialog::popupEntity(){
@@ -342,16 +346,23 @@ void NotificationDialog::setupLayout()
 
         top_toolbar = new QToolBar(this);
         top_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
-        top_toolbar->setIconSize(QSize(16, 16));
 
-        clock_label = new QLabel(this);
+        /*clock_label = new QLabel(this);
         clock_label->setFixedSize(QSize(16, 16));
         clock_label->setAlignment(Qt::AlignCenter);
         clock_label->setToolTip("Sort Notifications by time (Ascending/Descending)");
         
-        top_toolbar->addWidget(clock_label);
+        top_toolbar->addWidget(clock_label);*/
+
+        clock_action = top_toolbar->addAction("Sort Notifications by time (Ascending/Descending)");
+
+        auto button = (QToolButton*) top_toolbar->widgetForAction(clock_action);
+        button->setAutoRaise(false);
+        button->setStyleSheet("QToolButton{background:none;border:none;}");
+
+
         sort_time_action = top_toolbar->addAction("Sort by time");
-        sort_time_action->setToolTip(clock_label->toolTip());
+        sort_time_action->setToolTip(clock_action->toolTip());
         sort_time_action->setCheckable(true);
         sort_time_action->setChecked(true);
 
@@ -406,7 +417,6 @@ void NotificationDialog::setupLayout()
             status_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
 
             bottom_toolbar = new QToolBar(this);
-            bottom_toolbar->setIconSize(QSize(16, 16));
             bottom_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
             reset_filters_action = bottom_toolbar->addAction("Reset Filters");
 
@@ -469,6 +479,8 @@ void NotificationDialog::setupFilters()
         auto severity_str = Notification::getSeverityString(severity);
         severity_filters->addOption(QVariant::fromValue(severity), severity_str, "Notification", severity_str);
     }
+    severity_filters->setOptionVisible(QVariant::fromValue(Notification::Severity::NONE), false);
+    
     filters_layout->addWidget(severity_filters);
 
     category_filters = new OptionGroupBox("CATEGORY", this);

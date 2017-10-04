@@ -93,6 +93,9 @@ void SearchDialog::themeChanged()
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
+
+    top_toolbar->setIconSize(theme->getIconSize());
+    bottom_toolbar->setIconSize(theme->getIconSize());
 }
 
      
@@ -248,7 +251,6 @@ void SearchDialog::setupLayout()
         query_label->setFont(QFont(font().family(), 12));
 
         top_toolbar = new QToolBar(this);
-        top_toolbar->setIconSize(QSize(16, 16));
         top_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
 
         search_action = top_toolbar->addAction("Search Again");
@@ -306,7 +308,6 @@ void SearchDialog::setupLayout()
             status_label->setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred));
 
             bottom_toolbar = new QToolBar(this);
-            bottom_toolbar->setIconSize(QSize(16, 16));
             bottom_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
             reset_filters_action = bottom_toolbar->addAction("Reset Filters");
 

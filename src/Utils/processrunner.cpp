@@ -87,7 +87,6 @@ QString ProcessRunner::getEnvVar(QString key){
 
             //Only care about the environment variables which exist soly in
             if(black_list_value != value){
-                qCritical() << "Key: " << key << " Value: " << value;
                 env_vars.insert(key, value);
             }
         }

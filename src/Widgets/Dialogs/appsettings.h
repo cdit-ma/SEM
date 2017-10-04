@@ -44,13 +44,16 @@ private slots:
     void applySettings();
     void clearSettings();
 private:
+    QString settingKey(Setting* setting);
+    QString settingKey(QString category, QString section);
+    void updateLabels();
     void updateButtons();
     DataEditWidget* getDataWidget(SETTINGS key);
     void setupLayout();
     void setupSettingsLayouts();
     QVBoxLayout *getCategoryLayout(QString category);
-    QVBoxLayout* getSectionLayout(QString category, QString section);
     CustomGroupBox* getSectionBox(QString category, QString section);
+    
     
 
     QTabWidget* tabWidget;
@@ -58,7 +61,6 @@ private:
     QToolBar* toolbar;
     QHash<SETTINGS, DataEditWidget*> dataEditWidgets;
     QHash<QString, QVBoxLayout*> categoryLayouts;
-    QHash<QString, QVBoxLayout*> sectionLayouts;
     QHash<SETTINGS, QVariant> changedSettings;
     QHash<QString, CustomGroupBox*> sectionBoxes;
     QAction* applySettingsAction;

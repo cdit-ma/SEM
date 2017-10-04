@@ -81,7 +81,9 @@ void BaseWindow::setDockWidgetsVisible(bool visible)
 
 void BaseWindow::addDockWidget(BaseDockWidget *widget)
 {
-    addDockWidget(widget->getDockWidgetArea(), widget, Qt::Horizontal);
+    if(widget){
+        addDockWidget(widget->getDockWidgetArea(), widget, Qt::Horizontal);
+    }
 }
 
 void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget)

@@ -27,6 +27,7 @@ void FilterWidget::themeChanged(){
     reset_button->setIcon(theme->getIcon("Icons", "cross"));
     auto filter_icon = theme->getImage("Icons", "filterList", QSize(), theme->getMenuIconColor());
     icon_button->setIcon(filter_icon);
+    setIconSize(theme->getIconSize());
 }
 
 void FilterWidget::setupLayout(){

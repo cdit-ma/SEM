@@ -14,7 +14,7 @@ QSet<Notification::Category> Notification::getCategories(){
 }
 
 QSet<Notification::Severity> Notification::getSeverities(){
-    return {Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
+    return {Severity::NONE, Severity::RUNNING, Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
 }
 
 QString Notification::getTypeString(Notification::Type type)
@@ -38,6 +38,10 @@ QString Notification::getSeverityString(Notification::Severity severity)
         return "Error";
     case Severity::SUCCESS:
         return "Success";
+    case Severity::RUNNING:
+        return "Running";
+    case Severity::NONE:
+        return "No Severity";
     }
 }
 

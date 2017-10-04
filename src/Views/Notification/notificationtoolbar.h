@@ -32,6 +32,7 @@ private:
 
     QIcon default_icon;
     QHash<Notification::Severity, QLabel*> severity_labels;
+    QHash<Notification::Severity, QAction*> severity_actions;
 };
 
 #endif // NOTIFICATIONTOOLBAR_H

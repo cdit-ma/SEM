@@ -15,7 +15,6 @@ OptionGroupBox::OptionGroupBox(QString title, QWidget* parent) : CustomGroupBox(
 {
     setupResetAction();
     setTitle(title);
-    setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &OptionGroupBox::themeChanged);
     themeChanged();

@@ -51,7 +51,7 @@ private:
 private:
     QLabel* info_label = 0;
     QLabel* status_label = 0;
-    QLabel* clock_label = 0;
+    //QLabel* clock_label = 0;
     
     QWidget* filters_widget = 0;
     QWidget* notifications_widget = 0;
@@ -67,6 +67,7 @@ private:
     QAction* center_action = 0;
     QAction* popup_action = 0;
     QAction* sort_time_action = 0;
+    QAction* clock_action = 0;
     QAction* reset_filters_action = 0;
 
     

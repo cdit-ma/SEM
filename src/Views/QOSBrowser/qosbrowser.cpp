@@ -48,6 +48,8 @@ void QOSBrowser::themeChanged()
     profileLabelButton->setIcon(theme->getImage("Icons", "speedGauge", QSize(16,16), theme->getMenuIconColorHex()));
     policyLabelButton->setIcon(theme->getImage("Icons", "buildingPillared", QSize(16,16), theme->getMenuIconColorHex()));
     attributeLabelButton->setIcon(theme->getImage("Icons", "label", QSize(16,16), theme->getMenuIconColorHex()));
+
+    toolbar->setIconSize(theme->getIconSize());
 }
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)
@@ -92,7 +94,6 @@ void QOSBrowser::setupLayout()
     tableView = new DataTableView(this);
 
     toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(20,20));
     toolbar->setContentsMargins(0,0,0,4);
 
     //profileView->setFocusPolicy(Qt::NoFocus);

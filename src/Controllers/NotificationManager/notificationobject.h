@@ -25,7 +25,6 @@ public:
     void setType(Notification::Type type);
     void setCategory(Notification::Category category);
     void setEntityID(int entity_id);
-    void setInProgressState(bool in_progress = true);
     void setToastable(bool toast);
 
     bool getToastable() const;
@@ -35,7 +34,6 @@ public:
     QString getDescription() const;
     QPair<QString, QString> getIcon() const;
     QDateTime getModifiedTime() const;
-    bool getInProgressState() const;
 
     Notification::Type getType() const;
     Notification::Category getCategory() const;
@@ -56,7 +54,6 @@ private:
 
     int id_ = -1;
     int entity_id_ = -1;
-    bool in_progress_state_ = false;
     bool toastable_ = true;
 
     QString title_;

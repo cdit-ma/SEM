@@ -2,7 +2,8 @@
 #include "../../theme.h"
 
 #include <QDebug>
-#include <QBitmap>
+
+#include <QToolButton>
 
 DockTitleBar::DockTitleBar(QWidget* parent) : QToolBar(parent)
 {
@@ -45,12 +46,14 @@ void DockTitleBar::setToolBarIconSize(int height)
 void DockTitleBar::setIcon(QString iconPath, QString iconName){
     icon_path.first = iconPath;
     icon_path.second = iconName;
-    updateIcon(iconLabel, icon_path.first, icon_path.second);    
+    updateIcon(iconAction, icon_path.first, icon_path.second);    
 }
+
+/*
 QPixmap DockTitleBar::getIcon()
 {
     return *iconLabel->pixmap();
-}
+}*/
 
 void DockTitleBar::setTitle(QString title, Qt::Alignment alignment)
 {
@@ -112,13 +115,15 @@ void DockTitleBar::themeChanged()
 {
     updateActiveStyle();
     Theme* theme = Theme::theme();
+    auto icon_size = theme->getIconSize();
+    setIconSize(icon_size);
 
     updateIcon(closeAction, "Icons", "cross");
     updateIcon(popOutAction, "Icons", "popOut");
     updateIcon(maximizeAction, "ToggleIcons", "maximize");
     updateIcon(protectAction, "ToggleIcons", "lock");
     updateIcon(hideAction, "ToggleIcons", "visible");
-    updateIcon(iconLabel, icon_path.first, icon_path.second);
+    updateIcon(iconAction, icon_path.first, icon_path.second);
 }
 
 void DockTitleBar::updateActiveStyle()
@@ -128,15 +133,17 @@ void DockTitleBar::updateActiveStyle()
 
 void DockTitleBar::setupToolBar()
 {
-    iconLabel = new QLabel(this);
-    iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setStyleSheet("margin-right: 2px;");
-    iconLabel->setFixedSize(16,16);
+    iconAction = addAction("");
+    iconAction->setCheckable(true);
+    iconAction->setChecked(true);
+    auto button = (QToolButton*) widgetForAction(iconAction);
+    button->setObjectName("WINDOW_ICON");
+    button->setAutoRaise(false);
+    connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
 
     titleLabel = new QLabel(this);
     titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    iconAction = addWidget(iconLabel);
     //iconAction->setVisible(false);
     addWidget(titleLabel);
 
@@ -166,8 +173,6 @@ void DockTitleBar::setupToolBar()
     closeAction = addAction("Close");
     actions.append(closeAction);
     closeAction->setVisible(false);
-
-    setToolBarIconSize(16);
 }
 
 bool DockTitleBar::isActive()

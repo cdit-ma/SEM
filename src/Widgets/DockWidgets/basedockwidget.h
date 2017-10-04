@@ -33,7 +33,6 @@ public:
     DockTitleBar* getTitleBar();
     void removeTitleBar();
 
-    void setTitleBarIconSize(int height);
 
     bool isProtected();
     void setProtected(bool protect);

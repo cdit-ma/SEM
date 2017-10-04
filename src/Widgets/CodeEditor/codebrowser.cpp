@@ -52,6 +52,7 @@ void CodeBrowser::setupLayout()
     tabWidget = new QTabWidget(this);
     layout->addWidget(tabWidget, 1);
     tabWidget->setTabsClosable(true);
+    tabWidget->setElideMode(Qt::ElideMiddle);
 
     connect(tabWidget, &QTabWidget::tabCloseRequested, this, &CodeBrowser::closeTab);
 }

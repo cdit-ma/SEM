@@ -123,6 +123,7 @@ void DockReparenterPopup::themeChanged(){
     auto theme = Theme::theme();
     setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{}");
     close_action->setIcon(theme->getIcon("Icons", "cross"));
+    toolbar->setIconSize(theme->getIconSize());
 }
 
 void DockReparenterPopup::reject(){
@@ -140,8 +141,7 @@ void DockReparenterPopup::setupLayout(){
     layout->setMargin(2);
     layout->setSpacing(5);
 
-    auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
+    toolbar = new QToolBar(this);
     toolbar->setStyleSheet("QToolButton:!hover{border:none;background:transparent;}");
     auto label_title = new QLabel("Select Window", this);
 

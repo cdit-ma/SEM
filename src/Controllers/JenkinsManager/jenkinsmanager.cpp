@@ -6,8 +6,9 @@
 #include "../NotificationManager/notificationmanager.h"
 
 #include "../../Utils/filehandler.h"
-#include "../../Widgets/Jenkins/jenkinsjobmonitorwidget.h"
-#include "../../Widgets/Jenkins/jenkinsstartjobwidget.h"
+#include "../../Widgets/Dialogs/variabledialog.h"
+#include "../../Widgets/Monitors/jenkinsmonitor.h"
+#include "../../Widgets/Monitors/jobmonitor.h"
 
 #include <QStringBuilder>
 #include <QApplication>
@@ -18,7 +19,6 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
-    qRegisterMetaType<JOB_STATE>("JOB_STATE");
 
     view_controller_ = view_controller;
     //Set script directory
@@ -35,7 +35,7 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
     }
 
 
-    connect(GetJobMonitorWidget(), &JenkinsJobMonitorWidget::gotoURL, view_controller, &ViewController::openURL);
+    //connect(GetJobMonitorWidget(), &JenkinsJobMonitorWidget::gotoURL, view_controller, &ViewController::openURL);
     connect(this, &JenkinsManager::gotValidSettings, view_controller, &ViewController::jenkinsManager_SettingsValidated);
     connect(this, &JenkinsManager::GotJenkinsNodes, view_controller, &ViewController::jenkinsManager_GotJenkinsNodesList);
     connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::vc_JenkinsReady);
@@ -58,14 +58,6 @@ QString JenkinsManager::GetUser()
 {
     QMutexLocker(&this->mutex_);
     return username_;
-}
-
-JenkinsJobMonitorWidget *JenkinsManager::GetJobMonitorWidget()
-{
-    if(!job_monitor_widget_){
-         job_monitor_widget_ = new JenkinsJobMonitorWidget(0, this);
-    }
-    return job_monitor_widget_;
 }
 
 void JenkinsManager::SetUrl(QString url)
@@ -144,7 +136,7 @@ void JenkinsManager::GetNodes()
         requesting_nodes_ = true;
         auto request = GetJenkinsRequest();
         
-        jenkins_request_noti = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::INFO, Notification::Type::MODEL, Notification::Category::JENKINS, true);
+        jenkins_request_noti = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
         connect(request, &JenkinsRequest::GotGroovyScriptOutput, this, &JenkinsManager::GotJenkinsNodes_);
         auto r = connect(this, &JenkinsManager::RunGroovyScript_, request, &JenkinsRequest::RunGroovyScript);
 
@@ -155,11 +147,121 @@ void JenkinsManager::GetNodes()
     }
 }
 
+SETTING_TYPE JenkinsManager::GetSettingType(QString parameter_type){
+    SETTING_TYPE type = SETTING_TYPE::STRING;
+    
+    if(parameter_type == "String"){
+        type = SETTING_TYPE::STRING;
+    }else if(parameter_type == "Boolean"){
+        type = SETTING_TYPE::BOOL;
+    }else if(parameter_type == "File"){
+        type = SETTING_TYPE::FILE;
+    }
+    return type;
+}
+
 void JenkinsManager::BuildJob(QString model_file)
 {
     if(GotValidSettings()){
-        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(job_name_, this);
-        jenkinsSJ->requestJob(job_name_, model_file);
+        //Construct a new JenkinsRequest Object.
+        auto jenkins_request = GetJenkinsRequest(this);
+    
+        //Connect the emit signals from this Thread to the JenkinsRequest Thread.
+        auto r = connect(this, &JenkinsManager::getJobParameters, jenkins_request, &JenkinsRequest::GetJobParameters);
+        //Run some lambda
+        connect(jenkins_request, &JenkinsRequest::GotJobParameters, this, [=](QString job_name, Jenkins_JobParameters parameters){
+
+            VariableDialog dialog("Jenkins: " + job_name_ + " Parameters");
+
+            bool got_model = false;
+            for(auto parameter : parameters){
+                //Ignore model
+                if(parameter.name == "model"){
+                    got_model = true;
+                    continue;
+                }
+                auto type = GetSettingType(parameter.type);
+                dialog.addOption(parameter.name, type, parameter.defaultValue);
+                dialog.setOptionIcon(parameter.name, "Icons", "label");
+            }
+
+            auto options = dialog.getOptions();
+
+            auto got_options = got_model ? options.size() + 1 == parameters.size() : options.size() == parameters.size();
+            //
+            if(got_options){
+                Jenkins_JobParameters build_parameters;
+                for(auto parameter_name : options.keys()){
+                    Jenkins_Job_Parameter parameter;
+                    parameter.name = parameter_name;
+                    parameter.value = options.value(parameter_name).toString();
+                    build_parameters += parameter;
+                }
+                if(got_model){
+                    Jenkins_Job_Parameter parameter;
+                    parameter.name = "model";
+                    parameter.value = FileHandler::readTextFile(model_file);
+                    build_parameters += parameter;
+                }
+
+                auto jenkins_build = GetJenkinsRequest();
+            
+                auto build_job = connect(this, &JenkinsManager::buildJob, jenkins_build, &JenkinsRequest::BuildJob);
+                
+                emit buildJob(job_name_, build_parameters);
+                disconnect(build_job);
+
+                connect(jenkins_build, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
+                connect(jenkins_build, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
+            }
+        }, Qt::QueuedConnection);
+        
+        emit getJobParameters(job_name_);
+        disconnect(r);
+    }
+}
+
+
+void JenkinsManager::gotoJob(QString job_name, int build_number){
+    auto url = GetUrl() + "job/" + job_name + "/" + QString::number(build_number);
+    view_controller_->openURL(url);
+}
+
+
+void JenkinsManager::abortJob(QString job_name, int build_number){
+    auto jenkins_stop = GetJenkinsRequest(this);
+    auto r = connect(this, &JenkinsManager::AbortJob, jenkins_stop, &JenkinsRequest::StopJob);
+    emit AbortJob(job_name, build_number);
+    disconnect(r);
+}
+
+void JenkinsManager::gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity job_state){
+    JenkinsMonitor* jenkins_monitor = 0;
+    auto job_monitor = view_controller_->getJobMonitor();
+    if(job_monitor){
+            //First off
+        if(job_state == Notification::Severity::RUNNING){
+            jenkins_monitor = job_monitor->constructJenkinsMonitor(job_name, job_build);
+            connect(jenkins_monitor, &JenkinsMonitor::Abort, [=](){abortJob(job_name, job_build);});
+            connect(jenkins_monitor, &JenkinsMonitor::GotoURL, [=](){gotoJob(job_name, job_build);});
+        }else{
+            jenkins_monitor = (JenkinsMonitor*)job_monitor->getJenkinsMonitor(job_name, job_build);
+        }
+
+
+        if(jenkins_monitor){
+            jenkins_monitor->StateChanged(job_state);
+        }
+    }
+}
+
+void JenkinsManager::gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput){
+    auto job_monitor = view_controller_->getJobMonitor();
+    if(job_monitor){
+        auto monitor = job_monitor->getJenkinsMonitor(job_name, job_build);
+        if(monitor){
+            monitor->AppendLine(consoleOutput);
+        }
     }
 }
 
@@ -172,7 +274,6 @@ void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
         emit GotJenkinsNodes(data);
     }
     if(jenkins_request_noti){
-        jenkins_request_noti->setInProgressState(false);
         jenkins_request_noti->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes");
         jenkins_request_noti->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
         jenkins_request_noti = 0;

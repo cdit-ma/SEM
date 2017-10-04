@@ -116,7 +116,9 @@ public:
     bool gotImage(IconPair icon);
     bool gotImage(QString, QString);
 
+    void setIconSize(int size);
     QSize getIconSize();
+    QSize getLargeIconSize();
 
     QString getBorderWidth();
     QString getCornerRadius();
@@ -153,6 +155,9 @@ public:
     QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
+    QFont getFont() const;
+    QFont getLargeFont() const;
+
 signals:
     void theme_Changed();
     void changeSetting(SETTINGS setting, QVariant value);
@@ -169,8 +174,8 @@ private:
     void setupToggledIcons();
     void setupAliasIcons();
     void updateValid();
-    QFont getFont() const;
-    void setFont(QFont GENERAL_FONTsize);
+    
+    void setFont(QFont size);
 
     QImage getImage(QString resource_name);
     QColor getTintColor(QString resource_name);
@@ -228,6 +233,8 @@ private:
     QColor selectedItemBorderColor;
     QColor selectedWidgetBorderColor;
     QColor altTextColor;
+
+    QSize icon_size = QSize(16,16);
 
     QFont font;
 

@@ -76,7 +76,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/consolewidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.cpp
@@ -122,8 +121,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
+    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
@@ -183,10 +185,12 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/consolewidget.h
+    
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
+    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
@@ -223,13 +227,17 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/monitor.h
 )
 
 

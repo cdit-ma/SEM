@@ -33,6 +33,7 @@ NotificationManager::NotificationManager(ViewController* controller)
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::WARNING), icon_prefix, "triangleCritical");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "pointyCircleCriticalDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::SUCCESS), icon_prefix, "circleTickDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::RUNNING), icon_prefix, "running");
 
     //Setup Category Icons
     theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::JENKINS), icon_prefix, "jenkinsFlat");
@@ -177,7 +178,7 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notif
     return list;
 }
 
-NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading, bool toast, int entity_id, bool defer_update){
+NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
     auto notification = new NotificationObject();
     notification->setDescription(description);
     notification->setIcon(icon_path, icon_name);
@@ -185,7 +186,6 @@ NotificationObject* NotificationManager::AddNotification(QString description, QS
     notification->setType(type);
     notification->setCategory(category);
     notification->setEntityID(entity_id);
-    notification->setInProgressState(is_loading);
     notification->setToastable(toast);
 
     auto notification_id = notification->getID();
@@ -229,7 +229,7 @@ void NotificationManager::deleteNotification(int ID)
 {
     if(notifications.contains(ID)){
         auto notification = notifications.take(ID);
-        if(!notification->getInProgressState()){
+        if(notification->getSeverity() != Notification::Severity::RUNNING){
             auto notifications_count = notifications.count();
             
             if(notification == latest_notification){

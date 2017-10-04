@@ -1032,7 +1032,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->translate(-arrowRect.center());
 
                 //Paint the resize section
-                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Icons", "triangleSouth");
+                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Icons", "triangleDown");
                 painter->restore();
             }
         }
