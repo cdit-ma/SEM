@@ -118,6 +118,7 @@ public:
 
     void setIconSize(int size);
     QSize getIconSize();
+    QSize getSmallIconSize();
     QSize getLargeIconSize();
 
     QString getBorderWidth();

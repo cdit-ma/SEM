@@ -100,6 +100,14 @@ void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
     }
 }
 
+bool OptionGroupBox::setOptionChecked(QVariant key, bool checked){
+    auto option_button = actions_lookup.value(key, 0);
+    if(option_button){
+        option_button->setChecked(!checked);
+        emit option_button->trigger();
+    }
+}
+
 
 
 /**

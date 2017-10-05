@@ -114,6 +114,8 @@ NotificationToolbar* NotificationManager::getToolbar()
 {
     if(!notification_toolbar){
         notification_toolbar = new NotificationToolbar();
+        auto panel = getPanel();
+        connect(notification_toolbar, &NotificationToolbar::showSeverity, panel, &NotificationDialog::showSeverity);
     }
     return notification_toolbar;
 }

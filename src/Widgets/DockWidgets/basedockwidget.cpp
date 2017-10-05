@@ -8,6 +8,20 @@
 #include "../../theme.h"
 #include "../Windows/basewindow.h"
 
+int BaseDockWidget::TypeID(BaseDockType type){
+    switch(type){
+        case BaseDockType::DOCK:{
+            return 0;
+        }
+        case BaseDockType::TOOL:{
+            return 1;
+        }
+    }
+    return 2;
+}
+
+
+
 int BaseDockWidget::_DockWidgetID = 0;
 BaseDockWidget::BaseDockWidget(BaseDockType type):QDockWidget()
 {
@@ -61,12 +75,12 @@ void BaseDockWidget::themeChanged(){
 }
 
 
-int BaseDockWidget::getID()
+int BaseDockWidget::getID() const
 {
     return ID;
 }
 
-BaseDockType BaseDockWidget::getBaseDockType()
+BaseDockType BaseDockWidget::getBaseDockType() const
 {
     return type;
 }
@@ -109,7 +123,7 @@ void BaseDockWidget::removeTitleBar(){
 }
 
 
-bool BaseDockWidget::isProtected()
+bool BaseDockWidget::isProtected() const
 {
     return _isProtected;
 }
@@ -174,7 +188,7 @@ void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
     this->title = title;
 }
 
-QString BaseDockWidget::getTitle()
+QString BaseDockWidget::getTitle() const
 {
     return this->title;
 }

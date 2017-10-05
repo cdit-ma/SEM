@@ -581,6 +581,9 @@ QSize Theme::getIconSize(){
 QSize Theme::getLargeIconSize(){
     return icon_size * 2;
 }
+QSize Theme::getSmallIconSize(){
+    return icon_size / 2;
+}
 
 void Theme::setIconSize(int size){
 

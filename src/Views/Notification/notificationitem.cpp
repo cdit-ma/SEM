@@ -171,6 +171,8 @@ void NotificationItem::updateIcon()
     auto theme = Theme::theme();
     auto severity = notification->getSeverity();
     auto is_running = severity == Notification::Severity::RUNNING;
+    auto icon_size = theme->getLargeIconSize();
+    label_icon->setFixedSize(icon_size);
     if(is_running){
         //Use a GIF if we are loading
         auto movie = theme->getGif("Icons", "loading");
@@ -184,7 +186,7 @@ void NotificationItem::updateIcon()
         }
         auto icon_color = theme->getSeverityColor(severity);
 
-        auto pixmap = theme->getImage(icon.first, icon.second, theme->getIconSize(), icon_color);
+        auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);
     }
 

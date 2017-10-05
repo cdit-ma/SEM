@@ -17,10 +17,12 @@ protected:
     BaseDockWidget(BaseDockType type);
     ~BaseDockWidget();
 
+    
 public:
+    static int TypeID(BaseDockType type);
     void setTitleIcon(QString path, QString alias);
-    int getID();
-    BaseDockType getBaseDockType();
+    int getID() const;
+    BaseDockType getBaseDockType() const;
     Qt::DockWidgetArea getDockWidgetArea();
     void setDockWidgetArea(Qt::DockWidgetArea area);
     void setSourceWindow(BaseWindow* window);
@@ -34,7 +36,7 @@ public:
     void removeTitleBar();
 
 
-    bool isProtected();
+    bool isProtected() const;
     void setProtected(bool protect);
     virtual void setWidget(QWidget* widget);
     void setCurrentWindow(BaseWindow* window);
@@ -43,7 +45,7 @@ public:
     void setIcon(QPair<QString, QString> pair);
     void setIcon(QString, QString);
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
-    QString getTitle();
+    QString getTitle() const;
 
     virtual void setActive(bool focussed);
     bool isActive();

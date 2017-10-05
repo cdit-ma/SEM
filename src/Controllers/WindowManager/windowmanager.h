@@ -26,6 +26,7 @@ class WindowManager : public QObject
     friend class BaseDockWidget;
     Q_OBJECT
 public:
+    static bool Sort(const BaseDockWidget *a, const BaseDockWidget *b);
     //Public Static functions.
     static WindowManager* manager();
     static void teardown();

@@ -8,6 +8,7 @@
 #include <QLabel>
 
 #include "../../Widgets/optiongroupbox.h"
+#include "../../Controllers/NotificationManager/notificationenumerations.h"
 
 class ViewController;
 class NotificationItem;
@@ -21,6 +22,8 @@ public:
     NotificationDialog(ViewController* viewController, QWidget *parent = 0);
 signals:
     void mouseEntered();
+public slots:
+    void showSeverity(Notification::Severity severity);
 private slots:
     void notificationAdded(NotificationObject* notification);
     void notificationDeleted(int ID);

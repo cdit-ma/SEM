@@ -39,6 +39,29 @@ WindowManager* WindowManager::manager()
     return managerSingleton;
 }
 
+bool WindowManager::Sort(const BaseDockWidget *a, const BaseDockWidget *b){
+    auto dock_type_a = QString(a->metaObject()->className());
+    auto dock_type_b = QString(b->metaObject()->className());
+    if(dock_type_a == dock_type_b){
+        if(a->isProtected() == b->isProtected()){
+            return a->getTitle() < b->getTitle();
+            //return QString::compare(a->getTitle(), b->getTitle(), Qt::CaseInsensitive); 
+        }else{
+            return a->isProtected();
+        }
+    }else{
+        qCritical() << dock_type_a << " VS " << dock_type_b;
+        if(dock_type_a == "ViewDockWidget"){
+            return true;
+        }else if(dock_type_b == "ViewDockWidget"){
+            return false;
+        }else{
+            return dock_type_a < dock_type_b;
+        }
+    }
+    return false;
+}
+
 
 bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
     if(base_dock_widget && base_dock_widget->getBaseDockType() == BaseDockType::DOCK){

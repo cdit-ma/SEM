@@ -349,7 +349,7 @@ void NotificationDialog::setupLayout()
 
         /*clock_label = new QLabel(this);
         clock_label->setFixedSize(QSize(16, 16));
-        clock_label->setAlignment(Qt::AlignCenter);
+        clock_label->setAlignment(Qt::Alivoid showSeverity(Notification::Severity severity);void showSeverity(Notification::Severity severity);gnCenter);
         clock_label->setToolTip("Sort Notifications by time (Ascending/Descending)");
         
         top_toolbar->addWidget(clock_label);*/
@@ -451,6 +451,10 @@ void NotificationDialog::setupLayout()
     
 }
 
+void NotificationDialog::showSeverity(Notification::Severity severity){
+    reset_filters_action->trigger();
+    severity_filters->setOptionChecked(QVariant::fromValue(severity), true);
+}
 
 /**
  * @brief NotificationDialog::setupFilters

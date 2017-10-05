@@ -81,7 +81,6 @@ private:
     WelcomeScreenWidget* welcomeScreen = 0;
 protected:
     void closeEvent(QCloseEvent *event);
-    bool eventFilter(QObject *object, QEvent *event);
 };
 
 #endif // MAINWINDOW_H

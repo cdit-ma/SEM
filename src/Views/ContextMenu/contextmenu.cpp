@@ -107,11 +107,12 @@ void ContextMenu::themeChanged(){
     deploy_menu->setIcon(theme->getIcon("Icons", "screen"));
 
     for(auto node_action : add_node_action_hash.values()){
-        auto node_kind = node_action->property("node_kind").value<NODE_KIND>();
+        auto node_kind = node_action->property("node_kind").value<NODE_KIND>(); 
         auto node_kind_str = EntityFactory::getNodeKindString(node_kind);
         node_action->setIcon(theme->getIcon("EntityIcons", node_kind_str));
         auto menu = node_action->menu();
         if(menu){
+            menu->setStyle(menu_style);
             menu->setStyleSheet(main_menu->styleSheet());
         }
     }
@@ -120,12 +121,22 @@ void ContextMenu::themeChanged(){
         auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
         auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
         edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
+
+        if(edge_menu){
+            edge_menu->setStyle(menu_style);
+            edge_menu->setStyleSheet(main_menu->styleSheet());
+        }
     }
 
     for(auto edge_menu : remove_edge_menu_hash.values()){
         auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
         auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
         edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
+
+        if(edge_menu){
+            edge_menu->setStyle(menu_style);
+            edge_menu->setStyleSheet(main_menu->styleSheet());
+        }
     }
 
     for(auto edge_menu : add_edge_menu_direct_hash.values()){
@@ -134,6 +145,10 @@ void ContextMenu::themeChanged(){
             edge_menu->setIcon(theme->getIcon("Icons", "arrowLeft"));
         }else{
             edge_menu->setIcon(theme->getIcon("Icons", "arrowRight"));
+        }
+        if(edge_menu){
+            edge_menu->setStyle(menu_style);
+            edge_menu->setStyleSheet(main_menu->styleSheet());
         }
     }
 }
@@ -734,7 +749,7 @@ void ContextMenu::update_deploy_menu(){
                 
                 auto deployable_count = item_map.count();
             
-                if(deployable_count >= 0){
+                if(deployable_count > 0){
                     menu->addAction(labels->available_nodes_action);
                 }
 
@@ -743,8 +758,7 @@ void ContextMenu::update_deploy_menu(){
                     //Update the menus, using flattened menus
                     construct_view_item_menus(menu, item_map.values(key), false, "");
                 }
-
-                if(item_map.isEmpty()){
+                if(deployable_count > 0 && item_map.isEmpty()){
                     get_no_valid_items_action(menu, "No available entities");
                 }
 

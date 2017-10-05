@@ -45,6 +45,10 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     initializeApplication();
     setViewController(view_controller);
     
+    if(!reset_action){
+        reset_action = new QAction("Reset Tool Dock Widgets", this);
+        connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
+    }
     setupTools();
     setupInnerWindow();
     
@@ -53,6 +57,7 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Right);
 
     setupDockIcons();
+    
    
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
@@ -95,6 +100,7 @@ void MainWindow::setViewController(ViewController* view_controller)
  */
 void MainWindow::resetToolDockWidgets()
 {
+    
     resetDockWidgets();
     rightWindow->resetDockWidgets();
 
@@ -105,14 +111,23 @@ void MainWindow::resetToolDockWidgets()
 
 QMenu* MainWindow::createPopupMenu(){
     QMenu* menu = new QMenu(this);
-    for(auto dock_widget : innerWindow->getDockWidgets()){
+
+    auto inner_docks = innerWindow->getDockWidgets();
+    std::sort(inner_docks.begin(), inner_docks.end(), &WindowManager::Sort);
+
+    for(auto dock_widget : inner_docks){
+        qCritical() << "dockWidget: " << dock_widget->getTitle();
         menu->addAction(dock_widget->toggleViewAction());
     }
     menu->addSeparator();
     
     menu->addAction(dockwidget_Dock->toggleViewAction());
+    
+    auto tool_docks = rightWindow->getDockWidgets();
+    tool_docks.append(dockwidget_Dock);
 
-    for(auto dock_widget : rightWindow->getDockWidgets()){
+    std::sort(tool_docks.begin(), tool_docks.end(), &WindowManager::Sort);
+    for(auto dock_widget : tool_docks){
         menu->addAction(dock_widget->toggleViewAction());
     }
     menu->addAction(applicationToolbar->toggleViewAction());
@@ -153,8 +168,12 @@ void MainWindow::themeChanged()
     
     applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
 
+    restore_toolbutton->setStyleSheet("QToolButton::menu-indicator{image: none; }");
     restore_toolbutton->setIcon(theme->getIcon("Icons", "spanner"));
-    reset_action->setIcon(theme->getIcon("Icons", "refresh"));
+    
+    if(reset_action){
+        reset_action->setIcon(theme->getIcon("Icons", "refresh"));
+    }
 
     applicationToolbar->setIconSize(theme->getIconSize());
 }
@@ -335,25 +354,21 @@ void MainWindow::setupTools()
     
     if(!dockwidget_Dock){
         dockwidget_Dock = window_manager->constructToolDockWidget("Dock");
-        dockwidget_Dock->setIconVisible(true);
         dockwidget_Dock->setWidget(new DockTabWidget(view_controller, this));
     }
 
     if(!dockwidget_Table){
         dockwidget_Table = window_manager->constructToolDockWidget("Data Table");
-        dockwidget_Table->setIconVisible(true);
         dockwidget_Table->setWidget(new DataTableWidget(view_controller, dockwidget_Table));
     }
 
     if(!dockwidget_Minimap){
         dockwidget_Minimap = window_manager->constructToolDockWidget("Minimap");
-        dockwidget_Minimap->setIconVisible(true);
         dockwidget_Minimap->setWidget(new NodeViewMinimap(this));
     }
 
     if(!dockwidget_ViewManager){
         dockwidget_ViewManager = window_manager->constructToolDockWidget("View Manager");
-        dockwidget_ViewManager->setIconVisible(true);
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
@@ -446,8 +461,6 @@ void MainWindow::setupMenuBar()
         menu_bar = new QMenuBar(this);
         menu_bar->setNativeMenuBar(false);
 
-        menu_bar->installEventFilter(this);
-        setMenuBar(menu_bar);
         //Add the required menus
         menu_bar->addMenu(action_controller->menu_file);
         menu_bar->addMenu(action_controller->menu_edit);
@@ -456,9 +469,7 @@ void MainWindow::setupMenuBar()
         menu_bar->addMenu(action_controller->menu_jenkins);
         menu_bar->addMenu(action_controller->menu_options);
         menu_bar->addMenu(action_controller->menu_help);
-
-        //Construct and setup the correct style
-        
+        setMenuBar(menu_bar);
     }
 }
 
@@ -505,50 +516,34 @@ void MainWindow::setupToolBar()
 
 void MainWindow::setupMenuCornerWidget()
 {
-    reset_action = new QAction("Reset Tool Dock Widgets", this);
-    connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
-    
     auto notificationToolbar = NotificationManager::manager()->getToolbar();
-    notificationToolbar->setParent(this); 
-
-    
-    auto container_widget = new QWidget(this);
-    container_widget->setContentsMargins(0,0,0,0);
-    
 
     restore_toolbutton = new QToolButton(this);
     restore_toolbutton->setToolTip("Restore Tool Dock Widgets");
-    restore_toolbutton->setStyleSheet("QToolButton{border-radius: 4px;} QToolButton::menu-indicator{image: none; }");
+    restore_toolbutton->setObjectName("RIGHT_ACTION");
+
     connect(restore_toolbutton, &QToolButton::clicked, [=](){
         auto menu = createPopupMenu();
         restore_toolbutton->setMenu(menu);
         restore_toolbutton->showMenu();
         delete menu;
     });
-    
-    auto toolbar = new QToolBar(this);
-    toolbar->setStyleSheet("QToolBar{ padding: 0px; } ");
-    toolbar->addWidget(restore_toolbutton);
 
-
-    auto h_layout = new QHBoxLayout(container_widget);
-    h_layout->setMargin(0);
-    h_layout->setSpacing(2);
-    h_layout->addWidget(notificationToolbar);
-    h_layout->addWidget(toolbar);
-
-    menu_bar->setCornerWidget(container_widget);
-
-    //connect(restoreToolsAction, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
+    //Add in the Restore_toolbutton
+    notificationToolbar->addWidget(restore_toolbutton);
+    menu_bar->setCornerWidget(notificationToolbar);
 }
 
 void MainWindow::updateMenuBar(){
     auto corner_widget = menu_bar->cornerWidget();
     if(corner_widget){
         auto size = menu_bar->actionGeometry(action_controller->menu_file->menuAction());
-        corner_widget->setFixedHeight(size.height() + 6);
+        auto size_2 = corner_widget->sizeHint();
+
+        auto max_size = qMax(size.height(), size_2.height());
+        corner_widget->setFixedHeight(max_size);
         //Ignore the padding
-        menu_bar->setFixedHeight(size.height() + 12);
+        //menu_bar->setFixedHeight(max_size + 12);
     }
 }
 
@@ -615,14 +610,4 @@ void MainWindow::closeEvent(QCloseEvent *event)
         view_controller->closeMEDEA();
         event->ignore();
     }
-}
-
-bool MainWindow::eventFilter(QObject *object, QEvent *event)
-{
-    if(object == menu_bar){
-        if(event->type() == QEvent::Resize || event->type() == QEvent::FontChange) {
-            QMetaObject::invokeMethod(this, "updateMenuBar", Qt::QueuedConnection);
-        }
-    }
-    return QObject::eventFilter(object, event);
 }
