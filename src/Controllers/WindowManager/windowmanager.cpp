@@ -45,12 +45,10 @@ bool WindowManager::Sort(const BaseDockWidget *a, const BaseDockWidget *b){
     if(dock_type_a == dock_type_b){
         if(a->isProtected() == b->isProtected()){
             return a->getTitle() < b->getTitle();
-            //return QString::compare(a->getTitle(), b->getTitle(), Qt::CaseInsensitive); 
         }else{
             return a->isProtected();
         }
     }else{
-        qCritical() << dock_type_a << " VS " << dock_type_b;
         if(dock_type_a == "ViewDockWidget"){
             return true;
         }else if(dock_type_b == "ViewDockWidget"){

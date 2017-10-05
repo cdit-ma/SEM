@@ -55,8 +55,8 @@ void DataTableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 void DataTableWidget::activeItem_IconChanged()
 {
     if(activeItem){
-        QPair<QString, QString> iconPath = activeItem->getIcon();
-        entity_button->setIcon(Theme::theme()->getIcon(iconPath));//.pixmap(24,24);
+        auto icon_path = activeItem->getIcon();
+        entity_button->setIcon(Theme::theme()->getIcon(icon_path));//.pixmap(24,24);
     }else{
         entity_button->setIcon(QIcon());
     }
@@ -85,8 +85,8 @@ void DataTableWidget::themeChanged()
     tableView->setStyleSheet("DataTableView{border:none;}");
 
     entity_button->setStyleSheet("QToolButton{background:rgba(0,0,0,0);color:" % theme->getTextColorHex() % ";border-color:rgba(0,0,0,0);font-weight:bold;}");
-    activeItem_IconChanged();
     toolbar->setIconSize(theme->getIconSize());
+    activeItem_IconChanged();
 }
 
 void DataTableWidget::setupLayout()

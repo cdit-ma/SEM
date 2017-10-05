@@ -34,7 +34,7 @@ void ProgressPopup::UpdateProgressBar(int value){
         progress_bar->setValue(value);
         if (value >= 100){
             // Animation on ubuntu caused phantom window issues. Singleshot sleep timer resolves.
-            // See: https://sackoverflow.com/questions/
+            //https://stackoverflow.com/questions/18037618/qt-qdialog-not-hiding-properly-when-show-hide-called-quickly
             QTimer::singleShot(100, this, &QDialog::hide);
         }
     }

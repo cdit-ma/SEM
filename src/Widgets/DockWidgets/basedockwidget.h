@@ -19,7 +19,6 @@ protected:
 
     
 public:
-    static int TypeID(BaseDockType type);
     void setTitleIcon(QString path, QString alias);
     int getID() const;
     BaseDockType getBaseDockType() const;

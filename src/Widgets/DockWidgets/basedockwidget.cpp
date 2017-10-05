@@ -8,20 +8,6 @@
 #include "../../theme.h"
 #include "../Windows/basewindow.h"
 
-int BaseDockWidget::TypeID(BaseDockType type){
-    switch(type){
-        case BaseDockType::DOCK:{
-            return 0;
-        }
-        case BaseDockType::TOOL:{
-            return 1;
-        }
-    }
-    return 2;
-}
-
-
-
 int BaseDockWidget::_DockWidgetID = 0;
 BaseDockWidget::BaseDockWidget(BaseDockType type):QDockWidget()
 {

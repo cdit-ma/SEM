@@ -409,7 +409,7 @@ void MainWindow::setupInnerWindow()
     auto dockwidget_Assemblies = view_controller->constructViewDockWidget("Assemblies");
     auto dockwidget_Hardware = view_controller->constructViewDockWidget("Hardware");
 
-    //Set each NodeView with there contained aspects
+
     dockwidget_Interfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dockwidget_Behaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
     dockwidget_Assemblies->getNodeView()->setContainedViewAspect(VIEW_ASPECT::ASSEMBLIES);
