@@ -2,6 +2,7 @@
 #include "../../theme.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include <QBoxLayout>
+#include <QTimer>
 
 ProgressPopup::ProgressPopup():PopupWidget(PopupWidget::TYPE::TOOL, 0){
     setupLayout();
@@ -32,7 +33,9 @@ void ProgressPopup::UpdateProgressBar(int value){
         progress_bar->setRange(0, 100);
         progress_bar->setValue(value);
         if (value >= 100){
-            QMetaObject::invokeMethod(this, "hide", Qt::QueuedConnection);
+            // Animation on ubuntu caused phantom window issues. Singleshot sleep timer resolves.
+            // See: https://sackoverflow.com/questions/
+            QTimer::singleShot(100, this, &QDialog::hide);
         }
     }
 }
