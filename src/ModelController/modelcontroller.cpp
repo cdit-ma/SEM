@@ -2057,7 +2057,7 @@ bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
         }
 
         //If what we are binding to is a Variable/AttributeImpl, bind to the label
-        if(bind_src->getNodeKind() == NODE_KIND::VARIABLE || bind_src->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
+        if(bind_src->getNodeKind() == NODE_KIND::VARIABLE || bind_src->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL || bind_src->getNodeKind() == NODE_KIND::ENUM_MEMBER){
             src_key = "label";
         }
 

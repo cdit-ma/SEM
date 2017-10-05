@@ -67,6 +67,9 @@ private:
     void clear_menu_cache(QMenu* menu);
 
 
+    
+
+
     QAction* get_no_valid_items_action(QMenu* menu, QString label="No Valid Entities");
 
     QAction* construct_base_action(QMenu* menu, QString label);

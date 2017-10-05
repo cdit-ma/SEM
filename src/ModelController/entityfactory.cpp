@@ -61,6 +61,11 @@
 #include "Entities/InterfaceDefinitions/memberinstance.h"
 #include "Entities/InterfaceDefinitions/vectorinstance.h"
 
+#include "Entities/InterfaceDefinitions/enum.h"
+#include "Entities/InterfaceDefinitions/enuminstance.h"
+#include "Entities/InterfaceDefinitions/enummember.h"
+
+
 //Deployment Elements
 #include "Entities/DeploymentDefinitions/componentassembly.h"
 #include "Entities/DeploymentDefinitions/hardwarecluster.h"
@@ -337,6 +342,10 @@ EntityFactory::EntityFactory()
     Member(this);
     OutEventPort(this);
     Vector(this);
+
+    Enum(this);
+    EnumMember(this);
+    EnumInstance(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);

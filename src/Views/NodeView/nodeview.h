@@ -8,6 +8,7 @@
 #include "SceneItems/entityitem.h"
 #include "SceneItems/Node/nodeitem.h"
 #include "SceneItems/Edge/edgeitem.h"
+#include "SceneItems/arrowline.h"
 
 #include <QStateMachine>
 #include <QStaticText>
@@ -94,6 +95,7 @@ private slots:
     void notification_Destructed(int id);
     
     void node_ConnectMode(NodeItem* item);
+    void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
 
     void node_PopOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
@@ -196,9 +198,8 @@ private:
     QState* state_Active_RubberbandMode_Selecting = 0;
     QState* state_Active_Connecting = 0;
 
-    QGraphicsLineItem* connectLineItem = 0;
 
-    QLineF connectLine;
+    ArrowLine* connect_line = 0;
 
 private slots:
     void activeViewDockChanged(ViewDockWidget* dw);
@@ -214,7 +215,6 @@ private slots:
     void state_RubberbandMode_Selecting_Entered();
     void state_RubberbandMode_Selecting_Exited();
 
-    void state_Connecting_Entered();
     void state_Connecting_Exited();
 
     void state_Default_Entered();

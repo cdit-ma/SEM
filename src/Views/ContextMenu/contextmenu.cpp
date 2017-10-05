@@ -24,6 +24,7 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::WORKER_PROCESS] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
@@ -34,8 +35,6 @@ ContextMenu::ContextMenu(ViewController *vc){
 
     setupMenus();
     themeChanged();
-
-    
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContextMenu::themeChanged);
     
@@ -117,25 +116,21 @@ void ContextMenu::themeChanged(){
         }
     }
 
-    for(auto edge_menu : add_edge_menu_hash.values()){
-        auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
-        auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
-        edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
-
-        if(edge_menu){
-            edge_menu->setStyle(menu_style);
-            edge_menu->setStyleSheet(main_menu->styleSheet());
+    for(auto menu : add_edge_menu_hash.values()){
+        auto action = menu->menuAction();
+        Theme::UpdateActionIcon(action, theme);
+        if(menu){
+            menu->setStyle(menu_style);
+            menu->setStyleSheet(main_menu->styleSheet());
         }
     }
 
-    for(auto edge_menu : remove_edge_menu_hash.values()){
-        auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();
-        auto edge_kind_str = EntityFactory::getEdgeKindString(edge_kind);
-        edge_menu->setIcon(theme->getIcon("EntityIcons", edge_kind_str));
-
-        if(edge_menu){
-            edge_menu->setStyle(menu_style);
-            edge_menu->setStyleSheet(main_menu->styleSheet());
+    for(auto menu : remove_edge_menu_hash.values()){
+        auto action = menu->menuAction();
+        Theme::UpdateActionIcon(action, theme);
+        if(menu){
+            menu->setStyle(menu_style);
+            menu->setStyleSheet(main_menu->styleSheet());
         }
     }
 
@@ -237,6 +232,8 @@ void ContextMenu::update_menu(QMenu* menu){
                     }
                     break;
                 }
+                default:
+                    break;
             }
         }
     }
@@ -270,14 +267,7 @@ void ContextMenu::action_triggered(QAction* action){
         case ACTION_KIND::ADD_EDGE:{
             auto edge_direction = action->property("edge_direction").value<EDGE_DIRECTION>();
 
-            auto selection = view_controller->getSelectionController()->getSelectionIDs();
-
-            if(!selection.isEmpty()){
-                auto id_list = {id};
-                auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
-                auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
-                emit view_controller->vc_constructEdges(src_ids, dst_ids, edge_kind);
-            }
+            view_controller->constructEdges(id, edge_kind, edge_direction);
             break;
         }
         case ACTION_KIND::REMOVE_EDGE:{
@@ -496,7 +486,7 @@ QAction* ContextMenu::get_no_valid_items_action(QMenu* menu, QString label){
     auto action = construct_base_action(menu, label);
     action->setEnabled(false);
     action->setText(label);
-    action->setIcon(Theme::theme()->getIcon("Icons", "circleInfoDark"));
+    Theme::StoreActionIcon(action, "Icons", "circleInfoDark");
     return action;
 }
 
@@ -637,7 +627,7 @@ void ContextMenu::update_add_node_menu(){
 void updateAction(QAction* action, ViewItem* item){
     if(action && item){
         action->setText(item->getData("label").toString());
-        action->setIcon(Theme::theme()->getIcon(item->getIcon()));
+        Theme::StoreActionIcon(action, item->getIcon());
     }
 }
 
@@ -776,6 +766,7 @@ QWidgetAction* construct_menu_label(QString label){
     label_widget->setAlignment(Qt::AlignCenter);
     label_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     action->setDefaultWidget(label_widget);
+    
     return action;
 }
 
@@ -849,6 +840,9 @@ void ContextMenu::setupMenus(){
         auto node_kind = node_view_item->getNodeKind();
         auto edge_kind = connect_node_edge_kinds.value(node_kind, EDGE_KIND::NONE);
 
+
+        
+
         if(edge_kind == EDGE_KIND::NONE){
             //Make an action for the Items which don't need a submenu
             auto action = construct_viewitem_action(node_view_item);
@@ -906,7 +900,6 @@ void ContextMenu::setupMenus(){
         search_actions_[add_edge_kind_src_menu] = src_search;
         add_edge_kind_src_menu->addAction(src_search);
 
-        
         //Construct an Add Edge Kind To Menu
         auto add_edge_kind_dst_menu = construct_menu("To", add_edge_kind_menu);
         add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
@@ -920,6 +913,7 @@ void ContextMenu::setupMenus(){
         //Insert these menus into the hash
         add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
         remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
+
         add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, edge_kind}] = add_edge_kind_src_menu;
         add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, edge_kind}] = add_edge_kind_dst_menu;
 

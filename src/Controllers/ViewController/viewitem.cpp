@@ -163,7 +163,7 @@ void ViewItem::resetIcon()
     setIcon(defaultIcon.first, defaultIcon.second);
 }
 
-QPair<QString, QString> ViewItem::getIcon() const
+IconPair ViewItem::getIcon() const
 {
     return currentIcon;
 }

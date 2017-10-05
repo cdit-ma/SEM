@@ -41,20 +41,6 @@ bool OptionGroupBox::isAllChecked()
 }
 
 
-/**
- * @brief updateIcon
- * @param button
- * @param theme
- */
-void updateIcon(QAction* action, Theme* theme = Theme::theme())
-{
-    if (action) {
-        auto icon_path = action->property("iconPath").toString();
-        auto icon_name = action->property("iconName").toString();
-        action->setIcon(theme->getIcon(icon_path, icon_name));
-    }
-}
-
 
 /**
  * @brief OptionGroupBox::themeChanged
@@ -63,9 +49,9 @@ void OptionGroupBox::themeChanged()
 {
     auto theme = Theme::theme();    
     for (auto action : actions_lookup.values()) {
-        updateIcon(action, theme);
+        Theme::UpdateActionIcon(action, theme);
     }
-    updateIcon(reset_action, theme);
+    Theme::UpdateActionIcon(reset_action, theme);
 }
 
 
@@ -117,11 +103,7 @@ bool OptionGroupBox::setOptionChecked(QVariant key, bool checked){
  */
 void OptionGroupBox::setResetButtonIcon(QString path, QString name)
 {
-    if (reset_action) {
-        reset_action->setProperty("iconPath", path);
-        reset_action->setProperty("iconName", name);
-        updateIcon(reset_action);
-    }
+    Theme::StoreActionIcon(reset_action, path, name);
 }
 
 
@@ -269,9 +251,8 @@ void OptionGroupBox::setupResetAction()
     if(!reset_action){
         reset_action = getNewOptionAction();
         reset_action->setText("All");
-        reset_action->setProperty("iconPath", "Icons");
-        reset_action->setProperty("iconName", "list");
         reset_action->setChecked(true);
+        setResetButtonIcon("Icons", "list");
     }
 }
 
@@ -293,11 +274,10 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
 
     auto option_action = getNewOptionAction();
     option_action->setText(label);
-    option_action->setProperty("iconPath", icon_path);
-    option_action->setProperty("iconName", icon_name);
+    Theme::StoreActionIcon(option_action, icon_path, icon_name);
     option_action->setProperty(OPTION_KEY, key);
     actions_lookup.insert(key, option_action);
-    updateIcon(option_action);
+
     resetOptions();
     return true;
 }

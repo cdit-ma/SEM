@@ -268,6 +268,18 @@
         <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
         <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
         <file alias="sliders">Resources/Icons/sliders.png</file>
+        <file alias="number0">Resources/Icons/number0.png</file>
+        <file alias="number1">Resources/Icons/number1.png</file>
+        <file alias="number2">Resources/Icons/number2.png</file>
+        <file alias="number3">Resources/Icons/number3.png</file>
+        <file alias="number4">Resources/Icons/number4.png</file>
+        <file alias="number5">Resources/Icons/number5.png</file>
+        <file alias="number6">Resources/Icons/number6.png</file>
+        <file alias="number7">Resources/Icons/number7.png</file>
+        <file alias="number8">Resources/Icons/number8.png</file>
+        <file alias="number9">Resources/Icons/number9.png</file>
+        <file alias="number9+">Resources/Icons/number9+.png</file>
+        <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
         <file alias="filterList">Resources/Icons/filterList.png</file>
         <file alias="running">Resources/Icons/running.png</file>
     </qresource>

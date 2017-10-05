@@ -80,6 +80,24 @@ public:
     virtual QRectF headerRect() const;
 
 
+    QRectF getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+    QRectF getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+    QRectF getEdgeDirectionRect(EDGE_DIRECTION direction) const;
+
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > getEdgeConnectRectAtPos(QPointF pos) const;
+
+
+    int getEdgeConnectPos(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+
+    QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const;
+
+
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getAllVisualEdgeKinds() const;
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> getVisualEdgeKinds() const;
+
+    
+
+
     QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -133,7 +151,8 @@ public:
     void setSecondaryTextKey(QString key);
 
 
-    void setVisualEdgeKind(EDGE_KIND kind);
+    void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind);
+
     void setVisualNodeKind(NODE_KIND kind);
     EDGE_KIND getVisualEdgeKind() const;
     NODE_KIND getVisualNodeKind() const;
@@ -161,6 +180,8 @@ public:
 signals:
     //Request changes
     void req_connectMode(NodeItem* item);
+    
+    void req_connectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_connectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_popOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
 
@@ -192,6 +213,10 @@ private:
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
+    QMultiMap<EDGE_DIRECTION, EDGE_KIND> visual_edge_kinds;
+    QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
+
+
     NODE_KIND visualNodeKind = NODE_KIND::NONE;
     EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
     QString visualEntityIcon;
@@ -222,7 +247,12 @@ private:
     bool resizeEnabled;
 
 
+
+
     bool hoveredConnect;
+
+
+
     RECT_VERTEX hoveredResizeVertex;
     RECT_VERTEX selectedResizeVertex;
 

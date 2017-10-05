@@ -29,6 +29,7 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 bool AggregateInstance::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
+    case NODE_KIND::ENUM_INSTANCE:
     case NODE_KIND::AGGREGATE_INSTANCE:
     case NODE_KIND::MEMBER_INSTANCE:
     case NODE_KIND::VECTOR_INSTANCE:

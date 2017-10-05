@@ -330,9 +330,33 @@ void NodeView::node_ConnectMode(NodeItem *item)
     }
 }
 
-void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction){
+void NodeView::node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction){
     auto global_pos = mapToGlobal(mapFromScene(scene_pos));
     viewController->getContextMenu()->popup_edge_menu(global_pos, kind, direction);
+}
+
+void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
+    emit trans_InActive2Connecting();
+    if(state_Active_Connecting->active()){
+        auto item_map = viewController->getValidEdges2(edge_kind);
+
+        state_Active_Connecting->setProperty("edge_kind", QVariant::fromValue(edge_kind));
+        state_Active_Connecting->setProperty("edge_direction", QVariant::fromValue(edge_direction));
+    
+        for(auto item : item_map.values(edge_direction)){
+            emit viewController->vc_highlightItem(item->getID(), true);
+        }
+        
+        if(!connect_line){
+            connect_line = new ArrowLine();
+            scene()->addItem(connect_line);
+            connect_line->setPen(Qt::DashLine);
+            connect_line->setZValue(100);
+        }
+        connect_line->set_begin_point(scene_pos);
+        connect_line->set_end_point(scene_pos);
+        connect_line->setVisible(true);
+    }
 }
 
 void NodeView::node_PopOutRelatedNode(NodeViewItem *item, NODE_KIND kind)
@@ -589,7 +613,10 @@ void NodeView::setupConnections(EntityItem *item)
         connect(node, &NodeItem::req_FinishResize, this, &NodeView::trans_Resizing2InActive);
 
         connect(node, &NodeItem::req_connectMode, this, &NodeView::node_ConnectMode);
+        
+        
         connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::node_ConnectEdgeMode);
+        connect(node, &NodeItem::req_connectEdgeMenu, this, &NodeView::node_ConnectEdgeMenu);
         
         connect(node, &NodeItem::req_popOutRelatedNode, this, &NodeView::node_PopOutRelatedNode);
         
@@ -775,6 +802,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("ip_address");
                 secondary_icon.second = "arrowTransfer";
                 nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
@@ -784,10 +812,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("database");
                 secondary_icon.second = "servers";
                 nodeItem->setSecondaryIconPath(secondary_icon);
+
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
                 break;
             case NODE_KIND::LOGGINGPROFILE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
                 nodeItem->setSecondaryTextKey("mode");
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -810,6 +842,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
+
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::COMPONENT_IMPL:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -820,6 +854,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "copyX";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("replicate_count");
+
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::BLACKBOX:
             case NODE_KIND::BLACKBOX_INSTANCE:
@@ -828,29 +864,45 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::TERMINATION:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT);
                 break;
-            case NODE_KIND::INEVENTPORT_INSTANCE:
-            case NODE_KIND::OUTEVENTPORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_DELEGATE:
             case NODE_KIND::OUTEVENTPORT_DELEGATE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::ASSEMBLY);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                secondary_icon.second = "tiles";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
+            case NODE_KIND::INEVENTPORT_INSTANCE:
+            case NODE_KIND::OUTEVENTPORT_INSTANCE:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setExpandEnabled(false);
+                if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE){
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                }else{
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                }
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "circleQuestion";
@@ -860,7 +912,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -874,7 +927,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operator");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -884,7 +938,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -892,14 +947,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -907,7 +964,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::AGGREGATE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
+                secondary_icon.second = "tiles";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
+            case NODE_KIND::ENUM_INSTANCE:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -923,7 +989,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::OUTEVENTPORT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                if(nodeKind != NODE_KIND::INEVENTPORT_IMPL){
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                }
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -944,12 +1013,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
                 break;
 
             case NODE_KIND::RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
@@ -967,34 +1037,34 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->setExpandEnabled(false);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "clockCycle";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::BRANCH_STATE:
             case NODE_KIND::WHILELOOP:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CODE:
-            case NODE_KIND::HEADER:
-            case NODE_KIND::WORKLOAD:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setVisualEdgeKind(EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
-
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 if(item->getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                    nodeItem->setVisualEdgeKind(EDGE_KIND::DATA);
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
                 }
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             default:
-                //nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 break;
             }
 
@@ -1294,7 +1364,6 @@ void NodeView::setupStateMachine()
     connect(state_Active_RubberbandMode_Selecting, &QState::entered, this, &NodeView::state_RubberbandMode_Selecting_Entered);
     connect(state_Active_RubberbandMode_Selecting, &QState::exited, this, &NodeView::state_RubberbandMode_Selecting_Exited);
 
-    connect(state_Active_Connecting, &QState::entered, this, &NodeView::state_Connecting_Entered);
     connect(state_Active_Connecting, &QState::exited, this, &NodeView::state_Connecting_Exited);
 
     viewStateMachine->start();
@@ -1408,58 +1477,26 @@ void NodeView::state_RubberbandMode_Selecting_Exited()
     emit trans_RubberbandMode2InActive();
 }
 
-void NodeView::state_Connecting_Entered()
-{
-    ViewItem* vi = selectionHandler->getActiveSelectedItem();
-    EntityItem* item = getEntityItem(vi);
-    if(item && item->isNodeItem()){
-        NodeItem* nodeItem = (NodeItem*) item;
-
-        //Highlight things we can connect to
-        QList<ViewItem*> items = viewController->getValidEdges(nodeItem->getVisualEdgeKind());
-        foreach(ViewItem* item, items){
-            highlightItem(item->getID(), true);
-        }
-
-        QPointF lineStart = nodeItem->scenePos();
-        lineStart += nodeItem->getElementRect(EntityItem::ER_EDGE_KIND_ICON).center();
-
-        if(!connectLineItem){
-            connectLineItem = scene()->addLine(connectLine);
-            connectLineItem->setPen(Qt::DashLine);
-            connectLineItem->setZValue(100);
-        }
-        connectLine.setP1(lineStart);
-        connectLine.setP2(lineStart);
-        connectLineItem->setLine(connectLine);
-        connectLineItem->setVisible(true);
-    }
-}
 
 void NodeView::state_Connecting_Exited()
 {
-    ViewItem* vi = selectionHandler->getActiveSelectedItem();
-    EntityItem* item = getEntityItem(vi);
-    if(item && item->isNodeItem()){
-        NodeItem* nodeItem = (NodeItem*) item;
+    auto edge_kind = state_Active_Connecting->property("edge_kind").value<EDGE_KIND>();
+    auto edge_direction = state_Active_Connecting->property("edge_direction").value<EDGE_DIRECTION>();
+    
+    auto item_map = viewController->getValidEdges2(edge_kind);
+    
+    for(auto item : item_map.values(edge_direction)){
+        emit viewController->vc_highlightItem(item->getID(), false);
+    }
 
-        EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
-
-        //Unhighlight things we can connect to
-        QList<ViewItem*> items = viewController->getValidEdges(edgeKind);
-        foreach(ViewItem* item, items){
-            highlightItem(item->getID(), false);
+    
+    if(connect_line){
+        QPointF scene_pos = edge_direction == EDGE_DIRECTION::SOURCE ? connect_line->get_end_point() : connect_line->get_begin_point();
+        EntityItem* otherItem = getEntityAtPos(scene_pos);
+        if(otherItem){
+            viewController->constructEdges(otherItem->getID(), edge_kind, edge_direction);
         }
-
-        if(connectLineItem){
-            QPointF scenePos = connectLine.p2();
-            EntityItem* otherItem = getEntityAtPos(scenePos);
-            if(otherItem){
-                emit triggerAction("Constructing Edge");
-                emit viewController->vc_constructEdge(selectionHandler->getSelectionIDs().toList(), otherItem->getID(), edgeKind);
-            }
-            connectLineItem->setVisible(false);
-        }
+        connect_line->setVisible(false);
     }
 }
 
@@ -1539,9 +1576,9 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    if(!handledEvent){
+    //if(!handledEvent){
         QGraphicsView::mousePressEvent(event);
-    }
+    //}
 }
 
 void NodeView::mouseMoveEvent(QMouseEvent *event)
@@ -1563,8 +1600,21 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         handledEvent = true;
     }else if(state_Active_Connecting->active()){
-        connectLine.setP2(mapToScene(event->pos()));
-        connectLineItem->setLine(connectLine);
+        
+        auto edge_direction = state_Active_Connecting->property("edge_direction").value<EDGE_DIRECTION>();
+
+        auto item = getEntityAtPos(scenePos);
+        if(item){
+            item = item->isHighlighted() ? item : 0;
+        }
+
+        if(edge_direction == EDGE_DIRECTION::SOURCE){
+            connect_line->set_end_point(scenePos);
+        }else{
+            connect_line->set_begin_point(scenePos);
+        }
+        connect_line->setHighlighted(item);
+        //Check if what we have is 
     }
 
     //Only pass down if we haven't handled it.

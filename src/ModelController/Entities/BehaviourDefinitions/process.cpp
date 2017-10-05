@@ -1,6 +1,6 @@
 #include "process.h"
 #include "parameter.h"
-
+#include <QDebug>
 
 Process::Process(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
 };
@@ -17,7 +17,8 @@ Process::Process(NODE_KIND kind):BehaviourNode(kind){
 }
 
 bool Process::canAdoptChild(Node* node)
-{
+{   
+    qCritical() << node->toString();
     if(!node->isNodeOfType(NODE_TYPE::PARAMETER)){
         return false;
     }
@@ -29,6 +30,7 @@ bool Process::canAdoptChild(Node* node)
             return false;
         }
     }
+
     if(parameter->isVariadicParameter()){
         //Check to see if worker function is variadic
         auto d = gotData("is_variadic");
@@ -36,7 +38,6 @@ bool Process::canAdoptChild(Node* node)
             return false;
         }
     }
-
     return BehaviourNode::canAdoptChild(node);
 }
 
