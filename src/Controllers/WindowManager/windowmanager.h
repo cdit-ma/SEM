@@ -82,7 +82,6 @@ public:
     QList<ViewDockWidget*> getViewDockWidgets();
     ViewDockWidget* getViewDockWidget(ViewItem* item);
 private slots:
-    void focusChanged(QWidget *old, QWidget *now);
     void dockWidget_Close(int ID);
     void dockWidget_PopOut(int ID);
     void activeDockWidgetVisibilityChanged();

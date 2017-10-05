@@ -198,7 +198,7 @@ void MainWindow::setModelTitle(QString model_title)
     if(model_title.size()){
         model_title = "- " % model_title;
     }
-    auto title = "MEDEA " % model_title % "[*]";
+    QString title = "MEDEA " % model_title % "[*]";
     setWindowTitle(title);
 }
 
