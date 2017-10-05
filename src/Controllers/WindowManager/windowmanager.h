@@ -74,7 +74,6 @@ public:
     ViewDockWidget* getActiveViewDockWidget();
 
     void setActiveViewDockWidget(ViewDockWidget *view = 0);
-    void setActiveViewDockWidget(int ID);
 
 
     BaseWindow* getWindow(int ID);

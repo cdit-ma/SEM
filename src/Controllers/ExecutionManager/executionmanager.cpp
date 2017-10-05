@@ -17,11 +17,9 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     view_controller_ = view_controller;
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
     saxon_jar_path_ = transforms_path_ % "saxon.jar";
-    //runner_ = new ProcessRunner(this);
+
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
     connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
-    //connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine, Qt::QueuedConnection);
-    //connect(runner_, &ProcessRunner::GotProcessStdErrLine, this, &ExecutionManager::GotProcessStdErrLine, Qt::QueuedConnection);
 
 
     auto settings = SettingsController::settings();

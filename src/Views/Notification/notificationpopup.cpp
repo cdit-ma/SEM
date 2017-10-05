@@ -10,6 +10,8 @@ NotificationPopup::NotificationPopup():PopupWidget(PopupWidget::TYPE::SPLASH, 0)
     timer = new QTimer(this);
     timer->setInterval(5000);
 
+    setAttribute(Qt::WA_ShowWithoutActivating);
+
     //Hide the notification popup on timeout
     connect(timer, &QTimer::timeout, this, &QDialog::hide);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationPopup::themeChanged);

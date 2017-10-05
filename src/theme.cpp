@@ -25,10 +25,9 @@ Theme::Theme() : QObject(0)
     setupToggledIcons();
     updateValid();
 
-
+    
     //Preload images on a background thread.
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
-    //preloadImages();
 }
 
 Theme::~Theme()

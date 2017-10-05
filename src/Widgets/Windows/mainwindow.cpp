@@ -42,6 +42,8 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
+    show();
+    activateWindow();
     initializeApplication();
     setViewController(view_controller);
     
@@ -49,6 +51,14 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
         reset_action = new QAction("Reset Tool Dock Widgets", this);
         connect(reset_action, &QAction::triggered, this, &MainWindow::resetToolDockWidgets);
     }
+    //Setup Welcome screen
+    if(!welcomeScreen){
+        welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
+        swapCentralWidget(welcomeScreen);
+    }
+    
+    
+
     setupTools();
     setupInnerWindow();
     
@@ -67,6 +77,7 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
 
     SettingsController* s = SettingsController::settings();
 
+    
     auto outer_geo = s->getSetting(SETTINGS::WINDOW_OUTER_GEOMETRY).toByteArray();
     if(!outer_geo.isEmpty()){
         restoreGeometry(outer_geo);
@@ -74,8 +85,10 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
 
     setModelTitle();
     themeChanged();
+    
     toggleWelcomeScreen(true);
     show();
+    setFocus();
 }
 
 
@@ -116,7 +129,6 @@ QMenu* MainWindow::createPopupMenu(){
     std::sort(inner_docks.begin(), inner_docks.end(), &WindowManager::Sort);
 
     for(auto dock_widget : inner_docks){
-        qCritical() << "dockWidget: " << dock_widget->getTitle();
         menu->addAction(dock_widget->toggleViewAction());
     }
     menu->addSeparator();
@@ -223,14 +235,19 @@ void MainWindow::initializeApplication()
 }
 
 void MainWindow::swapCentralWidget(QWidget* widget){
-    if(centralWidget()){
-        //Setting the parent of the centralWidget will stop
-        //the QMainWindow deleting the old widget when a new central widget is deleted
-        centralWidget()->setParent(0);
+    auto central_widget = centralWidget();
+    if(central_widget){
+        central_widget->setParent(0);
     }
     setCentralWidget(widget);
 }
 
+
+void MainWindow::toggleDocks(bool on){
+    menu_bar->setVisible(on);
+    setDockWidgetsVisible(on);
+    rightWindow->setDockWidgetsVisible(on);
+}
 /**
  * @brief MedeaMainWindow::toggleWelcomeScreen
  * @param on
@@ -239,11 +256,9 @@ void MainWindow::toggleWelcomeScreen(bool on)
 {
     auto welcome_screen_on = centralWidget() == welcomeScreen;
 
+    toggleDocks(!on);
+    
     if(welcome_screen_on != on){
-        menu_bar->setVisible(!on);
-        setDockWidgetsVisible(!on);
-        rightWindow->setDockWidgetsVisible(!on);
-
         //Swap between the welcome scree and 0
         swapCentralWidget(on ? welcomeScreen : 0);
         
@@ -338,11 +353,6 @@ void MainWindow::setupDockIcons(){
  */
 void MainWindow::setupTools()
 {
-    //Setup Welcome screen
-    if(!welcomeScreen){
-        welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
-    }
-    
     //Setup Progress Bar
     auto progress_bar = new ProgressPopup();
     connect(view_controller, &ViewController::mc_showProgress, progress_bar, &ProgressPopup::ProgressUpdated);

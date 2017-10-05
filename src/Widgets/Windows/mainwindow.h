@@ -23,6 +23,7 @@ private slots:
     void themeChanged();
     void resetToolDockWidgets();
 private:
+    
     Q_INVOKABLE void updateMenuBar();
     void setModelTitle(QString model_title="");
 
@@ -35,6 +36,7 @@ private:
     void setViewController(ViewController* view_controller);
     void initializeApplication();
     void toggleWelcomeScreen(bool on);
+    void toggleDocks(bool on);
     
     void saveWindowState();
     void restoreWindowState();

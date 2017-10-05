@@ -1044,12 +1044,17 @@ void ViewController::setControllerReady(bool ready)
 
 void ViewController::ModelControllerReady(bool ready)
 {
+    qCritical() << "TRIGGERED";
     setControllerReady(ready);
+    qCritical() << "TRIGGERED1";
     if(ready){
+        qCritical() << "TRIGGERED3";
         emit vc_showWelcomeScreen(false);
+        qCritical() << "TRIGGERED4";
 
         //Call this after everything has loaded
         QMetaObject::invokeMethod(this, "fitAllViews", Qt::QueuedConnection);
+        qCritical() << "TRIGGERED5";
     }
 }
 

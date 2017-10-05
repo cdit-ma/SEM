@@ -186,7 +186,7 @@ WindowManager::WindowManager():QObject(0)
     viewManagerWidget = new ViewManagerWidget(this);
 
     auto a = (QApplication*) QApplication::instance();
-    connect(a, &QApplication::focusChanged, this, &WindowManager::focusChanged);
+    //connect(a, &QApplication::focusChanged, this, &WindowManager::focusChanged);
 }
 
 WindowManager::~WindowManager()
@@ -283,15 +283,6 @@ void WindowManager::setActiveViewDockWidget(ViewDockWidget *view)
     }
 }
 
-void WindowManager::setActiveViewDockWidget(int ID)
-{
-    return;/*
-    BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
-    if(dockWidget && dockWidget != activeViewDockWidget && dockWidget->isFocusEnabled()){
-        setActiveViewDockWidget(dockWidget);
-    }*/
-}
-
 QList<BaseWindow*> WindowManager::getWindows(){
     return windows.values();
 }
@@ -321,13 +312,16 @@ ViewDockWidget* WindowManager::getViewDockWidget(ViewItem *item){
 
 void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
+    return;
+    qCritical() << "OLD: " << prev << " NOW: " << now;
+    return;
     if(now){
         //Check to see if the widget is a child of one of the view docks
         for(auto id : view_dock_ids){
             auto dock = dockWidgets.value(id, 0);
             if(dock && dock->isAncestorOf(now)){
                 //We should set
-                setActiveViewDockWidget((ViewDockWidget*)dock);
+                //setActiveViewDockWidget((ViewDockWidget*)dock);
                 return;
             }
         }

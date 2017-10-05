@@ -17,6 +17,7 @@ public:
     NodeView* getNodeView();
     void setWidget(QWidget* widget);
 private:
+    bool eventFilter(QObject *o, QEvent *e);
     NodeView* nodeView = 0;
 };
 

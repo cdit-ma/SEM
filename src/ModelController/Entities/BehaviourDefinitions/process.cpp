@@ -18,7 +18,6 @@ Process::Process(NODE_KIND kind):BehaviourNode(kind){
 
 bool Process::canAdoptChild(Node* node)
 {   
-    qCritical() << node->toString();
     if(!node->isNodeOfType(NODE_TYPE::PARAMETER)){
         return false;
     }
