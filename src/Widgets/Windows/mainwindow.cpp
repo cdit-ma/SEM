@@ -42,8 +42,7 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    show();
-    activateWindow();
+    
     initializeApplication();
     setViewController(view_controller);
     
@@ -87,8 +86,8 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     themeChanged();
     
     toggleWelcomeScreen(true);
+    activateWindow();
     show();
-    setFocus();
 }
 
 
