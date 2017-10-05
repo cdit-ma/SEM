@@ -32,7 +32,7 @@ void ProgressPopup::UpdateProgressBar(int value){
         progress_bar->setRange(0, 100);
         progress_bar->setValue(value);
         if (value >= 100){
-            hide();
+            QMetaObject::invokeMethod(this, "hide", Qt::QueuedConnection);
         }
     }
 }
