@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
+#include <cmath>
 
 #define FFT_EPS 1e-5
 
