@@ -14,7 +14,7 @@ public:
     friend class WindowManager;
     
 protected:
-    BaseDockWidget(BaseDockType type);
+    BaseDockWidget(BaseDockType type, QWidget* parent = 0);
     ~BaseDockWidget();
 
     

@@ -1051,6 +1051,7 @@ QString Theme::getMessageBoxStyleSheet()
 {
     return  "QMessageBox {"
             "background:" % getAltBackgroundColorHex() % ";"
+            "padding: 2px;"
             "}"
             "QMessageBox QLabel {"
             "color:" % getTextColorHex() % ";"
@@ -1066,7 +1067,7 @@ QString Theme::getPopupWidgetStyleSheet()
            "margin: 0px;"
            "padding: 0px;"
            "background:" % QColorToHex(bgColor) % ";"
-           "border-radius:" % getCornerRadius() % ";"
+           "border-radius:" % getCornerRadius() % ";    "
            "border: 1px outset " % getAltBackgroundColorHex() % ";"
            "}";
 }

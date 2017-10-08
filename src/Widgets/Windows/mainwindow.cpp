@@ -104,7 +104,7 @@ void MainWindow::setViewController(ViewController* view_controller)
     connect(view_controller, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
 
-    addActions(action_controller->getAllActions());
+    //addActions(action_controller->getAllActions());
 }
 
 /**
@@ -362,34 +362,34 @@ void MainWindow::setupTools()
     auto window_manager = WindowManager::manager();
     
     if(!dockwidget_Dock){
-        dockwidget_Dock = window_manager->constructToolDockWidget("Dock");
+        dockwidget_Dock = window_manager->constructToolDockWidget("Dock", this);
         dockwidget_Dock->setWidget(new DockTabWidget(view_controller, this));
     }
 
     if(!dockwidget_Table){
-        dockwidget_Table = window_manager->constructToolDockWidget("Data Table");
+        dockwidget_Table = window_manager->constructToolDockWidget("Data Table", this);
         dockwidget_Table->setWidget(new DataTableWidget(view_controller, dockwidget_Table));
     }
 
     if(!dockwidget_Minimap){
-        dockwidget_Minimap = window_manager->constructToolDockWidget("Minimap");
+        dockwidget_Minimap = window_manager->constructToolDockWidget("Minimap", this);
         dockwidget_Minimap->setWidget(new NodeViewMinimap(this));
     }
 
     if(!dockwidget_ViewManager){
-        dockwidget_ViewManager = window_manager->constructToolDockWidget("View Manager");
+        dockwidget_ViewManager = window_manager->constructToolDockWidget("View Manager", this);
         dockwidget_ViewManager->setWidget(window_manager->getViewManagerGUI());
     }
 
     if(!rightWindow){
-        rightWindow = window_manager->constructInvisibleWindow(this, "Right Tools");
+        rightWindow = window_manager->constructInvisibleWindow("Right Tools", this);
         rightWindow->setDockNestingEnabled(true);
     
         rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Table, Qt::Vertical);
         rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_ViewManager, Qt::Vertical);
         rightWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Minimap, Qt::Vertical);
     
-        dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools");
+        dockwidget_Right = window_manager->constructInvisibleDockWidget("Right Tools", this);
         dockwidget_Right->setWidget(rightWindow);
     }
 }
@@ -402,13 +402,12 @@ void MainWindow::setupInnerWindow()
 {   
     
 
-    innerWindow = WindowManager::manager()->constructCentralWindow(this, "Main Window");
+    innerWindow = WindowManager::manager()->constructCentralWindow("Main Window", this);
     //Construct dockWidgets.
-    auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces");
-    auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour");
-    auto dockwidget_Assemblies = view_controller->constructViewDockWidget("Assemblies");
-    auto dockwidget_Hardware = view_controller->constructViewDockWidget("Hardware");
-
+    auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces", this);
+    auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour", this);
+    auto dockwidget_Assemblies = view_controller->constructViewDockWidget("Assemblies", this);
+    auto dockwidget_Hardware = view_controller->constructViewDockWidget("Hardware", this);
 
     dockwidget_Interfaces->getNodeView()->setContainedViewAspect(VIEW_ASPECT::INTERFACES);
     dockwidget_Behaviour->getNodeView()->setContainedViewAspect(VIEW_ASPECT::BEHAVIOUR);
@@ -445,7 +444,7 @@ void MainWindow::setupInnerWindow()
     setupMenuCornerWidget();
     setupDockablePanels();
 
-    dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget");
+    dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget", this);
     dockwidget_Center->setWidget(innerWindow);
 
     if(action_controller){
@@ -566,19 +565,19 @@ void MainWindow::setupDockablePanels()
     auto window_manager = WindowManager::manager();
 
     //QOS Browser
-    dockwidget_Qos = window_manager->constructDockWidget("QOS Browser");
+    dockwidget_Qos = window_manager->constructDockWidget("QOS Browser", this);
     dockwidget_Qos->setWidget(new QOSBrowser(view_controller, dockwidget_Qos));
     dockwidget_Qos->setIconVisible(true);
     dockwidget_Qos->setProtected(true);
 
     //Search Panel
-    dockwidget_Search = window_manager->constructDockWidget("Search");
+    dockwidget_Search = window_manager->constructDockWidget("Search", this);
     dockwidget_Search->setWidget(SearchManager::manager()->getSearchDialog());
     dockwidget_Search->setIconVisible(true);
     dockwidget_Search->setProtected(true);
     
     //Notification Panel
-    dockwidget_Notification = window_manager->constructDockWidget("Notifications");
+    dockwidget_Notification = window_manager->constructDockWidget("Notifications", this);
     dockwidget_Notification->setWidget(NotificationManager::manager()->getPanel());
     dockwidget_Notification->setIconVisible(true);
     dockwidget_Notification->setProtected(true);

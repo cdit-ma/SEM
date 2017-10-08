@@ -105,14 +105,14 @@ BaseWindow* WindowManager::constructSubWindow(QString title){
     return window;
 }
 
-BaseWindow* WindowManager::constructInvisibleWindow(BaseWindow* parent_window, QString title){
+BaseWindow* WindowManager::constructInvisibleWindow(QString title, BaseWindow* parent_window){
     auto window = new InvisibleWindow(parent_window);
     window->setWindowTitle(title);
     addWindow(window);
     return window;
 }
 
-BaseWindow* WindowManager::constructCentralWindow(BaseWindow* parent_window, QString title){
+BaseWindow* WindowManager::constructCentralWindow(QString title, BaseWindow* parent_window){
     if(!centralWindow){
         auto window = new CentralWindow(parent_window);
         window->setWindowTitle(title);
@@ -122,26 +122,26 @@ BaseWindow* WindowManager::constructCentralWindow(BaseWindow* parent_window, QSt
     return centralWindow;
 }
 
-ViewDockWidget* WindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area){
-    auto dock = new ViewDockWidget(title, area);
+ViewDockWidget* WindowManager::constructViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area){
+    auto dock = new ViewDockWidget(title, parent, area);
     addDockWidget(dock);
     return dock;
 }
 
-DefaultDockWidget* WindowManager::constructDockWidget(QString title, Qt::DockWidgetArea area){
-    auto dock = new DefaultDockWidget(title, area);
+DefaultDockWidget* WindowManager::constructDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area){
+    auto dock = new DefaultDockWidget(title, parent, area);
     addDockWidget(dock);
     return dock;
 }
 
-ToolDockWidget* WindowManager::constructToolDockWidget(QString title){
-    auto dock = new ToolDockWidget(title);
+ToolDockWidget* WindowManager::constructToolDockWidget(QString title, QWidget* parent){
+    auto dock = new ToolDockWidget(title, parent);
     addDockWidget(dock);
     return dock;
 }
 
-InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title){
-    auto dock = new InvisibleDockWidget(title);
+InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title, QWidget* parent){
+    auto dock = new InvisibleDockWidget(title, parent);
     addDockWidget(dock);
     return dock;
 }
@@ -182,6 +182,24 @@ BaseWindow *WindowManager::getMainWindow()
 WindowManager::WindowManager():QObject(0)
 {
     viewManagerWidget = new ViewManagerWidget(this);
+
+    auto a = (QApplication*) QApplication::instance();
+    connect(a, &QApplication::focusChanged, this, &WindowManager::focusChanged);
+}
+
+void WindowManager::focusChanged(QWidget* prev, QWidget* now)
+{
+    if(now){
+        //Check to see if the widget is a child of one of the view docks
+        for(auto id : view_dock_ids){
+            auto dock = dockWidgets.value(id, 0);
+            if(dock && dock->isAncestorOf(now)){
+                //We should set
+                setActiveViewDockWidget((ViewDockWidget*)dock);
+                return;
+            }
+        }
+    }
 }
 
 WindowManager::~WindowManager()

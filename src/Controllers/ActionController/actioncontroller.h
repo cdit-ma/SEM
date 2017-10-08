@@ -29,9 +29,10 @@ public:
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
     QList<RootAction*> getRecentProjectActions();
 
+    QList<QAction*> getAllActions();
+
     QList<QAction*> getNodeViewActions();
 
-    QList<QAction*> getAllActions();
 private:
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 signals:
@@ -61,8 +62,6 @@ private slots:
 
     void updateActions();
 public:
-
-
     SelectionController* selectionController;
     ViewController* viewController;
     QList<RootAction*> allActions;
@@ -194,6 +193,8 @@ public:
     QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
+
+    QList<QAction*> view_actions;
 
 private:
 

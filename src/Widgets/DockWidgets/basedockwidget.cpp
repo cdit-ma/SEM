@@ -9,7 +9,7 @@
 #include "../Windows/basewindow.h"
 
 int BaseDockWidget::_DockWidgetID = 0;
-BaseDockWidget::BaseDockWidget(BaseDockType type):QDockWidget()
+BaseDockWidget::BaseDockWidget(BaseDockType type, QWidget* parent):QDockWidget(parent)
 {
     //TODO: Setting QDockWidget parent as the MainWindow fixes application shortcut issues
     ID = ++_DockWidgetID;

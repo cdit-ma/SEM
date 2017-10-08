@@ -69,7 +69,7 @@ public:
 
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
-    ViewDockWidget* constructViewDockWidget(QString label="");
+    ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
     QSet<NODE_KIND> getAdoptableNodeKinds();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();

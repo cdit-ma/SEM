@@ -10,14 +10,13 @@ class ViewDockWidget : public DefaultDockWidget
     friend class WindowManager;
     Q_OBJECT
 protected:
-    ViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    ViewDockWidget(QString title, QWidget* parent = 0, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     ~ViewDockWidget();
 public:
     SelectionHandler* getSelectionHandler();
     NodeView* getNodeView();
     void setWidget(QWidget* widget);
 private:
-    bool eventFilter(QObject *o, QEvent *e);
     NodeView* nodeView = 0;
 };
 

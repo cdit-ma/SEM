@@ -184,7 +184,8 @@ void ViewController::welcomeScreenToggled(bool visible){
     if(visible){
         notification_manager->hideToast();
     }else{
-        notification_manager->toastLatestNotification();
+        //Toast the notification
+        QTimer::singleShot(100, notification_manager, &NotificationManager::toastLatestNotification);
     }
 }
 
@@ -326,15 +327,14 @@ QList<ViewItem*> ViewController::filterList(QString query, QList<ViewItem*> view
     }
 }
 
-ViewDockWidget *ViewController::constructViewDockWidget(QString label)
+ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* parent)
 {
-    ViewDockWidget* dock_widget = WindowManager::manager()->constructViewDockWidget(label);
+    auto dock_widget = WindowManager::manager()->constructViewDockWidget(label, parent);
     auto node_view = new NodeView(dock_widget);
     dock_widget->setWidget(node_view);
 
     if(actionController){
-        //Add all actions which need focus!
-        node_view->addActions(actionController->getAllActions());
+        node_view->addActions(actionController->getNodeViewActions());
     }
 
     //Setup NodeView
@@ -589,8 +589,13 @@ void ViewController::importGraphMLExtract(QString data)
 
 DefaultDockWidget* ViewController::constructDockWidget(QString title, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window){
     auto window_manager = WindowManager::manager();
-    auto dock_widget = window_manager->constructDockWidget(title);
+    if(!window){
+        window = window_manager->getActiveWindow();
+    }
+    auto dock_widget = window_manager->constructDockWidget(title, window);
     dock_widget->setCloseVisible(false);
+
+    
 
     Theme::theme()->setWindowIcon(title, icon_path, icon_name);
 
@@ -598,9 +603,7 @@ DefaultDockWidget* ViewController::constructDockWidget(QString title, QString ic
     dock_widget->setIcon("WindowIcon", title);
     dock_widget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    if(!window){
-        window = window_manager->getActiveWindow();
-    }
+    
     window->addDockWidget(dock_widget);
 
     return dock_widget;
@@ -609,6 +612,7 @@ DefaultDockWidget* ViewController::constructDockWidget(QString title, QString ic
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
     auto window_manager = WindowManager::manager();
+    
     if(!codeViewer){
         codeBrowser = new CodeBrowser();
         codeViewer = constructDockWidget("Code Browser", "Icons", "bracketsAngled", codeBrowser);
@@ -822,16 +826,19 @@ QString ViewController::getTempFileForModel()
 void ViewController::spawnSubView(ViewItem * item)
 {
     if(item && item->isNode()){
-        auto dockWidget = WindowManager::manager()->getViewDockWidget(item);
+        auto window_manager = WindowManager::manager();
+        auto dockWidget = window_manager->getViewDockWidget(item);
         if(dockWidget){
             dockWidget->setVisible(true);
         }else{
             auto label = item->getData("label").toString();
-            dockWidget = constructViewDockWidget(label);
+            auto parent = window_manager->getMainWindow();
+            dockWidget = constructViewDockWidget(label, parent);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-            if(WindowManager::manager()->reparentDockWidget(dockWidget)){
-                //Construct a dockWidget
+            //Try and reparent it
+            if(window_manager->reparentDockWidget(dockWidget)){
+                //Set the icon
                 dockWidget->setIcon(item->getIcon());
                 //Set the NodeView to be contained on this NodeViewItem
                 dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);

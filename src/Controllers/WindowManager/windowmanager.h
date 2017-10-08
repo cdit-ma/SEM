@@ -50,13 +50,13 @@ public:
     //Factory constructor Functions
     BaseWindow* constructMainWindow(ViewController* vc);
     BaseWindow* constructSubWindow(QString title="");
-    BaseWindow* constructCentralWindow(BaseWindow* parent_window, QString title="");
-    BaseWindow* constructInvisibleWindow(BaseWindow* parent_window, QString title="");
+    BaseWindow* constructCentralWindow(QString title, BaseWindow* parent_window);
+    BaseWindow* constructInvisibleWindow(QString title, BaseWindow* parent_window);
     
-    ViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    DefaultDockWidget* constructDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    ToolDockWidget* constructToolDockWidget(QString title="");
-    InvisibleDockWidget* constructInvisibleDockWidget(QString title="");
+    ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    DefaultDockWidget* constructDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    ToolDockWidget* constructToolDockWidget(QString title, QWidget* parent);
+    InvisibleDockWidget* constructInvisibleDockWidget(QString title, QWidget* parent);
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
@@ -74,6 +74,7 @@ public:
     ViewDockWidget* getActiveViewDockWidget();
 
     void setActiveViewDockWidget(ViewDockWidget *view = 0);
+    
 
 
     BaseWindow* getWindow(int ID);
@@ -87,6 +88,7 @@ private slots:
     void activeDockWidgetVisibilityChanged();
 
 private:
+    void focusChanged(QWidget* prev, QWidget* now);
     void addWindow(BaseWindow *window);
     void removeWindow(BaseWindow *window);
     void addDockWidget(BaseDockWidget* dockWidget);
