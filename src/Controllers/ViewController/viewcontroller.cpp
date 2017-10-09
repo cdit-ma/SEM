@@ -518,8 +518,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             case NODE_KIND::ENUM_MEMBER:{
-                //alias = "Icons";
-                //image = "star";
+                alias = "Icons";
+                image = "circleDark";
                 break;
             }
             default:
@@ -536,13 +536,13 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
         }
-
+        auto i = Theme::theme()->getIcon(alias, image);
         if(!Theme::theme()->gotImage(alias, image)){
             alias = "Icons";
             image = "circleDark";
         }
         //Try and get the image
-        //auto i = Theme::theme()->getIcon(alias, image);
+        
         viewItem->setIcon(alias, image);
     }
 }

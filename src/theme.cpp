@@ -25,7 +25,6 @@ Theme::Theme() : QObject(0)
     setupToggledIcons();
     updateValid();
 
-    
     //Preload images on a background thread.
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }
@@ -158,7 +157,7 @@ void Theme::UpdateActionIcon(QAction* action, Theme* theme){
         auto icon_path = action->property("icon_path").toString();
         auto icon_alias = action->property("icon_alias").toString();
         action->setIcon(theme->getIcon(icon_path, icon_alias));
-    }
+    }   
 }
 
 void Theme::StoreActionIcon(QAction* action, QString icon_path, QString icon_alias){

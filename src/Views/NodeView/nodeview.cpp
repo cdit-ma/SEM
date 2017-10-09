@@ -27,6 +27,7 @@
 
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
+    setMinimumSize(200, 200);
     setupStateMachine();
     
     QRectF sceneRect;

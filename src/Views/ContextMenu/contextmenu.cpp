@@ -106,9 +106,7 @@ void ContextMenu::themeChanged(){
     deploy_menu->setIcon(theme->getIcon("Icons", "screen"));
 
     for(auto node_action : add_node_action_hash.values()){
-        auto node_kind = node_action->property("node_kind").value<NODE_KIND>(); 
-        auto node_kind_str = EntityFactory::getNodeKindString(node_kind);
-        node_action->setIcon(theme->getIcon("EntityIcons", node_kind_str));
+        Theme::UpdateActionIcon(node_action, theme);
         auto menu = node_action->menu();
         if(menu){
             menu->setStyle(menu_style);

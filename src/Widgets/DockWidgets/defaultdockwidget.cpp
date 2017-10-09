@@ -36,6 +36,5 @@ void DefaultDockWidget::setWidget(QWidget *widget)
 {
     if (widget) {
         BaseDockWidget::setWidget(widget);
-        widget->setMinimumSize(400, 300);
     }
 }
