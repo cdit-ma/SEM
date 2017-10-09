@@ -72,7 +72,7 @@ bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
 };
 
 
-void WindowManager::showDockWidget(BaseDockWidget* widget){
+void WindowManager::ShowDockWidget(BaseDockWidget* widget){
     if(widget){
         auto window = widget->window();
         widget->show();

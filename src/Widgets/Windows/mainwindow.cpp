@@ -71,8 +71,8 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
 
-    connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Search);});
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::manager()->showDockWidget(dockwidget_Notification);});
+    connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::ShowDockWidget(dockwidget_Search);});
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::ShowDockWidget(dockwidget_Notification);});
 
     SettingsController* s = SettingsController::settings();
 

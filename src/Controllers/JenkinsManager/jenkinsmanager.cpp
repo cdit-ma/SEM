@@ -237,15 +237,16 @@ void JenkinsManager::abortJob(QString job_name, int build_number){
 
 void JenkinsManager::gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity job_state){
     JenkinsMonitor* jenkins_monitor = 0;
-    auto job_monitor = view_controller_->getJobMonitor();
-    if(job_monitor){
-            //First off
+    auto monitor = view_controller_->getExecutionMonitor();
+    if(monitor){
+        //First off
         if(job_state == Notification::Severity::RUNNING){
-            jenkins_monitor = job_monitor->constructJenkinsMonitor(job_name, job_build);
+            view_controller_->showExecutionMonitor();
+            jenkins_monitor = monitor->constructJenkinsMonitor(job_name, job_build);
             connect(jenkins_monitor, &JenkinsMonitor::Abort, [=](){abortJob(job_name, job_build);});
             connect(jenkins_monitor, &JenkinsMonitor::GotoURL, [=](){gotoJob(job_name, job_build);});
         }else{
-            jenkins_monitor = (JenkinsMonitor*)job_monitor->getJenkinsMonitor(job_name, job_build);
+            jenkins_monitor = (JenkinsMonitor*)monitor->getJenkinsMonitor(job_name, job_build);
         }
 
 
@@ -256,11 +257,11 @@ void JenkinsManager::gotJobStateChange(QString job_name, int job_build, QString 
 }
 
 void JenkinsManager::gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput){
-    auto job_monitor = view_controller_->getJobMonitor();
-    if(job_monitor){
-        auto monitor = job_monitor->getJenkinsMonitor(job_name, job_build);
-        if(monitor){
-            monitor->AppendLine(consoleOutput);
+    auto monitor = view_controller_->getExecutionMonitor();
+    if(monitor){
+        auto jenkins_monitor = monitor->getJenkinsMonitor(job_name, job_build);
+        if(jenkins_monitor){
+            jenkins_monitor->AppendLine(consoleOutput);
         }
     }
 }

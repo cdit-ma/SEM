@@ -75,14 +75,13 @@ ViewController::ViewController() : QObject(){
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
-    //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
+
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
+
     connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
 
-
-    //Every minute
-    //60000
+    //setup auto save
     autosave_timer_ = new QTimer(this);
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
@@ -610,37 +609,37 @@ DefaultDockWidget* ViewController::constructDockWidget(QString title, QString ic
 }
 
 void ViewController::showCodeViewer(QString tabName, QString content)
-{
-    auto window_manager = WindowManager::manager();
-    
+{   
     if(!codeViewer){
         codeBrowser = new CodeBrowser();
         codeViewer = constructDockWidget("Code Browser", "Icons", "bracketsAngled", codeBrowser);
     }
     if(codeViewer && codeBrowser){
         codeBrowser->showCode(tabName, content, false);
-        window_manager->showDockWidget(codeViewer);
+        WindowManager::ShowDockWidget(codeViewer);
     }
 }
 
-JobMonitor* ViewController::getJobMonitor(){
+JobMonitor* ViewController::getExecutionMonitor(){
+    if(!job_monitor){
+        job_monitor = new JobMonitor();
+        auto toolbar = job_monitor->getToolbar();
+        toolbar->addAction(actionController->model_executeLocalJob);
+        toolbar->addAction(actionController->jenkins_executeJob);
+    }
     return job_monitor;
 }
 
 void ViewController::showExecutionMonitor(){
     auto window_manager = WindowManager::manager();
+
+    //First time 
     if(!execution_monitor){
-        job_monitor = new JobMonitor();
-        auto toolbar = job_monitor->getToolbar();
-        toolbar->addAction(actionController->model_executeLocalJob);
-        toolbar->addAction(actionController->jenkins_executeJob);
-
-        execution_monitor = constructDockWidget("Execution Monitor", "Icons", "bracketsAngled", job_monitor);
+        auto monitor = getExecutionMonitor();
+        execution_monitor = constructDockWidget("Execution Monitor", "Icons", "bracketsAngled", monitor);
     }
 
-    if(execution_monitor){
-        window_manager->showDockWidget(execution_monitor);
-    }
+    WindowManager::ShowDockWidget(execution_monitor);
 }
 
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
@@ -1147,27 +1146,31 @@ void ViewController::TeardownController()
     }
 }
 
-
 void ViewController::autoSaveProject(){
-    QMutexLocker locker(&mutex);
-
-    if(controller && !controller->isProjectSaved()){
-        auto project_action_count = controller->getProjectActionCount();
-        auto project_path = controller->getProjectPath();
-        auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
-        
-        if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
-            //Get the data from the controller
-            auto autosave_data = controller->getProjectAsGraphML();
-            auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
-            if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
-                //Display a notification of the autosave
-                NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, false);
-                //update the autosave id
-                autosave_id_ = project_action_count;
-                emit vc_addProjectToRecentProjects(autosave_path);
+    //Try and lock the mutex, if we can't lock
+    if(mutex.tryLock()){
+        if(controller && !controller->isProjectSaved()){
+            auto project_action_count = controller->getProjectActionCount();
+            auto project_path = controller->getProjectPath();
+            auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
+            
+            if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
+                //Get the data from the controller
+                auto autosave_data = controller->getProjectAsGraphML();
+                auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
+                if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
+                    //Display a notification of the autosave
+                    NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE);
+                    //update the autosave id
+                    autosave_id_ = project_action_count;
+                    emit vc_addProjectToRecentProjects(autosave_path);
+                }
             }
         }
+        mutex.unlock();
+    }else{
+        //Try to autosave in 1000 ms
+        QTimer::singleShot(1000, this, &ViewController::autoSaveProject);
     }
 }
 
@@ -1572,7 +1575,7 @@ void ViewController::executeModelLocal()
         //If starting a job was valid, connect in the monitor
         if(execution_manager->ExecuteModel(file_path, workspace, duration)){
             showExecutionMonitor();
-            auto job_monitor = getJobMonitor();
+            auto job_monitor = getExecutionMonitor();
             auto local_monitor = job_monitor->getConsoleMonitor("Local Deployment");
             if(!local_monitor){
                 local_monitor = job_monitor->constructConsoleMonitor("Local Deployment");

@@ -65,8 +65,6 @@ public:
         return filterList(query, ViewController::ToViewItemList(view_items));
     }
 
-    JobMonitor* getJobMonitor();
-
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
@@ -223,7 +221,10 @@ public slots:
     void importGraphMLFile(QString graphmlPath);
     void importGraphMLExtract(QString data);
     
+
     void showCodeViewer(QString tabName, QString content);
+
+    JobMonitor* getExecutionMonitor();
     void showExecutionMonitor();
 
 

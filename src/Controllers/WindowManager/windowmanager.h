@@ -30,6 +30,7 @@ public:
     //Public Static functions.
     static WindowManager* manager();
     static void teardown();
+    static void ShowDockWidget(BaseDockWidget* widget);
 
     static void MoveWidget(QWidget* widget, QWidget* parent_widget = 0, Qt::Alignment = Qt::AlignCenter);
     static bool isViewDockWidget(BaseDockWidget* base_dock_widget);
@@ -60,7 +61,7 @@ public:
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
-    void showDockWidget(BaseDockWidget* widget);
+    
 signals:
     void windowConstructed(BaseWindow* window);
     void windowDestructed(int ID);
