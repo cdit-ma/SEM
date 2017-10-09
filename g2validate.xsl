@@ -21,11 +21,6 @@
     <!-- Get all of the Aggregates -->
     
     <xsl:template match="/">
-        <!-- THINGS TO CATCH -->
-        <!--
-            * Strings without double quotes in Functions in Behaviour
-        -->
-        
         <xsl:variable name="results">
             <xsl:value-of select="cdit:aggregate_tests(.)" />
             <xsl:value-of select="cdit:component_tests(.)" />
