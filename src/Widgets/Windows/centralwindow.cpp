@@ -1,5 +1,5 @@
 #include "centralwindow.h"
-CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow()
+CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow(parent_window)
 {
     this->parent_window = parent_window;
     setAcceptDrops(true);

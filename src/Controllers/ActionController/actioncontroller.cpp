@@ -581,6 +581,16 @@ QList<QAction *> ActionController::getNodeViewActions()
     return view_actions;
 }
 
+QList<QAction *> ActionController::getGlobalActions(){
+    QList<QAction*> actions;
+    for(auto action : allActions){
+        if(action->shortcutContext() == Qt::ApplicationShortcut){
+            actions.append(action);
+        }
+    }
+    return actions;
+}
+
 void ActionController::setupActions()
 {
     file_newProject = createRootAction("Project", "New Project", "", "Icons", "file");
@@ -785,7 +795,7 @@ void ActionController::setupActions()
     options_settings->setToolTip("Show application settings.");
     options_settings->setShortcutContext(Qt::ApplicationShortcut);
     options_settings->setShortcut(QKeySequence(Qt::Key_F10));
-
+    
 
 
 
@@ -842,7 +852,7 @@ void ActionController::setupActions()
     view_actions.append(model_getCodeForComponent);
 
     for(auto action : view_actions){
-        options_settings->setShortcutContext(Qt::WidgetShortcut);
+        action->setShortcutContext(Qt::WidgetShortcut);
     }
 
 }

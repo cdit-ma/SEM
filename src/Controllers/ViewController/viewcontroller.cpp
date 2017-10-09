@@ -331,11 +331,7 @@ ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* 
     auto dock_widget = WindowManager::manager()->constructViewDockWidget(label, parent);
     auto node_view = new NodeView(dock_widget);
     dock_widget->setWidget(node_view);
-
-    if(actionController){
-        node_view->addActions(actionController->getNodeViewActions());
-    }
-
+    
     //Setup NodeView
     node_view->setViewController(this);
 

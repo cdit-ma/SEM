@@ -50,7 +50,7 @@ public:
 public:
     //Factory constructor Functions
     BaseWindow* constructMainWindow(ViewController* vc);
-    BaseWindow* constructSubWindow(QString title="");
+    BaseWindow* constructSubWindow(QString title, BaseWindow* parent_window);
     BaseWindow* constructCentralWindow(QString title, BaseWindow* parent_window);
     BaseWindow* constructInvisibleWindow(QString title, BaseWindow* parent_window);
     

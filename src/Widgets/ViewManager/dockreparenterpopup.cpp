@@ -63,7 +63,7 @@ void DockReparenterPopup::windowTriggered(int window_id){
         if(window_id >= 0){
             window = manager->getWindow(window_id);
         }else if(window_id == -1){
-            window = manager->constructSubWindow();
+            window = manager->constructSubWindow("Sub Window", manager->getMainWindow());
             window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
             window->show();
             window->activateWindow();

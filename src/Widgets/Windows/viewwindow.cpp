@@ -6,7 +6,7 @@
 
 #include <QStringBuilder>
 #include <QMenu>
-ViewWindow::ViewWindow():BaseWindow(0, BaseWindow::VIEW_WINDOW)
+ViewWindow::ViewWindow(BaseWindow* parent_window):BaseWindow(parent_window, BaseWindow::VIEW_WINDOW)
 {
 
     setAcceptDrops(true);

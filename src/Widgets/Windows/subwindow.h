@@ -7,7 +7,7 @@ class SubWindow : public ViewWindow
     Q_OBJECT
     friend class WindowManager;
 protected:
-    SubWindow();
+    SubWindow(BaseWindow* parent_window);
     ~SubWindow();
 };
 

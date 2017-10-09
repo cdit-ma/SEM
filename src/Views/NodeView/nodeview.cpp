@@ -87,6 +87,8 @@ void NodeView::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
     if(viewController){
+        //Add the actions
+        addActions(viewController->getActionController()->getNodeViewActions());
 
         connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeView::viewItem_Constructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeView::viewItem_Destructed);

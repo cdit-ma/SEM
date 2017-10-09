@@ -104,7 +104,14 @@ void MainWindow::setViewController(ViewController* view_controller)
     connect(view_controller, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
 
-    //addActions(action_controller->getAllActions());
+    addActions(action_controller->getAllActions());
+
+    /*for(auto action : action_controller->getAllActions()){
+        if(action->shortcutContext() == Qt::ApplicationShortcut){
+            qCritical() << "Adding actions" << action;
+            addAction(action);
+        }
+    }*/
 }
 
 /**
@@ -400,9 +407,8 @@ void MainWindow::setupTools()
  */
 void MainWindow::setupInnerWindow()
 {   
-    
-
     innerWindow = WindowManager::manager()->constructCentralWindow("Main Window", this);
+    addActions(action_controller->getAllActions());
     //Construct dockWidgets.
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces", this);
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour", this);

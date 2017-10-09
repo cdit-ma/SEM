@@ -98,8 +98,8 @@ BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
     return mainWindow;
 }
 
-BaseWindow* WindowManager::constructSubWindow(QString title){
-    auto window = new SubWindow();
+BaseWindow* WindowManager::constructSubWindow(QString title, BaseWindow* parent_window){
+    auto window = new SubWindow(parent_window);
     window->setWindowTitle(title);
     addWindow(window);
     return window;

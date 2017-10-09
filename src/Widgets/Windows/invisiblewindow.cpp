@@ -3,7 +3,7 @@
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../theme.h"
 
-InvisibleWindow::InvisibleWindow(BaseWindow* parent_window):BaseWindow(0, BaseWindow::INVISIBLE_WINDOW)
+InvisibleWindow::InvisibleWindow(BaseWindow* parent_window):BaseWindow(parent_window, BaseWindow::INVISIBLE_WINDOW)
 {
     this->parent_window = parent_window;
     setAcceptDrops(true);
