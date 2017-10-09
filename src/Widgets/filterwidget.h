@@ -6,7 +6,7 @@
 #include <QLineEdit>
 #include <QToolButton>
 
-class FilterWidget : public QToolBar
+class FilterWidget : public QWidget
 {
     Q_OBJECT
 public:

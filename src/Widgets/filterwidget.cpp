@@ -3,11 +3,10 @@
 #include "../theme.h"
 #include <QDebug>
 
-FilterWidget::FilterWidget() : QToolBar(0){
+FilterWidget::FilterWidget(){
     setupLayout();
     
     connect(line_edit, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
-    connect(reset_button, &QToolButton::clicked, line_edit, &QLineEdit::clear);
     
     setFocusProxy(line_edit);
     setFocusPolicy(Qt::StrongFocus);
@@ -21,23 +20,12 @@ FilterWidget::FilterWidget() : QToolBar(0){
 
 void FilterWidget::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton{background:rgba(0,0,0,0);border:none;} QToolBar{padding:3px;}");
     line_edit->setStyleSheet(theme->getLineEditStyleSheet()  + "QLineEdit{border-radius: " + theme->getSharpCornerRadius() + ";}");
-    icon_button->setStyleSheet("QToolButton{background:rgba(0,0,0,0);border:none;}");
-    reset_button->setIcon(theme->getIcon("Icons", "cross"));
-    auto filter_icon = theme->getImage("Icons", "filterList", QSize(), theme->getMenuIconColor());
-    icon_button->setIcon(filter_icon);
-    setIconSize(theme->getIconSize());
 }
 
 void FilterWidget::setupLayout(){
-    icon_button = new QToolButton(this);
-    //icon_button->setEnabled(false);
-    icon_button->setFocusPolicy(Qt::NoFocus);
-    icon_button->setVisible(false);
-    reset_button = new QToolButton(this);
-    reset_button->setVisible(false);
-    //reset_button->setFocusPolicy(Qt::NoFocus);
+    auto layout = new QHBoxLayout(this);
+    layout->setMargin(3);
 
     line_edit = new QLineEdit(this);
     line_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -47,9 +35,7 @@ void FilterWidget::setupLayout(){
     line_edit->setFocusPolicy(Qt::StrongFocus);
     line_edit->setFocus();
 
-    //addWidget(icon_button);
-    addWidget(line_edit);
-    //addWidget(reset_button);
+    layout->addWidget(line_edit);
 }
 
 
