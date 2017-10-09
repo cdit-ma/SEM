@@ -238,7 +238,7 @@ void DataEditWidget::editFinished()
     case SETTING_TYPE::PATH:{
         //Do the same things.
         auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
-        if(line_edit){
+        if(line_edit && line_edit->text() != newData.toString()){
             line_edit->setText(newData.toString());
         }
         break;
