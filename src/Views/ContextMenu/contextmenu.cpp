@@ -582,14 +582,12 @@ void ContextMenu::update_add_node_menu(){
             adoptable_node_kinds.intersect(node_kinds);
             
             auto label_action = add_labels.value(menu, 0);
-
-            if(label_action){
-                //menu->addAction(label_action);
-            }
             //Construct a set to store whats filtered.
             QList<NODE_KIND> filtered_node_kinds;
 
-            for(auto view_item : view_controller->filterList(filter_str, view_controller->getNodeKindItems())){
+            auto filtered_view_items = view_controller->filterList(filter_str, view_controller->getNodeKindItems());
+            std::sort(filtered_view_items.begin(), filtered_view_items.end(), ViewItem::SortByKind);
+            for(auto view_item : filtered_view_items){
                 auto node_item = (NodeViewItem*) view_item;
                 filtered_node_kinds.append(node_item->getNodeKind());
             }
