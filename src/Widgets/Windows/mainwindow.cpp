@@ -103,15 +103,6 @@ void MainWindow::setViewController(ViewController* view_controller)
     connect(view_controller, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
     connect(view_controller, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
-
-    addActions(action_controller->getAllActions());
-
-    /*for(auto action : action_controller->getAllActions()){
-        if(action->shortcutContext() == Qt::ApplicationShortcut){
-            qCritical() << "Adding actions" << action;
-            addAction(action);
-        }
-    }*/
 }
 
 /**
@@ -408,7 +399,6 @@ void MainWindow::setupTools()
 void MainWindow::setupInnerWindow()
 {   
     innerWindow = WindowManager::manager()->constructCentralWindow("Main Window", this);
-    addActions(action_controller->getAllActions());
     //Construct dockWidgets.
     auto dockwidget_Interfaces = view_controller->constructViewDockWidget("Interfaces", this);
     auto dockwidget_Behaviour = view_controller->constructViewDockWidget("Behaviour", this);
@@ -453,15 +443,6 @@ void MainWindow::setupInnerWindow()
     dockwidget_Center = WindowManager::manager()->constructInvisibleDockWidget("Central Widget", this);
     dockwidget_Center->setWidget(innerWindow);
 
-    if(action_controller){
-        //Add all actions which need focus!
-        
-
-        /*for(auto dock_widget: {dockwidget_Interfaces, dockwidget_Behaviour, dockwidget_Assemblies, dockwidget_Hardware}){
-            dock_widget->addActions(action_controller->getAllActions());
-            dock_widget->widget()->addActions(action_controller->getAllActions());
-        }*/
-    }
 }
 
 
