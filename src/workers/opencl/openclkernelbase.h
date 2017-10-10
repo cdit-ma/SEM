@@ -11,7 +11,7 @@ class OpenCLManager;
 class OpenCLKernelBase {
 public:
 
-    void Run(unsigned int gpu_num, bool block, const cl::NDRange& offset,
+    bool Run(unsigned int gpu_num, bool block, const cl::NDRange& offset,
         const cl::NDRange& global, const cl::NDRange& local);
 
     std::string GetName() const;
@@ -20,6 +20,9 @@ public:
 
 protected:
     OpenCLKernelBase(OpenCLManager& manager, cl::Kernel& kernel, Worker* worker);
+
+    virtual void LogError(std::string function_name, std::string error_message, cl_int cl_error_code);
+    virtual void LogError(std::string function_name, std::string error_message);
     
     OpenCLManager& manager_;
     cl::Kernel kernel_;

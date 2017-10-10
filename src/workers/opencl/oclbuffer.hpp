@@ -3,8 +3,9 @@
 
 #include "openclutilities.h"
 #include "openclmanager.h"
-#include <vector>
 #include "genericbuffer.h"
+
+#include <vector>
 
 class OpenCLManager;
 
@@ -14,8 +15,8 @@ class OCLBuffer : public GenericBuffer {
     static_assert(std::is_pod<T>::value,
             "Can't have non-primitive data types buffered in current implementation");
 public:
-    OCLBuffer(OpenCLManager* manager, int id, size_t bytes, Worker* worker_reference=0);
-    OCLBuffer(OpenCLManager* manager, int id, const std::vector<T>& data,
+    OCLBuffer(OpenCLManager* manager, size_t bytes, Worker* worker_reference=0);
+    OCLBuffer(OpenCLManager* manager, const std::vector<T>& data,
             Worker* worker_reference=0);
             
     ~OCLBuffer();
@@ -47,18 +48,17 @@ private:
 
 
     Worker* worker_reference_ = 0;
-    OpenCLManager* manager_ = nullptr;
-    size_t length_;  // The number of elements, not bytes
+    //OpenCLManager* manager_ = nullptr;
 };
 
 
 template <typename T>
-OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, int id, size_t num_elements, Worker* worker_reference)
-    : GenericBuffer(id) , manager_(manager), length_(num_elements), worker_reference_(worker_reference){
+OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, size_t num_elements, Worker* worker_reference)
+    : GenericBuffer(manager, num_elements), worker_reference_(worker_reference){
     
     cl_int err;
-    buffer_ = cl::Buffer(manager_->GetContext(), CL_MEM_READ_WRITE,
-                        num_elements*sizeof(T), NULL, &err);
+
+    buffer_ = cl::Buffer(manager_->GetContext(), CL_MEM_READ_WRITE, size_*sizeof(T), NULL, &err);
     if (err != CL_SUCCESS) {
 		LogError(worker_reference_,
 			std::string(__func__),
@@ -72,10 +72,9 @@ OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, int id, size_t num_elements, Wor
 }
 
 template <typename T>
-OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, int id, const std::vector<T>& data, Worker* worker_reference)
-    : OCLBuffer(manager, id, data.size(), worker_reference) {
-    
-    WriteData(data);
+OCLBuffer<T>::OCLBuffer(OpenCLManager* manager, const std::vector<T>& data, Worker* worker_reference)
+    : OCLBuffer(manager, data.size(), worker_reference) {
+    WriteData(data, false, worker_reference);
 }
 
 template <typename T>
@@ -93,6 +92,17 @@ static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buf
 
     cl_int err;
     
+    // Warn if size mismatch, abort if overflow would occur
+    if (data.size() !=  size_) {
+        LogError(worker_reference,
+            __func__,
+            "Attempting to write vector data to a buffer of different length: "
+                +std::to_string(data.size())+" when expecting "+std::to_string(size_));
+        if (data.size() > size_) {
+            return;
+        }
+    }
+    // TODO: allow for non-blocking variant
     err = cl::copy(manager_->GetQueues().at(0), data.begin(), data.end(), buffer_);
     if(err != CL_SUCCESS){
         LogError(worker_reference,
@@ -100,8 +110,6 @@ static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buf
             "An error occurred while copying data to an OpenCL buffer",
             err);
     }
-
-    //length_ = data.size();
 }
 
 template <typename T>
@@ -109,11 +117,11 @@ const std::vector<T> OCLBuffer<T>::ReadData(bool blocking, Worker* worker_refere
 
     cl_int err;
 
-    std::vector<T> data(length_);
+    std::vector<T> data(size_);
 
     // NEEDS TO HAVE LENGTH INITIALISED FIRST
     //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
-    err = manager_->GetQueues().at(0).enqueueReadBuffer(buffer_, true, 0, length_*sizeof(T), data.data());
+    err = manager_->GetQueues().at(0).enqueueReadBuffer(buffer_, true, 0, size_*sizeof(T), data.data());
     if(err != CL_SUCCESS){
         LogError(worker_reference,
             __func__,

@@ -8,16 +8,15 @@ OpenCLKernel::OpenCLKernel(OpenCLManager& manager, cl::Kernel& kernel, Worker* w
 
 
 
-void OpenCLKernel::LogError(std::string function_name, std::string error_message,
-    cl_int cl_error_code) {
+void OpenCLKernel::LogError(std::string function_name, std::string error_message, cl_int cl_error_code) {
     LogOpenCLError(worker_ref_,
-    "OpenCLKernel::" + function_name,
-    error_message,
-    cl_error_code);
+        "OpenCLKernel::" + function_name,
+        error_message,
+        cl_error_code);
 }
 
 void OpenCLKernel::LogError(std::string function_name, std::string error_message) {
     LogOpenCLError(worker_ref_,
-    "OpenCLKernel::" + function_name,
-    error_message);
+        "OpenCLKernel::" + function_name,
+        error_message);
 }

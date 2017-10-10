@@ -1,6 +1,6 @@
 
-#include "openclmanager.h"
 #include "openclutilities.h"
+#include "openclmanager.h"
 
 #include <core/worker.h>
 
@@ -84,7 +84,6 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 
 	// Manager shouldn't be marked as valid until creation has completed successfully
 	valid_ = false;
-	std::cout << " GOT VALID OPENCL MANAGER" << 0 << std::endl;
 
 	std::string platform_name;
 	platform_name = platform_.getInfo<CL_PLATFORM_NAME>(&err);
@@ -94,8 +93,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 			"Unable to retrieve platform name",
 			err);
 
-	}
-	std::cout << " GOT VALID OPENCL MANAGER" << 1 << std::endl;
+	}\
 	device_list_ = GetDevices(worker_reference);
 	if (device_list_.size() == 0)
 	{
@@ -105,7 +103,6 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 		return;
 	}
 
-	std::cout << " GOT VALID OPENCL MANAGER" << 2 << std::endl;
 	context_ = new cl::Context(device_list_, NULL, NULL, NULL, &err);
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
@@ -115,7 +112,6 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 		return;
 	}
 
-	std::cout << " GOT VALID OPENCL MANAGER" << 3 << std::endl;
 	for (cl::Device d : device_list_) {
 		queues_.push_back(cl::CommandQueue(*context_, d, NULL, &err));
 		if (err != CL_SUCCESS) {
@@ -127,11 +123,8 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 		}
 	}
 
-	std::cout << " GOT VALID OPENCL MANAGER" << 4 << std::endl;
-
 	// Mark the manager as having been properly initialized
 	valid_ = true;
-	std::cout << " GOT VALID OPENCL MANAGER" << std::endl;
 }
 
 const cl::Context& OpenCLManager::GetContext() const {
@@ -169,11 +162,9 @@ const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(
 	std::vector<OpenCLKernel> kernels;
 
 	// Read, compile and link the Program from OpenCL code
-	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
+	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames, worker_reference);
+
 	program_ = new cl::Program(*context_, sources, &err);
-	/*for (auto p : sources) {
-		delete p.first;
-	}*/
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
 			std::string(__func__),
@@ -181,6 +172,7 @@ const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(
 			err);
 		return kernels;
 	}
+
 	err = program_->build(device_list_);
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
@@ -231,7 +223,7 @@ void OpenCLManager::UntrackBuffer(int buffer_id) {
  * Note that the c-strings will need to be freed by the caller!
  **/
 cl::Program::Sources OpenCLManager::ReadOpenCLSourceCode(
-											std::vector<std::string> filenames,
+											const std::vector<std::string>& filenames,
 											Worker* worker_reference/*=NULL*/) {
 	cl::Program::Sources source_list;
 
@@ -240,7 +232,7 @@ cl::Program::Sources OpenCLManager::ReadOpenCLSourceCode(
 	filenames[0] = filenames[0].substr(0, filenames[0].find_last_of("/\\"));
 	filenames[0].append("/kernel.cl");*/
 
-	for (auto filename : filenames) {
+	for (const auto& filename : filenames) {
 		std::ifstream source_file;
 		source_file.open(filename);
 		if (!source_file.is_open()) {
@@ -253,7 +245,7 @@ cl::Program::Sources OpenCLManager::ReadOpenCLSourceCode(
 		std::stringstream source_stream;
 		source_stream << source_file.rdbuf();
 
-		size_t str_len = source_stream.str().size();
+		//size_t str_len = source_stream.str().size();
 		/*char* source_string = new char[str_len];
 		//strncpy(source_string, source_stream.str().c_str(), str_len);
 		size_t len = source_stream.str().copy(source_string, str_len, 0);
@@ -261,6 +253,7 @@ cl::Program::Sources OpenCLManager::ReadOpenCLSourceCode(
 
 		auto new_source = std::pair<const char*, size_t>(source_string, str_len);
 		source_list.push_back(new_source);*/
+		
 		source_list.push_back(source_stream.str());
 	}
 	

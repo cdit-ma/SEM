@@ -35,7 +35,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
     )
 
 set(HEADERS
@@ -46,7 +46,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/oclbuffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
     )
 
 
@@ -69,7 +69,7 @@ endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
-target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
+#target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
 
 target_link_libraries(${TESTER_NAME} re_core)
 target_link_libraries(${TESTER_NAME} ${PROJ_NAME})

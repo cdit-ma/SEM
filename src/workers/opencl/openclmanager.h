@@ -54,6 +54,17 @@ class OpenCLManager {
 		
 		bool IsValid() const;
 
+		class BufferAttorney {
+			BufferAttorney() = delete;
+		private:
+			friend class GenericBuffer;
+			static int GetNewBufferID(OpenCLManager& manager) {
+				return manager.buffer_id_count_++;
+			}
+		};
+
+	/*protected:
+		int GetNewBufferID();*/
 
 	private:
 		OpenCLManager(cl::Platform &platform, Worker* worker_reference=NULL);
@@ -64,7 +75,8 @@ class OpenCLManager {
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
 
-		cl::Program::Sources ReadOpenCLSourceCode(std::vector<std::string> filenames, Worker* worker_reference=NULL);
+		cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames,
+			Worker* worker_reference=NULL);
 		
 		
 		template <typename T>
@@ -127,15 +139,15 @@ OCLBuffer<T>* OpenCLManager::TrackBuffer(OCLBuffer<T>* buffer){
 template <typename T>
 OCLBuffer<T>* OpenCLManager::CreateBuffer(size_t buffer_size, Worker* worker_reference){
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(this, buffer_id_count_++, buffer_size, worker_reference);
-	return TrackBuffer<T>(buffer);
+	auto buffer = new OCLBuffer<T>(this, /*buffer_id_count_++,*/ buffer_size, worker_reference);
+	return buffer;//TrackBuffer<T>(buffer);
 }
 
 template <typename T>
 OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, Worker* worker_reference) {
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(this, buffer_id_count_++, data, worker_reference);
-	return TrackBuffer<T>(buffer);
+	auto buffer = new OCLBuffer<T>(this, /*buffer_id_count_++,*/ data, worker_reference);
+	return buffer;//TrackBuffer<T>(buffer);
 }
 
 
