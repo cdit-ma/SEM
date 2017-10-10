@@ -159,6 +159,7 @@ void ContextMenu::popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_D
 
 void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
     popup_menu(main_menu, global_pos);
+    model_point = item_pos;
 }
 
 QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu, int icon_size){
@@ -193,6 +194,7 @@ void ContextMenu::action_hovered(QAction* action){
 }
 
 void ContextMenu::update_dock_menus(){
+    model_point = QPointF();
     for(auto menu : {dock_add_node_menu, dock_deploy_menu}){
         update_menu(menu);
     }
@@ -249,7 +251,7 @@ void ContextMenu::action_triggered(QAction* action){
                 auto parent_id = item->getID();
                 //Expand!
                 emit view_controller->vc_setData(parent_id, "isExpanded", true);
-                emit view_controller->vc_constructNode(parent_id, node_kind);
+                emit view_controller->vc_constructNode(parent_id, node_kind, model_point);
             }
             break;
         }
@@ -258,7 +260,7 @@ void ContextMenu::action_triggered(QAction* action){
             if(item){
                 auto parent_id = item->getID();
                 emit view_controller->vc_setData(parent_id, "isExpanded", true);
-                emit view_controller->vc_constructConnectedNode(parent_id, node_kind, id, edge_kind);
+                emit view_controller->vc_constructConnectedNode(parent_id, node_kind, id, edge_kind, model_point);
             }
             break;
         }

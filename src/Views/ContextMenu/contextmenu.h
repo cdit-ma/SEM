@@ -113,6 +113,7 @@ private:
     QHash <QMenu*, QWidgetAction*> add_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
+    QPointF model_point;
 
     int current_hovered_id = 0;
 };
