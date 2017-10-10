@@ -46,9 +46,8 @@ bool WorkerProcess::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         default:
             break;
     }
-    auto valid = Node::canAcceptEdge(edgeKind, dst);
-    //qCritical() << dst->toString() << valid; 
-    return valid;
+
+    return Process::canAcceptEdge(edgeKind, dst);
 }
 
 

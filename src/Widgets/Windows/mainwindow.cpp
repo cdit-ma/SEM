@@ -119,8 +119,15 @@ void MainWindow::resetToolDockWidgets()
     resetToolWidgets();
 }
 
+bool MainWindow::isWelcomeScreenVisible(){
+    return centralWidget() == welcomeScreen;
+}
+
 QMenu* MainWindow::createPopupMenu(){
     QMenu* menu = new QMenu(this);
+    if(isWelcomeScreenVisible()){
+        return menu;
+    }
 
     auto inner_docks = innerWindow->getDockWidgets();
     std::sort(inner_docks.begin(), inner_docks.end(), &WindowManager::Sort);
@@ -251,7 +258,7 @@ void MainWindow::toggleDocks(bool on){
  */
 void MainWindow::toggleWelcomeScreen(bool on)
 {
-    auto welcome_screen_on = centralWidget() == welcomeScreen;
+    auto welcome_screen_on = isWelcomeScreenVisible();
 
     toggleDocks(!on);
     

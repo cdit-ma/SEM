@@ -153,7 +153,7 @@ SETTING_TYPE JenkinsManager::GetSettingType(QString parameter_type){
     if(parameter_type == "String"){
         type = SETTING_TYPE::STRING;
     }else if(parameter_type == "Boolean"){
-        type = SETTING_TYPE::BOOL;
+        type = SETTING_TYPE::BOOL;  
     }else if(parameter_type == "File"){
         type = SETTING_TYPE::FILE;
     }

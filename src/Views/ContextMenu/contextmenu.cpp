@@ -224,7 +224,7 @@ void ContextMenu::update_menu(QMenu* menu){
                     break;
                 }
                 case ACTION_KIND::REMOVE_EDGE:{
-                    auto edge_menu = add_edge_menu_hash.value(edge_kind, 0);
+                    auto edge_menu = remove_edge_menu_hash.value(edge_kind, 0);
                     if(edge_menu){
                         return populate_dynamic_remove_edge_menu(edge_menu);
                     }
@@ -873,51 +873,52 @@ void ContextMenu::setupMenus(){
     for(auto edge_view_item : edge_kinds){
         auto edge_kind = edge_view_item->getEdgeKind();
         
-        //Ignore Deployment Edges, they get dealt with lower
-        if(edge_kind == EDGE_KIND::DEPLOYMENT){
-            continue;
+        auto needs_add = edge_kind != EDGE_KIND::DEPLOYMENT;
+        auto needs_remove = needs_add && edge_kind != EDGE_KIND::DEFINITION;
+        
+        if(needs_add){
+            //Construct an Add Edge Kind Menu
+            auto add_edge_kind_menu = construct_viewitem_menu(edge_view_item, add_edge_menu);
+            add_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
+            
+            //Construct an Add Edge Kind From Menu
+            auto add_edge_kind_src_menu = construct_menu("From", add_edge_kind_menu);
+            add_edge_kind_src_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
+            add_edge_kind_src_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
+            add_edge_kind_src_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
+
+            auto src_search = construct_menu_search(add_edge_kind_menu);
+            search_actions_[add_edge_kind_src_menu] = src_search;
+            add_edge_kind_src_menu->addAction(src_search);
+
+            //Construct an Add Edge Kind To Menu
+            auto add_edge_kind_dst_menu = construct_menu("To", add_edge_kind_menu);
+            add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
+            add_edge_kind_dst_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
+            add_edge_kind_dst_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
+
+            auto dst_search = construct_menu_search(add_edge_kind_menu);
+            search_actions_[add_edge_kind_dst_menu] = dst_search;
+            add_edge_kind_dst_menu->addAction(dst_search);
+
+            //Insert these menus into the hash
+            add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
+            
+            add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, edge_kind}] = add_edge_kind_src_menu;
+            add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, edge_kind}] = add_edge_kind_dst_menu;
+        
+            //Setup the edge menu
+            add_edge_kind_menu->addMenu(add_edge_kind_src_menu);
+            add_edge_kind_menu->addMenu(add_edge_kind_dst_menu);
+            add_edge_menu->addMenu(add_edge_kind_menu);
         }
-        
-        //Construct an Add Edge Kind Menu
-        auto add_edge_kind_menu = construct_viewitem_menu(edge_view_item, add_edge_menu);
-        add_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::ADD_EDGE));
-
-        //Construct an Remove Edge Kind Menu
-        auto remove_edge_kind_menu = construct_viewitem_menu(edge_view_item, remove_edge_menu);
-        remove_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
-        
-        //Construct an Add Edge Kind From Menu
-        auto add_edge_kind_src_menu = construct_menu("From", add_edge_kind_menu);
-        add_edge_kind_src_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
-        add_edge_kind_src_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
-        add_edge_kind_src_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::SOURCE));
-
-        auto src_search = construct_menu_search(add_edge_kind_menu);
-        search_actions_[add_edge_kind_src_menu] = src_search;
-        add_edge_kind_src_menu->addAction(src_search);
-
-        //Construct an Add Edge Kind To Menu
-        auto add_edge_kind_dst_menu = construct_menu("To", add_edge_kind_menu);
-        add_edge_kind_dst_menu->setProperty("edge_kind", add_edge_kind_menu->property("edge_kind"));
-        add_edge_kind_dst_menu->setProperty("action_kind", add_edge_kind_menu->property("action_kind"));
-        add_edge_kind_dst_menu->setProperty("edge_direction", QVariant::fromValue(EDGE_DIRECTION::TARGET));
-
-        auto dst_search = construct_menu_search(add_edge_kind_menu);
-        search_actions_[add_edge_kind_dst_menu] = dst_search;
-        add_edge_kind_dst_menu->addAction(dst_search);
-
-        //Insert these menus into the hash
-        add_edge_menu_hash[edge_kind] = add_edge_kind_menu;
-        remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
-
-        add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, edge_kind}] = add_edge_kind_src_menu;
-        add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, edge_kind}] = add_edge_kind_dst_menu;
-
-        //Setup the edge menu
-        add_edge_kind_menu->addMenu(add_edge_kind_src_menu);
-        add_edge_kind_menu->addMenu(add_edge_kind_dst_menu);
-        add_edge_menu->addMenu(add_edge_kind_menu);
-        remove_edge_menu->addMenu(remove_edge_kind_menu);
+        if(needs_remove){
+            //Construct an Remove Edge Kind Menu
+            auto remove_edge_kind_menu = construct_viewitem_menu(edge_view_item, remove_edge_menu);
+            remove_edge_kind_menu->setProperty("action_kind", QVariant::fromValue(ACTION_KIND::REMOVE_EDGE));
+            remove_edge_menu_hash[edge_kind] = remove_edge_kind_menu;
+            remove_edge_menu->addMenu(remove_edge_kind_menu);
+        }
     }
 
     //Put our custom deploy menu into the edge hash

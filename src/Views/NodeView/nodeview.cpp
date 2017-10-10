@@ -94,6 +94,8 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeView::viewItem_Constructed);
         connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeView::viewItem_Destructed);
 
+        connect(viewController->getActionController()->edit_clearSelection, &QAction::triggered, this, &NodeView::trans_inactive);
+
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, &SelectionHandler::itemSelectionChanged, this, &NodeView::selectionHandler_ItemSelectionChanged);
         connect(selectionHandler, &SelectionHandler::itemActiveSelectionChanged, this, &NodeView::selectionHandler_ItemActiveSelectionChanged);
@@ -1350,6 +1352,11 @@ void NodeView::setupStateMachine()
     state_InActive->addTransition(this, &NodeView::trans_InActive2Connecting, state_Active_Connecting);
     state_Active_Connecting->addTransition(this, &NodeView::trans_Connecting2InActive, state_InActive);
 
+
+    connect(this, &NodeView::trans_inactive, &NodeView::trans_Moving2InActive);
+    connect(this, &NodeView::trans_inactive, &NodeView::trans_Resizing2InActive);
+    connect(this, &NodeView::trans_inactive, &NodeView::trans_Connecting2InActive);
+    connect(this, &NodeView::trans_inactive, &NodeView::trans_RubberbandMode2InActive);
     //Connect to states.
 
     connect(state_InActive, &QState::entered, this, &NodeView::state_Default_Entered);
@@ -1507,7 +1514,7 @@ void NodeView::state_Default_Entered()
 {
     unsetCursor();
 }
-/*
+
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
@@ -1515,8 +1522,9 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(CONTROL && SHIFT){
         emit trans_InActive2RubberbandMode();
-        return;
+        event->accept();
     }
+    
     QGraphicsView::keyPressEvent(event);
 }
 
@@ -1530,7 +1538,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         emit trans_RubberbandMode2InActive();
     }
     QGraphicsView::keyReleaseEvent(event);
-}*/
+}
 
 void NodeView::wheelEvent(QWheelEvent *event)
 {
@@ -1550,7 +1558,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         pan_lastPos = event->pos();
         pan_lastScenePos = scenePos;
         pan_distance = 0;
-        handledEvent = true;
+        event->accept();
     }
 
     if(event->button() == Qt::LeftButton){
@@ -1561,12 +1569,12 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             if(rubberband){
                 rubberband->setGeometry(QRect(rubberband_lastPos, rubberband_lastPos));
             }
-            handledEvent = true;
+            event->accept();
         }else{
             EntityItem* item = getEntityAtPos(scenePos);
             if(!item){
                 clearSelection();
-                handledEvent = true;
+                event->accept();
             }
         }
     }
@@ -1574,20 +1582,18 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     if(event->button() == Qt::MiddleButton){
         EntityItem* item = getEntityAtPos(scenePos);
         if(!item){
-            handledEvent = true;
             fitToScreen();
+            event->accept();
         }
     }
 
-    //if(!handledEvent){
-        QGraphicsView::mousePressEvent(event);
-    //}
+    QGraphicsView::mousePressEvent(event);
 }
 
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
     QPointF scenePos = mapToScene(event->pos());
-    bool handledEvent = false;
+    
 
     if(isPanning){
         //Calculate the distance in screen pixels travelled
@@ -1596,12 +1602,12 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         translate(scenePos - pan_lastScenePos);
         pan_lastPos = event->pos();
         pan_lastScenePos = mapToScene(event->pos());
-        handledEvent = true;
+        event->accept();
     }
 
     if(state_Active_RubberbandMode_Selecting->active()){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
-        handledEvent = true;
+        event->accept();
     }else if(state_Active_Connecting->active()){
         
         auto edge_direction = state_Active_Connecting->property("edge_direction").value<EDGE_DIRECTION>();
@@ -1618,20 +1624,15 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         }
         connect_line->setHighlighted(item);
         //Check if what we have is 
+        event->accept();
     }
 
-    //Only pass down if we haven't handled it.
-    if(!handledEvent){
-        QGraphicsView::mouseMoveEvent(event);
-    }
+    QGraphicsView::mouseMoveEvent(event);
 }
 
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
-    //bool SHIFT = event->modifiers() & Qt::ShiftModifier;
-
-    bool handledEvent = false;
 
     //Exit pan mode yo
     if(isPanning && event->button() == Qt::RightButton){
@@ -1650,25 +1651,23 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             //Check for item under mouse.
             emit toolbarRequested(event->globalPos(), itemPos);
         }
-        handledEvent = true;
+        event->accept();
     }
 
     if(state_Active_RubberbandMode_Selecting->active() && event->button() == Qt::LeftButton){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         selectItemsInRubberband();
         emit trans_RubberbandMode2InActive();
-        handledEvent = true;
+        event->accept();
     }
 
     if(state_Active_Connecting->active() && event->button() == Qt::LeftButton){
         emit trans_Connecting2InActive();
-        //handledEvent = true;
+        event->accept();
     }
 
 
-    //if(!handledEvent){
-        QGraphicsView::mouseReleaseEvent(event);
-    //}
+    QGraphicsView::mouseReleaseEvent(event);
 }
 
 void NodeView::drawForeground(QPainter *painter, const QRectF &r){

@@ -48,16 +48,15 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edgeKind, Node * dst)
     }
     case EDGE_KIND::DATA:{
         bool allow_edge = false;
-        if(dst->getNodeKind() == NODE_KIND::ENUM_MEMBER){
+        if(dst->getNodeKind() == NODE_KIND::ENUM_INSTANCE){
+            auto dst_def = dst->getDefinition(true);
             auto enum_def = getDefinition(true);
-            if(enum_def && enum_def->isAncestorOf(dst)){
+            if(dst_def == enum_def){
                 allow_edge = true;
             }
         }
         if(!allow_edge){
             return false;
-        }else{
-            return Node::canAcceptEdge(edgeKind, dst);
         }
     }
     default:

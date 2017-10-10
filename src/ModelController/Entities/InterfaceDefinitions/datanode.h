@@ -26,9 +26,9 @@ public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) = 0;
 private:
 
-    bool _isProducer;
-    bool _isReciever;
-    bool _isMultipleDataReceiver;
+    bool _isProducer = false;
+    bool _isReciever = false;;
+    bool _isMultipleDataReceiver = false;;
 
 };
 

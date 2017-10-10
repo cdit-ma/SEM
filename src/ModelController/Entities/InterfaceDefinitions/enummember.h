@@ -1,9 +1,8 @@
 #ifndef ENUMMEMBER_H
 #define ENUMMEMBER_H
-#include "../node.h"
-
+#include "datanode.h"
 class EntityFactory;
-class EnumMember : public Node
+class EnumMember : public DataNode
 {
 	friend class EntityFactory;
     Q_OBJECT

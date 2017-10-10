@@ -1548,9 +1548,11 @@ void ViewController::closeMEDEA()
 
 void ViewController::generateWorkspace()
 {
-    QString file_path = getTempFileForModel();
-    QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
-    execution_manager->GenerateWorkspace(file_path, output_dir);
+    auto file_path = getTempFileForModel();
+    auto output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
+    if(!output_dir.isEmpty()){
+        execution_manager->GenerateWorkspace(file_path, output_dir);
+    }
 }
 
 void ViewController::executeModelLocal()
