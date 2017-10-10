@@ -175,7 +175,7 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
 
-
+    //Needed for cool edges
     if(!dst->isInModel()){
         //Don't allow edges to outside the model.
         return false;
@@ -524,6 +524,10 @@ QList<int> Node::getChildrenIDs(int depth)
 
 QList<Edge*> Node::getAllEdges(){
     return getEdges(-1, EDGE_KIND::NONE);
+}
+
+bool Node::gotEdgeKind(EDGE_KIND kind){
+    return edges.contains(kind);
 }
 
 QList<Edge *> Node::getEdges(int depth, EDGE_KIND edgeKind)

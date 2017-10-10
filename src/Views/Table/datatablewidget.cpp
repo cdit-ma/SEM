@@ -16,6 +16,9 @@ DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent) : 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
 
+    setMinimumSize(130,130);
+    
+    connect(viewController->getSelectionController(), &SelectionController::itemActiveSelectionChanged, this, &DataTableWidget::itemActiveSelectionChanged);
     connect(viewController, &ViewController::vc_editTableCell, tableView, &DataTableView::editDataValue);
     connect(entity_button, &QToolButton::clicked, this, &DataTableWidget::titleClicked);
 }
@@ -52,8 +55,8 @@ void DataTableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 void DataTableWidget::activeItem_IconChanged()
 {
     if(activeItem){
-        QPair<QString, QString> iconPath = activeItem->getIcon();
-        entity_button->setIcon(Theme::theme()->getIcon(iconPath));//.pixmap(24,24);
+        auto icon_path = activeItem->getIcon();
+        entity_button->setIcon(Theme::theme()->getIcon(icon_path));//.pixmap(24,24);
     }else{
         entity_button->setIcon(QIcon());
     }
@@ -82,6 +85,7 @@ void DataTableWidget::themeChanged()
     tableView->setStyleSheet("DataTableView{border:none;}");
 
     entity_button->setStyleSheet("QToolButton{background:rgba(0,0,0,0);color:" % theme->getTextColorHex() % ";border-color:rgba(0,0,0,0);font-weight:bold;}");
+    toolbar->setIconSize(theme->getIconSize());
     activeItem_IconChanged();
 }
 
@@ -94,7 +98,6 @@ void DataTableWidget::setupLayout()
 
     toolbar = new QToolBar(this);
 
-    toolbar->setIconSize(QSize(16,16));
     tableView = new DataTableView(this);
 
     entity_button = new QToolButton(this);

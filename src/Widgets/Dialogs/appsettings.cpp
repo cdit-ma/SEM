@@ -83,7 +83,8 @@ void AppSettings::themeChanged()
     
     clearSettingsAction->setIcon(theme->getIcon("Icons", "cross"));
     applySettingsAction->setIcon(theme->getIcon("Icons", "tick"));
-
+    toolbar->setIconSize(theme->getIconSize());
+    updateLabels();
 }
 
 void AppSettings::dataValueChanged(QVariant data)
@@ -168,6 +169,41 @@ DataEditWidget *AppSettings::getDataWidget(SETTINGS key)
     return dataEditWidgets.value(key, 0);
 }
 
+QString AppSettings::settingKey(Setting* setting){
+    return settingKey(setting->getCategory(), setting->getSection());
+}
+
+QString AppSettings::settingKey(QString category, QString section){
+    return  category + "_" + section;
+}   
+void AppSettings::updateLabels(){
+    auto settings = SettingsController::settings();
+
+    QHash<QString, DataEditWidget*> section_lookups;
+    QHash<QString, int> max_sizes;
+    for(auto setting : settings->getSettings()){
+        auto setting_id = setting->getID();
+
+        auto edit_widget = dataEditWidgets.value(setting_id, 0);
+        if(edit_widget){
+            auto section_key = settingKey(setting);
+            auto current_size = max_sizes[section_key];
+            auto required_size = edit_widget->getMinimumLabelWidth();
+            if(required_size > current_size){
+                max_sizes[section_key] = required_size;
+            }
+            section_lookups.insertMulti(section_key, edit_widget);
+        }
+    }
+
+    for(auto key : section_lookups.uniqueKeys()){
+        auto size = max_sizes[key];
+        for(auto widgets : section_lookups.values(key)){
+            widgets->setLabelWidth(size);
+        }
+    }
+}
+
 void AppSettings::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -188,7 +224,6 @@ void AppSettings::setupLayout()
 
 
     toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     warningAction = toolbar->addWidget(warningLabel);
@@ -214,13 +249,9 @@ void AppSettings::setupSettingsLayouts()
         if(setting->getType() == SETTING_TYPE::NONE || setting->getType() == SETTING_TYPE::STRINGLIST || setting->getType() == SETTING_TYPE::BYTEARRAY){
             continue;
         }
-
-        auto category = setting->getCategory();
-        auto section = setting->getSection();
         auto key = setting->getID();
-
-        auto box = getSectionBox(category, section);
-        box->setCheckable(false);
+        auto box = getSectionBox(setting->getCategory(), setting->getSection());
+        
 
         if(!dataEditWidgets.contains(key)){
             DataEditWidget* widget = new DataEditWidget(setting->getName(), setting->getType(), setting->getValue(), this);
@@ -268,32 +299,14 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
     return layout;
 }
 
-QVBoxLayout *AppSettings::getSectionLayout(QString category, QString section)
-{
-    QString key = category + "_" + section;
-
-    QVBoxLayout* layout = 0;
-    if(sectionLayouts.contains(key)){
-        layout = sectionLayouts[key];
-    }else{
-        QVBoxLayout* cLayout = getCategoryLayout(category);
-
-        QGroupBox* groupBox = new QGroupBox(section, cLayout->parentWidget());
-        cLayout->addWidget(groupBox);
-        layout = new QVBoxLayout();
-        groupBox->setLayout(layout);
-        sectionLayouts[key] = layout;
-    }
-    return layout;
-}
 
 CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
-    QString key = category + "_" + section;
-
+    auto key = settingKey(category, section);
     CustomGroupBox* box = sectionBoxes.value(key, 0);
     if(!box){
         auto category_layout = getCategoryLayout(category);
         box = new CustomGroupBox(section, category_layout->parentWidget());
+        box->setCheckable(false);
         category_layout->addWidget(box);
         sectionBoxes[key] = box;
     }

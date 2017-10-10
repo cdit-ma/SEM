@@ -23,6 +23,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
     case NODE_KIND::IDL:
+    case NODE_KIND::ENUM:
     case NODE_KIND::AGGREGATE:
     case NODE_KIND::COMPONENT:
     case NODE_KIND::SHARED_DATATYPES:

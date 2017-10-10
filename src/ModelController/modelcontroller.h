@@ -65,12 +65,13 @@ public:
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
-    QList<NODE_KIND> getAdoptableNodeKinds(int ID);
+    QSet<NODE_KIND> getAdoptableNodeKinds(int ID);
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
+    QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
     QList<int> getWorkerFunctions();
     
 
@@ -115,6 +116,7 @@ public slots:
     //Node/Edge Functionality    
     void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
+    void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
@@ -164,6 +166,7 @@ private:
     QList<Entity*> getUnorderedEntities(QList<int> IDs);
 
     QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
+    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
 
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
     Node* construct_node(Node* parent_node, NODE_KIND kind, int id = -1);
@@ -180,6 +183,7 @@ private:
     Node* construct_setter_node(Node* parent);
     Node* construct_dds_profile_node(Node* parent);
     Node* construct_for_condition_node(Node* parent);
+    Node* construct_component_node(Node* parent);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);

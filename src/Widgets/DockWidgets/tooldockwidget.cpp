@@ -1,13 +1,13 @@
 #include "tooldockwidget.h"
 #include "../../theme.h"
 
-ToolDockWidget::ToolDockWidget(QString title) : BaseDockWidget(BaseDockType::TOOL)
+ToolDockWidget::ToolDockWidget(QString title, QWidget* parent) : BaseDockWidget(BaseDockType::TOOL, parent)
 {
     setTitle(title, Qt::AlignCenter);
     setFocusEnabled(false);
     setHideVisible(true);
+    setIconVisible(false);
 
-    setTitleBarIconSize(12);
     setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
     themeChanged();

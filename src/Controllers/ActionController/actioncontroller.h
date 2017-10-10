@@ -29,9 +29,10 @@ public:
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
     QList<RootAction*> getRecentProjectActions();
 
+    QList<QAction*> getAllActions();
     QList<QAction*> getNodeViewActions();
+    QList<QAction*> getGlobalActions();
 private:
-
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 signals:
     void recentProjectsUpdated();
@@ -44,6 +45,8 @@ private slots:
     void settingChanged(SETTINGS key, QVariant value);
     void jenkinsValidated(bool success);
     void gotJava(bool java);
+    void gotRe(bool re);
+
     void selectionChanged(int selectionSize);
     void actionFinished();
     
@@ -51,14 +54,13 @@ private slots:
     void themeChanged();
 
     void updateJenkinsActions();
+    void updateReActions();
     void updateUndoRedo();
 
     QAction* getSettingAction(SETTINGS key);
 
     void updateActions();
 public:
-
-
     SelectionController* selectionController;
     ViewController* viewController;
     QList<RootAction*> allActions;
@@ -139,7 +141,7 @@ public:
     RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
     RootAction* model_generateModelWorkspace;
-    //RootAction* model_executeLocalJob;
+    RootAction* model_executeLocalJob;
 
     RootAction* options_settings;
 
@@ -168,10 +170,9 @@ public:
     RootAction* toolbar_addDDSQOSProfile;
     RootAction* toolbar_removeDDSQOSProfile;
 
-    bool _controllerReady;
-    bool _modelReady;
-    bool _jenkinsValidated;
-    bool _gotJava;
+    bool got_valid_jenkins = false;
+    bool got_java = false;
+    bool got_re = false;
 
     QMenu* menu_file;
     QMenu* menu_file_recentProjects;
@@ -191,6 +192,8 @@ public:
     QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
+
+    QList<QAction*> view_actions;
 
 private:
 

@@ -41,8 +41,6 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
 }
 
 NotificationItem::~NotificationItem(){
-    //Dehighlight
-    leaveEvent(0);
 
 }
 
@@ -54,14 +52,15 @@ void NotificationItem::setupLayout(){
     layout->setSpacing(5);
 
     label_icon = new QLabel(this);
-    label_icon->setFixedSize(icon_size);
+    label_icon->setScaledContents(true);
+    
     label_icon->setAlignment(Qt::AlignCenter);
 
     label_text = new QLabel(this);
     label_time = new QLabel(this);
 
-    auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(icon_size/2);
+    toolbar = new QToolBar(this);
+    
     action_delete = toolbar->addAction("Delete Notification");
 
     layout->addWidget(label_icon);
@@ -112,10 +111,14 @@ void NotificationItem::setSelected(bool select)
 {
     if (selected != select) {
         selected = select;
+        auto entity_id = getEntityID();
         if (selected) {
             backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
         } else {
             backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        }
+        if(entity_id != -1){
+            emit highlightEntity(entity_id, selected);
         }
         updateStyleSheet();
     }
@@ -134,6 +137,10 @@ void NotificationItem::themeChanged()
     } else {
         backgroundColor = theme->getBackgroundColorHex();
     }
+    auto icon_size = theme->getIconSize();
+    label_icon->setFixedSize(icon_size);
+    toolbar->setIconSize(icon_size);
+
     updateStyleSheet();
 
     updateIcon();
@@ -161,26 +168,30 @@ void NotificationItem::descriptionChanged()
  */
 void NotificationItem::updateIcon()
 {
-    if(notification->getInProgressState()){
+    auto theme = Theme::theme();
+    auto severity = notification->getSeverity();
+    auto is_running = severity == Notification::Severity::RUNNING;
+    auto icon_size = theme->getLargeIconSize();
+    label_icon->setFixedSize(icon_size);
+    if(is_running){
         //Use a GIF if we are loading
-        auto movie = Theme::theme()->getGif("Icons", "loading");
+        auto movie = theme->getGif("Icons", "loading");
         label_icon->setMovie(movie);
     }else{
-        auto severity = notification->getSeverity();
         //Use an icon otherwise
         auto icon = notification->getIcon();
         if (icon.first.isEmpty() || icon.second.isEmpty()) {
             icon.first = "Notification";
             icon.second = Notification::getSeverityString(severity);
         }
-        auto icon_color = Notification::getSeverityColor(severity);
+        auto icon_color = theme->getSeverityColor(severity);
 
-        auto pixmap = Theme::theme()->getImage(icon.first, icon.second, icon_size, icon_color);
+        auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);
     }
 
     //Can only delete finished notifications
-    action_delete->setEnabled(!notification->getInProgressState());
+    action_delete->setEnabled(!is_running);
 }
 
 
@@ -204,31 +215,6 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
     emit itemClicked(this);
 }
 
-
-/**
- * @brief NotificationItem::enterEvent
- */
-void NotificationItem::enterEvent(QEvent *)
-{
-    auto entity_id = getEntityID();
-    if(entity_id != -1){
-        emit highlightEntity(entity_id, true);
-    }
-}
-
-
-/**
- * @brief NotificationItem::leaveEvent
- */
-void NotificationItem::leaveEvent(QEvent *)
-{   
-    auto entity_id = getEntityID();
-    if(entity_id != -1){
-        emit highlightEntity(entity_id, false);
-    }
-}
-
-
 /**
  * @brief NotificationItem::updateStyleSheet
  */
@@ -241,9 +227,10 @@ void NotificationItem::updateStyleSheet()
                   "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + backgroundColor + ";"
                   "color:" + theme->getTextColorHex() + ";"
+                  "padding:2px;"
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px;}"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   + theme->getToolBarStyleSheet()
                   + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
     );

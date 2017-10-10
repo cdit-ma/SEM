@@ -4,6 +4,7 @@
 #include <QFrame>
 #include <QLabel>
 #include <QAction>
+#include <QToolBar>
 
 #include "../../Controllers/NotificationManager/notificationenumerations.h"
 
@@ -29,8 +30,6 @@ private slots:
     void timeChanged();
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
-    void enterEvent(QEvent*);
-    void leaveEvent(QEvent*);
 
 private:
     void setupLayout();
@@ -39,11 +38,11 @@ private:
 
     NotificationObject* notification = 0;
 
-    QSize icon_size = QSize(24, 24);
     QLabel* label_icon = 0;
     QLabel* label_text = 0;
     QLabel* label_time = 0;
     QAction* action_delete = 0;
+    QToolBar* toolbar = 0;
     
 
     QString backgroundColor;

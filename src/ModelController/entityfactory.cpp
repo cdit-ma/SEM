@@ -61,6 +61,11 @@
 #include "Entities/InterfaceDefinitions/memberinstance.h"
 #include "Entities/InterfaceDefinitions/vectorinstance.h"
 
+#include "Entities/InterfaceDefinitions/enum.h"
+#include "Entities/InterfaceDefinitions/enuminstance.h"
+#include "Entities/InterfaceDefinitions/enummember.h"
+
+
 //Deployment Elements
 #include "Entities/DeploymentDefinitions/componentassembly.h"
 #include "Entities/DeploymentDefinitions/hardwarecluster.h"
@@ -151,7 +156,7 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
 
 QString EntityFactory::getEdgeKindString(EDGE_KIND kind)
 {
-    QString kind_str;
+    QString kind_str = "INVALID_EDGE";
     auto edge_struct = globalFactory()->getEdgeStruct(kind);
     if(edge_struct){
         kind_str = edge_struct->kind_str;
@@ -272,6 +277,8 @@ void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QV
 }   
 EntityFactory::EntityFactory()
 {
+   
+
     //Aspects
     Model(this);
     BehaviourDefinitions(this);
@@ -335,6 +342,10 @@ EntityFactory::EntityFactory()
     Member(this);
     OutEventPort(this);
     Vector(this);
+
+    Enum(this);
+    EnumMember(this);
+    EnumInstance(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);

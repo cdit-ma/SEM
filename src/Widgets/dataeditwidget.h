@@ -15,8 +15,7 @@ public:
     explicit DataEditWidget(QString label, SETTING_TYPE type, QVariant data, QWidget *parent = 0);
     
     void setIcon(QString icon_path, QString icon_name);
-    void showIcon();
-    void hideIcon();
+    void setIconVisible(bool visible);
     QString getLabel();
 
     SETTING_TYPE getType();
@@ -35,27 +34,33 @@ private slots:
 
     void pickColor();
     void pickPath();
+    void pickFont();
 signals:
     void valueChanged(QVariant data);
 private:
+    QAction* getButtonAction();
     void updateIcon();
 
     void setupLayout();
 
-    bool isHighlighted;
-    QString label;
+    bool isHighlighted = false;
+    QString name;
     QVariant currentData;
     QVariant newData;
     QPair<QString, QString> icon_path;
 
     SETTING_TYPE type;
-    QWidget* editWidget_1;
-    QWidget* editWidget_2;
-    QLabel* editLabel;
-    QTextBrowser* description;
-    QLabel* iconLabel;
+    QWidget* editWidget_1 = 0;
+    QWidget* editWidget_2 = 0;;
+    
+    
+    
     QToolBar* toolbar = 0;
+    
 
+    QLabel* label = 0;
+    QAction* icon_action = 0;
+    QAction* button_action = 0;
 
 };
 

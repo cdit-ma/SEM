@@ -40,3 +40,5 @@ bool WorkerDefinitions::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }
+
+

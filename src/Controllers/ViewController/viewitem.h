@@ -5,7 +5,7 @@
 #include "../../enumerations.h"
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
-
+#include "../../ModelController/nodekinds.h"
 #include "../../ModelController/kinds.h"
 
 
@@ -18,7 +18,11 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
-    ViewItem(ViewController* controller);
+
+    static bool SortByLabel(const ViewItem *a, const ViewItem *b);
+    static bool SortByKind(const ViewItem *a, const ViewItem *b);
+
+    ViewItem(ViewController* controller, GRAPHML_KIND entity_kind);
     ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind);
     ~ViewItem();
 
@@ -29,6 +33,8 @@ public:
     bool isNode() const;
     bool isEdge() const;
     virtual bool isInModel();
+
+    VIEW_ASPECT getViewAspect();
 
     QVariant getData(QString keyName) const;
     QStringList getKeys() const;
@@ -91,5 +97,6 @@ private:
 
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;
+    VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
 };
 #endif // VIEWITEM_H

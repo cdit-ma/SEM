@@ -21,7 +21,6 @@ private:
     void titleChanged();
     void setupLayout();
 
-    QLabel* iconLabel;
     QLabel* label;
 
     QAction* iconAction;

@@ -43,8 +43,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/nodeviewitemaction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/toolbarcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
@@ -58,12 +56,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetitem.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetparentactionitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
@@ -71,6 +66,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.cpp
@@ -86,10 +82,12 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/variabledialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/enumerations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
@@ -98,16 +96,19 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/invisibledockwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
+    
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
@@ -121,8 +122,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
+    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
@@ -150,8 +154,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/nodeviewitemaction.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ToolbarController/toolbarcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
@@ -164,12 +166,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextToolbar/contexttoolbar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetactionitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/dockwidgetparentactionitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.h
@@ -177,6 +175,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.h
     #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.h
@@ -188,8 +187,12 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
+    
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
+    
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
@@ -197,6 +200,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/enumerations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.h
@@ -225,13 +229,17 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsjobmonitorwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Jenkins/jenkinsstartjobwidget.h
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/monitor.h
 )
 
 
@@ -332,7 +340,7 @@ elseif(APPLE)
 endif()
 
 SET(CPACK_GENERATOR "IFW") 
-
+MESSAGE(${VERSION_NAME})
 # Set Project info
 SET(CPACK_PACKAGE_NAME "MEDEA")
 SET(CPACK_PACKAGE_VENDOR "CDIT-MA")

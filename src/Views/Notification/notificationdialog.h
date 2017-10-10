@@ -8,6 +8,7 @@
 #include <QLabel>
 
 #include "../../Widgets/optiongroupbox.h"
+#include "../../Controllers/NotificationManager/notificationenumerations.h"
 
 class ViewController;
 class NotificationItem;
@@ -19,9 +20,10 @@ class NotificationDialog : public QFrame
 
 public:
     NotificationDialog(ViewController* viewController, QWidget *parent = 0);
-
 signals:
     void mouseEntered();
+public slots:
+    void showSeverity(Notification::Severity severity);
 private slots:
     void notificationAdded(NotificationObject* notification);
     void notificationDeleted(int ID);
@@ -32,9 +34,12 @@ private slots:
     void popupEntity();
     void centerEntity();
 private:
+    NotificationItem* constructNotificationItem(NotificationObject* notification);
+    NotificationItem* getNotificationItem(NotificationObject* notification);
+
     void initialisePanel();
-    void toggleSort();
-    void updateNotificationVisibility(QList<NotificationItem*> items);
+    void updateNotificationsVisibility();
+    
     void setupLayout();
     void setupFilters();
 
@@ -42,11 +47,14 @@ private:
 
     void clearAll();
     void clearSelection();
-    void updateVisibleCount();
+
+    void scrollBarValueChanged();
+    void loadNextResults();
+    void updateLabels();
 private:
     QLabel* info_label = 0;
     QLabel* status_label = 0;
-    QLabel* clock_label = 0;
+    //QLabel* clock_label = 0;
     
     QWidget* filters_widget = 0;
     QWidget* notifications_widget = 0;
@@ -58,9 +66,11 @@ private:
     QToolBar* top_toolbar = 0;
     QToolBar* bottom_toolbar = 0;
 
+    QToolButton* load_more_button = 0;
     QAction* center_action = 0;
     QAction* popup_action = 0;
     QAction* sort_time_action = 0;
+    QAction* clock_action = 0;
     QAction* reset_filters_action = 0;
 
     
@@ -73,6 +83,17 @@ private:
     OptionGroupBox* severity_filters = 0;
     OptionGroupBox* category_filters = 0;
     OptionGroupBox* source_filters = 0;
+
+    int current_visible = 0;
+    int filtered_match_count = 0;
+
+    int max_visible = 0;
+
+    int total_notifications = 0;
+    int current_matched_notifications = 0;
+    int current_visible_notifications = 0;
+
+    int notification_count = 0;
 
     QHash<int, NotificationItem*> notification_items;
     NotificationItem* selected_notification = 0;

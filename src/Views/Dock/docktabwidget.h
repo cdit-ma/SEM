@@ -3,12 +3,9 @@
 
 #include <QWidget>
 #include <QStackedWidget>
-#include <QTabBar>
 #include <QScrollArea>
-#include <QToolButton>
 
 #include "../../Controllers/ViewController/viewcontroller.h"
-#include "dockwidget.h"
 
 class DockTabWidget : public QWidget
 {
@@ -16,46 +13,29 @@ class DockTabWidget : public QWidget
 
 public:
     DockTabWidget(ViewController* vc, QWidget * parent = 0);
-
-public slots:
-    void themeChanged();
-    void selectionChanged();
-
-    void tabClicked(bool checked);
-
-    void dockActionClicked(DockWidgetActionItem *action);
-    void dockBackButtonClicked();
-
-    void onActionFinished();
-
 private:
-    void resetDocks(bool ready);
+    void themeChanged();
     void setupLayout();
-    void setupConnections();
     void setupDocks();
-    void initialiseDocks();
+    void dockActionTriggered(QAction* action);
+protected:
+    void refreshSize();
+    bool eventFilter(QObject *object, QEvent *event);
+private:
+    ViewController* view_controller = 0;
 
-    void openRequiredDock(DockWidget* dockWidget);
-    void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);
-    void refreshDock(DockWidget* dockWidget = 0);
+    QMenu* add_part_menu = 0;
+    QMenu* deploy_menu = 0;
+    
+    QScrollArea* deploy_dock = 0;
+    QScrollArea* parts_dock = 0;
 
-    DockWidget* getDock(ToolbarController::DOCK_TYPE dt);
-    DockWidgetActionItem* constructDockActionItem(NodeViewItemAction* action);
-
-    ViewController* viewController;
-    ToolbarController* toolActionController;
-
-    DockWidget* partsDock;
-    DockWidget* definitionsDock;
-    DockWidget* functionsDock;
-    DockWidget* hardwareDock;
-
-    QToolButton* partsButton;
-    QToolButton* hardwareButton;
-    QStackedWidget* stackedWidget;
-
-    QString triggeredAdoptableKind;
-    QAction* adoptableKindAction;
+    QAction* parts_action = 0;
+    QAction* deploy_action = 0;
+    QToolBar* toolbar = 0;
+    
+    
+    QStackedWidget* stack_widget = 0;
 };
 
 #endif // DOCKTABWIDGET_H

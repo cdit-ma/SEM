@@ -2,13 +2,31 @@
 #include "viewcontroller.h"
 #include "../../ModelController/modelcontroller.h"
 
+
 #include <QDebug>
 #include <QStack>
 
-ViewItem::ViewItem(ViewController *controller)
+bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
+    auto a_kind = a->getData("label").toString();
+    auto b_kind = b->getData("label").toString();
+    return a_kind < b_kind;
+}
+
+bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
+    auto a_kind = a->getData("kind").toString();
+    auto b_kind = b->getData("kind").toString();
+    if(a_kind == b_kind){
+        return SortByLabel(a, b);
+    }else{
+        return a_kind < b_kind;
+    }
+}
+
+ViewItem::ViewItem(ViewController *controller, GRAPHML_KIND entity_kind)
 {
     this->controller = controller;
     this->ID = -2;
+    this->entityKind = entity_kind;
     _parent = 0 ;
     tableModel = 0;
 }
@@ -30,6 +48,15 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
+}
+
+VIEW_ASPECT ViewItem::getViewAspect()
+{
+    //Get Once
+    if(aspect == VIEW_ASPECT::NONE){
+        aspect = getController()->getNodeViewAspect(getID());
+    }
+    return aspect;
 }
 
 int ViewItem::getID() const
@@ -136,7 +163,7 @@ void ViewItem::resetIcon()
     setIcon(defaultIcon.first, defaultIcon.second);
 }
 
-QPair<QString, QString> ViewItem::getIcon() const
+IconPair ViewItem::getIcon() const
 {
     return currentIcon;
 }

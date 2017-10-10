@@ -6,6 +6,10 @@
 #include <QStringBuilder>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThreadPool>
+#include <QAction>
+#include <QApplication>
+
+
 
 Theme* Theme::themeSingleton = 0;
 
@@ -21,10 +25,8 @@ Theme::Theme() : QObject(0)
     setupToggledIcons();
     updateValid();
 
-
     //Preload images on a background thread.
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
-    //preloadImages();
 }
 
 Theme::~Theme()
@@ -147,6 +149,27 @@ IconPair Theme::getIconPair(QString prefix, QString alias)
     return IconPair(prefix, alias);
 }
 
+void Theme::UpdateActionIcon(QAction* action, Theme* theme){
+    if(!theme){
+        theme = Theme::theme();
+    }
+    if(action){
+        auto icon_path = action->property("icon_path").toString();
+        auto icon_alias = action->property("icon_alias").toString();
+        action->setIcon(theme->getIcon(icon_path, icon_alias));
+    }   
+}
+
+void Theme::StoreActionIcon(QAction* action, QString icon_path, QString icon_alias){
+    action->setProperty("icon_path", icon_path);
+    action->setProperty("icon_alias", icon_alias);
+    UpdateActionIcon(action);
+}   
+
+void Theme::StoreActionIcon(QAction* action, IconPair icon){
+    StoreActionIcon(action, icon.first, icon.second);
+}
+
 void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){
@@ -201,6 +224,17 @@ void Theme::setTextColor(Theme::COLOR_ROLE role, QColor color)
     }
 }
 
+void Theme::setSeverityColor(Notification::Severity severity, QColor color){
+    if(severityColor[severity] != color){
+        severityColor[severity] = color;
+        updateValid();
+    }
+}
+
+QColor Theme::getSeverityColor(Notification::Severity severity){
+    return severityColor.value(severity, QColor());
+}
+
 QColor Theme::getMenuIconColor(Theme::COLOR_ROLE role)
 {
     if(menuIconColor.contains(role)){
@@ -247,13 +281,28 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
     return Theme::QColorToHex(color);
 }
 
-void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias){
+void Theme::setWindowIcon(QString window_title, QString visible_icon_prefix, QString visible_icon_alias){
+    setIconToggledImage("WindowIcon", window_title, visible_icon_prefix, visible_icon_alias, "Icons", "transparent");
+}
+
+void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias, bool ignore_toggle_coloring){
     QString name = getResourceName(prefix, alias);
+    
     //Construct pairs
     auto toggled_on = getIconPair(toggledOnPrefix, toggledOnAlias);
     auto toggled_off = getIconPair(toggledOffPrefix, toggleOffAlias);
 
+    IconToggle icon_toggle;
+    icon_toggle.on = getIconPair(toggledOnPrefix, toggledOnAlias);
+    icon_toggle.off = getIconPair(toggledOffPrefix, toggleOffAlias);
+    icon_toggle.got_toggle = true;
+
+    if(ignore_toggle_coloring){
+        icon_toggle.on_normal = icon_toggle.off_normal;
+    }
+
     iconToggledLookup[name] = QPair<IconPair, IconPair>(toggled_on, toggled_off);
+    iconToggledLookup2[name] = icon_toggle;
 }
 
 QColor Theme::getDefaultImageTintColor()
@@ -342,58 +391,60 @@ QIcon Theme::getIcon(IconPair icon)
     return getIcon(icon.first, icon.second);
 }
 
-QIcon Theme::getIcon(QString prefix, QString alias, bool ignore_checked_colors)
+QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_colors)
 {
+    bool ignore_checked_colors = false;
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QString lookupName = getResourceName(prefix, alias);
 
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
+        
         QIcon icon;
-        QPair<IconPair, IconPair> toggledPaths;
-        bool gotToggle = false;
+
+        IconToggle icon_toggle;
+
 
         //Check if we have a toggled Icon
-        if(iconToggledLookup.contains(lookupName)){
-            toggledPaths = iconToggledLookup[lookupName];
-            gotToggle = true;
+        if(iconToggledLookup2.contains(lookupName)){
+            icon_toggle = iconToggledLookup2.value(lookupName);
+        }else{
+            icon_toggle.off.first = prefix;
+            icon_toggle.off.second = alias;
         }
 
-        if(gotToggle){
-            //Load in the first path.
-            prefix = toggledPaths.first.first;
-            alias = toggledPaths.first.second;
-        }
+        auto off_rn = getResourceName(icon_toggle.off);
+        auto on_rn = getResourceName(icon_toggle.on);
 
-        //getImage(prefix, alias);
+        bool is_off_tinted = tintIcon(off_rn);
+        bool is_on_tinted = tintIcon(on_rn);
 
-        bool isTinted = tintIcon(prefix, alias);
+        QSize blank_size;
 
-        //Set the default states.
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        
-        if(isTinted){
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
-        }
-
-        if(gotToggle){
-            QString toggledPrefixName = toggledPaths.second.first;
-            QString toggledAliasName = toggledPaths.second.second;
-
-            bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
-
-            auto toggled_normal_color = ignore_checked_colors ? getMenuIconColor(CR_NORMAL) : getMenuIconColor(CR_SELECTED);
-            //Set the toggled states.
-            icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), toggled_normal_color), QIcon::Normal, QIcon::On);
+        //Handle Off State
+        {
+            //Set the default states.
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_normal)), QIcon::Normal, QIcon::Off);
             
-            if(isToggledTinted){
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
+            if(is_off_tinted){
+                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_active)), QIcon::Active, QIcon::Off);
+                icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.off_disabled)), QIcon::Disabled, QIcon::Off);
+            }
+        }
+
+        
+        //Handle On State
+        if(icon_toggle.got_toggle){
+            icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+
+            if(is_on_tinted){
+                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_active)), QIcon::Active, QIcon::On);
+                icon.addPixmap(_getPixmap(on_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
             }
         }else{
-            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_normal)), QIcon::Normal, QIcon::On);
+            icon.addPixmap(_getPixmap(off_rn, blank_size, getMenuIconColor(icon_toggle.on_disabled)), QIcon::Disabled, QIcon::On);
         }
 
         iconLookup[lookupName] = icon;
@@ -487,13 +538,17 @@ void Theme::setAltTextColor(QColor color)
     altTextColor = color;
 }
 
-QString Theme::getWindowStyleSheet()
+QString Theme::getWindowStyleSheet(bool show_background_image)
 {
-    return "QMainWindow {"
-           "background: " % getBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
-           "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
-            "}";
+    QString str;
+    str += "QMainWindow {";
+    str += "background: " % getBackgroundColorHex() % ";";
+    str += "color:" % getTextColorHex() % ";";
+    if(show_background_image){
+        str += "background-image: url(:/Images/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;";
+    }
+    str += "}";
+    return str;
 }
 
 QString Theme::getScrollBarStyleSheet()
@@ -539,6 +594,25 @@ QString Theme::getSplitterStyleSheet()
             "QSplitter::handle:horizontal {image: url(:/Images/Icons/dotsVertical);}"
             "QSplitter::handle:vertical {image: url(:/Images/Icons/dotsHorizontal);}"
             ;
+}
+QSize Theme::getIconSize(){
+    return icon_size;
+}
+QSize Theme::getLargeIconSize(){
+    return icon_size * 2;
+}
+QSize Theme::getSmallIconSize(){
+    return icon_size / 2;
+}
+
+void Theme::setIconSize(int size){
+
+    auto new_size = roundQSize(QSize(size, size));
+    if(new_size != icon_size){
+        icon_size = new_size;
+        updateValid();
+    }
+
 }
 
 QString Theme::getWidgetStyleSheet(QString widgetName)
@@ -642,16 +716,20 @@ QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
             "}"
             % widgetName % " QToolButton::!hover {"
             "background:" % bgColor % ";"
+            "}"
+            % widgetName % " QToolButton#WINDOW_ICON::hover{"
+            "background:none;"
             "}";
+            
 }
 
 QString Theme::getMenuBarStyleSheet()
 {
     return "QMenuBar {"
-           "padding: 3px;"
+           "padding: 2px;"
+           "spacing: 2px;"
            "background:" % getBackgroundColorHex() % ";"
            "border-bottom: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "border-radius:" % getCornerRadius() % ";"
            "}"
            "QMenuBar::item {"
            "background:" % getBackgroundColorHex() % ";"
@@ -666,21 +744,22 @@ QString Theme::getMenuBarStyleSheet()
            "}";
 }
 
-QString Theme::getMenuStyleSheet()
+QString Theme::getMenuStyleSheet(int icon_size_int)
 {
+    QString icon_size = QString::number(icon_size_int);
     return "QMenu {"
            "background:" % getAltBackgroundColorHex() % ";"
-           //"border-radius:" % getCornerRadius() % ";"
            "border-radius:" % getSharpCornerRadius() % ";"
-           "margin: 2px; "
+           "margin: 2px;"
+           "spacing: 2px;"
            "}"
            "QMenu::item {"
-           "padding: 2px 15px 2px 25px;"
+           "margin:2px;"
+           "padding: 4px 8px 4px " % QString::number(icon_size_int + 8) % "px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
-           //"border-radius: " % getCornerRadius() % ";"
            "border-radius: " % getSharpCornerRadius() % ";"
-           "border: 0px;"
+           "border: none;"
            "}"
            "QMenu::item:disabled {"
            "color:" % getTextColorHex(CR_DISABLED) % ";"
@@ -691,12 +770,30 @@ QString Theme::getMenuStyleSheet()
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QMenu::icon {"
-           "position: absolute;"
+           /*"position: relative;"
            "top: 2px;"
-           "right: 4px;"
-           "bottom: 2px;"
-           "left: 4px;"
-           "}";
+           "right: 2px;"
+           "bottom: 2px;"*/
+           "left: 2px;"
+           "}"
+           "QMenu::right-arrow{"
+               "width:4px;"
+               "height:4px;"
+               "margin:4px;"
+               "border-radius:2px;"
+               "background:" % getTextColorHex() % ";"
+           "}"
+           "QMenu::right-arrow:selected{"
+               "background:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           "QMenu::separator {"
+            "height: 1px;"
+            "background: " % getTextColorHex(CR_DISABLED) % ";"
+            "margin:4px;"
+            "margin-left: 8px;"
+            "margin-right: 8px;"
+            "}"
+       ;
 }
 
 QString Theme::getToolBarStyleSheet()
@@ -953,6 +1050,7 @@ QString Theme::getMessageBoxStyleSheet()
 {
     return  "QMessageBox {"
             "background:" % getAltBackgroundColorHex() % ";"
+            "padding: 2px;"
             "}"
             "QMessageBox QLabel {"
             "color:" % getTextColorHex() % ";"
@@ -968,7 +1066,7 @@ QString Theme::getPopupWidgetStyleSheet()
            "margin: 0px;"
            "padding: 0px;"
            "background:" % QColorToHex(bgColor) % ";"
-           "border-radius:" % getCornerRadius() % ";"
+           "border-radius:" % getCornerRadius() % ";    "
            "border: 1px outset " % getAltBackgroundColorHex() % ";"
            "}";
 }
@@ -996,7 +1094,7 @@ QString Theme::getLabelStyleSheet()
 
 QString Theme::getTitleLabelStyleSheet()
 {
-    return "font-size:16pt;color: " % getTextColorHex() % ";";
+    return "color: " % getTextColorHex() % ";";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -1137,10 +1235,49 @@ void Theme::settingChanged(SETTINGS setting, QVariant value)
         resetTheme(VT_LIGHT_THEME);
         break;
     }
+    case SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME:{
+        resetTheme(VT_SOLARIZED_DARK_THEME);
+        break;
+    }
+    case SETTINGS::THEME_SETTHEME_SOLARIZEDLIGHTTHEME:{
+        resetTheme(VT_SOLARIZED_LIGHT_THEME);
+        break;
+    }
     case SETTINGS::THEME_SETASPECT_CLASSIC:{
         resetAspectTheme(false);
         break;
     }
+    case SETTINGS::THEME_SIZE_FONTSIZE:{
+        setFont(value.value<QFont>());
+        break;
+    }
+    case SETTINGS::THEME_SIZE_ICONSIZE:{
+        setIconSize(value.toInt());
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_RUNNING_COLOR:{
+        setSeverityColor(Notification::Severity::RUNNING, color);
+        break;
+    }
+
+    case SETTINGS::THEME_SEVERITY_INFO_COLOR:{
+        setSeverityColor(Notification::Severity::INFO, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_WARNING_COLOR:{
+        setSeverityColor(Notification::Severity::WARNING, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_ERROR_COLOR:{
+        setSeverityColor(Notification::Severity::ERROR, color);
+        break;
+    }
+    case SETTINGS::THEME_SEVERITY_SUCCESS_COLOR:{
+        setSeverityColor(Notification::Severity::SUCCESS, color);
+        break;
+    }
+
+    
     case SETTINGS::THEME_SETASPECT_COLORBLIND:{
         resetAspectTheme(true);
         break;
@@ -1228,18 +1365,16 @@ QString Theme::getResourceName(IconPair icon) const
 
 void Theme::setupToggledIcons()
 {
-    setIconToggledImage("Icons", "gridToggle", "Icons", "grid", "Icons", "gridStriked");
-    setIconToggledImage("Icons", "fullscreenToggle", "Icons", "fullscreen", "Icons", "cross");
-    setIconToggledImage("Icons", "arrowHeadVerticalToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadUp");
-    setIconToggledImage("Icons", "minimapToggle", "Icons", "map", "Icons", "eyeStriked");
-    setIconToggledImage("Icons", "searchOptionToggle", "Icons", "zoom", "Icons", "arrowHeadDown");
-    setIconToggledImage("Icons", "maximizeToggle", "Icons", "maximize", "Icons", "minimize");
-    setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
-    setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
-    setIconToggledImage("Icons", "folderToggle", "Icons", "arrowHeadRight", "Icons", "arrowHeadDown");
+    setIconToggledImage("ToggleIcons", "arrowVertical", "Icons", "arrowHeadUp", "Icons", "arrowHeadDown");
+    setIconToggledImage("ToggleIcons", "groupToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadRight");
+    setIconToggledImage("ToggleIcons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
 
-    setIconToggledImage("Icons", "notificationSeen", "Icons", "clock", "Icons", "exclamation");
-    setIconToggledImage("Icons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
+
+    setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
+    setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
+    setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
+
+    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "exclamation", "Icons", "clock", false);
 
     
 }
@@ -1264,38 +1399,148 @@ void Theme::setIconAlias(QString prefix, QString alias, QString icon_prefix, QSt
 }
 
 
-void Theme::resetTheme(VIEW_THEME themePreset)
-{
-    if (themePreset == VT_DARK_THEME) {
-        QColor bgColor = QColor(70,70,70);
-        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
-        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter());
-        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
-        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
-    }else if(themePreset == VT_LIGHT_THEME){
-        QColor bgColor = QColor(170,170,170);
-        emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
-        emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
-        emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
-        emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
-        emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
-        emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
-        emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
-        emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
-    }
+void Theme::resetTheme(VIEW_THEME themePreset){
+    //Solarized
+    QColor base03("#002b36");
+    QColor base02("#073642");
+    QColor base01("#586e75");
+    QColor base00("#657b83");
+    QColor base0("#839496");
+    QColor base1("#93a1a1");
+    QColor base2("#eee8d5");
+    QColor base3("#fdf6e3");
+    QColor yellow("#b58900");
+    QColor orange("#cb4b16");
+    QColor red("#dc322f");
+    QColor magenta("#d33682");
+    QColor violet("#6c71c4");
+    QColor blue("#268bd2");
+    QColor cyan("#2aa198");
+    QColor green("#859900");
 
+    switch(themePreset){
+        case VT_DARK_THEME:{
+            QColor bgColor = QColor(70,70,70);
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter());
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, white().darker(150));
+
+
+            emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(50,205,50));
+            resetAspectTheme(true);
+            break;
+        }
+        case VT_LIGHT_THEME:{
+            QColor bgColor = QColor(170,170,170);
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, bgColor);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, bgColor.lighter(130));
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, white());
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, black().lighter(180));
+
+            emit changeSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, black());
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, QColor(255,200,0));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, QColor(255,50,50));
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, QColor(0,128,0));
+            resetAspectTheme(true);
+            break;
+        }
+        case VT_SOLARIZED_DARK_THEME:{
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, base2);
+
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, base01);
+
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, base03);
+
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, orange);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, red);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, green);
+
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, base03);
+            break;
+        }
+        case VT_SOLARIZED_LIGHT_THEME:{
+            emit changeSetting(SETTINGS::THEME_BG_COLOR, base3);
+            emit changeSetting(SETTINGS::THEME_BG_ALT_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_COLOR, base00);
+            emit changeSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_COLOR, base00);
+
+            emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, base01);
+            emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, base01);
+
+            emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_ICON_SELECTED_COLOR, base02);
+            emit changeSetting(SETTINGS::THEME_VIEW_BORDER_SELECTED_COLOR, base02);
+
+            emit changeSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, base2);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, orange);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, red);
+            emit changeSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, green);
+
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_INTERFACES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_BEHAVIOUR_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_ASSEMBLIES_COLOR, base03);
+            emit changeSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, base03);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+
+QFont Theme::getFont() const{
+    return font;
+}
+QFont Theme::getLargeFont() const{
+    auto large_font = font;
+    large_font.setPointSizeF(font.pointSizeF() * 1.2);
+    return large_font;
+}
+void Theme::setFont(QFont font){
+    if(this->font != font){
+        this->font = font;
+        
+        QApplication::setFont(font);
+        updateValid();
+    }
 }
 
 void Theme::resetAspectTheme(bool colorBlind)
@@ -1339,6 +1584,12 @@ void Theme::updateValid()
             if(color.isValid()){
                continue;
             }else{
+                gotAllColors = false;
+                break;
+            }
+        }
+        for(auto severity : Notification::getSeverities()){
+            if(!severityColor.contains(severity)){
                 gotAllColors = false;
                 break;
             }
@@ -1397,18 +1648,16 @@ IconPair Theme::splitImagePath(QString path)
     return pair;
 }
 
-bool Theme::tintIcon(QString prefix, QString alias)
-{
-    QString key = getResourceName(prefix, alias);
-    if(pixmapSizeLookup.contains(key)){
-        return tintIcon(pixmapSizeLookup[key]);
-    }
-    return false;
+bool Theme::tintIcon(IconPair pair){
+    return tintIcon(getResourceName(pair));
 }
 
+bool Theme::tintIcon(QString resource_name){
+    return tintIcon(pixmapSizeLookup.value(resource_name, QSize(0, 0)));
+}
 bool Theme::tintIcon(QSize size)
 {
-    return size.width() % 96 == 0;
+    return size.width() > 0 && size.width() % 96 == 0;
 }
 
 QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
@@ -1441,6 +1690,14 @@ void Theme::teardownTheme()
     themeSingleton = 0;
 }
 
+CustomMenuStyle::CustomMenuStyle(int icon_size) : QProxyStyle("Windows"){
+    this->icon_size = icon_size;
+}
 
-
-
+int CustomMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const{
+    auto s = QProxyStyle::pixelMetric(metric, option, widget);
+    if (metric == QStyle::PM_SmallIconSize) {
+        s = icon_size;
+    }
+    return s;
+}

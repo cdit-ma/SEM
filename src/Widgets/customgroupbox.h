@@ -17,7 +17,6 @@ public:
     virtual void setTitle(QString title);
     QString getTitle();
 
-    void setIconSize(QSize size);
 
     void setCheckable(bool checkable);
 
@@ -36,8 +35,9 @@ private:
     void setupLayout();
 
     QString groupTitle;
-    QToolButton* groupTitleButton;
-    QToolBar* widgetsToolbar;
+    QToolButton* groupTitleButton = 0;
+    QToolBar* widgetsToolbar = 0;
+    QToolBar* topToolbar = 0;
 
 };
 

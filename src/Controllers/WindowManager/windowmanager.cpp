@@ -12,12 +12,13 @@
 #include "../../Widgets/Windows/mainwindow.h"
 #include "../../Widgets/Windows/viewwindow.h"
 #include "../../Widgets/Windows/subwindow.h"
+#include "../../Widgets/Windows/invisiblewindow.h"
 
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Widgets/DockWidgets/tooldockwidget.h"
-
+#include "../../Widgets/DockWidgets/invisibledockwidget.h"
 
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 #include "../../Widgets/ViewManager/dockreparenterpopup.h"
@@ -38,6 +39,27 @@ WindowManager* WindowManager::manager()
     return managerSingleton;
 }
 
+bool WindowManager::Sort(const BaseDockWidget *a, const BaseDockWidget *b){
+    auto dock_type_a = QString(a->metaObject()->className());
+    auto dock_type_b = QString(b->metaObject()->className());
+    if(dock_type_a == dock_type_b){
+        if(a->isProtected() == b->isProtected()){
+            return a->getTitle() < b->getTitle();
+        }else{
+            return a->isProtected();
+        }
+    }else{
+        if(dock_type_a == "ViewDockWidget"){
+            return true;
+        }else if(dock_type_b == "ViewDockWidget"){
+            return false;
+        }else{
+            return dock_type_a < dock_type_b;
+        }
+    }
+    return false;
+}
+
 
 bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
     if(base_dock_widget && base_dock_widget->getBaseDockType() == BaseDockType::DOCK){
@@ -50,7 +72,7 @@ bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
 };
 
 
-void WindowManager::showDockWidget(BaseDockWidget* widget){
+void WindowManager::ShowDockWidget(BaseDockWidget* widget){
     if(widget){
         auto window = widget->window();
         widget->show();
@@ -76,16 +98,23 @@ BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
     return mainWindow;
 }
 
-BaseWindow* WindowManager::constructSubWindow(QString title){
-    auto window = new SubWindow();
+BaseWindow* WindowManager::constructSubWindow(QString title, BaseWindow* parent_window){
+    auto window = new SubWindow(parent_window);
     window->setWindowTitle(title);
     addWindow(window);
     return window;
 }
 
-BaseWindow* WindowManager::constructCentralWindow(QString title){
+BaseWindow* WindowManager::constructInvisibleWindow(QString title, BaseWindow* parent_window){
+    auto window = new InvisibleWindow(parent_window);
+    window->setWindowTitle(title);
+    addWindow(window);
+    return window;
+}
+
+BaseWindow* WindowManager::constructCentralWindow(QString title, BaseWindow* parent_window){
     if(!centralWindow){
-        auto window = new CentralWindow();
+        auto window = new CentralWindow(parent_window);
         window->setWindowTitle(title);
         centralWindow = window;
         addWindow(window);
@@ -93,20 +122,26 @@ BaseWindow* WindowManager::constructCentralWindow(QString title){
     return centralWindow;
 }
 
-ViewDockWidget* WindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area){
-    auto dock = new ViewDockWidget(title, area);
+ViewDockWidget* WindowManager::constructViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area){
+    auto dock = new ViewDockWidget(title, parent, area);
     addDockWidget(dock);
     return dock;
 }
 
-DefaultDockWidget* WindowManager::constructDockWidget(QString title, Qt::DockWidgetArea area){
-    auto dock = new DefaultDockWidget(title, area);
+DefaultDockWidget* WindowManager::constructDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area){
+    auto dock = new DefaultDockWidget(title, parent, area);
     addDockWidget(dock);
     return dock;
 }
 
-ToolDockWidget* WindowManager::constructToolDockWidget(QString title){
-    auto dock = new ToolDockWidget(title);
+ToolDockWidget* WindowManager::constructToolDockWidget(QString title, QWidget* parent){
+    auto dock = new ToolDockWidget(title, parent);
+    addDockWidget(dock);
+    return dock;
+}
+
+InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title, QWidget* parent){
+    auto dock = new InvisibleDockWidget(title, parent);
     addDockWidget(dock);
     return dock;
 }
@@ -150,6 +185,21 @@ WindowManager::WindowManager():QObject(0)
 
     auto a = (QApplication*) QApplication::instance();
     connect(a, &QApplication::focusChanged, this, &WindowManager::focusChanged);
+}
+
+void WindowManager::focusChanged(QWidget* prev, QWidget* now)
+{
+    if(now){
+        //Check to see if the widget is a child of one of the view docks
+        for(auto id : view_dock_ids){
+            auto dock = dockWidgets.value(id, 0);
+            if(dock && dock->isAncestorOf(now)){
+                //We should set
+                setActiveViewDockWidget((ViewDockWidget*)dock);
+                return;
+            }
+        }
+    }
 }
 
 WindowManager::~WindowManager()
@@ -246,15 +296,6 @@ void WindowManager::setActiveViewDockWidget(ViewDockWidget *view)
     }
 }
 
-void WindowManager::setActiveViewDockWidget(int ID)
-{
-    return;/*
-    BaseDockWidget* dockWidget = dockWidgets.value(ID, 0);
-    if(dockWidget && dockWidget != activeViewDockWidget && dockWidget->isFocusEnabled()){
-        setActiveViewDockWidget(dockWidget);
-    }*/
-}
-
 QList<BaseWindow*> WindowManager::getWindows(){
     return windows.values();
 }
@@ -281,22 +322,6 @@ ViewDockWidget* WindowManager::getViewDockWidget(ViewItem *item){
     }
     return 0;
 }
-
-void WindowManager::focusChanged(QWidget* prev, QWidget* now)
-{
-    if(now){
-        //Check to see if the widget is a child of one of the view docks
-        for(auto id : view_dock_ids){
-            auto dock = dockWidgets.value(id, 0);
-            if(dock && dock->isAncestorOf(now)){
-                //We should set
-                setActiveViewDockWidget((ViewDockWidget*)dock);
-                return;
-            }
-        }
-    }
-}
-
 
 void WindowManager::addWindow(BaseWindow *window)
 {
@@ -398,6 +423,7 @@ void WindowManager::dockWidget_Close(int ID)
 
         if(sourceWindow == currentWindow || sourceWindow == 0){
             //If the source window is the current window we should destruct the dock.
+            qDebug() << "DESTRUCT: " << dock_widget->getTitle();
             destructDockWidget(dock_widget);
         }else{
             //Reparent back into source window.
@@ -471,11 +497,14 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
         if(!parent_widget || !parent_widget->isWindow()){
             parent_widget = manager()->getActiveWindow();
         }
+    }else{
+        parent_widget = parent_widget->window();
     }
 
     if(widget && parent_widget){
         auto pos = parent_widget->mapToGlobal(parent_widget->rect().center());
-        auto widget_size = widget->frameGeometry().size();//.size();
+        //auto widget_size = widget->frameGeometry().size();
+        auto widget_size = widget->rect().size();
         switch (alignment) {
         case Qt::AlignBottom:
             //Move to the bottom

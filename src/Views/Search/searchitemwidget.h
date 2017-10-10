@@ -25,6 +25,7 @@ public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
     ~SearchItemWidget();
 
+    void addMatchedKeys(QSet<QString> keys);
     void addMatchedKey(QString key);
     void removeMatchedKey(QString key);
     void clearMatchedKeys();
@@ -34,8 +35,7 @@ public:
 
     VIEW_ASPECT getViewAspect();
 signals:
-    void hoverEnter(int ID);
-    void hoverLeave(int ID);
+    void itemHovered(int ID, bool hovered);
     void itemSelected(int ID);
 public slots:
     void themeChanged();
@@ -43,8 +43,6 @@ public slots:
 protected:
     void mouseReleaseEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
-    void enterEvent(QEvent*);
-    void leaveEvent(QEvent*);
 
 private:
     void updateDataIcon(QString key);

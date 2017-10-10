@@ -1,10 +1,9 @@
 #include "workerprocess.h"
-
-
+#include <QDebug>
 
 WorkerProcess::WorkerProcess():Process(NODE_KIND::WORKER_PROCESS)
 {
-    
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
 }
 
 WorkerProcess::WorkerProcess(EntityFactory* factory) : Process(factory, NODE_KIND::WORKER_PROCESS, "WorkerProcess"){
@@ -21,5 +20,34 @@ WorkerProcess::WorkerProcess(EntityFactory* factory) : Process(factory, NODE_KIN
     RegisterDefaultData(factory, node_kind, "worker", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "workerID", QVariant::String, false);
     RegisterDefaultData(factory, node_kind, "description", QVariant::String, true);
-};
+}
+
+
+bool WorkerProcess::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
+
+    switch(edgeKind){
+        case EDGE_KIND::DEFINITION:{
+            if(dst->getNodeKind() != NODE_KIND::WORKER_PROCESS){
+                return false;
+            }
+            if(dst->isInModel()){
+                return false;
+            }
+            if(!isInModel()){
+                return false;
+            }
+            return true;
+            break;
+        }
+        default:
+            break;
+    }
+
+    return Process::canAcceptEdge(edgeKind, dst);
+}
+
 

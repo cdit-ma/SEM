@@ -2,11 +2,11 @@
 #define VIEWCONTROLLER_H
 
 #include "../ActionController/actioncontroller.h"
-#include "../ToolbarController/toolbarcontroller.h"
 #include "../SelectionController/selectioncontroller.h"
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+
 #include "../ExecutionManager/executionmanager.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
@@ -20,9 +20,12 @@
 enum class MODEL_SEVERITY;
 class NotificationManager;
 class ModelController;
-class ContextToolbar;
 class NodeView;
 class JenkinsManager;
+class ContextMenu;
+class DefaultDockWidget;
+class CodeBrowser;
+class JobMonitor;
 
 class ViewController : public QObject
 {
@@ -32,15 +35,20 @@ public:
     ViewController();
     ~ViewController();
 
+    DefaultDockWidget* constructDockWidget(QString label, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window = 0);
+
+    static QList<ViewItem*> ToViewItemList(QList<NodeViewItem*> &items);
+    static QList<ViewItem*> ToViewItemList(QList<EdgeViewItem*> &items);
+
     void connectModelController(ModelController* c);
 
     bool isWelcomeScreenShowing();
+    ContextMenu* getContextMenu();
 
     JenkinsManager* getJenkinsManager();
     ExecutionManager* getExecutionManager();
     SelectionController* getSelectionController();
     ActionController* getActionController();
-    ToolbarController* getToolbarController();
 
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
@@ -48,13 +56,24 @@ public:
 
     QStringList _getSearchSuggestions();
 
-    QMap<QString, ViewItem*> getSearchResults(QString result);
+    QMap<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
+    QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
+    QList<ViewItem*> filterList(QString query, QList<NodeViewItem*> view_items){
+        return filterList(query, ViewController::ToViewItemList(view_items));
+    }
+    QList<ViewItem*> filterList(QString query, QList<EdgeViewItem*> view_items){
+        return filterList(query, ViewController::ToViewItemList(view_items));
+    }
 
-    ViewDockWidget* constructViewDockWidget(QString label="");
+    QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
 
-    QList<NODE_KIND> getAdoptableNodeKinds2();
+    ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
+    QSet<NODE_KIND> getAdoptableNodeKinds();
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
+    NodeViewItem* getNodeItem(NODE_KIND kind);
+
+    QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
 
 
     ModelController* getModelController();
@@ -83,12 +102,15 @@ public:
     QVariant getEntityDataValue(int ID, QString key_name);
     bool isNodeOfType(int ID, NODE_TYPE type);
     int getNodeParentID(int ID);
+
+    void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
 signals:
     //TO OTHER VIEWS SIGNALS
 
     void vc_showWelcomeScreen(bool);
     void vc_JenkinsReady(bool);
     void vc_JavaReady(bool);
+    void vc_ReReady(bool);
     void vc_controllerReady(bool);
     void vc_ProjectLoaded(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
@@ -115,6 +137,8 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
     void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+
+    void vc_constructEdges(QList<int> sourceIDs, QList<int> dstID, EDGE_KIND edgeKind);
 
     void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
     void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
@@ -196,11 +220,18 @@ public slots:
     void modelValidated(QString reportPath);
     void importGraphMLFile(QString graphmlPath);
     void importGraphMLExtract(QString data);
+    
+
     void showCodeViewer(QString tabName, QString content);
+
+    JobMonitor* getExecutionMonitor();
+    void showExecutionMonitor();
 
 
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
-    void jenkinsManager_GotJava(bool java, QString javaVersion);
+    void GotJava(bool java, QString javaVersion);
+    void GotRe(bool re, QString string);
+
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
 
 
@@ -235,6 +266,7 @@ public slots:
     void importIdlFile();
 
     void generateWorkspace();
+    void executeModelLocal();
 
     void executeJenkinsJob();
 
@@ -326,8 +358,8 @@ private:
     QList<ViewItem*> getItemsOfKind(EDGE_KIND kind);
 
 
-    QList<NodeViewItem*> nodeKindItems;
-    QList<EdgeViewItem*> edgeKindItems;
+    QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
+    QHash<EDGE_KIND, EdgeViewItem*> edgeKindItems;
 
     bool _controllerReady = false;
 
@@ -346,15 +378,19 @@ private:
     QList<int> topLevelItems;
     ViewItem* rootItem;
 
-    BaseDockWidget *codeViewer;
+    BaseDockWidget* codeViewer = 0;
+    CodeBrowser* codeBrowser = 0;
+    BaseDockWidget* execution_monitor = 0;
+    JobMonitor* job_monitor = 0;
+
+    
 
     SelectionController* selectionController;
     ActionController* actionController;
-    ToolbarController* toolbarController;
     ExecutionManager* execution_manager;
     JenkinsManager* jenkins_manager;
 
-    ContextToolbar* toolbar;
+    ContextMenu* menu = 0;
     ModelController* controller;
     QMutex mutex;
     QTimer* autosave_timer_ = 0;

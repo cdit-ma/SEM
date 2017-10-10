@@ -1,6 +1,7 @@
 #include "viewdockwidget.h"
+#include "../../Controllers/WindowManager/windowmanager.h"
 #include <QDebug>
-ViewDockWidget::ViewDockWidget(QString title, Qt::DockWidgetArea area):DefaultDockWidget(title, area, DefaultDockType::VIEW)
+ViewDockWidget::ViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area):DefaultDockWidget(title, parent, area, DefaultDockType::VIEW)
 {
     nodeView = 0;
 }

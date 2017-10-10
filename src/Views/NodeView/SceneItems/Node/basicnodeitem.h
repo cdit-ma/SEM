@@ -34,6 +34,8 @@ public:
 private:
     QRectF headerRect() const;
     QRectF connectRect() const;
+    QRectF connectSourceRect() const;
+    QRectF connectTargetRect() const;
     QRectF edgeKindRect() const;
     QRectF innerHeaderRect() const;
 

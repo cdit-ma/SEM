@@ -6,7 +6,7 @@
 
 #include <QStringBuilder>
 #include <QMenu>
-ViewWindow::ViewWindow():BaseWindow(0, BaseWindow::VIEW_WINDOW)
+ViewWindow::ViewWindow(BaseWindow* parent_window):BaseWindow(parent_window, BaseWindow::VIEW_WINDOW)
 {
 
     setAcceptDrops(true);
@@ -27,10 +27,10 @@ ViewWindow::~ViewWindow()
 void ViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation)
 {
     auto default_dock_widget = qobject_cast<DefaultDockWidget*>(widget);
-    if(default_dock_widget){
+    //if(default_dock_widget){
         //Only allow View Dock Widgets.
         BaseWindow::addDockWidget(area, widget, orientation);
-    }
+    //}
 }
 
 

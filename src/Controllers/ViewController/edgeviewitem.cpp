@@ -1,6 +1,6 @@
 #include "edgeviewitem.h"
 #include "nodeviewitem.h"
-
+#include "../../ModelController/entityfactory.h"
 
 EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::EDGE)
 {
@@ -25,9 +25,11 @@ bool EdgeViewItem::isInModel(){
     }
     return false;
 }
-EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind): ViewItem(controller)
+EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString label): ViewItem(controller, GRAPHML_KIND::EDGE)
 {
     edgeKind = kind;
+    changeData("kind", EntityFactory::getEdgeKindString(kind));
+    changeData("label", label);
 }
 
 EdgeViewItem::~EdgeViewItem()

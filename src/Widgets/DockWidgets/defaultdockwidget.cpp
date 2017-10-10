@@ -2,7 +2,7 @@
 #include "../../theme.h"
 #include <QDebug>
 
-DefaultDockWidget::DefaultDockWidget(QString title, Qt::DockWidgetArea area, DefaultDockType type):BaseDockWidget(BaseDockType::DOCK)
+DefaultDockWidget::DefaultDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area, DefaultDockType type):BaseDockWidget(BaseDockType::DOCK, parent)
 {
     setTitle(title);
     setDockWidgetArea(area);
@@ -35,7 +35,6 @@ void DefaultDockWidget::themeChanged()
 void DefaultDockWidget::setWidget(QWidget *widget)
 {
     if (widget) {
-        widget->setMinimumSize(400, 300);
         BaseDockWidget::setWidget(widget);
     }
 }

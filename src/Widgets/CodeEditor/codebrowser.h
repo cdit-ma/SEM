@@ -9,13 +9,11 @@ class CodeBrowser : public QWidget
 {
     Q_OBJECT
 public:
-    CodeBrowser(QWidget *parent);
-
+    CodeBrowser(QWidget *parent = 0);
 public slots:
     void showCode(QString fileName, QString content, bool editable);
 private slots:
     void closeTab(int tabID);
-
 private:
     void setupLayout();
     CodeEditor* getCodeEditor(QString fileName);

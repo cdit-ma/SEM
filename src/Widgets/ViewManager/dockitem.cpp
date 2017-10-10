@@ -1,5 +1,6 @@
 #include "dockitem.h"
 #include "../../theme.h"
+#include <QToolButton>
 
 DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 {
@@ -24,9 +25,9 @@ DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 
 void DockItem::updateIcon()
 {
-    if(iconLabel && dockWidget){
+    if(iconAction && dockWidget){
         QPair<QString, QString> icon = dockWidget->getIcon();
-        iconLabel->setPixmap(Theme::theme()->getIcon(icon.first, icon.second, true).pixmap(16,16));
+        iconAction->setIcon(Theme::theme()->getIcon(icon));
     }
 }
 
@@ -44,6 +45,7 @@ void DockItem::themeChanged()
                       "DockItem QToolButton::hover{ background:" + theme->getHighlightColorHex() + "}"
                       "DockItem QToolButton::!hover{ background: rgba(0,0,0,0); }");
     }
+    setIconSize(theme->getIconSize());
 }
 
 void DockItem::titleChanged()
@@ -55,9 +57,6 @@ void DockItem::setupLayout()
 {
     DockTitleBar * titleBar = dockWidget->getTitleBar();
 
-    iconLabel = new QLabel(this);
-    iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setStyleSheet("margin-right: 2px;");
 
     label = new QLabel(this);
 
@@ -69,7 +68,16 @@ void DockItem::setupLayout()
     labelWidgetLayout->addStretch();
 
 
-    iconAction = addWidget(iconLabel);
+    iconAction = addAction("");
+    iconAction->setCheckable(true);
+    iconAction->setChecked(true);
+    auto button = (QToolButton*) widgetForAction(iconAction);
+    button->setObjectName("WINDOW_ICON");
+    button->setAutoRaise(false);
+    connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
+
+
+    
     labelAction = addWidget(labelWidget);
 
     if(titleBar){

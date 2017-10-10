@@ -33,8 +33,7 @@ public:
     NotificationDialog* getPanel();
     NotificationToolbar* getToolbar();
     NotificationPopup* getToast();
-
-    NotificationObject* AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading = false, bool toast = true, int entity_id = -1);
+    NotificationObject* AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast = true, int entity_id = -1, bool defer_update=false);
 
     QList<NotificationObject*> getNotifications();
     
@@ -63,16 +62,6 @@ private slots:
     void displayToastNotification(NotificationObject* notification);
 private:
     void NotificationUpdated(NotificationObject* notification);
-
-    int addNotification(QString description,
-                        QString iconPath,
-                        QString iconName,
-                        int entityID,
-                        Notification::Severity s,
-                        Notification::Type t,
-                        Notification::Category c,
-                        bool toast = true);
-
 
     static NotificationManager* managerSingleton;
     

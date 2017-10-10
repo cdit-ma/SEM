@@ -8,8 +8,7 @@ Header::Header(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::HEADE
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Header();});
 
     //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "header_name", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "include_path", QVariant::String);
+    RegisterDefaultData(factory, node_kind, "code", QVariant::String);
 };
 
 Header::Header():BehaviourNode(NODE_KIND::HEADER){

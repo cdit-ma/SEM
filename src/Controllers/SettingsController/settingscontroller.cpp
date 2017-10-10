@@ -105,18 +105,28 @@ void SettingsController::intializeSettings()
 {
     //General
     createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
+    createSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH, SETTING_TYPE::FILE, "General", "Runtime Environment", "RE configure path", "Icons", "file");
+    createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
+    
+
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Dock Widgets State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
+    
     createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
+
+    
     
     createSetting(SETTINGS::GENERAL_RECENT_PROJECTS, SETTING_TYPE::STRINGLIST, "General", "MEDEA", "Recent Projects");
 
-    createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window Geometry");
-    createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Inner Window State");
+    createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window Geometry");
+    createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window State");
     createSetting(SETTINGS::WINDOW_OUTER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window Geometry");
     createSetting(SETTINGS::WINDOW_OUTER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window State");
+
+    createSetting(SETTINGS::WINDOW_RIGHT_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window Geometry");
+    createSetting(SETTINGS::WINDOW_RIGHT_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window State");
 
     
 
@@ -154,8 +164,13 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::JENKINC_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
     createSetting(SETTINGS::JENKINC_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
 
+    createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
+    createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
+
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Dark Theme");
+    createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDLIGHTTHEME, SETTING_TYPE::NONE, "Theme", "Theme Presets", "Solarised Light Theme");
 
     //Theme - Default Colors
     createSetting(SETTINGS::THEME_BG_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Background");
@@ -185,18 +200,34 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_SETASPECT_COLORBLIND, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
-
+    
+    createSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::RUNNING), "Notification", Notification::getSeverityString(Notification::Severity::RUNNING));
+    createSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::INFO), "Notification", Notification::getSeverityString(Notification::Severity::INFO));
+    createSetting(SETTINGS::THEME_SEVERITY_WARNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::WARNING), "Notification", Notification::getSeverityString(Notification::Severity::WARNING));
+    createSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::ERROR), "Notification", Notification::getSeverityString(Notification::Severity::ERROR));
+    createSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::SUCCESS), "Notification", Notification::getSeverityString(Notification::Severity::SUCCESS));
+    
 
     createSetting(SETTINGS::THEME_APPLY, SETTING_TYPE::NONE, "Theme", "Theme", "Apply Theme");
 
 
 
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
+    _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
+
+    
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
     
+    
     _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
-
+    
+    QFont font("Verdana");
+    font.setStyleStrategy(QFont::PreferAntialias);
+    font.setPointSizeF(9);
+    
+    _getSetting(SETTINGS::THEME_SIZE_FONTSIZE)->setDefaultValue(font);
+    _getSetting(SETTINGS::THEME_SIZE_ICONSIZE)->setDefaultValue(16);
     _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);
     _getSetting(SETTINGS::TOOLBAR_SEARCH)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_UNDO)->setDefaultValue(true);

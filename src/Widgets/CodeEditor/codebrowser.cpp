@@ -34,13 +34,8 @@ void CodeBrowser::showCode(QString fileName, QString content, bool editable)
     if(!codeEditor){
         codeEditor = new CodeEditor(this);
         //make tab width mode civilized
-        codeEditor->setTabStopWidth(24);
         codeEditor->setPlainText(content);
-
-        QFont font("courier");
-        font.setPointSize(12);
-
-        codeEditor->setFont(font);
+        
         tabWidget->addTab(codeEditor, fileName);
         codeEditorLookup.insert(fileName, codeEditor);
     }
@@ -57,6 +52,7 @@ void CodeBrowser::setupLayout()
     tabWidget = new QTabWidget(this);
     layout->addWidget(tabWidget, 1);
     tabWidget->setTabsClosable(true);
+    tabWidget->setElideMode(Qt::ElideMiddle);
 
     connect(tabWidget, &QTabWidget::tabCloseRequested, this, &CodeBrowser::closeTab);
 }

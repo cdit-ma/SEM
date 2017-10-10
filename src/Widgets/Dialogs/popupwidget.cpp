@@ -12,19 +12,26 @@ PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(pare
     setAttribute(Qt::WA_TranslucentBackground);
     setModal(false);
 
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
+
     switch (type) {
     case TYPE::DIALOG:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Dialog);
+        setWindowFlags(windowFlags() | Qt::Dialog);
         setModal(true);
         break;
     case TYPE::TOOL:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
+        setWindowFlags(windowFlags() | Qt::Tool);
         break;
     case TYPE::SPLASH:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::SplashScreen);
+        setAttribute(Qt::WA_TranslucentBackground);
+        setAttribute(Qt::WA_ShowWithoutActivating);
+        //setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput | Qt::WindowDoesNotAcceptFocus);
+        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
+        //setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
+        
         break;
     case TYPE::POPUP:
-        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+        setWindowFlags(windowFlags() | Qt::Popup);
         break;
     }
     

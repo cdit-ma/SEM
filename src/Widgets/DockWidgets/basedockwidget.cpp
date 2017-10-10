@@ -9,8 +9,9 @@
 #include "../Windows/basewindow.h"
 
 int BaseDockWidget::_DockWidgetID = 0;
-BaseDockWidget::BaseDockWidget(BaseDockType type):QDockWidget()
+BaseDockWidget::BaseDockWidget(BaseDockType type, QWidget* parent):QDockWidget(parent)
 {
+    //TODO: Setting QDockWidget parent as the MainWindow fixes application shortcut issues
     ID = ++_DockWidgetID;
 
     setProperty("ID", ID);
@@ -61,12 +62,12 @@ void BaseDockWidget::themeChanged(){
 }
 
 
-int BaseDockWidget::getID()
+int BaseDockWidget::getID() const
 {
     return ID;
 }
 
-BaseDockType BaseDockWidget::getBaseDockType()
+BaseDockType BaseDockWidget::getBaseDockType() const
 {
     return type;
 }
@@ -108,14 +109,8 @@ void BaseDockWidget::removeTitleBar(){
     }
 }
 
-void BaseDockWidget::setTitleBarIconSize(int height)
-{
-    if(titleBar){
-        titleBar->setToolBarIconSize(height);
-    }
-}
 
-bool BaseDockWidget::isProtected()
+bool BaseDockWidget::isProtected() const
 {
     return _isProtected;
 }
@@ -161,9 +156,13 @@ void BaseDockWidget::setIcon(QString prefix, QString alias)
         titleIcon.first = prefix;
         titleIcon.second = alias;
         titleBar->setIcon(prefix, alias);
-        emit iconChanged(); 
-    }
 
+        
+        emit iconChanged(); 
+
+        auto action = toggleViewAction();
+        action->setIcon(Theme::theme()->getIcon(prefix, alias));
+    }
 }
 
 void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
@@ -173,15 +172,12 @@ void BaseDockWidget::setTitle(QString title, Qt::Alignment alignment)
         QDockWidget::setWindowTitle(title);
         emit titleChanged();
     }
+    this->title = title;
 }
 
-QString BaseDockWidget::getTitle()
+QString BaseDockWidget::getTitle() const
 {
-    QString title = "";
-    if(titleBar){
-        title = titleBar->getTitle();
-    }
-    return title;
+    return this->title;
 }
 
 void BaseDockWidget::setActive(bool active)
@@ -191,7 +187,10 @@ void BaseDockWidget::setActive(bool active)
         titleBar->setActive(active);
         themeChanged();
         emit dockSetActive(active);
-        raise();
+        if(active){
+            raise();
+            widget()->setFocus();
+        }
     }
 }
 

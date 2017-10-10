@@ -8,7 +8,7 @@ class ViewWindow : public BaseWindow
 {
     Q_OBJECT
 protected:
-    ViewWindow();
+    ViewWindow(BaseWindow* parent_window);
     ~ViewWindow();
 public:
     void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation);

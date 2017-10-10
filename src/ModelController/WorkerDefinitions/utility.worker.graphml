@@ -132,6 +132,241 @@
                         </node>
                     </graph>
                 </node>
+                <node id="n0::n4">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">SetRandomSeed</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">SetRandomSeed</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">drop</data>
+                    <data key="description">Sets the seed for the Random Number Generator used by this worker.</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n4:">
+                        <node id="n0::n4:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Seed</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">format</data>
+                            <data key="description">The seed value</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n5">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">USleep</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">USleep</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">bed</data>
+                    <data key="description">Sleeps the current thread for x microseconds.</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n5:">
+                        <node id="n0::n5:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">duration</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">clockDark</data>
+                            <data key="description">Microseconds to sleep for</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n6">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">Sleep</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">Sleep</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">bed</data>
+                    <data key="description">Sleeps the current thread for x seconds.</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n6:">
+                        <node id="n0::n6:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">duration</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">clockDark</data>
+                            <data key="description">Seconds to sleep for</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n7">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">GetRandomUniformInt</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">RandomUniformInt</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartUniform</data>
+                    <data key="description">Gets a random Integer in an inclusive range (Lower Bound - Upper Bound)</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n7:">
+                        <node id="n0::n7:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Lower Bound</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowLineLeft</data>
+                            <data key="description">The lower bound</data>
+                        </node>
+                        <node id="n0::n7:n1">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Upper Bound</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowLineRight</data>
+                            <data key="description">The upper bound</data>
+                        </node>
+                        <node id="n0::n7:n2">
+                            <data key="kind">ReturnParameter</data>
+                            <data key="label">Value</data>
+                            <data key="type">Integer</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">squareEquals</data>
+                            <data key="description">The random integer</data>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="n0::n8">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">GetRandomUniformReal</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">RandomUniformReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartUniform</data>
+                    <data key="description">Gets a random double in an inclusive range (Lower Bound - Upper Bound)</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n8:">
+                        <node id="n0::n8:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Lower Bound</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowLineLeft</data>
+                            <data key="description">The lower bound</data>
+                        </node>
+                        <node id="n0::n8:n1">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Upper Bound</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowLineRight</data>
+                            <data key="description">The upper bound</data>
+                        </node>
+                        <node id="n0::n8:n2">
+                            <data key="kind">ReturnParameter</data>
+                            <data key="label">Value</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">squareEquals</data>
+                            <data key="description">The random double</data>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="n0::n9">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">GetRandomNormalReal</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">RandomNormalReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartNormal</data>
+                    <data key="description">Gets a random double in a Normal distribution.</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n9:">
+                        <node id="n0::n9:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Mean</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">chartMean</data>
+                            <data key="description">The mean of the normal distribution</data>
+                        </node>
+                        <node id="n0::n9:n1">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Standard Deviation</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">chartStdDev</data>
+                            <data key="description">The standard deviation of the normal distribution</data>
+                        </node>
+                        <node id="n0::n9:n2">
+                            <data key="kind">ReturnParameter</data>
+                            <data key="label">Value</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">squareEquals</data>
+                            <data key="description">The random double</data>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="n0::n10">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">GetRandomExponentialReal</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">RandomExponentialReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartExponential</data>
+                    <data key="description">Gets a random double in an Exponential distribution. This distribution produces random numbers where each value represents the interval between two random events that are independent but statistically defined by a constant average rate of occurrence</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n10:">
+                        <node id="n0::n10:n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Lambda</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">chartLambda</data>
+                            <data key="description">The mean of the normal distribution</data>
+                        </node>
+                        <node id="n0::n10:n1">
+                            <data key="kind">ReturnParameter</data>
+                            <data key="label">Value</data>
+                            <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">squareEquals</data>
+                            <data key="description">The random double</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n11">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">GetUUID</data>
+                    <data key="worker">Utility_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/utility</data>
+                    <data key="file">utility_worker</data>
+                    <data key="operation">GenerateUUID</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">fingerprint</data>
+                    <data key="description">Generates a 128-bit unique universal unique identifier, in the form of a string. Represented as 32 hexadecimal digits, displayed in five groups separated by hyphens, in the form 8-4-4-4-12.</data>
+                    <data key="workerID">utility_worker</data>
+                    <graph id="n0::n11:">
+                        <node id="n0::n11:n0">
+                            <data key="kind">ReturnParameter</data>
+                            <data key="label">UUID</data>
+                            <data key="type">String</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">squareEquals</data>
+                            <data key="description">The uuid</data>
+                        </node>
+                    </graph>
+                </node>
             </graph>
         </node>
     </graph>

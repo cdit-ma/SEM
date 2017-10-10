@@ -2,6 +2,7 @@
 #include "../../theme.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include <QBoxLayout>
+#include <QTimer>
 
 ProgressPopup::ProgressPopup():PopupWidget(PopupWidget::TYPE::TOOL, 0){
     setupLayout();
@@ -32,14 +33,16 @@ void ProgressPopup::UpdateProgressBar(int value){
         progress_bar->setRange(0, 100);
         progress_bar->setValue(value);
         if (value >= 100){
-            hide();
+            // Animation on ubuntu caused phantom window issues. Singleshot sleep timer resolves.
+            //https://stackoverflow.com/questions/18037618/qt-qdialog-not-hiding-properly-when-show-hide-called-quickly
+            QTimer::singleShot(100, this, &QDialog::hide);
         }
     }
 }
 
 void ProgressPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getProgressBarStyleSheet() + " QFrame{background:transparent;}  QLabel{color: " + theme->getTextColorHex() + "; font-size:12px;}");
+    setStyleSheet(theme->getProgressBarStyleSheet() + " QFrame{background:transparent;}  QLabel{color: " + theme->getTextColorHex() + ";}");
 }
 
 void ProgressPopup::setupLayout(){

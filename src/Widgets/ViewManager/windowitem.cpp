@@ -28,12 +28,15 @@ WindowItem::~WindowItem()
 
 void WindowItem::themeChanged()
 {
-    windowToolbar->setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
+    auto theme = Theme::theme();
+    windowToolbar->setStyleSheet(theme->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
                                  //"#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
                                  "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
-    closeAction->setIcon(Theme::theme()->getIcon("Icons", "cross"));
+    closeAction->setIcon(theme->getIcon("Icons", "cross"));
+
+    windowToolbar->setIconSize(theme->getIconSize());
 
 }
 
@@ -103,7 +106,7 @@ void WindowItem::setupLayout()
     closeAction->setEnabled(window != WindowManager::manager()->getCentralWindow());
     windowToolbar->addAction(closeAction);
 
-    windowToolbar->setIconSize(QSize(16,16));
+    
     windowToolbar->setContentsMargins(0,0,0,0);
     layout->addWidget(windowToolbar);
     layout->addWidget(dockContainer);

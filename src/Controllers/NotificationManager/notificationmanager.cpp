@@ -32,6 +32,8 @@ NotificationManager::NotificationManager(ViewController* controller)
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::INFO), icon_prefix, "circleInfoDark");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::WARNING), icon_prefix, "triangleCritical");
     theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::ERROR), icon_prefix, "pointyCircleCriticalDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::SUCCESS), icon_prefix, "circleTickDark");
+    theme->setIconAlias(notification_str, Notification::getSeverityString(Notification::Severity::RUNNING), icon_prefix, "running");
 
     //Setup Category Icons
     theme->setIconAlias(notification_str, Notification::getCategoryString(Notification::Category::JENKINS), icon_prefix, "jenkinsFlat");
@@ -90,7 +92,8 @@ NotificationDialog* NotificationManager::getPanel()
 void NotificationManager::displayToastNotification(NotificationObject* notification){
     if(!viewController->isWelcomeScreenShowing()){
         notification_popup->DisplayNotification(notification);
-        WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+        auto window = WindowManager::manager()->getMainWindow();
+        WindowManager::MoveWidget(notification_popup, window, Qt::AlignBottom);
         notification_popup->show();
     }
 }
@@ -112,6 +115,8 @@ NotificationToolbar* NotificationManager::getToolbar()
 {
     if(!notification_toolbar){
         notification_toolbar = new NotificationToolbar();
+        auto panel = getPanel();
+        connect(notification_toolbar, &NotificationToolbar::showSeverity, panel, &NotificationDialog::showSeverity);
     }
     return notification_toolbar;
 }
@@ -176,7 +181,7 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notif
     return list;
 }
 
-NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool is_loading, bool toast, int entity_id){
+NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
     auto notification = new NotificationObject();
     notification->setDescription(description);
     notification->setIcon(icon_path, icon_name);
@@ -184,18 +189,18 @@ NotificationObject* NotificationManager::AddNotification(QString description, QS
     notification->setType(type);
     notification->setCategory(category);
     notification->setEntityID(entity_id);
-    notification->setInProgressState(is_loading);
     notification->setToastable(toast);
 
     auto notification_id = notification->getID();
     notifications[notification_id] = notification;
     connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated, Qt::QueuedConnection);
 
-    emit notificationAdded(notification);
+    if(!defer_update){
+        emit notificationAdded(notification);
+    }
     NotificationUpdated(notification);
     return notification;
 }
-
 
 
 void NotificationManager::toastLatestNotification(){
@@ -227,7 +232,7 @@ void NotificationManager::deleteNotification(int ID)
 {
     if(notifications.contains(ID)){
         auto notification = notifications.take(ID);
-        if(!notification->getInProgressState()){
+        if(notification->getSeverity() != Notification::Severity::RUNNING){
             auto notifications_count = notifications.count();
             
             if(notification == latest_notification){
@@ -254,26 +259,6 @@ NotificationObject* NotificationManager::getNotification(int id){
 
 NotificationObject* NotificationManager::getLatestNotification(){
     return latest_notification;
-}
-
-int NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast)
-{
-    auto notification = new NotificationObject();
-    notification->setDescription(description);
-    notification->setIcon(iconPath, iconName);
-    notification->setSeverity(severity);
-    notification->setEntityID(entityID);
-    notification->setType(type);
-    notification->setCategory(category);
-    notification->setToastable(toast);
-
-    auto notification_id = notification->getID();
-    notifications[notification_id] = notification;
-    connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated);
-
-    emit notificationAdded(notification);
-    NotificationUpdated(notification);
-    return notification_id;
 }
 
 void NotificationManager::NotificationUpdated(NotificationObject* notification){

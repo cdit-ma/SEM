@@ -40,6 +40,12 @@ SearchItemWidget::~SearchItemWidget()
     }
 }
 
+void SearchItemWidget::addMatchedKeys(QSet<QString> keys){
+    for(auto key : keys){
+        addMatchedKey(key);
+    }
+}
+
 void SearchItemWidget::addMatchedKey(QString key){
     matched_keys.insert(key);
     setupDataKey(key);
@@ -77,11 +83,12 @@ void SearchItemWidget::setSelected(bool selected)
 
     this->selected = selected;
     if (selected) {
-        emit itemSelected(ID);
         backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
+        emit itemSelected(ID);
     } else {
         backgroundColor =  Theme::theme()->getBackgroundColorHex();
     }
+    emit itemHovered(ID, selected);
 
     updateStyleSheet();
 }
@@ -101,11 +108,13 @@ void SearchItemWidget::updateIcon(){
     auto theme = Theme::theme();
     auto icon_path = view_item->getIcon();
     auto tint = theme->getMenuIconColor();
-    auto pixmap = theme->getImage(icon_path.first, icon_path.second, QSize(32,32), tint);
+    auto icon_size = theme->getLargeIconSize();
+    auto pixmap = theme->getImage(icon_path.first, icon_path.second, icon_size, tint);
+    label_icon->setFixedSize(icon_size);
     if(pixmap.isNull()){
         pixmap = theme->getImage("Icons", "Help", icon_size, tint);
     }
-    pixmap = pixmap.scaled(icon_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    //pixmap = pixmap.scaled(icon_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     label_icon->setPixmap(pixmap);
 }
 
@@ -114,10 +123,11 @@ void SearchItemWidget::updateDataIcon(QString key){
     auto data = data_key_hash.value(key, 0);
     auto tint = theme->getMenuIconColor();
     if(data){
-        auto pixmap = theme->getImage("Data", key, small_icon_size, tint);
+        auto pixmap = theme->getImage("Data", key, theme->getIconSize(), tint);
         if(pixmap.isNull()){
-            pixmap = theme->getImage("Icons", "circleHalo", small_icon_size, tint);
+            pixmap = theme->getImage("Icons", "circleHalo", theme->getIconSize(), tint);
         }
+        data->label_icon->setFixedSize(theme->getIconSize());
         data->label_icon->setPixmap(pixmap);
     }
 }
@@ -149,8 +159,13 @@ void SearchItemWidget::themeChanged()
     updateStyleSheet();
     updateIcon();
 
+    for(auto key : data_key_hash.keys()){
+        updateDataIcon(key);
+    }
+
     if (button_expand) {
-        button_expand->setIcon(theme->getIcon("Icons", "arrowHeadVerticalToggle"));
+        button_expand->setIconSize(theme->getIconSize());
+        button_expand->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
         button_expand->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
 }
@@ -198,21 +213,6 @@ void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent *)
     doubleClicked = true;
 }
 
-/**
- * @brief SearchItemWidget::enterEvent
- */
-void SearchItemWidget::enterEvent(QEvent *)
-{
-    emit hoverEnter(ID);
-}
-
-/**
- * @brief SearchItemWidget::leaveEvent
- */
-void SearchItemWidget::leaveEvent(QEvent *)
-{
-    emit hoverLeave(ID);
-}
 
 /**
  * @brief SearchItemWidget::updateStyleSheet
@@ -229,7 +229,7 @@ void SearchItemWidget::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
+                  "QLabel#KEY_LABEL{ color:" + theme->getTextColorHex(Theme::CR_DISABLED) + ";}"
                   /*"QWidget{border:1px solid red;}"*/
                   + theme->getToolBarStyleSheet());
 }
@@ -244,15 +244,16 @@ void SearchItemWidget::setupLayout(){
         top_layout->setMargin(0);
         top_layout->setMargin(0);
         label_icon = new QLabel(this);
-        label_icon->setFixedSize(icon_size);
+        label_icon->setStyleSheet("padding:0px;margin:0px;");
         label_icon->setAlignment(Qt::AlignCenter);
 
         label_text = new QLabel(this);
-        label_text->setFont(QFont(font().family(), 10));
 
         button_expand = new QToolButton(this);
         button_expand->setCheckable(true);
-        button_expand->setEnabled(false);
+        button_expand->setAutoRaise(false);
+        button_expand->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+
 
         top_layout->addWidget(label_icon);
         top_layout->addWidget(label_text, 1);
@@ -277,7 +278,7 @@ void SearchItemWidget::setupDataKey(QString key){
             layout->setSpacing(5);
             
             data->label_icon = new QLabel(data->item);
-            data->label_icon->setFixedSize(small_icon_size);
+            data->label_icon->setStyleSheet("padding:0px;margin:0px;");
             data->label_value = new QLabel(data->item);
             data->label_key = new QLabel(data->item);
             data->label_key->setObjectName("KEY_LABEL");

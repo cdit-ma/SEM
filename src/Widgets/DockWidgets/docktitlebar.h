@@ -19,7 +19,7 @@ public:
 
     void setToolBarIconSize(int height);
     void setIcon(QString iconPath, QString iconName);
-    QPixmap getIcon();
+    //QPixmap getIcon();
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
@@ -36,8 +36,8 @@ private:
     bool isActive();
 
 private:
-    QLabel* iconLabel;
     QLabel* titleLabel;
+    
     bool _isActive;
 
     QList<QAction*> actions;

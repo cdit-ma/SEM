@@ -21,12 +21,10 @@ public:
 
     void DisplaySearchResults(QString query, QMap<QString, ViewItem*> results);
 signals:
-    void itemHoverEnter(int ID);
-    void itemHoverLeave(int ID);
 
     void SearchQuery(QString query);
     void SearchPopup();
-
+    void HighlightEntity(int ID, bool highlight);
     void CenterOn(int ID);
     void Popup(int ID);
 private slots:
@@ -36,8 +34,10 @@ private slots:
     void searchItemSelected(int ID);
     void resetPanel();
 public slots:
-    void viewItemDestructed(int ID);
+    void viewItemDestructed(int ID, ViewItem* item);
 private:
+    void scrollBarValueChanged();
+    void loadNextResults();
     void setQuery(QString query);
     void setupLayout();
     void setupFilters();
@@ -45,6 +45,7 @@ private:
     void clearSearchItems();
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
+    SearchItemWidget* getSearchItem(ViewItem* item);
 
     QLabel* search_label = 0;
     QLabel* query_label = 0;
@@ -61,6 +62,7 @@ private:
     QToolBar* top_toolbar = 0;
     QToolBar* bottom_toolbar = 0;
 
+    QToolButton* load_more_button = 0;
     QAction* center_action = 0;
     QAction* popup_action = 0;
     QAction* search_action = 0;
@@ -77,6 +79,12 @@ private:
 
     QSet<int> current_search_items;
     QHash<int, SearchItemWidget*> search_items;
+
+    QMap<ViewItem*, QString> search_key_lookups;
+
+    int current_visible = 0;
+    int filtered_match_count = 0;
+    int max_visible = 0;
 
     int selected_id = -1;
     QString query_text;

@@ -74,12 +74,6 @@ void NotificationObject::setCategory(Notification::Category category){
     }
 };
 
-void NotificationObject::setInProgressState(bool in_progress){
-    if(in_progress_state_ != in_progress){
-        in_progress_state_ = in_progress;
-        emit progressStateChanged();
-    }
-};
 
 bool NotificationObject::getToastable() const{
     return toastable_;
@@ -108,11 +102,6 @@ QPair<QString, QString> NotificationObject::getIcon() const{
 QDateTime NotificationObject::getModifiedTime() const{
     return modified_time_;
 };
-
-bool NotificationObject::getInProgressState() const{
-    return in_progress_state_;
-};
-
 
 Notification::Type NotificationObject::getType() const{
     return type_;

@@ -96,6 +96,7 @@
         <file alias="arrowUpload">Resources/Icons/arrowUpload.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
+        <file alias="transparent">Resources/Icons/transparent.png</file>
         <file alias="book">Resources/Icons/book.png</file>
         <file alias="bracketsAngled">Resources/Icons/bracketsAngled.png</file>
         <file alias="bracketsCurly">Resources/Icons/bracketsCurly.png</file>
@@ -227,7 +228,8 @@
         <file alias="tiles">Resources/Icons/tiles.png</file>
         <file alias="triangleCritical">Resources/Icons/triangleCritical.png</file>
         <file alias="triangleNorthWest">Resources/Icons/triangleNorthWest.png</file>
-        <file alias="triangleSouth">Resources/Icons/triangleSouth.png</file>
+        <file alias="triangleDown">Resources/Icons/triangleDown.png</file>
+        <file alias="triangleUp">Resources/Icons/triangleUp.png</file>
         <file alias="triangleSouthEast">Resources/Icons/triangleSouthEast.png</file>
         <file alias="uml">Resources/Icons/uml.png</file>
         <file alias="wave">Resources/Icons/wave.png</file>
@@ -248,5 +250,37 @@
         <file alias="pointyCircleCriticalDark">Resources/Icons/pointyCircleCriticalDark.png</file>
         <file alias="circleDark">Resources/Icons/circleDark.png</file>
         <file alias="home">Resources/Icons/home.png</file>
+        <file alias="chartNormal">Resources/Icons/chartNormal.png</file>
+        <file alias="chartExponential">Resources/Icons/chartExponential.png</file>
+        <file alias="chartUniform">Resources/Icons/chartUniform.png</file>
+        <file alias="arrowLineLeft">Resources/Icons/arrowLineLeft.png</file>
+        <file alias="arrowLineRight">Resources/Icons/arrowLineRight.png</file>
+        <file alias="chartMean">Resources/Icons/chartMean.png</file>
+        <file alias="chartStdDev">Resources/Icons/chartStdDev.png</file>
+        <file alias="chartLambda">Resources/Icons/chartLambda.png</file>
+        <file alias="bed">Resources/Icons/bed.png</file>
+        <file alias="dice">Resources/Icons/dice.png</file>
+        <file alias="clockDark">Resources/Icons/clockDark.png</file>
+        <file alias="squareEquals">Resources/Icons/squareEquals.png</file>
+        <file alias="circleTickDark">Resources/Icons/circleTickDark.png</file>
+        <file alias="drop">Resources/Icons/drop.png</file>
+        <file alias="bookmark">Resources/Icons/bookmark.png</file>
+        <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
+        <file alias="circleCirclesDark">Resources/Icons/circleCirclesDark.png</file>
+        <file alias="sliders">Resources/Icons/sliders.png</file>
+        <file alias="number0">Resources/Icons/number0.png</file>
+        <file alias="number1">Resources/Icons/number1.png</file>
+        <file alias="number2">Resources/Icons/number2.png</file>
+        <file alias="number3">Resources/Icons/number3.png</file>
+        <file alias="number4">Resources/Icons/number4.png</file>
+        <file alias="number5">Resources/Icons/number5.png</file>
+        <file alias="number6">Resources/Icons/number6.png</file>
+        <file alias="number7">Resources/Icons/number7.png</file>
+        <file alias="number8">Resources/Icons/number8.png</file>
+        <file alias="number9">Resources/Icons/number9.png</file>
+        <file alias="number9+">Resources/Icons/number9+.png</file>
+        <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
+        <file alias="filterList">Resources/Icons/filterList.png</file>
+        <file alias="running">Resources/Icons/running.png</file>
     </qresource>
 </RCC>

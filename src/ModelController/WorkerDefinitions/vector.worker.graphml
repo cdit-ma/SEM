@@ -54,7 +54,7 @@
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The Value @ Index</data>
                         </node>
                     </graph>
@@ -88,7 +88,7 @@
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
+                            <data key="icon">squareEquals</data>
                             <data key="description">The Value @ Index</data>
                         </node>
                     </graph>

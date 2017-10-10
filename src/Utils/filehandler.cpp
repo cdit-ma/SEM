@@ -4,9 +4,10 @@
 #include <QTextStream>
 #include <QStringBuilder>
 #include <QDebug>
-
+#include "../Controllers/WindowManager/windowmanager.h"
 #include "../Controllers/SettingsController/settingscontroller.h"
 #include "../theme.h"
+#include <QApplication>
 
 FileHandler* handler = 0;
 
@@ -14,6 +15,7 @@ FileHandler::FileHandler():QObject()
 {
     fileDialog = new QFileDialog(0);
     fileDialog->setModal(true);
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     //Get Path.
     QString directory = SettingsController::settings()->getSetting(SETTINGS::GENERAL_MODEL_PATH).toString();
     fileDialog->setDirectory(directory);
@@ -41,7 +43,6 @@ QStringList FileHandler::selectFiles(QWidget* parent, QString windowTitle, QFile
     fd->setFileMode(fileMode);
     fd->setConfirmOverwrite(write);
     fd->selectFile(initialFile);
-    fd->setParent(parent);
 
     if(write){
         fd->setAcceptMode(QFileDialog::AcceptSave);
@@ -49,9 +50,9 @@ QStringList FileHandler::selectFiles(QWidget* parent, QString windowTitle, QFile
         fd->setAcceptMode(QFileDialog::AcceptOpen);
     }
 
+    WindowManager::MoveWidget(fd);
+    //fd->setParent(parent);
     fd->setOption(QFileDialog::ShowDirsOnly, fileMode == QFileDialog::Directory);
-
-
     if(fd->exec()){
         foreach(QString file, fd->selectedFiles()){
             if(!file.endsWith(defaultSuffix)){
@@ -119,7 +120,7 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
         return false;
     }
     if(notify){
-        _notification(Notification::Severity::INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+        _notification(Notification::Severity::SUCCESS, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
     }
     return true;
 }
@@ -135,9 +136,7 @@ bool FileHandler::ensureDirectory(QString path)
     QFileInfo fileInfo(file);
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
-        if(dir.mkpath(".")){
-            _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
-        }else{
+        if(!dir.mkpath(".")){
             _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder", true);
             return false;
         }
@@ -148,8 +147,8 @@ bool FileHandler::ensureDirectory(QString path)
 bool FileHandler::removeFile(QString path){
     bool success = QFile::remove(path);
 
-    if(success){
-        _notification(Notification::Severity::INFO, "File: '" % path % "' removed!", "Icons", "file");
+    if(!success){
+        _notification(Notification::Severity::ERROR, "File: '" % path % "' failed to be removed!", "Icons", "file");
     }
     return success;
 }
@@ -157,10 +156,9 @@ bool FileHandler::removeFile(QString path){
 bool FileHandler::removeDirectory(QString path)
 {
     QDir dir(path);
-    bool success = dir.removeRecursively();
-
-    if(success){
-        _notification(Notification::Severity::INFO, "Dir: '" % dir.absolutePath() % "' removed!", "Icons", "folder");
+    bool success = dir.exists() ? dir.removeRecursively() : true;
+    if(!success){
+        _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' failed to be removed!", "Icons", "folder");
     }
     return success;
 }

@@ -4,15 +4,22 @@
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
-#include "../../Views/ContextToolbar/contexttoolbar.h"
+#include "../../Widgets/Dialogs/variabledialog.h"
+#include "../../Views/ContextMenu/contextmenu.h"
+
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
+
+#include "../../Widgets/Monitors/jobmonitor.h"
+#include "../../Widgets/Monitors/consolemonitor.h"
+#include "../../Widgets/Monitors/jenkinsmonitor.h"
 
 #include "../../Controllers/ExecutionManager/executionmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
+
 
 #include "../../ModelController/modelcontroller.h"
 #include "../../ModelController/entityfactory.h"
@@ -29,6 +36,7 @@
 #include <QListIterator>
 #include <QStringBuilder>
 #include <QDesktopServices>
+#include <QTextBrowser>
 #include <QFile>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
@@ -50,7 +58,7 @@ ViewController::ViewController() : QObject(){
     codeViewer = 0;
 
 
-    rootItem = new ViewItem(this);
+    rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
     setupEntityKindItems();
@@ -62,22 +70,33 @@ ViewController::ViewController() : QObject(){
     SearchManager::construct_singleton(this);
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
-    toolbarController = new ToolbarController(this);
-    toolbar = new ContextToolbar(this);
+    menu = new ContextMenu(this);
 
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
-    //connect(selectionController, &SelectionController::itemActiveSelectionChanged, NotificationManager::manager(), &NotificationManager::activeSelectionChanged);
-    connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
-    connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
 
-    //Every minute
-    //60000
+    connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
+    connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
+
+    connect(actionController->edit_search, &QAction::triggered, SearchManager::manager(), &SearchManager::PopupSearch);
+
+    //setup auto save
     autosave_timer_ = new QTimer(this);
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
+}
+
+QList<ViewItem*> ViewController::ToViewItemList(QList<NodeViewItem*> &items){
+    return *(QList<ViewItem*>*)(&items);
+}
+QList<ViewItem*> ViewController::ToViewItemList(QList<EdgeViewItem*> &items){
+    return *(QList<ViewItem*>*)(&items);
+}
+
+ContextMenu* ViewController::getContextMenu(){
+    return menu;
 }
 
 void ViewController::connectModelController(ModelController* c){
@@ -107,6 +126,8 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
     connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
     connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
+    connect(this, &ViewController::vc_constructEdges, controller, &ModelController::constructEdges);
+    
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
@@ -150,10 +171,6 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-ToolbarController *ViewController::getToolbarController()
-{
-    return toolbarController;
-}
 
 bool ViewController::isWelcomeScreenShowing(){
     return showingWelcomeScreen;
@@ -166,7 +183,8 @@ void ViewController::welcomeScreenToggled(bool visible){
     if(visible){
         notification_manager->hideToast();
     }else{
-        notification_manager->toastLatestNotification();
+        //Toast the notification
+        QTimer::singleShot(100, notification_manager, &NotificationManager::toastLatestNotification);
     }
 }
 
@@ -181,6 +199,20 @@ QList<ViewItem *> ViewController::getWorkerFunctions()
         }
     }
     return workers;
+}
+
+QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)
+{
+    QSet<ViewItem*> parent_set;
+
+    for(auto view_item : entities){
+        if(view_item){
+            parent_set.insert(view_item->getParentItem());
+        }
+    }
+    auto parent_list = parent_set.toList();
+    std::sort(parent_list.begin(), parent_list.end(), ViewItem::SortByLabel);
+    return parent_list;
 }
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind)
@@ -201,6 +233,24 @@ QList<ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
         QList<int> selectedIDs = selectionController->getSelectionIDs();
         QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
         items = getViewItems(IDs);
+    }
+    return items;
+}
+
+QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges2(EDGE_KIND kind){
+    QHash<EDGE_DIRECTION, ViewItem*>  items;
+    if(selectionController && controller){
+        auto selection = selectionController->getSelectionIDs();
+        auto id_map = controller->getConnectableNodeIds2(selection, kind);
+        
+        for(auto direction : id_map.uniqueKeys()){
+            for(auto id : id_map.values(direction)){
+                auto view_item = getViewItem(id);
+                if(view_item){
+                    items.insertMulti(direction, view_item);
+                }
+            }
+        }
     }
     return items;
 }
@@ -243,7 +293,7 @@ QStringList ViewController::_getSearchSuggestions()
     return suggestions.toList();
 }
 
-QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
+QMap<QString, ViewItem *> ViewController::getSearchResults(QString query, QList<ViewItem*> view_items)
 {
     auto keys = getSearchableKeys();
     QMap<QString, ViewItem*> results;
@@ -251,8 +301,11 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     QRegExp rx("*" + query + "*");
     rx.setPatternSyntax(QRegExp::WildcardUnix);
     rx.setCaseSensitivity(Qt::CaseInsensitive);
-
-    for(auto item : getSearchableEntities()){
+    if(view_items.isEmpty()){
+        qCritical() << "GOT EMPTY";
+        view_items = getSearchableEntities();
+    }
+    for(auto item : view_items){
         for(auto key : keys){
             if(item->hasData(key)){
                 auto data = item->getData(key).toString();
@@ -265,17 +318,20 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     return results;
 }
 
-ViewDockWidget *ViewController::constructViewDockWidget(QString label)
+QList<ViewItem*> ViewController::filterList(QString query, QList<ViewItem*> view_items){
+    if(view_items.isEmpty()){
+        return view_items;
+    }else{
+        return getSearchResults(query, view_items).values().toSet().toList();
+    }
+}
+
+ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* parent)
 {
-    ViewDockWidget* dock_widget = WindowManager::manager()->constructViewDockWidget(label);
+    auto dock_widget = WindowManager::manager()->constructViewDockWidget(label, parent);
     auto node_view = new NodeView(dock_widget);
     dock_widget->setWidget(node_view);
-
-    if(actionController){
-        //Add all actions which need focus!
-        dock_widget->addActions(actionController->getNodeViewActions());
-    }
-
+    
     //Setup NodeView
     node_view->setViewController(this);
 
@@ -305,27 +361,43 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(EDGE_KIND
     }
     return list;
 }
+NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
+    return nodeKindItems.value(kind, 0);
+}
 
-
-QList<NODE_KIND> ViewController::getAdoptableNodeKinds2()
+QSet<NODE_KIND> ViewController::getAdoptableNodeKinds()
 {
-    QList<NODE_KIND> kinds;
-
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
-        kinds = controller->getAdoptableNodeKinds(ID);
+        return controller->getAdoptableNodeKinds(ID);
     }
-    return kinds;
+    return {NODE_KIND::NONE};
 }
 
 QList<NodeViewItem *> ViewController::getNodeKindItems()
 {
-    return nodeKindItems;
+    auto list = nodeKindItems.values();
+    std::sort(list.begin(), list.end(), ViewItem::SortByLabel);
+    return list;
 }
 
 QList<EdgeViewItem *> ViewController::getEdgeKindItems()
 {
-    return edgeKindItems;
+    auto list = edgeKindItems.values();
+    std::sort(list.begin(), list.end(), ViewItem::SortByLabel);
+    return list;
+}
+
+void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
+
+    auto selection = getSelectionController()->getSelectionIDs();
+    
+    if(!selection.isEmpty()){
+        auto id_list = {id};
+        auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
+        auto dst_ids = edge_direction == EDGE_DIRECTION::TARGET ? id_list : selection;
+        emit vc_constructEdges(src_ids, dst_ids, edge_kind);
+    }
 }
 
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
@@ -439,6 +511,17 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 alias = "Icons";
                 image = "medeaLogo";
                 break;
+            case NODE_KIND::ENUM_INSTANCE:
+            case NODE_KIND::ENUM:{
+                alias = "Icons";
+                image = "circleCirclesDark";
+                break;
+            }
+            case NODE_KIND::ENUM_MEMBER:{
+                alias = "Icons";
+                image = "circleDark";
+                break;
+            }
             default:
                 break;
             }
@@ -453,13 +536,13 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
         }
-
+        auto i = Theme::theme()->getIcon(alias, image);
         if(!Theme::theme()->gotImage(alias, image)){
             alias = "Icons";
             image = "circleDark";
         }
         //Try and get the image
-        //auto i = Theme::theme()->getIcon(alias, image);
+        
         viewItem->setIcon(alias, image);
     }
 }
@@ -499,27 +582,60 @@ void ViewController::importGraphMLExtract(QString data)
     }
 }
 
+DefaultDockWidget* ViewController::constructDockWidget(QString title, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window){
+    auto window_manager = WindowManager::manager();
+    if(!window){
+        window = window_manager->getActiveWindow();
+    }
+    auto dock_widget = window_manager->constructDockWidget(title, window);
+    dock_widget->setCloseVisible(false);
+
+    
+
+    Theme::theme()->setWindowIcon(title, icon_path, icon_name);
+
+    dock_widget->setWidget(widget);
+    dock_widget->setIcon("WindowIcon", title);
+    dock_widget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+
+    
+    window->addDockWidget(dock_widget);
+
+    return dock_widget;
+}
+
 void ViewController::showCodeViewer(QString tabName, QString content)
-{
+{   
     if(!codeViewer){
-        codeViewer = WindowManager::manager()->constructViewDockWidget("Code Browser");
-        codeViewer->setCloseVisible(false);
-        CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
-        codeViewer->setWidget(codeBrowser);
-        codeViewer->setIcon("Icons", "bracketsAngled");
-        codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-        BaseWindow* window = WindowManager::manager()->getActiveWindow();
-        if(window){
-            window->addDockWidget(codeViewer);
-        }
+        codeBrowser = new CodeBrowser();
+        codeViewer = constructDockWidget("Code Browser", "Icons", "bracketsAngled", codeBrowser);
     }
-    if(codeViewer){
-        CodeBrowser* codeBrowser = qobject_cast<CodeBrowser*>(codeViewer->widget());
-        if(codeBrowser){
-            codeBrowser->showCode(tabName, content, false);
-        }
-        codeViewer->show();
+    if(codeViewer && codeBrowser){
+        codeBrowser->showCode(tabName, content, false);
+        WindowManager::ShowDockWidget(codeViewer);
     }
+}
+
+JobMonitor* ViewController::getExecutionMonitor(){
+    if(!job_monitor){
+        job_monitor = new JobMonitor();
+        auto toolbar = job_monitor->getToolbar();
+        toolbar->addAction(actionController->model_executeLocalJob);
+        toolbar->addAction(actionController->jenkins_executeJob);
+    }
+    return job_monitor;
+}
+
+void ViewController::showExecutionMonitor(){
+    auto window_manager = WindowManager::manager();
+
+    //First time 
+    if(!execution_monitor){
+        auto monitor = getExecutionMonitor();
+        execution_monitor = constructDockWidget("Execution Monitor", "Icons", "bracketsAngled", monitor);
+    }
+
+    WindowManager::ShowDockWidget(execution_monitor);
 }
 
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
@@ -527,18 +643,23 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     emit vc_JenkinsReady(success);
 
     auto description = success ? "Settings validated successfully" : errorString;
-    auto severity = success ? Notification::Severity::INFO : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "jenkins", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS, false);
+    auto severity = success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(description, "Icons", "jenkinsFlat", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS);
 }
 
-void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
-{
+void ViewController::GotJava(bool java, QString javaVersion){
     emit vc_JavaReady(java);
-
     auto description = java ? "Got Java: " + javaVersion : "Cannot find Java";
-    auto severity = java ? Notification::Severity::INFO : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE, false, !java);
+    auto severity = java ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
+
+void ViewController::GotRe(bool re, QString re_version){
+    emit vc_ReReady(re);
+    auto severity = re ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
+    NotificationManager::manager()->AddNotification(re_version, "Icons", "servers", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
+}
+
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
@@ -621,20 +742,33 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
 
+    constructableNodes.removeAll(NODE_KIND::BLACKBOX);
+    constructableNodes.removeAll(NODE_KIND::BLACKBOX_INSTANCE);
+
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getNodeKindString(kind);
 
         auto item = new NodeViewItem(this, kind, label);
         //qCritical() << label;
         setDefaultIcon(item);
-        nodeKindItems.append(item);
+        nodeKindItems[kind] = item;
     }
 
+    
+
     for(auto kind : EntityFactory::getEdgeKinds()){
-        auto item = new EdgeViewItem(this, kind);
+        auto label = EntityFactory::getEdgeKindString(kind);
+        //Trim the Edge_ from the label
+        label.remove(0, 5);
+        auto item = new EdgeViewItem(this, kind, label);
         setDefaultIcon(item);
-        edgeKindItems.append(item);
+
+        edgeKindItems[kind] = item;
     }
+
+    //Sort the lists to be alphabetical
+    //std::sort(nodeKindItems.begin(), nodeKindItems.end(), ViewItem::SortByLabel);
+    //std::sort(edgeKindItems.begin(), edgeKindItems.end(), ViewItem::SortByLabel);
 }
 
 
@@ -687,16 +821,19 @@ QString ViewController::getTempFileForModel()
 void ViewController::spawnSubView(ViewItem * item)
 {
     if(item && item->isNode()){
-        auto dockWidget = WindowManager::manager()->getViewDockWidget(item);
+        auto window_manager = WindowManager::manager();
+        auto dockWidget = window_manager->getViewDockWidget(item);
         if(dockWidget){
             dockWidget->setVisible(true);
         }else{
             auto label = item->getData("label").toString();
-            dockWidget = constructViewDockWidget(label);
+            auto parent = window_manager->getMainWindow();
+            dockWidget = constructViewDockWidget(label, parent);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-            if(WindowManager::manager()->reparentDockWidget(dockWidget)){
-                //Construct a dockWidget
+            //Try and reparent it
+            if(window_manager->reparentDockWidget(dockWidget)){
+                //Set the icon
                 dockWidget->setIcon(item->getIcon());
                 //Set the NodeView to be contained on this NodeViewItem
                 dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
@@ -887,7 +1024,7 @@ void ViewController::modelNotification(MODEL_SEVERITY severity, QString descript
         default:
             break;
     }
-    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, false, true, ID);
+    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, true, ID);
 }
 
 void ViewController::setControllerReady(bool ready)
@@ -912,7 +1049,6 @@ void ViewController::ModelControllerReady(bool ready)
     setControllerReady(ready);
     if(ready){
         emit vc_showWelcomeScreen(false);
-
         //Call this after everything has loaded
         QMetaObject::invokeMethod(this, "fitAllViews", Qt::QueuedConnection);
     }
@@ -1006,27 +1142,31 @@ void ViewController::TeardownController()
     }
 }
 
-
 void ViewController::autoSaveProject(){
-    QMutexLocker locker(&mutex);
-
-    if(controller && !controller->isProjectSaved()){
-        auto project_action_count = controller->getProjectActionCount();
-        auto project_path = controller->getProjectPath();
-        auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
-        
-        if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
-            //Get the data from the controller
-            auto autosave_data = controller->getProjectAsGraphML();
-            auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
-            if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
-                //Display a notification of the autosave
-                NotificationManager::manager()->addNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", -1, Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE, true);
-                //update the autosave id
-                autosave_id_ = project_action_count;
-                emit vc_addProjectToRecentProjects(autosave_path);
+    //Try and lock the mutex, if we can't lock
+    if(mutex.tryLock()){
+        if(controller && !controller->isProjectSaved()){
+            auto project_action_count = controller->getProjectActionCount();
+            auto project_path = controller->getProjectPath();
+            auto is_project_an_autosave = FileHandler::isAutosaveFilePath(project_path);
+            
+            if((project_action_count > autosave_id_) && !is_project_an_autosave &&  !project_path.isEmpty()){
+                //Get the data from the controller
+                auto autosave_data = controller->getProjectAsGraphML();
+                auto autosave_path = FileHandler::getAutosaveFilePath(project_path);
+                if(FileHandler::writeTextFile(autosave_path, autosave_data, false)){
+                    //Display a notification of the autosave
+                    NotificationManager::manager()->AddNotification("Auto-saved '" + autosave_path + "'", "Icons", "clockCycle", Notification::Severity::INFO, Notification::Type::APPLICATION, Notification::Category::FILE);
+                    //update the autosave id
+                    autosave_id_ = project_action_count;
+                    emit vc_addProjectToRecentProjects(autosave_path);
+                }
             }
         }
+        mutex.unlock();
+    }else{
+        //Try to autosave in 1000 ms
+        QTimer::singleShot(1000, this, &ViewController::autoSaveProject);
     }
 }
 
@@ -1408,10 +1548,46 @@ void ViewController::closeMEDEA()
 
 void ViewController::generateWorkspace()
 {
-    QString file_path = getTempFileForModel();
-    QString output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
-    execution_manager->GenerateWorkspace(file_path, output_dir);
+    auto file_path = getTempFileForModel();
+    auto output_dir = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an folder to create workspace in.", QFileDialog::Directory, false);
+    if(!output_dir.isEmpty()){
+        execution_manager->GenerateWorkspace(file_path, output_dir);
+    }
 }
+
+void ViewController::executeModelLocal()
+{
+    auto file_path = getTempFileForModel();
+    auto temp_dir = FileHandler::getTempFileName("/");
+
+    VariableDialog dialog("Local Deployment Options");
+    dialog.addOption("Duration", SETTING_TYPE::INT, 60);
+    dialog.setOptionIcon("Duration", "Icons", "clock");
+    dialog.addOption("Workspace", SETTING_TYPE::PATH, temp_dir);
+    dialog.setOptionIcon("Workspace", "Icons", "folder");
+    auto options = dialog.getOptions();
+
+    if(!options.isEmpty()){
+        auto duration = options.value("Duration").toInt();
+        auto workspace = options.value("Workspace").toString();
+        //If starting a job was valid, connect in the monitor
+        if(execution_manager->ExecuteModel(file_path, workspace, duration)){
+            showExecutionMonitor();
+            auto job_monitor = getExecutionMonitor();
+            auto local_monitor = job_monitor->getConsoleMonitor("Local Deployment");
+            if(!local_monitor){
+                local_monitor = job_monitor->constructConsoleMonitor("Local Deployment");
+                connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, local_monitor, &Monitor::AppendLine);
+                connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, local_monitor, &Monitor::AppendLine);
+                connect(execution_manager, &ExecutionManager::ModelExecutionStateChanged, local_monitor, &Monitor::StateChanged);
+                connect(local_monitor, &Monitor::Abort, execution_manager, &ExecutionManager::CancelModelExecution);
+            }
+            local_monitor->Clear();
+            showExecutionMonitor();
+        }
+    }
+}
+
 
 
 void ViewController::executeJenkinsJob()

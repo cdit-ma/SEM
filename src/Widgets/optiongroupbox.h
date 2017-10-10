@@ -32,6 +32,7 @@ public:
     QList<QVariant> getCheckedKeys();
     bool isAllChecked();
 
+    void setOptionChecked(QVariant key, bool checked);
     bool addOption(QVariant key, QString label, QString icon_path, QString icon_name);
     void setOptionVisible(QVariant key, bool is_visible);
     void removeOption(QVariant key);

@@ -39,8 +39,10 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
         new_window_button->show();
         //Add New Buttons for the other valid windows, and show them
         for(auto window : valid_windows){
-            auto window_button = getWindowAction(window);
-            window_button->show();
+            if(window->getType() != BaseWindow::INVISIBLE_WINDOW){
+                auto window_button = getWindowAction(window);
+                window_button->show();
+            }
         }
     
         //Forces a blocking size adjustment to ensure its the right width.
@@ -61,7 +63,7 @@ void DockReparenterPopup::windowTriggered(int window_id){
         if(window_id >= 0){
             window = manager->getWindow(window_id);
         }else if(window_id == -1){
-            window = manager->constructSubWindow();
+            window = manager->constructSubWindow("Sub Window", manager->getMainWindow());
             window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
             window->show();
             window->activateWindow();
@@ -119,8 +121,9 @@ QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window){
 
 void DockReparenterPopup::themeChanged(){
     auto theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{font-size:15px;}");
+    setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{}");
     close_action->setIcon(theme->getIcon("Icons", "cross"));
+    toolbar->setIconSize(theme->getIconSize());
 }
 
 void DockReparenterPopup::reject(){
@@ -138,8 +141,7 @@ void DockReparenterPopup::setupLayout(){
     layout->setMargin(2);
     layout->setSpacing(5);
 
-    auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
+    toolbar = new QToolBar(this);
     toolbar->setStyleSheet("QToolButton:!hover{border:none;background:transparent;}");
     auto label_title = new QLabel("Select Window", this);
 

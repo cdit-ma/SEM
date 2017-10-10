@@ -12,7 +12,7 @@ class DefaultDockWidget : public BaseDockWidget
     friend class WindowManager;
 public:
 protected:
-    DefaultDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, DefaultDockType type = DefaultDockType::NONE);
+    DefaultDockWidget(QString title, QWidget* parent = 0, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, DefaultDockType type = DefaultDockType::NONE);
     ~DefaultDockWidget();
 public:
     DefaultDockType getDefaultDockType();

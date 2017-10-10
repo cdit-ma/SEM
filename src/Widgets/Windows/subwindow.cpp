@@ -1,7 +1,7 @@
 #include "subwindow.h"
 #include "viewwindow.h"
 
-SubWindow::SubWindow():ViewWindow()
+SubWindow::SubWindow(BaseWindow* parent_window):ViewWindow(parent_window)
 {
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);

@@ -6,8 +6,11 @@
 #include <QDebug>
 #include "../../ModelController/nodekinds.h"
 #include "../../ModelController/modelcontroller.h"
+#include <QShortcut>
+#include <QApplication>
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
+    
 
     viewController = vc;
     shortcutDialog = 0;
@@ -15,10 +18,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     selectionController = viewController->getSelectionController();
 
-    _controllerReady = false;
-    _modelReady = false;
-    _jenkinsValidated = false;
-    _gotJava = false;
+    got_valid_jenkins = false;
+    got_java = false;
     setupActions();
 
     setupMainMenu();
@@ -47,6 +48,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
         connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
+        connect(controller, &ViewController::vc_ReReady, this, &ActionController::gotRe);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);
@@ -113,6 +115,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
         connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateWorkspace);
+        connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
 
         //connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         //connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
@@ -246,17 +249,25 @@ void ActionController::settingChanged(SETTINGS key, QVariant value)
 
 void ActionController::jenkinsValidated(bool success)
 {
-    if(_jenkinsValidated != success){
-        _jenkinsValidated = success;
+    if(got_valid_jenkins != success){
+        got_valid_jenkins = success;
         updateJenkinsActions();
     }
 }
 
 void ActionController::gotJava(bool java)
 {
-    if(_gotJava != java){
-        _gotJava = java;
+    if(got_java != java){
+        got_java = java;
         updateJenkinsActions();
+    }
+}
+
+void ActionController::gotRe(bool re)
+{
+    if(got_re != re){
+        got_re = re;
+        updateReActions();
     }
 }
 
@@ -326,7 +337,7 @@ void ActionController::selectionChanged(int selection_size)
             auto node_item = (NodeViewItem*) active_item;
             auto node_kind = node_item->getNodeKind();
             toolbar_replicateCount->setEnabled(node_kind == NODE_KIND::COMPONENT_ASSEMBLY);
-            model_getCodeForComponent->setEnabled(_gotJava && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
+            model_getCodeForComponent->setEnabled(got_java && (node_kind == NODE_KIND::COMPONENT || node_kind == NODE_KIND::COMPONENT_INSTANCE || node_kind == NODE_KIND::COMPONENT_IMPL));
         }
 
         //applicationToolbar->updateSpacers();
@@ -363,10 +374,16 @@ void ActionController::updateJenkinsActions()
 {
     bool controller_ready = viewController->isControllerReady();
 
-    jenkins_importNodes->setEnabled(controller_ready && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(controller_ready && _jenkinsValidated);
-    model_generateModelWorkspace->setEnabled(controller_ready && _gotJava);
-    model_validateModel->setEnabled(controller_ready && _gotJava);
+    jenkins_importNodes->setEnabled(controller_ready && got_valid_jenkins);
+    jenkins_executeJob->setEnabled(controller_ready && got_valid_jenkins);
+    model_generateModelWorkspace->setEnabled(controller_ready && got_java);
+    model_executeLocalJob->setEnabled(controller_ready && got_java);
+    
+    model_validateModel->setEnabled(controller_ready && got_java);
+}
+void ActionController::updateReActions(){
+    bool controller_ready = viewController->isControllerReady();
+    model_executeLocalJob->setEnabled(controller_ready && got_re && got_java);
 }
 
 void ActionController::updateUndoRedo()
@@ -454,6 +471,7 @@ void ActionController::updateActions()
 
     updateUndoRedo();
     updateJenkinsActions();
+    updateReActions();
 }
 
 void ActionController::createRecentProjectAction(QString fileName)
@@ -549,11 +567,24 @@ QList<RootAction *> ActionController::getRecentProjectActions()
     return actions;
 }
 
+
+QList<QAction*> ActionController::getAllActions(){
+    QList<QAction*> actions;
+    for(auto action : allActions){
+        actions.append(action);
+    }
+    return actions;
+}
+
 QList<QAction *> ActionController::getNodeViewActions()
 {
+    return view_actions;
+}
+
+QList<QAction *> ActionController::getGlobalActions(){
     QList<QAction*> actions;
-    foreach(RootAction* action, allActions){
-        if(action && action->shortcutContext() == Qt::WidgetWithChildrenShortcut){
+    for(auto action : allActions){
+        if(action->shortcutContext() == Qt::ApplicationShortcut){
             actions.append(action);
         }
     }
@@ -619,34 +650,27 @@ void ActionController::setupActions()
 
     edit_cut = createRootAction("Edit", "Cut", "", "Icons", "scissors");
     edit_cut->setToolTip("Cut selection.");
-    edit_cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
     edit_copy = createRootAction("Edit", "Copy", "", "Icons", "copy");
     edit_copy->setToolTip("Copy selection.");
-    edit_copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
     edit_paste = createRootAction("Edit", "Paste", "", "Icons", "clipboard");
     edit_paste->setToolTip("Paste clipboard into selected entity.");
-    edit_paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
     edit_replicate = createRootAction("Edit", "Replicate", "", "Icons", "copyList");
     edit_replicate->setToolTip("Replicate the selected entities.");
-    edit_replicate->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
 
     edit_delete = createRootAction("Edit", "Delete", "Delete", "Icons", "bin");
     edit_delete->setToolTip("Delete the selected entities.");
     edit_delete->setShortcut(QKeySequence::Delete);
-    edit_delete->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     edit_renameActiveSelection = createRootAction("Edit", "Rename", "Rename", "Icons", "letterA");
     edit_renameActiveSelection->setToolTip("Rename the selected entity.");
     edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
-    edit_renameActiveSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-
 
 
     edit_search = createRootAction("Edit", "Search", "Root_Search", "Icons", "zoom");
@@ -668,32 +692,26 @@ void ActionController::setupActions()
 
     edit_CycleActiveSelectionForward = createRootAction("Selection", "Cycle Next Selected Item", "", "Icons", "arrowHeadRight");
     edit_CycleActiveSelectionForward->setToolTip("Cycle between active selected entities.");
-    edit_CycleActiveSelectionForward->setShortcutContext(Qt::ApplicationShortcut);
     edit_CycleActiveSelectionForward->setShortcut(QKeySequence::NextChild);
 
     edit_CycleActiveSelectionBackward = createRootAction("Selection", "Cycle Prev Selected Item", "", "Icons", "arrowHeadLeft");
     edit_CycleActiveSelectionBackward->setToolTip("Cycle(Back) between active selected entities.");
     edit_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
-    edit_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
 
     edit_selectAll = createRootAction("Selection", "Select All", "", "Icons", "gridSelect");
     edit_selectAll->setToolTip("Select all child entities of selection.");
     edit_selectAll->setShortcut(QKeySequence::SelectAll);
-    edit_selectAll->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     edit_clearSelection = createRootAction("Selection", "Clear Selection", "", "Icons", "cross");
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
-    edit_clearSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     view_fitView = createRootAction("View", "Fit View", "", "Icons", "screenResize");
     view_fitView->setToolTip("Center all entities in active view.");
-    view_fitView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
 
     view_fitAllViews = createRootAction("View", "Fit All Views", "", "Icons", "screenResize");
     view_fitAllViews->setToolTip("Center all entities in all views.");
-    view_fitAllViews->setShortcutContext(Qt::ApplicationShortcut);
     view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
 
     view_centerOn = createRootAction("View", "Center On Selection", "", "Icons", "crosshair");
@@ -703,28 +721,23 @@ void ActionController::setupActions()
 
     view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Icons", "bracketsCurly");
     view_centerOnDefn->setToolTip("Center selected entity's Definition.");
-    view_centerOnDefn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnDefn->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
 
     view_centerOnImpl = createRootAction("View", "Center On Implementation", "", "Icons", "gears");
     view_centerOnImpl->setToolTip("Center selected entity's Implementation.");
-    view_centerOnImpl->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnImpl->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
 
     view_viewDefnInNewWindow = createRootAction("View", "Show Definition in New Window", "", "Icons", "bracketsCurly");
     view_viewDefnInNewWindow->setToolTip("Popout selected entity's Definition.");
-    view_viewDefnInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
     view_viewImplInNewWindow = createRootAction("View", "Show Implementation in New Window", "", "Icons", "gears");
     view_viewImplInNewWindow->setToolTip("Popout selected entity's Implementation.");
-    view_viewImplInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
-    view_viewConnections->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
 
@@ -741,16 +754,17 @@ void ActionController::setupActions()
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
+    
+
     model_getCodeForComponent = createRootAction("Model", "Generate Code for Component", "", "Icons", "bracketsAngled");
     model_getCodeForComponent->setToolTip("Generate the C++ Impl code for the selected Component");
-    model_getCodeForComponent->setShortcutContext(Qt::ApplicationShortcut);
     model_getCodeForComponent->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_G));
 
     model_generateModelWorkspace = createRootAction("Model", "Generate Model Workspace", "", "Icons", "briefcase");
     model_generateModelWorkspace->setToolTip("Generate all the C++ artifacts for the model");
 
-    //model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
-    //model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
+    model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
+    model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
 
 
     jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
@@ -781,7 +795,7 @@ void ActionController::setupActions()
     options_settings->setToolTip("Show application settings.");
     options_settings->setShortcutContext(Qt::ApplicationShortcut);
     options_settings->setShortcut(QKeySequence(Qt::Key_F10));
-
+    
 
 
 
@@ -798,7 +812,7 @@ void ActionController::setupActions()
 
 
 
-    toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Icons", "book");
+    toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
 
@@ -806,8 +820,42 @@ void ActionController::setupActions()
     toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");
 
     toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
-}
 
+
+    view_actions.append(edit_cut);
+    view_actions.append(edit_copy);
+    view_actions.append(edit_paste);
+    view_actions.append(edit_replicate);
+    view_actions.append(edit_delete);
+    
+    view_actions.append(edit_clearSelection);
+    view_actions.append(edit_selectAll);
+    view_actions.append(edit_alignHorizontal);
+    view_actions.append(edit_alignVertical);
+    view_actions.append(edit_CycleActiveSelectionForward);
+    view_actions.append(edit_CycleActiveSelectionBackward);
+    view_actions.append(edit_renameActiveSelection);
+    view_actions.append(edit_expand);
+    view_actions.append(edit_contract);
+
+    view_actions.append(view_fitView);
+    view_actions.append(view_fitAllViews);
+
+    view_actions.append(view_centerOn);
+    view_actions.append(view_centerOnDefn);
+    view_actions.append(view_viewDefnInNewWindow);
+    view_actions.append(view_centerOnImpl);
+    view_actions.append(view_viewImplInNewWindow);
+    view_actions.append(view_viewConnections);
+    view_actions.append(view_viewInNewWindow);
+
+    view_actions.append(model_getCodeForComponent);
+
+    for(auto action : view_actions){
+        action->setShortcutContext(Qt::WidgetShortcut);
+    }
+
+}
 void ActionController::setupMainMenu()
 {
     menu_file = new QMenu("File");
@@ -881,8 +929,7 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
     menu_model->addAction(model_generateModelWorkspace);
-
-    //menu_model->addAction(model_executeLocalJob);
+    menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
 
@@ -904,14 +951,6 @@ void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
 
-    /*
-    toggleDock->setCheckable(true);
-    toggleDock->setChecked(true);
-    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Icons", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
-
-    applicationToolbar->addAction(toggleDock);
-    applicationToolbar->addSeperator();
-    */
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));

@@ -5,7 +5,7 @@
 #include "docktitlebar.h"
 
 class BaseWindow;
-enum class BaseDockType{DOCK, TOOL};
+enum class BaseDockType{DOCK, TOOL, INVISIBLE};
 
 class BaseDockWidget : public QDockWidget
 {
@@ -14,17 +14,19 @@ public:
     friend class WindowManager;
     
 protected:
-    BaseDockWidget(BaseDockType type);
+    BaseDockWidget(BaseDockType type, QWidget* parent = 0);
     ~BaseDockWidget();
 
+    
 public:
     void setTitleIcon(QString path, QString alias);
-    int getID();
-    BaseDockType getBaseDockType();
+    int getID() const;
+    BaseDockType getBaseDockType() const;
     Qt::DockWidgetArea getDockWidgetArea();
     void setDockWidgetArea(Qt::DockWidgetArea area);
     void setSourceWindow(BaseWindow* window);
     BaseWindow* getSourceWindow();
+    
 
     virtual void themeChanged();
     
@@ -32,9 +34,8 @@ public:
     DockTitleBar* getTitleBar();
     void removeTitleBar();
 
-    void setTitleBarIconSize(int height);
 
-    bool isProtected();
+    bool isProtected() const;
     void setProtected(bool protect);
     virtual void setWidget(QWidget* widget);
     void setCurrentWindow(BaseWindow* window);
@@ -43,7 +44,7 @@ public:
     void setIcon(QPair<QString, QString> pair);
     void setIcon(QString, QString);
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
-    QString getTitle();
+    QString getTitle() const;
 
     virtual void setActive(bool focussed);
     bool isActive();
@@ -93,7 +94,8 @@ private:
     void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
 
-    DockTitleBar* titleBar;
+    QString title;
+    DockTitleBar* titleBar = 0;
     Qt::DockWidgetArea initialArea;
 
     BaseWindow* sourceWindow;
