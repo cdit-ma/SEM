@@ -61,6 +61,18 @@ void Attribute::set_Double(double val){
     }
 }
 
+void Attribute::set_Float(const float val){
+    if(type_ == ATTRIBUTE_TYPE::FLOAT){
+        float_ = val;
+    }
+}
+float Attribute::get_Float() const{
+    return float_;
+}
+float& Attribute::Float(){
+    return float_;
+}
+
 double Attribute::get_Double() const{
     return double_;
 }

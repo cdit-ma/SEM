@@ -66,10 +66,11 @@ message Attribute{
     enum Kind{
         STRING = 0;
         INTEGER = 1;
-        BOOLEAN = 2;
-        DOUBLE = 3;
-        STRINGLIST = 4;
-        CHARACTER = 5;
+        CHARACTER = 2;
+        BOOLEAN = 3;
+        DOUBLE = 4;
+        FLOAT = 5;
+        STRINGLIST = 6;
     }
     Info info = 1;
     Kind kind = 2;

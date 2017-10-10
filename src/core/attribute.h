@@ -8,10 +8,11 @@
 enum class ATTRIBUTE_TYPE{
     STRING = 0,
     INTEGER = 1,
-    BOOLEAN = 2,
-    DOUBLE = 3,
-    STRINGLIST = 4,
-    CHARACTER = 5
+    CHARACTER = 2,
+    BOOLEAN = 3,
+    DOUBLE = 4,
+    FLOAT = 5,
+    STRINGLIST = 6
 };
 
 class Attribute{
@@ -37,6 +38,10 @@ class Attribute{
         double get_Double() const;
         double& Double();
 
+        void set_Float(const float val);
+        float get_Float() const;
+        float& Float();
+
         void set_Boolean(const bool val);
         bool get_Boolean() const;
         bool& Boolean();
@@ -48,10 +53,11 @@ class Attribute{
         std::string name_;
         ATTRIBUTE_TYPE type_;
         std::string string_;
-        int integer_;
-        double double_;
-        bool boolean_;
-        char character_;
+        int integer_ = 0;
+        double double_ = 0;
+        bool boolean_ = false;
+        char character_ = 0;
+        float float_ = 0;
         std::vector<std::string> stringlist_;
 };
 

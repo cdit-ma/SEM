@@ -12,6 +12,28 @@
 
 #include "execution.hpp"
 
+#include <sstream>
+#include <string>
+#include <iomanip>
+#include <algorithm>
+#include <cctype>
+
+bool str2bool(std::string str) {
+    try{
+        return std::stoi(str);
+    }catch(std::invalid_argument){
+
+    }
+
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::istringstream is(str);
+    bool b;
+    is >> std::boolalpha >> b;
+    int int_val = 0;
+    return b;
+}
+
+
 void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
@@ -134,6 +156,24 @@ std::string ExecutionManager::GetModelLoggerModeFromNodeName(std::string host_na
     return str;
 }
 
+NodeManager::Attribute_Kind GetAttributeType(std::string type){
+    if(type == "Integer"){
+        return NodeManager::Attribute::INTEGER;
+    }else if(type == "Boolean"){
+        return NodeManager::Attribute::BOOLEAN;
+    }else if(type == "Character"){
+        return NodeManager::Attribute::CHARACTER;
+    }else if(type == "String"){
+        return NodeManager::Attribute::STRING;
+    }else if(type == "Double"){
+        return NodeManager::Attribute::DOUBLE;
+    }else if(type == "Float"){
+        return NodeManager::Attribute::FLOAT;
+    }
+    std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
+    return NodeManager::Attribute::STRING;
+}
+
 bool ExecutionManager::ConstructControlMessages(){
     std::unique_lock<std::mutex>(mutex_);
 
@@ -180,34 +220,57 @@ bool ExecutionManager::ConstructControlMessages(){
 
                     attr_info_pb->set_id(a_id);
                     attr_info_pb->set_name(attribute->name);
-                    auto type = attribute->type;
+                    attr_pb->set_kind(GetAttributeType(attribute->type));
+                    
                     auto value = attribute->value;
 
-                    if(type == "DoubleNumber" || type == "Float"){
-                        attr_pb->set_kind(NodeManager::Attribute::DOUBLE);
-
-                        double d_value;
-                        try{
-                            d_value = std::stod(value);
-                        }catch(std::invalid_argument){
-                            d_value = 0;
+                    switch(attr_pb->kind()){
+                        case NodeManager::Attribute::FLOAT:
+                        case NodeManager::Attribute::DOUBLE:{
+                            double double_val = 0;
+                            try{
+                                double_val = std::stod(value);
+                            }catch(std::invalid_argument){
+                                double_val = 0;
+                            }
+                            attr_pb->set_d(double_val);
+                            break;
                         }
-                        attr_pb->set_d(d_value);
-
-                    } else if(type.find("String") != std::string::npos){
-                        attr_pb->set_kind(NodeManager::Attribute::STRING);
-                        set_attr_string(attr_pb, value);
-                    } else {
-                        
-                        attr_pb->set_kind(NodeManager::Attribute::INTEGER);
-
-                        int i_value;
-                        try{
-                            i_value = std::stoi(value);
-                        }catch(std::invalid_argument){
-                            i_value = 0;
+                        case NodeManager::Attribute::CHARACTER:{
+                            //need to trim out ' characters
+                            auto char_str = value;
+                            char_str.erase(std::remove(char_str.begin(), char_str.end(), '\''), char_str.end());
+                            if(char_str.length() == 1){
+                                attr_pb->set_i(char_str[0]);
+                            }else{
+                                std::cerr << "Character: '" << value << "' isn't length one!" << std::endl;
+                            }
+                            break;
                         }
-                        attr_pb->set_i(i_value);
+                        case NodeManager::Attribute::BOOLEAN:{
+                            bool val = str2bool(value);
+                            attr_pb->set_i(val);
+                            break;
+                        }
+                        case NodeManager::Attribute::INTEGER:{
+                            int int_val = 0;
+                            try{
+                                int_val = std::stoi(value);
+                            }catch(std::invalid_argument){
+                                int_val = 0;
+                            }
+                            attr_pb->set_i(int_val);
+                            break;
+                        }
+                        case NodeManager::Attribute::STRING:{
+                            auto str = value;
+                            str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+                            set_attr_string(attr_pb, str);
+                            break;
+                        }
+                        default:
+                            std::cerr << "Got unhandled Attribute type: " << NodeManager::Attribute_Kind_Name(attr_pb->kind()) << std::endl;
+                            break;
                     }
                 }
             }
