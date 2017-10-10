@@ -338,6 +338,7 @@
 
         <!-- Define Guard -->
         <xsl:value-of select="o:define_guard($define_guard)" />
+        <xsl:value-of select="o:lib_include('iostream')" />
 
         <!-- Include the base message type -->
         <xsl:value-of select="o:cpp_comment('Include the base type')" />
@@ -2334,10 +2335,16 @@
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'Boolean'" />
             </xsl:when>
-            <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Float' or $type = 'Double'">
+            <xsl:when test="$type = 'Character'">
+                <xsl:value-of select="'Character'" />
+            </xsl:when>
+            <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
+                <xsl:value-of select="'Float'" />
+            </xsl:when>
+            <xsl:when test="$type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Double'">
                 <xsl:value-of select="'Double'" />
             </xsl:when>
-            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer' or $type='Character'">
+            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer' ">
                 <xsl:value-of select="'Integer'" />
             </xsl:when>
             
@@ -2398,7 +2405,6 @@
             <xsl:when test="$type = 'double' or $type = 'float' or $type = 'bool'">
                 <xsl:value-of select="$type" />
             </xsl:when>
-
             <xsl:otherwise>
                 <xsl:value-of select="concat('/*Unknown Type: ', o:quote_wrap($type), ' */')" />
             </xsl:otherwise>
