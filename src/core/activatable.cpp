@@ -34,7 +34,7 @@ bool Activatable::Activate(){
 }
 
 bool Activatable::Passivate(){
-     if(state_ == STATE::ACTIVE){
+    if(state_ == STATE::ACTIVE){
         state_ = STATE::PASSIVE;
         return true;
     }

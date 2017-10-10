@@ -29,6 +29,7 @@ class PeriodicEventPort: public EventPort{
         std::mutex mutex_;
         std::condition_variable lock_condition_;
         bool terminate = false;
+        bool interupt_thread = false;
 
         std::function<void(BaseMessage*)> callback_ ;
         std::thread * callback_thread_ = 0;

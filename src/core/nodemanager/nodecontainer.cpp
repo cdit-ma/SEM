@@ -157,10 +157,13 @@ bool NodeContainer::PassivateAll(){
     return true;
 }
 void NodeContainer::Teardown(){
+    std::cerr << "NodeContainer::Teardown::PassivateAll" << std::endl;
     PassivateAll();
+    std::cerr << "!NodeContainer::Teardown::PassivateAll" << std::endl;
     
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
+        std::cerr << "!NodeContainer::Teardown::PassivateAll" << c << std::endl;
         delete c;
         it = components_.erase(it);
     }

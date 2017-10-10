@@ -62,20 +62,19 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     }
 
     //Construct a new ZMQ Message to store the resulting message in.
-    zmq::message_t *data = new zmq::message_t();
+    zmq::message_t data;
 
     while(true){
 		try{
             //Wait for next message
-            socket->recv(data);
+            socket->recv(&data);
             
             //If we have a valid message
-            if(data->size() > 0){
-                std::string msg_str(static_cast<char *>(data->data()), data->size());
+            if(data.size() > 0){
+                std::string msg_str(static_cast<char *>(data.data()), data.size());
                 auto m = proto::decode<S>(msg_str);
                 this->EnqueueMessage(m);
             }else{
-                //std::cout << "Got Termination Message!" << std::endl;
                 //Got Terminate message, length 0
                 break;
             }
@@ -154,8 +153,7 @@ bool zmq::InEventPort<T, S>::Activate(){
 };
 
 template <class T, class S>
-bool zmq::InEventPort<T, S>::Passivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
+bool zmq::InEventPort<T, S>::Passivate(){std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::Passivate()){
         if(zmq_thread_){
             //Construct our terminate socket

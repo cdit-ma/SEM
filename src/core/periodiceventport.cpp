@@ -10,51 +10,48 @@ EventPort(component, name, EventPort::Kind::PE, "periodic"){
 }
 
 bool PeriodicEventPort::Activate(){
-    if(!is_active()){
-        //Gain mutex lock and Set the terminate_tick flag
+    if(Activatable::Activate()){
         std::unique_lock<std::mutex> lock(mutex_);
         terminate = false;
-        
         //Construct a thread
         callback_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
+        return true;
     }
-    return Activatable::Activate();
+    return false;
 }
 
 bool PeriodicEventPort::Passivate(){
-    if(is_active()){
-        {
-            //Gain mutex lock and Terminate, this will interupt the loop after sleep
-            std::unique_lock<std::mutex> lock(mutex_);
-            terminate = true;
-            lock_condition_.notify_all();
-        }
-        callback_thread_->join();
-        delete callback_thread_;
-        callback_thread_ = 0;
+    if(Activatable::Passivate()){
+        //Gain mutex lock and Terminate, this will interupt the loop after sleep
+        std::unique_lock<std::mutex> lock(mutex_);
+        terminate = true;
+        lock_condition_.notify_all();
+        return true;
     }
-    return Activatable::Passivate();
+    return false;
 }
 
 bool PeriodicEventPort::WaitForTick(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return !lock_condition_.wait_for(lock, duration_, [&]{return terminate;});
+    return lock_condition_.wait_for(lock, duration_, [this]{return terminate;});
 }
 
 void PeriodicEventPort::Loop(){
     while(true){
-        auto t = new BaseMessage();
+        BaseMessage t;
         if(is_active() && callback_){
-            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::STARTED_FUNC);
-            callback_(t);
-            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::FINISHED_FUNC);
+            this->logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::STARTED_FUNC);
+            this->callback_(&t);
+            this->logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::FINISHED_FUNC);
         }else{
             //Log that didn't call back on this message
-            logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::IGNORED);
+            this->logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::IGNORED);
         }
-        delete t;
-        if(!WaitForTick()){
-            break;
+        auto tick_val = WaitForTick();
+
+        std::unique_lock<std::mutex> lock(mutex_);
+        if(!tick_val || terminate){
+            return;
         }
     }
 }
@@ -72,5 +69,11 @@ void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
 };
 
 bool PeriodicEventPort::Teardown(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(callback_thread_){
+        callback_thread_->join();
+        delete callback_thread_;
+        callback_thread_ = 0;
+    }
     return true;
 };

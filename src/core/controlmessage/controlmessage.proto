@@ -75,6 +75,6 @@ message Attribute{
     Info info = 1;
     Kind kind = 2;
     repeated string s = 3;
-    uint64 i = 4;
+    int64 i = 4;
     double d = 5;
 }

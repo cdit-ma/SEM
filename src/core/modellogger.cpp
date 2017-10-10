@@ -73,7 +73,6 @@ bool ModelLogger::setup_logger(std::string endpoint, Mode mode){
 }
 
 ModelLogger::~ModelLogger(){
-    std::cout << "~ModelLogger" << std::endl;
     //Flushes writer
     delete writer_;
 }

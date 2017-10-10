@@ -41,7 +41,7 @@ void zmq::OutEventPort<T, S>::tx(T* message){
     if(ready_ && this->is_active() && socket_){
         std::string str = proto::encode(message);
         zmq::message_t data(str.c_str(), str.size());
-        std::cerr << "ZMQ::OutEventPort::" << this->get_name() << " SENT: " << (socket_->send(data) ? "OK" : "Failed") << std::endl;
+        socket_->send(data);
         ::OutEventPort<T>::tx(message);
     }
 };
