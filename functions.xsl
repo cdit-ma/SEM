@@ -2337,7 +2337,7 @@
             <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Float' or $type = 'Double'">
                 <xsl:value-of select="'Double'" />
             </xsl:when>
-            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer'">
+            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer' or $type='Character'">
                 <xsl:value-of select="'Integer'" />
             </xsl:when>
             
@@ -2362,6 +2362,9 @@
             </xsl:when>
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'bool'" />
+            </xsl:when>
+            <xsl:when test="$type = 'Character'">
+                <xsl:value-of select="'char'" />
             </xsl:when>
             <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
                 <xsl:value-of select="'float'" />
@@ -2389,7 +2392,7 @@
             <xsl:when test="$type = 'std::string'">
                 <xsl:value-of select="'string'" />
             </xsl:when>
-            <xsl:when test="$type = 'int'">
+            <xsl:when test="$type = 'int' or $type = 'char'">
                 <xsl:value-of select="'int64'" />
             </xsl:when>
             <xsl:when test="$type = 'double' or $type = 'float' or $type = 'bool'">
@@ -2411,6 +2414,9 @@
             </xsl:when>
             <xsl:when test="$type = 'int'">
                 <xsl:value-of select="'long'" />
+            </xsl:when>
+            <xsl:when test="$type = 'char'">
+                <xsl:value-of select="'char'" />
             </xsl:when>
             <xsl:when test="$type = 'double' or $type = 'float' or $type = 'bool'">
                 <xsl:value-of select="$type" />
