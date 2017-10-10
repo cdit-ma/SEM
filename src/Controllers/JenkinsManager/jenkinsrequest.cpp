@@ -336,6 +336,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
                     icon_name = "sphereGray";
                     break;
                 default:
+                    severity = Notification::Severity::SUCCESS;
                     description += " finished";
                     break;
             }

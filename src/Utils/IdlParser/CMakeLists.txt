@@ -1,0 +1,36 @@
+cmake_minimum_required (VERSION 2.6)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+#Set output directory
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+#Requires Qt5_DIR and QTIFWDIR to be set
+set(EXEC_NAME idl2graphml)
+set(LIB_NAME medea_idl2graphml_lib)
+
+project(${EXEC_NAME})
+
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlkinds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
+)
+
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlkinds.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.h
+)
+
+add_library(${LIB_NAME} SHARED ${SOURCE})
+add_executable(${EXEC_NAME} ${SOURCE} main.cpp)
+
+target_link_libraries(${EXEC_NAME} ${LIB_NAME})

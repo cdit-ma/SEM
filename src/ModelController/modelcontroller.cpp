@@ -471,9 +471,9 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_component_node(parent_node);
             break;
         }
-        
         default:
             node = construct_child_node(parent_node, kind);
+            break;
     }
 
     if(node){
@@ -684,6 +684,19 @@ Node* ModelController::construct_for_condition_node(Node* parent)
     return 0;
 }
 
+Node* ModelController::construct_component_node(Node* parent){
+    if(parent){
+        triggerAction("Constructing Component");
+
+        auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        if(node){
+            auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
+            return node;
+        }
+    }
+    return 0;
+}
+
 
 void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
 {
@@ -711,23 +724,6 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
     }
     emit ActionFinished();
 }
-
-
-
-
-Node* ModelController::construct_component_node(Node* parent){
-    if(parent){
-        triggerAction("Constructing Component");
-
-        auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
-        if(node){
-            auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
-            return node;
-        }
-    }
-    return 0;
-}
-
 
 
 Edge* ModelController::construct_edge(EDGE_KIND edge_kind, Node *src, Node *dst, int id, bool notify_view)
