@@ -41,7 +41,11 @@ bool PeriodicEventPort::Passivate(){
 
 bool PeriodicEventPort::WaitForTick(){
     std::unique_lock<std::mutex> lock(mutex_);
-    return !lock_condition_.wait_for(lock, duration_, [this]{return this->terminate;});
+    if(terminate){
+        return false;
+    }else{
+        return !lock_condition_.wait_for(lock, duration_, [this]{return this->terminate;});
+    }
 }
 
 void PeriodicEventPort::Loop(){
