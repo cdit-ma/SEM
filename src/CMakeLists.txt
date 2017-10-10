@@ -28,6 +28,7 @@ set(CMAKE_AUTORCC ON)
 
 add_subdirectory("ModelController")
 add_subdirectory("Test")
+add_subdirectory("Utils/IdlParser")
 
 #Pass Version info into cmakevars.h
 configure_file(

@@ -1526,6 +1526,7 @@ void ViewController::importIdlFile()
         QString xmiPath = files.first();
 
         QtConcurrent::run([this, xmiPath]{
+                
             QString data = QString::fromStdString(IdlParser::IdlParser::ParseIdl(xmiPath.toStdString(), true));
             emit vc_importProjects(QStringList(data));
         });
