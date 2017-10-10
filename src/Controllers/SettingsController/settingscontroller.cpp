@@ -225,6 +225,7 @@ void SettingsController::intializeSettings()
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(9);
+    
     _getSetting(SETTINGS::THEME_SIZE_FONTSIZE)->setDefaultValue(font);
     _getSetting(SETTINGS::THEME_SIZE_ICONSIZE)->setDefaultValue(16);
     _getSetting(SETTINGS::TOOLBAR_CONTEXT)->setDefaultValue(false);

@@ -92,7 +92,8 @@ NotificationDialog* NotificationManager::getPanel()
 void NotificationManager::displayToastNotification(NotificationObject* notification){
     if(!viewController->isWelcomeScreenShowing()){
         notification_popup->DisplayNotification(notification);
-        WindowManager::MoveWidget(notification_popup, 0, Qt::AlignBottom);
+        auto window = WindowManager::manager()->getMainWindow();
+        WindowManager::MoveWidget(notification_popup, window, Qt::AlignBottom);
         notification_popup->show();
     }
 }
