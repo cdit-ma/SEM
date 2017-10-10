@@ -15,8 +15,8 @@
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
-
-        <xsl:variable name="function_name" select="cdit:get_outeventport_name($root)" />
+        <xsl:variable name="port_def" select="cdit:get_definition($root)" />
+        <xsl:variable name="function_name" select="cdit:get_outeventport_name($port_def)" />
 
         
         <!-- Construct Tx Object -->
@@ -299,6 +299,15 @@
                         </xsl:when>
                     </xsl:choose>
                 </xsl:when>
+                <xsl:when test="$kind='EnumInstance'">
+                    <xsl:message>GOT ENUMINSTANCE</xsl:message>
+                    <!-- Use Implace getters -->
+                    <xsl:value-of select="cdit:inplace_getter_function($label)" />
+                </xsl:when>
+                <xsl:when test="$kind='EnumMember'">
+                    <xsl:message>GOT EnumMember</xsl:message>
+                    <xsl:value-of select="o:get_resolved_enum_member_type($root)" />
+                </xsl:when>
                 <xsl:when test="$kind='VectorInstance' and $parent_kind != 'Variable'">
                     <!-- Use Implace getters -->
                     <xsl:value-of select="cdit:inplace_getter_function($label)" />
@@ -322,17 +331,15 @@
         </xsl:variable>
         
 
-        <xsl:if test="$depth >= 0">
-            <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
-            <xsl:variable name="parent_var">
-                <xsl:if test="$depth > 0 and $kind != 'ReturnParameter'">
-                    <xsl:value-of select="cdit:get_mutable_aggregate_path($parent_node)" />
-                </xsl:if>
-            </xsl:variable>
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="parent_var">
+            <xsl:if test="$depth > 0 and $kind != 'ReturnParameter'">
+                <xsl:value-of select="cdit:get_mutable_aggregate_path($parent_node)" />
+            </xsl:if>
+        </xsl:variable>
 
-            <!-- Append our variabnle dots on -->
-            <xsl:value-of select="concat($parent_var, if($depth > 0 and $parent_var != '' and $get_function != '') then '.' else '', $get_function)" />
-        </xsl:if>
+        <!-- Append our variabnle dots on -->
+        <xsl:value-of select="concat($parent_var, if($depth > 0 and $parent_var != '' and $get_function != '') then '.' else '', $get_function)" />
     </xsl:function>
 
     <xsl:function name="cdit:get_mutable_vector_path">
@@ -854,6 +861,9 @@
                 <xsl:value-of select="cdit:generate_AggregateInstance($root, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'MemberInstance'">
+                <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'EnumInstance'">
                 <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'VectorInstance'">

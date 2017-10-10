@@ -20,6 +20,7 @@
 
     <!-- Get all of the Aggregates -->
     <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'Aggregate')" />
+    <xsl:variable name="enums" as="element()*" select="cdit:get_entities_of_kind(., 'Enum')" />
 
     <xsl:template match="/">
         <!-- Construct file paths -->
@@ -117,7 +118,7 @@
                 <xsl:result-document href="{o:xsl_wrap_file($port_cmake)}">		
                     <xsl:value-of select="o:get_mw_type_cmake($aggregate, $mw)" />		
                 </xsl:result-document>
-            </xsl:for-each>
+        </xsl:for-each>
 
         <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
         <xsl:variable name="base_aggregate_path" select="concat($base_path, if($aggregate_namespace_lc ='') then '' else concat($aggregate_namespace_lc, '/'), $aggregate_label, '/')" />
@@ -130,11 +131,11 @@
 
         <!-- Write base type class -->
         <xsl:result-document href="{o:xsl_wrap_file($base_type_h)}">
-            <xsl:value-of select="o:get_base_data_type_h($aggregate, $members, $vectors, $aggregate_inst, $aggregates)" />
+            <xsl:value-of select="o:get_base_data_type_h($aggregate)" />
         </xsl:result-document>
 
         <xsl:result-document href="{o:xsl_wrap_file($base_type_cpp)}">
-            <xsl:value-of select="o:get_base_data_type_cpp($aggregate, $members, $vectors, $aggregate_inst)" />
+            <xsl:value-of select="o:get_base_data_type_cpp($aggregate)" />
         </xsl:result-document>
 
         <xsl:result-document href="{o:xsl_wrap_file($base_type_cmake)}">
@@ -143,6 +144,25 @@
 
 
         </xsl:for-each>
+
+        <xsl:for-each select="$enums">
+            <!-- Get the label of the Aggregate -->
+            <xsl:variable name="enum_label" select="lower-case(cdit:get_key_value(., 'label'))" />
+            <xsl:variable name="enum_label_cc" select="o:camel_case(cdit:get_key_value(., 'label'))" />
+            <xsl:variable name="enum_namespace" select="cdit:get_key_value(., 'namespace')" />
+            <xsl:variable name="enum_namespace_lc" select="lower-case($enum_namespace)" />
+
+            <xsl:variable name="base_path" select="concat($middleware_path, 'base/')" />
+            <xsl:variable name="base_enum_path" select="concat($base_path, if($enum_namespace_lc = '') then '' else concat($enum_namespace_lc, '/'), $enum_label, '/')" />
+        
+            <xsl:variable name="base_enum_h" select="concat($base_enum_path, $enum_label, '.h')" />
+
+             <xsl:result-document href="{o:xsl_wrap_file($base_enum_h)}">
+                <xsl:value-of select="o:get_base_enum_h(.)" />
+            </xsl:result-document>
+        </xsl:for-each>
+
+
 
         <xsl:variable name="datatype_cmake" select="'datatypes/CMakeLists.txt'" />
         <!-- Write out a datatype cmake file -->
