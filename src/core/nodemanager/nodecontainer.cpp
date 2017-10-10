@@ -32,14 +32,13 @@ NodeContainer::NodeContainer(std::string library_path){
 
 NodeContainer::~NodeContainer(){
     Teardown();
-
-
+    std::cout << "* Closing " << loaded_libraries_.size() << " DLLs" << std::endl;
     for(auto it=loaded_libraries_.begin(); it!=loaded_libraries_.end();){
         auto lib_handle = it->second;
         if(CloseLibrary_(lib_handle)){
-            std::cout << "DLL Closed: " << it->first << std::endl;
+            //std::cout << "* Closed DLL: '"  << it->first << std::endl;
         }else{
-            std::cout << "DLL Error: "  << it->first << ": " << GetLibraryError() << std::endl;
+            std::cout << "* Closed DLL Error: '"  << it->first << ": " << GetLibraryError() << std::endl;
         }
         it = loaded_libraries_.erase(it);
     }
@@ -54,7 +53,7 @@ bool NodeContainer::Activate(std::string component_id){
 }
 bool NodeContainer::Passivate(std::string component_id){
     Component* component = GetComponent(component_id);
-    if(component && component->is_active()){
+    if(component){
         return component->Passivate();
     }
     return false;
@@ -148,24 +147,20 @@ bool NodeContainer::ActivateAll(){
 bool NodeContainer::PassivateAll(){
     //Passivate
     for(auto c : components_){
-        c.second->Passivate();
-    }
-    //Clean up 
-    for(auto c : components_){
-        c.second->Teardown();
+        auto component = c.second;
+        component->Passivate();
     }
     return true;
 }
 void NodeContainer::Teardown(){
-    std::cerr << "NodeContainer::Teardown::PassivateAll" << std::endl;
     PassivateAll();
-    std::cerr << "!NodeContainer::Teardown::PassivateAll" << std::endl;
     
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
-        std::cerr << "!NodeContainer::Teardown::PassivateAll" << c << std::endl;
-        delete c;
-        it = components_.erase(it);
+        if(c && c->Teardown()){
+            delete c;
+            it = components_.erase(it);
+        }
     }
 }
 
@@ -287,7 +282,7 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
         
         auto end = std::chrono::steady_clock::now();
         auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "* Loaded DLL Function: '" << function_name <<  "' In: " << ms.count() << " us" << std::endl;
+        //std::cout << "* Loaded DLL Function: '" << function_name <<  "' In: " << ms.count() << " us" << std::endl;
         
         auto error = GetLibraryError();
         if(function && error.empty()){

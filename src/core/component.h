@@ -37,6 +37,7 @@ class Component: public Activatable{
         std::function<void (::BaseMessage*)> GetCallback(std::string port_name);
     private:
         std::vector<EventPort*> GetSortedPorts(bool forward = true);
+        std::mutex state_mutex_;
         std::mutex mutex_;
 
         

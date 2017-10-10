@@ -20,26 +20,19 @@ zmq::Registrant::Registrant(DeploymentManager* manager, std::string endpoint){
 zmq::Registrant::~Registrant(){
     //Deleting the context will interupt any blocking ZMQ calls
     
-    std::cout << "Tearing down Context" << std::endl;
     if(context_){
         delete context_;    
     }
 
-    std::cout << "Tearing registration_thread_" << std::endl;
     if(registration_thread_){
         registration_thread_->join();
         delete registration_thread_;
     }
 
-    std::cout << "TeardownModelLogger" << std::endl;
-
     if(deployment_manager_){
         deployment_manager_->TeardownModelLogger();
-        std::cout << "Torndown Model Logger" << std::endl;
         delete deployment_manager_;
     }
-
-    std::cout << "~Registrant" << std::endl;
 }
 
 void zmq::Registrant::RegistrationLoop(std::string endpoint){
@@ -130,8 +123,7 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
 
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){
-            std::cout << "Terminating!" << std::endl;
+            
         }
-        std::cout << "EXCEPTION!" << exception.what() << std::endl;
     }
 }

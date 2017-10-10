@@ -35,7 +35,7 @@ Component::Component(std::string inst_name){
 }
 
 Component::~Component(){
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(state_mutex_);
     //Destory Ports
     for(auto it = eventports_.begin(); it != eventports_.end();){
         auto p = it->second;
@@ -56,7 +56,7 @@ Component::~Component(){
 
 bool Component::Activate(){
     //Gain mutex lock
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(state_mutex_);
     if(Activatable::Activate()){
         //Get the ports
         auto ports = GetSortedPorts(true);
@@ -72,11 +72,11 @@ bool Component::Activate(){
 
 bool Component::Passivate(){
     //Gain mutex lock
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(state_mutex_);
     if(Activatable::Passivate()){
         auto ports = GetSortedPorts(false);
         for(auto e : ports){
-            e->Passivate();
+            bool success = e->Passivate();
         }
         //Log message
         logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
@@ -87,10 +87,11 @@ bool Component::Passivate(){
 
 bool Component::Teardown(){
     //Gain mutex lock
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(state_mutex_);
     if(Activatable::Teardown()){
         for(auto e : eventports_){
-            e.second->Teardown();
+            auto eventport = e.second;
+            eventport->Teardown();
         }
         return true;
     }

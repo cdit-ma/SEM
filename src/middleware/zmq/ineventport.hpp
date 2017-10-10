@@ -47,7 +47,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     try{
         socket->connect(terminate_endpoint_.c_str());    
         for(auto end_point: end_points_){
-            std::cout << "zmq::InEventPort<T, S>::zmq_loop(): " << this->get_name() << " Connecting To: " << end_point << std::endl;
+            //std::cout << "zmq::InEventPort<T, S>::zmq_loop(): " << this->get_name() << " Connecting To: " << end_point << std::endl;
             //Connect to the publisher
             socket->connect(end_point.c_str());   
         }

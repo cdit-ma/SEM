@@ -84,7 +84,7 @@ bool zmq::OutEventPort<T, S>::Activate(){
         this->socket_ = helper->get_publisher_socket();
         for(auto e: end_points_){
             try{
-                std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
+                //std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
                 //Bind the addresses provided
                 this->socket_->bind(e.c_str());
             }catch(zmq::error_t){

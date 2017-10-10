@@ -459,15 +459,17 @@ void ExecutionManager::ActivateExecution(){
     activate_lock_condition_.notify_all();
 }
 void ExecutionManager::TerminateExecution(){
-    //Set termination flag
-    terminate_flag_ = true;
     //Obtain lock
     {
         std::unique_lock<std::mutex> lock(terminate_mutex_);
+        //Set termination flag
+        terminate_flag_ = true;
         terminate_lock_condition_.notify_all();
     }
-    //Notify
-    execution_thread_->join();
+    if(execution_thread_){
+        //Notify
+        execution_thread_->join();
+    }
 }
 
 bool ExecutionManager::Finished(){
@@ -485,20 +487,22 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     }
     std::cout << "-------------[Execution]------------" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    std::cout << "* Sending ACTIVATE" << std::endl;
+    std::cout << "* Activating Components" << std::endl;
     //Send Activate function
     auto activate = new NodeManager::ControlMessage();
     activate->set_type(NodeManager::ControlMessage::ACTIVATE);
     PushMessage("*", activate);
 
-    if(!terminate_flag_){
+    {
         //Obtain lock
         std::unique_lock<std::mutex> lock(terminate_mutex_);
-        //Wait for notify
-        terminate_lock_condition_.wait_for(lock, execution_duration);
+        auto cancelled = terminate_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+        if(cancelled){
+            std::cout << "* Caught Ctrl+C" << std::endl;        
+        }
     }
 
-    std::cout << "* Sending PASSIVATE" << std::endl;
+    std::cout << "* Passivating Components" << std::endl;
     //Send Terminate Function
     auto passivate = new NodeManager::ControlMessage();
     passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
@@ -506,7 +510,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-    std::cout << "* Sending TERMINATE" << std::endl;
+    std::cout << "* Terminating Deployment" << std::endl;
     //Send Terminate Function
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);

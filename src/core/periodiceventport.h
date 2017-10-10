@@ -26,6 +26,7 @@ class PeriodicEventPort: public EventPort{
         bool WaitForTick();
         void Loop();
         
+        std::mutex thread_mutex_;
         std::mutex mutex_;
         std::condition_variable lock_condition_;
         bool terminate = false;
