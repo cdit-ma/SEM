@@ -15,8 +15,8 @@
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
-
-        <xsl:variable name="function_name" select="cdit:get_outeventport_name($root)" />
+        <xsl:variable name="port_def" select="cdit:get_definition($root)" />
+        <xsl:variable name="function_name" select="cdit:get_outeventport_name($port_def)" />
 
         
         <!-- Construct Tx Object -->
