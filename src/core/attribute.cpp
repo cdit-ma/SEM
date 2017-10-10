@@ -14,7 +14,7 @@ std::string Attribute::get_name() const{
 }
 
 
-void Attribute::set_String(std::string val){
+void Attribute::set_String(const std::string val){
     if(type_ == ATTRIBUTE_TYPE::STRING){
         string_ = val;
     }
@@ -29,7 +29,7 @@ std::string& Attribute::String(){
 }
 
 
-void Attribute::set_Integer(int val){
+void Attribute::set_Integer(const int val){
     if(type_ == ATTRIBUTE_TYPE::INTEGER){
         integer_ = val;
     }
@@ -41,6 +41,18 @@ int Attribute::get_Integer() const{
 
 int& Attribute::Integer(){
     return integer_;
+}
+
+void Attribute::set_Character(const char val){
+    if(type_ == ATTRIBUTE_TYPE::CHARACTER){
+        character_ = val;
+    }
+}
+char Attribute::get_Character() const{
+    return character_;
+}
+char& Attribute::Character(){
+    return character_;
 }
 
 void Attribute::set_Double(double val){
@@ -57,7 +69,7 @@ double& Attribute::Double(){
     return double_;
 }
 
-void Attribute::set_Boolean(bool val){
+void Attribute::set_Boolean(const bool val){
     if(type_ == ATTRIBUTE_TYPE::BOOLEAN){
         boolean_ = val;
     }
@@ -72,7 +84,7 @@ bool& Attribute::Boolean(){
 }
 
 
-void Attribute::set_StringList(std::vector<std::string> val){
+void Attribute::set_StringList(const std::vector<std::string> val){
     if(type_ == ATTRIBUTE_TYPE::STRINGLIST){
         stringlist_ = val;
     }

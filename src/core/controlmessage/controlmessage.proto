@@ -69,6 +69,7 @@ message Attribute{
         BOOLEAN = 2;
         DOUBLE = 3;
         STRINGLIST = 4;
+        CHARACTER = 5;
     }
     Info info = 1;
     Kind kind = 2;

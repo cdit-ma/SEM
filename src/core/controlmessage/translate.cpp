@@ -37,6 +37,11 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
             a->set_Integer(attr->i());
             break;
         }
+        case ATTRIBUTE_TYPE::CHARACTER:
+        {
+            a->set_Character((char) attr->i());
+            break;
+        }
         case ATTRIBUTE_TYPE::BOOLEAN:
         {
             a->set_Boolean((bool) attr->i());
