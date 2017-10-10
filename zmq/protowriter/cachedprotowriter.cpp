@@ -34,7 +34,7 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     temp_file_path_ = temp.string();
-    std::cout << "Temporary file path: " << temp_file_path_ << std::endl;
+    std::cout << "* CachedProtoWriter File: '" << temp_file_path_ << "'" << std::endl;
 
     //Start the writer thread
     writer_thread_ = new std::thread(&zmq::CachedProtoWriter::WriteQueue, this);
@@ -156,7 +156,6 @@ void zmq::CachedProtoWriter::WriteQueue(){
         //Close file
         file.close();
     }
-    std::cout << "Cached Writer Thread finished!" << std::endl;
 }
 
 std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::string file_path){
