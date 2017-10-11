@@ -29,7 +29,7 @@ namespace ospl{
            std::string publisher_name_;
            std::string qos_profile_path_;
            std::string qos_profile_name_;
-
+        
            dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
    }; 
 };
@@ -117,7 +117,7 @@ bool ospl::OutEventPort<T, S>::Passivate(){
    std::lock_guard<std::mutex> lock(control_mutex_);
 
    if(writer_ != dds::core::null){
-       writer_ = dds::core::null;
+       writer_ = dds::pub::DataWriter<S>(dds::core::null);
    }
 
    return ::OutEventPort<T>::Passivate();
