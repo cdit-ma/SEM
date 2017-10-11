@@ -143,6 +143,7 @@ void rti::InEventPort<T, S>::receive_loop(){
         auto listener_ = new rti::DataReaderListener<T, S>(this);
         //Attach listener to only respond to data_available()
         reader_.listener(listener_, dds::core::status::StatusMask::data_available());
+        success = true;
     }catch(...){
         std::cerr << "ERROR!" << std::endl;
     }
@@ -151,7 +152,7 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Notify Startup our thread is good to go
     Activatable::StartupFinished();
     
-    if(reader_ == dds::core::null){
+    if(@success){
         //Return back on error
         return;
     }
