@@ -49,19 +49,20 @@ zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): :
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    end_points_.clear();
+    bool valid = false;
+    {
+        std::lock_guard<std::mutex> lock(control_mutex_);
+        end_points_.clear();
+        if(attributes.count("publisher_address")){
+            for(auto s : attributes["publisher_address"]->StringList()){
+                end_points_.push_back(s);
+            }
 
-    if(attributes.count("publisher_address")){
-        for(auto s : attributes["publisher_address"]->StringList()){
-            end_points_.push_back(s);
         }
-
+        valid = end_points_.size() > 0;
     }
-    if(end_points_.size()){
-        std::cout << "Running TX" << std::endl;
+    if(valid){
         setup_tx();
-        std::cout << "Runned TX" << std::endl;
     }
 };
 
