@@ -10,17 +10,12 @@ EventPort(component, name, EventPort::Kind::PE, "periodic"){
 }
 
 bool PeriodicEventPort::Activate(){
-    if(Activatable::Activate()){
+    if(!is_active()){
         {
             std::unique_lock<std::mutex> lock(mutex_);
             this->terminate = false;
         }
-        {
-            //Construct a thread
-            std::unique_lock<std::mutex> lock(thread_mutex_);
-            this->callback_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
-        }
-        return true;
+        return Activatable::Activate();
     }
     return false;
 }
@@ -41,14 +36,15 @@ bool PeriodicEventPort::Passivate(){
 
 bool PeriodicEventPort::WaitForTick(){
     std::unique_lock<std::mutex> lock(mutex_);
-    if(terminate){
-        return false;
-    }else{
-        return !lock_condition_.wait_for(lock, duration_, [this]{return this->terminate;});
-    }
+    return !lock_condition_.wait_for(lock, duration_, [this]{return this->terminate;});
 }
 
 void PeriodicEventPort::Loop(){
+    StartupFinished();
+    //Wait for the port to be activated before starting!
+    WaitForActivate();
+    //Log the port becoming online
+    EventPort::LogActivation();
     while(true){
         BaseMessage t;
         if(is_active() && callback_){
@@ -63,6 +59,7 @@ void PeriodicEventPort::Loop(){
             break;
         }
     }
+    EventPort::LogPassivation();
 }
 
 
@@ -75,6 +72,14 @@ void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
             duration_ = std::chrono::milliseconds(ms);
         }
     }
+
+    {
+        //Construct a thread
+        std::unique_lock<std::mutex> lock(thread_mutex_);
+        this->callback_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
+    }
+    //Block until our Loop thread is ready
+    WaitForStartup();
 };
 
 bool PeriodicEventPort::Teardown(){

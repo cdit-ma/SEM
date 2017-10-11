@@ -26,14 +26,17 @@ void Activatable::set_type(std::string type){
 }
 
 bool Activatable::Activate(){
+    std::unique_lock<std::mutex> lock(state_mutex_);
     if(state_ == STATE::PASSIVE){
         state_ = STATE::ACTIVE;
+        activate_condition_.notify_all();
         return true;
     }
     return false;
 }
 
 bool Activatable::Passivate(){
+    std::unique_lock<std::mutex> lock(state_mutex_);
     if(state_ == STATE::ACTIVE){
         state_ = STATE::PASSIVE;
         return true;
@@ -42,6 +45,7 @@ bool Activatable::Passivate(){
 }
 
 bool Activatable::Teardown(){
+    std::unique_lock<std::mutex> lock(state_mutex_);
     if(state_ == STATE::PASSIVE){
         state_ = STATE::DEAD;
         return true;
@@ -49,15 +53,37 @@ bool Activatable::Teardown(){
     return false;
 }
 
-const Activatable::STATE Activatable::get_state(){
+Activatable::STATE Activatable::get_state(){
+    std::unique_lock<std::mutex> lock(state_mutex_);
     return state_;
-
 }
 
-const bool Activatable::is_active(){
+bool Activatable::is_active(){
+    std::unique_lock<std::mutex> lock(state_mutex_);
     return state_ == STATE::ACTIVE;
 }
 
 ModelLogger* Activatable::logger(){
     return ModelLogger::get_model_logger();
 };
+
+void Activatable::StartupFinished(){
+    {
+        //Flip our startup flag
+        std::unique_lock<std::mutex> lock(startup_mutex_);
+        startup_finished_ = true;
+    }
+    //Notify
+    startup_condition_.notify_all();
+}
+
+void Activatable::WaitForActivate(){
+    //Aquire a lock
+    std::unique_lock<std::mutex> lock(state_mutex_);
+    activate_condition_.wait(lock, [this]{return state_ == STATE::ACTIVE;});
+}
+void Activatable::WaitForStartup(){
+    //Aquire a lock
+    std::unique_lock<std::mutex> lock(startup_mutex_);
+    startup_condition_.wait(lock, [this]{return this->startup_finished_;});
+}

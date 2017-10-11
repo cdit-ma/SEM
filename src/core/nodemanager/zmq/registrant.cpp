@@ -48,6 +48,7 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
     zmq::message_t master_control_pub_addr;
     zmq::message_t slave_name;
     zmq::message_t slave_mode;
+    zmq::message_t slave_startup;
 
     try{
         //Send our address to the server, blocks until reply
@@ -65,10 +66,14 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
         //Get the tcp endpoint for ModelLogger
         socket.recv(&slave_logging_pub_addr);
 
+        //Get the tcp endpoint for ModelLogger
+        socket.recv(&slave_startup);
+
         std::string slave_mode_str(static_cast<char *>(slave_mode.data()), slave_mode.size());
         std::string master_control_pub_addr_str(static_cast<char *>(master_control_pub_addr.data()), master_control_pub_addr.size());
         std::string slave_logging_pub_addr_str(static_cast<char *>(slave_logging_pub_addr.data()), slave_logging_pub_addr.size());
         std::string slave_name_str(static_cast<char *>(slave_name.data()), slave_name.size());
+        std::string slave_startup_str(static_cast<char *>(slave_startup.data()), slave_startup.size());
 
         std::cout << "------------[Slave Info]------------" << std::endl;
         std::cout << "* Master Endpoint: " << master_control_pub_addr_str << std::endl;
@@ -96,6 +101,7 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
             }
 
             bool s2 = deployment_manager_->SetupModelLogger(slave_logging_pub_addr_str, slave_name_str, logger_mode);
+            bool s3 = deployment_manager_->ProcessStartupMessage(slave_startup_str);
 
             if(!s1){
                 reply_message += "Failed SetupControlMessageReceiver(" + master_control_pub_addr_str + ", " + slave_name_str + ")";
@@ -103,7 +109,10 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
             if(!s2){
                 reply_message += "\r\nFailed SetupModelLogger(" + master_control_pub_addr_str + ", " + slave_name_str + ")";
             }
-            success = s1 && s2;
+            if(!s3){
+                reply_message += "\r\nFailed Startup(" + master_control_pub_addr_str + ", " + slave_name_str + ")";
+            }
+            success = s1 && s2 && s3;
         }
         if(success){
             reply_message = "OKAY";

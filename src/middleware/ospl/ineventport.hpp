@@ -151,6 +151,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
     //Attach listener to only respond to data_available()
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
+
     while(true){
         {
             //Wait for next message

@@ -71,6 +71,24 @@ std::vector<std::string> ExecutionManager::GetNodeManagerSlaveAddresses(){
     return required_slave_addresses_;
 }
 
+std::string ExecutionManager::GetSlaveStartupMessage(std::string slave_host_name){
+    std::unique_lock<std::mutex>(mutex_);
+    std::string str;
+    //Look through the deployment map for instructions to send the newly online slave
+    for(auto a: deployment_map_){
+        //Match the host_name 
+        std::string host_name = a.second->mutable_node()->mutable_info()->name();
+
+        if(slave_host_name == host_name){
+            auto startup_message_pb = a.second;
+            if(startup_message_pb && startup_message_pb->SerializeToString(&str)){
+                std::cout << "Serialized: " << host_name << std::endl;
+            }
+        }
+    }
+    return str;
+}
+
 void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
     bool slave_online = response == "OKAY";
 

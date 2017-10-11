@@ -27,26 +27,16 @@ namespace qpid{
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
             bool Teardown();
-
-            bool Activate();
             bool Passivate();
 
         private:
-            void qpid_loop();
+            void qpid_loop(std::string broker, std::string topic_name);
 
             qpid::messaging::Connection connection_;
-            qpid::messaging::Session session_;
             qpid::messaging::Receiver receiver_;
 
             std::mutex control_mutex_;
-            std::mutex notify_mutex_;
-            std::thread* receive_thread_;
             std::thread* qpid_thread_;
-            std::condition_variable notify_lock_condition_;
-
-            std::queue<std::string> message_queue_;
-
-            bool configured_ = false;
     };
 };
 
@@ -74,14 +64,21 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::cout << "**topic_name: "<< topic_name << std::endl << std::endl;
 
 
-    if(broker.length() > 0 && topic_name.length() > 0){
+    if(broker.length() && topic_name.length(){
+        //Construct a Qpid Connection
         connection_ = qpid::messaging::Connection(broker);
+        //Open the connection
         connection_.open();
-        session_ = connection_.createSession();
+        //Construct a session
+
+        auto session = connection_.createSession();
         //TODO: fix this to use actual topic name
-        receiver_ = session_.createReceiver( "amq.topic/"  + topic_name);
-        
-        configured_ = true; 
+        receiver_ = session.createReceiver( "amq.topic/"  + topic_name);
+
+        if(!qpid_thread_){
+            qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
+            Activatable::WaitForStartup();
+        }
     }
 };
 
@@ -89,45 +86,38 @@ template <class T, class S>
 bool qpid::InEventPort<T, S>::Teardown(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::Teardown()){
-        configured_ = false;
-        return true;
-    }
-    return false;
-};
-
-template <class T, class S>
-bool qpid::InEventPort<T, S>::Activate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::Activate()){
-        if(configured_){
-            qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
-        }
-        return true;
-    }
-    return false;
-};
-
-template <class T, class S>
-bool qpid::InEventPort<T, S>::Passivate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::Passivate()){
-        if(qpid_thread_ && connection_.isOpen()){
-            //do passivation things here
-            receiver_.close();
+        if(qpid_thread_){
             qpid_thread_->join();
             delete qpid_thread_;
             qpid_thread_ = 0;
             connection_.close();
-            EventPort::LogPassivation();
         }
         return true;
     }
     return false;
+};
+
+
+template <class T, class S>
+bool qpid::InEventPort<T, S>::Passivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+
+    if(this->is_active() && connection_.isOpen()){
+        //do passivation things here
+        receiver_.close();
+    }
+    return ::InEventPort<T>::Passivate();
 };
 
 
 template <class T, class S>
 void qpid::InEventPort<T, S>::qpid_loop(){
+    //Notify Startup our thread is good to go
+    Activatable::StartupFinished();
+    //Wait for the port to be activated before starting!
+    Activatable::WaitForActivate();
+    //Log the port becoming online
+    EventPort::LogActivation();
     while(true){
         try{
 
@@ -144,6 +134,7 @@ void qpid::InEventPort<T, S>::qpid_loop(){
             }
         }
     }
+    EventPort::LogPassivation();
 };
 
 #endif //QPID_INEVENTPORT_H

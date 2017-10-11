@@ -17,7 +17,7 @@ template <class T> class InEventPort: public EventPort{
     public:
         InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
         virtual ~InEventPort();
-        virtual bool Activate();
+        //virtual bool Activate();
         virtual bool Passivate();
         virtual bool Teardown();
     protected:
@@ -46,24 +46,25 @@ InEventPort<T>::InEventPort(Component* component, std::string name, std::functio
     }else{
         std::cout << "InEventPort: " << name << " has a NULL Callback Function!" << std::endl;
     }
+    if(!queue_thread_){
+        queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
+    }
 };
 
 template <class T>
 InEventPort<T>::~InEventPort(){
     //Teardown
 };
-
+/*
 template <class T>
 bool InEventPort<T>::Activate(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(EventPort::Activate()){
-        if(!queue_thread_){
-            queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
-        }
+        
         return true;
     }
     return false;
-};
+};*/
 
 template <class T>
 bool InEventPort<T>::Passivate(){

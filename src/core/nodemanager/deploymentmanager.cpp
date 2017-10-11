@@ -71,6 +71,20 @@ void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
     notify_lock_condition_.notify_all();
 }
 
+bool DeploymentManager::ProcessStartupMessage(std::string startup_str){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(!deployment_){
+        deployment_ = new NodeContainer(library_path_);
+        NodeManager::ControlMessage message;
+        auto success = message.ParseFromString(startup_str);
+        if(success){
+            deployment_->Configure(&message);
+            return true;
+        }
+    }
+    return false;
+}
+
 void DeploymentManager::ProcessControlQueue(){
     std::queue<NodeManager::ControlMessage*> queue_;
     
