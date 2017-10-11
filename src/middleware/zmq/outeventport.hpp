@@ -59,7 +59,9 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
 
     }
     if(end_points_.size()){
+        std::cout << "Running TX" << std::endl;
         setup_tx();
+        std::cout << "Runned TX" << std::endl;
     }
 };
 
@@ -86,8 +88,6 @@ void zmq::OutEventPort<T, S>::setup_tx(){
             std::cout << "Couldn't Bind!" << std::endl;
         }
     }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 };
 
 template <class T, class S>
