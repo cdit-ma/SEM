@@ -58,7 +58,7 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         }
 
     }
-    if(end_points.size()){
+    if(end_points_.size()){
         setup_tx();
     }
 };
