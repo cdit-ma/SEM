@@ -24,7 +24,6 @@ namespace zmq{
             void setup_tx();
 
             std::mutex control_mutex_;
-            bool configured_ = false;
             
             zmq::socket_t* socket_;
             std::vector<std::string> end_points_;

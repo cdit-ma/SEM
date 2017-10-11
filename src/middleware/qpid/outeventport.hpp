@@ -31,7 +31,6 @@ namespace qpid{
         private:
             void setup_tx();
             std::mutex control_mutex_;
-            bool configured_ = false;
 
             std::string broker_;
             std::string topic_;

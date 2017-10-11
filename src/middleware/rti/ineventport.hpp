@@ -21,20 +21,15 @@ namespace rti{
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
             bool Teardown();
-
-            bool Activate();
             bool Passivate();
 
 
         private:
             void receive_loop();
             
-            
             std::thread* rec_thread_ = 0;
-
             std::mutex notify_mutex_;
             std::mutex control_mutex_;
-
             std::condition_variable notify_lock_condition_;
 
             std::string topic_name_;
@@ -42,15 +37,13 @@ namespace rti{
             std::string qos_profile_name_;
             int domain_id_ = 0;
             std::string subscriber_name_;
-
             bool passivate_ = false;
-            bool configured_ = false;
     }; 
 };
 
 template <class T, class S>
 void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
-    {std::lock_guard<std::mutex> lock(control_mutex_);
+    std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("topic_name")){
         topic_name_ = attributes["topic_name"]->get_String();
@@ -82,56 +75,47 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
 
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
-        configured_ = true;
+        if(!rec_thread_){
+            rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
+            Activatable::WaitForStartup();
+        }
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
-    }
-};
-
-
-template <class T, class S>
-bool rti::InEventPort<T, S>::Activate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    passivate_ = false;
-    if(configured_){
-        rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
-    }
-    return ::InEventPort<T>::Activate();
 };
 
 template <class T, class S>
 bool rti::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    passivate_ = true;
-    if(rec_thread_){
-        //Unlock the rec thread
-        notify();
-
-        //Join our zmq_thread
-        rec_thread_->join();
-        delete rec_thread_;
-        rec_thread_ = 0;
+    {
+        std::lock_guard<std::mutex> lock(notify_mutex_);
+        passivate_ = true;
     }
-    
+    //Unlock the reciever
+    notify();
     return ::InEventPort<T>::Passivate();
 };
 
 
 template <class T, class S>
 bool rti::InEventPort<T, S>::Teardown(){
-    Passivate();
-
     std::lock_guard<std::mutex> lock(control_mutex_);
-    configured_ = false;
-    return ::InEventPort<T>::Teardown();
+    if(::InEventPort<T>::Teardown()){
+        if(rec_thread_){
+            //Join our zmq_thread
+            rec_thread_->join();
+            delete rec_thread_;
+            rec_thread_ = 0;
+        }
+        return true;
+    }
+    return false;
 };
 
 
 template <class T, class S>
 void rti::InEventPort<T, S>::notify(){
     //Called by the DataReaderListener to notify our InEventPort thread to get new data
-    std::unique_lock<std::mutex> lock(notify_mutex_);
     notify_lock_condition_.notify_all();
 };
 
@@ -156,13 +140,19 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Attach listener to only respond to data_available()
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
+    //Notify Startup our thread is good to go
+    Activatable::StartupFinished();
+    //Wait for the port to be activated before starting!
+    Activatable::WaitForActivate();
+    //Log the port becoming online
+    EventPort::LogActivation();
+    
     while(true){
         {
             //Wait for next message
             std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock);
-
-            if(passivate_){
+            auto cancelled = notify_lock_condition_.wait(lock,[this]{return this->passivate_;});
+            if(cancelled){
                 break;
             }
         }
@@ -181,6 +171,7 @@ void rti::InEventPort<T, S>::receive_loop(){
         }
         
     }
+    EventPort::LogPassivation();
 };
 
 #endif //RTI_INEVENTPORT_H
