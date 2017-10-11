@@ -75,9 +75,7 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
 
 
     if(topic_name_.length() && subscriber_name_.length() && domain_id_ >= 0){
-        std::cout <<  "Constructing Thread!" << std::endl;
         if(!rec_thread_){
-            std::cout <<  "Constructing Thread2!" << std::endl;
             rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
             Activatable::WaitForStartup();
         }
@@ -155,7 +153,6 @@ void rti::InEventPort<T, S>::receive_loop(){
     Activatable::StartupFinished();
     
     if(!success){
-        std::cout << "GOT ERROR!" << std::endl;
         //Return back on error
         return;
     }
@@ -165,7 +162,6 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Log the port becoming online
     EventPort::LogActivation();
 
-    std::cout << "Waiting for notify!" << std::endl;
     while(true){
         {
             //Wait for next message
@@ -177,7 +173,6 @@ void rti::InEventPort<T, S>::receive_loop(){
         }
         ///Read all our samples
         try{
-            std::cout << "WAiting for samples!" << std::endl;
             auto samples = reader_.take();
             for(auto sample : samples){
                 //Translate and callback into the component for each valid message we receive
