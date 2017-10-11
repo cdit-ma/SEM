@@ -117,9 +117,6 @@ bool rti::InEventPort<T, S>::Teardown(){
 
 template <class T, class S>
 void rti::InEventPort<T, S>::notify(){
-    //Wait for next message
-    std::unique_lock<std::mutex> lock(notify_mutex_);
-    std::cout << "NOTIFY ME HEARTY" << std::endl;
     //Called by the DataReaderListener to notify our InEventPort thread to get new data
     notify_lock_condition_.notify_all();
 };
@@ -173,7 +170,7 @@ void rti::InEventPort<T, S>::receive_loop(){
         {
             //Wait for next message
             std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock, [this]{return this->passivate_;});
+            notify_lock_condition_.wait(lock);
             if(this->passivate_){
                 break;
             }
