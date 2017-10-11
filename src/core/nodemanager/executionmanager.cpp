@@ -132,7 +132,7 @@ void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
     inactive_slave_addresses_.erase(std::remove(inactive_slave_addresses_.begin(), inactive_slave_addresses_.end(), endpoint), inactive_slave_addresses_.end());
     
     if(initial_size > 0 && inactive_slave_addresses_.empty()){
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         ActivateExecution();
     }
 }
