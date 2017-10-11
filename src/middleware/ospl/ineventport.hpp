@@ -64,21 +64,18 @@ void ospl::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
        qos_profile_path_ = attributes["qos_profile_path"]->get_String();
    }
 
-   std::cout << "ospl::InEventPort" << std::endl;
-   std::cout << "**domain_id_: " << domain_id_ << std::endl;
-   std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
-   std::cout << "**topic_name_: "<< topic_name_ << std::endl;
-   std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
-   std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
-
-
    if(topic_name_.length() && subscriber_name_.length() && domain_id_ >= 0){
        if(!rec_thread_){
            rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
            Activatable::WaitForStartup();
        }
    }else{
-       std::cout << "ospl::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
+        std::cerr << "ospl::InEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
+        std::cerr << "\t*Domain ID: "<< domain_id_ << std::endl;
+        std::cerr << "\t*Subscriber Name: "<< subscriber_name_ << std::endl;
+        std::cerr << "\t*Topic Name: "<< topic_name_ << std::endl;
+        std::cerr << "\t*QOS Profile Path: " << qos_profile_path_ << std::endl;
+        std::cerr << "\t*QOS Profile Name: " << qos_profile_name_ << std::endl << std::endl;
    }
 };
 

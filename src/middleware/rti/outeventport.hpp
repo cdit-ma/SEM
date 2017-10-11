@@ -81,11 +81,11 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         setup_tx();
     }else{
         std::cerr << "rti::OutEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
-        std::cerr << "\t*domain_id_: "<< domain_id_ << std::endl;
-        std::cerr << "\t*publisher_name_: "<< publisher_name_ << std::endl;
-        std::cerr << "\t*topic_name_: "<< topic_name_ << std::endl;
-        std::cerr << "\t*qos_profile_path: " << qos_profile_path_ << std::endl;
-        std::cerr << "\t*qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
+        std::cerr << "\t*Domain ID: "<< domain_id_ << std::endl;
+        std::cerr << "\t*Publisher Name: "<< publisher_name_ << std::endl;
+        std::cerr << "\t*Topic Name: "<< topic_name_ << std::endl;
+        std::cerr << "\t*QOS Profile Path: " << qos_profile_path_ << std::endl;
+        std::cerr << "\t*QOS Profile Name: " << qos_profile_name_ << std::endl << std::endl;
     }
 };
 
