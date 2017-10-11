@@ -32,7 +32,7 @@ template<class M> dds::topic::Topic<M> ospl::get_topic(dds::domain::DomainPartic
         //If we can't find the topic, we should construct it
         topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
-        std::cerr << "ospl::get_topic: Constructed Topic: " << topic_name << std::endl;
+        //std::cerr << "ospl::get_topic: Constructed Topic: " << topic_name << std::endl;
     }
     return topic;
 };
