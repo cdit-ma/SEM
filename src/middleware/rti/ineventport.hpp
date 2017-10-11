@@ -151,8 +151,8 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Notify Startup our thread is good to go
     Activatable::StartupFinished();
     
-    if(!reader_){
-        //Return back mate!
+    if(reader_ == dds::core::null){
+        //Return back on error
         return;
     }
     
