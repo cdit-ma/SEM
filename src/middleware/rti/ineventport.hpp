@@ -146,13 +146,13 @@ void rti::InEventPort<T, S>::receive_loop(){
     Activatable::WaitForActivate();
     //Log the port becoming online
     EventPort::LogActivation();
-    
+
     while(true){
         {
             //Wait for next message
             std::unique_lock<std::mutex> lock(notify_mutex_);
-            auto cancelled = notify_lock_condition_.wait(lock,[this]{return this->passivate_;});
-            if(cancelled){
+            notify_lock_condition_.wait(lock, [this]{return this->passivate_;});
+            if(this->passivate_){
                 break;
             }
         }
