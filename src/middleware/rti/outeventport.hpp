@@ -43,7 +43,7 @@ void rti::OutEventPort<T, S>::tx(T* message){
         writer_.write(*m);
         delete m;
         ::OutEventPort<T>::tx(message);
-        std::endl << "Writen message" << std::endl;
+        std::cout << "Writen message" << std::endl;
     }
 };
 
