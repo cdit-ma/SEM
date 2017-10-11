@@ -30,7 +30,7 @@ namespace qpid{
             bool Passivate();
 
         private:
-            void qpid_loop(std::string broker, std::string topic_name);
+            void qpid_loop();
 
             qpid::messaging::Connection connection_;
             qpid::messaging::Receiver receiver_;
@@ -64,7 +64,7 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::cout << "**topic_name: "<< topic_name << std::endl << std::endl;
 
 
-    if(broker.length() && topic_name.length(){
+    if(broker.length() && topic_name.length()){
         //Construct a Qpid Connection
         connection_ = qpid::messaging::Connection(broker);
         //Open the connection
