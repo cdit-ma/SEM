@@ -137,7 +137,7 @@ void rti::InEventPort<T, S>::receive_loop(){
         auto topic = get_topic<S>(participant, topic_name_);
 
         auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-        auto reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
+        reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
         
         //Construct a DDS Listener, designed to call back into the receive thread
         auto listener_ = new rti::DataReaderListener<T, S>(this);
