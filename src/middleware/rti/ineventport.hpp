@@ -82,7 +82,7 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
 };
 
 template <class T, class S>
-bool rti::+<T, S>::Passivate(){
+bool rti::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     {
         std::lock_guard<std::mutex> lock(notify_mutex_);

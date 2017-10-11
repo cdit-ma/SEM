@@ -62,13 +62,6 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     }
     if(valid){
         setup_tx();
-    }else{
-        std::cerr << "rti::InEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
-        std::cerr << "\t*domain_id_: "<< domain_id_ << std::endl;
-        std::cerr << "\t*publisher_name_: "<< publisher_name_ << std::endl;
-        std::cerr << "\t*topic_name_: "<< topic_name_ << std::endl;
-        std::cerr << "\t*qos_profile_path: " << qos_profile_path_ << std::endl;
-        std::cerr << "\t*qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
     }
 };
 
