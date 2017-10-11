@@ -25,14 +25,14 @@ template<class M> dds::topic::Topic<M> ospl::get_topic(dds::domain::DomainPartic
         //Try use the Middleware's find function to find the topic
         topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     }catch(dds::core::InvalidDowncastError	e){
-        std::cout << "ospl::get_topic: Error: " << e.what() << std::endl;
+        std::cerr << "ospl::get_topic: Error: " << e.what() << std::endl;
     }
 
     if(topic == dds::core::null){
         //If we can't find the topic, we should construct it
         topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
-        std::cout << "ospl::get_topic: Constructed Topic: " << topic_name << std::endl;
+        std::cerr << "ospl::get_topic: Constructed Topic: " << topic_name << std::endl;
     }
     return topic;
 };
@@ -54,7 +54,7 @@ template<class M> dds::pub::DataWriter<M> ospl::get_data_writer(dds::pub::Publis
 
         writer = dds::pub::DataWriter<M>(publisher, topic, qos);
         writer.retain();
-        std::cout << "ospl::get_data_writer: Constructed DataWriter" << std::endl;
+        //std::cout << "ospl::get_data_writer: Constructed DataWriter" << std::endl;
     }
     return writer;
 };
@@ -76,7 +76,7 @@ template<class M> dds::sub::DataReader<M> ospl::get_data_reader(dds::sub::Subscr
 
         reader = dds::sub::DataReader<M>(subscriber, topic, qos);
         reader.retain();
-        std::cout << "ospl::get_data_reader: Constructed DataReader" << std::endl;
+        //std::cout << "ospl::get_data_reader: Constructed DataReader" << std::endl;
     }
     return reader;
 };
