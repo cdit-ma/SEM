@@ -15,7 +15,7 @@ Entity::Entity(Entity* parent, std::string label, Kind kind){
 }
 
 Entity::~Entity(){
-    //TODO
+    
 }
 
 void Entity::set_id(int id){

@@ -18,6 +18,8 @@ private:
      QRectF ipTextRect() const;
      QRectF rightRect() const;
      QRectF labelRect() const;
+     QRectF connectSourceRect() const;
+     QRectF connectTargetRect() const;
 
 private:
     void setupBrushes();

@@ -145,7 +145,8 @@ bool FileHandler::ensureDirectory(QString path)
 }
 
 bool FileHandler::removeFile(QString path){
-    bool success = QFile::remove(path);
+    QFile file(path);
+    bool success = file.exists() ? QFile::remove(path) : true;
 
     if(!success){
         _notification(Notification::Severity::ERROR, "File: '" % path % "' failed to be removed!", "Icons", "file");

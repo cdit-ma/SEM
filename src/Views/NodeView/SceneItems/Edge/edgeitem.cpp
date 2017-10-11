@@ -675,8 +675,8 @@ void EdgeItem::resetCenter()
         
         //Calculate new Center position
         auto center = (srcCenter + dstCenter) / 2;
-
-        setPos(mapFromScene(center));
+        auto scene_center = mapFromScene(center);
+        setPos(scene_center);
 
         if(!_isCentered){
             emit req_triggerAction("Resetting Edge Position");

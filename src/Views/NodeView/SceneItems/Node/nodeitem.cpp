@@ -1233,6 +1233,9 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) co
         //Get our position 
         double pos = getEdgeConnectPos(direction, kind);
         double count = getAllVisualEdgeKinds().count(direction);
+        if(count == 0){
+            count = 1;
+        }
         auto top_left = rect.topLeft();
 
         //Adjust the height

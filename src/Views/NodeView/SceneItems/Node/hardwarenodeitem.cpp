@@ -135,6 +135,21 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     NodeItem::paint(painter, option, widget);
 }
 
+
+QRectF HardwareNodeItem::connectSourceRect() const
+{
+    QRectF r = mainRect();
+    r.setRight(r.left() + (smallIconSize().width() * 2));
+    return r;
+}
+
+QRectF HardwareNodeItem::connectTargetRect() const
+{
+    QRectF r = mainRect();
+    r.setLeft(r.right() - (smallIconSize().width() * 2));
+    return r;
+}
+
 QRectF HardwareNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
@@ -146,6 +161,10 @@ QRectF HardwareNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
         return ipIconRect();
     case ER_SECONDARY_TEXT:
         return ipTextRect();
+    case ER_CONNECT_TARGET:
+        return connectTargetRect();
+    case ER_CONNECT_SOURCE:
+        return connectSourceRect();
     default:
         return NodeItem::getElementRect(rect);
     }
