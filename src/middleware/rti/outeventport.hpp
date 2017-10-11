@@ -109,7 +109,7 @@ void rti::OutEventPort<T, S>::setup_tx(){
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     auto publisher = helper->get_publisher(participant, publisher_name_);
     writer_ = get_data_writer<S>(publisher, topic, qos_profile_path_, qos_profile_name_);
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    
 };
 
 template <class T, class S>
