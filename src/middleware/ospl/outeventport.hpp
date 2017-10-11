@@ -80,11 +80,11 @@ void ospl::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attri
        setup_tx();
    }else{
         std::cerr << "rti::OutEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
-        std::cerr << "\t*domain_id_: "<< domain_id_ << std::endl;
-        std::cerr << "\t*publisher_name_: "<< publisher_name_ << std::endl;
-        std::cerr << "\t*topic_name_: "<< topic_name_ << std::endl;
-        std::cerr << "\t*qos_profile_path: " << qos_profile_path_ << std::endl;
-        std::cerr << "\t*qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
+        std::cerr << "\t*Domain ID: "<< domain_id_ << std::endl;
+        std::cerr << "\t*Publisher Name: "<< publisher_name_ << std::endl;
+        std::cerr << "\t*Topic Name: "<< topic_name_ << std::endl;
+        std::cerr << "\t*QOS Profile Path: " << qos_profile_path_ << std::endl;
+        std::cerr << "\t*QOS Profile Name: " << qos_profile_name_ << std::endl << std::endl;
     }
 };
 
@@ -105,9 +105,9 @@ void ospl::OutEventPort<T, S>::setup_tx(){
    auto participant = helper->get_participant(domain_id_);
    auto topic = get_topic<S>(participant, topic_name_);
    
-   //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
    auto publisher = helper->get_publisher(participant, publisher_name_);
    writer_ = get_data_writer<S>(publisher, topic, qos_profile_path_, qos_profile_name_);
+   std::this_thread::sleep_for(std::chrono::milliseconds(250));
 };
 
 template <class T, class S>
