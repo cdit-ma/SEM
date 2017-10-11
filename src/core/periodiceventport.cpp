@@ -46,6 +46,10 @@ void PeriodicEventPort::Loop(){
     //Log the port becoming online
     EventPort::LogActivation();
     while(true){
+        if(!WaitForTick()){
+            break;
+        }
+
         BaseMessage t;
         if(is_active() && callback_){
             logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::STARTED_FUNC);
@@ -54,9 +58,6 @@ void PeriodicEventPort::Loop(){
         }else{
             //Log that didn't call back on this message
             logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::IGNORED);
-        }
-        if(!WaitForTick()){
-            break;
         }
     }
     EventPort::LogPassivation();
