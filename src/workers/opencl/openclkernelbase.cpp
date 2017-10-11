@@ -20,7 +20,7 @@ bool OpenCLKernelBase::Run(unsigned int gpu_num, bool block, const cl::NDRange& 
     err = queue.enqueueNDRangeKernel(kernel_, offset, global, local, NULL, &kernel_event);
     if (err != CL_SUCCESS) {
         LogError(__func__,
-            "Failed to enqueue RunParallel kernel for execution", err);
+            "Failed to enqueue kernel '"+name_+"' for execution", err);
             return false;
     }
 

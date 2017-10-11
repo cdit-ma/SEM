@@ -14,8 +14,8 @@ public:
     bool SetArgs(T0& arg0, Ts&... args);
 
 protected:
-    void LogError(std::string function_name, std::string error_message, cl_int cl_error_code);
-    void LogError(std::string function_name, std::string error_message);
+    virtual void LogError(std::string function_name, std::string error_message, cl_int cl_error_code);
+    virtual void LogError(std::string function_name, std::string error_message);
 
 private:
     template <typename T0, typename... Ts>
@@ -57,6 +57,7 @@ bool OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     // If we are passed something derived from GenericBuffer we know the backing reference will be properly handled
     if(std::is_base_of<GenericBuffer, T0>::value) {
         const cl::Buffer& buffer_arg = reinterpret_cast<const GenericBuffer*>(&arg0)->GetBackingRef();
+        std::cout << "Bakcing ref in setArgs at index " << index << ": " << &(buffer_arg) << std::endl;
         err = kernel_.setArg(index, buffer_arg);
     } else {
         err = kernel_.setArg(index, arg0);

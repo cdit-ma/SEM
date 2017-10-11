@@ -9,8 +9,6 @@
 #include <core/modellogger.h>
 #include <core/worker.h>
 
-#include "openclutilities.h"
-
 #include "oclbuffer.hpp"
 #include "openclkernel.hpp"
 

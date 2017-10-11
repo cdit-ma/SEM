@@ -58,10 +58,21 @@ bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
 bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC) {
     auto bufferA = manager_->CreateBuffer<float>(matA, this);
     auto bufferB = manager_->CreateBuffer<float>(matB, this);
-    auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
+    //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
+    auto result_buffer = manager_->CreateBuffer<float>(matC, this);
+    
+    for (const auto& e : matA) std::cout << "matA " << e << std::endl;
+    for (const auto& e : matB) std::cout << "matB " << e << std::endl;
+    for (const auto& e : matC) std::cout << "matC " << e << std::endl;
 
     bool success = MatrixMult(*bufferA, *bufferB, *result_buffer);
+    auto new_matA = bufferA->ReadData(true, this);
+    auto new_matB = bufferB->ReadData(true, this);
     matC = result_buffer->ReadData(true, this);
+    
+    for (const auto& e : new_matA) std::cout << "matA " << e << std::endl;
+    for (const auto& e : new_matB) std::cout << "matB " << e << std::endl;
+    for (const auto& e : matC) std::cout << "matC " << e << std::endl;
 
     manager_->ReleaseBuffer(bufferA, this);
     manager_->ReleaseBuffer(bufferB, this);
@@ -74,7 +85,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     cl_uint lenA = (cl_uint)matA.GetSize();
     cl_uint lenB = (cl_uint)matB.GetSize();
     cl_uint lenC = (cl_uint)matC.GetSize();
-    
+
     // Determine the dimensions of the matrices from the lengths of the data
     if (lenA == 0 || lenB == 0 || lenC == 0) {
         if (lenA + lenB + lenC == 0) {
@@ -131,11 +142,26 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
 	while (global_height < max_mat_height) global_height += block_length;
 
     // TODO: Mutex this stuff
-    matrix_kernel_->SetArgs(matA, matB, matC, M, K, N,
+    bool did_set_args = matrix_kernel_->SetArgs(matA, matB, matC, M, K, N,
         cl::Local(block_data_size), cl::Local(block_data_size));
+    if (did_set_args) {
+        std::cout << "Life has no meaning" << std::endl;
+    }
 
-    matrix_kernel_->Run(0, true, cl::NullRange,
+    if (matC.GetNumElements() == 1) {
+        std::cout << matC.ReadData()[0] << std::endl;
+    }
+
+    bool did_kernel_do_good = matrix_kernel_->Run(0, true, cl::NullRange,
         cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length));
+
+        if (did_kernel_do_good) {
+            std::cout << "Life has no meaning2" << std::endl;
+        }
+
+    if (matC.GetNumElements() == 1) {
+        std::cout << matC.ReadData()[0] << std::endl;
+    }
 
     return true;
 }
