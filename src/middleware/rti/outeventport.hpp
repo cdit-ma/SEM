@@ -78,7 +78,7 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
         std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
-        configured = topic_name_.length() && publisher_name_.length() && domain_id_ >= 0;
+        configured_ = topic_name_.length() && publisher_name_.length() && domain_id_ >= 0;
     }
 
     if(configured_){
