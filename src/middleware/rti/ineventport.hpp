@@ -152,7 +152,7 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Notify Startup our thread is good to go
     Activatable::StartupFinished();
     
-    if(@success){
+    if(!success){
         //Return back on error
         return;
     }
