@@ -126,22 +126,36 @@ rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 };
 
 template <class T, class S>
-void rti::InEventPort<T, S>::receive_loop(){ 
-    //Construct a DDS Participant, Subscriber, Topic and Reader
-    auto helper = DdsHelper::get_dds_helper();    
-    auto participant = helper->get_participant(domain_id_);
-    auto topic = get_topic<S>(participant, topic_name_);
+void rti::InEventPort<T, S>::receive_loop(){
+    dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
 
-    auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-    auto reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
+    bool success = false;
+    try{
+        //Construct a DDS Participant, Subscriber, Topic and Reader
+        auto helper = DdsHelper::get_dds_helper();    
+        auto participant = helper->get_participant(domain_id_);
+        auto topic = get_topic<S>(participant, topic_name_);
+
+        auto subscriber = helper->get_subscriber(participant, subscriber_name_);
+        auto reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_, qos_profile_name_);
+        
+        //Construct a DDS Listener, designed to call back into the receive thread
+        auto listener_ = new rti::DataReaderListener<T, S>(this);
+        //Attach listener to only respond to data_available()
+        reader_.listener(listener_, dds::core::status::StatusMask::data_available());
+    }catch(...){
+        std::cerr << "ERROR!" << std::endl;
+    }
+
     
-    //Construct a DDS Listener, designed to call back into the receive thread
-    auto listener_ = new rti::DataReaderListener<T, S>(this);
-    //Attach listener to only respond to data_available()
-    reader_.listener(listener_, dds::core::status::StatusMask::data_available());
-
     //Notify Startup our thread is good to go
     Activatable::StartupFinished();
+    
+    if(!reader_){
+        //Return back mate!
+        return;
+    }
+    
     //Wait for the port to be activated before starting!
     Activatable::WaitForActivate();
     //Log the port becoming online
