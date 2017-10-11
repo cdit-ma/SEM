@@ -125,10 +125,8 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                             attributes_[att->get_name()] = att;
                         }
                     }
-                    std::cout << "STARTUP " << port->get_name() << std::endl;
                     //Configure the port
                     port->Startup(attributes_);
-                    std::cout << "STARTUPED " << port->get_name() << std::endl;
                 }else{
                     ModelLogger::get_model_logger()->LogFailedPortConstruction(p_info->type(), p_info->name(), p_info->id());
                 }
