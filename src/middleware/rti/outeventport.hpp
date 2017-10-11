@@ -39,9 +39,11 @@ void rti::OutEventPort<T, S>::tx(T* message){
     if(this->is_active() && writer_ != dds::core::null){
         auto m = rti::translate(message);
         //De-reference the message and send
+        std::cout << "Writing message" << std::endl;
         writer_.write(*m);
         delete m;
         ::OutEventPort<T>::tx(message);
+        std::endl << "Writen message" << std::endl;
     }
 };
 

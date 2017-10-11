@@ -74,7 +74,7 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
 
 
-    if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
+    if(topic_name_.length() && subscriber_name_.length()){
         if(!rec_thread_){
             rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
             Activatable::WaitForStartup();
@@ -153,6 +153,7 @@ void rti::InEventPort<T, S>::receive_loop(){
     Activatable::StartupFinished();
     
     if(!success){
+        std::cout << "GOT ERROR!" << std::endl;
         //Return back on error
         return;
     }
@@ -173,6 +174,7 @@ void rti::InEventPort<T, S>::receive_loop(){
         }
         ///Read all our samples
         try{
+            std::cout << "WAiting for samples!" << std::endl;
             auto samples = reader_.take();
             for(auto sample : samples){
                 //Translate and callback into the component for each valid message we receive
