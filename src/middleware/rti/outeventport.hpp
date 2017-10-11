@@ -35,6 +35,7 @@ namespace rti{
 
 template <class T, class S>
 void rti::OutEventPort<T, S>::tx(T* message){
+    std::lock_guard<std::mutex> lock(control_mutex_);
     if(this->is_active() && writer_ != dds::core::null){
         auto m = rti::translate(message);
         //De-reference the message and send
@@ -97,6 +98,7 @@ bool rti::OutEventPort<T, S>::Teardown(){
 
 template <class T, class S>
 void rti::OutEventPort<T, S>::setup_tx(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id_);
@@ -105,7 +107,6 @@ void rti::OutEventPort<T, S>::setup_tx(){
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     auto publisher = helper->get_publisher(participant, publisher_name_);
     writer_ = get_data_writer<S>(publisher, topic, qos_profile_path_, qos_profile_name_);
-    
 };
 
 template <class T, class S>
