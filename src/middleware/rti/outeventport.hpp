@@ -39,11 +39,9 @@ void rti::OutEventPort<T, S>::tx(T* message){
     if(this->is_active() && writer_ != dds::core::null){
         auto m = rti::translate(message);
         //De-reference the message and send
-        std::cout << "Writing message" << std::endl;
         writer_.write(*m);
         delete m;
         ::OutEventPort<T>::tx(message);
-        std::cout << "Writen message" << std::endl;
     }
 };
 
@@ -74,18 +72,20 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         if(attributes.count("qos_profile_path")){
             qos_profile_path_ = attributes["qos_profile_path"]->get_String();
         }
-        std::cout << "rti::OutEventPort" << std::endl;
-        std::cout << "**domain_id_: "<< domain_id_ << std::endl;
-        std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
-        std::cout << "**topic_name_: "<< topic_name_ << std::endl;
-        std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
-        std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
+        
 
         configured_ = topic_name_.length() && publisher_name_.length() && domain_id_ >= 0;
     }
 
     if(configured_){
         setup_tx();
+    }else{
+        std::cerr << "rti::OutEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
+        std::cerr << "\t*domain_id_: "<< domain_id_ << std::endl;
+        std::cerr << "\t*publisher_name_: "<< publisher_name_ << std::endl;
+        std::cerr << "\t*topic_name_: "<< topic_name_ << std::endl;
+        std::cerr << "\t*qos_profile_path: " << qos_profile_path_ << std::endl;
+        std::cerr << "\t*qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
     }
 };
 

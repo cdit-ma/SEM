@@ -66,26 +66,23 @@ void rti::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
         qos_profile_path_ = attributes["qos_profile_path"]->get_String();
     }
 
-    std::cout << "rti::InEventPort" << std::endl;
-    std::cout << "**domain_id_: " << domain_id_ << std::endl;
-    std::cout << "**subscriber_name: " << subscriber_name_ << std::endl;
-    std::cout << "**topic_name_: "<< topic_name_ << std::endl;
-    std::cout << "**qos_profile_path: " << qos_profile_path_ << std::endl;
-    std::cout << "**qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
-
-
     if(topic_name_.length() && subscriber_name_.length() && domain_id_ >= 0){
         if(!rec_thread_){
             rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
             Activatable::WaitForStartup();
         }
     }else{
-        std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
+        std::cerr << "rti::InEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")::Startup: Not correcly configured!" << std::endl;
+        std::cerr << "\t*domain_id_: "<< domain_id_ << std::endl;
+        std::cerr << "\t*publisher_name_: "<< publisher_name_ << std::endl;
+        std::cerr << "\t*topic_name_: "<< topic_name_ << std::endl;
+        std::cerr << "\t*qos_profile_path: " << qos_profile_path_ << std::endl;
+        std::cerr << "\t*qos_profile_name: " << qos_profile_name_ << std::endl << std::endl;
     }
 };
 
 template <class T, class S>
-bool rti::InEventPort<T, S>::Passivate(){
+bool rti::+<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     {
         std::lock_guard<std::mutex> lock(notify_mutex_);
