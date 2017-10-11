@@ -117,6 +117,7 @@ bool rti::InEventPort<T, S>::Teardown(){
 
 template <class T, class S>
 void rti::InEventPort<T, S>::notify(){
+    std::cout << "NOTIFY ME HEARTY" << std::endl;
     //Called by the DataReaderListener to notify our InEventPort thread to get new data
     notify_lock_condition_.notify_all();
 };
