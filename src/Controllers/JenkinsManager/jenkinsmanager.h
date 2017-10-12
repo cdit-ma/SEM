@@ -69,6 +69,7 @@ signals:
 
     void AbortJob(QString job_name, int build_number, QString active_configuration="");
 private slots:
+    void settingsApplied();
     //From JenkinsRequests
     void GotJenkinsNodes_(bool success, QString data);
     void GotValidatedSettings_(bool valid, QString message);
@@ -98,10 +99,12 @@ private:
     QString scipts_path_;
     QString job_name_;
 
-    bool settings_validating_ = false;
     bool settings_validated_ = false;
     bool requesting_nodes_ = false;
+    bool validating_settings = false;
     bool got_java_ = false;
+
+    bool settings_changed = false;
 
 
     NotificationObject* jenkins_request_noti = 0;

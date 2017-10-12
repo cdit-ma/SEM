@@ -27,7 +27,7 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
     //Connect to settings changes
     SettingsController* settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, this, &JenkinsManager::SettingChanged);
-    connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::ValidateSettings);
+    connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::settingsApplied);
 
     //Sync settings to JenkinsManager
     foreach(SETTINGS key, settings->getSettingsKeys("Jenkins")){
@@ -70,6 +70,7 @@ void JenkinsManager::SetUrl(QString url)
     QMutexLocker(&this->mutex_);
     if(url_ != url){
         url_ = url;
+        settings_changed = true;
         settings_validated_ = false;
     }
 }
@@ -79,6 +80,7 @@ void JenkinsManager::SetUser(QString user)
     QMutexLocker(&this->mutex_);
     if(username_ != user){
         username_ = user;
+        settings_changed = true;
         settings_validated_ = false;
     }
 }
@@ -88,6 +90,7 @@ void JenkinsManager::SetApiToken(QString api_token)
     QMutexLocker(&this->mutex_);
     if(token_ != api_token){
         token_ = api_token;
+        settings_changed = true;
         settings_validated_ = false;
     }
 }
@@ -97,6 +100,7 @@ void JenkinsManager::SetJobName(QString job_name)
     QMutexLocker(&this->mutex_);
     if(job_name_ != job_name){
         job_name_ = job_name;
+        settings_changed = true;
         settings_validated_ = false;
     }
 }
@@ -111,6 +115,13 @@ bool JenkinsManager::GotValidSettings()
 {
     QMutexLocker(&this->mutex_);
     return settings_validated_;
+}
+
+
+void JenkinsManager::settingsApplied(){
+    if(settings_changed){
+        ValidateSettings();
+    }
 }
 
 
@@ -286,20 +297,24 @@ void JenkinsManager::SettingChanged(SETTINGS key, QVariant value)
     QString strValue = value.toString();
 
     switch(key){
-    case SETTINGS::JENKINC_API:{
+    case SETTINGS::JENKINS_API:{
         SetApiToken(strValue);
         break;
     }
-    case SETTINGS::JENKINC_JOBNAME:{
+    case SETTINGS::JENKINS_JOBNAME:{
         SetJobName(strValue);
         break;
     }
-    case SETTINGS::JENKINC_USER:{
+    case SETTINGS::JENKINS_USER:{
         SetUser(strValue);
         break;
     }
-    case SETTINGS::JENKINC_URL:{
+    case SETTINGS::JENKINS_URL:{
         SetUrl(strValue);
+        break;
+    }
+    case SETTINGS::JENKINS_APPLY:{
+        ValidateSettings();
         break;
     }
     default:
@@ -310,8 +325,9 @@ void JenkinsManager::SettingChanged(SETTINGS key, QVariant value)
 void JenkinsManager::GotValidatedSettings_(bool valid, QString message)
 {
     QMutexLocker(&this->mutex_);
-    settings_validating_ = false;
     settings_validated_ = valid;
+    validating_settings = false;
+    settings_changed = false;
     //Clear on settings changed
     jobsJSON.clear();
 
@@ -326,11 +342,11 @@ void JenkinsManager::GotValidatedSettings_(bool valid, QString message)
 void JenkinsManager::ValidateSettings()
 {
     QMutexLocker(&this->mutex_);
-    if(!settings_validating_ && !settings_validated_){
-        emit JenkinsReady(settings_validated_);
-        //Validate Settings
-        settings_validating_ = true;
-        JenkinsRequest* request = GetJenkinsRequest();
+    if(!settings_validated_ && !validating_settings){
+        validating_settings = true;
+        emit JenkinsReady(false);
+        
+        auto request = GetJenkinsRequest();
         auto r = connect(this, &JenkinsManager::ValidateSettings_, request, &JenkinsRequest::ValidateSettings);
         connect(request, &JenkinsRequest::GotValidatedSettings, this, &JenkinsManager::GotValidatedSettings_);
 

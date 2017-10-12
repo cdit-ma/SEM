@@ -157,12 +157,15 @@ void SettingsController::intializeSettings()
 
 
      //Jenkins - Server
-    createSetting(SETTINGS::JENKINC_URL, SETTING_TYPE::STRING, "Jenkins", "Server", "URL", "Icons", "globe");
-    createSetting(SETTINGS::JENKINC_JOBNAME, SETTING_TYPE::STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
+    createSetting(SETTINGS::JENKINS_URL, SETTING_TYPE::STRING, "Jenkins", "Server", "URL", "Icons", "globe");
+    createSetting(SETTINGS::JENKINS_JOBNAME, SETTING_TYPE::STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
 
     //Jenkins - User
-    createSetting(SETTINGS::JENKINC_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
-    createSetting(SETTINGS::JENKINC_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
+    createSetting(SETTINGS::JENKINS_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
+    createSetting(SETTINGS::JENKINS_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
+
+    createSetting(SETTINGS::JENKINS_APPLY, SETTING_TYPE::BUTTON, "Jenkins", "User", "Test Settings", "Icons", "circleTickDark");
+    
 
     createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
     createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
@@ -249,7 +252,7 @@ void SettingsController::intializeSettings()
 
     _getSetting(SETTINGS::GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
-    _getSetting(SETTINGS::JENKINC_JOBNAME)->setDefaultValue("deploy_model");
+    _getSetting(SETTINGS::JENKINS_JOBNAME)->setDefaultValue("deploy_model");
 
 }
 
