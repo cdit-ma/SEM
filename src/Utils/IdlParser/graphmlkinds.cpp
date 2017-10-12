@@ -1,5 +1,6 @@
 #include "graphmlkinds.h"
 #include "graphmlexporter.h"
+#include <iostream>
 
 using namespace Graphml;
 
@@ -10,7 +11,7 @@ Entity::Entity(Entity* parent, std::string label, Kind kind){
     label_ = label;
 
     if(parent){
-        parent->add_child(this);
+        index_ = parent->add_child(this);
     }
 }
 
@@ -18,19 +19,42 @@ Entity::~Entity(){
     
 }
 
+
+int Entity::get_index_definition_id(int index) const{
+    //std::cerr << this << " GETTING: " << index << std::endl;
+    if(id_lookup_.count(index)){
+        return id_lookup_.at(index);
+    }
+    return -1;
+}
+
+void Entity::add_index_definition_id(int index, int definition_id){
+    if(!id_lookup_.count(index)){
+        id_lookup_[index] = definition_id;
+    }else{
+        std::cerr << " Index ID already used: " << index << " " << definition_id << " BY: " << get_index_definition_id(index) << std::endl;
+    }
+}
+
 void Entity::set_id(int id){
     id_ = id;
 }
+int Entity::get_index() const{
+    return index_;
+}
 
-void Entity::add_child(Entity* child){
+int Entity::add_child(Entity* child){
     if(child){
-        children_.insert(child);
+        auto index = children_.size();
+        children_.push_back(child);
+        return index;
     }
+    return -1;
 }
 
 void Entity::remove_child(Entity* child){
     if(child){
-        children_.erase(child);
+        children_.erase(std::remove(children_.begin(), children_.end(), child), children_.end());
     }
 }
 
@@ -54,7 +78,7 @@ void Entity::set_label(std::string label){
 int Entity::get_id() const{
     return id_;
 }
-std::set<Entity*> Entity::get_children() const{
+std::vector<Entity*> Entity::get_children() const{
     return children_;
 }
 
@@ -67,15 +91,27 @@ Kind Entity::get_kind() const{
 }
 
 std::string Entity::get_namespace() const{
-    if(!parent_){
-        return "";
-    }else{
-        auto parent_namespace = parent_->get_namespace();
-        auto ns = parent_namespace;
-        ns += parent_namespace == "" ? "" : "::";
-        ns += get_label();
-        return ns;
+    std::string ns;
+    auto parent = this;
+    while(parent){
+        auto next_parent = parent->get_parent();
+        //Ignore my root lad
+        if(next_parent){
+            ns = parent->get_label() + (ns.length() == 0 ? "" : "::") + ns;
+        }
+        parent = next_parent;
     }
+    return ns;
+}
+
+std::string Aggregate::get_namespace() const{
+    
+    std::string ns;
+    auto p = get_parent();
+    if(p){
+        ns = p->get_namespace();
+    }
+    return ns;
 }
 
 //NAMESPACE FUNCTIONS
@@ -83,7 +119,7 @@ Namespace::Namespace(Namespace* parent, std::string label): Entity(parent, label
 }
 
 //ENUM FUNCTIONS
-Enum::Enum(Namespace* parent, std::string label, std::vector<std::string> enum_values): Entity(parent, label, Kind::NAMESPACE){
+Enum::Enum(Namespace* parent, std::string label, std::vector<std::string> enum_values): Entity(parent, label, Kind::ENUM){
     enum_values_ = enum_values;
 }
 
@@ -111,6 +147,14 @@ bool Member::is_complex() const{
 
 bool Member::is_sequence() const{
     return is_sequence_;
+}
+
+void Member::set_is_key(bool is_key){
+    is_key_ = is_key;
+}
+
+bool Member::is_key() const{
+    return is_key_;
 }
 
 Entity* Member::get_complex_type() const{
@@ -142,29 +186,41 @@ std::string Model::ToGraphml(){
     exporter->export_node();
     exporter->export_data("kind", "InterfaceDefinitions");
     exporter->export_graph();
-
-    for(auto aggregate_id : aggregate_ids_){
-        auto aggregate = AsAggregate(get_entity(aggregate_id));
-        if(aggregate){
-            export_aggregate(exporter, aggregate);
-        }
-    }
+    
+    export_entity(exporter, root_);
 
     //Close the exporter
     exporter->close();
-
-
     return exporter->ToGraphml();
 }
 
-int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* member_instance, Aggregate* top_aggregate, int current_index){
+int Model::export_entity(Exporter* exporter, Entity* entity, Member* member_instance, Aggregate* parent_aggregate, int current_index){
+    auto namespace_var = AsNamespace(entity);
+    auto aggregate_var = AsAggregate(entity);
+    auto member_var = AsMember(entity);
+    auto enum_var = AsEnum(entity);
+    if(namespace_var){
+        for(auto child : namespace_var->get_children()){
+            export_entity(exporter, child, member_instance, parent_aggregate, current_index);
+        }
+    }else if(aggregate_var){
+        current_index = export_aggregate(exporter, aggregate_var, member_instance, parent_aggregate, current_index);
+    }else if(member_var){
+        current_index = export_member(exporter, member_var, member_instance, parent_aggregate, current_index);
+    }else if(enum_var){
+        current_index = export_enum(exporter, enum_var, member_instance, parent_aggregate, current_index);
+    }
+    return current_index;
+}
+
+int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* member_instance, Aggregate* parent_aggregate, int current_index){
 
     //If we haven't got a top_struct_entity, it means this is a top level struct.
-    if(!top_aggregate){
-        top_aggregate = aggregate;
+    if(!parent_aggregate){
+        parent_aggregate = aggregate;
     }
 
-    bool is_top_aggregate = top_aggregate == aggregate;
+    bool is_top_aggregate = parent_aggregate == aggregate;
     bool is_instance = member_instance;
 
     //Get the Graphml_id of the exported <node> representation
@@ -174,22 +230,21 @@ int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* me
     //Either use the member_instance label, or the structs label
     exporter->export_data("label", is_instance ? member_instance->get_label() : aggregate->get_label());
     
+    exporter->export_data("type", aggregate->get_namespace() + "::" + aggregate->get_label());
+
+    auto index = is_instance ? member_instance->get_index() : aggregate->get_index();
+    exporter->export_data("index", std::to_string(index));
+    
     if(is_top_aggregate){
         //Add the namespace for top level structs
         exporter->export_data("namespace", aggregate->get_namespace());
-    }
-
-    if(is_instance){
-        //Attach the index, if we are an index
-        //exporter->export_data("index", std::to_string(member_inst->index));
     }
 
     //Export a graph to contain children
     exporter->export_graph();
 
     //Insert the graphml_id into the id_lookup in the top_struct
-    //top_struct_entity->id_lookup[current_index] = graphml_id;
-
+    parent_aggregate->add_index_definition_id(current_index, graphml_id);
 
     //Go through all IDL_ELEMENTs (a struct can only have children members)
     for(auto child : aggregate->get_children()){
@@ -201,24 +256,30 @@ int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* me
             auto start_index = ++current_index;
             
             //Export the member, and get the new ID
-            current_index = export_member(exporter, member, member_instance, top_aggregate, current_index);
-        }
-    }
-            /*
-            //If we have a definition to link against, we should construct edges
-            if(definition){
-                //Itterate through all IDL_ELEMENTs we added
+            current_index = export_member(exporter, member, member_instance, parent_aggregate, current_index);
+
+            if(is_top_aggregate && definition){
+                //Itterate through all elements we added
                 for(int i = 0; i + start_index <= current_index; i++){
                     //Get the source/target of the edge
-                    auto source_id = top_struct_entity->id_lookup[start_index + i];
-                    auto target_id = definition->id_lookup[i];
+                    auto source_id = parent_aggregate->get_index_definition_id(start_index + i);
+                    if(source_id == -1){
+                        std::cout << "Looking for: " << start_index + i << " inside: " << parent_aggregate->get_label();
+                    }
+                    auto target_id = definition->get_index_definition_id(i);
+                    if(target_id == -1){
+                        std::cout << "Looking for: " << i << " inside: " << definition->get_label();
+                        //Try us
+                        target_id = definition->get_index_definition_id(0);
+                    }
                     //Construct edge
-                    exporter_->export_edge(source_id, target_id);
-                    exporter_->export_data("kind", "Edge_Definition");
-                    exporter_->close_element();
+                    exporter->export_edge(source_id, target_id);
+                    exporter->export_data("kind", "Edge_Definition");
+                    exporter->close_element();
                 }
-            }*/
-        
+            }
+        }
+    }
     
 
     //Close graph
@@ -229,8 +290,95 @@ int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* me
     return current_index;
 }
 
-int Model::export_member(Exporter* exporter,Member* aggregate, Member* member_instance, Aggregate* parent_aggregate, int current_index){
+int Model::export_enum(Exporter* exporter, Enum* enum_val, Member* member_instance, Aggregate* parent_aggregate, int current_index){
+    auto is_instance = member_instance != 0;
+    auto graphml_id = exporter->export_node();
 
+    exporter->export_data("kind", is_instance ? "EnumInstance" : "Enum");
+    exporter->export_data("label", is_instance ? member_instance->get_label() : enum_val->get_label());
+    auto index = is_instance ? member_instance->get_index() : enum_val->get_index();
+    exporter->export_data("index", std::to_string(index));
+
+    if(parent_aggregate){
+        //Insert the graphml_id into the id_lookup in the top_struct
+        parent_aggregate->add_index_definition_id(current_index, graphml_id);
+    }else{
+        enum_val->add_index_definition_id(0, graphml_id);
+    }
+
+    if(!is_instance){
+        exporter->export_graph();
+        auto enum_values = enum_val->get_enum_values();
+
+        for(auto i = 0; i < enum_values.size(); i++){
+            exporter->export_node();
+            exporter->export_data("kind", "EnumMember");
+            exporter->export_data("label", enum_values[i]); 
+            exporter->export_data("index", std::to_string(i));
+            exporter->close_element();
+        }
+        exporter->close_element();
+    }else{
+        exporter->export_data("type", enum_val->get_label());
+    }
+    exporter->close_element();
+    return current_index;
+}
+
+int Model::export_member(Exporter* exporter, Member* member, Member* member_instance, Aggregate* parent_aggregate, int current_index){
+    auto is_instance = member_instance != 0;
+    if(member->is_sequence()){
+        auto graphml_id = exporter->export_node();
+        
+
+        exporter->export_data("kind", is_instance ? "VectorInstance" : "Vector");
+        exporter->export_data("label", member->get_label());
+        exporter->export_data("index", std::to_string(member->get_index()));
+
+        if(member->is_complex()){
+            auto complex_type = member->get_complex_type();
+            exporter->export_data("type", "Vector::" + complex_type->get_label());
+            exporter->export_graph();
+            
+            current_index = export_entity(exporter, complex_type, member, parent_aggregate, current_index);
+        }else{
+            exporter->export_data("type", "Vector::" + member->get_primitive_type());
+            exporter->export_graph();
+            //Primitive type
+            //current_index ++;
+            auto member_graphml_id = exporter->export_node();
+            //Insert the item into the lookup
+            parent_aggregate->add_index_definition_id(current_index, member_graphml_id);
+            exporter->export_data("kind", is_instance ? "MemberInstance" : "Member");
+            exporter->export_data("label", "Member");
+            exporter->export_data("type", member->get_primitive_type());
+            exporter->export_data("index", std::to_string(0));
+            exporter->close_element();
+        }
+
+        //Close the graph
+        exporter->close_element();
+        //Close the node
+        exporter->close_element();
+    }else{
+        if(member->is_complex()){
+            auto complex_type = member->get_complex_type();
+            current_index = export_entity(exporter, complex_type, member, parent_aggregate, current_index);
+        }else{
+            auto graphml_id = exporter->export_node();
+            parent_aggregate->add_index_definition_id(current_index, graphml_id);
+            exporter->export_data("kind", is_instance ? "MemberInstance" : "Member");
+            exporter->export_data("label", member->get_label()); 
+            exporter->export_data("type", member->get_primitive_type());
+            exporter->export_data("index", std::to_string(member->get_index()));
+
+            if(!is_instance && member->is_key()){
+                exporter->export_data("key", "true");
+            }
+            exporter->close_element();
+        }
+    }
+    return current_index;
 }
 
 Entity* Model::get_entity(int id){
@@ -273,7 +421,7 @@ Aggregate* Model::construct_aggregate(Namespace* parent, std::string label){
     return 0;
 }
 
-Member* Model::construct_complex_member(Aggregate* parent, std::string label, Entity* complex_type, bool is_sequence){\
+Member* Model::construct_complex_member(Aggregate* parent, std::string label, Entity* complex_type, bool is_sequence){
     if(parent){
         auto entity = new Member(parent, label, complex_type, is_sequence);
         insert_into_map(entity);
@@ -347,6 +495,13 @@ Aggregate* Graphml::AsAggregate(Entity* entity){
 Member* Graphml::AsMember(Entity* entity){
     if(entity && entity->get_kind() == Kind::MEMBER){
         return (Member*) entity;
+    }
+    return 0;
+}
+
+Enum* Graphml::AsEnum(Entity* entity){
+    if(entity && entity->get_kind() == Kind::ENUM){
+        return (Enum*) entity;
     }
     return 0;
 }

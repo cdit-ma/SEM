@@ -18,9 +18,11 @@
 #define OPTIONAL_WS "\\s*"
 #define NOT_WS "\\S+"
 
+#define ANY_CHAR "[\\S\\s]"
+
 //IDL REGEXES
 //typedef NAME TYPE;
-const std::regex re_type_def("typedef" WS "(.+?)" OPTIONAL_WS ";");
+const std::regex re_type_def("typedef" WS "(" ANY_CHAR "+?)" OPTIONAL_WS ";");
 //#include "INCLUDE_H"
 //#include <INCLUDE_H>
 const std::regex re_include("#include" WS "([<" NOT_WS ">|\"" NOT_WS "\"])");
@@ -29,15 +31,16 @@ const std::regex re_module("module" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
 //struct STRUCT_NAME {
 const std::regex re_struct("struct" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
 //enum ENUM_LABEL {ENUM_VALUES};
-const std::regex re_enum("enum" WS "(" NOT_WS ")" OPTIONAL_WS "\\{(.*?)\\};");
+const std::regex re_enum("enum" WS "(" NOT_WS ")" OPTIONAL_WS "\\{(" ANY_CHAR "*?)\\}");
 //type label; (with )
-const std::regex re_member("(" NOT_WS ".+?)" OPTIONAL_WS ";" OPTIONAL_WS "(#@key)?");
+const std::regex re_member("(" ANY_CHAR "+?)" OPTIONAL_WS ";" OPTIONAL_WS "(#@key)?");
 //RTI's setting of key | //@key
-const std::regex re_is_key("//" OPTIONAL_WS "@key(.*)");
+const std::regex re_is_key("//" OPTIONAL_WS "@key");
+//RTI's setting of key | //@key
 //OpenSplice setting of key | #pragma keylist STRUCT_LABEL MEMBER_LABEL
 const std::regex re_is_pragma_key("#pragma" WS "keylist" WS "(" NOT_WS ")" WS "(" NOT_WS ")");
 //An array in IDL is listed always after the label | LABEL[SIZE]
-const std::regex re_array("(.*?)" OPTIONAL_WS "\\[(.*)\\]");
+const std::regex re_array("(.*?)" OPTIONAL_WS "[\\[<](.*)[\\]>]");
 //sequence <SEQUENCE_TYPE>
 const std::regex re_sequence("sequence" OPTIONAL_WS "<" OPTIONAL_WS "(.*)" OPTIONAL_WS ">");
 
@@ -222,8 +225,17 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
                 return false;
             }else{
                 member->is_sequence = true;
+
+                //Remove the size of a sequence
+                auto remainder = sequence_match->match[1];
+                std::string unresolved_type;
+                for(auto token : split(remainder, ",")){
+                    unresolved_type = token;
+                    break;
+                }
+
                 //Resolve the rest of the sequence type (By removing the sequence part)
-                return resolve_member_type(member, sequence_match->match[1]);
+                return resolve_member_type(member, unresolved_type);
             }
         }else{
             //Split the type into a list of trimmed tokens (Split on ::)
@@ -233,6 +245,7 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
             }
 
             Graphml::Entity* resolved_entity = 0;
+
             if(tokens.size() == 1){
                 //If we only have one token, we should look in the current namespace stack
                 resolved_entity = model_->get_ancestor_entity(member->parent, tokens.back());
@@ -241,8 +254,9 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
                 resolved_entity = model_->get_namespaced_entity(tokens);
             }
 
+            auto resolved_kind = resolved_entity ? resolved_entity->get_kind() : Graphml::Kind::NONE;
             //Check if the resolved_entity is an Aggregate
-            if(resolved_entity && resolved_entity->get_kind() == Graphml::Kind::AGGREGATE){
+            if(resolved_kind == Graphml::Kind::AGGREGATE || resolved_kind == Graphml::Kind::ENUM){
                 member->complex_type = resolved_entity;
                 return true;
             }else{
@@ -359,10 +373,10 @@ bool IdlParser::parse_file(std::string idl_path){
     auto search_str = file;
     //LOSE ALL COMMENTS
     //Replace the Syntactical //@key with #@key//
-    search_str = std::regex_replace(search_str, re_is_key, "#@key//");
+    search_str = std::regex_replace(search_str, re_is_key, "#@key");
     search_str = std::regex_replace(search_str, re_comment, "");
     search_str = std::regex_replace(search_str, re_comment_block, "");
-    
+
     while(true){
         //Ordered map, to work out what is first IDL_ELEMENT to parse
         std::map<int, RegexMatch*> ordered_matches;
@@ -439,7 +453,6 @@ bool IdlParser::parse_file(std::string idl_path){
             auto match = m.second;
 
             auto new_parent = parent_entities.top();
-            
             switch(match->kind){
                 case IDL_ELEMENT::MODULE:{
                     auto label = match->match[1];
@@ -456,20 +469,38 @@ bool IdlParser::parse_file(std::string idl_path){
                     parent_entities.push(new_entity);
                     break;
                 }
+                case IDL_ELEMENT::ENUM:{
+                    auto label = match->match[1];
+                    std::string type = match->match[2];
+                    auto enum_value_str = std::regex_replace(type, std::regex(WS), "");
+                    auto enum_tokens_list = split(enum_value_str, ",");
+                    std::vector<std::string> enum_token_v{std::begin(enum_tokens_list), std::end(enum_tokens_list)};
+                    auto namespace_parent = Graphml::AsNamespace(new_parent);
+                    auto new_entity = model_->construct_enum(namespace_parent, label, enum_token_v);
+                    break;
+                }
                 case IDL_ELEMENT::TYPEDEF:
                 case IDL_ELEMENT::MEMBER:{
+
                     //Gets the entire type and label so we can resolve it.
                     auto label_type_pair = split_label_and_type(match->match[1]);
                     auto unresolved_label = label_type_pair.first;
+                    bool is_key = false;
+                    if(match->kind == IDL_ELEMENT::MEMBER){
+                        is_key = match->match[2].length();
+                    }
+                    
                     //Remove all spaces in the unresolved_type
                     auto unresolved_type = std::regex_replace(label_type_pair.second, std::regex(WS), "");
                     
                     
                     auto member = new MemberType();
                     member->parent = new_parent;
-
+                    
                     auto resolved_label = resolve_member_label(member, unresolved_label);
                     auto resolved_type = resolve_member_type(member, unresolved_type);
+                    
+
                     
                     if(resolved_label && resolved_type){
                         if(match->kind == IDL_ELEMENT::TYPEDEF){
@@ -486,12 +517,16 @@ bool IdlParser::parse_file(std::string idl_path){
                             //A Member
                             auto namespace_parent = Graphml::AsAggregate(member->parent);
                             if(namespace_parent){
+                                Graphml::Member *g_member = 0;
                                 if(member->complex_type){
-                                    model_->construct_complex_member(namespace_parent, member->label, member->complex_type, member->is_sequence);
+                                    g_member = model_->construct_complex_member(namespace_parent, member->label, member->complex_type, member->is_sequence);
                                 }else{
-                                    model_->construct_primitive_member(namespace_parent, member->label, member->primitive_type, member->is_sequence);
+                                    g_member = model_->construct_primitive_member(namespace_parent, member->label, member->primitive_type, member->is_sequence);
                                 }
-    
+                                if(g_member && is_key){
+                                    std::cerr << "IDL Parser: Member '" << g_member->get_namespace() <<  "' is a key." << std::endl;
+                                    g_member->set_is_key(is_key);
+                                }
                             }
                         }
                     }else{
@@ -509,6 +544,20 @@ bool IdlParser::parse_file(std::string idl_path){
                     break;
                 }
                 case IDL_ELEMENT::PRAGMA_KEY:{
+                    std::string aggregate_name = match->match[1];
+                    std::string member_name = match->match[2];
+                    member_name = std::regex_replace(member_name, std::regex(";"), "");
+
+                    auto aggregate = new_parent->get_child(aggregate_name);
+                    if(aggregate){
+                        auto child = aggregate->get_child(member_name);
+                        auto member = Graphml::AsMember(child);
+                        if(member){
+                            std::cerr << "IDL Parser: Member '" << member->get_namespace() << "' is a key." << std::endl;
+                            member->set_is_key(true);
+                        }
+                    }
+
                     break;
                 }
                 default:

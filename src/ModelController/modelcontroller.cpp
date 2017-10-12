@@ -1351,23 +1351,33 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
+    qCritical() << "Looking For: " << definition->toString() << " IN: " << parent->toString();
+
     //For each child in parent, check to see if any Nodes match Label/Type
     for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
         if(!child->getDefinition()){
             auto labels_match = child->compareData(definition, "label");
             auto types_match = child->compareData(definition, "type");
 
+            qCritical() << "child: '" << child->getDataValue("type").toString() << "' VS '" << definition->getDataValue("type").toString() << "'";
+            qCritical() << "child: '" << child->getDataValue("label").toString() <<  "' VS '" << definition->getDataValue("label").toString() << "'";
             //If the labels and types match, we can construct an edge between them
-            if(types_match && labels_match){
+            if(types_match){
+                if(definition->isInstance() && !labels_match){
+                    qCritical() << "IGNORING!";
+                    continue;
+                }
                 construct_edge(EDGE_KIND::DEFINITION, child, definition);
             }
         }
         if(child->getDefinition() == definition){
-            nodes_matched ++;    
+            nodes_matched ++;
+            break;
         }
     }
 
     if(!nodes_matched){
+        //qCritical() << definition << " Construct node!";
         //If we didn't find a match, we must create an Instance.
         auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
         if(node){
@@ -1818,7 +1828,7 @@ void ModelController::bindData(Node *defn, Node *child)
         if(child_kind == NODE_KIND::COMPONENT_INSTANCE || child_kind == NODE_KIND::BLACKBOX_INSTANCE){
             //Allow ComponentInstance and BlackBoxInstance to have unique labels
             bind_labels = false;
-        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE){
+        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE || child_kind == NODE_KIND::ENUM_INSTANCE){
             if(parent_kind == NODE_KIND::AGGREGATE){
                 //Allow Aggregates to contain Aggregate Instances with unique labels
                 bind_labels = false;

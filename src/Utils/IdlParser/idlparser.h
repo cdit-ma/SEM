@@ -6,20 +6,6 @@
 #include <map>
 #include <set>
 
-//Forward Declare
-enum class IDL_ELEMENT;
-
-namespace Graphml{
-    class Model;
-    class Entity;
-}
-
-struct RegexMatch{
-    IDL_ELEMENT kind;
-    std::smatch match;
-    bool got_match = false;
-};
-
 enum class IDL_ELEMENT{
     NONE,
     MODULE,
@@ -33,6 +19,19 @@ enum class IDL_ELEMENT{
     TYPEDEF,
     ENUM
 };
+
+namespace Graphml{
+    class Model;
+    class Entity;
+}
+
+struct RegexMatch{
+    IDL_ELEMENT kind;
+    std::smatch match;
+    bool got_match = false;
+};
+
+
 std::string toString(IDL_ELEMENT);
 
 

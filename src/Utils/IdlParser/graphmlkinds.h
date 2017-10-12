@@ -24,24 +24,31 @@ namespace Graphml{
             Entity(Entity* parent, std::string label, Kind kind);
             ~Entity();
             void set_id(int id);
-            void add_child(Entity* child);
+            int add_child(Entity* child);
             void remove_child(Entity* child);
+            void add_index_definition_id(int index, int definition_id);
+            int get_index_definition_id(int index) const;
         public:
             void set_label(std::string label);
             int get_id() const;
-            std::set<Entity*> get_children() const;
+            int get_index() const;
+            std::vector<Entity*> get_children() const;
             std::string get_label() const;
             Kind get_kind() const;
             Entity* get_parent() const;
-            std::string get_namespace() const;
+            virtual std::string get_namespace() const;
 
             Entity* get_child(std::string label) const;
         private:
             Kind kind_;
             int id_ = -1;
+            int index_ = 0;
             std::string label_;
             Entity* parent_ = 0;
-            std::set<Entity*> children_;
+            std::vector<Entity*> children_;
+
+            //Hold a map for id > graphml id lookup of children
+            std::map<int, int> id_lookup_;
     };
 
     class Namespace : public Entity{
@@ -67,6 +74,8 @@ namespace Graphml{
         protected:
             Aggregate(Namespace* parent, std::string label);
             ~Aggregate();
+        public:
+            std::string get_namespace() const;
     };
 
     class Member : public Entity{
@@ -80,10 +89,13 @@ namespace Graphml{
             bool is_sequence() const;
             Entity* get_complex_type() const;
             std::string get_primitive_type() const;
+            void set_is_key(bool is_key);
+            bool is_key() const;
         private:
             Entity* complex_type_ = 0;
             std::string primitive_type_;
             bool is_sequence_ = false;
+            bool is_key_ = false;
     };
 
     class Model{
@@ -103,8 +115,11 @@ namespace Graphml{
             Entity* get_ancestor_entity(Entity* entity, std::string label);
             Entity* get_namespaced_entity(std::list<std::string> namespace_tokens);
         private:
+            int export_entity(Exporter* exporter, Entity* entity, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
+            int export_complex_type(Exporter* exporter, Member* entity, Member* member_instance, Aggregate* top_aggregate, int current_index);
             int export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
             int export_member(Exporter* exporter, Member* aggregate, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
+            int export_enum(Exporter* exporter, Enum* enum_val, Member* member_instance = 0, Aggregate* top_aggregate = 0, int current_index = 0);
             Entity* get_entity(int id);
 
             void insert_into_map(Entity* entity);
@@ -116,6 +131,7 @@ namespace Graphml{
     Namespace* AsNamespace(Entity* entity);
     Aggregate* AsAggregate(Entity* entity);
     Member* AsMember(Entity* entity);
+    Enum* AsEnum(Entity* entity);
 };
 
 #endif //GRAPHML_KINDS_H
