@@ -195,7 +195,10 @@ inline RegexMatch* re_search(std::string &str, IDL_ELEMENT kind, const std::rege
 
 std::string IdlParser::ParseIdl(std::string idl_path, bool pretty){
     auto parser = IdlParser(idl_path, pretty);
-    return parser.ToGraphml();
+    if(parser.successful_parse){
+        return parser.ToGraphml();
+    }
+    return std::string();
 };
 
 bool IdlParser::resolve_member_label(MemberType* member, std::string label){
@@ -295,22 +298,7 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
 IdlParser::IdlParser(std::string idl_path, bool pretty){
     
     model_ = new Graphml::Model();
-    //Setup the Model/InterfaceDefinitions
-    /*
-    exporter_ = new GraphmlExporter(pretty);
-    exporter_->export_node();
-    exporter_->export_data("kind", "Model");
-    exporter_->export_graph();
-    exporter_->export_node();
-    exporter_->export_data("kind", "InterfaceDefinitions");
-    exporter_->export_graph();
-    //Close the exporter
-    exporter_->close();
-    */
-
-    //Parse the files 
-    auto success = parse_file(idl_path);
-    
+    successful_parse = parse_file(idl_path);
 };
 
 std::string combine_namespace(std::string parent_namespace, std::string label){

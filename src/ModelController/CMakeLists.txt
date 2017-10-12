@@ -6,7 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(LIB_NAME medea_modelcontroller_lib)
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -254,4 +254,3 @@ set(RESOURCES
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
 target_link_libraries(${LIB_NAME} Qt5::Core)
-target_link_libraries(${LIB_NAME} Qt5::Network)

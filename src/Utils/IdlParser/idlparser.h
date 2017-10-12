@@ -63,7 +63,7 @@ class IdlParser{
     private:
         std::set<std::string> parsed_files_;
         std::map<std::string, MemberType*> type_defs;
-
+        bool successful_parse = false;
         Graphml::Model* model_ = 0;
     };
 

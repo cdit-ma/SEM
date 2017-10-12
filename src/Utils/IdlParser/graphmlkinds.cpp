@@ -263,12 +263,8 @@ int Model::export_aggregate(Exporter* exporter, Aggregate* aggregate, Member* me
                 for(int i = 0; i + start_index <= current_index; i++){
                     //Get the source/target of the edge
                     auto source_id = parent_aggregate->get_index_definition_id(start_index + i);
-                    if(source_id == -1){
-                        std::cout << "Looking for: " << start_index + i << " inside: " << parent_aggregate->get_label();
-                    }
                     auto target_id = definition->get_index_definition_id(i);
                     if(target_id == -1){
-                        std::cout << "Looking for: " << i << " inside: " << definition->get_label();
                         //Try us
                         target_id = definition->get_index_definition_id(0);
                     }

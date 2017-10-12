@@ -1521,13 +1521,16 @@ void ViewController::importXMIProject()
 
 void ViewController::importIdlFile()
 {
-    QStringList files = FileHandler::selectFiles(WindowManager::manager()->getMainWindow(), "Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
-    if(files.length() == 1){
-        QString xmiPath = files.first();
+    auto idl_path = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
+    if(idl_path.length()){
+        QtConcurrent::run([this, idl_path]{
+            // Construct a notification item with a loading gif as its icon
+            auto notification = NotificationManager::manager()->AddNotification("Importing IDL ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
+            auto idl_qstr = QString::fromStdString(IdlParser::ParseIdl(idl_path.toStdString(), true));
+            notification->setDescription(idl_qstr.length() ? "Successfully imported IDL '" + idl_path + "'" : "Failed to import IDL '" + idl_path + "'");
+            notification->setSeverity(idl_qstr.length() ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
 
-        QtConcurrent::run([this, xmiPath]{
-            QString data = QString::fromStdString(IdlParser::IdlParser::ParseIdl(xmiPath.toStdString(), true));
-            emit vc_importProjects(QStringList(data));
+            emit vc_importProjects({idl_qstr});
         });
     }
 }

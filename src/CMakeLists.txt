@@ -17,8 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(PROJ_NAME MEDEA)
 
 project(${PROJ_NAME})
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
 if(WIN32)
 	SET(QT_USE_QTMAIN TRUE)
@@ -27,9 +26,9 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-add_subdirectory("ModelController")
-add_subdirectory("Utils/IdlParser")
-add_subdirectory("Test")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ModelController")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Test")
 
 #Pass Version info into cmakevars.h
 configure_file(
@@ -52,14 +51,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/Widgets/XMITreeViewDialog.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/xmiimporter.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Plugins/XMI/xmitreemodel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.cpp
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
@@ -110,11 +105,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
-    
-
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
@@ -127,19 +119,14 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
-    
-
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-
-    
 )
 
 if(WIN32)
@@ -160,9 +147,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.h
-    #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/Widgets/XMITreeViewDialog.h
-    #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/xmiimporter.h
-    #${CMAKE_CURRENT_SOURCE_DIR}/#Plugins/XMI/xmitreemodel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
@@ -176,7 +160,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.h
-    #${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.h
@@ -187,12 +170,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
-    
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
-    
-
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
@@ -222,15 +201,12 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/graphmlexporter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser/idlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
@@ -301,10 +277,15 @@ if(WIN32)
     target_link_libraries(${PROJ_NAME} Qt5::WinMain)
 endif()
 
+#find_library(CONTROLLER_LIB "medea_modelcontroller_lib" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+#find_library(IDL_LIB "medea_idl2graphml_lib" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
 #Link against things
 target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} Qt5::Network)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
+
 
 #Install should copy the MEDEA app into a MEDEA folder
 #Install should copy the MEDEA app into a MEDEA folder
