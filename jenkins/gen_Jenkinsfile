@@ -42,9 +42,15 @@ def runScript(String script){
 
 def blockingKill(String pid){
     if(isUnix()){
-        sh("kill " + pid)
-        def out = sh(returnStatus: true, script:"wait " + pid)
-        if(out != 0){
+        def out = sh(returnStatus: true, script:"kill " + pid)
+        for(def i = 0; i<5; i++){
+            out = sh(returnStatus: true, script: "kill " + pid)
+            if(out != 0){
+                break;
+            }
+            sleep(1)
+        }
+        if(out == 0){
             def out2 = sh(returnStatus: true, script:"kill -s 0 " + pid)
             print(out2)
         }
