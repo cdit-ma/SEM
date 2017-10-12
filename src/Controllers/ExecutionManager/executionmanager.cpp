@@ -63,7 +63,7 @@ void ExecutionManager::ValidateModel(QString model_path)
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!validate_thread.isRunning()){
-        validate_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ValidateModel_, model_path);
+        validate_thread = QtConcurrent::run(this, &ExecutionManager::ValidateModel_, model_path);
     }
 }
 
@@ -304,7 +304,7 @@ void ExecutionManager::CheckForRe(QString re_configure_path)
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!configure_thread.isRunning()){
-        configure_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::CheckForRe_, re_configure_path);
+        configure_thread = QtConcurrent::run(this, &ExecutionManager::CheckForRe_, re_configure_path);
     }
 }
 
@@ -313,7 +313,7 @@ bool ExecutionManager::ExecuteModel(QString document_path, QString output_direct
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!execute_model_thread.isRunning()){
-        execute_model_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::ExecuteModel_, document_path, output_directory, runtime_duration);
+        execute_model_thread = QtConcurrent::run(this, &ExecutionManager::ExecuteModel_, document_path, output_directory, runtime_duration);
         return true;
     }
     return false;
@@ -323,7 +323,7 @@ void ExecutionManager::GenerateWorkspace(QString document_path, QString output_d
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!generate_workspace_thread.isRunning()){
-        generate_workspace_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::GenerateWorkspace_, document_path, output_directory);
+        generate_workspace_thread = QtConcurrent::run(this, &ExecutionManager::GenerateWorkspace_, document_path, output_directory);
     }
 }
 
@@ -331,7 +331,7 @@ void ExecutionManager::CheckForJava(){
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!java_thread.isRunning()){
-        java_thread = QtConcurrent::run(QThreadPool::globalInstance(), this, &ExecutionManager::CheckForJava_);
+        java_thread = QtConcurrent::run(this, &ExecutionManager::CheckForJava_);
     }
 }
 
@@ -349,31 +349,30 @@ void ExecutionManager::CheckForJava_(){
 
 //Designed to be run on a background thread
 void ExecutionManager::CheckForRe_(QString re_configure_path){
-    ProcessRunner runner;
-    auto runner_ = &runner;
-    //Run 
-    bool got_re = false;
+    bool success = false;
     QString status;
-
-    auto new_env = runner_->RunEnvVarScript(re_configure_path);
-    
-    //Check if we have RE_PATH
-    if(new_env.contains("RE_PATH")){
-        got_re = true;
-        status = "Found RE: '" + new_env.value("RE_PATH") + "'";
-    }else{
-        if(FileHandler::isFileReadable(re_configure_path)){
-            status = "RE configure script doesn't appear to define RE_PATH '" + re_configure_path + "'";
+    QProcessEnvironment re_env;
+    if(FileHandler::isFileReadable(re_configure_path)){
+        ProcessRunner runner;
+        re_env = runner.RunEnvVarScript(re_configure_path);
+        
+        if(re_env.contains("RE_PATH")){
+            success = true;
+            status = "Found RE: '" + re_env.value("RE_PATH") + "'";
         }else{
-            status = "RE configure script doesn't appear to point to a readable file '" + re_configure_path + "'";
+            status = "RE configure script doesn't define RE_PATH";
         }
+    }else if(re_configure_path == ""){
+        status = "RE configure script hasn't been set.";
+    }else{
+        status = "RE configure script doesn't point to a readable file '" + re_configure_path + "'";
     }
 
     {
         QWriteLocker lock(&lock_);
-        got_re_ = got_re;
+        got_re_ = success;
         if(got_re_){
-            re_configured_env_ = new_env;
+            re_configured_env_ = re_env;
         }
     }
     emit GotRe(got_re_, status);

@@ -1137,6 +1137,7 @@ void ViewController::TeardownController()
         
         // Clear previous validation notification items
         for (auto notification : manager->getNotificationsOfType(Notification::Type::MODEL)) {
+            qCritical() << notification->getID();
             manager->deleteNotification(notification->getID());
         }
     }
@@ -1523,14 +1524,15 @@ void ViewController::importIdlFile()
 {
     auto idl_path = FileHandler::selectFile(WindowManager::manager()->getMainWindow(), "Select an IDL File to import.", QFileDialog::ExistingFile, false, IDL_FILE_EXT, IDL_FILE_SUFFIX);
     if(idl_path.length()){
-        QtConcurrent::run([this, idl_path]{
+        QtConcurrent::run([=]{
             // Construct a notification item with a loading gif as its icon
             auto notification = NotificationManager::manager()->AddNotification("Importing IDL ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
             auto idl_qstr = QString::fromStdString(IdlParser::ParseIdl(idl_path.toStdString(), true));
             notification->setDescription(idl_qstr.length() ? "Successfully imported IDL '" + idl_path + "'" : "Failed to import IDL '" + idl_path + "'");
             notification->setSeverity(idl_qstr.length() ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-
-            emit vc_importProjects({idl_qstr});
+            if(idl_qstr.length()){
+                emit vc_importProjects({idl_qstr});
+            }
         });
     }
 }

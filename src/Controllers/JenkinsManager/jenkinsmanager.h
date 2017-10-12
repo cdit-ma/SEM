@@ -70,8 +70,6 @@ signals:
     void AbortJob(QString job_name, int build_number, QString active_configuration="");
 private slots:
     void settingsApplied();
-    //From JenkinsRequests
-    void GotJenkinsNodes_(bool success, QString data);
     void GotValidatedSettings_(bool valid, QString message);
 
     //From SettingsController
@@ -107,7 +105,6 @@ private:
     bool settings_changed = false;
 
 
-    NotificationObject* jenkins_request_noti = 0;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;
     //Vector of all Active JenkinsRequest objects created from this.

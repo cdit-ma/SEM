@@ -146,9 +146,20 @@ void JenkinsManager::GetNodes()
         //Set the requesting nodes
         requesting_nodes_ = true;
         auto request = GetJenkinsRequest();
+        auto notification = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
         
-        jenkins_request_noti = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
-        connect(request, &JenkinsRequest::GotGroovyScriptOutput, this, &JenkinsManager::GotJenkinsNodes_);
+
+        connect(request, &JenkinsRequest::GotGroovyScriptOutput, [=](bool success, QString graphml){
+            QMutexLocker(&this->mutex_);
+            requesting_nodes_ = false;
+
+            if(success){
+                emit GotJenkinsNodes(graphml);
+            }
+            notification->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes");
+            notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+        });
+
         auto r = connect(this, &JenkinsManager::RunGroovyScript_, request, &JenkinsRequest::RunGroovyScript);
 
         //Read in the contents of the script
@@ -274,21 +285,6 @@ void JenkinsManager::gotJobConsoleOutput(QString job_name, int job_build, QStrin
         if(jenkins_monitor){
             jenkins_monitor->AppendLine(consoleOutput);
         }
-    }
-}
-
-void JenkinsManager::GotJenkinsNodes_(bool success, QString data)
-{
-    QMutexLocker(&this->mutex_);
-    requesting_nodes_ = false;
-
-    if(success){
-        emit GotJenkinsNodes(data);
-    }
-    if(jenkins_request_noti){
-        jenkins_request_noti->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes");
-        jenkins_request_noti->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        jenkins_request_noti = 0;
     }
 }
 
