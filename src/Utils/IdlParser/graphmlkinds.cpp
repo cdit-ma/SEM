@@ -1,6 +1,7 @@
 #include "graphmlkinds.h"
 #include "graphmlexporter.h"
 #include <iostream>
+#include <algorithm>
 
 using namespace Graphml;
 
