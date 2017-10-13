@@ -338,8 +338,7 @@ void ExecutionManager::CheckForJava(){
 //Designed to be run on a background thread
 void ExecutionManager::CheckForJava_(){
     ProcessRunner runner;
-    auto runner_ = &runner;
-    auto result = runner_->RunProcess("java", {"-version"});
+    auto result = runner.RunProcess("java", {"-version"});
     {
         QWriteLocker lock(&lock_);
         got_java_ = result.success;

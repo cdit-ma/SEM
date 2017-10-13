@@ -14,6 +14,7 @@
 
 JenkinsRequest::JenkinsRequest(JenkinsManager *jenkins_manager, QObject *parent) : QObject()
 {
+    qCritical() << "YOYOOY";
     {
         QThread* thread = new QThread();
         thread->start();
@@ -53,6 +54,8 @@ JenkinsRequest::~JenkinsRequest()
 
 bool JenkinsRequest::BlockUntilValidatedSettings()
 {
+    return gotValidatedSettings();
+    /*
     bool got_valid_settings = gotValidatedSettings();
 
     if(!got_valid_settings){
@@ -69,7 +72,7 @@ bool JenkinsRequest::BlockUntilValidatedSettings()
         waitLoop.exec();
         got_valid_settings = gotValidatedSettings();
     }
-    return got_valid_settings;
+    return got_valid_settings;*/
 }
 
 QJsonDocument JenkinsRequest::_getJobConfiguration(QString jobName, int buildNumber, QString activeConfiguration, bool refresh)

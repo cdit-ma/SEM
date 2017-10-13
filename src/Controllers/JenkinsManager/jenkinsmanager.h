@@ -13,6 +13,8 @@
 #include <QHash>
 #include <QNetworkReply>
 #include <QMutex>
+#include <QFuture>
+#include <QFutureWatcher>
 
 //Forward Declare
 class JenkinsRequest;
@@ -29,58 +31,46 @@ class JenkinsManager: public QObject
     Q_OBJECT
 public:
     JenkinsManager(ViewController *viewController);
+
     void SetUrl(QString url);
     void SetUser(QString user);
     void SetApiToken(QString api_token);
     void SetJobName(QString job_name);
-
-    SETTING_TYPE GetSettingType(QString type);
+    bool GotValidSettings();
 
     QString GetUrl();
     QString GetUser();
     QString GetJobName();
     QString GetApiToken();
 
-    QStringList GetJobConfigurations(QString job_name);
-
-    ActionController* GetActionController();
-
-    bool HasSettings();
-    bool GotValidSettings();
-
-    JenkinsRequest* GetJenkinsRequest(QObject* parent = 0);
-
-    //Functions
+//Global Functions Refactored
     void ValidateSettings();
     void GetNodes();
     void BuildJob(QString model_file);
+    void AbortJob(QString job_name, int job_number);
 signals:
-    //To GUI
+    void Terminate();
+    
     void GotJenkinsNodes(QString data);
     void JenkinsReady(bool ready);
-    void gotValidSettings(bool valid, QString message);
-
-    //To JenkinsRequests
-    void ValidateSettings_();
-    void RunGroovyScript_(QString script);
 
     void getJobParameters(QString name);
     void buildJob(QString jobName, Jenkins_JobParameters parameters);
-
-    void AbortJob(QString job_name, int build_number, QString active_configuration="");
 private slots:
     void settingsApplied();
-    void GotValidatedSettings_(bool valid, QString message);
-
-    //From SettingsController
     void SettingChanged(SETTINGS key, QVariant value);
+
 
     void gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity jobState);
     void gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput);
 
     void gotoJob(QString job_name, int build_number);
-    void abortJob(QString job_name, int build_number);
 private:
+    JenkinsRequest* GetJenkinsRequest(QObject* parent = 0);
+    SETTING_TYPE GetSettingType(QString type);
+    void AbortJob_(QString job_name, int build_number);
+    void GetNodes_(QString groovy_script);
+    void ValidateSettings_();
     void jenkinsRequestFinished(JenkinsRequest* request);
     void storeJobConfiguration(QString job_name, QJsonDocument json);
 
@@ -103,6 +93,9 @@ private:
     bool got_java_ = false;
 
     bool settings_changed = false;
+
+    QFuture<void> validation_thread;
+    QFuture<void> get_nodes_thread;
 
 
     //A Hash lookup of Jenkins Jobs JSON Documents
