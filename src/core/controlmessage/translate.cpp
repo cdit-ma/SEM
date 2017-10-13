@@ -14,6 +14,10 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
                 return ATTRIBUTE_TYPE::STRING;
             case NodeManager::Attribute::DOUBLE:
                 return ATTRIBUTE_TYPE::DOUBLE;
+            case NodeManager::Attribute::FLOAT:
+                return ATTRIBUTE_TYPE::FLOAT;
+            case NodeManager::Attribute::CHARACTER:
+                return ATTRIBUTE_TYPE::CHARACTER;
             case NodeManager::Attribute::STRINGLIST:
                 return ATTRIBUTE_TYPE::STRINGLIST;
             default:
@@ -25,7 +29,7 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
 
 ::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a){
     
-    ATTRIBUTE_TYPE type = GetAttributeTypeFromPb(attr);
+    auto type = GetAttributeTypeFromPb(attr);
     
     bool set_type = a == 0;
     if(a == 0){
@@ -37,6 +41,11 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
             a->set_Integer(attr->i());
             break;
         }
+        case ATTRIBUTE_TYPE::CHARACTER:
+        {
+            a->set_Character((char) attr->i());
+            break;
+        }
         case ATTRIBUTE_TYPE::BOOLEAN:
         {
             a->set_Boolean((bool) attr->i());
@@ -45,6 +54,11 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
         case ATTRIBUTE_TYPE::DOUBLE:
         {
             a->set_Double(attr->d());
+            break;
+        }
+        case ATTRIBUTE_TYPE::FLOAT:
+        {
+            a->set_Float((float)attr->d());
             break;
         }
         case ATTRIBUTE_TYPE::STRING:

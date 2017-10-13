@@ -11,4 +11,4 @@ int BaseMessage::get_base_message_id() const{
 
 int BaseMessage::get_base_message_type() const{
     return type_;
-}
+}   

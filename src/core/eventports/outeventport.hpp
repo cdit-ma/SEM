@@ -36,12 +36,20 @@ void OutEventPort<T>::tx(T* t){
 
 template <class T>
 bool OutEventPort<T>::Activate(){
-    return EventPort::Activate();
+    auto success = EventPort::Activate();
+    if(success){
+        EventPort::LogActivation();
+    }
+    return success;
 };
 
 template <class T>
 bool OutEventPort<T>::Passivate(){
-    return EventPort::Passivate();
+    auto success = EventPort::Passivate();
+    if(success){
+        EventPort::LogPassivation();
+    }
+    return success;
 };
 
 

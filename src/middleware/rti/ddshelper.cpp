@@ -9,7 +9,6 @@ rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
 
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
-        std::cout << "Constructed RTI DDS Helper: " << singleton_ << std::endl;
     }
     return singleton_;
 };

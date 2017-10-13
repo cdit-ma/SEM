@@ -12,6 +12,7 @@
 #include <google/protobuf/message.h>
 
 DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
+    std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
     execution_ = execution;
 
@@ -33,11 +34,11 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
 }
 
 DeploymentManager::~DeploymentManager(){
+    std::unique_lock<std::mutex> lock(mutex_);
     if(deployment_){
         delete deployment_;
         deployment_ = 0;
     }
-
     if(control_queue_thread_){
         control_queue_thread_->join();
         delete control_queue_thread_;
@@ -47,7 +48,6 @@ DeploymentManager::~DeploymentManager(){
 
 bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name){
     if(subscriber_){
-        std::cout << "Subscribing to: " << pub_endpoint << " Filter: " << host_name << "*" << std::endl;
         subscriber_->Connect(pub_endpoint);
         subscriber_->Filter(host_name + "*");
         return true;
@@ -69,6 +69,20 @@ void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
     std::unique_lock<std::mutex> lock(notify_mutex_);
     control_message_queue_.push(control_message);
     notify_lock_condition_.notify_all();
+}
+
+bool DeploymentManager::ProcessStartupMessage(std::string startup_str){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(!deployment_){
+        deployment_ = new NodeContainer(library_path_);
+        NodeManager::ControlMessage message;
+        auto success = message.ParseFromString(startup_str);
+        if(success){
+            deployment_->Configure(&message);
+            return true;
+        }
+    }
+    return false;
 }
 
 void DeploymentManager::ProcessControlQueue(){
@@ -136,6 +150,7 @@ NodeContainer* DeploymentManager::get_deployment(){
 }
 
 void DeploymentManager::Terminate(){
+    std::unique_lock<std::mutex> lock(mutex_);
     deployment_->Teardown();
     execution_->Interrupt();
 }

@@ -86,7 +86,6 @@ std::string GraphmlParser::GetParentNode(std::string id){
     std::string out;
     try{
         auto res = doc.select_node(search.c_str());
-        out = res.node().attribute("id").value();
     } catch(...){
         std::cout << "ERROR" << std::endl;
     }

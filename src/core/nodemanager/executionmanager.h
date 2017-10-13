@@ -42,6 +42,7 @@ class ExecutionManager{
         void PushMessage(std::string topic, google::protobuf::MessageLite* message);
         void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
 
+        std::string GetSlaveStartupMessage(std::string slave_host_name);
         bool Finished();
         
         std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
