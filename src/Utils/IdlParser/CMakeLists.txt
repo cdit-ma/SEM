@@ -22,6 +22,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.h
 )
 
-add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS})
 add_executable(${EXEC_NAME} main.cpp)
 target_link_libraries(${EXEC_NAME} ${LIB_NAME})

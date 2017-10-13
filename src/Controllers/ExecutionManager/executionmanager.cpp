@@ -15,8 +15,7 @@
 ExecutionManager::ExecutionManager(ViewController *view_controller)
 {
     view_controller_ = view_controller;
-    transforms_path_ = "/Users/Dan/Desktop/re_gen/";
-    //transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
+    transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
     saxon_jar_path_ = transforms_path_ % "saxon.jar";
 
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
