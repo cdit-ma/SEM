@@ -183,9 +183,7 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
 }
 
 QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
-    auto n = new NotificationObject();
-    
-    auto notification = QSharedPointer<NotificationObject>(n);
+    auto notification = QSharedPointer<NotificationObject>(new NotificationObject());
     notification->setDescription(description);
     notification->setIcon(icon_path, icon_name);
     notification->setSeverity(severity);
@@ -256,7 +254,7 @@ void NotificationManager::deleteNotification(int ID)
             disconnect(notification.data());
             
             // delete the item from the notification dialog
-            emit notificationDeleted(ID);
+            emit notificationDeleted(notification);
         }
     }
 }
@@ -274,7 +272,7 @@ void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject>
         auto notification_id = notification->getID();
         if(notifications.count(notification_id)){
             latest_notification = notification;
-            emit notificationUpdated(notification_id);
+            emit notificationUpdated(notification);
         
             if (notification->getToastable()) {
                 emit toastNotification(notification);

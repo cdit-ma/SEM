@@ -26,18 +26,20 @@ public slots:
     void showSeverity(Notification::Severity severity);
 private slots:
     void notificationAdded(QSharedPointer<NotificationObject> notification);
-    void notificationDeleted(int ID);
+    void notificationDeleted(QSharedPointer<NotificationObject> notification);
     void selectionChanged();
 private slots:
     void themeChanged();
     void filtersChanged();
     void popupEntity();
     void centerEntity();
+    void clearFilteredNotifications();
 private:
     NotificationItem* constructNotificationItem(QSharedPointer<NotificationObject> notification);
     NotificationItem* getNotificationItem(QSharedPointer<NotificationObject> notification);
 
     void initialisePanel();
+    QSet<QSharedPointer<NotificationObject> > getFilteredNotifications();
     void updateNotificationsVisibility();
     
     void setupLayout();
@@ -54,7 +56,6 @@ private:
 private:
     QLabel* info_label = 0;
     QLabel* status_label = 0;
-    //QLabel* clock_label = 0;
     
     QWidget* filters_widget = 0;
     QWidget* notifications_widget = 0;
@@ -63,12 +64,15 @@ private:
     
     QWidget* notifications_status_widget = 0;
 
+    QSet<QSharedPointer<NotificationObject> > filtered_notifications;
+
     QToolBar* top_toolbar = 0;
     QToolBar* bottom_toolbar = 0;
 
     QToolButton* load_more_button = 0;
     QAction* center_action = 0;
     QAction* popup_action = 0;
+    QAction* clear_filtered_action = 0;
     QAction* sort_time_action = 0;
     QAction* clock_action = 0;
     QAction* reset_filters_action = 0;

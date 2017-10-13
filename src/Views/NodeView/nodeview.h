@@ -93,7 +93,7 @@ public slots:
     
 private slots:
     void notification_Added(QSharedPointer<NotificationObject> obj);
-    void notification_Destructed(int id);
+    void notification_Destructed(QSharedPointer<NotificationObject> obj);
     
     void node_ConnectMode(NodeItem* item);
     void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);

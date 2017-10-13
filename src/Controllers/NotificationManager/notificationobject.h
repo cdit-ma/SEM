@@ -66,14 +66,6 @@ private:
     Notification::Severity severity_ = Notification::Severity::INFO;
 
     QDateTime modified_time_;
-public:
-    static void operator delete (void *p) {
-        //(NotificationObject*)
-        NotificationObject* note = (NotificationObject*)p;
-
-        qCritical() << "Notification Deleter: " << note->id_;
-        ::operator delete(p);
-    }
 };
 
 #endif // NOTIFICATIONOBJECT_H

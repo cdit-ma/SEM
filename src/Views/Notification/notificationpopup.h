@@ -18,6 +18,7 @@ private:
     void themeChanged();
     void setupLayout();
 
+    QSharedPointer<NotificationObject> current_notification;
     QLabel* icon = 0;
     QLabel* label = 0;
     QTimer* timer = 0;

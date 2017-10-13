@@ -29,6 +29,7 @@ private:
     void initialiseToolbar();
     void updateButtonIcon();
 
+    const int max_count = 99;
     QAction* show_most_recent_action = 0;
     QMovie* loading_gif = 0;
 

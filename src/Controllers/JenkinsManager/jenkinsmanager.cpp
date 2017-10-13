@@ -336,18 +336,13 @@ void JenkinsManager::GetNodes_(QString groovy_script){
             emit GotJenkinsNodes(graphml);
         }
         notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        int i = 0;
-        while(++i < 10){
-            notification->setDescription("Sleeping For: " + QString::number(i));
-            QThread::sleep(1);
-        }
         notification->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
     }
 }
 
 void JenkinsManager::ValidateSettings_(){
     auto notification = NotificationManager::manager()->AddNotification("Validating Jenkins Settings", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::JENKINS);
-    
+
     auto api_url = GetUrl() + "api/json";
     auto api_request = getAuthenticatedRequest(api_url, false);
 

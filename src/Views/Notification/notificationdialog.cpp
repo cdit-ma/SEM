@@ -27,8 +27,10 @@ NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *
 
     connect(center_action, &QAction::triggered, this, &NotificationDialog::centerEntity);
     connect(popup_action, &QAction::triggered, this, &NotificationDialog::popupEntity);
+    connect(clear_filtered_action, &QAction::triggered, this, &NotificationDialog::clearFilteredNotifications);
 
     auto manager = NotificationManager::manager();
+    connect(manager, &NotificationManager::notificationUpdated, this, &NotificationDialog::updateNotificationsVisibility);
     connect(manager, &NotificationManager::notificationAdded, this, &NotificationDialog::notificationAdded);
     connect(manager, &NotificationManager::notificationDeleted, this, &NotificationDialog::notificationDeleted);
     connect(manager, &NotificationManager::showNotificationPanel, this, &NotificationDialog::updateNotificationsVisibility);
@@ -57,7 +59,7 @@ void NotificationDialog::filtersChanged()
     updateNotificationsVisibility();
 }
 
-void NotificationDialog::updateNotificationsVisibility(){
+QSet<QSharedPointer<NotificationObject> > NotificationDialog::getFilteredNotifications(){
     //Get the Checked filters
     auto checked_context_set = context_filters->getCheckedOptions<Notification::Context>().toSet();
     auto checked_severity_set = severity_filters->getCheckedOptions<Notification::Severity>().toSet();
@@ -71,8 +73,29 @@ void NotificationDialog::updateNotificationsVisibility(){
         selected_ids = viewController->getSelectionController()->getSelectionIDs().toSet();
     }
 
+    QSet<QSharedPointer<NotificationObject> > filtered;
+
+    for(auto notification : NotificationManager::manager()->getNotifications()){
+        auto matches_severity = checked_severity_set.contains(notification->getSeverity());
+        auto matches_category = checked_category_set.contains(notification->getCategory());
+        auto matches_type = checked_type_set.contains(notification->getType());
+        auto matches_context = check_selection ? selected_ids.contains(notification->getEntityID()) : true;
+        //Check if this notification matches all the filters
+        auto matches_filters = matches_severity && matches_category && matches_type && matches_context;
+        if(matches_filters){
+            filtered.insert(notification);
+        }
+    }
+    return filtered;
+}
+
+void NotificationDialog::updateNotificationsVisibility(){
+    
+    
     //Get All the notifications 
     auto all_notifications = NotificationManager::manager()->getNotifications();
+    //Get the set of filtered notifications
+    filtered_notifications = getFilteredNotifications();
     
     //Update counts
     total_notifications = all_notifications.size();
@@ -87,12 +110,8 @@ void NotificationDialog::updateNotificationsVisibility(){
         });
 
     for(auto notification : all_notifications){
-        auto matches_severity = checked_severity_set.contains(notification->getSeverity());
-        auto matches_category = checked_category_set.contains(notification->getCategory());
-        auto matches_type = checked_type_set.contains(notification->getType());
-        auto matches_context = check_selection ? selected_ids.contains(notification->getEntityID()) : true;
         //Check if this notification matches all the filters
-        auto matches_filters = matches_severity && matches_category && matches_type && matches_context;
+        auto matches_filters = filtered_notifications.contains(notification);
 
         if(matches_filters){
             current_matched_notifications ++;
@@ -164,6 +183,8 @@ void NotificationDialog::themeChanged()
 
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
+    clear_filtered_action->setIcon(theme->getIcon("Icons", "bin"));
+    
     sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
@@ -193,6 +214,12 @@ void NotificationDialog::centerEntity(){
         if(entity_id != -1){
             viewController->centerOnID(entity_id);
         }
+    }
+}
+void NotificationDialog::clearFilteredNotifications(){
+    auto manager = NotificationManager::manager();
+    for(auto notification : getFilteredNotifications()){
+        manager->deleteNotification(notification->getID());
     }
 }
 
@@ -263,23 +290,30 @@ NotificationItem* NotificationDialog::getNotificationItem(QSharedPointer<Notific
  * Delete notification item with the provided ID from the hash and the items layout.
  * @param ID
  */
-void NotificationDialog::notificationDeleted(int ID)
-{
-    if (notification_items.contains(ID)) {
-        auto notification = notification_items.take(ID);
-        if(notification->isVisible()){
-            //Update the counts
-            total_notifications--;
-            current_matched_notifications--;
+void NotificationDialog::notificationDeleted(QSharedPointer<NotificationObject> notification){
+    auto ID = notification->getID();
+    auto notification_item = notification_items.value(ID, 0);
+    auto is_visible = notification_item ? notification_item->isVisible() : false;
+
+    if(filtered_notifications.contains(notification)){
+        filtered_notifications.remove(notification);
+        if(is_visible){
             current_visible_notifications--;
-            updateLabels();
-            notification->hide();
+            notification_item->hide();
         }
-        if(selected_notification == notification){
-            ToggleSelection(0);
-        }
+        current_matched_notifications--;
+        total_notifications--;
+        updateLabels();
+    }
+
+    if(selected_notification == notification_item){
+        ToggleSelection(0);
+    }
+
+    if(notification_item){
+        notification_items.remove(ID);
         //delete notification;
-        notification->deleteLater();
+        notification_item->deleteLater();
     }
 }
 
@@ -372,6 +406,9 @@ void NotificationDialog::setupLayout()
         top_toolbar->addSeparator();
         center_action = top_toolbar->addAction("Center On Notification");
         popup_action = top_toolbar->addAction("Popup On Notification");
+        top_toolbar->addSeparator();
+        clear_filtered_action = top_toolbar->addAction("Delete filtered notifications");
+        
     
 
         info_label = new QLabel("No notifications", this);

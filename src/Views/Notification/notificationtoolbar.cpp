@@ -7,6 +7,7 @@
 
 #include <QGraphicsDropShadowEffect>
 
+
 /**
  * @brief NotificationToolbar::NotificationToolbar
  * @param vc
@@ -25,14 +26,13 @@ NotificationToolbar::NotificationToolbar(QWidget *parent) :
     auto manager = NotificationManager::manager();
     connect(this, &NotificationToolbar::showPanel, manager, &NotificationManager::showNotificationPanel);
     connect(show_most_recent_action, &QAction::triggered, manager, &NotificationManager::toastLatestNotification);
+    
     //Enforce the button to always return to an unchecked state
     connect(show_most_recent_action, &QAction::triggered, [=](){show_most_recent_action->setChecked(!show_most_recent_action->isChecked());});
-
 
     connect(manager, &NotificationManager::notificationUpdated, this, &NotificationToolbar::notificationAdded);
     connect(manager, &NotificationManager::notificationUpdated, this, &NotificationToolbar::updateCount);
     connect(manager, &NotificationManager::notificationDeleted, this, &NotificationToolbar::updateCount);
-    
     connect(manager, &NotificationManager::notificationsSeen, this, &NotificationToolbar::notificationsSeen);
 
     
@@ -52,8 +52,12 @@ void NotificationToolbar::themeChanged()
     QString borderRadiusLeft = border_radius + "border-top-right-radius: 0px; border-bottom-right-radius: 0px; ";
     QString borderRadiusRight = border_radius + "border-top-left-radius: 0px; border-bottom-left-radius: 0px;";
 
+    auto font = theme->getFont();
+    auto width = theme->getIconSize().width() + 6 + QWidget::fontMetrics().width(QString::number(max_count) + "+");
+    
     setStyleSheet("QToolBar{spacing: 2px; background: none;padding:0px;}"
                   "QToolButton{border-radius:none;padding:2px;}"
+                  "QToolButton#MID_ACTION{width:" + QString::number(width) + "px;}"
                   "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
                   "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
                 );
@@ -124,6 +128,7 @@ void NotificationToolbar::setupLayout()
 
     auto left_widget = (QToolButton*)widgetForAction(show_most_recent_action);
     left_widget->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    left_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     left_widget->setObjectName("LEFT_ACTION");
 }
 
@@ -171,9 +176,11 @@ void NotificationToolbar::updateCount(){
 
     for(auto severity : Notification::getSeverities()){
         auto action = severity_actions.value(severity, 0); 
-        auto count = severity_counts.value(severity, 0);
+        auto severity_count = severity_counts.value(severity, 0);
+        auto count = qMin(severity_count, max_count);
         if(action){
-            action->setText(QString::number(count));
+            auto str = QString::number(count) + (count == max_count ? "+" : "");
+            action->setText(str);
         }
     }
     updateButtonIcon();

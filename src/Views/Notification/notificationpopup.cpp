@@ -14,13 +14,19 @@ NotificationPopup::NotificationPopup():PopupWidget(PopupWidget::TYPE::SPLASH, 0)
 
     //Hide the notification popup on timeout
     connect(timer, &QTimer::timeout, this, &QDialog::hide);
+    //Drop our shared pointer
+    connect(timer, &QTimer::timeout, [=](){current_notification.reset();});
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationPopup::themeChanged);
 
     themeChanged();
 }
 
 void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> notification){
+    current_notification = notification;
+    
     timer->stop();
+    
+    
 
     auto font_metrics = label->fontMetrics();
     auto notification_text  = font_metrics.elidedText(notification->getDescription(), Qt::ElideMiddle, 500);
@@ -48,10 +54,7 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
     }
 
     QMetaObject::invokeMethod(this, "adjustSize", Qt::QueuedConnection);
-
- 
     timer->start();
-    
 }
 
 void NotificationPopup::themeChanged(){

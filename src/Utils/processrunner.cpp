@@ -13,7 +13,6 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     qRegisterMetaType<ProcessResult>("ProcessResult");
     qRegisterMetaType<HTTPResult>("HTTPResult");
     global_vars = QProcessEnvironment::systemEnvironment();
-
 }
 
 QString ProcessRunner::getEnvVar(QString key){
@@ -121,7 +120,7 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         result.process->setWorkingDirectory(directory);
     }
 
-    qCritical() << "Running: Program: '" << program << "' " << args.join(" ") << " IN: " << directory;
+    //qCritical() << "Running: Program: '" << program << "' " << args.join(" ") << " IN: " << directory;
 
     //Start the program
     result.process->start(program, args);

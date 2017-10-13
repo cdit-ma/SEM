@@ -1529,17 +1529,21 @@ void Theme::resetTheme(VIEW_THEME themePreset){
 QFont Theme::getFont() const{
     return font;
 }
+
 QFont Theme::getLargeFont() const{
     auto large_font = font;
     large_font.setPointSizeF(font.pointSizeF() * 1.2);
     return large_font;
 }
+
 void Theme::setFont(QFont font){
     if(this->font != font){
         this->font = font;
-        
-        QApplication::setFont(font);
         updateValid();
+    }
+    
+    if(QApplication::font() != font){
+        QApplication::setFont(font);
     }
 }
 

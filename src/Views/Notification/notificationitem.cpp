@@ -54,9 +54,11 @@ void NotificationItem::setupLayout(){
     label_icon = new QLabel(this);
     label_icon->setScaledContents(true);
     
+    
     label_icon->setAlignment(Qt::AlignCenter);
 
     label_text = new QLabel(this);
+    label_text->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     label_time = new QLabel(this);
 
     toolbar = new QToolBar(this);

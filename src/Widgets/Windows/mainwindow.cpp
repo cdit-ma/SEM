@@ -523,6 +523,8 @@ void MainWindow::setupMenuCornerWidget()
     restore_toolbutton = new QToolButton(this);
     restore_toolbutton->setToolTip("Restore Tool Dock Widgets");
     restore_toolbutton->setObjectName("RIGHT_ACTION");
+    restore_toolbutton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    
 
     connect(restore_toolbutton, &QToolButton::clicked, [=](){
         auto menu = createPopupMenu();

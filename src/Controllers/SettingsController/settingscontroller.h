@@ -143,8 +143,8 @@ private:
 
     QHash<SETTINGS, Setting*> settingsHash;
     QList<SETTINGS> settingsKeys;
-    QSettings* settingsFile;
-    AppSettings* settingsGUI;
+    QSettings* settingsFile = 0;
+    AppSettings* settingsGUI = 0;
 
 public:
     static SettingsController* settings();

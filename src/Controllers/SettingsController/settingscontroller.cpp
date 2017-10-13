@@ -16,16 +16,15 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     //Register the settings key.
     //qRegisterMetaType<SETTINGS>("SETTINGS");
     //qRegisterMetaType<SETTING_TYPE>("SETTING_TYPE");
-
-    settingsGUI = 0;
-    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
-
     intializeSettings();
 
+    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
+
+    
     //Connect to the
     connect(Theme::theme(), &Theme::changeSetting, this, &SettingsController::setSetting);
     connect(this, &SettingsController::settingChanged, Theme::theme(), &Theme::settingChanged);
-
+    
 
     //Place defaults in case nothing is set.
     emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
@@ -251,9 +250,7 @@ void SettingsController::intializeSettings()
     
 
     _getSetting(SETTINGS::GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
-
     _getSetting(SETTINGS::JENKINS_JOBNAME)->setDefaultValue("deploy_model");
-
 }
 
 QString getSettingKey(Setting* setting){
@@ -304,6 +301,7 @@ void SettingsController::loadSettingsFromFile()
         }else{
             writeSetting(setting, setting->getDefaultValue());
         }
+        emit settingChanged(setting->getID(), setting->getValue());
     }
 }
 

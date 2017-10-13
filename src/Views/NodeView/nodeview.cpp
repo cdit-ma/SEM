@@ -1722,8 +1722,9 @@ void NodeView::notification_Added(QSharedPointer<NotificationObject> obj){
     }
 }
 
-void NodeView::notification_Destructed(int id){
+void NodeView::notification_Destructed(QSharedPointer<NotificationObject> obj){
 
+    auto id = obj->getID();
     auto e_id = notification_id_lookup.value(id, -1);
     if(e_id != -1){
         notification_id_lookup.remove(id);

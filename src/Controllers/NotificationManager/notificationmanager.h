@@ -46,8 +46,9 @@ public:
 
 signals:
     void toastNotification(QSharedPointer<NotificationObject> notification);
-    void notificationUpdated(int ID);
-    void notificationDeleted(int ID);
+    void notificationUpdated(QSharedPointer<NotificationObject> notification);
+    //void notificationDeleted(int ID);
+    void notificationDeleted(QSharedPointer<NotificationObject> notification);
     void notificationAdded(QSharedPointer<NotificationObject> notification);
     
     void notificationsSeen();
