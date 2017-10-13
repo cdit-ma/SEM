@@ -33,22 +33,22 @@ public:
     NotificationDialog* getPanel();
     NotificationToolbar* getToolbar();
     NotificationPopup* getToast();
-    NotificationObject* AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast = true, int entity_id = -1, bool defer_update=false);
+    QSharedPointer<NotificationObject> AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast = true, int entity_id = -1, bool defer_update=false);
 
-    QList<NotificationObject*> getNotifications();
+    QList<QSharedPointer<NotificationObject>> getNotifications();
     
-    QList<NotificationObject*> getNotificationsOfType(Notification::Type type);
-    QList<NotificationObject*> getNotificationsOfSeverity(Notification::Severity severity);
-    QList<NotificationObject*> getNotificationsOfCategory(Notification::Category category);
+    QList<QSharedPointer<NotificationObject>> getNotificationsOfType(Notification::Type type);
+    QList<QSharedPointer<NotificationObject>> getNotificationsOfSeverity(Notification::Severity severity);
+    QList<QSharedPointer<NotificationObject>> getNotificationsOfCategory(Notification::Category category);
 
-    NotificationObject* getNotification(int id);
-    NotificationObject* getLatestNotification();
+    QSharedPointer<NotificationObject> getNotification(int id);
+    QSharedPointer<NotificationObject> getLatestNotification();
 
 signals:
-    void toastNotification(NotificationObject* notification);
+    void toastNotification(QSharedPointer<NotificationObject> notification);
     void notificationUpdated(int ID);
     void notificationDeleted(int ID);
-    void notificationAdded(NotificationObject* notification);
+    void notificationAdded(QSharedPointer<NotificationObject> notification);
     
     void notificationsSeen();
     void showNotificationPanel();
@@ -59,16 +59,16 @@ public slots:
     void deleteNotification(int ID);
 private slots:
     void centerPopup();
-    void displayToastNotification(NotificationObject* notification);
+    void displayToastNotification(QSharedPointer<NotificationObject> notification);
 private:
-    void NotificationUpdated(NotificationObject* notification);
+    void NotificationUpdated(QSharedPointer<NotificationObject> notification);
 
     static NotificationManager* managerSingleton;
     
     
-    QMap<int, NotificationObject*> notifications;
+    QMap<int, QSharedPointer<NotificationObject>> notifications;
     
-    NotificationObject* latest_notification = 0;
+    QSharedPointer<NotificationObject> latest_notification;
     NotificationDialog* notification_panel = 0;
     NotificationPopup* notification_popup = 0;
     NotificationToolbar* notification_toolbar = 0;

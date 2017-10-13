@@ -19,7 +19,7 @@ NotificationPopup::NotificationPopup():PopupWidget(PopupWidget::TYPE::SPLASH, 0)
     themeChanged();
 }
 
-void NotificationPopup::DisplayNotification(NotificationObject* notification){
+void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> notification){
     timer->stop();
 
     auto font_metrics = label->fontMetrics();

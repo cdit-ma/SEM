@@ -335,9 +335,13 @@ void JenkinsManager::GetNodes_(QString groovy_script){
         if(success){
             emit GotJenkinsNodes(graphml);
         }
-    
-        notification->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
         notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+        int i = 0;
+        while(++i < 10){
+            notification->setDescription("Sleeping For: " + QString::number(i));
+            QThread::sleep(1);
+        }
+        notification->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
     }
 }
 

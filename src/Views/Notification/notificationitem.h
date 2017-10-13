@@ -13,12 +13,12 @@ class NotificationItem : public QFrame
 {
     Q_OBJECT
 public:
-    explicit NotificationItem(NotificationObject* obj, QWidget* parent = 0);
+    explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = 0);
     ~NotificationItem();
 
     int getID();
     int getEntityID();
-    NotificationObject* getNotification() const;
+    QSharedPointer<NotificationObject> getNotification() const;
     void setSelected(bool select);
 signals:
     void highlightEntity(int entityID, bool highlight);
@@ -36,7 +36,7 @@ private:
     void updateStyleSheet();
     void updateVisibility(bool filterMatched);
 
-    NotificationObject* notification = 0;
+    QSharedPointer<NotificationObject> notification;
 
     QLabel* label_icon = 0;
     QLabel* label_text = 0;

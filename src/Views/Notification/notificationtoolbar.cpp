@@ -151,14 +151,14 @@ void NotificationToolbar::setLoadingMode(bool loading){
 void NotificationToolbar::updateButtonIcon()
 {
     auto last_notification = NotificationManager::manager()->getLatestNotification();
-
-    if(last_notification && last_notification->getSeverity() == Notification::Severity::RUNNING){
+    bool valid = !last_notification.isNull();
+    if(valid && last_notification->getSeverity() == Notification::Severity::RUNNING){
         setLoadingMode(true);
     }else{
         setLoadingMode(false);
         show_most_recent_action->setIcon(default_icon);
     }
-    show_most_recent_action->setEnabled(last_notification);
+    show_most_recent_action->setEnabled(valid);
 }
 
 void NotificationToolbar::updateCount(){

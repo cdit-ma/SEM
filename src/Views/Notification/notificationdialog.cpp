@@ -81,7 +81,7 @@ void NotificationDialog::updateNotificationsVisibility(){
 
     //Sort the list by ascending or descending time
     qSort(all_notifications.begin(), all_notifications.end(), 
-        [=](const NotificationObject* a, const NotificationObject* b) -> bool{
+        [=](const QSharedPointer<NotificationObject> a, const QSharedPointer<NotificationObject> b) -> bool{
             bool agtb = a->getModifiedTime() > b->getModifiedTime();
             return sort_time_action->isChecked() ? agtb : !agtb;
         });
@@ -230,13 +230,13 @@ void NotificationDialog::selectionChanged(){
  * @brief NotificationDialog::notificationAdded
  * @param obj
  */
-void NotificationDialog::notificationAdded(NotificationObject* notification)
+void NotificationDialog::notificationAdded(QSharedPointer<NotificationObject> notification)
 {
     updateNotificationsVisibility();
 }
 
 
-NotificationItem* NotificationDialog::constructNotificationItem(NotificationObject* notification){
+NotificationItem* NotificationDialog::constructNotificationItem(QSharedPointer<NotificationObject> notification){
     auto notification_item = getNotificationItem(notification);
     if(notification && !notification_item){
         auto id = notification->getID();
@@ -251,7 +251,7 @@ NotificationItem* NotificationDialog::constructNotificationItem(NotificationObje
     return notification_item;
 }
 
-NotificationItem* NotificationDialog::getNotificationItem(NotificationObject* notification){
+NotificationItem* NotificationDialog::getNotificationItem(QSharedPointer<NotificationObject> notification){
     if(notification){
         return notification_items.value(notification->getID(), 0);
     }

@@ -8,6 +8,7 @@
 #include "../../Views/Notification/notificationtoolbar.h"
 #include "../../Views/Notification/notificationpopup.h"
 #include "../../Widgets/Dialogs/popupwidget.h"
+#include <QSharedPointer>
 
 NotificationManager* NotificationManager::managerSingleton = 0;
 
@@ -89,7 +90,7 @@ NotificationDialog* NotificationManager::getPanel()
 }
 
 
-void NotificationManager::displayToastNotification(NotificationObject* notification){
+void NotificationManager::displayToastNotification(QSharedPointer<NotificationObject> notification){
     if(!viewController->isWelcomeScreenShowing()){
         notification_popup->DisplayNotification(notification);
         auto window = WindowManager::manager()->getMainWindow();
@@ -125,7 +126,7 @@ NotificationToolbar* NotificationManager::getToolbar()
  * @brief NotificationManager::getNotificationItems
  * @return
  */
-QList<NotificationObject*> NotificationManager::getNotifications()
+QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications()
 {
     return notifications.values();
 }
@@ -136,9 +137,9 @@ QList<NotificationObject*> NotificationManager::getNotifications()
  * @param type
  * @return
  */
-QList<NotificationObject*> NotificationManager::getNotificationsOfType(Notification::Type type)
+QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfType(Notification::Type type)
 {
-    QList<NotificationObject*> list;
+    QList<QSharedPointer<NotificationObject> > list;
     for (auto notification : notifications.values()) {
         if (notification->getType() == type) {
             list << notification;
@@ -153,9 +154,9 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfType(Notificat
  * @param severity
  * @return
  */
-QList<NotificationObject*> NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
+QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfSeverity(Notification::Severity severity)
 {
-    QList<NotificationObject*> list;
+    QList<QSharedPointer<NotificationObject> > list;
     for (auto notification : notifications.values()) {
         if (notification->getSeverity() == severity) {
             list << notification;
@@ -170,9 +171,9 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfSeverity(Notif
  * @param category
  * @return
  */
-QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notification::Category category)
+QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfCategory(Notification::Category category)
 {
-    QList<NotificationObject*> list;
+    QList<QSharedPointer<NotificationObject> > list;
     for (auto notification : notifications.values()) {
         if (notification->getCategory() == category) {
             list << notification;
@@ -181,8 +182,10 @@ QList<NotificationObject*> NotificationManager::getNotificationsOfCategory(Notif
     return list;
 }
 
-NotificationObject* NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
-    auto notification = new NotificationObject();
+QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
+    auto n = new NotificationObject();
+    
+    auto notification = QSharedPointer<NotificationObject>(n);
     notification->setDescription(description);
     notification->setIcon(icon_path, icon_name);
     notification->setSeverity(severity);
@@ -193,7 +196,8 @@ NotificationObject* NotificationManager::AddNotification(QString description, QS
 
     auto notification_id = notification->getID();
     notifications[notification_id] = notification;
-    connect(notification, &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated, Qt::QueuedConnection);
+    
+    connect(notification.data(), &NotificationObject::notificationChanged, this, &NotificationManager::NotificationUpdated, Qt::QueuedConnection);
 
     if(!defer_update){
         emit notificationAdded(notification);
@@ -230,45 +234,51 @@ void NotificationManager::centerPopup(){
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    if(notifications.contains(ID)){
-        auto notification = notifications.take(ID);
-        if(notification->getSeverity() != Notification::Severity::RUNNING){
+    auto notification = notifications.value(ID);
+
+    if(!notification.isNull()){
+        bool can_delete = notification->getSeverity() != Notification::Severity::RUNNING;
+        if(can_delete){
+            notifications.remove(ID);
             auto notifications_count = notifications.count();
             
+
             if(notification == latest_notification){
                 if(notifications_count > 0){
                     //Get the last notification
                     latest_notification = notifications.last();
                 }else{
                     //Unset
-                    latest_notification = 0;
+                    latest_notification.reset();
                 }
             }
-    
+
+            disconnect(notification.data());
+            
             // delete the item from the notification dialog
             emit notificationDeleted(ID);
-            
-            delete notification;
         }
     }
 }
 
-NotificationObject* NotificationManager::getNotification(int id){
-    return notifications.value(id, 0);
+QSharedPointer<NotificationObject> NotificationManager::getNotification(int id){
+    return notifications.value(id, QSharedPointer<NotificationObject>());
 }
 
-NotificationObject* NotificationManager::getLatestNotification(){
+QSharedPointer<NotificationObject> NotificationManager::getLatestNotification(){
     return latest_notification;
 }
 
-void NotificationManager::NotificationUpdated(NotificationObject* notification){
+void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject> notification){
     if(notification){
         auto notification_id = notification->getID();
-        latest_notification = notification;
-        emit notificationUpdated(notification_id);
-    
-        if (notification->getToastable()) {
-            emit toastNotification(notification);
+        if(notifications.count(notification_id)){
+            latest_notification = notification;
+            emit notificationUpdated(notification_id);
+        
+            if (notification->getToastable()) {
+                emit toastNotification(notification);
+            }
         }
     }
 }

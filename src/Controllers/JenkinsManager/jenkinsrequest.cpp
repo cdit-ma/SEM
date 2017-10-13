@@ -276,9 +276,9 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
     int build_number = -1;
     Notification::Severity job_state = Notification::Severity::ERROR;
     
-    NotificationObject* notification = 0;
+    
+    auto notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
     if(BlockUntilValidatedSettings()){
-        notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
 
         QUrlQuery query;
         //Add Parameters

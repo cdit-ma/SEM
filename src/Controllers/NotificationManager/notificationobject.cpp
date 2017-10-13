@@ -16,11 +16,6 @@ NotificationObject::NotificationObject() : QObject(0){
     connect(this, &NotificationObject::categoryChanged, &NotificationObject::updateModifiedTime);
 }
 
-
-NotificationObject::~NotificationObject() {
-
-}
-
 void NotificationObject::setTitle(QString title){
     if(title_ != title){
         title_ = title;
@@ -119,5 +114,5 @@ Notification::Severity NotificationObject::getSeverity() const{
 void NotificationObject::updateModifiedTime(){
     modified_time_ = QDateTime::currentDateTime();
     emit timeChanged();
-    emit notificationChanged(this);
+    emit notificationChanged(sharedFromThis());
 }

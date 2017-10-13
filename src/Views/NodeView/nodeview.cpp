@@ -1710,7 +1710,7 @@ void NodeView::resizeEvent(QResizeEvent *event)
     update_minimap();
 }
 
-void NodeView::notification_Added(NotificationObject* obj){
+void NodeView::notification_Added(QSharedPointer<NotificationObject> obj){
     //Check for IDs
     auto entity = getEntityItem(obj->getEntityID());
     if(entity){

@@ -1,20 +1,21 @@
 #ifndef NOTIFICATIONOBJECT_H
 #define NOTIFICATIONOBJECT_H
 
+#include <QDebug>
 #include <QObject>
 #include <QDateTime>
+#include <QEnableSharedFromThis>
 
 #include "notificationenumerations.h"
 
 class NotificationManager;
-class NotificationObject : public QObject
+class NotificationObject : public QObject, public QEnableSharedFromThis<NotificationObject>
 {
     friend class NotificationManager;
     Q_OBJECT
 
 protected:
     NotificationObject();
-    ~NotificationObject();
 public:
     //Setters
     void setTitle(QString title);
@@ -47,7 +48,7 @@ signals:
     void typeChanged();
     void categoryChanged();
     void timeChanged();
-    void notificationChanged(NotificationObject*);
+    void notificationChanged(QSharedPointer<NotificationObject>);
 private:
     void updateModifiedTime();
     static int id_counter_;
@@ -65,6 +66,14 @@ private:
     Notification::Severity severity_ = Notification::Severity::INFO;
 
     QDateTime modified_time_;
+public:
+    static void operator delete (void *p) {
+        //(NotificationObject*)
+        NotificationObject* note = (NotificationObject*)p;
+
+        qCritical() << "Notification Deleter: " << note->id_;
+        ::operator delete(p);
+    }
 };
 
 #endif // NOTIFICATIONOBJECT_H

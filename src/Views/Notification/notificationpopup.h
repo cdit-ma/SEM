@@ -12,7 +12,7 @@ class NotificationPopup : public PopupWidget
     Q_OBJECT
 public:
     explicit NotificationPopup();
-    void DisplayNotification(NotificationObject* notification);
+    void DisplayNotification(QSharedPointer<NotificationObject> notification);
 
 private:
     void themeChanged();

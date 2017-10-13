@@ -25,7 +25,7 @@ signals:
 public slots:
     void showSeverity(Notification::Severity severity);
 private slots:
-    void notificationAdded(NotificationObject* notification);
+    void notificationAdded(QSharedPointer<NotificationObject> notification);
     void notificationDeleted(int ID);
     void selectionChanged();
 private slots:
@@ -34,8 +34,8 @@ private slots:
     void popupEntity();
     void centerEntity();
 private:
-    NotificationItem* constructNotificationItem(NotificationObject* notification);
-    NotificationItem* getNotificationItem(NotificationObject* notification);
+    NotificationItem* constructNotificationItem(QSharedPointer<NotificationObject> notification);
+    NotificationItem* getNotificationItem(QSharedPointer<NotificationObject> notification);
 
     void initialisePanel();
     void updateNotificationsVisibility();

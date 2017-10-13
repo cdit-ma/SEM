@@ -92,7 +92,7 @@ public slots:
     void minimap_Zoom(int delta);
     
 private slots:
-    void notification_Added(NotificationObject* obj);
+    void notification_Added(QSharedPointer<NotificationObject> obj);
     void notification_Destructed(int id);
     
     void node_ConnectMode(NodeItem* item);

@@ -12,7 +12,7 @@
  * @param obj
  * @param parent
  */
-NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
+NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidget *parent)
     : QFrame(parent)
 {
     if (!obj) {
@@ -24,13 +24,13 @@ NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
 
     setupLayout();
 
-    connect(notification, &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
-    connect(notification, &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
-    connect(notification, &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
+    connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
+    connect(notification.data(), &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
+    connect(notification.data(), &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
 
     
-    connect(notification, &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
-    connect(notification, &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
+    connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
+    connect(notification.data(), &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
@@ -86,7 +86,7 @@ int NotificationItem::getID()
     return -1;
 }
 
-NotificationObject* NotificationItem::getNotification() const{
+QSharedPointer<NotificationObject> NotificationItem::getNotification() const{
     return notification;
 }
 
