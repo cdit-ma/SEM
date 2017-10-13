@@ -26,9 +26,15 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+<<<<<<< HEAD
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ModelController")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Utils/IdlParser")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Test")
+=======
+add_subdirectory("ModelController")
+add_subdirectory("Test")
+add_subdirectory("Utils/IdlParser")
+>>>>>>> develop
 
 #Pass Version info into cmakevars.h
 configure_file(

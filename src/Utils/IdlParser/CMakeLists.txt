@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+<<<<<<< HEAD
 set(EXEC_NAME idl2graphml)
 set(LIB_NAME medea_idl2graphml_lib)
 
@@ -25,3 +26,19 @@ set(HEADERS
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS})
 add_executable(${EXEC_NAME} main.cpp)
 target_link_libraries(${EXEC_NAME} ${LIB_NAME})
+=======
+
+#Requires Qt5_DIR and QTIFWDIR to be set
+set(PROJ_NAME idl2graphml)
+
+project(${PROJ_NAME})
+
+
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+
+add_executable(${PROJ_NAME} ${SOURCE})
+>>>>>>> develop
