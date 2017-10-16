@@ -10,23 +10,24 @@ NotificationPopup::NotificationPopup():PopupWidget(PopupWidget::TYPE::SPLASH, 0)
     timer = new QTimer(this);
     timer->setInterval(5000);
 
+    installEventFilter(this);
     setAttribute(Qt::WA_ShowWithoutActivating);
 
     //Hide the notification popup on timeout
-    connect(timer, &QTimer::timeout, this, &QDialog::hide);
-    //Drop our shared pointer
-    connect(timer, &QTimer::timeout, [=](){current_notification.reset();});
+    connect(timer, &QTimer::timeout, this, &NotificationPopup::Hide);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationPopup::themeChanged);
 
     themeChanged();
 }
 
+void NotificationPopup::Hide(){
+    hide();
+    timer->stop();
+    current_notification.reset();
+}
+
 void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> notification){
     current_notification = notification;
-    
-    timer->stop();
-    
-    
 
     auto font_metrics = label->fontMetrics();
     auto notification_text  = font_metrics.elidedText(notification->getTitle(), Qt::ElideMiddle, 500);
@@ -84,4 +85,11 @@ void NotificationPopup::setupLayout(){
     layout->addWidget(label);
     
     setWidget(widget);
+}
+
+bool NotificationPopup::eventFilter(QObject* object, QEvent* event){
+    if(event->type() == QEvent::MouseButtonPress){
+        Hide();
+    }
+    return false;
 }

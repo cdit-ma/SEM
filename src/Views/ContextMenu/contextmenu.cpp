@@ -419,7 +419,7 @@ void ContextMenu::load_more_actions(QMenu* menu){
             load_count += 10;
         }
         load_count += 10;
-        
+
         menu->setProperty("load_count", load_count);
         //Remove the 
         valid_menus.remove(menu);
@@ -801,6 +801,7 @@ QWidgetAction* ContextMenu::get_load_more_action(QMenu* parent){
 
         connect(add_more_widget, &LoadMoreWidget::LoadMore, [=](){
             load_more_actions(parent);
+            parent->show();
         });
 
         action->setDefaultWidget(add_more_widget);

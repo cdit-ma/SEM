@@ -13,10 +13,12 @@ class NotificationPopup : public PopupWidget
 public:
     explicit NotificationPopup();
     void DisplayNotification(QSharedPointer<NotificationObject> notification);
+    void Hide();
 
 private:
     void themeChanged();
     void setupLayout();
+    bool eventFilter(QObject* object, QEvent* event);
 
     QSharedPointer<NotificationObject> current_notification;
     QLabel* icon = 0;

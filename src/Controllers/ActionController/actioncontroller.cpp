@@ -180,17 +180,25 @@ void ActionController::showShortcutDialog()
     if(!shortcutDialog){
         shortcutDialog = new ShortcutDialog(0);
 
-        QStringList keyOrders;
-        keyOrders << "Project" << "Edit" << "Selection" << "View" << "Model" << "Help";
-
-        foreach(QString title, keyOrders){
-            shortcutDialog->addTitle(title, "Icons", title);
-
-            //Go Through backwards.
-            QList<RootAction*> actions = actionCategoryMap.values(title);
-            for(int i = actions.size() - 1; i >= 0; i--){
-                RootAction* action = actions.at(i);
+        auto list = actionCategoryMap.uniqueKeys();
+        std::sort(list.begin(), list.end());
+        
+        for(auto key : list){
+            QList<RootAction*> actions; 
+            
+            for(auto action : actionCategoryMap.values(key)){
                 if(action && !action->shortcut().isEmpty()){
+                    actions.append(action);
+                }
+            }
+
+            std::sort(actions.begin(), actions.end(), [](const QAction* a, const QAction* b){
+                return a->text() < b->text();
+                });
+
+            if(actions.length()){
+                shortcutDialog->addTitle(key, "Icons", key);
+                for(auto action : actions){
                     shortcutDialog->addShortcut(action->shortcut().toString(), action->text(), action->getIconPath(), action->getIconAlias());
                 }
             }
@@ -754,6 +762,16 @@ void ActionController::setupActions()
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
+    dock_addPart = createRootAction("Dock", "Open Add Part Dock", "", "Icons", "plus");
+    dock_addPart->setToolTip("Open the add parts dock");
+    dock_addPart->setShortcutContext(Qt::ApplicationShortcut);
+    dock_addPart->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_A));
+
+    dock_deploy = createRootAction("Dock", "Open Deploy Dock", "", "Icons", "screen");
+    dock_deploy->setToolTip("Open the deploy dock");
+    dock_deploy->setShortcutContext(Qt::ApplicationShortcut);
+    dock_deploy->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+
     
 
     model_getCodeForComponent = createRootAction("Model", "Generate Code for Component", "", "Icons", "bracketsAngled");
@@ -765,6 +783,8 @@ void ActionController::setupActions()
 
     model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
     model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
+    model_executeLocalJob->setShortcutContext(Qt::ApplicationShortcut);
+    model_executeLocalJob->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
 
 
     jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");

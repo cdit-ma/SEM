@@ -115,6 +115,10 @@ public:
     RootAction* edit_replicate;
     RootAction* edit_delete;
     RootAction* edit_search;
+
+    RootAction* dock_addPart;
+    RootAction* dock_deploy;
+
     //RootAction* edit_sort;
     RootAction* edit_clearSelection;
     RootAction* edit_selectAll;

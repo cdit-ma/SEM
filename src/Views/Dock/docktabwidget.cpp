@@ -25,6 +25,13 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
     themeChanged();
     
     connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &DockTabWidget::refreshSize);   
+    auto action_controller = vc->getActionController();
+    addAction(action_controller->dock_addPart);
+    addAction(action_controller->dock_deploy);
+    connect(action_controller->dock_addPart, &QAction::triggered, parts_action, &QAction::triggered);
+    connect(action_controller->dock_deploy, &QAction::triggered, deploy_action, &QAction::triggered);
+
+    connect(vc->getSelectionController(), &SelectionController::selectionChanged, this, &DockTabWidget::refreshSize);   
     dockActionTriggered(parts_action);
     refreshSize();
 }
@@ -194,7 +201,7 @@ void DockTabWidget::setupDocks()
 void DockTabWidget::refreshSize()
 {
     auto current_menu = stack_widget->currentWidget() == parts_dock ? add_part_menu : deploy_menu;
-    auto current_dock =stack_widget->currentWidget() == parts_dock ? parts_dock : deploy_dock;
+    auto current_dock = stack_widget->currentWidget() == parts_dock ? parts_dock : deploy_dock;
 
     auto dock_width = current_dock->viewport()->width();
     
@@ -203,7 +210,7 @@ void DockTabWidget::refreshSize()
     
     if(required_width > width){
         //Add the margin in
-        setMinimumWidth(required_width + 2);   
+        setMinimumWidth(required_width + 2);
     }
 
     current_menu->setFixedWidth(dock_width);
