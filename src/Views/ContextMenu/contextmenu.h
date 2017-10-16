@@ -56,10 +56,12 @@ private:
 
     QMenu* construct_menu(QString label, QMenu* parent_menu, int icon_size=0);
 private:
+    void popup_menu(QMenu* menu, QPoint pos);
     void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
     void construct_view_item_menus2(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
 
     QWidgetAction* construct_menu_search(QMenu* parent);
+    QWidgetAction* get_load_more_action(QMenu* parent);
 
     bool menu_requires_update(QMenu* menu);
     void menu_updated(QMenu* menu);
@@ -108,6 +110,7 @@ private:
         QWidgetAction* available_nodes_action = 0;
     };
 
+    QHash<QMenu*, QWidgetAction*> load_more_actions_;
     QHash<QMenu*, QWidgetAction*> search_actions_;
     QHash <QMenu*, DeployLabels*> deploy_labels;
     QHash <QMenu*, QWidgetAction*> add_labels;

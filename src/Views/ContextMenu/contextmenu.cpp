@@ -3,6 +3,7 @@
 
 #include "../../ModelController/entityfactory.h"
 #include "../../Widgets/filterwidget.h"
+#include "../../Widgets/loadmorewidget.h"
 
 #include <QDebug>
 #include <QStyleFactory>
@@ -132,6 +133,8 @@ void ContextMenu::themeChanged(){
         }
     }
 
+   
+
     for(auto edge_menu : add_edge_menu_direct_hash.values()){
         auto edge_kind = edge_menu->property("edge_direction").value<EDGE_DIRECTION>();
         if(edge_kind == EDGE_DIRECTION::SOURCE){
@@ -146,7 +149,7 @@ void ContextMenu::themeChanged(){
     }
 }
 
-void popup_menu(QMenu* menu, QPoint pos){
+void ContextMenu::popup_menu(QMenu* menu, QPoint pos){
     if(menu){
         emit menu->aboutToShow();
         menu->popup(pos);
@@ -389,13 +392,12 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_i
         auto all_loaded = filtered_view_items.size() == visible_count;
         auto hidden_count = view_items.size() - filtered_view_items.size();
 
-        if(!all_loaded){
-            auto action = construct_base_action(menu, "Load more");
-            //Disconnect the usual connect
-            disconnect(action, &QAction::triggered, 0 , 0);
-            action->setIcon(Theme::theme()->getIcon("Icons", "refresh"));
-            //When the loadmore action is triggered, increment the load_count, 
-            connect(action, &QAction::triggered, this, [=](){load_more_actions(menu);});
+        auto load_more_action = get_load_more_action(menu);
+
+        if(all_loaded){
+            menu->removeAction(load_more_action);
+        }else{
+            menu->addAction(load_more_action);
         }
         
         if(hidden_count > 0){
@@ -417,13 +419,12 @@ void ContextMenu::load_more_actions(QMenu* menu){
             load_count += 10;
         }
         load_count += 10;
+        
         menu->setProperty("load_count", load_count);
         //Remove the 
         valid_menus.remove(menu);
-        //Update the menu
-        emit menu->aboutToShow();
-        //Show the menu
-        menu->show();
+
+        update_menu(menu);
     }
 }
 
@@ -561,8 +562,10 @@ void ContextMenu::menu_updated(QMenu* menu){
 }
 
 void ContextMenu::menu_focussed(QMenu* menu){
+    menu->show();
     auto widget_action = search_actions_.value(menu, 0);
     if(widget_action){
+        menu->setActiveAction(widget_action);
         widget_action->defaultWidget()->setFocus();
     }
 }
@@ -788,6 +791,25 @@ QWidgetAction* ContextMenu::construct_menu_search(QMenu* parent){
     return action;
 }
 
+QWidgetAction* ContextMenu::get_load_more_action(QMenu* parent){
+    auto action = load_more_actions_.value(parent, 0);
+
+    if(!action){
+        action = new QWidgetAction(0);
+        //action->setProperty("LoadMore", true);
+        auto add_more_widget = new LoadMoreWidget();
+
+        connect(add_more_widget, &LoadMoreWidget::LoadMore, [=](){
+            load_more_actions(parent);
+        });
+
+        action->setDefaultWidget(add_more_widget);
+        load_more_actions_[parent] = action;
+    }
+    return action;
+}
+
+
 
 void ContextMenu::setupMenus(){
     main_menu = construct_menu("", 0);
@@ -809,7 +831,6 @@ void ContextMenu::setupMenus(){
     add_labels[dock_add_node_menu] = construct_menu_label("Available Entities");
 
 
-    
     dock_add_node_menu->addAction(construct_menu_search(dock_add_node_menu));
     add_node_menu->addAction(construct_menu_search(add_node_menu));
     
