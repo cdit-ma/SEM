@@ -108,9 +108,11 @@ signals:
     //TO OTHER VIEWS SIGNALS
 
     void vc_showWelcomeScreen(bool);
-    void vc_JenkinsReady(bool);
-    void vc_JavaReady(bool);
-    void vc_ReReady(bool);
+    
+    void GotJava(bool);
+    void GotRe(bool);
+    void GotJenkins(bool);
+
     void vc_controllerReady(bool);
     void vc_ProjectLoaded(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
@@ -227,11 +229,6 @@ public slots:
     JobMonitor* getExecutionMonitor();
     void showExecutionMonitor();
 
-
-    void jenkinsManager_SettingsValidated(bool success, QString errorString);
-    void GotJava(bool java, QString javaVersion);
-    void GotRe(bool re, QString string);
-
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
 
 
@@ -315,7 +312,7 @@ private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
 
-    void modelNotification(MODEL_SEVERITY severity, QString description, int ID);
+    void modelNotification(MODEL_SEVERITY severity, QString title, QString description, int ID);
 
 private:
     QList<ViewItem*> getSearchableEntities();
@@ -398,7 +395,6 @@ private:
     bool showSearchSuggestions;
     
     bool showingWelcomeScreen = true;
-
 };
 
 #endif // VIEWCONTROLLER_H

@@ -38,6 +38,8 @@
 #include <QDesktopServices>
 #include <QTextBrowser>
 #include <QFile>
+#include <iostream>
+#include <sstream>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -71,6 +73,7 @@ ViewController::ViewController() : QObject(){
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     menu = new ContextMenu(this);
+    
 
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
@@ -638,29 +641,6 @@ void ViewController::showExecutionMonitor(){
     WindowManager::ShowDockWidget(execution_monitor);
 }
 
-void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
-{
-    emit vc_JenkinsReady(success);
-
-    auto description = success ? "Settings validated successfully" : errorString;
-    auto severity = success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "jenkinsFlat", severity, Notification::Type::APPLICATION, Notification::Category::JENKINS);
-}
-
-void ViewController::GotJava(bool java, QString javaVersion){
-    emit vc_JavaReady(java);
-    auto description = java ? "Got Java: " + javaVersion : "Cannot find Java";
-    auto severity = java ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(description, "Icons", "java", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
-}
-
-void ViewController::GotRe(bool re, QString re_version){
-    emit vc_ReReady(re);
-    auto severity = re ? Notification::Severity::SUCCESS : Notification::Severity::ERROR;
-    NotificationManager::manager()->AddNotification(re_version, "Icons", "servers", severity, Notification::Type::APPLICATION, Notification::Category::NONE);
-}
-
-
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
     if(!graphmlData.isEmpty()){
@@ -1009,7 +989,7 @@ NodeView *ViewController::getActiveNodeView()
     return 0;
 }
 
-void ViewController::modelNotification(MODEL_SEVERITY severity, QString description, int ID){
+void ViewController::modelNotification(MODEL_SEVERITY severity, QString title, QString description, int ID){
     Notification::Severity ns = Notification::Severity::INFO;
     switch(severity){
         case MODEL_SEVERITY::ERROR:
@@ -1024,7 +1004,8 @@ void ViewController::modelNotification(MODEL_SEVERITY severity, QString descript
         default:
             break;
     }
-    NotificationManager::manager()->AddNotification(description, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, true, ID);
+    auto notification = NotificationManager::manager()->AddNotification(title, "Icons", "dotsInRectangle", ns, Notification::Type::MODEL, Notification::Category::NONE, true, ID);
+    notification->setDescription(description);
 }
 
 void ViewController::setControllerReady(bool ready)
@@ -1527,8 +1508,17 @@ void ViewController::importIdlFile()
         QtConcurrent::run([=]{
             // Construct a notification item with a loading gif as its icon
             auto notification = NotificationManager::manager()->AddNotification("Importing IDL ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
+            
+            std::stringstream ss;
+            //Redirect standard error to our string stream
+            auto old_buffer = std::cerr.rdbuf(ss.rdbuf()); 
             auto idl_qstr = QString::fromStdString(IdlParser::ParseIdl(idl_path.toStdString(), true));
-            notification->setDescription(idl_qstr.length() ? "Successfully imported IDL '" + idl_path + "'" : "Failed to import IDL '" + idl_path + "'");
+            //reset the old buffer
+            std::cerr.rdbuf(old_buffer);
+            auto error = QString::fromStdString(ss.str());
+            
+            notification->setTitle(idl_qstr.length() ? "Parsed IDL '" + idl_path + "'" : "Failed to import IDL '" + idl_path + "'");
+            notification->setDescription(error);
             notification->setSeverity(idl_qstr.length() ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
             if(idl_qstr.length()){
                 emit vc_importProjects({idl_qstr});

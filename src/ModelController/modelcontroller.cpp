@@ -128,7 +128,9 @@ void ModelController::loadWorkerDefinitions()
                 auto data = readFile(file_path);
                 bool success = importGraphML(data.second, workerDefinitions);
                 if(!success){
-                    emit Notification(MODEL_SEVERITY::WARNING, "Error Importing Worker Definition '" + file_path + "'");
+                    QString title = "Error Importing Worker Definition";
+                    QString description = "loadWorkerDefinitions(): Importing '" % file_path % "' failed";
+                    emit Notification(MODEL_SEVERITY::WARNING, title, description);
                 }
             }
         }
@@ -2273,7 +2275,8 @@ void ModelController::importProjects(QStringList xml_list)
         for(auto xml : xml_list){
             auto result = importGraphML(xml, model);
             if(!result){
-                emit Notification(MODEL_SEVERITY::ERROR, "Cannot import Project.");
+                QString title = "Cannot import project";
+                emit Notification(MODEL_SEVERITY::ERROR, title);
                 success = false;
             }
         }
@@ -2330,7 +2333,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     if(!isGraphMLValid(document)){
-        emit Notification(MODEL_SEVERITY::ERROR, "GraphML is invalid!");
+        QString title = "Cannot import graphml";
+        QString description = "importGraphML(): Document is not valid XML";
+        emit Notification(MODEL_SEVERITY::ERROR, title, description);
         return false;
     }
 
@@ -2396,8 +2401,9 @@ bool ModelController::importGraphML(QString document, Node *parent)
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
                             if(value != APP_VERSION()){
-                                QString message = "Model was created in MEDEA v" % value % ". Some functionality may have changed.";
-                                emit Notification(MODEL_SEVERITY::INFO, message);
+                                QString title = "Loading legacy model";
+                                QString description = "Model was created in MEDEA v" % value % ". Some functionality may have changed.";
+                                emit Notification(MODEL_SEVERITY::INFO, title, description);
                             }
                         }
                         //Add the data to the entity
@@ -2492,8 +2498,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     auto old_version = matched_entity->getDataValue("version").toString();
                     auto old_label = matched_entity->getDataValue("label").toString();
                     if(!version.isEmpty() && !old_version.isEmpty()){
-                        QString message = "Updated SharedDatatypes '" % old_label % "' from '" % old_version % "' to '" % version % "'";
-                        emit Notification(MODEL_SEVERITY::INFO, message, matched_entity->getID());
+
+                        QString title = "Updated SharedDatatypes '" % old_label % "' to '" % version % "'";
+                        QString description = "Updated from '" % old_version % "'";
+                        emit Notification(MODEL_SEVERITY::INFO, title, description);
                     }
                 }
                 //Set the entity to use this.
@@ -2625,9 +2633,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
             }
         }
         if(!node){
-            QString message = "Cannot create Node: '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
+            QString title = "Cannot create Node '" + entity->getKind() + "'";
+            QString description = "importGraphML(): Document line #" % QString::number(entity->getLineNumber());
             error_count ++;
-            emit Notification(MODEL_SEVERITY::ERROR, message);
+            emit Notification(MODEL_SEVERITY::ERROR, title, description);
         }
 
         if(show_progress){
@@ -2688,14 +2697,16 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 //Insert the item in the lookup
                 edge_map.insertMulti(next_edge_kind, entity);
             }else{
-                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No valid edge kinds.";
-                emit Notification(MODEL_SEVERITY::ERROR, message);
+                QString title = "Cannot create edge";
+                QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nNo valid edge kinds";
                 error_count ++;
+                emit Notification(MODEL_SEVERITY::ERROR, title, description);
             }
         }else{
-            QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". Missing Source or destination.";
-            emit Notification(MODEL_SEVERITY::ERROR, message);
+            QString title = "Cannot create edge";
+            QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nMissing Source or destination";
             error_count ++;
+            emit Notification(MODEL_SEVERITY::ERROR, title, description);
         }
     }
 
@@ -2758,10 +2769,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     entity->setID(edge->getID());
                 }
             }else{
-                //Can't find source/destination
-                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ". No endpoints.";
-                emit Notification(MODEL_SEVERITY::ERROR, message);
+                QString title = "Cannot create edge";
+                QString description = "importGraphML(): Document line # " % QString::number(entity->getLineNumber()) % "\nInternal Error";
                 error_count ++;
+                emit Notification(MODEL_SEVERITY::ERROR, title, description);
             }
 
             if(edge){

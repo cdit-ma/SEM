@@ -46,9 +46,9 @@ void ActionController::connectViewController(ViewController *controller)
     if(viewController){
         connect(controller, &ViewController::vc_ActionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::ModelControllerReady);
-        connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
-        connect(controller, &ViewController::vc_JavaReady, this, &ActionController::gotJava);
-        connect(controller, &ViewController::vc_ReReady, this, &ActionController::gotRe);
+        connect(controller, &ViewController::GotJenkins, this, &ActionController::jenkinsValidated);
+        connect(controller, &ViewController::GotJava, this, &ActionController::gotJava);
+        connect(controller, &ViewController::GotRe, this, &ActionController::gotRe);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::addRecentProject);

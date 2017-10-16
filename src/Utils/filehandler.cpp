@@ -78,10 +78,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file", true);
+            _notification(Notification::Severity::ERROR, "File '" % fileInfo.absoluteFilePath() % "' cannot be read", "Icons", "file", true);
         }
     }else{
-        _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' doesn't exist to be read!", "Icons", "file", true);
+        _notification(Notification::Severity::ERROR, "File '" % fileInfo.absoluteFilePath() % "' doesn't exist to be read", "Icons", "file", true);
     }
     return fileData;
 }
@@ -113,14 +113,14 @@ bool FileHandler::_writeTextFile(QString filePath, QString fileData, bool notify
             out << fileData;
             file.close();
         }else{
-            _notification(Notification::Severity::ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk", true);
+            _notification(Notification::Severity::ERROR, "File '" % fileInfo.absoluteFilePath() % "' cannot be written due to permissions", "Icons", "floppyDisk", true);
             return false;
         }
     }else{
         return false;
     }
     if(notify){
-        _notification(Notification::Severity::SUCCESS, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
+        _notification(Notification::Severity::SUCCESS, "File '" % fileInfo.absoluteFilePath() % "' written", "Icons", "floppyDisk");
     }
     return true;
 }
@@ -137,7 +137,7 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(!dir.mkpath(".")){
-            _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder", true);
+            _notification(Notification::Severity::ERROR, "Directory '" % dir.absolutePath() % "' cannot be constructed", "Icons", "folder", true);
             return false;
         }
     }
@@ -149,7 +149,7 @@ bool FileHandler::removeFile(QString path){
     bool success = file.exists() ? QFile::remove(path) : true;
 
     if(!success){
-        _notification(Notification::Severity::ERROR, "File: '" % path % "' failed to be removed!", "Icons", "file");
+        _notification(Notification::Severity::ERROR, "File '" % path % "' failed to be removed", "Icons", "file");
     }
     return success;
 }
@@ -160,7 +160,7 @@ bool FileHandler::removeDirectory(QString path)
     bool success = dir.exists() ? dir.removeRecursively() : true;
 
     if(!success){
-        _notification(Notification::Severity::ERROR, "Dir: '" % dir.absolutePath() % "' failed to be removed!", "Icons", "folder");
+        _notification(Notification::Severity::ERROR, "Directory '" % dir.absolutePath() % "' failed to be removed", "Icons", "folder");
     }
     return success;
 }

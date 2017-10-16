@@ -25,3 +25,8 @@ set(HEADERS
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS})
 add_executable(${EXEC_NAME} main.cpp)
 target_link_libraries(${EXEC_NAME} ${LIB_NAME})
+
+#Install should copy the MEDEA app into a MEDEA folder
+INSTALL(TARGETS ${EXEC_NAME}
+RUNTIME DESTINATION .
+COMPONENT ${EXEC_NAME})

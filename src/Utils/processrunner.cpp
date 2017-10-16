@@ -147,7 +147,7 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
             waitLoop.exec();
 
             if(cancelled){
-                emit GotProcessStdErrLine("ProcessRunner Interupted!");
+                emit GotProcessStdErrLine("**ProcessRunner Interupted**");
 
                 //Forcefully terminate
                 result.cancelled = true;

@@ -85,7 +85,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
         int test_count = 0;
         int success_count = 0;
 
-        QString report = results.standard_output.join("");
+        QString report = results.standard_output.join("\n");
         QXmlStreamReader xml(report);
 
         auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -120,11 +120,12 @@ void ExecutionManager::ValidateModel_(QString model_path)
         }
 
         ///Update the original notification
-        validation_noti->setDescription("Model validation - [" + QString::number(success_count) + "/" + QString::number(test_count) + "] tests passed");
+        validation_noti->setTitle("Model validation - [" + QString::number(success_count) + "/" + QString::number(test_count) + "] tests passed");
         validation_noti->setSeverity(test_count == success_count ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     } else {
         ///Update the original notification
-        validation_noti->setDescription("Model validation failed to execute: '" + results.standard_error.join("") + "'");
+        validation_noti->setTitle("Model validation failed to execute");
+        validation_noti->setDescription(results.standard_error.join("\n"));
         validation_noti->setSeverity(Notification::Severity::ERROR);
     }
 }
@@ -192,24 +193,24 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
                 auto cmake_results = runner_->RunProcess("cmake", cmake_flags, build_dir, env_var);
     
                 if(cmake_results.success){
-                    notification->setDescription("Running CMake --build ..");
+                    notification->setTitle("Running CMake --build ..");
                     auto compile_results =  runner_->RunProcess("cmake", cmake_build_flags, build_dir, env_var);
     
                     if(compile_results.success){
-                        notification->setDescription("Running model");
+                        notification->setTitle("Running model");
                         auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", QString::number(duration)}, lib_dir, env_var);
     
                         if(execute_results.success){
-                            notification->setDescription("Model successfully executed.");
+                            notification->setTitle("Model successfully executed.");
                             failed = false;
                         }else{
-                            notification->setDescription("Failed to execute model");
+                            notification->setTitle("Failed to execute model");
                         }
                     }else{
-                        notification->setDescription("Failed to compile model");
+                        notification->setTitle("Failed to compile model");
                     }
                 }else{
-                    notification->setDescription("Failed to run CMake");
+                    notification->setTitle("Failed to run CMake");
                 }
 
                 notification->setSeverity(failed ? Notification::Severity::ERROR : Notification::Severity::SUCCESS);
@@ -229,9 +230,10 @@ bool ExecutionManager::GenerateWorkspace_(QString document_path, QString output_
     
     notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(components && datatypes){
-        notification->setDescription("Successfully generated model workspace C++ in '" + output_directory + "'");
+        notification->setTitle("Successfully generated model workspace C++");
+        notification->setDescription("Generated in '" + output_directory + "'");
     }else{
-        notification->setDescription("Generated model workspace C++ failed!");
+        notification->setTitle("Generated model workspace C++ failed");
     }
     notification->setSeverity(components && datatypes ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     return components && datatypes;
@@ -250,9 +252,10 @@ bool ExecutionManager::GenerateComponents(QString document_path, QString output_
     
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
-        notification->setDescription("Generating component C++ failed! '" + results.standard_error.join("") + "'");
+        notification->setTitle("Failed to generate component C++");
+        notification->setDescription(results.standard_error.join("\n"));
     }else{
-        notification->setDescription("Successfully generated component C++");
+        notification->setTitle("Successfully generated component C++");
     }
 
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
@@ -268,9 +271,10 @@ bool ExecutionManager::GenerateDatatypes(QString document_path, QString output_d
     
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     if(!results.success){
-        notification->setDescription("Generating datatype C++ failed! '" + results.standard_error.join("") + "'");
+        notification->setTitle("Failed to generate datatype C++");
+        notification->setDescription(results.standard_error.join("\n"));
     }else{
-        notification->setDescription("Successfully generated datatype C++");
+        notification->setTitle("Successfully generated datatype C++");
     }
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
 
@@ -336,17 +340,24 @@ void ExecutionManager::CheckForJava(){
 
 //Designed to be run on a background thread
 void ExecutionManager::CheckForJava_(){
+    auto notification = NotificationManager::manager()->AddNotification("Checking for Java", "Icons", "java", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     ProcessRunner runner;
     auto result = runner.RunProcess("java", {"-version"});
+    
+    notification->setTitle(result.success ? "Found Java" : "Cannot find Java");
+    notification->setSeverity(result.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    notification->setDescription(result.standard_error.join("\n"));
     {
         QWriteLocker lock(&lock_);
         got_java_ = result.success;
     }
-    emit GotJava(result.success, result.standard_error.join(""));
+    emit GotJava(result.success);
 }
 
 //Designed to be run on a background thread
 void ExecutionManager::CheckForRe_(QString re_configure_path){
+    auto notification = NotificationManager::manager()->AddNotification("Checking for Re", "Icons", "servers", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
+    
     bool success = false;
     QString status;
     QProcessEnvironment re_env;
@@ -361,10 +372,14 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
             status = "RE configure script doesn't define RE_PATH";
         }
     }else if(re_configure_path == ""){
-        status = "RE configure script hasn't been set.";
+        status = "RE configure script hasn't been set";
     }else{
         status = "RE configure script doesn't point to a readable file '" + re_configure_path + "'";
     }
+
+    notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    notification->setTitle(success ? "Found Re" : "Cannot find Re");
+    notification->setDescription(status);
 
     {
         QWriteLocker lock(&lock_);
@@ -373,7 +388,7 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
             re_configured_env_ = re_env;
         }
     }
-    emit GotRe(got_re_, status);
+    emit GotRe(got_re_);
 }
 
 ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)

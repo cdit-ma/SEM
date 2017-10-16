@@ -27,6 +27,7 @@ NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidg
     connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
     connect(notification.data(), &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
+    connect(notification.data(), &NotificationObject::titleChanged, this, &NotificationItem::titleChanged);
 
     
     connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
@@ -44,11 +45,24 @@ NotificationItem::~NotificationItem(){
 
 }
 
+void NotificationItem::setupDescriptionLayout(){
+    if(!label_description){
+        label_description = new QLabel(this);
+        label_description->setObjectName("DESCRIPTION");
+        label_description->setWordWrap(true);
+        //Add to the main layout
+        layout()->addWidget(label_description);
+    }
+}
 
 void NotificationItem::setupLayout(){
+    auto v_layout = new QVBoxLayout(this);
+    v_layout->setMargin(2);
+    v_layout->setSpacing(5);
 
-    auto layout = new QHBoxLayout(this);
-    layout->setMargin(2);
+    auto layout = new QHBoxLayout();
+    v_layout->addLayout(layout);
+    layout->setMargin(0);
     layout->setSpacing(5);
 
     label_icon = new QLabel(this);
@@ -64,14 +78,23 @@ void NotificationItem::setupLayout(){
     toolbar = new QToolBar(this);
     
     action_delete = toolbar->addAction("Delete Notification");
+    
+    /*
+    button_expand = new QToolButton(this);
+    button_expand->setCheckable(true);
+    button_expand->setAutoRaise(false);
+    button_expand->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    action_expand = toolbar->addWidget(button_expand);*/
 
     layout->addWidget(label_icon);
     layout->addWidget(label_text, 1);
     layout->addWidget(label_time);
+    
     layout->addWidget(toolbar);
     layout->addStretch();
 
     descriptionChanged();
+    titleChanged();
     timeChanged();
 }
 
@@ -156,10 +179,23 @@ void NotificationItem::themeChanged()
 void NotificationItem::descriptionChanged()
 {
     auto description = notification->getDescription();
-    if (description.isEmpty()) {
-        description = "...";
+    if(!label_description){
+        setupDescriptionLayout();
     }
-    label_text->setText(description);
+    if(label_description){
+        label_description->setText(description);
+        label_description->setVisible(description.length());
+    }
+}
+
+
+/**
+ * @brief NotificationItem::descriptionChanged
+ * @param description
+ */
+void NotificationItem::titleChanged()
+{
+    label_text->setText(notification->getTitle());
 }
 
 
@@ -223,6 +259,7 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 void NotificationItem::updateStyleSheet()
 {
     Theme* theme = Theme::theme();
+    auto icon_size = theme->getIconSize();
     setStyleSheet("QFrame {"
                   "border-style: solid;"
                   "border-width: 0px 0px 1px 0px;"
@@ -233,11 +270,17 @@ void NotificationItem::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
+                  "QLabel#DESCRIPTION{padding-left: 5px; color: " + theme->getAltTextColorHex() + ";font-style: italic;}"
                   + theme->getToolBarStyleSheet()
                   + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
     );
+
+    
     
     if (action_delete) {
         action_delete->setIcon(theme->getIcon("Icons", "cross"));
+    }
+    if (toolbar){
+        toolbar->setIconSize(icon_size);
     }
 }

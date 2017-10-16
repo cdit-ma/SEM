@@ -26,12 +26,14 @@ signals:
 private slots:
     void themeChanged();
     void descriptionChanged();
+    void titleChanged();
     void updateIcon();
     void timeChanged();
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
 
 private:
+    void setupDescriptionLayout();
     void setupLayout();
     void updateStyleSheet();
     void updateVisibility(bool filterMatched);
@@ -43,6 +45,9 @@ private:
     QLabel* label_time = 0;
     QAction* action_delete = 0;
     QToolBar* toolbar = 0;
+    //QToolButton* button_expand = 0;
+    //QAction* action_expand = 0;
+    QLabel* label_description = 0;
     
 
     QString backgroundColor;

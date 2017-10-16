@@ -150,7 +150,7 @@ signals:
     void ActionFinished();
 
     void SetClipboardData(QString);
-    void Notification(MODEL_SEVERITY severity, QString description, int entity_id = -1);
+    void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
     QSet<NODE_KIND> getGUINodeKinds();
     bool canReplicate(QList<Entity*> selection);

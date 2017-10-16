@@ -29,7 +29,7 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
     
 
     auto font_metrics = label->fontMetrics();
-    auto notification_text  = font_metrics.elidedText(notification->getDescription(), Qt::ElideMiddle, 500);
+    auto notification_text  = font_metrics.elidedText(notification->getTitle(), Qt::ElideMiddle, 500);
     
     if(notification_text != label->text()){
         label->setText(notification_text);

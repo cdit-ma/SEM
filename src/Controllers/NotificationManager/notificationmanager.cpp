@@ -182,9 +182,9 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
     return list;
 }
 
-QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
+QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString title, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update){
     auto notification = QSharedPointer<NotificationObject>(new NotificationObject());
-    notification->setDescription(description);
+    notification->setTitle(title);
     notification->setIcon(icon_path, icon_name);
     notification->setSeverity(severity);
     notification->setType(type);

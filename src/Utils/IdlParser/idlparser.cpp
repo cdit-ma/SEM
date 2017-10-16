@@ -512,7 +512,6 @@ bool IdlParser::parse_file(std::string idl_path){
                                     g_member = model_->construct_primitive_member(namespace_parent, member->label, member->primitive_type, member->is_sequence);
                                 }
                                 if(g_member && is_key){
-                                    std::cerr << "IDL Parser: Member '" << g_member->get_namespace() <<  "' is a key." << std::endl;
                                     g_member->set_is_key(is_key);
                                 }
                             }
@@ -541,7 +540,6 @@ bool IdlParser::parse_file(std::string idl_path){
                         auto child = aggregate->get_child(member_name);
                         auto member = Graphml::AsMember(child);
                         if(member){
-                            std::cerr << "IDL Parser: Member '" << member->get_namespace() << "' is a key." << std::endl;
                             member->set_is_key(true);
                         }
                     }

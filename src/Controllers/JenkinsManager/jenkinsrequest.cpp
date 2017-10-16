@@ -315,7 +315,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
         }
 
         if (build_number > 0) {
-            notification->setDescription("Started Jenkins job: '" + job_name + "' #" + QString::number(build_number));
+            notification->setTitle("Started Jenkins job: '" + job_name + "' #" + QString::number(build_number));
             
             job_state = getJobConsoleOutput(job_name, build_number, "");
         }
@@ -323,7 +323,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
 
     if(notification){
         if (build_number == -1) {
-            notification->setDescription("Failed to request Jenkins build '" + job_name + "'");
+            notification->setTitle("Failed to request Jenkins build '" + job_name + "'");
             notification->setSeverity(Notification::Severity::ERROR);
         }else{
             auto severity = job_state;
@@ -346,7 +346,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
             //Use Jenkins Icons!
             notification->setIcon("Icons", icon_name);
             notification->setSeverity(severity);
-            notification->setDescription(description);
+            notification->setTitle(description);
         }
     }
     emit Finished();
@@ -363,9 +363,9 @@ void JenkinsRequest::StopJob(QString job_name, int build_number, QString configu
 
         notification->setSeverity(stop_result.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
         if(stop_result.success){
-            notification->setDescription("Successfully requested to stop Jenkins job '" + job_name + "' #" + QString::number(build_number));
+            notification->setTitle("Successfully requested to stop Jenkins job '" + job_name + "' #" + QString::number(build_number));
         }else{
-            notification->setDescription("Failed to stop Jenkins job '" + job_name + "' #" + QString::number(build_number));
+            notification->setTitle("Failed to stop Jenkins job '" + job_name + "' #" + QString::number(build_number));
         }
     }
 

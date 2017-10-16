@@ -39,7 +39,7 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
 
     //connect(GetJobMonitorWidget(), &JenkinsJobMonitorWidget::gotoURL, view_controller, &ViewController::openURL);
     connect(this, &JenkinsManager::GotJenkinsNodes, view_controller, &ViewController::jenkinsManager_GotJenkinsNodesList);
-    connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::vc_JenkinsReady);
+    connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::GotJenkins);
 
     connect(view_controller, &ViewController::vc_executeJenkinsJob, this, &JenkinsManager::BuildJob);
 
@@ -311,7 +311,7 @@ void JenkinsManager::AbortJob_(QString job_name, int build_number){
         auto api_request = getAuthenticatedRequest(api_url);
         auto api_result = runner.HTTPPost(api_request);
 
-        notification->setDescription(api_result.success ? "Stopped Jenkins Job '" + job_name + "' #" + build_number_str : "Failed to stop Jenkins Job '" + job_name + "' #" + build_number_str);
+        notification->setTitle(api_result.success ? "Stopped Jenkins Job '" + job_name + "' #" + build_number_str : "Failed to stop Jenkins Job '" + job_name + "' #" + build_number_str);
         notification->setSeverity(api_result.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     }
 }
@@ -336,7 +336,7 @@ void JenkinsManager::GetNodes_(QString groovy_script){
             emit GotJenkinsNodes(graphml);
         }
         notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        notification->setDescription(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
+        notification->setTitle(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
     }
 }
 
@@ -410,7 +410,10 @@ void JenkinsManager::ValidateSettings_(){
 
     //Update the state
     notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-    notification->setDescription(success ? "Jenkins settings Validated!": "Jenkins settings invalid: " + result_string);
+    notification->setTitle(success ? "Jenkins settings validated successfully": "Jenkins settings invalid");
+    if(!success){
+        notification->setDescription(result_string);
+    }
 
     {
         //Set the state

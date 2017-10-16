@@ -44,8 +44,8 @@ signals:
 
     void GotCodeForComponent(QString file_name, QString file_data);
 
-    void GotJava(bool ready, QString message);
-    void GotRe(bool ready, QString message);
+    void GotJava(bool ready);
+    void GotRe(bool ready);
 private:
     
     void CheckForRe_(QString configure_script_path);

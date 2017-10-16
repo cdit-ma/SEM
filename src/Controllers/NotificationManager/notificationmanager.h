@@ -33,7 +33,7 @@ public:
     NotificationDialog* getPanel();
     NotificationToolbar* getToolbar();
     NotificationPopup* getToast();
-    QSharedPointer<NotificationObject> AddNotification(QString description, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast = true, int entity_id = -1, bool defer_update=false);
+    QSharedPointer<NotificationObject> AddNotification(QString title, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast = true, int entity_id = -1, bool defer_update=false);
 
     QList<QSharedPointer<NotificationObject>> getNotifications();
     
