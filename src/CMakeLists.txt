@@ -287,29 +287,20 @@ target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
 
 
-#Install should copy the MEDEA app into a MEDEA folder
-INSTALL(TARGETS ${PROJ_NAME}
-BUNDLE DESTINATION . COMPONENT ${PROJ_NAME}
-RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+#Install should copy the MEDEA app into the bin folder
+INSTALL(TARGETS ${PROJ_NAME} 
+    BUNDLE DESTINATION . COMPONENT ${PROJ_NAME}
+    RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+
 
 if(WIN32)
-	# Copy Resources as part of install
+	# Copy Resources as part of install for windows
 	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../re_gen DESTINATION ./Resources COMPONENT RE_GEN FILES_MATCHING PATTERN "*.xsl" PATTERN "*.jar")
 	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../scripts DESTINATION ./Resources COMPONENT SCRIPTS FILES_MATCHING PATTERN "*.*")
     INSTALL(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ DESTINATION ./ COMPONENT QT_LIBS FILES_MATCHING PATTERN "*.dll" PATTERN "*.qm")
-        # Turn the options on in CPACK
-    set(CPACK_COMPONENT_QT_LIBS_REQUIRED ON)
-    set(CPACK_COMPONENT_RE_GEN_REQUIRED ON)
-    set(CPACK_COMPONENT_SCRIPTS_REQUIRED ON)
-
-    set(CPACK_COMPONENT_QT_LIBS_DISPLAY_NAME "Qt Binaries")
-    set(CPACK_COMPONENT_RE_GEN_DISPLAY_NAME "re_gen XSL Code Generation")
-    set(CPACK_COMPONENT_SCRIPTS_DISPLAY_NAME "Scripts")
-
-    # Add the components to the CPACK (Not needed in Unix)
-    SET(CPACK_COMPONENTS_ALL RE_GEN SCRIPTS QT_LIBS) 
 endif()
 
+#Run the qt deploy program to copy required binaries into the directories
 if(WIN32)
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
     COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
@@ -320,18 +311,24 @@ elseif(APPLE)
     )
 endif()
 
+
 SET(CPACK_GENERATOR "IFW;ZIP") 
-# Set Project info
+# Set CPACK generic info
 SET(CPACK_PACKAGE_NAME "MEDEA")
 SET(CPACK_PACKAGE_VENDOR "CDIT-MA")
 SET(CPACK_PACKAGE_VERSION ${VERSION_NO})
 SET(CPACK_PACKAGE_EXECUTABLES "MEDEA;${VERSION_NAME}")
 SET(CPACK_PACKAGE_FILE_NAME ${VERSION_NAME}-${CMAKE_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR})
-
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Modelling, Experiment DEsign and Analysis (MEDEA)")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY ${VERSION_NAME})
 
-
+#Set IFW specific options
+if(WIN32)
+    #Windows default should install to c:/
+    SET(CPACK_IFW_TARGET_DIRECTORY "@RootDir@/${VERSION_NAME}")
+else()
+    SET(CPACK_IFW_TARGET_DIRECTORY "@HomeDir@/${VERSION_NAME}")
+endif()
 
 # Set Icon
 if(APPLE)
@@ -343,19 +340,18 @@ endif()
 # Set URL/Title
 SET(CPACK_IFW_PRODUCT_URL ${URL}) 
 SET(CPACK_IFW_PACKAGE_TITLE ${VERSION_NAME}) 
-# Set Banner
 SET(CPACK_IFW_PACKAGE_BANNER ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/medeaBanner.png) 
-# Set Style
 SET(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern") 
 
 # Has to be last
 INCLUDE(CPack)
 
-cpack_add_component (IDL2Graphml
-DISPLAY_NAME "IDL to GraphML parsing shell tool"
-)
+cpack_add_component (idl2graphml DISPLAY_NAME "Util: IDL to GraphML parsing shell tool")
+cpack_add_component (MEDEA DISPLAY_NAME "Core: MEDEA Modelling Tool" REQUIRED)
 
-cpack_add_component (MEDEA
-    DISPLAY_NAME "MEDEA Core"
-    REQUIRED
-)
+if(WIN32)
+    # Do the windows only options
+    cpack_add_component (QT_LIBS DISPLAY_NAME "Core: Qt Binaries" REQUIRED)
+    cpack_add_component (SCRIPTS DISPLAY_NAME "Core: Jenkins Scripts" REQUIRED)
+    cpack_add_component (RE_GEN DISPLAY_NAME "Core: re_gen XSL transforms" REQUIRED)
+endif()
