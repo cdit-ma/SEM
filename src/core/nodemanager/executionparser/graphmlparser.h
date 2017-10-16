@@ -25,6 +25,7 @@ class GraphmlParser{
         pugi::xml_document doc;
         std::map<std::string, std::string> data_lookup_;
         std::map<std::string, std::string> attr_lookup_;
+        std::map<std::string, std::string> parent_id_lookup_;
 
 
 };

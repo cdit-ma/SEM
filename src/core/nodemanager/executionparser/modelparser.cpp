@@ -278,8 +278,6 @@ bool Graphml::ModelParser::Process(){
         //Construct the number of nodes
         for(int i = 0; i < replication_count; i++){
             HardwareNode* deployed_node = 0;
-
-            
             
             //Get the deployed node
             if(node){
