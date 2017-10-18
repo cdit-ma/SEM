@@ -44,8 +44,8 @@ const std::regex re_array("(.*?)" OPTIONAL_WS "[\\[<](.*)[\\]>]");
 //sequence <SEQUENCE_TYPE>
 const std::regex re_sequence("sequence" OPTIONAL_WS "<" OPTIONAL_WS "(.*)" OPTIONAL_WS ">");
 
-//Comment structures
-const std::regex re_comment_block("/\\*" "([" WS "|" NOT_WS "]*)" "\\*/");
+//Comment structures (Don't be greedy!)
+const std::regex re_comment_block("/\\*" "([" WS "|" NOT_WS "]*?)" "\\*/");
 const std::regex re_comment("//(.*)");
 
 //Helper Regexes
@@ -174,6 +174,12 @@ std::string get_primitive_type(const std::string type){
         return_type = "String";
     }else if(type == "wstring"){
         return_type = "String";
+    }else if(type == "long double"){
+        return_type = "Double";
+    }else if(type == "unsigned long long"){
+        return_type = "Integer";
+    }else if(type == "long long"){
+        return_type = "Integer";
     }
 
     if(return_type != "" && !caseless_compare(type, return_type)){
@@ -203,6 +209,7 @@ std::string IdlParser::ParseIdl(std::string idl_path, bool pretty){
 
 bool IdlParser::resolve_member_label(MemberType* member, std::string label){
     auto unresolved_label = trim(label);
+    
     auto sequence_match = re_search(unresolved_label, IDL_ELEMENT::NONE, re_array);
     
     if(sequence_match){
@@ -221,6 +228,10 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
 
     //need to further resolve
     if(primitive_type == ""){
+        //Get rid of spaces
+        primitive_type = std::regex_replace(primitive_type, std::regex(WS), "");
+ 
+
         auto sequence_match = re_search(unresolved_type, IDL_ELEMENT::NONE, re_sequence);
         if(sequence_match){
             if(member->is_sequence){
@@ -479,7 +490,7 @@ bool IdlParser::parse_file(std::string idl_path){
                     }
                     
                     //Remove all spaces in the unresolved_type
-                    auto unresolved_type = std::regex_replace(label_type_pair.second, std::regex(WS), "");
+                    auto unresolved_type = label_type_pair.second;
                     
                     
                     auto member = new MemberType();
