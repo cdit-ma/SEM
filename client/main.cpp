@@ -31,7 +31,7 @@
 std::condition_variable lock_condition_;
 std::mutex mutex_;
 std::string VERSION_NAME = "LOGAN_CLIENT";
-std::string VERSION_NUMBER = "1.3";
+std::string VERSION_NUMBER = "1.3.1";
 
 void signal_handler (int signal_value){
 	//Gain the lock so we can notify to terminate
