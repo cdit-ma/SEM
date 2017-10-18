@@ -205,12 +205,15 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
                             failed = false;
                         }else{
                             notification->setTitle("Failed to execute model");
+                            notification->setDescription(execute_results.standard_error.join("\n"));
                         }
                     }else{
                         notification->setTitle("Failed to compile model");
+                        notification->setDescription(compile_results.standard_error.join("\n"));
                     }
                 }else{
                     notification->setTitle("Failed to run CMake");
+                    notification->setDescription(cmake_results.standard_error.join("\n"));
                 }
 
                 notification->setSeverity(failed ? Notification::Severity::ERROR : Notification::Severity::SUCCESS);
