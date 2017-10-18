@@ -39,7 +39,7 @@ std::mutex mutex_;
 std::condition_variable lock_condition_;
 
 std::string VERSION_NAME = "LOGAN_SERVER";
-std::string VERSION_NUMBER = "1.3";
+std::string VERSION_NUMBER = "1.3.1";
 std::string DEFAULT_FILE = "out.sql";
 
 void signal_handler(int sig)
