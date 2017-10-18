@@ -1,0 +1,20 @@
+/*
+* Nested_Comments
+*
+//struct test{
+    boolean a;
+}
+*/
+
+//TESTTYPE
+struct Nested_Comments{
+    /**
+    
+    asdasda
+    */
+    boolean a;
+}
+
+/*
+*
+*/
