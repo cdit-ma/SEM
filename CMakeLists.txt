@@ -12,7 +12,7 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 
-SET(RE_VERSION "1.3.0")
+SET(RE_VERSION "1.3.1")
 
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
