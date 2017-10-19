@@ -36,10 +36,11 @@ class EventPort: public Activatable{
 
         Component* get_component();
     private:
-        
         EventPort::Kind kind_;
         Component* component_;
         std::string middleware_;
+    protected:
+        void SetKind(EventPort::Kind kind);
 };
 
 #endif //EVENTPORT_H

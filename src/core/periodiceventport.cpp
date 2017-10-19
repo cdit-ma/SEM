@@ -3,40 +3,39 @@
 #include "component.h"
 #include <iostream>
 
+
 PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
-EventPort(component, name, EventPort::Kind::PE, "periodic"){
-    this->callback_ = callback;
+::InEventPort<BaseMessage>(component, name, callback, "periodic"){
+    //Force set the kind
+    SetKind(EventPort::Kind::PE);
+    SetMaxQueueSize(1);
     this->duration_ = std::chrono::milliseconds(milliseconds);
+};
+
+void PeriodicEventPort::SetFrequency(double hz){
+    if(hz > 0){
+        int milliseconds = 1000.0 / hz;
+        SetDuration(milliseconds);
+    }
 }
 
-bool PeriodicEventPort::Activate(){
-    if(!is_active()){
-        {
-            std::unique_lock<std::mutex> lock(mutex_);
-            this->terminate = false;
-        }
-        return Activatable::Activate();
+void PeriodicEventPort::SetDuration(int milliseconds){
+    if(milliseconds >= 0){
+        std::unique_lock<std::mutex> lock(mutex_);
+        this->duration_ = std::chrono::milliseconds(milliseconds);
     }
-    return false;
 }
 
 bool PeriodicEventPort::Passivate(){
-    if(Activatable::Passivate()){
-        //Gain mutex lock and Terminate, this will interupt the loop after sleep
-        {
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::InEventPort<BaseMessage>::Passivate()){
+        if(tick_thread_){
             std::unique_lock<std::mutex> lock(mutex_);
-            this->terminate = true;
-            this->duration_ = std::chrono::milliseconds(0);
+            terminate_ = true;
         }
-        lock_condition_.notify_all();
         return true;
     }
     return false;
-}
-
-bool PeriodicEventPort::WaitForTick(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    return !lock_condition_.wait_for(lock, duration_, [this]{return this->terminate;});
 }
 
 void PeriodicEventPort::Loop(){
@@ -45,18 +44,12 @@ void PeriodicEventPort::Loop(){
     WaitForActivate();
     //Log the port becoming online
     EventPort::LogActivation();
+    
     while(true){
-        
-        BaseMessage t;
-        if(is_active() && callback_){
-            logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::STARTED_FUNC);
-            callback_(&t);
-            logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        }else{
-            //Log that didn't call back on this message
-            logger()->LogComponentEvent(this, &t, ModelLogger::ComponentEvent::IGNORED);
-        }
-        if(!WaitForTick()){
+        EnqueueMessage(new BaseMessage());
+        std::unique_lock<std::mutex> lock(mutex_);
+        auto got_tick = !lock_condition_.wait_for(lock, duration_, [this]{return terminate_;});
+        if(!got_tick){
             break;
         }
     }
@@ -65,33 +58,30 @@ void PeriodicEventPort::Loop(){
 
 
 void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+
     if(attributes.count("frequency")){
-        auto frequency = attributes["frequency"]->get_Double();
-        if(frequency > 0){
-            int ms = 1000.0/frequency;
-            //std::cout << get_component()->get_name() << "::PeriodicEventPort: '" <<  get_name() << "'" << " Frequency: " << ms << "MS"<< std::endl;
-            duration_ = std::chrono::milliseconds(ms);
-        }
+        SetFrequency(attributes["frequency"]->get_Double());
     }
 
-    {
-        //Construct a thread
-        std::unique_lock<std::mutex> lock(thread_mutex_);
-        this->callback_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
+    if(!tick_thread_){
+        tick_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
+        //Block until our Tick thread is ready
+        WaitForStartup();
     }
-    //Block until our Loop thread is ready
-    WaitForStartup();
 };
 
 bool PeriodicEventPort::Teardown(){
-    std::unique_lock<std::mutex> lock(thread_mutex_);
-    if(callback_thread_){
-        if(callback_thread_->joinable()){
-            callback_thread_->join();
+    std::lock_guard<std::mutex> lock(control_mutex_);
+
+    if(::InEventPort<BaseMessage>::Teardown()){
+        if(tick_thread_){
+            //Join our zmq_thread
+            tick_thread_->join();
+            delete tick_thread_;
+            tick_thread_ = 0;
         }
-        
-        delete callback_thread_;
-        callback_thread_ = 0;
+        return true;
     }
-    return true;
+    return false;
 };

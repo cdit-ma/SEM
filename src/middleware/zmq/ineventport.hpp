@@ -17,7 +17,6 @@ namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
-            ~InEventPort();
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
             bool Teardown();
@@ -119,13 +118,6 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
         std::cerr << "zmq::InEventPort<T, S>::startup: No Valid Endpoints" << std::endl;
     }
 };
-
-
-
-template <class T, class S>
-zmq::InEventPort<T, S>::~InEventPort(){
-};
-
 
 template <class T, class S>
 bool zmq::InEventPort<T, S>::Teardown(){

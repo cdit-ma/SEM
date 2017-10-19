@@ -57,3 +57,7 @@ bool EventPort::Passivate(){
 bool EventPort::Teardown(){
     return Activatable::Teardown();
 };
+
+void EventPort::SetKind(EventPort::Kind kind){
+    kind_ = kind;
+}
