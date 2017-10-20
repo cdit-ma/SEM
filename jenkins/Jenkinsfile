@@ -112,6 +112,7 @@ stage('Set up'){
     git_credential_id = getCredentialID()
     git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
     ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
+    currentBuild.description = ref_name
 }
 
 //Checkout logan on master node and stash
