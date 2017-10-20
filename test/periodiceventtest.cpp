@@ -74,7 +74,8 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
     std::vector<PeriodTestCase> test_cases;
     for(auto workload : {0.0, 0.25, .50, .75, .95}){
         auto time_ms = time * 1000;
-        auto test_case = PeriodTestCase(time_ms, hz, workload, hz * time, confidence_interval);
+        auto expected_ticks = hz * time;
+        auto test_case = PeriodTestCase(time_ms, hz, workload, expected_ticks, confidence_interval);
         test_cases.push_back(test_case);
     }
     return test_cases;
