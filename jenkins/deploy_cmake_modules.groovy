@@ -2,7 +2,7 @@
 This script will deploy cmake_modules to all jenkins slaves with the re label.
 This script requires the following Jenkins parameters:
 - "GIT_CREDENTIAL_ID" : Username with password credential
-- "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/re_gen)
+- "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/cmake_modules)
 - "GIT_BRANCH" : Optional branch to checkout, overridden by GIT_TAG
 - "GIT_TAG" : Optional version tag, ignores any branch specified
 This script requires the following Jenkins plugins:
