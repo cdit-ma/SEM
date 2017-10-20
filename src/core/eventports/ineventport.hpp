@@ -16,8 +16,6 @@
 template <class T> class InEventPort: public EventPort{
     public:
         InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
-        virtual ~InEventPort();
-        //virtual bool Activate();
         virtual bool Passivate();
         virtual bool Teardown();
         void SetMaxQueueSize(int max_queue_size);
@@ -59,11 +57,6 @@ InEventPort<T>::InEventPort(Component* component, std::string name, std::functio
     if(!queue_thread_){
         queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
     }
-};
-
-template <class T>
-InEventPort<T>::~InEventPort(){
-    //Teardown
 };
 
 template <class T>

@@ -15,6 +15,7 @@ class PeriodicEventPort: public ::InEventPort<BaseMessage>{
     
     public:
         PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds = 1000);
+        ~PeriodicEventPort();
         void SetFrequency(double hz);
         void SetDuration(int milliseconds);
 

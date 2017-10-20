@@ -1,7 +1,7 @@
 #include "eventport.h"
 #include "component.h"
 #include "modellogger.h"
-
+#include <iostream>
 EventPort::EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware){
     set_name(name);
     component_ = component;
@@ -12,7 +12,6 @@ EventPort::EventPort(Component* component, std::string name, EventPort::Kind kin
         component_->AddEventPort(this);
     }
 };
-
 
 bool EventPort::IsOutEventPort() const {
     return kind_ == EventPort::Kind::TX;

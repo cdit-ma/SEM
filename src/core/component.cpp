@@ -35,6 +35,8 @@ Component::Component(std::string inst_name){
 }
 
 Component::~Component(){
+    Passivate();
+    Teardown();
     std::lock_guard<std::mutex> lock(state_mutex_);
     //Destory Ports
     for(auto it = eventports_.begin(); it != eventports_.end();){

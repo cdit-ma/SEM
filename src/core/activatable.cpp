@@ -1,5 +1,6 @@
 #include "activatable.h"
 #include "modellogger.h"
+#include <iostream>
 
 const std::string Activatable::get_name(){
     return name_;
@@ -86,4 +87,7 @@ void Activatable::WaitForStartup(){
     //Aquire a lock
     std::unique_lock<std::mutex> lock(startup_mutex_);
     startup_condition_.wait(lock, [this]{return this->startup_finished_;});
+}
+
+Activatable::~Activatable(){
 }

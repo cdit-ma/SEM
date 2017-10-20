@@ -45,17 +45,22 @@ void PeriodicEventPort::Loop(){
     //Log the port becoming online
     EventPort::LogActivation();
     
-    while(true){
+    bool ticking = true;
+    while(ticking){
         EnqueueMessage(new BaseMessage());
         std::unique_lock<std::mutex> lock(mutex_);
-        auto got_tick = !lock_condition_.wait_for(lock, duration_, [this]{return terminate_;});
-        if(!got_tick){
-            break;
-        }
+        ticking = !lock_condition_.wait_for(lock, duration_, [this]{return terminate_;});
     }
+
     EventPort::LogPassivation();
 }
 
+PeriodicEventPort::~PeriodicEventPort(){
+    //Force a passivate
+    Passivate();
+    //Force a teardown
+    Teardown();
+}
 
 void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
