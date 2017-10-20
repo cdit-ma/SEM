@@ -48,7 +48,7 @@ def checkParamsExist(){
     }
 
     def tag = env.GIT_TAG
-    if(branch == null){
+    if(tag == null){
         print("ERROR: \"GIT_TAG\" string parameter missing in build configuration")
         return false
     }
