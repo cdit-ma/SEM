@@ -62,7 +62,7 @@ def getCredentialID(){
 
 //Build git ref pointer. If no branch specified, use tag, if no tag specified use default branch (master).
 def buildGitRef(String branch, String tag){
-    def default_branch = "*/master"
+    def default_branch = "master"
     def ref_name = ""
 
     if(!branch){
