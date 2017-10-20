@@ -1,7 +1,9 @@
 
+#define OPENCL_DEBUG_TO_STDERR
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include <math.h>
 #include <limits>
@@ -12,6 +14,7 @@
 #include "openclmanager.h"
 #include "openclkernel.hpp"
 #include "opencl_worker.h"
+#include "openclutilities.h"
 
 #define RANDSEED 13520
 
@@ -97,6 +100,9 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 
 OpenCLWorker* testWorkerConstruction();
 void testWorkerDestruction(OpenCLWorker* worker);
+void testWorkerCreateBuffer(OpenCLWorker* worker);
+void testWorkerReleaseBuffer(OpenCLWorker* worker);
+void testWorkerBufferDataTransfers(OpenCLWorker* worker);
 void testWorkerRunParallel(OpenCLWorker* worker);
 void testWorkerMatrixMult(OpenCLWorker* worker);
 	void testWorkerSquareMult(OpenCLWorker* worker, unsigned int length, bool expect_failure=false);
@@ -143,7 +149,7 @@ int main(int argc, char** argv) {
 
 	printInfo("Listing available devices for platform:");
 	for (auto device : manager->GetDevices()) {
-		std::cout << " - " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+		std::cout << " - " << device->getInfo<CL_DEVICE_NAME>() << std::endl;
 	}
 
 	// Generate the list of source files
@@ -196,8 +202,15 @@ int main(int argc, char** argv) {
 	OpenCLWorker* worker = testWorkerConstruction();
 
 	// Run worker tests conditional on worker having been successfully constructed
-	//testWorkerRunParallel(worker);
-	testWorkerMatrixMult(worker);
+	if (worker != NULL) {
+		testWorkerCreateBuffer(worker);
+		testWorkerRunParallel(worker);
+		testWorkerMatrixMult(worker);
+	} else {
+		recordTest(SKIPPED, "testWorkerCreateBuffer");
+		recordTest(SKIPPED, "testWorkerRunParallel");
+		recordTest(SKIPPED, "testWorkerMatrixMult");
+	}
 	
 	
 	auto end_time = std::chrono::steady_clock::now();
@@ -220,6 +233,13 @@ void testBufferReadWrite(OpenCLManager& manager) {
 	// Create a test buffer
 	printInfo("Creating a buffer of length 4...");
 	auto buffer = manager.CreateBuffer<float>(4);
+	if (buffer->is_valid()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Created valid OCLBuffer of floats");
+	if (res == FAIL) return;
 	//OCLBuffer<std::string>* stringBuffer = manager->CreateBuffer<std::string>(1024);
 
 	// Send some data through
@@ -228,7 +248,13 @@ void testBufferReadWrite(OpenCLManager& manager) {
 	for (int i=0; i<in_data.size(); i++) {
 		in_data[i] = (float)i+10;
 	}
-	buffer->WriteData(in_data);
+	bool did_write_data = buffer->WriteData(in_data);
+	if (did_write_data) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Write operation to buffer reported success");
 
 	// Read it back
 	printInfo("Reading the data back...");
@@ -243,9 +269,6 @@ void testBufferReadWrite(OpenCLManager& manager) {
 				std::cout << "Mismatch at element " << i << ": expected " << in_data[i] << ", got " << out_data[i] << std::endl;
 				vectors_match = false;
 			}
-			else {
-				std::cout << "Mismatch at element " << i << ": expected " << in_data[i] << ", got " << out_data[i] << std::endl;
-			}
 		}
 	}
 	
@@ -256,6 +279,27 @@ void testBufferReadWrite(OpenCLManager& manager) {
 	}
 	recordTest(res, "Write to buffer of length 4 then read back the result");
 
+	auto out_data2 = buffer->ReadData();
+	vectors_match = true;
+	//std::cout << in_data.size() << ", " << out_data.size() <<std::endl;
+	if (out_data.size() != out_data2.size()) {
+		vectors_match = false;
+	} else {
+		for (int i=0; i<in_data.size(); i++) {
+			if (out_data[i] != out_data2[i]) {
+				std::cout << "Mismatch at element " << i << ": expected " << out_data[i] << ", got " << out_data2[i] << std::endl;
+				vectors_match = false;
+			}
+		}
+	}
+	
+	if (vectors_match) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Second read gives the same result");
+
 	delete buffer;
 }
 
@@ -263,26 +307,51 @@ void testBufferReadWrite(OpenCLManager& manager) {
 void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_kernel) {
 	Result res = UNKNOWN;
 
-	auto in_data = std::vector<float>(4, 0.5f);
+	auto in_data = std::vector<float>(4, 0.3f);
 	auto in_buffer = manager.CreateBuffer<float>(in_data);
+	if (in_buffer->is_valid()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Created valid OCLBuffer to write data to");
+
 	auto out_buffer = manager.CreateBuffer<float>(4);
+	if (out_buffer->is_valid()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Created valid OCLBuffer to read data from");
 
 	printInfo("Setting passthrough kernel arguments...");
-	passthrough_kernel.SetArgs((*in_buffer), (*out_buffer));
+	bool did_set_args = passthrough_kernel.SetArgs((*in_buffer), (*out_buffer));
+	if (did_set_args) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Setting arguments of passthrough kernel did report success");
 	//kernel->SetArgs(*in_buffer, 2);
 
 	printInfo("Running passthrough kernel...");
-	passthrough_kernel.Run(0, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
-	/*cl::Event kernelEvent;
-	err = manager.GetQueues()[0].enqueueNDRangeKernel(passthrough_kernel.GetBackingRef(), 
-			cl::NullRange, cl::NDRange(4), cl::NDRange(4), NULL, &kernelEvent);
-	if (err != CL_SUCCESS) {
-		LogOpenCLError(NULL, __func__, "Couldnt EnqueueNDRangeKernel", err);
+	bool kernel_success = passthrough_kernel.Run(0, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
+	if (kernel_success) {
+		res = PASS;
+	} else {
+		res = FAIL;
 	}
-	kernelEvent.wait();*/
+	recordTest(res, "Passthrough kernel that copies write buffer contents to read buffer reported successful run");
 
 	printInfo("Reading back result...");
 	auto out_data = out_buffer->ReadData();
+	if (out_data.size() > 0) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Data was successfully read back into the read buffer (data vector was not empty)");
+
 	bool vectors_match = true;
 	for (int i=0; i<in_data.size(); i++) {
 		if (in_data[i] != out_data[0]) {
@@ -295,7 +364,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Send float buffer to kernel, copy to another buffer and read back the data");
+	recordTest(res, "Data read back from the read buffer is identical to the data written to the write buffer");
 
 	manager.ReleaseBuffer(in_buffer);
 	manager.ReleaseBuffer(out_buffer);
@@ -325,9 +394,84 @@ OpenCLWorker* testWorkerConstruction() {
 	return worker;
 }
 
+template <typename T>
+void testWorkerCreateBufferOfType(OpenCLWorker* worker, std::string type_name, std::vector<T> vec_4) {
+	Result res = UNKNOWN;
+	std::vector<T> vec_empty;
+	OCLBuffer<T>* buffer_empty = worker->CreateBuffer(vec_empty, true);
+	if (buffer_empty != NULL) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for empty "+type_name+" vector did not return null");
+	if (buffer_empty->ReadData(true, worker).empty()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for empty "+type_name+" vector returned empty vector when read from");
+
+	worker->ReleaseBuffer(buffer_empty);
+	
+
+	OCLBuffer<T>* buffer_4 = worker->CreateBuffer(vec_4);
+	if (buffer_4 != NULL) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for length 4 "+type_name+" vector did not return null");
+	if (buffer_4->ReadData(true, worker) == vec_4) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for length 4 "+type_name+" vector returned data equal to that with which it was constructed");
+	auto vec_5(vec_4);
+	vec_5.push_back(0);
+	if (worker->WriteBuffer(*buffer_4, vec_5, true)) {
+		res = FAIL;
+	} else {
+		res = PASS;
+	}
+	recordTest(res, "Writing 5 elements to"+type_name+" buffer of length 4 reported failure");
+	auto vec_4_rev(vec_4);
+	std::reverse(vec_4_rev.begin(), vec_4_rev.end());
+	if (worker->WriteBuffer(*buffer_4, vec_4_rev, true)) {
+		
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Writing 4 elements to"+type_name+" buffer of length 4 reported success");
+	if (buffer_4->ReadData(true, worker) == vec_4_rev) {
+		res = PASS;			
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Read back the correct elements from the underlying buffer");
+	if (worker->ReadBuffer(*buffer_4, true) == vec_4_rev) {
+		res = PASS;			
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Read back the correct elements from the underlying buffer");
+
+	worker->ReleaseBuffer(buffer_4);
+}
+
+void testWorkerCreateBuffer(OpenCLWorker* worker) {
+	
+	testWorkerCreateBufferOfType<int>(worker, "int", {1,2,3,4});
+	testWorkerCreateBufferOfType<float>(worker, "float", {1.0, 2.0, 3.0, 4.0});
+	testWorkerCreateBufferOfType<short>(worker, "short", {4,5,6,7});
+	//testWorkerCreateBufferOfType<bool>(worker, "bool", {true, false, false, true});	// Should throw static assertion!
+	//testWorkerCreateBufferOfType<std::string>(worker, "string", {"This", "is", "a", "test"});	// Should throw static assertion!
+}
+
 void individualParallelRun(OpenCLWorker* worker, int threads, cl_long ops) {
 	Result res = UNKNOWN;
-	std::cout << "Calling OpenCLWorker function RunParallel with "<<threads<<" thread, "<<ops<<" operation... " << std::endl;
+	//std::cout << "Calling OpenCLWorker function RunParallel with "<<threads<<" thread, "<<ops<<" operation... " << std::endl;
 	auto start = std::chrono::steady_clock::now();
 	if (worker->RunParallel(threads, ops)) {
 		res = PASS;
@@ -359,7 +503,6 @@ void testWorkerMatrixMult(OpenCLWorker* worker) {
 
 	testWorkerSquareMult(worker, 1);
 	testWorkerSquareMult(worker, 1);
-	return;
 	testWorkerSquareMult(worker, 2);
 	testWorkerSquareMult(worker, 4);
 
@@ -415,18 +558,19 @@ void testWorkerSquareMult(OpenCLWorker* worker, unsigned int length, bool expect
 	for (auto& e : matC) e = 0.0;
 
 	calculation_finished = worker->MatrixMult(matA, matB, matC);
-	if (!calculation_finished) {
-		if (expect_failure) {
-			res = PASS;
-		} else {
-			res = FAIL;
-		}
+	if (calculation_finished != expect_failure) {
+		res = PASS;
 	} else {
+		res = FAIL;
+	}
+	recordTest(res, "MatrixMult kernel did report success for running with size " +
+		std::to_string(length) + "x" + std::to_string(length));
+	
+	if (calculation_finished) {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
-
-	recordTest(res,
-		"Multiplication of zeroed square matrix of size " + std::to_string(length) + "x" + std::to_string(length));
+	recordTest(res, "Correct values for multiplication of zeroed square matrix of size " +
+		std::to_string(length) + "x" + std::to_string(length));
 
 	for (unsigned int index=0; index<elements; index++) matA[index]=(float)index;
 	for (unsigned int index=0; index<elements; index++) matB[index]=(float)index;
@@ -442,8 +586,8 @@ void testWorkerSquareMult(OpenCLWorker* worker, unsigned int length, bool expect
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
-	recordTest(res,
-		"Multiplication of element-wise-incremental square matrix of size " + std::to_string(length) + "x" + std::to_string(length));
+	recordTest(res, "Correct values for multiplication of element-wise-incremental square matrix of size " +
+		std::to_string(length) + "x" + std::to_string(length));
 
 	srand(RANDSEED);
 	for (unsigned int index=0; index<elements; index++) matA[index]=(float)(rand()%1000000000)/100 - 1000000;
@@ -460,7 +604,9 @@ void testWorkerSquareMult(OpenCLWorker* worker, unsigned int length, bool expect
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
-	recordTest(res, "Multiplication of pseudo-randomized square matrix of size " + std::to_string(length) + "x" + std::to_string(length));
+	recordTest(res, "Correct values for multiplication of pseudo-randomized square matrix of size " +
+		std::to_string(length) + "x" + std::to_string(length));
+	
 	
 }
 
@@ -487,16 +633,19 @@ void testWorkerRectMult(OpenCLWorker* worker, unsigned int rowsA, unsigned int c
 
 	
 	calculation_finished = worker->MatrixMult(matA, matB, matC);
-	if (!calculation_finished) {
-		if (expect_failure) {
-			res = PASS;
-		} else {
-			res = FAIL;
-		}
+	if (calculation_finished != expect_failure) {
+		res = PASS;
 	} else {
+		res = FAIL;
+	}
+	recordTest(res, "MatrixMult kernel did report success for running with size " +
+		std::to_string(rowsA) + "x" + std::to_string(colsA) + " by " +
+		std::to_string(rowsB) + "x" + std::to_string(colsB));
+	
+	if (calculation_finished) {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
-	recordTest(res, "Multiplication of zeroed matrix of size " +
+	recordTest(res, "Correct values for multiplication of zeroed matrix of size " +
 		std::to_string(rowsA) + "x" + std::to_string(colsA) + " by " +
 		std::to_string(rowsB) + "x" + std::to_string(colsB));
 
@@ -515,7 +664,7 @@ void testWorkerRectMult(OpenCLWorker* worker, unsigned int rowsA, unsigned int c
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
-	recordTest(res, "Multiplication of element-wise-incrementing matrix of size " +
+	recordTest(res, "Correct values for multiplication of element-wise-incrementing matrix of size " +
 		std::to_string(rowsA) + "x" + std::to_string(colsA) + " by " +
 		std::to_string(rowsB) + "x" + std::to_string(colsB));
 
@@ -535,7 +684,7 @@ void testWorkerRectMult(OpenCLWorker* worker, unsigned int rowsA, unsigned int c
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
-	recordTest(res, "Multiplication of pseudo-random matrix of size " +
+	recordTest(res, "Correct values for multiplication of pseudo-random matrix of size " +
 		std::to_string(rowsA) + "x" + std::to_string(colsA) + " by " +
 		std::to_string(rowsB) + "x" + std::to_string(colsB));
 

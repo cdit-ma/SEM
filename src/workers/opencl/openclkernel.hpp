@@ -3,8 +3,12 @@
 
 //#define __CL_ENABLE_EXCEPTIONS
 
+typedef struct _cl_mem *cl_mem;
+
 #include "openclkernelbase.h"
 #include "genericbuffer.h"
+
+//#include "openclutilities.h"
 
 class OpenCLKernel : public OpenCLKernelBase {
 public:
@@ -14,15 +18,34 @@ public:
     bool SetArgs(T0& arg0, Ts&... args);
 
 protected:
-    virtual void LogError(std::string function_name, std::string error_message, cl_int cl_error_code);
+    virtual void LogError(std::string function_name, std::string error_message, int cl_error_code);
     virtual void LogError(std::string function_name, std::string error_message);
 
 private:
     template <typename T0, typename... Ts>
     bool SetArgsRecursive(unsigned int index, T0& arg0, Ts& ... args);
-    template <typename T0>
+    //template <typename T0, typename T0>
     //typename std::enable_if<!std::is_base_of<GenericBuffer, T0>::value>::type
-    bool SetArgsRecursive(unsigned int index, T0& arg0);
+    bool SetArgsRecursive(unsigned int index, cl::LocalSpaceArg& local_space) {
+        return SetArg(index, local_space);
+    }
+    template <typename T0>
+    typename std::enable_if<std::is_base_of<cl::Memory, T0>::value, bool>::type 
+    SetArgsRecursive(unsigned int index, T0& arg0);
+    template <typename T0>
+    typename std::enable_if<std::is_base_of<GenericBuffer, T0>::value, bool>::type 
+    SetArgsRecursive(unsigned int index, T0& arg0);
+    template <typename T0>
+    typename std::enable_if<!std::is_base_of<cl::Memory, T0>::value && !std::is_base_of<GenericBuffer, T0>::value , bool>::type 
+    SetArgsRecursive(unsigned int index, T0& arg0);
+    /*template <typename T0, typename std::enable_if<std::is_base_of<cl::Memory, T0>::value, T0>::type>
+    bool SetArgsRecursive(unsigned int index, T0& arg0);*/
+    template <typename T0>
+    typename std::enable_if<std::is_pointer<T0>::value, bool>::type
+    setGenericArg(unsigned int index, T0& arg);
+    template <typename T0>
+    typename std::enable_if<!std::is_pointer<T0>::value, bool>::type
+    setGenericArg(unsigned int index, T0& arg);
     
 };
 
@@ -45,7 +68,7 @@ bool OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0, Ts& ... args) 
     return SetArgsRecursive(index+1, args...);
 }
 
-template <typename T0>
+/*template <typename T0>
 //typename std::enable_if<!std::is_base_of<GenericBuffer, T0>::value>::type
 bool OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     static_assert(!std::is_pointer<T0>::value, "SetArgs does not accept pointered types");
@@ -57,26 +80,73 @@ bool OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     // If we are passed something derived from GenericBuffer we know the backing reference will be properly handled
     if(std::is_base_of<GenericBuffer, T0>::value) {
         const cl::Buffer& buffer_arg = reinterpret_cast<const GenericBuffer*>(&arg0)->GetBackingRef();
-        std::cout << "Bakcing ref in setArgs at index " << index << ": " << &(buffer_arg) << std::endl;
-        err = kernel_.setArg(index, buffer_arg);
+        err = kernel_->setArg(index, buffer_arg);
     } else {
-        err = kernel_.setArg(index, arg0);
+        err = kernel_->setArg(index, arg0);
     }
 
     if (err != CL_SUCCESS) {
         LogError(__func__,
             "Unable to set parameter "+std::to_string(index)+" of a kernel",
             err);
-            return false;
+        return false;
+    }
+    //std::cerr << "set arg " << index << std::endl;
+    return true;
+}*/
+
+template <typename T0>
+typename std::enable_if<std::is_base_of<cl::Memory, T0>::value, bool>::type
+OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
+    int err;
+    //std::cerr << "entering base call for memory object of type " << typeid(T0).name() <<std::endl;
+    bool success = kernel_->setArg(index, arg0);
+    
+    if (err != CL_SUCCESS) {
+        LogError(__func__,
+            "Unable to set parameter "+std::to_string(index)+" of a kernel",
+            err);
+        return false;
     }
     //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 
+template <typename T0>
+typename std::enable_if<std::is_base_of<GenericBuffer, T0>::value, bool>::type
+OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
+    int err;
+    //std::cerr << "entering base call for GenericBuffer object of type " << typeid(T0).name() <<std::endl;
+    const cl::Buffer& buffer_ref = static_cast<const GenericBuffer*>(&arg0)->GetBackingRef();
+    bool success = SetArg(index, buffer_ref);
+    
+    if (!success) {
+        LogError(__func__, "Unable to set parameter "+std::to_string(index)+" of a kernel");
+        return false;
+    }
+    //std::cerr << "set arg " << index << std::endl;
+    return true;
+}
 
-/*template <typename T0>
-void OpenCLKernel::SetArgsRecursive(unsigned int index, GenericBuffer& arg0) {
-    std::cerr << "entering specialised buffer base call" << std::endl;
-    SetArgsRecursive(index, arg0.GetBackingRef());
-}*/
+template <typename T0>
+typename std::enable_if<!std::is_base_of<cl::Memory, T0>::value && !std::is_base_of<GenericBuffer, T0>::value , bool>::type
+OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
+    //std::cerr << "entering base call for regular object of type " << typeid(T0).name() <<std::endl;
+    //return SetArg(index, sizeof(T0), arg0);
+    return setGenericArg(index, arg0);
+}
+
+template <typename T0>
+typename std::enable_if<std::is_pointer<T0>::value, bool>::type
+OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
+    return SetArg(index, sizeof(*T0), arg);
+}
+
+template <typename T0>
+typename std::enable_if<!std::is_pointer<T0>::value, bool>::type
+OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
+    return SetArg(index, sizeof(T0), &arg);
+}
+
+
 #endif

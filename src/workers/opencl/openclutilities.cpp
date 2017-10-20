@@ -89,6 +89,10 @@ void LogOpenCLError(Worker* worker_reference,
 			ModelLogger::WorkloadEvent::MESSAGE,
 			-1,		// Need to expose something like get_current_work_id() 
 			message);
+			
+#ifdef OPENCL_DEBUG_TO_STDERR
+		std::cerr << function_signature << ": " << error_message << std::endl;
+#endif
 	}
 	else {
 		std::cerr << function_signature << ": " << message << std::endl;
@@ -105,6 +109,10 @@ void LogOpenCLError(Worker* worker_reference,
 			ModelLogger::WorkloadEvent::MESSAGE,
 			-1,		// Need to expose something like get_current_work_id() 
 			error_message);
+		
+#ifdef OPENCL_DEBUG_TO_STDERR
+		std::cerr << function_signature << ": " << error_message << std::endl;
+#endif
 	}
 	else {
 		std::cerr << function_signature << ": " << error_message << std::endl;

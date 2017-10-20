@@ -1,4 +1,6 @@
 #include "opencl_worker.h"
+#include "openclutilities.h"
+
 #include <iostream>
 
 OpenCLWorker::OpenCLWorker(Component* component, std::string inst_name, int platform_id)
@@ -60,19 +62,11 @@ bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<
     auto bufferB = manager_->CreateBuffer<float>(matB, this);
     //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
     auto result_buffer = manager_->CreateBuffer<float>(matC, this);
-    
-    for (const auto& e : matA) std::cout << "matA " << e << std::endl;
-    for (const auto& e : matB) std::cout << "matB " << e << std::endl;
-    for (const auto& e : matC) std::cout << "matC " << e << std::endl;
 
     bool success = MatrixMult(*bufferA, *bufferB, *result_buffer);
     auto new_matA = bufferA->ReadData(true, this);
     auto new_matB = bufferB->ReadData(true, this);
     matC = result_buffer->ReadData(true, this);
-    
-    for (const auto& e : new_matA) std::cout << "matA " << e << std::endl;
-    for (const auto& e : new_matB) std::cout << "matB " << e << std::endl;
-    for (const auto& e : matC) std::cout << "matC " << e << std::endl;
 
     manager_->ReleaseBuffer(bufferA, this);
     manager_->ReleaseBuffer(bufferB, this);
@@ -82,9 +76,9 @@ bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<
 }
 
 bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC) {
-    cl_uint lenA = (cl_uint)matA.GetSize();
-    cl_uint lenB = (cl_uint)matB.GetSize();
-    cl_uint lenC = (cl_uint)matC.GetSize();
+    cl_uint lenA = (cl_uint)matA.GetNumElements();
+    cl_uint lenB = (cl_uint)matB.GetNumElements();
+    cl_uint lenC = (cl_uint)matC.GetNumElements();
 
     // Determine the dimensions of the matrices from the lengths of the data
     if (lenA == 0 || lenB == 0 || lenC == 0) {
@@ -128,7 +122,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     cl::Device dev = manager_->GetContext().getInfo<CL_CONTEXT_DEVICES>()[0];
     cl::size_type workgroup_size = matrix_kernel_->GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(dev);
     block_length = (unsigned int) sqrt(workgroup_size);
-    std::cout << "Block length: " << block_length << std::endl;
+    //std::cout << "Block length: " << block_length << std::endl;
 
 
     size_t block_data_size = block_length*block_length*sizeof(cl_float);
@@ -144,26 +138,26 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     // TODO: Mutex this stuff
     bool did_set_args = matrix_kernel_->SetArgs(matA, matB, matC, M, K, N,
         cl::Local(block_data_size), cl::Local(block_data_size));
-    if (did_set_args) {
-        std::cout << "Life has no meaning" << std::endl;
+    if (!did_set_args) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            "Failed to set args for MatrixMult");
+            return false;
     }
 
-    if (matC.GetNumElements() == 1) {
-        std::cout << matC.ReadData()[0] << std::endl;
-    }
-
-    bool did_kernel_do_good = matrix_kernel_->Run(0, true, cl::NullRange,
+    bool did_kernel_complete = matrix_kernel_->Run(0, true, cl::NullRange,
         cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length));
-
-        if (did_kernel_do_good) {
-            std::cout << "Life has no meaning2" << std::endl;
-        }
-
-    if (matC.GetNumElements() == 1) {
-        std::cout << matC.ReadData()[0] << std::endl;
+    if (!did_kernel_complete) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
+            "Failed to successfully run MatrixMult kernel");
+            return false;
     }
 
     return true;
+}
+
+void OpenCLWorker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args) {
+    Worker::Log("OpenCLWorker::"+function_name, event, work_id, args);
+    std::cerr << "OpenCLWorker::" << function_name << ", " << args << std::endl;
 }
 
 OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {

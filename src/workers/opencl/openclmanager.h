@@ -10,7 +10,17 @@
 #include <core/worker.h>
 
 #include "oclbuffer.hpp"
-#include "openclkernel.hpp"
+
+class OpenCLKernel;
+
+namespace cl {
+	class Platform;
+	class Device;
+	class Context;
+	class CommandQueue;
+	class Program;
+	class Kernel;
+}
 
 class OpenCLManager {
 	public:
@@ -30,22 +40,22 @@ class OpenCLManager {
 
 		const cl::Context& GetContext() const;
 
-		const std::vector<cl::Device> GetDevices(Worker* worker_reference=NULL) const;
+		const std::vector<std::shared_ptr<cl::Device> > GetDevices(Worker* worker_reference=NULL) const;
 
-		const std::vector<cl::CommandQueue> GetQueues() const;
+		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
 		const std::vector<OpenCLKernel> CreateKernels(std::vector<std::string> filenames, Worker* worker_reference = NULL);
 
-		template <typename KernelArg_t>
+		/*template <typename KernelArg_t>
 		void SetKernelArg(cl::Kernel& kernel, cl_int index, KernelArg_t value);
 
 		template <typename KernelArg_t>
-		void SetKernelArg(cl::Kernel& kernel, cl_int index, OCLBuffer<KernelArg_t> value);
+		void SetKernelArg(cl::Kernel& kernel, cl_int index, OCLBuffer<KernelArg_t> value);*/
 		
 		template <typename T>
 		OCLBuffer<T>* CreateBuffer(size_t buffer_size, Worker* worker_reference=NULL);
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(const std::vector<T>& data, Worker* worker_reference=NULL);
+		OCLBuffer<T>* CreateBuffer(const std::vector<T>& data, bool blocking=true, Worker* worker_reference=NULL);
 
 		template <typename T>
 		void ReleaseBuffer(OCLBuffer<T>* buffer, Worker* worker_reference=NULL);
@@ -56,10 +66,15 @@ class OpenCLManager {
 			BufferAttorney() = delete;
 		private:
 			friend class GenericBuffer;
-			static int GetNewBufferID(OpenCLManager& manager) {
-				return manager.buffer_id_count_++;
+			static int GetNewBufferID(OpenCLManager& manager, GenericBuffer& buffer) {
+				return manager.TrackBuffer(&buffer);
+			}
+			static void ReleaseBufferID(OpenCLManager& manager, GenericBuffer& buffer) {
+				manager.UntrackBuffer(buffer.GetID());
 			}
 		};
+
+		static const int invalid_buffer_id_ = -1;
 
 	/*protected:
 		int GetNewBufferID();*/
@@ -68,23 +83,19 @@ class OpenCLManager {
 		OpenCLManager(cl::Platform &platform, Worker* worker_reference=NULL);
 		~OpenCLManager() {};
 
-		template <typename T>
-		OCLBuffer<T>* TrackBuffer(OCLBuffer<T>* buffer);
+		int TrackBuffer(GenericBuffer* buffer);
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
-
-		cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames,
-			Worker* worker_reference=NULL);
 		
 		
-		template <typename T>
-		friend OCLBuffer<T>::~OCLBuffer();
+		/*template <typename T>
+		friend OCLBuffer<T>::~OCLBuffer();*/
 		
 
 		static void LogError(Worker* worker_reference,
 							std::string function_name,
 							std::string error_message,
-							cl_int cl_error_code);
+							int cl_error_code);
 		static void LogError(Worker* worker_reference,
 							std::string function_name,
 							std::string error_message);
@@ -97,8 +108,8 @@ class OpenCLManager {
 		bool valid_ = false;
 		cl::Platform& platform_;
 		cl::Context* context_;
-		std::vector<cl::Device> device_list_;
-		std::vector<cl::CommandQueue> queues_;
+		std::vector<std::shared_ptr<cl::Device> > device_list_;
+		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
 		cl::Program* program_;
 		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
 
@@ -108,44 +119,17 @@ class OpenCLManager {
 
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::TrackBuffer(OCLBuffer<T>* buffer){
-	auto success = false;
-	auto worker = buffer->GetWorkerReference();
-	
-	if(buffer->is_valid()) {
-		auto buffer_id = buffer->GetID();
-
-		//TODO: See Dan for how to C++11 mutex good bruh
-		if (!buffer_store_.count(buffer_id)){
-			buffer_store_.insert({buffer_id, buffer});
-			success = true;
-		} else {
-			LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));
-		}
-	} else {
-		LogError(worker, __func__, "Failed to create a valid buffer");
-	}
-
-	if (!success) {
-		//If we have an error, teardown the buffer if it's in memory
-		delete buffer;
-		buffer = 0;
-	}
-	return buffer;
-}
-
-template <typename T>
 OCLBuffer<T>* OpenCLManager::CreateBuffer(size_t buffer_size, Worker* worker_reference){
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(this, /*buffer_id_count_++,*/ buffer_size, worker_reference);
+	auto buffer = new OCLBuffer<T>(*this, /*buffer_id_count_++,*/ buffer_size, worker_reference);
 	return buffer;//TrackBuffer<T>(buffer);
 }
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, Worker* worker_reference) {
+OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, bool blocking, Worker* worker_reference) {
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(this, /*buffer_id_count_++,*/ data, worker_reference);
-	return buffer;//TrackBuffer<T>(buffer);
+	auto buffer = new OCLBuffer<T>(*this, data, blocking, worker_reference);
+	return buffer;
 }
 
 

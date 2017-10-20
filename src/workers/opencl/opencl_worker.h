@@ -15,19 +15,23 @@ public:
 
     // Base/Utility functions
     template <typename T>
-    OCLBuffer<T>* CreateBuffer(std::vector<T> data);
+    OCLBuffer<T>* CreateBuffer(std::vector<T> data, bool blocking=true);
     template <typename T>
     void ReleaseBuffer(OCLBuffer<T>* buffer);
     template <typename T>
-    void WriteBuffer(OCLBuffer<T>* buffer);
+    bool WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking=true);
     template <typename T>
-    std::vector<T> ReadBuffer(OCLBuffer<T>* buffer);
+    std::vector<T> ReadBuffer(const OCLBuffer<T>& buffer, bool blocking=true);
 
     // Bespoke algorithms
     bool RunParallel(int num_threads, long long ops_per_thread);
     bool MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC);
     bool MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC);
     std::vector<int> KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, int iterations);
+
+
+protected:
+    virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
 
 
 private:
@@ -44,5 +48,26 @@ private:
     OpenCLKernel* cluster_adjust_kernel_ = NULL;
 
 };
+
+
+template <typename T>
+OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
+    return manager_->CreateBuffer(data);
+}
+
+template <typename T>
+void OpenCLWorker::ReleaseBuffer(OCLBuffer<T>* buffer) {
+    return manager_->ReleaseBuffer(buffer);
+}
+
+template <typename T>
+bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
+    return buffer.WriteData(data, blocking, this);
+}
+
+template <typename T>
+std::vector<T> OpenCLWorker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
+    return buffer.ReadData(blocking, this);
+}
 
 #endif
