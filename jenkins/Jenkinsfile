@@ -149,14 +149,12 @@ stage('Build'){
     for(n in filtered_names){
         def node_name = n
         builders[node_name] = {
-                node(node_name){
-                    def loganPath = "${LOGAN_PATH}"
-                    withEnv(['CMAKE_MODULE_PATH=' + loganPath + '/cmake_modules']){
-                        dir(loganPath + '/build'){
-                            sh 'cmake ..'
-                            sh 'make -j6'
-                        }
-                    }
+            node(node_name){
+                def loganPath = "${LOGAN_PATH}"
+                dir(loganPath + '/build'){
+                    sh 'cmake ..'
+                    sh 'make -j6'
+                }
             }
         }
     }
