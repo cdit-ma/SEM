@@ -13,6 +13,7 @@ include_directories(${GOOGLE_TEST_DIR}/include)
 SET(PERIODICTEST_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/periodiceventtest.cpp
 )
+
 #Set our project names
 set(PROJ_NAME re_test)
 project(${PROJ_NAME})
