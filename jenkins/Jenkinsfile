@@ -1,7 +1,7 @@
 /**
 This script will deploy re_gen to all jenkins slaves with the re label.
 This script requires the following Jenkins parameters:
-- "GIT_CREDENTIALS_ID" : Username with password credential
+- "GIT_CREDENTIAL_ID" : Username with password credential
 - "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/re_gen)
 - "GIT_BRANCH" : Optional branch to checkout, overridden by GIT_TAG
 - "GIT_TAG" : Optional version tag, ignores any branch specified
@@ -56,6 +56,10 @@ def checkParamsExist(){
     return true
 }
 
+def getCredentialID(){
+    return env.GIT_CREDENTIAL_ID
+}
+
 //Build git ref pointer. If no branch specified, use tag, if no tag specified use default branch (master).
 def buildGitRef(String branch, String tag){
     def default_branch = "*/master"
@@ -83,6 +87,11 @@ def buildGitUrl(String url, String proj){
 }
 
 
+def ref_name = ""
+def git_url = ""
+def git_credential_id = ""
+def filtered_names = []
+
 stage('Set up'){
     //Start deploy script
     if(!checkParamsExist()){
@@ -92,7 +101,6 @@ stage('Set up'){
 
     //Get nodes to deploy to
     def names = nodeNames()
-    def filtered_names = []
     for(n in names){
         if(getLabels(n).contains("re")){
             filtered_names << n
@@ -101,6 +109,7 @@ stage('Set up'){
     }
 
     //Build git url and ref
+    git_credential_id = getCredentialID()
     git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
     ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
 }
