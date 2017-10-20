@@ -1,7 +1,12 @@
 /**
-This jenkinsfile takes the following params:
-
-
+This script will deploy re_gen to all jenkins slaves with the re label.
+This script requires the following Jenkins parameters:
+- "GIT_CREDENTIALS_ID" : Username with password credential
+- "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/SEM)
+- "GIT_BRANCH" : Optional branch to checkout, overridden by GIT_TAG
+- "GIT_TAG" : Optional version tag, ignores any branch specified
+This script requires the following Jenkins plugins:
+-Pipeline: Utility Steps
 */
 
 def PROJECT_NAME = 're_gen'
@@ -24,6 +29,18 @@ def getLabels(String name){
 
 //Check all required params
 def checkParamsExist(){
+    def git_url = ""
+    git_url = env.GIT_URL
+    if(git_url == null){
+        print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
+        return false
+    }
+    def git_credential_id = ""
+    git_credential_id = env.GIT_CREDENTIAL_ID
+    if(git_credential_id == null) {
+        print("ERROR: \"GIT_CREDENTIAL_ID\" credential parameter missing in build configuration")
+        return false
+    }
     def branch = env.GIT_BRANCH
     if(branch == null){
         print("ERROR: \"GIT_BRANCH\" string parameter missing in build configuration")
@@ -36,21 +53,6 @@ def checkParamsExist(){
         return false
     }
 
-    //Check that git url parameter exists in jenkins configuration
-    def git_url = ""
-    git_url = env.GIT_URL
-    if(git_url == null){
-        print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
-        return false
-    }
-
-    //Check that git credential parameter exists in jenkins configuration
-    def git_credential_id = ""
-    git_credential_id = env.GIT_CREDENTIAL_ID
-    if(git_credential_id == null) {
-        print("ERROR: \"GIT_CREDENTIAL_ID\" credential parameter missing in build configuration")
-        return false
-    }
     return true
 }
 
@@ -97,7 +99,7 @@ stage('Set up'){
             print("Got Node: " + n)
         }
     }
-    
+
     //Build git url and ref
     git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
     ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
