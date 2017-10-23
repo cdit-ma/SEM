@@ -1,6 +1,5 @@
 #include "activatable.h"
 #include "modellogger.h"
-#include <iostream>
 
 const std::string Activatable::get_name(){
     return name_;
