@@ -13,7 +13,6 @@ EventPort::EventPort(Component* component, std::string name, EventPort::Kind kin
     }
 };
 
-
 bool EventPort::IsOutEventPort() const {
     return kind_ == EventPort::Kind::TX;
 };
@@ -57,3 +56,7 @@ bool EventPort::Passivate(){
 bool EventPort::Teardown(){
     return Activatable::Teardown();
 };
+
+void EventPort::SetKind(EventPort::Kind kind){
+    kind_ = kind;
+}

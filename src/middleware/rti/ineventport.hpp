@@ -17,6 +17,10 @@ namespace rti{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
+            ~InEventPort(){
+                Passivate();
+                Teardown();
+            }
             void notify();
 
             void Startup(std::map<std::string, ::Attribute*> attributes);

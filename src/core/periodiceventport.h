@@ -8,32 +8,29 @@
 #include <condition_variable>
 
 
-#include "eventport.h"
-#include "basemessage.h"
-class Component;
+#include "eventports/ineventport.hpp"
 
-class PeriodicEventPort: public EventPort{
+class Component;
+class PeriodicEventPort: public ::InEventPort<BaseMessage>{
     
     public:
-        PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds);
-        bool Activate();
-        bool Passivate();
+        PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds = 1000);
+        ~PeriodicEventPort();
+        void SetFrequency(double hz);
+        void SetDuration(int milliseconds);
 
         void Startup(std::map<std::string, ::Attribute*> attributes);
         bool Teardown();
-
+        bool Passivate();
     private:
-        bool WaitForTick();
         void Loop();
         
-        std::mutex thread_mutex_;
+        std::mutex control_mutex_;
+        std::thread* tick_thread_ = 0;
+        
         std::mutex mutex_;
         std::condition_variable lock_condition_;
-        bool terminate = false;
-        bool interupt_thread = false;
-
-        std::function<void(BaseMessage*)> callback_ ;
-        std::thread * callback_thread_ = 0;
-        std::chrono::milliseconds duration_;    
+        std::chrono::milliseconds duration_;
+        bool terminate_ = false;
 };
 #endif //PERIODICEVENTPORT_H

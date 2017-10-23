@@ -14,6 +14,9 @@ set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../li
 
 SET(RE_VERSION "1.3.1")
 
+option(BUILD_TEST "Build testing" OFF)
+
+
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
@@ -31,3 +34,9 @@ endif()
 
 #Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+if(BUILD_TEST)
+	message(STATUS "Building re tests")
+	#Build the test
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+endif(BUILD_TEST)

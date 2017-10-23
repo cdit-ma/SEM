@@ -9,7 +9,6 @@
 template <class T> class OutEventPort: public EventPort{
     public:
         OutEventPort(Component* component, std::string name, std::string middleware);
-        virtual ~OutEventPort();
         virtual bool Activate();
         virtual bool Passivate();
         virtual bool Teardown();
@@ -22,10 +21,6 @@ OutEventPort<T>::OutEventPort(Component* component, std::string name, std::strin
 :EventPort(component, name, EventPort::Kind::TX, middleware){
 };
 
-template <class T>
-OutEventPort<T>::~OutEventPort(){
-    //Teardown
-};
 
 template <class T>
 void OutEventPort<T>::tx(T* t){

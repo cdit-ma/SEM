@@ -17,6 +17,7 @@ class Activatable{
     };
 
     public: 
+        virtual ~Activatable();
         const std::string get_name();
         const std::string get_id();
         const std::string get_type();
