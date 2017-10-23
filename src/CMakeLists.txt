@@ -218,6 +218,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/monitor.h
 )
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../changelog.md changelog.md COPYONLY)
+
 
 
 set(RESOURCES
@@ -236,15 +238,16 @@ file(GLOB SCRIPTS
         ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/*.*
         )
 
-SET(LIBS_DEST_DIR "Resources/libs/")
-file(GLOB LIBS 
-        ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Saxon/*.jar
+SET(CHANGELOG_DEST_DIR ".")
+file(GLOB CHANGELOG 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../changelog.md
         )
 
 if(WIN32)
   set(GUI_TYPE WIN32)
 endif()
 
+set(COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE medea.icns)
     set(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJ_NAME} v${VERSION}")
@@ -258,47 +261,43 @@ if(APPLE)
     set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     
     #Copy Resources into .app file
-    set(PACKAGE_LOCATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app/Contents/")
-    file(COPY ${SCRIPTS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${SCRIPTS_DEST_DIR}")
-    file(COPY ${LIBS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${LIBS_DEST_DIR}")
-    file(COPY ${TRANSFORMS} DESTINATION "${PACKAGE_LOCATION}/MacOS/${TRANSFORM_DEST_DIR}")
+    set(COPY_DEST "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app/Contents/MacOS/")
 
     #Construct a .app file
     add_executable(${PROJ_NAME} MACOSX_BUNDLE ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON})
 else()
-    #Bundle things for unix/windows
-    file(COPY ${SCRIPTS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${SCRIPTS_DEST_DIR})
-    file(COPY ${LIBS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${LIBS_DEST_DIR})
-    file(COPY ${TRANSFORMS} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TRANSFORM_DEST_DIR})
     #Construct the binary
     add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES} )
 endif()
+
+message(${COPY_DEST})
+
+#Bundle things for unix/windows
+file(COPY ${SCRIPTS} DESTINATION "${COPY_DEST}/${SCRIPTS_DEST_DIR}")
+file(COPY ${TRANSFORMS} DESTINATION "${COPY_DEST}/${TRANSFORM_DEST_DIR}")
+file(COPY ${CHANGELOG} DESTINATION "${COPY_DEST}/${CHANGELOG_DEST_DIR}")
 
 if(WIN32)
     #Link against the Win Main Launcher
     target_link_libraries(${PROJ_NAME} Qt5::WinMain)
 endif()
 
-#find_library(CONTROLLER_LIB "medea_modelcontroller_lib" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-#find_library(IDL_LIB "medea_idl2graphml_lib" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-
 #Link against things
-target_link_libraries(${PROJ_NAME} Qt5::Widgets)
-target_link_libraries(${PROJ_NAME} Qt5::Network)
 target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
-
+target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} Qt5::Network)
 
 #Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} 
     BUNDLE DESTINATION . COMPONENT ${PROJ_NAME}
     RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
 
-
 if(WIN32)
 	# Copy Resources as part of install for windows
 	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../re_gen DESTINATION ./Resources COMPONENT RE_GEN FILES_MATCHING PATTERN "*.xsl" PATTERN "*.jar")
-	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../scripts DESTINATION ./Resources COMPONENT SCRIPTS FILES_MATCHING PATTERN "*.*")
+    INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../scripts DESTINATION ./Resources COMPONENT SCRIPTS FILES_MATCHING PATTERN "*.*")
+    INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../ DESTINATION ./ COMPONENT SCRIPTS FILES_MATCHING PATTERN "changelog.md")
     INSTALL(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ DESTINATION ./ COMPONENT QT_LIBS FILES_MATCHING PATTERN "*.dll" PATTERN "*.qm")
 endif()
 
