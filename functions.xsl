@@ -1348,7 +1348,8 @@
     <xsl:function name="o:get_idl">
         <xsl:param name="aggregate_root"/>
         
-        <xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <!--<xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />-->
+        <xsl:variable name="aggregate_instances" select="cdit:get_descendant_entities_of_kind($aggregate_root, 'AggregateInstance')" />
         <xsl:variable name="enum_instances" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
 
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
