@@ -1357,7 +1357,7 @@
 
         <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
-        <xsl:variable name="define_guard_name" select="upper(concat($aggregate_namespace, '_', $aggregate_label, '_IDL'))" />
+        <xsl:variable name="define_guard_name" select="upper-case(concat($aggregate_namespace, '_', $aggregate_label, '_IDL'))" />
         <xsl:value-of select="o:define_guard($define_guard_name)" />
 
         <!-- Import the definitions of each aggregate instance used -->
