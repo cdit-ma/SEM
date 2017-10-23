@@ -666,7 +666,7 @@ Node* ModelController::construct_for_condition_node(Node* parent)
         if(node){
             auto variable = construct_child_node(node, NODE_KIND::VARIABLE_PARAMETER);
             auto condition = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-            auto itteration = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
+            auto iteration = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
             variable->setDataValue("type", "Integer");
             variable->setDataValue("label", "i");
@@ -675,10 +675,10 @@ Node* ModelController::construct_for_condition_node(Node* parent)
             condition->setDataValue("label", "Condition");
             condition->setDataValue("icon", "Condition");
             condition->setDataValue("icon_prefix", "EntityIcons");
-            itteration->setDataValue("type", "String");
-            itteration->setDataValue("label", "Itteration");
-            itteration->setDataValue("icon", "reload");
-            itteration->setDataValue("icon_prefix", "Icons");
+            iteration->setDataValue("type", "String");
+            iteration->setDataValue("label", "Iteration");
+            iteration->setDataValue("icon", "reload");
+            iteration->setDataValue("icon_prefix", "Icons");
             return node;
         }
     }
@@ -2714,7 +2714,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         ProgressUpdated_("Constructing Edges");
     }
 
-    int edge_itterations = 0;
+    int edge_iterations = 0;
     auto edge_kind_keys = GetEdgeOrderIndexes();
 
     while(!edge_map.isEmpty()){
@@ -2805,7 +2805,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 error_count ++;
             }
         }
-        edge_itterations ++;
+        edge_iterations ++;
     }
 
     if(show_progress){
@@ -2813,7 +2813,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     }
 
     if(edge_ids.size() > 0){
-        //qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_itterations << " Itterations.";
+        //qCritical() << "Imported: #" << edge_ids.size() << " Edges in " << edge_iterations << " Iterations.";
     }
 
     for(auto entity : entity_hash){

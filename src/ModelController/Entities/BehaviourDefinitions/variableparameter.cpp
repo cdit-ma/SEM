@@ -7,6 +7,7 @@ VariableParameter::VariableParameter(EntityFactory* factory) : Parameter(factory
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new VariableParameter();});
 
     RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, false);
 };
 
 VariableParameter:: VariableParameter(): Parameter(NODE_KIND::VARIABLE_PARAMETER)

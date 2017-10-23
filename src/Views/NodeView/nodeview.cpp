@@ -1009,6 +1009,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::VARIABLE_PARAMETER:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setTertiaryIcon("Items", nodeKindStr);
+                nodeItem->setTertiaryIconVisible(true);
+                nodeItem->setSecondaryTextKey("value");
+                secondary_icon.second = "pencil";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
+                break;
             case NODE_KIND::INPUT_PARAMETER:
             case NODE_KIND::VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
