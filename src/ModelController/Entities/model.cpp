@@ -9,6 +9,7 @@ Model::Model(EntityFactory* factory) : Node(factory, NODE_KIND::MODEL, "Model"){
 
     //Register Data
     RegisterDefaultData(factory, node_kind, "medea_version", QVariant::String, true, APP_VERSION());
+    RegisterDefaultData(factory, node_kind, "description", QVariant::String);
 };
 
 Model::Model(): Node(NODE_KIND::MODEL)
