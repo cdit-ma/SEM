@@ -338,6 +338,7 @@
 
         <!-- Define Guard -->
         <xsl:value-of select="o:define_guard($define_guard)" />
+        <xsl:value-of select="o:lib_include('iostream')" />
 
         <!-- Include the base message type -->
         <xsl:value-of select="o:cpp_comment('Include the base type')" />
@@ -1347,13 +1348,17 @@
     <xsl:function name="o:get_idl">
         <xsl:param name="aggregate_root"/>
         
-        <xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <!--<xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />-->
+        <xsl:variable name="aggregate_instances" select="cdit:get_descendant_entities_of_kind($aggregate_root, 'AggregateInstance')" />
         <xsl:variable name="enum_instances" as="element()*" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
 
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
 
         <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
+
+        <xsl:variable name="define_guard_name" select="upper-case(concat($aggregate_namespace, '_', $aggregate_label, '_IDL'))" />
+        <xsl:value-of select="o:define_guard($define_guard_name)" />
 
         <!-- Import the definitions of each aggregate instance used -->
         <xsl:if test="count($aggregate_instances)">
@@ -1479,12 +1484,15 @@
         <xsl:if test="$aggregate_namespace != ''">
             <xsl:value-of select="concat('};', o:nl())" />
         </xsl:if>
+
+        <xsl:value-of select="o:define_guard_end($define_guard_name)" />
     </xsl:function>
 
     <xsl:function name="o:get_proto">
         <xsl:param name="aggregate_root"/>
 
-        <xsl:variable name="aggregate_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        <xsl:variable name="aggregate_instances" select="cdit:get_descendant_entities_of_kind($aggregate_root, 'AggregateInstance')" />
+        
         <xsl:variable name="enum_instances" select="cdit:get_child_entities_of_kind($aggregate_root, 'EnumInstance')" />
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
@@ -2334,10 +2342,16 @@
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'Boolean'" />
             </xsl:when>
-            <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Float' or $type = 'Double'">
+            <xsl:when test="$type = 'Character'">
+                <xsl:value-of select="'Character'" />
+            </xsl:when>
+            <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
+                <xsl:value-of select="'Float'" />
+            </xsl:when>
+            <xsl:when test="$type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Double'">
                 <xsl:value-of select="'Double'" />
             </xsl:when>
-            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer'">
+            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer' ">
                 <xsl:value-of select="'Integer'" />
             </xsl:when>
             
@@ -2362,6 +2376,9 @@
             </xsl:when>
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'bool'" />
+            </xsl:when>
+            <xsl:when test="$type = 'Character'">
+                <xsl:value-of select="'char'" />
             </xsl:when>
             <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
                 <xsl:value-of select="'float'" />
@@ -2389,13 +2406,12 @@
             <xsl:when test="$type = 'std::string'">
                 <xsl:value-of select="'string'" />
             </xsl:when>
-            <xsl:when test="$type = 'int'">
+            <xsl:when test="$type = 'int' or $type = 'char'">
                 <xsl:value-of select="'int64'" />
             </xsl:when>
             <xsl:when test="$type = 'double' or $type = 'float' or $type = 'bool'">
                 <xsl:value-of select="$type" />
             </xsl:when>
-
             <xsl:otherwise>
                 <xsl:value-of select="concat('/*Unknown Type: ', o:quote_wrap($type), ' */')" />
             </xsl:otherwise>
@@ -2411,6 +2427,9 @@
             </xsl:when>
             <xsl:when test="$type = 'int'">
                 <xsl:value-of select="'long'" />
+            </xsl:when>
+            <xsl:when test="$type = 'char'">
+                <xsl:value-of select="'char'" />
             </xsl:when>
             <xsl:when test="$type = 'double' or $type = 'float' or $type = 'bool'">
                 <xsl:value-of select="$type" />
@@ -2804,6 +2823,18 @@
         <xsl:value-of select="concat('set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
         <xsl:value-of select="concat('set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
         <xsl:value-of select="concat('set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+
+        <xsl:value-of select="concat('if(MSVC)', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ', o:dblquote_wrap($lib_dir), ')', o:nl())" />
+        <xsl:value-of select="concat('endif(MSVC)', o:nl())" />
+
+
+
         <xsl:value-of select="o:nl()" />
         <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/datatypes'))" />
         <xsl:value-of select="o:cmake_add_subdirectory(concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/components'))" />
