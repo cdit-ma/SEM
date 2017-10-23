@@ -1357,6 +1357,9 @@
 
         <xsl:variable name="aggregate_namespace" select="cdit:get_key_value($aggregate_root, 'namespace')" />
 
+        <xsl:variable name="define_guard_name" select="upper(concat($aggregate_namespace, '_', $aggregate_label, '_IDL'))" />
+        <xsl:value-of select="o:define_guard($define_guard_name)" />
+
         <!-- Import the definitions of each aggregate instance used -->
         <xsl:if test="count($aggregate_instances)">
             <xsl:value-of select="o:tabbed_cpp_comment('Importing required .idl files', 0)" />
@@ -1481,6 +1484,8 @@
         <xsl:if test="$aggregate_namespace != ''">
             <xsl:value-of select="concat('};', o:nl())" />
         </xsl:if>
+
+        <xsl:value-of select="o:define_guard_end($define_guard_name)" />
     </xsl:function>
 
     <xsl:function name="o:get_proto">
