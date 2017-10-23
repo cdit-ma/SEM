@@ -136,7 +136,7 @@ stage('Checkout'){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                dir(env.CMAKE_MODULES){
+                dir(env.CMAKE_MODULE_PATH){
                     unstash "cmake_modules_source"
                 }
             }
