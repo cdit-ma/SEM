@@ -518,6 +518,10 @@ Key *EntityFactory::GetKey(QString key_name)
     return key_lookup_.value(key_name, 0);
 }
 
+QSet<QString> VisualKeyNames(){
+    return {"x", "y", "width", "height", "isExpanded", "readOnly"};
+}
+
 Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
 {
     if(key_lookup_.contains(key_name)){
@@ -537,6 +541,11 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         }else{
             key = new Key(key_name, type);
         }
+        
+        if(VisualKeyNames().contains(key_name)){
+            key->setVisual(true);
+        }
+
         key_lookup_[key_name] = key;
         StoreEntity(key);
         return key;

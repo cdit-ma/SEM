@@ -133,7 +133,7 @@ bool Data::compare(const Data *data) const
 }
 
 
-Key *Data::getKey()
+Key *Data::getKey() const
 {
     return key;
 }
@@ -143,32 +143,39 @@ QString Data::getKeyName() const
     return key_name;
 }
 
+bool Data::SortByKey(const Data* a, const Data* b){
+    return GraphML::SortByID(a->getKey(), b->getKey());
+}
+
 QVariant Data::getValue() const
 {
     return value;
 }
 
-QString Data::toGraphML(int indentDepth)
+QString Data::toGraphML(int indentDepth, bool functional_export)
 {
-    QString tabSpace;
-    tabSpace.fill('\t', indentDepth);
-
-    QString dataString = value.toString();
-
-    dataString.replace( "&", "&amp;" );
-    dataString.replace( ">", "&gt;" );
-    dataString.replace( "<", "&lt;" );
-    dataString.replace( "\"", "&quot;" );
-    dataString.replace( "\'", "&apos;" );
-
-    if(getKey()->getName() == "processes_to_log"){
-        dataString.replace("\n", ",");
-    }
-
+    bool should_export = !functional_export || !getKey()->isVisual();
 
     QString xml;
-    xml += tabSpace;
-    xml += QString("<data key=\"%1\">%2</data>\n").arg(QString::number(getKey()->getID()), dataString);
+
+    if(should_export){
+        QString tabSpace;
+        tabSpace.fill('\t', indentDepth);
+
+        QString dataString = value.toString();
+
+        dataString.replace( "&", "&amp;" );
+        dataString.replace( ">", "&gt;" );
+        dataString.replace( "<", "&lt;" );
+        dataString.replace( "\"", "&quot;" );
+        dataString.replace( "\'", "&apos;" );
+
+        if(getKey()->getName() == "processes_to_log"){
+            dataString.replace("\n", ",");
+        }
+        xml += tabSpace;
+        xml += QString("<data key=\"%1\">%2</data>\n").arg(QString::number(getKey()->getID()), dataString);
+    }
     return xml;
 }
 

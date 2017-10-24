@@ -73,7 +73,7 @@ ModelController::ModelController():QObject(0)
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
 }
 
-void ModelController::SetupController(QString file_path)
+bool ModelController::SetupController(QString file_path)
 {
     QWriteLocker lock(&lock_);
     setupModel();
@@ -81,27 +81,25 @@ void ModelController::SetupController(QString file_path)
     clearHistory();
 
     auto file = readFile(file_path);
-
-    bool modified = true;
+    bool success = true;
     if(file.first){
         setModelAction(MODEL_ACTION::OPEN);
-        bool success = importGraphML(file.second, model);
+        success = importGraphML(file.second, model);
         unsetModelAction(MODEL_ACTION::OPEN);
         
         if(success){
             //Update the project filePath
             setProjectPath(file_path);
         }
-
-        modified = !success;
     }else{
         emit ProjectFileChanged("Untitled Project");
     }
 
     //Clear the Undo/Redo History.
     clearHistory();
-    setProjectModified(modified);
+    setProjectModified(!success);
     emit ModelReady(true);
+    return success;
 }
 
 ModelController::~ModelController()
@@ -146,7 +144,7 @@ QString ModelController::exportGraphML(Entity* entity){
     return exportGraphML(QList<Entity*>{entity}, true);
 }
 
-QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges){
+QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges, bool functional_export){
     QSet<Key*> keys;
 
     QSet<Entity*> entities;
@@ -187,14 +185,20 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges)
     QString xml;
     xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     xml +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+    
+    
+    auto key_list = keys.toList();
+    std::sort(key_list.begin(), key_list.end(), GraphML::SortByID);
+    
     //Define the key graphml
-    for(auto key : keys){
-        xml += key->toGraphML(1);
+    for(auto key : key_list){
+        xml += key->toGraphML(1, functional_export);
     }
+
     {
         xml +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
         for(auto entity : top_nodes){
-            xml += entity->toGraphML(2);
+            xml += entity->toGraphML(2, functional_export);
         }
         
         for(auto edge : edges){
@@ -227,7 +231,7 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges)
                 }
             }
             if(export_edge){
-                xml += edge->toGraphML(2);
+                xml += edge->toGraphML(2, functional_export);
             }
         }
         xml += "\t</graph>\n";
@@ -2127,10 +2131,10 @@ void ModelController::storeEdge(Edge *edge)
     }
 }
 
-QString ModelController::getProjectAsGraphML()
+QString ModelController::getProjectAsGraphML(bool functional_export)
 {
     lock_.lockForRead();
-    QString data = exportGraphML(model);
+    QString data = exportGraphML(QList<Entity*>{model}, true, functional_export);
     lock_.unlock();
     return data;
 }
@@ -2264,7 +2268,7 @@ void ModelController::removeData(int id, QString key_name)
  * @brief NewController::importProjects
  * @param xmlDataList
  */
-void ModelController::importProjects(QStringList xml_list)
+bool ModelController::importProjects(QStringList xml_list)
 {
     QWriteLocker lock(&lock_);
     bool success = true;
@@ -2284,6 +2288,7 @@ void ModelController::importProjects(QStringList xml_list)
     }
     emit ShowProgress(false);
     emit ActionFinished();
+    return success;
 }
 
 bool ModelController::isDataVisual(Data* data){
@@ -2372,8 +2377,12 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     auto key_type = Key::getTypeFromGraphML(getXMLAttribute(xml, "attr.type"));
 
                     auto key = entity_factory->GetKey(key_name, key_type);
+
                     if(key){
+
                         if(!key_hash.contains(key_id)){
+
+                            //First time we've seen it
                             key_hash.insert(key_id, key);
                         }else{
                             qCritical() << "ImportGraphML: Duplicate key id '" << key_id << "'";
@@ -2402,8 +2411,10 @@ bool ModelController::importGraphML(QString document, Node *parent)
                         }else if(key_name == "medea_version"){
                             if(value != APP_VERSION()){
                                 QString title = "Loading legacy model";
-                                QString description = "Model was created in MEDEA v" % value % ". Some functionality may have changed.";
+                                QString description = "Model was created in MEDEA v" % value % ". Some functionality may have changed. Model version updated to: " % APP_VERSION();
                                 emit Notification(MODEL_SEVERITY::INFO, title, description);
+                                //Update
+                                value = APP_VERSION();
                             }
                         }
                         //Add the data to the entity

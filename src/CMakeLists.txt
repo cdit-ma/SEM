@@ -16,6 +16,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #Requires Qt5_DIR and QTIFWDIR to be set
 set(PROJ_NAME MEDEA)
 
+set(CLI_PROJ_NAME medea_cli)
+
 project(${PROJ_NAME})
 find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
@@ -222,6 +224,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../changelog.md changelog.md COPYONLY
 
 
 
+
 set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
     )
@@ -270,7 +273,10 @@ else()
     add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES} )
 endif()
 
-message(${COPY_DEST})
+add_executable(${CLI_PROJ_NAME} medeacli.cpp)
+
+target_link_libraries(${CLI_PROJ_NAME} medea_modelcontroller_lib)
+
 
 #Bundle things for unix/windows
 file(COPY ${SCRIPTS} DESTINATION "${COPY_DEST}/${SCRIPTS_DEST_DIR}")

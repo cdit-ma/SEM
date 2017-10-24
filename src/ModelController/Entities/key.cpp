@@ -79,6 +79,14 @@ bool Key::forceDataValue(Data* data, QVariant value){
     return result;
 }
 
+void Key::setVisual(bool is_visual){
+    is_visual_ = is_visual;
+}
+
+bool Key::isVisual() const{
+    return is_visual_;
+}
+
 QVariant Key::validateDataChange(Data *data, QVariant new_value)
 {
     if(!data || data->getKey() != this){
@@ -119,15 +127,18 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
     return new_value;
 }
 
-QString Key::toGraphML(int indent)
+QString Key::toGraphML(int indent_depth, bool functional_export)
 {
     QString xml;
-    QTextStream stream(&xml); 
+    bool should_export = !functional_export || !is_visual_;
+    if(should_export){
+        QTextStream stream(&xml); 
+        QString tab = QString("\t").repeated(indent_depth);
+        stream << tab << "<key attr.name=\"" << getName() << "\"";
+        stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
+        stream << " id=\"" << getID()<< "\"/>\n";
+    }
 
-    QString tab = QString("\t").repeated(indent);
-    stream << tab << "<key attr.name=\"" << getName() << "\"";
-    stream << " attr.type=\"" << getGraphMLTypeName(key_type_) << "\"";
-    stream << " id=\"" << getID()<< "\"/>\n";
     return xml;
 }
 

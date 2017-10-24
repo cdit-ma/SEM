@@ -18,6 +18,7 @@ protected:
     ~Data();
     static Data* clone(Data* data);
 public:
+    static bool SortByKey(const Data* a, const Data* b);
     Entity* getParent();
 
     void setProtected(bool protect);
@@ -39,11 +40,11 @@ public:
     bool compare(const Data* data) const;
 
 
-    Key* getKey();
+    Key* getKey() const;
     QString getKeyName() const;
     QVariant getValue() const;
 
-    QString toGraphML(int indentDepth);
+    QString toGraphML(int indentDepth = 0, bool functional_export = false);
     QString toString();
 protected:
     void store_value();

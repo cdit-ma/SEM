@@ -17,11 +17,13 @@ protected:
     void setFactory(EntityFactory* factory);
     EntityFactory* getFactory();
 public:
+    static bool SortByID(const GraphML* a, const GraphML* b);
+
     GRAPHML_KIND getGraphMLKind() const;
     int getID() const; 
 
     //Pure Virtual
-    virtual QString toGraphML(int indentDepth=0)=0;
+    virtual QString toGraphML(int indentDepth=0, bool functional_export = false)=0;
     virtual QString toString()=0;
 private:
     int id = -1;
