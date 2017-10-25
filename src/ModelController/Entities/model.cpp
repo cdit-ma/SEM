@@ -1,6 +1,6 @@
 #include "model.h"
 #include "../nodekinds.h"
-#include "../../version.h"
+#include "../version.h"
 
 Model::Model(EntityFactory* factory) : Node(factory, NODE_KIND::MODEL, "Model"){
 	auto node_kind = NODE_KIND::MODEL;

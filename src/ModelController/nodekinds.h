@@ -102,6 +102,7 @@ Q_DECLARE_METATYPE(NODE_KIND);
 
 
 
+
 //Enum for Node Types
 enum class NODE_TYPE{
     DEFINITION           = 1 << 0,   //bin. 0000 0000 0000 0000 0000 0000 0000 0001
@@ -138,6 +139,23 @@ enum class VIEW_ASPECT{
     HARDWARE,
     WORKERS
 };
+
+inline QString getViewAspectName(VIEW_ASPECT aspect){
+    switch(aspect){
+        case VIEW_ASPECT::INTERFACES:
+            return "Interfaces";
+        case VIEW_ASPECT::BEHAVIOUR:
+            return "Behaviour";
+        case VIEW_ASPECT::ASSEMBLIES:
+            return "Assemblies";
+        case VIEW_ASPECT::HARDWARE:
+            return "Hardware";    
+        default:
+            return "None";
+    }
+};
+
+  
 inline uint qHash(VIEW_ASPECT key, uint seed)
     {
         return ::qHash(static_cast<uint>(key), seed);

@@ -12,6 +12,12 @@ GraphML::~GraphML(){
     }
 }
 
+    
+bool GraphML::SortByID(const GraphML* a, const GraphML* b){
+    return a->getID() < b->getID();
+}
+
+
 /**
  * @brief GraphML::getKind
  * Returns the GRAPHML_KIND of the element. Used for upcasting.

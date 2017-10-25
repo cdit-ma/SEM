@@ -34,7 +34,7 @@ public:
     EDGE_KIND getEdgeKind() const;
 
     //Return the graphml representation of this
-    QString toGraphML(qint32 indentationLevel=0);
+    QString toGraphML(int indentationLevel = 0, bool function_only = false);
     QString toString();
 private:
     EDGE_KIND kind;

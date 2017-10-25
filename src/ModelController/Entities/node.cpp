@@ -53,16 +53,6 @@ Node::Node(EntityFactory* factory, NODE_KIND kind, QString kind_string):Entity(G
     
 }
 
-QString Node::toGraphML(int indentDepth)
-{
-    return _toGraphML(indentDepth, false);
-}
-
-QString Node::toGraphMLNoVisualData(int indentDepth)
-{
-    return _toGraphML(indentDepth, true);
-}
-
 
 int Node::getDepth() const{
     return treeIndex.size();
@@ -1010,23 +1000,25 @@ void Node::setParentNode(Node *parent, int index)
     }
 }
 
-QString Node::_toGraphML(int indent, bool ignoreVisuals)
+QString Node::toGraphML(int indent_depth, bool functional_export)
 {
     QString xml;
     QTextStream stream(&xml); 
 
-    QString tab = QString("\t").repeated(indent);
+    QString tab = QString("\t").repeated(indent_depth);
     stream << tab << "<node id=\"" << getID() << "\">\n";
     
-    for(auto data : getData()){
-        stream << data->toGraphML(indent + 1);
+    auto data_list = getData();
+    std::sort(data_list.begin(), data_list.end(), Data::SortByKey);
+    for(auto data : data_list){
+        stream << data->toGraphML(indent_depth + 1, functional_export);
     }
 
     //Children are in a <graph>
     if(hasChildren()){
         stream << tab << "\t<graph id=\"g" << getID() << "\">\n";
         for(auto child : getChildren(0)){
-            stream << child->toGraphML(indent + 2);
+            stream << child->toGraphML(indent_depth + 2, functional_export);
         }
         stream << tab << "\t</graph>\n";
     }

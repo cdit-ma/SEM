@@ -61,7 +61,7 @@ public:
     int getProjectActionCount();
     void setProjectSaved(QString path="");
 
-    QString getProjectAsGraphML();
+    QString getProjectAsGraphML(bool functional_export = false);
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
@@ -96,7 +96,7 @@ public:
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
 public slots:
-    void SetupController(QString file_path="");
+    bool SetupController(QString file_path="");
 
     //Clipboard functionality
     void cut(QList<int> ids);
@@ -107,7 +107,7 @@ public slots:
     void undo();
     void redo();
 
-    void importProjects(QStringList xmlDataList);
+    bool importProjects(QStringList xmlDataList);
 
     //Model Functionality
     void setData(int id, QString key_name, QVariant value);
@@ -204,7 +204,7 @@ private:
     bool importGraphML(QString document, Node* parent = 0);
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QList<int> ids, bool all_edges = false);
-    QString exportGraphML(QList<Entity*> entities, bool all_edges = false);
+    QString exportGraphML(QList<Entity*> entities, bool all_edges = false, bool functional_export = false);
     QString exportGraphML(Entity* entity);
 
 

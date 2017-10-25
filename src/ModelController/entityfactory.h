@@ -57,6 +57,9 @@ public:
     //Public Static functionality
     static QList<NODE_KIND> getNodeKinds();
     static QList<EDGE_KIND> getEdgeKinds();
+    static QList<VIEW_ASPECT> getViewAspects();
+    static NODE_KIND getViewAspectKind(VIEW_ASPECT aspect);
+
 
     static NODE_KIND getNodeKind(QString node_kind);
     static EDGE_KIND getEdgeKind(QString edge_kind);

@@ -46,8 +46,7 @@ class Node : public Entity
         NODE_KIND getDefinitionKind() const;
         NODE_KIND getImplKind() const;
 
-    QString toGraphML(int indentDepth);
-    QString toGraphMLNoVisualData(int indentDepth);
+        QString toGraphML(int indentDepth = 0, bool functional_export = false);
 
     virtual VIEW_ASPECT getViewAspect() const;
     

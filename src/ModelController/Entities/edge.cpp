@@ -77,7 +77,7 @@ Node *Edge::getDestination() const
     return destination;
 }
 
-QString Edge::toGraphML(int indent)
+QString Edge::toGraphML(int indent, bool functional_export)
 {
     QString xml;
     QTextStream stream(&xml); 
@@ -87,7 +87,7 @@ QString Edge::toGraphML(int indent)
     stream << "<edge id=\"" << getID() << "\" source=\"" << getSourceID();
     stream << "\" target=\"" << getDestinationID() << "\">\n";
     for(auto data : getData()){
-        stream << data->toGraphML(indent + 1);
+        stream << data->toGraphML(indent + 1, functional_export);
     }
     stream << tab << "</edge>\n";
     return xml;

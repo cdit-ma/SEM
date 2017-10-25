@@ -1,0 +1,276 @@
+#Requires Qt5_DIR and QTIFWDIR to be set
+set(PROJ_NAME MEDEA)
+
+project(${PROJ_NAME})
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
+
+if(WIN32)
+	SET(QT_USE_QTMAIN TRUE)
+endif()
+
+#Include the binary directory to include the generated cmakevars.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/managementcomponentnodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosprofilemodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchitemwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/variabledialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/loadmorewidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/invisibledockwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+
+if(WIN32)
+    #Only add rc file for windows
+    SET(SOURCE ${SOURCE} 
+        ${CMAKE_CURRENT_SOURCE_DIR}/medea.rc
+    )
+endif()
+
+SET(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/edgeviewitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/nodeviewitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/settingscontroller.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qobjectregistrar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/ContextMenu/contextmenu.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Dock/docktabwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/managementcomponentnodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosprofilemodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchitemwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/loadmorewidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/rootaction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/monitor.h
+)
+
+#Copy changelog
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../changelog.md changelog.md COPYONLY)
+
+set(RESOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
+    )
+
+SET(TRANSFORM_DEST_DIR "Resources/re_gen/")
+file(GLOB TRANSFORMS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen/*.xsl
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen/*.jar
+        )
+
+SET(SCRIPTS_DEST_DIR "Resources/scripts/")
+file(GLOB SCRIPTS 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/*.*
+        )
+
+SET(CHANGELOG_DEST_DIR ".")
+file(GLOB CHANGELOG 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../changelog.md
+        )
+
+if(WIN32)
+  set(GUI_TYPE WIN32)
+endif()
+
+set(COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+if(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE medea.icns)
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJ_NAME} v${VERSION}")
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJ_NAME})
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION})
+    set(MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION})
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2016. All Rights Reserved.")
+
+    #Bundle the MEDEA icon (icns) for mac
+    set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns)
+    set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    
+    #Copy Resources into .app file
+    set(COPY_DEST "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app/Contents/MacOS/")
+
+    #Construct a .app file
+    add_executable(${PROJ_NAME} MACOSX_BUNDLE ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON})
+else()
+    #Construct the binary
+    add_executable(${PROJ_NAME} ${GUI_TYPE} ${SOURCE} ${HEADERS} ${RESOURCES} )
+endif()
+
+
+#Bundle things for unix/windows
+file(COPY ${SCRIPTS} DESTINATION "${COPY_DEST}/${SCRIPTS_DEST_DIR}")
+file(COPY ${TRANSFORMS} DESTINATION "${COPY_DEST}/${TRANSFORM_DEST_DIR}")
+file(COPY ${CHANGELOG} DESTINATION "${COPY_DEST}/${CHANGELOG_DEST_DIR}")
+
+if(WIN32)
+    #Link against the Win Main Launcher
+    target_link_libraries(${PROJ_NAME} Qt5::WinMain)
+endif()
+
+#Link against things
+target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
+target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
+target_link_libraries(${PROJ_NAME} Qt5::Widgets)
+target_link_libraries(${PROJ_NAME} Qt5::Network)
+
+#Install should copy the MEDEA app into the bin folder
+INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+
+if(WIN32)
+	# Copy Resources as part of install for windows
+    INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen DESTINATION ./Resources COMPONENT RE_GEN FILES_MATCHING PATTERN "*.xsl" PATTERN "*.jar")
+    INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts DESTINATION ./Resources COMPONENT SCRIPTS FILES_MATCHING PATTERN "*.*")
+    INSTALL(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ DESTINATION ./ COMPONENT ${PROJ_NAME} FILES_MATCHING PATTERN "changelog.md")
+    INSTALL(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ DESTINATION ./ COMPONENT QT_LIBS FILES_MATCHING PATTERN "*.dll" PATTERN "*.qm")
+endif()
+
+#Run the qt deploy program to copy required binaries into the directories
+if(WIN32)
+    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+    COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
+    )
+elseif(APPLE)
+    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+        COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+    )
+endif()
