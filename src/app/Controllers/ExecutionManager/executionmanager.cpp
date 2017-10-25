@@ -168,7 +168,6 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
         }
 
         auto re_path = env_var.value("RE_PATH") + "/bin/";
-        qCritical() << "RE_PATH: '" << re_path << "'";
 
         auto generate = GenerateWorkspace_(document_path, output_directory);
 
@@ -366,6 +365,7 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
     QProcessEnvironment re_env;
     if(FileHandler::isFileReadable(re_configure_path)){
         ProcessRunner runner;
+        
         re_env = runner.RunEnvVarScript(re_configure_path);
         
         if(re_env.contains("RE_PATH")){

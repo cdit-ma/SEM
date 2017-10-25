@@ -43,7 +43,7 @@ QString ProcessRunner::getEnvVar(QString key){
         print_vars = "set&exit\n";
         shell_command = scriptPath + ">NUL&" + print_vars;
     #else
-        program = "/bin/sh";
+        program = "/bin/bash";
         print_vars = "set;exit\n";
         shell_command = ". " + scriptPath + ">/dev/null 2>&1;" + print_vars;
     #endif
