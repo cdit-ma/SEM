@@ -10,7 +10,7 @@
 #include <QElapsedTimer>
 #include <QXmlStreamReader>
 
-#include "../version.h"
+#include "version.h"
 
 #include "entityfactory.h"
 #include "tempentity.h"

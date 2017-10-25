@@ -154,6 +154,29 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
     return kind_str;
 }
 
+QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
+    return {VIEW_ASPECT::INTERFACES,
+        VIEW_ASPECT::BEHAVIOUR,
+        VIEW_ASPECT::ASSEMBLIES,
+        VIEW_ASPECT::HARDWARE,
+    };
+}
+
+NODE_KIND EntityFactory::getViewAspectKind(VIEW_ASPECT aspect){
+    switch(aspect){
+        case VIEW_ASPECT::INTERFACES:
+            return NODE_KIND::INTERFACE_DEFINITIONS;
+        case VIEW_ASPECT::BEHAVIOUR:
+            return NODE_KIND::BEHAVIOUR_DEFINITIONS;
+        case VIEW_ASPECT::ASSEMBLIES:
+            return NODE_KIND::ASSEMBLY_DEFINITIONS;
+        case VIEW_ASPECT::HARDWARE:
+            return NODE_KIND::HARDWARE_DEFINITIONS;
+        default:
+            return NODE_KIND::NONE;
+    }
+}
+
 QString EntityFactory::getEdgeKindString(EDGE_KIND kind)
 {
     QString kind_str = "INVALID_EDGE";

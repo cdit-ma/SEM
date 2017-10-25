@@ -11,14 +11,14 @@ find_package(Qt5 COMPONENTS Core REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-#Pass Version info into cmakevars.h
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-)
+
 
 #Include the binary directory to include the generated cmakevars.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+#Include the 
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../)
+
+
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
@@ -132,7 +132,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/frequencykey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
 )
 
 set(HEADERS
@@ -244,6 +245,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
 )
 
 
