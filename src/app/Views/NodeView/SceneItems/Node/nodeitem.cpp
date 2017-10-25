@@ -1287,6 +1287,7 @@ QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction) const{
             return getElementRect(ER_CONNECT_TARGET);
         }
     }
+    return QRectF();
 }
 
 QSet<QPair<EDGE_DIRECTION, EDGE_KIND> > NodeItem::getEdgeConnectRectAtPos(QPointF pos) const{

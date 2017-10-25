@@ -25,6 +25,7 @@ QString Notification::getTypeString(Notification::Type type)
     case Type::APPLICATION:
         return "Application";
     }
+    return QString();
 }
 
 QString Notification::getSeverityString(Notification::Severity severity)
@@ -43,6 +44,7 @@ QString Notification::getSeverityString(Notification::Severity severity)
     case Severity::NONE:
         return "No Severity";
     }
+    return QString();
 }
 
 QString Notification::getContextString(Notification::Context context)
@@ -53,6 +55,7 @@ QString Notification::getContextString(Notification::Context context)
     case Context::NOT_SELECTED:
         return "Not Selected";
     }
+    return QString();
 }
 
 QString Notification::getCategoryString(Notification::Category category)
@@ -67,4 +70,5 @@ QString Notification::getCategoryString(Notification::Category category)
     case Category::NONE:
         return "No Category";
     }
+    return QString();
 }
