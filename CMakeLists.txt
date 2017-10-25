@@ -28,7 +28,7 @@ option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
 option(BUILD_TEST "Build MEDEA Test" ON)
 
-if(BUILD_GUI OR BUILD_CLI OR BUILD_TEST)
+if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     #Pass Version info into cmakevars.h
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
@@ -43,12 +43,14 @@ endif()
 if(BUILD_CLI)
     message(STATUS "Building MEDEA CLI")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/cli")
+
+    
 endif(BUILD_CLI)
 
-if(BUILD_GUI)
+if(BUILD_APP)
     message(STATUS "Building MEDEA App")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
-endif(BUILD_GUI)
+endif(BUILD_APP)
 
 if(BUILD_TEST)
     message(STATUS "Building MEDEA Tests")
