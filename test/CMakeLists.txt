@@ -1,23 +1,8 @@
-set(PROJ_NAME medea_test)
-find_package(Qt5 COMPONENTS Test REQUIRED)
 
+#Set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelcontrollertests.cpp
-)
-
-SET(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/modelcontrollertests.h
-)
-
-set(RESOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/models.qrc
-    )
-
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS} ${RESOURCES} ${MAC_ICON})
-
-target_link_libraries(${PROJ_NAME} Qt5::Test)
-target_link_libraries(${PROJ_NAME} medea_modelcontroller_lib)
-
-INSTALL(TARGETS ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+add_subdirectory("idlparser")
+add_subdirectory("modelcontroller")

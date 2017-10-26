@@ -23,7 +23,7 @@ SET(VERSION_NAME "MEDEAv${VERSION}")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-#Add Options for building projects, default to build everything
+#Add Options for building projects, efault to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
 option(BUILD_TEST "Build MEDEA Test" ON)
@@ -54,7 +54,7 @@ endif(BUILD_APP)
 
 if(BUILD_TEST)
     message(STATUS "Building MEDEA Tests")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/test")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif(BUILD_TEST)
 
 
