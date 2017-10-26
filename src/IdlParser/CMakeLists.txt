@@ -10,6 +10,8 @@ set(LIB_NAME medea_idl2graphml_lib)
 
 project(${PROJ_NAME})
 
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlkinds.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlexporter.cpp
@@ -22,8 +24,10 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.h
 )
 
+include_directories(${Boost_INCLUDE_DIRS})
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS})
 add_executable(${PROJ_NAME} main.cpp)
 target_link_libraries(${PROJ_NAME} ${LIB_NAME})
+target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 INSTALL(TARGETS ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})

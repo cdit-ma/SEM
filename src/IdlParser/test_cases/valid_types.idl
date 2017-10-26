@@ -31,5 +31,3 @@ struct Valid_Types{
     boolean m;
     string n;
 }
-
-

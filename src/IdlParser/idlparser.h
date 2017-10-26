@@ -37,7 +37,7 @@ std::string toString(IDL_ELEMENT);
 
 class IdlParser{
     public:
-        static std::string ParseIdl(std::string idl_path, bool pretty);
+        static std::pair<bool, std::string> ParseIdl(std::string idl_path, bool pretty);
     private:
         struct MemberType{
             std::string label;
@@ -50,7 +50,7 @@ class IdlParser{
         };
         IdlParser(std::string idl_path, bool pretty);
         ~IdlParser();
-        bool parse_file(std::string idl_path);
+        int parse_file(std::string idl_path);
         std::string ToGraphml();
 
         MemberType* find_typedef(Graphml::Entity* current, std::string label);
