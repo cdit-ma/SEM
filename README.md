@@ -82,9 +82,9 @@ The idl2graphml shell tool will load and interpret a standard corba IDL file int
 ## Command line options
 | Flag                                  | Description                           |
 |---------------------------------------|---------------------------------------|
-| -i, --import                          | IDL file paths to import              |
-| -e, --export                          | Graphml file path                     |
-| -h, --help                            | Display help                          |
+| -h, --help                            | Displays this help.                   |
+| -i, --import <The idl file path>      | Import IDL project.                   |
+| -e, --export <The graphml file path>  | Export as a graphml file.             |
 
 ## Example Usage:
 ### Importing IDL file to .graphml file

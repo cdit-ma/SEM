@@ -1,8 +1,7 @@
 #include "idlparser.h"
+#include <QCommandLineParser>
 #include <iostream>
 #include <fstream>
-#include <boost/program_options.hpp>
-#include <vector>
 
 bool writeFile(const std::string &file_path, const std::string &data){
     std::ofstream file_out(file_path); 
@@ -19,29 +18,28 @@ bool writeFile(const std::string &file_path, const std::string &data){
 
 int main(int argc, char *argv[])
 {
-    std::string import_idl_path;
-    std::string export_graphml_path;
-    bool should_export = false;
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("idl2graphml");
 
-    boost::program_options::options_description options("idl2graphml");
-    options.add_options()("import,i", boost::program_options::value<std::string>(&import_idl_path)->required(), "IDL file paths to import");
-    options.add_options()("export,e", boost::program_options::value<std::string>(&export_graphml_path), "Graphml file path");
-    options.add_options()("help,h", "Display help");
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    QCommandLineOption import_options({"i", "import"}, "Import IDL project.", "The idl file path");
+    QCommandLineOption export_options({"e", "export"}, "Export as a graphml file.", "The graphml file path");
 
-    //Construct a variable_map
-	boost::program_options::variables_map vm;
-	
-	try{
-		//Parse Argument variables
-		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
-        boost::program_options::notify(vm);
-        should_export = !vm["export"].empty();
-	}catch(boost::program_options::error& e) {
-        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
-		std::cout << options << std::endl;
-        return 1;
+    parser.addOption(import_options);
+    parser.addOption(export_options);
+    parser.process(app);
+
+    bool got_values = parser.isSet(import_options);
+    
+    if(!got_values){
+        parser.showHelp(1);
     }
 
+    
+    auto import_idl_path = parser.value(import_options).toStdString();
+    auto export_graphml_path = parser.value(export_options).toStdString();
+    auto should_export = parser.isSet(export_options);
     auto result = IdlParser::IdlParser::ParseIdl(import_idl_path, true);
     auto success = result.first;
 

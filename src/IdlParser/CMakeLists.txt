@@ -8,6 +8,8 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(PROJ_NAME idl2graphml)
 set(LIB_NAME medea_idl2graphml_lib)
 
+find_package(Qt5 COMPONENTS Core REQUIRED)
+
 project(${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
@@ -24,10 +26,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/idlparser.h
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
 add_library(${LIB_NAME} STATIC ${SOURCE} ${HEADERS})
 add_executable(${PROJ_NAME} main.cpp)
 target_link_libraries(${PROJ_NAME} ${LIB_NAME})
-target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME} Qt5::Core)
 
 INSTALL(TARGETS ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
