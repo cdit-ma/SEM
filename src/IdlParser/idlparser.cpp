@@ -25,8 +25,8 @@
 const std::regex re_type_def("typedef" WS "(" ANY_CHAR "+?)" OPTIONAL_WS ";");
 //#include "INCLUDE_H"
 //#include <INCLUDE_H>
-const std::regex re_local_include("#include" WS "\"(" NOT_WS ")\"");
-const std::regex re_lib_include("#include" WS "<(" NOT_WS ")>");
+const std::regex re_local_include("#include" WS "\"(" ANY_CHAR "+?)\"");
+const std::regex re_lib_include("#include" WS "<(" ANY_CHAR "+?)>");
 //module MODULE_NAME {
 const std::regex re_module("module" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
 //struct STRUCT_NAME {
