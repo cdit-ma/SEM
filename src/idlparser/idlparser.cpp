@@ -25,7 +25,8 @@
 const std::regex re_type_def("typedef" WS "(" ANY_CHAR "+?)" OPTIONAL_WS ";");
 //#include "INCLUDE_H"
 //#include <INCLUDE_H>
-const std::regex re_include("#include" WS "([<" NOT_WS ">|\"" NOT_WS "\"])");
+const std::regex re_local_include("#include" WS "\"(" ANY_CHAR "+?)\"");
+const std::regex re_lib_include("#include" WS "<(" ANY_CHAR "+?)>");
 //module MODULE_NAME {
 const std::regex re_module("module" WS "(" NOT_WS ")" OPTIONAL_WS "\\{");
 //struct STRUCT_NAME {
@@ -199,12 +200,15 @@ inline RegexMatch* re_search(std::string &str, IDL_ELEMENT kind, const std::rege
     return me;
 };
 
-std::string IdlParser::ParseIdl(std::string idl_path, bool pretty){
+std::pair<bool, std::string> IdlParser::ParseIdl(std::string idl_path, bool pretty){
     auto parser = IdlParser(idl_path, pretty);
+
+    std::string result;
+
     if(parser.successful_parse){
-        return parser.ToGraphml();
+        result = parser.ToGraphml();
     }
-    return std::string();
+    return {parser.successful_parse, result};
 };
 
 bool IdlParser::resolve_member_label(MemberType* member, std::string label){
@@ -225,6 +229,8 @@ bool IdlParser::resolve_member_label(MemberType* member, std::string label){
 bool IdlParser::resolve_member_type(MemberType* member, std::string type){
     auto unresolved_type = trim(type);
     auto primitive_type = get_primitive_type(unresolved_type);
+
+
 
     //need to further resolve
     if(primitive_type == ""){
@@ -309,7 +315,8 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
 IdlParser::IdlParser(std::string idl_path, bool pretty){
     
     model_ = new Graphml::Model();
-    successful_parse = parse_file(idl_path);
+    auto count = parse_file(idl_path);
+    successful_parse = count == 0;
 };
 
 std::string combine_namespace(std::string parent_namespace, std::string label){
@@ -330,44 +337,34 @@ IdlParser::MemberType* IdlParser::find_typedef(Graphml::Entity* current, std::st
     return 0;
 }
 
-bool IdlParser::parse_file(std::string idl_path){
+int IdlParser::parse_file(std::string idl_path){
+    int error_count = 0;
     if(parsed_files_.count(idl_path)){
-        return true;
+        return error_count;
     }
 
     auto file_path = get_file_path(idl_path);
     
-    std::cerr << "Parsing: " << idl_path << std::endl;
-    parsed_files_.insert(idl_path);
+    
 
     //Read the file
     std::string file;
     {
         std::ifstream input(idl_path);
-        std::stringstream buffer;
-        buffer << input.rdbuf();
-        input.close();
-        file = buffer.str();
-    }
-
-    //Preprocess parse the file to find the other files to import
-    {
-        auto search_str = file;
-        std::smatch import_match;
-        //Keep parsing through the file
-        while(std::regex_search(search_str, import_match, re_include)){
-            //Get the matching group, and parse that file first
-            auto include_idl_path = file_path + std::string(import_match[1]);
-
-            //Append on the relative path to files
-            parse_file(include_idl_path);
-            search_str = import_match.suffix();
+        if(input.good()){
+            std::stringstream buffer;
+            buffer << input.rdbuf();
+            input.close();
+            file = buffer.str();
+        }else{
+            std::cerr << "IDL Parser: Can't read file '" << idl_path  << "'" << std::endl;
+            error_count++;
+            return error_count;
         }
     }
 
-    std::stack<Graphml::Entity*> parent_entities;
-    parent_entities.push(model_->get_root());
-
+    std::cerr << "IDL Parser: Parsing: '" << idl_path << "'" << std::endl;
+    parsed_files_.insert(idl_path);
 
     auto search_str = file;
     //LOSE ALL COMMENTS
@@ -375,6 +372,41 @@ bool IdlParser::parse_file(std::string idl_path){
     search_str = std::regex_replace(search_str, re_is_key, "#@key");
     search_str = std::regex_replace(search_str, re_comment, "");
     search_str = std::regex_replace(search_str, re_comment_block, "");
+
+    //Preprocess parse the file to find the other files to import
+    {
+        auto include_str = search_str;
+        //Keep parsing through the file
+        while(true){
+            auto local_include = re_search(include_str, IDL_ELEMENT::NONE, re_local_include);
+            auto library_include = re_search(include_str, IDL_ELEMENT::NONE, re_lib_include);
+
+            RegexMatch* include = 0;
+            if(local_include && library_include){
+                include = local_include->match.position() < library_include->match.position() ? local_include : library_include;
+            }else if(local_include){
+                include = local_include;
+            }else if(library_include){
+                include = library_include;
+            }
+            
+            if(include){
+                //Get the matching group, and parse that file first
+                auto include_idl_path = file_path + std::string(include->match[1]);
+                //Append on the relative path to files
+                error_count += parse_file(include_idl_path);
+                include_str = include->match.suffix();
+            }else{
+                break;
+            }
+        }
+    }
+
+    std::stack<Graphml::Entity*> parent_entities;
+    parent_entities.push(model_->get_root());
+
+
+   
 
     while(true){
         //Ordered map, to work out what is first IDL_ELEMENT to parse
@@ -510,6 +542,7 @@ bool IdlParser::parse_file(std::string idl_path){
                                 type_defs[typedef_ns] = member;
                             }else{
                                 std::cerr << "IDL Parser: Got duplicate typedef with resolved namespace '" << typedef_ns << "'" << std::endl;
+                                error_count ++;
                             }
                         
                         }else{
@@ -538,6 +571,7 @@ bool IdlParser::parse_file(std::string idl_path){
                         parent_entities.pop();
                     }else{
                         std::cerr << "IdlParser: Got uneven brackets in IDL" << std::endl;
+                        error_count ++;
                     }
                     break;
                 }
@@ -579,7 +613,7 @@ bool IdlParser::parse_file(std::string idl_path){
             break;
         }
     }
-    return true;
+    return error_count;
 }
 
 IdlParser::~IdlParser(){

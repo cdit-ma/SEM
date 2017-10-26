@@ -78,15 +78,15 @@ endif()
 
 # Set Icon
 if(APPLE)
-    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/medea.icns) 
+    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/app/Resources/medea.icns) 
 elseif(WIN32)
-    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/medea.ico) 
+    SET(CPACK_IFW_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/src/app/Resources/medea.ico) 
 endif()
 
 # Set URL/Title
 SET(CPACK_IFW_PRODUCT_URL ${URL}) 
 SET(CPACK_IFW_PACKAGE_TITLE ${VERSION_NAME}) 
-SET(CPACK_IFW_PACKAGE_BANNER ${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/Icons/medeaBanner.png) 
+SET(CPACK_IFW_PACKAGE_BANNER ${CMAKE_CURRENT_SOURCE_DIR}/src/app/Resources/Icons/medeaBanner.png) 
 SET(CPACK_IFW_PACKAGE_WIZARD_STYLE "Modern") 
 
 # Has to be last
