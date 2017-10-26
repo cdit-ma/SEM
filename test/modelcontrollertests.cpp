@@ -1,7 +1,7 @@
 #include "modelcontrollertests.h"
 #include <functional>
-#include "../modelcontroller/modelcontroller.h"
-#include "../modelcontroller/utils.h"
+#include "../src/modelcontroller/modelcontroller.h"
+#include "../src/modelcontroller/utils.h"
 
 void ModelControllerTests::test_controller()
 {
