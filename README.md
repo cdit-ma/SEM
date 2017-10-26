@@ -77,9 +77,29 @@ Passing a -f flag to medea_cli will cause export to use a functional export. Thi
 ```
 
 # idl2graphml
-The idl2graphml shell tool will load and interpret a standard corba IDL file into MEDEA's graphml representation.
+The idl2graphml shell tool will load and interpret a standard corba IDL file into MEDEA's graphml representation. Ommitting an export flag will cause the model to be printed into standard output. All errors and warnings are printed into standard error
+
+## Command line options
+| Flag                                  | Description                           |
+|---------------------------------------|---------------------------------------|
+| -h, --help                            | Displays this help.                   |
+| -i, --import <The idl file path>      | Import IDL project.                   |
+| -e, --export <The graphml file path>  | Export as a graphml file.             |
+
 ## Example Usage:
+### Importing IDL file to .graphml file
+To import an IDL file and export it to a a graphml file
 ```
-./idl2graphml message.idl > output.graphml
-> IDL Parser: Type 'long' converted to 'Integer'
+./idl2graphml -i message.idl -e message.graphml
+> IDL Parser: Parsing: 'message.idl'
+> IDL Parser: Successfully parsed file 'message.idl'
+IDL Parser: Exported file 'message.graphml'
+```
+
+### Importing IDL file
+To import an IDL file and pipe its output, simply don't define a -e flag and use standard output piping. Errors/Warnings will still print to console.
+```
+./idl2graphml -i message.idl > OTHER_TOOL
+> IDL Parser: Parsing: 'message.idl'
+> IDL Parser: Successfully parsed file 'message.idl'
 ```

@@ -1514,14 +1514,16 @@ void ViewController::importIdlFile()
             std::stringstream ss;
             //Redirect standard error to our string stream
             auto old_buffer = std::cerr.rdbuf(ss.rdbuf()); 
-            auto idl_qstr = QString::fromStdString(IdlParser::ParseIdl(idl_path.toStdString(), true));
+            auto results = IdlParser::ParseIdl(idl_path.toStdString(), true);
+
+            auto idl_qstr = QString::fromStdString(results.second);
             //reset the old buffer
             std::cerr.rdbuf(old_buffer);
             auto error = QString::fromStdString(ss.str());
             
             notification->setTitle(idl_qstr.length() ? "Parsed IDL '" + idl_path + "'" : "Failed to import IDL '" + idl_path + "'");
             notification->setDescription(error);
-            notification->setSeverity(idl_qstr.length() ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+            notification->setSeverity(results.first ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
             if(idl_qstr.length()){
                 emit vc_importProjects({idl_qstr});
             }
