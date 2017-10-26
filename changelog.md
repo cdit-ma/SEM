@@ -1,5 +1,9 @@
 # MEDEA v2.3.2
 ## New Features:
+* Added a MEDEA_cli shell program which allows command line import/export of models
+* Added test frameworks for components:
+  * test_idlparser - Runs test cases for the idl2graphml parser
+  * test_modelcontroller - Runs basic model importing tests on the ModelController class
 ### General:
 ### New Dock/Context Menus:
 ### Edges:
@@ -10,7 +14,7 @@
 ### Settings:
 ### Code Generation:
 ### Resolved JIRA Issues:
-
+* MED-272, MED-254, MED-260, MED-262, MED-264, MED-270, MED-271
 ---
 
 # MEDEA v2.3.1
