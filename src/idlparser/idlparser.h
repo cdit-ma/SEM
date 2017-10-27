@@ -11,6 +11,7 @@ enum class IDL_ELEMENT{
     MODULE,
     STRUCT,
     MEMBER,
+    START_BRACKET,
     END_BRACKET,
     IS_KEY,
     PRAGMA_KEY,
