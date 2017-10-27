@@ -1,0 +1,7 @@
+exception WithdrawalFailure{ 
+    string reason; 
+};
+
+struct enums{
+    string reason;
+};
