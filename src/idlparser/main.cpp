@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
     QCommandLineParser parser;
     parser.addHelpOption();
-    QCommandLineOption import_options({"i", "import"}, "Import IDL project.", "The idl file path");
+    QCommandLineOption import_options({"i", "import"}, "Import IDL projects.", "The idl file path");
     QCommandLineOption export_options({"e", "export"}, "Export as a graphml file.", "The graphml file path");
 
     parser.addOption(import_options);
@@ -36,17 +36,21 @@ int main(int argc, char *argv[])
         parser.showHelp(1);
     }
 
-    
-    auto import_idl_path = parser.value(import_options).toStdString();
+    std::vector<std::string> import_idl_paths;
+
+    for(auto import_idl_path : parser.values(import_options)){
+        import_idl_paths.push_back(import_idl_path.toStdString());
+    }
+
     auto export_graphml_path = parser.value(export_options).toStdString();
     auto should_export = parser.isSet(export_options);
-    auto result = IdlParser::IdlParser::ParseIdl(import_idl_path, true);
+    auto result = IdlParser::IdlParser::ParseIdls(import_idl_paths, true);
     auto success = result.first;
 
     if(success){
-        std::cerr << "IDL Parser: Successfully parsed file '" << import_idl_path << "'" << std::endl;
+        std::cerr << "IDL Parser: Successfully parsed " << import_idl_paths.size() << " IDL files." << std::endl;
     }else{
-        std::cerr << "IDL Parser: Failed to parsed file '" << import_idl_path << "'" << std::endl;
+        std::cerr << "IDL Parser: Failed to parse files." << std::endl;
     }
 
     if(success && should_export){

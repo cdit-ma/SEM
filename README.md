@@ -83,7 +83,7 @@ The idl2graphml shell tool will load and interpret a standard corba IDL file int
 | Flag                                  | Description                           |
 |---------------------------------------|---------------------------------------|
 | -h, --help                            | Displays this help.                   |
-| -i, --import <The idl file path>      | Import IDL project.                   |
+| -i, --import <The idl file path>      | Import IDL projects.                   |
 | -e, --export <The graphml file path>  | Export as a graphml file.             |
 
 ## Example Usage:
@@ -92,7 +92,17 @@ To import an IDL file and export it to a a graphml file
 ```
 ./idl2graphml -i message.idl -e message.graphml
 > IDL Parser: Parsing: 'message.idl'
-> IDL Parser: Successfully parsed file 'message.idl'
+> Successfully parsed 1 IDL files.
+IDL Parser: Exported file 'message.graphml'
+```
+
+### Importing multiple IDL files to .graphml file
+To import multiple IDL files, multiple -i flags can be added to your command.
+```
+./idl2graphml -i message.idl -i message2.idl -e message.graphml
+> IDL Parser: Parsing: 'message.idl'
+> IDL Parser: Parsing: 'message2.idl'
+> Successfully parsed 2 IDL files.
 IDL Parser: Exported file 'message.graphml'
 ```
 
@@ -101,5 +111,5 @@ To import an IDL file and pipe its output, simply don't define a -e flag and use
 ```
 ./idl2graphml -i message.idl > OTHER_TOOL
 > IDL Parser: Parsing: 'message.idl'
-> IDL Parser: Successfully parsed file 'message.idl'
+> Successfully parsed 1 IDL files.
 ```

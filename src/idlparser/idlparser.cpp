@@ -200,8 +200,8 @@ inline RegexMatch* re_search(std::string &str, IDL_ELEMENT kind, const std::rege
     return me;
 };
 
-std::pair<bool, std::string> IdlParser::ParseIdl(std::string idl_path, bool pretty){
-    auto parser = IdlParser(idl_path, pretty);
+std::pair<bool, std::string> IdlParser::ParseIdls(std::vector<std::string> idl_file_paths, bool pretty){
+    auto parser = IdlParser(idl_file_paths, pretty);
 
     std::string result;
 
@@ -312,10 +312,19 @@ bool IdlParser::resolve_member_type(MemberType* member, std::string type){
     }
 }
 
-IdlParser::IdlParser(std::string idl_path, bool pretty){
+IdlParser::IdlParser(std::vector<std::string> idl_file_paths, bool pretty){
     
     model_ = new Graphml::Model();
-    auto count = parse_file(idl_path);
+
+    auto count = -1;
+    if(idl_file_paths.size()){
+        count = 0;
+        for(auto idl_path : idl_file_paths){
+            count += parse_file(idl_path);
+        }
+    }else{
+        std::cerr << "IDL Parser: No files to parse." << std::endl;
+    }
     successful_parse = count == 0;
 };
 
