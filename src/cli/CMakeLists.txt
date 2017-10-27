@@ -1,6 +1,8 @@
 set(PROJ_NAME medea_cli)
 project(${PROJ_NAME})
 
+set(CMAKE_AUTOMOC OFF)
+set(CMAKE_AUTORCC OFF)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/medeacli.cpp
