@@ -23,7 +23,7 @@ SET(VERSION_NAME "MEDEAv${VERSION}")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-#Add Options for building projects, efault to build everything
+#Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
 option(BUILD_TEST "Build MEDEA Test" ON)
