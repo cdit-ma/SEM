@@ -563,6 +563,7 @@ int IdlParser::parse_file(std::string idl_path){
                     }else{
                         //Free up memory
                         delete member;
+                        error_count ++;
                     }
                     break;
                 }

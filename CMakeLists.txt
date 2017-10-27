@@ -54,7 +54,7 @@ endif(BUILD_APP)
 
 if(BUILD_TEST)
     message(STATUS "Building MEDEA Tests")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/test")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif(BUILD_TEST)
 
 

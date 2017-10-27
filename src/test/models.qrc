@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/Models">
-        <file alias="HelloWorld.graphml">Models/HelloWorld.graphml</file>
-    </qresource>
-</RCC>
