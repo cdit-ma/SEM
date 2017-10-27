@@ -12,9 +12,12 @@ class IdlParserTester: public QObject{
 
         void test_idl_import_data();
         void test_idl_import();
+
+        void test_multiple_import();
+        void test_no_file_import();
     private:
-        bool try_import_idl(const QString idl_path);
-        QPair<bool, QString> ParseIdl(const QString idl_path);
+        bool try_import_idls(const QStringList idl_paths);
+        QPair<bool, QString> ParseIdls(const QStringList idl_paths);
         
         QString test_dir;
         QSharedPointer<ModelController> controller;

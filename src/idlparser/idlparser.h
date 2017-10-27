@@ -11,6 +11,7 @@ enum class IDL_ELEMENT{
     MODULE,
     STRUCT,
     MEMBER,
+    START_BRACKET,
     END_BRACKET,
     IS_KEY,
     PRAGMA_KEY,
@@ -37,7 +38,7 @@ std::string toString(IDL_ELEMENT);
 
 class IdlParser{
     public:
-        static std::pair<bool, std::string> ParseIdl(std::string idl_path, bool pretty);
+        static std::pair<bool, std::string> ParseIdls(std::vector<std::string> idl_file_paths, bool pretty);
     private:
         struct MemberType{
             std::string label;
@@ -48,7 +49,7 @@ class IdlParser{
             Graphml::Entity* parent = 0;
             Graphml::Entity* complex_type = 0;
         };
-        IdlParser(std::string idl_path, bool pretty);
+        IdlParser(std::vector<std::string> idl_file_paths, bool pretty);
         ~IdlParser();
         int parse_file(std::string idl_path);
         std::string ToGraphml();

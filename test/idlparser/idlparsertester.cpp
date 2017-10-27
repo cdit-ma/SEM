@@ -22,17 +22,22 @@ void IdlParserTester::cleanup(){
     controller.reset();
 }
 
-QPair<bool, QString> IdlParserTester::ParseIdl(const QString idl_path){
+QPair<bool, QString> IdlParserTester::ParseIdls(const QStringList idl_paths){
     auto old_buffer = std::cerr.rdbuf();  
     std::stringstream ss;
     std::cerr.rdbuf(ss.rdbuf());
-    auto result = IdlParser::IdlParser::ParseIdl(idl_path.toStdString(), true);
+    std::vector<std::string> idl_paths_ss;
+    
+    for(auto idl_path : idl_paths){
+        idl_paths_ss.push_back(idl_path.toStdString());
+    }
+    auto result = IdlParser::IdlParser::ParseIdls(idl_paths_ss, true);
     std::cerr.rdbuf (old_buffer);
     return {result.first, QString::fromStdString(result.second)};
 }
 
-bool IdlParserTester::try_import_idl(const QString idl_path){
-    auto result = ParseIdl(idl_path);
+bool IdlParserTester::try_import_idls(const QStringList idl_paths){
+    auto result = ParseIdls(idl_paths);
     if(result.first){
         return controller->importProjects({result.second});
     }
@@ -62,5 +67,27 @@ void IdlParserTester::test_idl_import(){
     QFETCH(bool, expected_result);
     
     //Validate the loading
-    QVERIFY(try_import_idl(idl_path) == expected_result);
+    QVERIFY(try_import_idls({idl_path}) == expected_result);
+}
+
+void IdlParserTester::test_multiple_import(){
+
+    QStringList idl_paths;
+
+    auto rel_dir = test_dir + "/idlparser/idl_files/";
+    
+    QDirIterator pass_tests(rel_dir, QStringList() << "test-*.idl", QDir::Files);
+    while (pass_tests.hasNext()){
+        QString file = pass_tests.next();
+        if(!file.endsWith("-fail.idl")){
+            idl_paths += file;
+        }
+    }
+
+    QVERIFY(try_import_idls(idl_paths));
+}
+
+void IdlParserTester::test_no_file_import(){
+    QStringList idl_paths;
+    QVERIFY(try_import_idls(idl_paths) == false);
 }
