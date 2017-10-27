@@ -1120,7 +1120,6 @@ void ViewController::TeardownController()
         
         // Clear previous validation notification items
         for (auto notification : manager->getNotificationsOfType(Notification::Type::MODEL)) {
-            qCritical() << notification->getID();
             manager->deleteNotification(notification->getID());
         }
     }

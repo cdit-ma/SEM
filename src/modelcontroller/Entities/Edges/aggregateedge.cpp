@@ -19,11 +19,7 @@ AggregateEdge *AggregateEdge::ConstructEdge(Node *src, Node *dst)
     if(src && dst){
         if(src->canAcceptEdge(EDGE_KIND::AGGREGATE, dst)){
             edge = new AggregateEdge(src, dst);
-        }else{
-            qCritical() << "Cant accept edge!";
         }
-    }else{
-        qCritical() << "NO SRC/DST";
     }
     return edge;
 }

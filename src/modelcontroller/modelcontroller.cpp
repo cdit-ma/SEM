@@ -2960,6 +2960,7 @@ bool ModelController::canCopy(QList<Entity *> selection)
             //Dont allow copy from any definitions, except 
             if(node->isDefinition()){
                 switch(node->getNodeKind()){
+                    case NODE_KIND::ENUM:
                     case NODE_KIND::AGGREGATE:
                     case NODE_KIND::COMPONENT:
                         break;
