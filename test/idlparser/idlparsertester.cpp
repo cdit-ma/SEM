@@ -48,10 +48,9 @@ void IdlParserTester::test_idl_import_data(){
     QDirIterator pass_tests(rel_dir, QStringList() << "test-*.idl", QDir::Files);
     while (pass_tests.hasNext()){
         QString file = pass_tests.next();
-        bool is_fail_test = file.endsWith("-fail.idl");
         auto test_name = file.mid(rel_dir.length());
-
-        bool expected_result = is_fail_test ? false : true;
+        //If it doesn't end with -fail.idl its a pass case (so true), else its a fail case (so false)
+        bool expected_result = !file.endsWith("-fail.idl");
         QTest::newRow(test_name.toStdString().c_str()) << file << expected_result;
     }
 }
@@ -61,6 +60,7 @@ void IdlParserTester::test_idl_import(){
     QFETCH(QString, idl_path);
     //Fetch the model column
     QFETCH(bool, expected_result);
+    
     //Validate the loading
     QVERIFY(try_import_idl(idl_path) == expected_result);
 }
