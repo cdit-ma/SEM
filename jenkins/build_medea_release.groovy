@@ -44,6 +44,18 @@ def getCredentialID(){
     return env.GIT_CREDENTIAL_ID
 }
 
+//Run script, changes to bat if windows detected.
+def runScript(String script){
+    if(isUnix()){
+        out = sh(returnStatus: true, script: script)
+        return out
+    }
+    else{
+        out = bat(returnStatus:true, script: script)
+        return out
+    }
+}
+
 //Build git ref pointer. If no branch specified, use tag, if no tag specified use default branch (master).
 def buildGitRef(String branch, String tag){
     def default_branch = "master"
@@ -99,10 +111,10 @@ node("MEDEA"){
         dir('medea'){
             dir('build'){
                 print "Calling CMake generate"
-                bat("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
+                runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
                 print "Finished Generating Makefiles"
                 print "Calling CMake --build"
-                bat("cmake --build . --config Release")
+                runScript("cmake --build . --config Release")
                 print "Finished Build"
             }
         }
@@ -112,14 +124,36 @@ node("MEDEA"){
         print "Running CPack"
         dir('medea'){
             dir('build'){
-                bat("cpack")
+                runScript("cpack")
             }
         }
-
         print "Finished running CPack"
     }
 
     stage("Archive"){
 
+
+        def extension = ""
+        def fileList = []
+
+        if(isUnix()){
+            fileList = findFiles glob: '**/IFW/*.app'
+            extension = ".app"
+        }else{
+            fileList = findFiles glob: '**/IFW/*.exe'
+            extension = ".exe"
+        }
+
+        archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4)
+       
+        if(env.GIT_TAG){
+            archiveName = archiveName + "-" + env.GIT_TAG
+        }else{
+            archiveName = archiveName + "-" + env.GIT_BRANCH
+        }
+        archiveName = archiveName + ".zip"
+
+        def substr = fileList[0].path.substring(0, fileList[0].path.length()-fileList[0].name.length())
+        zip archive: true, dir: substr, glob: '*' + extension, zipFile: archiveName
     }
 }
