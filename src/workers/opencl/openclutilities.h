@@ -20,6 +20,8 @@
 
 extern std::string clErrorNames[];
 
+extern std::string GetSourcePath(std::string filename);
+
 extern void LogOpenCLError(Worker* worker_reference,
 	std::string function_signature,
 	std::string error_message,
@@ -28,5 +30,6 @@ extern void LogOpenCLError(Worker* worker_reference,
 extern void LogOpenCLError(Worker* worker_reference,
 	std::string function_signature,
 	std::string error_message);
+
 
 #endif

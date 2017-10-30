@@ -76,6 +76,12 @@ std::string clErrorNames[] = {
 	"CL_INVALID_PROPERTY"
 };
 
+std::string GetSourcePath(std::string filename) {
+	std::string source_file_path(__FILE__);
+	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
+	return source_dir + filename;
+}
+
 void LogOpenCLError(Worker* worker_reference,
 	std::string function_signature,
 	std::string error_message,
