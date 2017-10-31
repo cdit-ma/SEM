@@ -13,12 +13,13 @@ def runScript(String script){
     }
 }
 
-node("MEDEA && Windows10"){
+node("MEDEA && macOS"){
     dir(PROJECT_NAME){
         stage("Checkout"){
             checkout scm
         }
 
+        //cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF"
         stage("Build"){
             dir("build"){
                 print "Calling CMake generate"
