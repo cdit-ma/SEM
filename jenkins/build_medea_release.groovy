@@ -87,6 +87,7 @@ def git_url = ""
 def git_credential_id = ""
 
 node("MEDEA"){
+    deleteDir()
 
     if(!checkParamsExist()){
         currentBuild.result = 'Failure'
@@ -102,7 +103,8 @@ node("MEDEA"){
     stage("Checkout"){
         dir('medea'){
             checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
-            extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
+            extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+                         [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]],
             submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
         }
     }
@@ -133,27 +135,32 @@ node("MEDEA"){
     stage("Archive"){
 
 
-        def extension = ""
-        def fileList = []
+        dir("build"){
+            dir("installers"){
 
-        if(isUnix()){
-            fileList = findFiles glob: '**/IFW/*.app'
-            extension = ".app"
-        }else{
-            fileList = findFiles glob: '**/IFW/*.exe'
-            extension = ".exe"
+                def globstr = ""
+
+                if(isUnix()){
+                    globstr = '*.dmg'
+                }else{
+                    globstr = '*.exe'
+                }
+                def fileList = findFiles glob: globstr
+
+                archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+
+                if(env.GIT_TAG){
+                    archiveName = archiveName + "-" + env.GIT_TAG
+                }else{
+                    archiveName = archiveName + "-" + env.GIT_BRANCH
+                }
+                archiveName = archiveName + ".zip"
+
+
+
+                zip glob: globstr, zipFile: archiveName
+                archiveArtifacts "*.zip"
+            }
         }
-
-        archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4)
-       
-        if(env.GIT_TAG){
-            archiveName = archiveName + "-" + env.GIT_TAG
-        }else{
-            archiveName = archiveName + "-" + env.GIT_BRANCH
-        }
-        archiveName = archiveName + ".zip"
-
-        def substr = fileList[0].path.substring(0, fileList[0].path.length()-fileList[0].name.length())
-        zip archive: true, dir: substr, glob: '*' + extension, zipFile: archiveName
     }
 }
