@@ -34,8 +34,9 @@ node("MEDEA"){
             def test_list = findFiles glob: globstr
 
             for(test in test_list){
-                print("Running Test: " + test)
-                runScript(test)
+                def file_path = test
+                print("Running Test: " + file_path)
+                def out = runScript(file_path)
             }
         }
     }
