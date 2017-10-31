@@ -40,7 +40,7 @@ node("MEDEA && macOS"){
                 for (int i = 0; i < test_list.size(); i++){
                     def file_path = test_list[i].name
                     print("Running Test: " + file_path)
-                    runScript("open " + file_path)
+                    runScript("./" + file_path)
                 }
             }
         }
