@@ -2,14 +2,30 @@
 This script will build MEDEA in release mode and archive all required build artefacts.
 This script requires the following Jenkins parameters:
 - "GIT_CREDENTIAL_ID" : Username with password credential
-- "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/medea)
+- "GIT_URL" : String parameter (Defaulted to https://github.com/cdit-ma/MEDEA)
 - "GIT_BRANCH" : Optional branch to checkout, overridden by GIT_TAG
 - "GIT_TAG" : Optional version tag, ignores any branch specified
 This script requires the following Jenkins plugins:
 -Pipeline: Utility Steps
 */
 
-def PROJECT_NAME = 'medea'
+def PROJECT_NAME = 'MEDEA'
+
+// This method collects a list of Node names from the current Jenkins instance
+@NonCPS
+def nodeNames() {
+  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
+}
+
+//Gets nodes label
+def getLabels(String name){
+    def computer = Jenkins.getInstance().getComputer(name)
+    def node = computer.getNode()
+    if(computer.isOnline()){
+        return node.getLabelString()
+    }
+    return ""
+}
 
 //Check all required params
 def checkParamsExist(){
@@ -85,82 +101,122 @@ def buildGitUrl(String url, String proj){
 def ref_name = ""
 def git_url = ""
 def git_credential_id = ""
+def filtered_names = []
 
-node("MEDEA"){
-    deleteDir()
 
+stage("Set Up"){
     if(!checkParamsExist()){
         currentBuild.result = 'Failure'
         return
     }
-
+    //Get nodes to deploy to
+    def names = nodeNames()
+    for(n in names){
+        if(getLabels(n).contains(PROJECT_NAME)){
+            filtered_names << n
+            print("Got Node: " + n)
+        }
+    }
     git_credential_id = getCredentialID()
     git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
     ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
     currentBuild.description = git_url + '/' + ref_name
+}
 
 
-    stage("Checkout"){
-        dir('medea'){
-            checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
-            extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-                         [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]],
-            submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
-        }
-    }
 
-    stage("Build"){
-        dir('medea'){
-            dir('build'){
-                print "Calling CMake generate"
-                runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
-                print "Finished Generating Makefiles"
-                print "Calling CMake --build"
-                runScript("cmake --build . --config Release")
-                print "Finished Build"
-            }
-        }
-    }
-
-    stage("Pack"){
-        print "Running CPack"
-        dir('medea'){
-            dir('build'){
-                runScript("cpack")
-            }
-        }
-        print "Finished running CPack"
-    }
-
-    stage("Archive"){
-
-
-        dir("build"){
-            dir("installers"){
-
-                def globstr = ""
-
-                if(isUnix()){
-                    globstr = '*.dmg'
-                }else{
-                    globstr = '*.exe'
+stage("Checkout"){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                deleteDir()
+                dir(PROJECT_NAME){
+                    checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+                                [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]],
+                    submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
                 }
-                def fileList = findFiles glob: globstr
-
-                archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
-
-                if(env.GIT_TAG){
-                    archiveName = archiveName + "-" + env.GIT_TAG
-                }else{
-                    archiveName = archiveName + "-" + env.GIT_BRANCH
-                }
-                archiveName = archiveName + ".zip"
-
-
-
-                zip glob: globstr, zipFile: archiveName
-                archiveArtifacts "*.zip"
             }
         }
     }
+    parallel builders
+}
+
+stage("Build"){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                dir(PROJECT_NAME){
+                    dir('build'){
+                        print "Calling CMake generate"
+                        runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
+                        print "Finished Generating Makefiles"
+                        print "Calling CMake --build"
+                        runScript("cmake --build . --config Release")
+                        print "Finished Build"
+                    }
+                }
+            }
+        }
+    }
+    parallel builders
+}
+
+stage("Pack"){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                dir(PROJECT_NAME){
+                    dir('build'){
+                        runScript("cpack")
+                    }
+                }
+            }
+        }
+    }
+    parallel builders
+}
+
+stage("Archive"){
+    def builders = [:]
+    for(n in filtered_names){
+        def node_name = n
+        builders[node_name] = {
+            node(node_name){
+                dir(PROJECT_NAME){
+                    dir("build"){
+                        dir("installers"){
+                            def globstr = ""
+
+                            if(isUnix()){
+                                globstr = '*.dmg'
+                            }else{
+                                globstr = '*.exe'
+                            }
+                            def fileList = findFiles glob: globstr
+
+                            archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+
+                            if(env.GIT_TAG){
+                                archiveName = archiveName + "-" + env.GIT_TAG
+                            }else{
+                                archiveName = archiveName + "-" + env.GIT_BRANCH
+                            }
+                            archiveName = archiveName + ".zip"
+
+                            zip glob: globstr, zipFile: archiveName
+                            archiveArtifacts "*.zip"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    parallel builders
 }
