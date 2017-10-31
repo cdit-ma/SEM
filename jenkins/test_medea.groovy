@@ -15,7 +15,7 @@ def runScript(String script){
 node("MEDEA"){
     dir(PROJECT_NAME){
         stage("Checkout"){
-            checkout git
+            checkout scm
         }
 
         stage("Build"){
