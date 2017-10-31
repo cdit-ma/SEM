@@ -2,6 +2,7 @@ def PROJECT_NAME = 'test_medea'
 
 //Run script, changes to bat if windows detected.
 def runScript(String script){
+    print(script)
     if(isUnix()){
         out = sh(returnStatus: true, script: script)
         return out
@@ -12,7 +13,7 @@ def runScript(String script){
     }
 }
 
-node("MEDEA"){
+node("MEDEA && Windows10"){
     dir(PROJECT_NAME){
         stage("Checkout"){
             checkout scm
@@ -30,13 +31,15 @@ node("MEDEA"){
         }
         
         stage("Test"){
-            def globstr = "test/bin/*"
-            def test_list = findFiles glob: globstr
+            dir("test/bin"){
+                def globstr = "*"
+                def test_list = findFiles glob: globstr
 
-            for(test in test_list){
-                def file_path = test
-                print("Running Test: " + file_path)
-                def out = runScript(file_path)
+                for(test in test_list){
+                    def file_path = test.name
+                    print("Running Test: " + file_path)
+                    runScript("" + file_path)
+                }
             }
         }
     }
