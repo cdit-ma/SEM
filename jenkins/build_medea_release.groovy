@@ -121,11 +121,23 @@ stage("Set Up"){
     git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
     ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
     currentBuild.description = git_url + '/' + ref_name
+
+}
+
+stage("Checkout"){
+    node("master"){
+        dir(PROJECT_NAME){
+            checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
+            extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+                        [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]],
+            submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
+            stash include: "**", name: "medea_source"
+        }
+    }
 }
 
 
-
-stage("Checkout"){
+stage("Unstash"){
     def builders = [:]
     for(n in filtered_names){
         def node_name = n
@@ -133,10 +145,7 @@ stage("Checkout"){
             node(node_name){
                 deleteDir()
                 dir(PROJECT_NAME){
-                    checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-                                [$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]],
-                    submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
+                    unstash "medea_source"
                 }
             }
         }
@@ -150,15 +159,13 @@ stage("Build"){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                dir(PROJECT_NAME){
-                    dir('build'){
-                        print "Calling CMake generate"
-                        runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
-                        print "Finished Generating Makefiles"
-                        print "Calling CMake --build"
-                        runScript("cmake --build . --config Release")
-                        print "Finished Build"
-                    }
+                dir(PROJECT_NAME+"/build"){
+                    print "Calling CMake generate"
+                    runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release")
+                    print "Finished Generating Makefiles"
+                    print "Calling CMake --build"
+                    runScript("cmake --build . --config Release")
+                    print "Finished Build"
                 }
             }
         }
@@ -172,10 +179,8 @@ stage("Pack"){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                dir(PROJECT_NAME){
-                    dir('build'){
-                        runScript("cpack")
-                    }
+                dir(PROJECT_NAME + "/build"){
+                    runScript("cpack")
                 }
             }
         }
@@ -189,31 +194,27 @@ stage("Archive"){
         def node_name = n
         builders[node_name] = {
             node(node_name){
-                dir(PROJECT_NAME){
-                    dir("build"){
-                        dir("installers"){
-                            def globstr = ""
+                dir(PROJECT_NAME + "/build/installers"){
+                    def globstr = ""
 
-                            if(isUnix()){
-                                globstr = '*.dmg'
-                            }else{
-                                globstr = '*.exe'
-                            }
-                            def fileList = findFiles glob: globstr
-
-                            archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
-
-                            if(env.GIT_TAG){
-                                archiveName = archiveName + "-" + env.GIT_TAG
-                            }else{
-                                archiveName = archiveName + "-" + env.GIT_BRANCH
-                            }
-                            archiveName = archiveName + ".zip"
-
-                            zip glob: globstr, zipFile: archiveName
-                            archiveArtifacts "*.zip"
-                        }
+                    if(isUnix()){
+                        globstr = '*.dmg'
+                    }else{
+                        globstr = '*.exe'
                     }
+                    def fileList = findFiles glob: globstr
+
+                    archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+
+                    if(env.GIT_TAG){
+                        archiveName = archiveName + "-" + env.GIT_TAG
+                    }else{
+                        archiveName = archiveName + "-" + env.GIT_BRANCH
+                    }
+                    archiveName = archiveName + ".zip"
+
+                    zip glob: globstr, zipFile: archiveName
+                    archiveArtifacts "*.zip"
                 }
             }
         }
