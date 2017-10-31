@@ -36,7 +36,7 @@ node("MEDEA && Windows10"){
                 def test_list = findFiles glob: globstr
 
 
-                for (int = 0; i < test_list.size(); i++)
+                for (int = 0; i < test_list.size(); i++){
                     def file_path = test_list[i].name
                     print("Running Test: " + file_path)
                     runScript("" + file_path)
