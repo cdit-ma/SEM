@@ -86,7 +86,11 @@ for(n in medea_nodes){
                     //Clean the test directory
                     //deleteDir()
                 }
+                
                 dir("build"){
+                    dir("installer"){
+                        deleteDir()
+                    }
                     //Clean the build directory
                     //deleteDir()
                     //Build the testing 
