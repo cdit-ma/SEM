@@ -145,7 +145,7 @@ stage("Build"){
     parallel step_build_test
 }
 
-stage(name: "Test", concurrency: 1){
+stage(name: "Test"){
     parallel step_test
 }
 
