@@ -13,7 +13,7 @@ def runScript(String script){
     }
 }
 
-node("MEDEA && macOS"){
+node("MEDEA"){
     dir(PROJECT_NAME){
         stage("Checkout"){
             checkout scm
