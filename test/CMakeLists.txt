@@ -4,6 +4,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #The MEDEA tests must be left in the directory bin containing the test cases. All paths for test cases
-#Are relative to this location
+#Are relative to this location. On windows may require Qt5_DIR/bin in path
 add_subdirectory("idlparser")
 add_subdirectory("modelcontroller")
