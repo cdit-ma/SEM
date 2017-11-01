@@ -158,11 +158,9 @@ for(n in getLabelledNodes("MEDEA")){
                 }
                 def file_list = findFiles glob: globstr
 
-                for(def file : file_list){
-                    def archiveName = trimExtension(file.name) + "-installer.zip"
-                    
-                    zip glob: globstr, zipFile: archiveName
-                }
+                def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
+                zip glob: globstr, zipFile: archiveName
+                
                 archiveArtifacts "*.zip"
             }
         }
@@ -183,4 +181,4 @@ stage("Package"){
 
 stage("Archive"){
     parallel step_archive
-}
+}   
