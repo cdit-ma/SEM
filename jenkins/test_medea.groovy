@@ -88,7 +88,7 @@ for(n in medea_nodes){
                 }
                 
                 dir("build"){
-                    dir("installer"){
+                    dir("installers"){
                         deleteDir()
                     }
                     //Clean the build directory
