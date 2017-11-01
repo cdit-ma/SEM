@@ -74,8 +74,16 @@ for(n in getLabelledNodes("MEDEA")){
         node(node_name){
             unstash "source_code"
             dir(PROJECT_NAME){
-                //Build the testing
-                buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+                dir("test/bin"){
+                    //Clean the test directory
+                    deleteDir()
+                }
+                dir("build"){
+                    //Clean the build directory
+                    deleteDir()
+                    //Build the testing 
+                    buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+                }
             }
         }
     }
@@ -108,14 +116,10 @@ for(n in getLabelledNodes("MEDEA")){
 
     step_build_app[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME){
+            dir(PROJECT_NAME + "/build"){
                 //Rebuild with everything
-                buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
-                
-                //Run CPack in the build directory
-                dir("build"){
-                    runScript("cpack")
-                }
+                buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
+                runScript("cpack")
             }
         }
     }
