@@ -7,6 +7,3 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #Are relative to this location
 add_subdirectory("idlparser")
 add_subdirectory("modelcontroller")
-
-
-

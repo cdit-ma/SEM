@@ -60,7 +60,7 @@ node("MEDEA"){
 
         currentBuild.description = 'Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
         if(test_count > 0){
-            if(test_error_count > 0){
+            if(test_error_count == 0){
                 currentBuild.result = 'Unstable'
             }else{
                 currentBuild.result = 'Success'
