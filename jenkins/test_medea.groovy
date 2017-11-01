@@ -1,5 +1,33 @@
 def PROJECT_NAME = 'test_medea'
 
+// This method collects a list of Node names from the current Jenkins instance
+@NonCPS
+def nodeNames() {
+  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
+}
+
+//Gets nodes label
+def getLabels(String name){
+    def computer = Jenkins.getInstance().getComputer(name)
+    def node = computer.getNode()
+    if(computer.isOnline()){
+        return node.getLabelString()
+    }
+    return ""
+}
+
+//Get labelled nodes
+def getLabelledNodes(String label){
+    def filtered_names = []
+    def names = nodeNames()
+    for(n in nodeNames()){
+        if(getLabels(n).contains(label)){
+            filtered_names << n
+        }
+    }
+    return filtered_names
+}
+
 //Run script, changes to bat if windows detected.
 def runScript(String script){
     if(isUnix()){
@@ -12,63 +40,76 @@ def runScript(String script){
     }
 }
 
-node("MEDEA"){
-    dir(PROJECT_NAME){
-        stage("Checkout"){
-            checkout($class: 'GitSCM',
-            branches: scm.branches,
-            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-            extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-            userRemoteConfigs: scm.userRemoteConfigs)
-        }
+def buildProject(String path, String generator, String cmake_options){
+    dir(path){
+        print "Calling CMake generate"
+        runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options)
+        print "Calling CMake --build"
+        runScript("cmake --build . --config Release")
+    }
+}
 
-        //cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF"
-        stage("Build"){
-            dir("build"){
-                print "Calling CMake generate"
-                def build_options = "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF"
-                runScript("cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release " + build_options)
-                print "Calling CMake --build"
-                runScript("cmake --build . --config Release")
-                print "Finished Build"
-            }
-        }
-        
-        def test_count = 0
-        def test_error_count = 0
-        stage("Test"){
-            dir("test/bin"){
-                def globstr = "*"
-                if(!isUnix()){
-                    globstr = '*.exe'
+def builders = [:]
+for(n in getLabelledNodes("MEDEA")){
+    def node_name = n
+    builders[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME){
+                deleteDir()
+                unstash "source_code"
+                
+                stage("Build"){
+                    //Build the testing
+                    buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+                }
+                
+                stage("Test"){
+                    dir("test/bin"){
+                        def globstr = "*"
+                        if(!isUnix()){
+                            globstr = '*.exe'
+                        }
+
+                        //Find all executables
+                        def test_list = findFiles glob: globstr
+                        for (int i = 0; i < test_list.size(); i++, test_count ++){
+                            def file_path = test_list[i].name
+                            print("Running Test: " + file_path)
+                            def test_error_code = runScript("./" + file_path)
+
+                            if(test_error_code != 0){
+                                test_error_count ++
+                            }
+                        }
+
+                        currentBuild.description += node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
+                    }
+                }
+                stage("Pack"){
+                    //Run CPack
+                    runScript("cpack ./build")
                 }
 
-                //Find all executables
-                def test_list = findFiles glob: globstr
-                for (int i = 0; i < test_list.size(); i++){
-                    test_count ++
-                    def file_path = test_list[i].name
-                    print("Running Test: " + file_path)
-                    def test_error_code = runScript("./" + file_path)
+                stage("Archive"){
+                    dir("build/installers"){
+                        def globstr = ""
 
-                    if(test_error_code != 0){
-                        test_error_count ++
+                        if(isUnix()){
+                            globstr = '*.dmg'
+                        }else{
+                            globstr = '*.exe'
+                        }
+                        def fileList = findFiles glob: globstr
+
+                        archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+                        archiveName = archiveName + ".zip"
+
+                        zip glob: globstr, zipFile: archiveName
+                        archiveArtifacts "*.zip"
                     }
                 }
             }
         }
-
-        currentBuild.description = 'Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
-        if(test_count > 0){
-            if(test_error_count == 0){
-                currentBuild.result = 'Unstable'
-            }else{
-                currentBuild.result = 'Success'
-            }
-        }else{
-            currentBuild.result = 'Failure'
-        }
-
-        
     }
 }
+parallel builders
