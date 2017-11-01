@@ -48,7 +48,11 @@ def buildProject(String generator, String cmake_options){
 }
 
 def trimExtension(String filename){
-    return filename.take(filename.lastIndexOf('.'))
+    def index = filename.lastIndexOf(".")
+    if (index > 0){
+        filename = filename.take(filename.lastIndexOf('.'))
+    }
+    return filename;
 }
 
 stage("Checkout"){
@@ -110,10 +114,22 @@ for(n in getLabelledNodes("MEDEA")){
                     def test_output = file_name + ".xml"
                     print("Running Test: " + file_path)
                     def test_error_code = runScript("./" + file_path + " -o " + test_output)
-                    archiveArtifacts test_output
 
                     if(test_error_code != 0){
                         test_error_count ++
+                    }
+                }
+                
+                //Archive the tests
+                def test_archive = node_name + "_tests.zip"
+                zip glob: globstr, zipFile: test_archive
+                archiveArtifacts test_archive
+
+                print("Node: " + node_name + " passed " + (test_count - test_error_count) + "/" + test_count + " tests."
+
+                if(test_count > 0){
+                    if(test_error_count > 0){
+                        currentBuild.result = 'Failure'
                     }
                 }
             }
