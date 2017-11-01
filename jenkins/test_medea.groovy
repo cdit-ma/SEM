@@ -70,7 +70,7 @@ stage("Checkout"){
             userRemoteConfigs: scm.userRemoteConfigs,
             quiet: true)
         }
-        stash include: PROJECT_NAME, name: "source_code"
+        stash includes: PROJECT_NAME, name: "source_code"
     }
 }
 
@@ -110,24 +110,28 @@ for(n in medea_nodes){
                     globstr = '*.exe'
                 }
 
+                //Find all executables
+                def test_list = findFiles glob: globstr
+
                 def test_count = 0;
                 def test_error_count = 0;
 
-                //Find all executables
-                def test_list = findFiles glob: globstr
-                for (; test_count < test_list.size(); test_count++){
-                    def file_path = test_list[test_count].name
-                    def file_name = trimExtension(file_path)
-                    def test_output = file_name + "_" + node_name + ".xml"
-                    print("Running Test: " + file_path)
-                    def test_error_code = runScript("./" + file_path + " -o " + test_output + ",xunitxml")
+                dir("results"){
+                    deleteDir()
+                    for(def file : test_list){
+                        def file_path = file.name
+                        def file_name = trimExtension(file_path)
+                        def test_output = file_name + "_" + node_name + ".xml"
+                        print("Running Test: " + file_path)
+                        //Launch the output test cases, in a folder
+                        def test_error_code = runScript("../" + file_path + " -o " + test_output + ",xunitxml")
 
-                    if(test_error_code != 0){
-                        test_error_count ++
+                        if(test_error_code != 0){
+                            test_error_count ++
+                        }
                     }
-                    
+                    stash includes: "*.xml", name: node_name + "_test_cases"
                 }
-                stash include: "*.xml", name: node_name + "_test_cases"
             }
         }
     }
@@ -144,6 +148,7 @@ for(n in medea_nodes){
                     }else{
                         globstr = '*.exe'
                     }
+
                     def file_list = findFiles glob: globstr
 
                     def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
