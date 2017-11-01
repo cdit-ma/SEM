@@ -39,13 +39,8 @@ A command line version of MEDEA, provides command line import/export functionali
 | Flag                                  | Description                           |
 |---------------------------------------|---------------------------------------|
 | -h, --help                            | Displays this help.                   |
-<<<<<<< HEAD
 | -c, --clients [arg list]              | List of logan_client endpoints to connect to|
 | -d, --database [arg]                  | Filename of output database  |
-=======
-| -c, --clients [List of logan client endpoints] | Displays version information.|
-| -d, --database [File name of output database]  | Open a graphml project.      |
->>>>>>> 85685e716eb19188a0a40b7063bef4ffc7b2024b
 
 ### Client command line options
 | Flag                                  | Description                           |
@@ -53,21 +48,13 @@ A command line version of MEDEA, provides command line import/export functionali
 | -h, --help                            | Displays this help.                   |
 | -s, --system_info_print               | Print system info then exit           |
 | -l, --live_mode [arg (=0)]            | Produce data live                     |
-<<<<<<< HEAD
 | -P, --process [arg list]              | Monitor specific processes            |
-=======
-| -P, --process [List of process names] | Monitor specific processes            |
->>>>>>> 85685e716eb19188a0a40b7063bef4ffc7b2024b
 | -f, --frequency [arg (=1)]            | Logging frequency in Hz               |
 | -p, --publisher [arg]                 | Publisher endpoint (ie tcp://192.168.111.1:5555)|
 
 
 ### Example Usage
-<<<<<<< HEAD
 Running a simple logging scenario with one logging server and two logging clients.
-=======
-Running a simple logging scenario with one logging server and one logging client.
->>>>>>> 85685e716eb19188a0a40b7063bef4ffc7b2024b
 ```
 >Start client 1 (Logs every 2 seconds, with extra information about a process called "logan_server")
 ./logan_client -p tcp://192.168.111.100:5555 -f 0.5 -p logan_server
