@@ -179,6 +179,7 @@ namespace Graphml{
             std::string id;
             std::string name;
             std::string uuid;
+            std::string description;
             std::vector<std::string> middlewares;
     };
 };
