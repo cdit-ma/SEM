@@ -119,13 +119,13 @@ for(n in getLabelledNodes("MEDEA")){
                         test_error_count ++
                     }
                 }
-                
+
                 //Archive the tests
                 def test_archive = node_name + "_tests.zip"
                 zip glob: globstr, zipFile: test_archive
                 archiveArtifacts test_archive
 
-                print("Node: " + node_name + " passed " + (test_count - test_error_count) + "/" + test_count + " tests."
+                print("Node: " + node_name + " passed " + (test_count - test_error_count) + "/" + test_count + " tests.")
 
                 if(test_count > 0){
                     if(test_error_count > 0){
