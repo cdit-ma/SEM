@@ -159,7 +159,7 @@ for(n in getLabelledNodes("MEDEA")){
                 def file_list = findFiles glob: globstr
 
                 for(def file : file_list){
-                    def archiveName = trimExtension(file) + "-installer.zip"
+                    def archiveName = trimExtension(file.name) + "-installer.zip"
                     
                     zip glob: globstr, zipFile: archiveName
                 }
