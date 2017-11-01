@@ -83,11 +83,11 @@ for(n in getLabelledNodes("MEDEA")){
             dir(PROJECT_NAME){
                 dir("test/bin"){
                     //Clean the test directory
-                    deleteDir()
+                    //deleteDir()
                 }
                 dir("build"){
                     //Clean the build directory
-                    deleteDir()
+                    //deleteDir()
                     //Build the testing 
                     buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
                 }
@@ -157,11 +157,11 @@ for(n in getLabelledNodes("MEDEA")){
 }
 
 stage("Build"){
-    //parallel step_build_test
+    parallel step_build_test
 }
 
 stage(name: "Test"){
-    //parallel step_test
+    parallel step_test
 }
 
 stage("Package"){
