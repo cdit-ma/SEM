@@ -68,62 +68,59 @@ for(n in getLabelledNodes("MEDEA")){
     def node_name = n
     builders[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME){
-                deleteDir()
-                unstash "source_code"
-                
-                stage("Build"){
-                    //Build the testing
-                    buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
-                }
-                
-                stage("Test"){
-                    dir("test/bin"){
-                        def globstr = "*"
-                        if(!isUnix()){
-                            globstr = '*.exe'
-                        }
-
-                        def test_count = 0;
-                        def test_error_count = 0;
-
-                        //Find all executables
-                        def test_list = findFiles glob: globstr
-                        for (; test_count < test_list.size(); test_count++){
-                            def file_path = test_list[test_count].name
-                            print("Running Test: " + file_path)
-                            def test_error_code = runScript("./" + file_path)
-
-                            if(test_error_code != 0){
-                                test_error_count ++
-                            }
-                        }
-
-                        currentBuild.description += node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
+            unstash "source_code"
+            
+            stage("Build"){
+                //Build the testing
+                buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+            }
+            
+            stage("Test"){
+                dir("test/bin"){
+                    def globstr = "*"
+                    if(!isUnix()){
+                        globstr = '*.exe'
                     }
-                }
-                stage("Pack"){
-                    //Run CPack
-                    runScript("cpack ./build")
-                }
 
-                stage("Archive"){
-                    dir("build/installers"){
-                        def globstr = ""
+                    def test_count = 0;
+                    def test_error_count = 0;
 
-                        if(isUnix()){
-                            globstr = '*.dmg'
-                        }else{
-                            globstr = '*.exe'
+                    //Find all executables
+                    def test_list = findFiles glob: globstr
+                    for (; test_count < test_list.size(); test_count++){
+                        def file_path = test_list[test_count].name
+                        print("Running Test: " + file_path)
+                        def test_error_code = runScript("./" + file_path)
+
+                        if(test_error_code != 0){
+                            test_error_count ++
                         }
-                        def fileList = findFiles glob: globstr
-
-                        archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
-                        archiveName = archiveName + ".zip"
-
-                        zip glob: globstr, zipFile: archiveName
-                        archiveArtifacts "*.zip"
                     }
+
+                    currentBuild.description += node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
+                }
+            }
+            stage("Pack"){
+                //Run CPack
+                runScript("cpack ./build")
+            }
+
+            stage("Archive"){
+                dir("build/installers"){
+                    def globstr = ""
+
+                    if(isUnix()){
+                        globstr = '*.dmg'
+                    }else{
+                        globstr = '*.exe'
+                    }
+                    def fileList = findFiles glob: globstr
+
+                    archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+                    archiveName = archiveName + ".zip"
+
+                    zip glob: globstr, zipFile: archiveName
+                    archiveArtifacts "*.zip"
                 }
             }
         }
