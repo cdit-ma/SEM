@@ -42,9 +42,14 @@ def runScript(String script){
 
 def buildProject(String generator, String cmake_options){
     print "Calling CMake generate"
-    runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options)
-    print "Calling CMake --build"
-    runScript("cmake --build . --config Release")
+    if(runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
+        print "Calling CMake --build"
+        if(runScript("cmake --build . --config Release") == 0){
+            return true;
+        }
+    }
+    currentBuild.result = 'Failure'
+    return
 }
 
 def trimExtension(String filename){
@@ -71,7 +76,6 @@ stage("Checkout"){
 
 def step_build_test = [:]
 def step_test = [:]
-def step_build_app = [:]
 def step_archive = [:]
 
 def medea_nodes = getLabelledNodes("MEDEA")
@@ -84,17 +88,15 @@ for(n in medea_nodes){
             dir(PROJECT_NAME){
                 dir("test/bin"){
                     //Clean the test directory
-                    //deleteDir()
+                    deleteDir()
                 }
                 
                 dir("build"){
                     dir("installers"){
                         deleteDir()
                     }
-                    //Clean the build directory
-                    //deleteDir()
-                    //Build the testing 
-                    buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+                    //Build the entire project 
+                    buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
                 }
             }
         }
@@ -130,32 +132,25 @@ for(n in medea_nodes){
         }
     }
 
-    step_build_app[node_name] = {
-        node(node_name){
-            dir(PROJECT_NAME + "/build"){
-                //Rebuild with everything
-                buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
-                runScript("cpack")
-            }
-        }
-    }
-
     step_archive[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "/build/installers"){
-                def globstr = ""
+            dir(PROJECT_NAME + "/build"){
+                runScript("cpack")
+                dir("installers"){
+                    def globstr = ""
 
-                if(isUnix()){
-                    globstr = '*.dmg'
-                }else{
-                    globstr = '*.exe'
+                    if(isUnix()){
+                        globstr = '*.dmg'
+                    }else{
+                        globstr = '*.exe'
+                    }
+                    def file_list = findFiles glob: globstr
+
+                    def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
+                    zip glob: globstr, zipFile: archiveName
+
+                    archiveArtifacts "*.zip"
                 }
-                def file_list = findFiles glob: globstr
-
-                def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
-                zip glob: globstr, zipFile: archiveName
-
-                archiveArtifacts "*.zip"
             }
         }
     }
@@ -170,10 +165,6 @@ stage(name: "Test"){
 }
 
 stage("Package"){
-    parallel step_build_app
-}
-
-stage("Archive"){
     parallel step_archive
 }
 
