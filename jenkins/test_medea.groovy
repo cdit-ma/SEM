@@ -45,7 +45,11 @@ node("MEDEA"){
                     test_count ++
                     def file_path = test_list[i].name
                     print("Running Test: " + file_path)
-                    test_error_count += runScript("./" + file_path)
+                    def test_error_code = runScript("./" + file_path)
+
+                    if(test_error_code != 0)
+                        test_error_count ++
+                    }
                 }
             }
         }
