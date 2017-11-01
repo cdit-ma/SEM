@@ -31,3 +31,35 @@ logan client utilises the sigar system monitoring interface to collect system me
 * **Unix -** ``make``
 * **Windows -** ``msbuild logan.sln /p:Configuration=Release``
 * Executables will be placed in logan/bin
+
+## Usage
+A command line version of MEDEA, provides command line import/export functionality. Returns an error code if failed.
+
+### Server command line options
+| Flag                                  | Description                           |
+|---------------------------------------|---------------------------------------|
+| -h, --help                            | Displays this help.                   |
+| -c, --clients [List of logan client endpoints] | Displays version information.|
+| -d, --database [File name of output database]  | Open a graphml project.      |
+
+### Client command line options
+| Flag                                  | Description                           |
+|---------------------------------------|---------------------------------------|
+| -h, --help                            | Displays this help.                   |
+| -s, --system_info_print               | Print system info then exit           |
+| -l, --live_mode [arg (=0)]            | Produce data live                     |
+| -P, --process [List of process names] | Monitor specific processes            |
+| -f, --frequency [arg (=1)]            | Logging frequency in Hz               |
+| -p, --publisher [arg]                 | Publisher endpoint (ie tcp://192.168.111.1:5555)|
+
+
+### Example Usage
+Running a simple logging scenario with one logging server and one logging client.
+```
+>Start client 1 (Logs every 2 seconds, with extra information about a process called "logan_server")
+./logan_client -p tcp://192.168.111.100:5555 -f 0.5 -p logan_server
+>Start client 2 (Logs every 2 secondts, sending information as it is generated)
+./logan_client -p tcp://192.168.111.100:5556 -f 0.5 --live_mode true
+>Start server listening to both clients and outputting to "output.sql"
+./logan_server -c tcp://192.168.111.100:5555 tcp://192.168.111.100:5556 -d output.sql
+```
