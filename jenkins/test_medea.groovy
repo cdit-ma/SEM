@@ -62,71 +62,102 @@ stage("Checkout"){
     }
 }
 
+def step_build_test = [:]
+def step_test = [:]
+def step_build_app = [:]
+def step_archive = [:]
 
-def builders = [:]
 for(n in getLabelledNodes("MEDEA")){
     def node_name = n
-    builders[node_name] = {
+
+    step_build_test[node_name] = {
         node(node_name){
-            //deleteDir()
             unstash "source_code"
             dir(PROJECT_NAME){
-                stage("Build"){
-                    //Build the testing
-                    buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
-                }
-                
-                stage("Test"){
-                    dir("test/bin"){
-                        def globstr = "*"
-                        if(!isUnix()){
-                            globstr = '*.exe'
-                        }
+                //Build the testing
+                buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF")
+            }
+        }
+    }
 
-                        def test_count = 0;
-                        def test_error_count = 0;
-
-                        //Find all executables
-                        def test_list = findFiles glob: globstr
-                        for (; test_count < test_list.size(); test_count++){
-                            def file_path = test_list[test_count].name
-                            print("Running Test: " + file_path)
-                            def test_error_code = runScript("./" + file_path)
-
-                            if(test_error_code != 0){
-                                test_error_count ++
-                            }
-                        }
-                        //currentBuild.description = node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
-                    }
-                }
-                stage("Pack"){
-                    dir("build"){
-                        //Run CPack
-                        runScript("cpack")
-                    }
+    step_test[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME + "test/bin"){
+                def globstr = "*"
+                if(!isUnix()){
+                    globstr = '*.exe'
                 }
 
-                stage("Archive"){
-                    dir("build/installers"){
-                        def globstr = ""
+                def test_count = 0;
+                def test_error_count = 0;
 
-                        if(isUnix()){
-                            globstr = '*.dmg'
-                        }else{
-                            globstr = '*.exe'
-                        }
-                        def fileList = findFiles glob: globstr
+                //Find all executables
+                def test_list = findFiles glob: globstr
+                for (; test_count < test_list.size(); test_count++){
+                    def file_path = test_list[test_count].name
+                    print("Running Test: " + file_path)
+                    def test_error_code = runScript("./" + file_path)
 
-                        archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
-                        archiveName = archiveName + ".zip"
-
-                        zip glob: globstr, zipFile: archiveName
-                        archiveArtifacts "*.zip"
+                    if(test_error_code != 0){
+                        test_error_count ++
                     }
                 }
             }
         }
     }
+
+    step_build_app[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME){
+                //Rebuild with everything
+                buildProject("build", "Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
+                
+                //Run CPack in the build directory
+                dir("build"){
+                    runScript("cpack")
+                }
+            }
+        }
+    }
+    step_archive[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME + "build/installers"){
+                def globstr = ""
+
+                if(isUnix()){
+                    globstr = '*.dmg'
+                }else{
+                    globstr = '*.exe'
+                }
+                def fileList = findFiles glob: globstr
+
+                archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
+                archiveName = archiveName + ".zip"
+
+                zip glob: globstr, zipFile: archiveName
+                archiveArtifacts "*.zip"
+            }
+        }
+    }
 }
-parallel builders
+
+def step_build_test = [:]
+def step_test = [:]
+def step_build_app = [:]
+def step_archive = [:]
+
+stage("Build"){
+    parallel step_build_test
+}
+
+stage("Test", concurrency: 1){
+    parallel step_test
+}
+
+stage("Package"){
+    parallel step_build_app
+}
+
+stage("Archive"){
+    parallel step_archive
+}
