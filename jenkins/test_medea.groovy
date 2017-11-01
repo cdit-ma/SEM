@@ -157,41 +157,37 @@ for(n in getLabelledNodes("MEDEA")){
 }
 
 stage("Build"){
-    parallel step_build_test
+    //parallel step_build_test
 }
 
 stage(name: "Test"){
-    parallel step_test
+    //parallel step_test
 }
 
 stage("Package"){
-    parallel step_build_app
+    //parallel step_build_app
 }
 
 stage("Archive"){
-    parallel step_archive
+    //parallel step_archive
 }
 
 
-post {
-    always {
-        node("master"){
-            dir("test"){
-                deleteDir()
-                unstash("test_cases")
+node("master"){
+    dir("test"){
+        deleteDir()
+        unstash("test_cases")
 
-                def globstr = "**.xml"
-                def test_results = findFiles glob: globstr
-                for (int i = 0; i < test_results.size(); i++){
-                    def file_path = test_results[i].name
-                    junit file_path
-                }
-                
-                //Test cases
-                def test_archive = "test_results.zip"
-                zip glob: globstr, zipFile: test_archive
-                archiveArtifacts test_archive
-            }
+        def globstr = "**.xml"
+        def test_results = findFiles glob: globstr
+        for (int i = 0; i < test_results.size(); i++){
+            def file_path = test_results[i].name
+            junit file_path
         }
+        
+        //Test cases
+        def test_archive = "test_results.zip"
+        zip glob: globstr, zipFile: test_archive
+        archiveArtifacts test_archive
     }
 }
