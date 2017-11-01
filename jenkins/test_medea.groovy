@@ -63,12 +63,7 @@ def trimExtension(String filename){
 stage("Checkout"){
     node("master"){
         dir(PROJECT_NAME){
-            checkout($class: 'GitSCM',
-            branches: scm.branches,
-            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-            extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-            userRemoteConfigs: scm.userRemoteConfigs,
-            quiet: true)
+            checkout scm
         }
         stash includes: "**", name: "source_code"
     }
