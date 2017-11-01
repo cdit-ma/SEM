@@ -168,22 +168,23 @@ stage("Package"){
     parallel step_archive
 }
 
-
 node("master"){
-    deleteDir()
-    for(n in medea_nodes){
-        unstash(n + "_test_cases")
-    }
+    dir("test_cases"){
+        deleteDir()
+        for(n in medea_nodes){
+            unstash(n + "_test_cases")
+        }
 
-    def globstr = "**.xml"
-    def test_results = findFiles glob: globstr
-    for (int i = 0; i < test_results.size(); i++){
-        def file_path = test_results[i].name
-        junit file_path
+        def globstr = "**.xml"
+        def test_results = findFiles glob: globstr
+        for (int i = 0; i < test_results.size(); i++){
+            def file_path = test_results[i].name
+            junit file_path
+        }
+        
+        //Test cases
+        def test_archive = "test_results.zip"
+        zip glob: globstr, zipFile: test_archive
+        archiveArtifacts test_archive
     }
-    
-    //Test cases
-    def test_archive = "test_results.zip"
-    zip glob: globstr, zipFile: test_archive
-    archiveArtifacts test_archive
 }
