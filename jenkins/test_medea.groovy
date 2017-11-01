@@ -85,19 +85,9 @@ for(n in medea_nodes){
     step_build_test[node_name] = {
         node(node_name){
             unstash "source_code"
-            dir(PROJECT_NAME){
-                dir("test/bin"){
-                    //Clean the test directory
-                    deleteDir()
-                }
-                
-                dir("build"){
-                    dir("installers"){
-                        deleteDir()
-                    }
-                    //Build the entire project 
-                    buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
-                }
+            dir(PROJECT_NAME + "/build"){
+                //Build the entire project 
+                buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
             }
         }
     }
@@ -117,7 +107,6 @@ for(n in medea_nodes){
                 def test_error_count = 0;
 
                 dir("results"){
-                    deleteDir()
                     for(def file : test_list){
                         def file_path = file.name
                         def file_name = trimExtension(file_path)
@@ -131,6 +120,9 @@ for(n in medea_nodes){
                         }
                     }
                     stash includes: "*.xml", name: node_name + "_test_cases"
+
+                    //Clean up the directory after
+                    deleteDir()
                 }
             }
         }
@@ -155,6 +147,9 @@ for(n in medea_nodes){
                     zip glob: globstr, zipFile: archiveName
 
                     archiveArtifacts "*.zip"
+                    
+                    //Clean up the directory after
+                    deleteDir()
                 }
             }
         }
@@ -175,7 +170,6 @@ stage("Package"){
 
 node("master"){
     dir("test_cases"){
-        deleteDir()
         for(n in medea_nodes){
             unstash(n + "_test_cases")
         }
@@ -191,5 +185,6 @@ node("master"){
         def test_archive = "test_results.zip"
         zip glob: globstr, zipFile: test_archive
         archiveArtifacts test_archive
+        deleteDir()
     }
 }
