@@ -102,8 +102,10 @@ for(n in getLabelledNodes("MEDEA")){
                     }
                 }
                 stage("Pack"){
-                    //Run CPack
-                    runScript("cpack ./build")
+                    dir("build"){
+                        //Run CPack
+                        runScript("cpack")
+                    }
                 }
 
                 stage("Archive"){
