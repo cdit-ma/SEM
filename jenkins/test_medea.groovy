@@ -8,7 +8,7 @@ def runScript(String script){
         return out
     }
     else{
-        out = bat(returnStatus:true, script: script)
+        out = powershell(returnStatus:true, script: script)
         return out
     }
 }
