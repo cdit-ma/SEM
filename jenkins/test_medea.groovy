@@ -74,7 +74,8 @@ def step_test = [:]
 def step_build_app = [:]
 def step_archive = [:]
 
-for(n in getLabelledNodes("MEDEA")){
+def medea_nodes = getLabelledNodes("MEDEA")
+for(n in medea_nodes){
     def node_name = n
 
     step_build_test[node_name] = {
@@ -120,7 +121,7 @@ for(n in getLabelledNodes("MEDEA")){
                     }
                     
                 }
-                stash include: "*.xml", name: "test_cases"
+                stash include: "*.xml", name: node_name + "_test_cases"
             }
         }
     }
@@ -165,29 +166,29 @@ stage(name: "Test"){
 }
 
 stage("Package"){
-    //parallel step_build_app
+    parallel step_build_app
 }
 
 stage("Archive"){
-    //parallel step_archive
+    parallel step_archive
 }
 
 
 node("master"){
-    dir("test"){
-        deleteDir()
-        unstash("test_cases")
-
-        def globstr = "**.xml"
-        def test_results = findFiles glob: globstr
-        for (int i = 0; i < test_results.size(); i++){
-            def file_path = test_results[i].name
-            junit file_path
-        }
-        
-        //Test cases
-        def test_archive = "test_results.zip"
-        zip glob: globstr, zipFile: test_archive
-        archiveArtifacts test_archive
+    deleteDir()
+    for(n in medea_nodes){
+        unstash(n + "_test_cases")
     }
+
+    def globstr = "**.xml"
+    def test_results = findFiles glob: globstr
+    for (int i = 0; i < test_results.size(); i++){
+        def file_path = test_results[i].name
+        junit file_path
+    }
+    
+    //Test cases
+    def test_archive = "test_results.zip"
+    zip glob: globstr, zipFile: test_archive
+    archiveArtifacts test_archive
 }
