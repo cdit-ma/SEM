@@ -69,6 +69,9 @@ for(n in getLabelledNodes("MEDEA")){
                         if(!isUnix()){
                             globstr = '*.exe'
                         }
+                        
+                        def test_count = 0;
+                        def test_error_count = 0;
 
                         //Find all executables
                         def test_list = findFiles glob: globstr
