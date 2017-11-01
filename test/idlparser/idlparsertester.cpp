@@ -89,5 +89,5 @@ void IdlParserTester::test_multiple_import(){
 
 void IdlParserTester::test_no_file_import(){
     QStringList idl_paths;
-    QVERIFY(try_import_idls(idl_paths) == true);
+    QVERIFY(try_import_idls(idl_paths) == false);
 }
