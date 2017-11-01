@@ -47,7 +47,7 @@ node("MEDEA"){
                     print("Running Test: " + file_path)
                     def test_error_code = runScript("./" + file_path)
 
-                    if(test_error_code != 0)
+                    if(test_error_code != 0){
                         test_error_count ++
                     }
                 }
