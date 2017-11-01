@@ -111,27 +111,16 @@ for(n in getLabelledNodes("MEDEA")){
                 for (; test_count < test_list.size(); test_count++){
                     def file_path = test_list[test_count].name
                     def file_name = trimExtension(file_path)
-                    def test_output = file_name + ".xml"
+                    def test_output = file_name + "_" + node_name + ".xml"
                     print("Running Test: " + file_path)
                     def test_error_code = runScript("./" + file_path + " -o " + test_output + ",lightxml")
 
                     if(test_error_code != 0){
                         test_error_count ++
                     }
+                    
                 }
-
-                //Archive the tests
-                def test_archive = node_name + "_tests.zip"
-                zip glob: "*.xml", zipFile: test_archive
-                archiveArtifacts test_archive
-
-                print("Node: " + node_name + " passed " + (test_count - test_error_count) + "/" + test_count + " tests.")
-
-                if(test_count > 0){
-                    if(test_error_count > 0){
-                        currentBuild.result = 'Failure'
-                    }
-                }
+                stash include: "*.xml", name: "test_cases"
             }
         }
     }
@@ -160,7 +149,7 @@ for(n in getLabelledNodes("MEDEA")){
 
                 def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
                 zip glob: globstr, zipFile: archiveName
-                
+
                 archiveArtifacts "*.zip"
             }
         }
@@ -181,4 +170,28 @@ stage("Package"){
 
 stage("Archive"){
     parallel step_archive
-}   
+}
+
+
+post {
+    always {
+        node("master"){
+            dir("test"){
+                deleteDir()
+                unstash("test_cases")
+
+                def globstr = "**.xml"
+                def test_results = findFiles glob: globstr
+                for (int i = 0; i < test_results.size(); i++){
+                    def file_path = test_results[i].name
+                    junit file_path
+                }
+                
+                //Test cases
+                def test_archive = "test_results.zip"
+                zip glob: globstr, zipFile: test_archive
+                archiveArtifacts test_archive
+            }
+        }
+    }
+}
