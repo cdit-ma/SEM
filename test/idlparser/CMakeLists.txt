@@ -13,5 +13,5 @@ target_link_libraries(${PROJ_NAME} medea_idl2graphml_lib)
 
 #Run QT deploy
 if(WIN32)
-    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME})
+    add_custom_command(TARGET ${PROJ_NAME} PRE_LINK COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME})
 endif()
