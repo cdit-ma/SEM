@@ -54,7 +54,8 @@ stage("Checkout"){
             branches: scm.branches,
             doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
             extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-            userRemoteConfigs: scm.userRemoteConfigs)
+            userRemoteConfigs: scm.userRemoteConfigs,
+            quiet: true)
         }
         stash include: PROJECT_NAME, name: "source_code"
     }
@@ -121,6 +122,7 @@ for(n in getLabelledNodes("MEDEA")){
             }
         }
     }
+    
     step_archive[node_name] = {
         node(node_name){
             dir(PROJECT_NAME + "/build/installers"){
