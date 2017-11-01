@@ -15,7 +15,11 @@ def runScript(String script){
 node("MEDEA"){
     dir(PROJECT_NAME){
         stage("Checkout"){
-            checkout scm
+            checkout($class: 'GitSCM',
+            branches: scm.branches,
+            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+            extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+            userRemoteConfigs: scm.userRemoteConfigs)
         }
 
         //cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=ON -DBUILD_APP=OFF -DBUILD_CLI=OFF"
