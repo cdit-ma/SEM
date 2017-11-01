@@ -49,6 +49,18 @@ def buildProject(String path, String generator, String cmake_options){
     }
 }
 
+stage("Checkout"){
+    dir(PROJECT_NAME){
+        checkout($class: 'GitSCM',
+        branches: scm.branches,
+        doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+        extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+        userRemoteConfigs: scm.userRemoteConfigs)
+    }
+    stash include: PROJECT_NAME, name: "source_code"
+}
+
+
 def builders = [:]
 for(n in getLabelledNodes("MEDEA")){
     def node_name = n
