@@ -122,7 +122,7 @@ for(n in getLabelledNodes("MEDEA")){
 
                 //Archive the tests
                 def test_archive = node_name + "_tests.zip"
-                zip glob: "*.zip", zipFile: test_archive
+                zip glob: "*.xml", zipFile: test_archive
                 archiveArtifacts test_archive
 
                 print("Node: " + node_name + " passed " + (test_count - test_error_count) + "/" + test_count + " tests.")
