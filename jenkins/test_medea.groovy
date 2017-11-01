@@ -113,7 +113,7 @@ for(n in getLabelledNodes("MEDEA")){
                     def file_name = trimExtension(file_path)
                     def test_output = file_name + "_" + node_name + ".xml"
                     print("Running Test: " + file_path)
-                    def test_error_code = runScript("./" + file_path + " -o " + test_output + ",lightxml")
+                    def test_error_code = runScript("./" + file_path + " -o " + test_output + ",xunitxml")
 
                     if(test_error_code != 0){
                         test_error_count ++
