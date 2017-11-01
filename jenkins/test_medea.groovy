@@ -69,14 +69,14 @@ for(n in getLabelledNodes("MEDEA")){
                         if(!isUnix()){
                             globstr = '*.exe'
                         }
-                        
+
                         def test_count = 0;
                         def test_error_count = 0;
 
                         //Find all executables
                         def test_list = findFiles glob: globstr
-                        for (int i = 0; i < test_list.size(); i++, test_count ++){
-                            def file_path = test_list[i].name
+                        for (; test_count < test_list.size(); test_count++){
+                            def file_path = test_list[test_count].name
                             print("Running Test: " + file_path)
                             def test_error_code = runScript("./" + file_path)
 
