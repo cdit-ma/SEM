@@ -50,14 +50,16 @@ def buildProject(String path, String generator, String cmake_options){
 }
 
 stage("Checkout"){
-    dir(PROJECT_NAME){
-        checkout($class: 'GitSCM',
-        branches: scm.branches,
-        doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-        extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
-        userRemoteConfigs: scm.userRemoteConfigs)
+    node("master"){
+        dir(PROJECT_NAME){
+            checkout($class: 'GitSCM',
+            branches: scm.branches,
+            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+            extensions: scm.extensions + [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false],
+            userRemoteConfigs: scm.userRemoteConfigs)
+        }
+        stash include: PROJECT_NAME, name: "source_code"
     }
-    stash include: PROJECT_NAME, name: "source_code"
 }
 
 
