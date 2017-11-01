@@ -141,11 +141,6 @@ for(n in getLabelledNodes("MEDEA")){
     }
 }
 
-def step_build_test = [:]
-def step_test = [:]
-def step_build_app = [:]
-def step_archive = [:]
-
 stage("Build"){
     parallel step_build_test
 }
