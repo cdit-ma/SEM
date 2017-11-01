@@ -47,6 +47,10 @@ def buildProject(String generator, String cmake_options){
     runScript("cmake --build . --config Release")
 }
 
+def trimExtension(String filename){
+    return filename.take(filename.lastIndexOf('.'))
+}
+
 stage("Checkout"){
     node("master"){
         dir(PROJECT_NAME){
@@ -102,8 +106,11 @@ for(n in getLabelledNodes("MEDEA")){
                 def test_list = findFiles glob: globstr
                 for (; test_count < test_list.size(); test_count++){
                     def file_path = test_list[test_count].name
+                    def file_name = trimExtension(file_path)
+                    def test_output = file_name + ".xml"
                     print("Running Test: " + file_path)
-                    def test_error_code = runScript("./" + file_path)
+                    def test_error_code = runScript("./" + file_path + " -o " + test_output)
+                    archiveArtifacts test_output
 
                     if(test_error_code != 0){
                         test_error_count ++
@@ -122,7 +129,7 @@ for(n in getLabelledNodes("MEDEA")){
             }
         }
     }
-    
+
     step_archive[node_name] = {
         node(node_name){
             dir(PROJECT_NAME + "/build/installers"){
@@ -133,12 +140,13 @@ for(n in getLabelledNodes("MEDEA")){
                 }else{
                     globstr = '*.exe'
                 }
-                def fileList = findFiles glob: globstr
+                def file_list = findFiles glob: globstr
 
-                archiveName = fileList[0].name.substring(0, fileList[0].name.length() - 4) + "-installer"
-                archiveName = archiveName + ".zip"
-
-                zip glob: globstr, zipFile: archiveName
+                for(def file : file_list){
+                    def archiveName = trimExtension(file[0]) + "-installer.zip"
+                    
+                    zip glob: globstr, zipFile: archiveName
+                }
                 archiveArtifacts "*.zip"
             }
         }
