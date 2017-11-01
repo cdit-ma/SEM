@@ -68,7 +68,7 @@ for(n in getLabelledNodes("MEDEA")){
     def node_name = n
     builders[node_name] = {
         node(node_name){
-            deleteDir()
+            //deleteDir()
             unstash "source_code"
             dir(PROJECT_NAME){
                 stage("Build"){
@@ -97,8 +97,7 @@ for(n in getLabelledNodes("MEDEA")){
                                 test_error_count ++
                             }
                         }
-
-                        currentBuild.description += node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
+                        //currentBuild.description = node_name + ':Passed ' + (test_count - test_error_count)+ '/' + test_count + ' Test Cases'
                     }
                 }
                 stage("Pack"){
