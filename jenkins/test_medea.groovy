@@ -82,7 +82,7 @@ for(n in getLabelledNodes("MEDEA")){
 
     step_test[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "test/bin"){
+            dir(PROJECT_NAME + "/test/bin"){
                 def globstr = "*"
                 if(!isUnix()){
                     globstr = '*.exe'
@@ -121,7 +121,7 @@ for(n in getLabelledNodes("MEDEA")){
     }
     step_archive[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "build/installers"){
+            dir(PROJECT_NAME + "/build/installers"){
                 def globstr = ""
 
                 if(isUnix()){
