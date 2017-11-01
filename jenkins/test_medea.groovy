@@ -40,13 +40,11 @@ def runScript(String script){
     }
 }
 
-def buildProject(String path, String generator, String cmake_options){
-    dir(path){
-        print "Calling CMake generate"
-        runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options)
-        print "Calling CMake --build"
-        runScript("cmake --build . --config Release")
-    }
+def buildProject(String generator, String cmake_options){
+    print "Calling CMake generate"
+    runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options)
+    print "Calling CMake --build"
+    runScript("cmake --build . --config Release")
 }
 
 stage("Checkout"){
