@@ -70,7 +70,7 @@ stage("Checkout"){
             userRemoteConfigs: scm.userRemoteConfigs,
             quiet: true)
         }
-        stash includes: PROJECT_NAME, name: "source_code"
+        stash includes: "**", name: "source_code"
     }
 }
 
