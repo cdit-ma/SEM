@@ -48,8 +48,8 @@ def buildProject(String generator, String cmake_options){
             return true;
         }
     }
-    currentBuild.result = 'Failure'
-    return
+    currentBuild.result = 'Failure';
+    error('Failed to build!')
 }
 
 def trimExtension(String filename){
@@ -81,7 +81,7 @@ for(n in re_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                buildProject("Unix Makefiles", "-DBUILD_TEST=ON -- -j8")
             }
         }
     }
