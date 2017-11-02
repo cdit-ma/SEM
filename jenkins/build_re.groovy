@@ -123,7 +123,7 @@ stage("Build"){
     parallel step_build_test
 }
 stage("Test"){
-    parallel step_build_test
+    parallel step_test
 }
 
 node("master"){
