@@ -70,6 +70,7 @@ stage("Checkout"){
 }
 
 def step_build_test = [:]
+def step_test = [:]
 
 def re_nodes = getLabelledNodes("build_re")
 for(n in re_nodes){
@@ -84,8 +85,64 @@ for(n in re_nodes){
             }
         }
     }
+
+    step_test[node_name] = {
+        node(node_name){
+            dir(PROJECT_NAME + "/bin/test"){
+                def globstr = "*"
+
+                //Find all executables
+                def test_list = findFiles glob: globstr
+
+                def test_count = 0;
+                def test_error_count = 0;
+
+                dir("results"){
+                    for(def file : test_list){
+                        def file_path = file.name
+                        def file_name = trimExtension(file_path)
+                        def test_output = file_name + "_" + node_name + ".xml"
+                        print("Running Test: " + file_path)
+                        def test_error_code = runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+
+                        if(test_error_code != 0){
+                            test_error_count ++
+                        }
+                    }
+                    stash includes: "*.xml", name: node_name + "_test_cases"
+
+                    //Clean up the directory after
+                    deleteDir()
+                }
+            }
+        }
+    }
 }
 
 stage("Build"){
     parallel step_build_test
+}
+stage("Test"){
+    parallel step_build_test
+}
+
+node("master"){
+    dir("test_cases"){
+        for(n in re_nodes){
+            unstash(n + "_test_cases")
+        }
+
+        def globstr = "**.xml"
+        def test_results = findFiles glob: globstr
+        for (int i = 0; i < test_results.size(); i++){
+            def file_path = test_results[i].name
+            junit file_path
+        }
+        
+        //Test cases
+        def test_archive = "test_results.zip"
+        zip glob: globstr, zipFile: test_archive
+        archiveArtifacts test_archive
+        deleteDir()
+    }
 }
