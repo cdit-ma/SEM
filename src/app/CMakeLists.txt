@@ -267,10 +267,12 @@ endif()
 #Run the qt deploy program to copy required binaries into the directories
 if(WIN32)
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-    COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
+        COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
+        COMMENT "Running windeployqt..."
     )
 elseif(APPLE)
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
         COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+        COMMENT "Running macdeployqt..."
     )
 endif()
