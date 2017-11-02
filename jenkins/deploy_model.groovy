@@ -173,7 +173,9 @@ withEnv(["model=''"]){
     //Itterate through all nodes
     def nodeKeys = jDeployment["nodes"].keySet() as List;
     def modelName = jDeployment["model"].name
+    def modelDescription = jDeployment["model"].description
     currentBuild.description = modelName
+    currentBuild.description = currentBuild.description + " : " + modelDescription
 
     stage("Build deployment plan"){
     for(def i = 0; i < nodeKeys.size(); i++){

@@ -17,7 +17,7 @@ class EventPort;
 
 class Component: public Activatable{
     public:
-        Component(std::string inst_name);
+        Component(std::string inst_name ="");
         virtual ~Component();
         bool Activate();
         bool Passivate();

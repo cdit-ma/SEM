@@ -21,6 +21,10 @@ namespace qpid{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
             OutEventPort(Component* component, std::string name);
+            ~OutEventPort(){
+                Passivate();
+                Teardown();
+            };
             void tx(T* message);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
