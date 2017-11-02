@@ -81,7 +81,7 @@ for(n in re_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                buildProject("Unix Makefiles", "-DBUILD_TEST=ON -- -j8")
+                buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
             }
         }
     }
