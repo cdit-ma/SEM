@@ -1,27 +1,9 @@
-# logan v1.3.1
+# re_gen v1.3.2
 
-## Bug Fixes:
-* Logan handles Port Kind correctly in the table model events
+## Resolved JIRA Issues:
+| Issue key | Summary|
+| --- | --- |
+| [REGEN-26](https://cdit-ma.atlassian.net/browse/REGEN-26) | Add a changelog.md file with the list of changed features |
+| [REGEN-27](https://cdit-ma.atlassian.net/browse/REGEN-27) | Having a Vector of an AggregateInstance in an Aggregate doesn't compile |
 
 ---
-
-# logan v1.1.0
-
-## New Features:
-* Logan handles model events
-    * Model events include:
-         * Ports firing
-         * Component activation/passivation
-         * Workloads starting and ending execution
-         * User defined model events
-         * And many other model driven events
-* Improved modularity of codebase
-    * Components of logan can now be disabled at compile time
-        * Users have the ability to disable model or hardware logging (or both)
-        * Client and server compilation be individually targetted
-        * Server and client extensibility has been improved. Dropping in new logging components is now a simple process.
-* Improved performance
-    * Logan has been entirely reworked to use the lightweight ZMQ middleware, reducing both build requirements and memory/cpu overhead
-    * Database insertion logic has been improved, resulting in scalability improvements
-    * Database management is now done through the sql amalgamation. This reportedly provides a 5-10% performance gain (https://www.sqlite.org/amalgamation.html)
-* Improved support for multi-server logging solutions
