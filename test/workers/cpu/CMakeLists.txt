@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_cpu_worker)
+set(PROJ_NAME test_cpuworker)
 project(${PROJ_NAME})
 
 #Get the RE_PATH
