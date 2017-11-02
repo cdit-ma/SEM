@@ -72,7 +72,7 @@ TEST_P(PeriodicEventTest, TickCount)
 std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_interval = 0.95) 
 {
     std::vector<PeriodTestCase> test_cases;
-    for(auto workload : {0.0, 0.25, .50, .75, .95}){
+    for(auto workload : {0.0, 0.50, .95}){
         auto time_ms = time * 1000;
         auto expected_ticks = hz * time;
         auto test_case = PeriodTestCase(time_ms, hz, workload, expected_ticks, confidence_interval);
@@ -83,34 +83,14 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
 
 
 
-INSTANTIATE_TEST_CASE_P(1Hz_1s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 1)));
-INSTANTIATE_TEST_CASE_P(1Hz_2s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 2)));
-INSTANTIATE_TEST_CASE_P(1Hz_4s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 4)));
-INSTANTIATE_TEST_CASE_P(1Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 8)));
 
-INSTANTIATE_TEST_CASE_P(2Hz_1s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 1)));
-INSTANTIATE_TEST_CASE_P(2Hz_2s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 2)));
-INSTANTIATE_TEST_CASE_P(2Hz_4s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 4)));
-INSTANTIATE_TEST_CASE_P(2Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 8)));
-
-INSTANTIATE_TEST_CASE_P(4Hz_1s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 1)));
-INSTANTIATE_TEST_CASE_P(4Hz_2s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 2)));
-INSTANTIATE_TEST_CASE_P(4Hz_4s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 4)));
-INSTANTIATE_TEST_CASE_P(4Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 8)));
-
-INSTANTIATE_TEST_CASE_P(8Hz_1s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 1)));
-INSTANTIATE_TEST_CASE_P(8Hz_2s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 2)));
-INSTANTIATE_TEST_CASE_P(8Hz_4s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 4)));
-INSTANTIATE_TEST_CASE_P(8Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 8)));
-
-INSTANTIATE_TEST_CASE_P(16Hz_1s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 1)));
-INSTANTIATE_TEST_CASE_P(16Hz_2s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 2)));
-INSTANTIATE_TEST_CASE_P(16Hz_4s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 4)));
-INSTANTIATE_TEST_CASE_P(16Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 8)));
-
-
-INSTANTIATE_TEST_CASE_P(32Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(64, 8, 0.90)));
-INSTANTIATE_TEST_CASE_P(64Hz_8s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(64, 8, 0.80)));
+INSTANTIATE_TEST_CASE_P(1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
+INSTANTIATE_TEST_CASE_P(2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
+INSTANTIATE_TEST_CASE_P(4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
+INSTANTIATE_TEST_CASE_P(8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
+INSTANTIATE_TEST_CASE_P(16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5, 0.80)));
+INSTANTIATE_TEST_CASE_P(32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
+INSTANTIATE_TEST_CASE_P(64Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(64, 5, 0.60)));
 
 int main(int ac, char* av[])
 {
