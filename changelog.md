@@ -4,17 +4,32 @@
 * Added test frameworks for components:
   * test_idlparser - Runs test cases for the idl2graphml parser
   * test_modelcontroller - Runs basic model importing tests on the ModelController class
-### General:
-### New Dock/Context Menus:
-### Edges:
-### Notifications:
-### Search:
-### Model:
-### Workers:
-### Settings:
-### Code Generation:
-### Resolved JIRA Issues:
-* MED-272, MED-254, MED-260, MED-262, MED-264, MED-270, MED-271
+## Resolved JIRA Issues:
+| Issue key | Summary  |
+|-----------|----------|
+| [MED-276](https://cdit-ma.atlassian.net/browse/MED-276)	| Ability to place enum within a shared data type | |
+| [MED-275](https://cdit-ma.atlassian.net/browse/MED-275)	| Allow multiple IDL files to be passed to be passed into the IDL Parser |
+| [MED-273](https://cdit-ma.atlassian.net/browse/MED-273)	| idl import stops when it encounters an interface |
+| [MED-272](https://cdit-ma.atlassian.net/browse/MED-272)	| #include functionality when parsing idl files |
+| [MED-271](https://cdit-ma.atlassian.net/browse/MED-271)	| Move test folder outside of src |
+| [MED-270](https://cdit-ma.atlassian.net/browse/MED-270)	| Add all commands/options + examples for execution of all programs into README.md |
+| [MED-269](https://cdit-ma.atlassian.net/browse/MED-269)	| Fix Local Deployment on Ubuntu |
+| [MED-268](https://cdit-ma.atlassian.net/browse/MED-268)	| Add Dans Laptop as a OSX build node |
+| [MED-267](https://cdit-ma.atlassian.net/browse/MED-267)	| Setup Windows VM for release building |
+| [MED-266](https://cdit-ma.atlassian.net/browse/MED-266)	| Create Jenkins job for building MEDEA |
+| [MED-264](https://cdit-ma.atlassian.net/browse/MED-264)	| Implement CLI MEDEA |
+| [MED-262](https://cdit-ma.atlassian.net/browse/MED-262)	| Can not rename label of index variable in for condition while loop |
+| [MED-261](https://cdit-ma.atlassian.net/browse/MED-261)	| Setup toggle icons for the tabs in the vizualisation panel. |
+| [MED-260](https://cdit-ma.atlassian.net/browse/MED-260)	| Integer variable (i in default case) in for condition while loop can not be connected from (data edge) |
+| [MED-258](https://cdit-ma.atlassian.net/browse/MED-258)	| Implement extension of addTab |
+| [MED-255](https://cdit-ma.atlassian.net/browse/MED-255)	| Implement tab-able panel for visualization graphs |
+| [MED-254](https://cdit-ma.atlassian.net/browse/MED-254)	| Add comment field to model |
+| [MED-251](https://cdit-ma.atlassian.net/browse/MED-251)	| idl parsing should handle exceptions |
+| [MED-247](https://cdit-ma.atlassian.net/browse/MED-247)	| Fix IDL Parser to handle block comments with non-greedy regex |
+| [MED-246](https://cdit-ma.atlassian.net/browse/MED-246)	| Add all valid IDL primitive types to IDL parser |
+| [MED-245](https://cdit-ma.atlassian.net/browse/MED-245)	| Build MEDEA rollout job on Jenkins |
+| [MED-243](https://cdit-ma.atlassian.net/browse/MED-243)	| Add a changelog.md file with the list of changed features |
+
 ---
 
 # MEDEA v2.3.1
