@@ -1,0 +1,5 @@
+#include <nested_test/inner_interface.idl>
+
+struct enums{
+    global_enum b;
+};

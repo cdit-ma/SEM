@@ -1,0 +1,5 @@
+module InnerNS{
+    struct InnerTest2{
+        long a;
+    }
+};
