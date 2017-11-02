@@ -20,7 +20,9 @@ def runScriptPid(String script){
     def out = ""
     if(isUnix()){
         def command = script + " > /dev/null 2>&1 & echo \$!"
-        out = sh(returnStdout: true, script: command)
+        withEnv(['JENKINS_NODE_COOKIE=do_not_kill']){
+            out = sh(returnStdout: true, script: command)
+        }
         return out.trim()
     }
     else{
@@ -40,9 +42,15 @@ def runScript(String script){
 
 def blockingKill(String pid){
     if(isUnix()){
-        sh("kill " + pid)
-        def out = sh(returnStatus: true, script:"wait " + pid)
-        if(out != 0){
+        def out = sh(returnStatus: true, script:"kill " + pid)
+        for(def i = 0; i<5; i++){
+            out = sh(returnStatus: true, script: "kill " + pid)
+            if(out != 0){
+                break;
+            }
+            sleep(1)
+        }
+        if(out == 0){
             def out2 = sh(returnStatus: true, script:"kill -s 0 " + pid)
             print(out2)
         }
@@ -94,6 +102,7 @@ withEnv(["model=''"]){
             //Generate deployment json
             def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
             sh(script: executionParser)
+            archiveArtifacts "execution.json"
 
             def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
             sh(script: execution_debug)
@@ -164,7 +173,9 @@ withEnv(["model=''"]){
     //Itterate through all nodes
     def nodeKeys = jDeployment["nodes"].keySet() as List;
     def modelName = jDeployment["model"].name
+    def modelDescription = jDeployment["model"].description
     currentBuild.description = modelName
+    currentBuild.description = currentBuild.description + " : " + modelDescription
 
     stage("Build deployment plan"){
     for(def i = 0; i < nodeKeys.size(); i++){

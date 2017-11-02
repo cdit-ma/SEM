@@ -16,26 +16,34 @@
 template <class T> class InEventPort: public EventPort{
     public:
         InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
-        virtual ~InEventPort();
-        virtual bool Activate();
         virtual bool Passivate();
         virtual bool Teardown();
+        void SetMaxQueueSize(int max_queue_size);
     protected:
         void EnqueueMessage(T* t);
+        int GetQueuedMessageCount();
     private:
         void rx(T* t);
         void receive_loop();
     private:
         std::function<void (T*) > callback_function_;
 
-        bool terminate_ = false;
         
+        std::mutex queue_mutex_;
+        //Queue Mutex responsible for these Variables
         std::queue<T*> message_queue_;
-        std::mutex mutex_;
-        std::mutex notify_mutex_;
+        int max_queue_size_ = -1;
+        int process_queue_size_ = 0;
         
-        std::thread* queue_thread_ = 0;
+        
+        std::mutex notify_mutex_;
+        bool terminate_ = false;
         std::condition_variable notify_lock_condition_;
+
+        
+        std::mutex mutex_;
+        //Normal Mutex is for changing properties 
+        std::thread* queue_thread_ = 0;
 };
 
 template <class T>
@@ -46,23 +54,15 @@ InEventPort<T>::InEventPort(Component* component, std::string name, std::functio
     }else{
         std::cout << "InEventPort: " << name << " has a NULL Callback Function!" << std::endl;
     }
-};
-
-template <class T>
-InEventPort<T>::~InEventPort(){
-    //Teardown
-};
-
-template <class T>
-bool InEventPort<T>::Activate(){
-    std::lock_guard<std::mutex> lock(mutex_);
-    if(EventPort::Activate()){
-        if(!queue_thread_){
-            queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
-        }
-        return true;
+    if(!queue_thread_){
+        queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
     }
-    return false;
+};
+
+template <class T>
+void InEventPort<T>::SetMaxQueueSize(int max_queue_size){
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    max_queue_size_ = max_queue_size;
 };
 
 template <class T>
@@ -70,6 +70,7 @@ bool InEventPort<T>::Passivate(){
     std::lock_guard<std::mutex> lock(mutex_);
     if(EventPort::Passivate()){
         if(queue_thread_){
+            //Gain the notify_mutex to flag the terminate flag
             std::unique_lock<std::mutex> lock(notify_mutex_);
             terminate_ = true;
             notify_lock_condition_.notify_all();
@@ -115,26 +116,33 @@ void InEventPort<T>::receive_loop(){
     while(true){
         {
             //Gain Mutex
-            std::unique_lock<std::mutex> lock(notify_mutex_);
+            std::unique_lock<std::mutex> notify_lock(notify_mutex_);
             
             //Check terminate flag
             if(terminate_){
                 terminate = terminate_;
             }else{
                 //Wait for the next notify
-                notify_lock_condition_.wait(lock);
+                notify_lock_condition_.wait(notify_lock, [this]{return terminate_ || message_queue_.size();});
             }
             
+            std::unique_lock<std::mutex> queue_lock(queue_mutex_);
             //Swap out the queue's and release the mutex
             message_queue_.swap(queue_);
+            process_queue_size_ = queue_.size();
         }
 
         //Process the queue
         while(!queue_.empty()){
             auto m = queue_.front();
+
             //If we are terminated the rx will drop the messages
             rx(m);
             queue_.pop();
+            
+            //Gain Mutex to update the process queue size
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            process_queue_size_ = queue_.size();
         }
 
         //Terminate
@@ -150,10 +158,28 @@ void InEventPort<T>::EnqueueMessage(T* t){
     logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::RECEIVED);
 
     //Gain mutex lock and append message to queue
-    std::unique_lock<std::mutex> lock(notify_mutex_);
-    message_queue_.push(t);
-    notify_lock_condition_.notify_all();
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    auto queue_size = message_queue_.size() + process_queue_size_;
+
+    //If we don't care about queueing, or we have room in our queue size, queue the message
+    if(max_queue_size_ == -1 || max_queue_size_ > queue_size){
+        //std::cerr << "Queueing: " << t->get_base_message_id() << " message_queue: " << queue_size << std::endl;
+        message_queue_.push(t);
+        notify_lock_condition_.notify_all();
+    }else{
+        //std::cerr << "Discarding: " << t->get_base_message_id() << " message_queue: " << queue_size << std::endl;
+        logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::IGNORED);
+        delete t;
+    }
 };
 
+
+
+template <class T>
+int InEventPort<T>::GetQueuedMessageCount(){
+    //Gain mutex lock and append message to queue
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    return message_queue_.size() + process_queue_size_;
+};
                 
 #endif //INEVENTPORT_HPP

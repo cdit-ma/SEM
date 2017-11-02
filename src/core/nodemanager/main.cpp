@@ -110,6 +110,7 @@ int main(int argc, char **argv){
         std::cout << "* Master:" << std::endl;    
         std::cout << "** Endpoint: " << master_endpoint << std::endl;    
         std::cout << "** Deployment Graphml: " << graphml_path << std::endl;    
+        std::cout << "** Duration: " << execution_duration << std::endl;    
     }
     if(is_slave){
         std::cout << "* Slave:" << std::endl;    

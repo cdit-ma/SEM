@@ -12,6 +12,7 @@
 #include <google/protobuf/message.h>
 
 DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
+    std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
     execution_ = execution;
 
@@ -24,21 +25,29 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
     auto cm_callback = std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1);
     subscriber_->RegisterNewProto(NodeManager::ControlMessage::default_instance(), cm_callback);
 
+    if(!control_queue_thread_){
+        //Construct a thread to process the control queue
+        control_queue_thread_ = new std::thread(&DeploymentManager::ProcessControlQueue, this);
+    }
+
     subscriber_->Start();
 }
 
 DeploymentManager::~DeploymentManager(){
+    std::unique_lock<std::mutex> lock(mutex_);
     if(deployment_){
-        std::cout << "~1DeploymentManager" << std::endl;
         delete deployment_;
         deployment_ = 0;
-        std::cout << "~2DeploymentManager" << std::endl;
+    }
+    if(control_queue_thread_){
+        control_queue_thread_->join();
+        delete control_queue_thread_;
+        control_queue_thread_ = 0;
     }
 }
 
 bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name){
     if(subscriber_){
-        std::cout << "Subscribing to: " << pub_endpoint << " Filter: " << host_name << "*" << std::endl;
         subscriber_->Connect(pub_endpoint);
         subscriber_->Filter(host_name + "*");
         return true;
@@ -54,51 +63,85 @@ bool DeploymentManager::TeardownModelLogger(){
 }
 
 void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
-    NodeManager::ControlMessage* control_message = (NodeManager::ControlMessage*)ml;
-    if(control_message){
-        ProcessControlMessage(control_message);
-    }
+    auto control_message = (NodeManager::ControlMessage*)ml;
+
+    //Gain mutex lock and append message to queue
+    std::unique_lock<std::mutex> lock(notify_mutex_);
+    control_message_queue_.push(control_message);
+    notify_lock_condition_.notify_all();
 }
 
-void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    switch(cm->type()){
-        case NodeManager::ControlMessage::STARTUP:{
-            if(!deployment_){
-                deployment_ = new NodeContainer(library_path_);    
-                deployment_->Configure(cm);
-            }
-            break;
+bool DeploymentManager::ProcessStartupMessage(std::string startup_str){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(!deployment_){
+        deployment_ = new NodeContainer(library_path_);
+        NodeManager::ControlMessage message;
+        auto success = message.ParseFromString(startup_str);
+        if(success){
+            deployment_->Configure(&message);
+            return true;
         }
-        case NodeManager::ControlMessage::ACTIVATE:
-            if(deployment_){
-                deployment_->ActivateAll();
+    }
+    return false;
+}
+
+void DeploymentManager::ProcessControlQueue(){
+    std::queue<NodeManager::ControlMessage*> queue_;
+    
+    bool terminate = false;
+    while(!terminate){
+        {
+            //Gain Mutex
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            
+            //If we have no messages, we should wait for a signal
+            if(control_message_queue_.empty()){
+                //Check terminate flag
+                notify_lock_condition_.wait(lock);
             }
-            break;
-        case NodeManager::ControlMessage::PASSIVATE:
-            if(deployment_){
-                std::cout << "Got PassivateAll Message" << std::endl;
-                deployment_->PassivateAll();
-                std::cout << "Finished PassivateAll Message" << std::endl;
+            //Swap out the queue's and release the mutex
+            control_message_queue_.swap(queue_);
+        }
+
+         //Process the queue
+         while(!queue_.empty()){
+            auto cm = queue_.front();
+
+            switch(cm->type()){
+                case NodeManager::ControlMessage::STARTUP:{
+                    if(!deployment_){
+                        deployment_ = new NodeContainer(library_path_);    
+                        deployment_->Configure(cm);
+                    }
+                    break;
+                }
+                case NodeManager::ControlMessage::ACTIVATE:
+                    if(deployment_){
+                        deployment_->ActivateAll();
+                    }
+                    break;
+                case NodeManager::ControlMessage::PASSIVATE:
+                    if(deployment_){
+                        deployment_->PassivateAll();
+                    }
+                    break;
+                case NodeManager::ControlMessage::TERMINATE:
+                    if(deployment_){
+                        Terminate();
+                        terminate = true;
+                    }
+                    break;
+                case NodeManager::ControlMessage::SET_ATTRIBUTE:
+                    if(deployment_){
+                        deployment_->Configure(cm);
+                    }
+                    break;
+                default:
+                    break;
             }
-            break;
-        case NodeManager::ControlMessage::TERMINATE:
-            if(deployment_){
-                std::cout << "Got TERMINATE Message" << std::endl;
-                Terminate();
-                std::cout << "Finished TERMINATE message" << std::endl;
-                //delete deployment_;
-                //deployment_ = 0;
-            }
-            break;
-        case NodeManager::ControlMessage::SET_ATTRIBUTE:
-            if(deployment_){
-                deployment_->Configure(cm);
-            }
-            break;
-        default:
-            break;
+
+            queue_.pop();
+        }
     }
 }
 
@@ -107,6 +150,7 @@ NodeContainer* DeploymentManager::get_deployment(){
 }
 
 void DeploymentManager::Terminate(){
+    std::unique_lock<std::mutex> lock(mutex_);
     deployment_->Teardown();
     execution_->Interrupt();
 }

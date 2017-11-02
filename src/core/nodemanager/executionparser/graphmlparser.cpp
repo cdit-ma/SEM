@@ -82,13 +82,23 @@ std::string GraphmlParser::GetDataValue(std::string id, std::string key_name){
 }
 
 std::string GraphmlParser::GetParentNode(std::string id){
-    std::string search = ".//*[@id='" + id + "']/../..";
-    std::string out;
-    try{
-        auto res = doc.select_node(search.c_str());
-        out = res.node().attribute("id").value();
-    } catch(...){
-        std::cout << "ERROR" << std::endl;
+    if(parent_id_lookup_.count(id)){
+        return parent_id_lookup_[id];
+    }else{
+        std::string search = ".//*[@id='" + id + "']/../..";
+        std::string out;
+        bool success = false;
+        try{
+            auto res = doc.select_node(search.c_str());
+            out = res.node().attribute("id").value();
+            success = true;
+        }catch(...){
+            std::cout << "ERROR" << std::endl;
+        }
+
+        if(success){
+            parent_id_lookup_[id] = out;
+        }
+        return out;
     }
-    return out;
 }

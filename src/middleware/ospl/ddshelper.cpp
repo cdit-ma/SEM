@@ -9,7 +9,6 @@ ospl::DdsHelper* ospl::DdsHelper::get_dds_helper(){
 
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
-        std::cout << "Constructed OSPL DDS Helper: " << singleton_ << std::endl;
     }
     return singleton_;
 };

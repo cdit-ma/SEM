@@ -9,6 +9,7 @@ CMAKE_MODULE_PATH=$RE_PATH/cmake_modules
 
 
 
+
 if [ "$(uname)" == "Darwin" ]; then
     PUGIXML_ROOT="/Users/dan/pugixml-1.8/"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
@@ -16,9 +17,12 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 fi
 
 echo "Library Path: $RE_LIB_PATH"
+echo "SLEEP LADDY"
+sleep 1
 echo "PugiXML Path: $PUGIXML_ROOT"
 
 #Set library path to include the re_core location
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$RE_LIB_PATH
 DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}:$RE_LIB_PATH
 export RE_PATH PUGIXML_ROOT LD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH CMAKE_MODULE_PATH
+

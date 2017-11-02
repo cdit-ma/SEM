@@ -41,6 +41,7 @@ bool Graphml::ModelParser::Process(){
         model_->id = modelIdVec[0];
         model_->name = graphml_parser_->GetDataValue(model_->id, "label");
         model_->uuid = graphml_parser_->GetDataValue(model_->id, "projectUUID");
+        model_->description = graphml_parser_->GetDataValue(model_->id, "description");
     }
 
     //Get the ID's of the edges
@@ -278,8 +279,6 @@ bool Graphml::ModelParser::Process(){
         //Construct the number of nodes
         for(int i = 0; i < replication_count; i++){
             HardwareNode* deployed_node = 0;
-
-            
             
             //Get the deployed node
             if(node){
@@ -819,8 +818,9 @@ std::string Graphml::ModelParser::GetDeploymentJSON(){
 
     //Jsonify model metadata
     std::string model_str;
-    model_str += tab() + dblquotewrap("model") + ":{" + newline + tab(2) + json_pair("name", model_->name) + "," + 
-                                                        newline + tab(2) + json_pair("id", model_->id) + "," + 
+    model_str += tab() + dblquotewrap("model") + ":{" + newline + tab(2) + json_pair("name", model_->name) + "," +
+                                                        newline + tab(2) + json_pair("description", model_->description) + "," +
+                                                        newline + tab(2) + json_pair("id", model_->id) + "," +
                                                         newline + tab(2) + json_pair("projectUUID", model_->uuid) + "," +
                                                         newline + tab(2) + json_list_pair("middlewares", model_->middlewares) +
                                                         newline + tab() + "},";

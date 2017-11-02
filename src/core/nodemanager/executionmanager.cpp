@@ -12,6 +12,28 @@
 
 #include "execution.hpp"
 
+#include <sstream>
+#include <string>
+#include <iomanip>
+#include <algorithm>
+#include <cctype>
+
+bool str2bool(std::string str) {
+    try{
+        return std::stoi(str);
+    }catch(std::invalid_argument){
+
+    }
+
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::istringstream is(str);
+    bool b;
+    is >> std::boolalpha >> b;
+    int int_val = 0;
+    return b;
+}
+
+
 void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
@@ -47,6 +69,24 @@ void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageL
 
 std::vector<std::string> ExecutionManager::GetNodeManagerSlaveAddresses(){
     return required_slave_addresses_;
+}
+
+std::string ExecutionManager::GetSlaveStartupMessage(std::string slave_host_name){
+    std::unique_lock<std::mutex>(mutex_);
+    std::string str;
+    //Look through the deployment map for instructions to send the newly online slave
+    for(auto a: deployment_map_){
+        //Match the host_name 
+        std::string host_name = a.second->mutable_node()->mutable_info()->name();
+
+        if(slave_host_name == host_name){
+            auto startup_message_pb = a.second;
+            if(startup_message_pb && startup_message_pb->SerializeToString(&str)){
+                std::cout << "Serialized: " << host_name << std::endl;
+            }
+        }
+    }
+    return str;
 }
 
 void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
@@ -92,6 +132,7 @@ void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
     inactive_slave_addresses_.erase(std::remove(inactive_slave_addresses_.begin(), inactive_slave_addresses_.end(), endpoint), inactive_slave_addresses_.end());
     
     if(initial_size > 0 && inactive_slave_addresses_.empty()){
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         ActivateExecution();
     }
 }
@@ -132,6 +173,24 @@ std::string ExecutionManager::GetModelLoggerModeFromNodeName(std::string host_na
         str = profile->mode;
     }
     return str;
+}
+
+NodeManager::Attribute_Kind GetAttributeType(std::string type){
+    if(type == "Integer"){
+        return NodeManager::Attribute::INTEGER;
+    }else if(type == "Boolean"){
+        return NodeManager::Attribute::BOOLEAN;
+    }else if(type == "Character"){
+        return NodeManager::Attribute::CHARACTER;
+    }else if(type == "String"){
+        return NodeManager::Attribute::STRING;
+    }else if(type == "Double"){
+        return NodeManager::Attribute::DOUBLE;
+    }else if(type == "Float"){
+        return NodeManager::Attribute::FLOAT;
+    }
+    std::cerr << "Unhandle Graphml Attribute Type: '" << type << "'" << std::endl;
+    return NodeManager::Attribute::STRING;
 }
 
 bool ExecutionManager::ConstructControlMessages(){
@@ -180,34 +239,57 @@ bool ExecutionManager::ConstructControlMessages(){
 
                     attr_info_pb->set_id(a_id);
                     attr_info_pb->set_name(attribute->name);
-                    auto type = attribute->type;
+                    attr_pb->set_kind(GetAttributeType(attribute->type));
+                    
                     auto value = attribute->value;
 
-                    if(type == "DoubleNumber" || type == "Float"){
-                        attr_pb->set_kind(NodeManager::Attribute::DOUBLE);
-
-                        double d_value;
-                        try{
-                            d_value = std::stod(value);
-                        }catch(std::invalid_argument){
-                            d_value = 0;
+                    switch(attr_pb->kind()){
+                        case NodeManager::Attribute::FLOAT:
+                        case NodeManager::Attribute::DOUBLE:{
+                            double double_val = 0;
+                            try{
+                                double_val = std::stod(value);
+                            }catch(std::invalid_argument){
+                                double_val = 0;
+                            }
+                            attr_pb->set_d(double_val);
+                            break;
                         }
-                        attr_pb->set_d(d_value);
-
-                    } else if(type.find("String") != std::string::npos){
-                        attr_pb->set_kind(NodeManager::Attribute::STRING);
-                        set_attr_string(attr_pb, value);
-                    } else {
-                        
-                        attr_pb->set_kind(NodeManager::Attribute::INTEGER);
-
-                        int i_value;
-                        try{
-                            i_value = std::stoi(value);
-                        }catch(std::invalid_argument){
-                            i_value = 0;
+                        case NodeManager::Attribute::CHARACTER:{
+                            //need to trim out ' characters
+                            auto char_str = value;
+                            char_str.erase(std::remove(char_str.begin(), char_str.end(), '\''), char_str.end());
+                            if(char_str.length() == 1){
+                                attr_pb->set_i(char_str[0]);
+                            }else{
+                                std::cerr << "Character: '" << value << "' isn't length one!" << std::endl;
+                            }
+                            break;
                         }
-                        attr_pb->set_i(i_value);
+                        case NodeManager::Attribute::BOOLEAN:{
+                            bool val = str2bool(value);
+                            attr_pb->set_i(val);
+                            break;
+                        }
+                        case NodeManager::Attribute::INTEGER:{
+                            int int_val = 0;
+                            try{
+                                int_val = std::stoi(value);
+                            }catch(std::invalid_argument){
+                                int_val = 0;
+                            }
+                            attr_pb->set_i(int_val);
+                            break;
+                        }
+                        case NodeManager::Attribute::STRING:{
+                            auto str = value;
+                            str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+                            set_attr_string(attr_pb, str);
+                            break;
+                        }
+                        default:
+                            std::cerr << "Got unhandled Attribute type: " << NodeManager::Attribute_Kind_Name(attr_pb->kind()) << std::endl;
+                            break;
                     }
                 }
             }
@@ -396,15 +478,17 @@ void ExecutionManager::ActivateExecution(){
     activate_lock_condition_.notify_all();
 }
 void ExecutionManager::TerminateExecution(){
-    //Set termination flag
-    terminate_flag_ = true;
     //Obtain lock
     {
         std::unique_lock<std::mutex> lock(terminate_mutex_);
+        //Set termination flag
+        terminate_flag_ = true;
         terminate_lock_condition_.notify_all();
     }
-    //Notify
-    execution_thread_->join();
+    if(execution_thread_){
+        //Notify
+        execution_thread_->join();
+    }
 }
 
 bool ExecutionManager::Finished(){
@@ -422,20 +506,22 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     }
     std::cout << "-------------[Execution]------------" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    std::cout << "* Sending ACTIVATE" << std::endl;
+    std::cout << "* Activating Components" << std::endl;
     //Send Activate function
     auto activate = new NodeManager::ControlMessage();
     activate->set_type(NodeManager::ControlMessage::ACTIVATE);
     PushMessage("*", activate);
 
-    if(!terminate_flag_){
+    {
         //Obtain lock
         std::unique_lock<std::mutex> lock(terminate_mutex_);
-        //Wait for notify
-        terminate_lock_condition_.wait_for(lock, execution_duration);
+        auto cancelled = terminate_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+        if(cancelled){
+            std::cout << "* Caught Ctrl+C" << std::endl;        
+        }
     }
 
-    std::cout << "* Sending PASSIVATE" << std::endl;
+    std::cout << "* Passivating Components" << std::endl;
     //Send Terminate Function
     auto passivate = new NodeManager::ControlMessage();
     passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
@@ -443,7 +529,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-    std::cout << "* Sending TERMINATE" << std::endl;
+    std::cout << "* Terminating Deployment" << std::endl;
     //Send Terminate Function
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
