@@ -1,3 +1,13 @@
+# logan v1.3.2
+
+## Resolved JIRA Issues:
+| Issue key | Summary|
+| --- | --- |
+| [LOG-26](https://cdit-ma.atlassian.net/browse/LOG-26) | Add all commands/options + examples for execution of all programs into README.md |
+| [LOG-25](https://cdit-ma.atlassian.net/browse/LOG-25) | Add a changelog.md file with the list of changed features |
+
+---
+
 # logan v1.3.1
 
 ## Bug Fixes:
