@@ -14,7 +14,6 @@
 
 JenkinsRequest::JenkinsRequest(JenkinsManager *jenkins_manager, QObject *parent) : QObject()
 {
-    qCritical() << "YOYOOY";
     {
         QThread* thread = new QThread();
         thread->start();
