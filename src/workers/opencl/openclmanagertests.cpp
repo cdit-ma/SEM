@@ -206,8 +206,8 @@ int main(int argc, char** argv) {
 	// Run worker tests conditional on worker having been successfully constructed
 	if (worker != NULL) {
 		testWorkerCreateBuffer(worker);
-		//testWorkerRunParallel(worker);
-		//testWorkerMatrixMult(worker);
+		testWorkerRunParallel(worker);
+		testWorkerMatrixMult(worker);
 		testWorkerKMeans(worker);
 	} else {
 		recordTest(SKIPPED, "testWorkerCreateBuffer");
@@ -228,7 +228,12 @@ int main(int argc, char** argv) {
 
 	printInfo("Finished");
 
-	//system("pause");
+	// Report whether or not all tests pased successfully
+	if (tests_failed > 0) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 void testBufferReadWrite(OpenCLManager& manager) {
