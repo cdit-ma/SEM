@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ostream>
-#include "../src/core/periodiceventport.h"
-#include "../src/core/component.h"
+#include "../../../src/core/periodiceventport.h"
+#include "../../../src/core/component.h"
 #include "gtest/gtest.h"
 
 //Define our Test Case Struct
