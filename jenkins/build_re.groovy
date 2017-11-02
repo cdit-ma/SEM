@@ -48,8 +48,8 @@ def buildProject(String generator, String cmake_options){
             return true;
         }
     }
-    currentBuild.result = 'Failure'
-    return
+    currentBuild.result = 'Failure';
+    error('Failed to build!')
 }
 
 def trimExtension(String filename){

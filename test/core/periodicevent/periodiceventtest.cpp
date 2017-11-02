@@ -72,7 +72,7 @@ TEST_P(PeriodicEventTest, TickCount)
 std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_interval = 0.95) 
 {
     std::vector<PeriodTestCase> test_cases;
-    for(auto workload : {0.0, 0.50, .95}){
+    for(auto workload : {0.0, 0.50, .75}){
         auto time_ms = time * 1000;
         auto expected_ticks = hz * time;
         auto test_case = PeriodTestCase(time_ms, hz, workload, expected_ticks, confidence_interval);
@@ -88,9 +88,8 @@ INSTANTIATE_TEST_CASE_P(1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCa
 INSTANTIATE_TEST_CASE_P(2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
 INSTANTIATE_TEST_CASE_P(4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));
 INSTANTIATE_TEST_CASE_P(8Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(8, 5)));
-INSTANTIATE_TEST_CASE_P(16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5, 0.80)));
+INSTANTIATE_TEST_CASE_P(16Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(16, 5)));
 INSTANTIATE_TEST_CASE_P(32Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(32, 5, 0.70)));
-INSTANTIATE_TEST_CASE_P(64Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(64, 5, 0.60)));
 
 int main(int ac, char* av[])
 {
