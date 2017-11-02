@@ -10,6 +10,8 @@
 #define CL_HPP_MINIMUM_OPENCL_VERSION 120
 #include "cl2.hpp"
 
+#define OPENCL_DEBUG_TO_STDERR
+
 /*void LogOpenCLError(std::string message, cl_int errorCode) {
 	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
 }*/

@@ -111,6 +111,8 @@ void testWorkerMatrixMult(OpenCLWorker* worker);
 	Result checkMultiplication(float* matA, float* matB, float* matC,
 								unsigned int m, unsigned int k, unsigned int n);
 
+void testWorkerKMeans(OpenCLWorker* worker);
+
 int main(int argc, char** argv) {
 	auto start_time = std::chrono::steady_clock::now();
 	Result res = UNKNOWN;
@@ -204,12 +206,14 @@ int main(int argc, char** argv) {
 	// Run worker tests conditional on worker having been successfully constructed
 	if (worker != NULL) {
 		testWorkerCreateBuffer(worker);
-		testWorkerRunParallel(worker);
-		testWorkerMatrixMult(worker);
+		//testWorkerRunParallel(worker);
+		//testWorkerMatrixMult(worker);
+		testWorkerKMeans(worker);
 	} else {
 		recordTest(SKIPPED, "testWorkerCreateBuffer");
 		recordTest(SKIPPED, "testWorkerRunParallel");
 		recordTest(SKIPPED, "testWorkerMatrixMult");
+		recordTest(SKIPPED, "testWorkerKMeans");
 	}
 	
 	
@@ -717,4 +721,119 @@ Result checkMultiplication(float* matA, float* matB, float* matC, unsigned int m
 	if (res != FAIL) res = PASS;
 
 	return res;
+}
+
+void testWorkerKMeans(OpenCLWorker* worker) {
+	Result res;
+
+	std::vector<float> point_vec = {
+		10, 4, 5, 7,
+		19, 3, 6, 5,
+		 2,11, 0,-3,
+		 4, 9, 1, 0,
+		13, 5, 4, 9,
+		 7, 7, 2, 2
+	};
+	std::vector<float> center_vec = {
+		0, 10, 0, 0,
+		10, 1, 1, 7
+	};
+	std::vector<int> class_vec(6);
+
+	bool calculation_finished = worker->KmeansCluster(point_vec, center_vec, class_vec, 5);
+	if (calculation_finished) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Does KMeans clustering algorithm report success after running small case.");
+
+	std::vector<int> expected_classes = {
+		1, 1, 0, 0, 1, 0
+	};
+	if (class_vec == expected_classes) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Does KMeans clustering algorithm correctly classify after 5 iterations for small case.");
+
+	point_vec.clear();
+	for (int i=0; i<2000; i++) {
+		point_vec.push_back(300 + (float)(rand()%50));
+		point_vec.push_back(900 + (float)(rand()%50));
+		point_vec.push_back(100 + (float)(rand()%50));
+		point_vec.push_back(100 + (float)(rand()%50));
+	}
+	for (int i=0; i<4000; i++) {
+		point_vec.push_back(700 + (float)(rand()%50));
+		point_vec.push_back(200 + (float)(rand()%50));
+		point_vec.push_back(600 + (float)(rand()%50));
+		point_vec.push_back(700 + (float)(rand()%50));
+	}
+	for (int i=0; i<3000; i++) {
+		point_vec.push_back(100 + (float)(rand()%50));
+		point_vec.push_back(400 + (float)(rand()%50));
+		point_vec.push_back(900 + (float)(rand()%50));
+		point_vec.push_back(300 + (float)(rand()%50));
+	}
+
+	center_vec.clear();
+	center_vec = {
+		250, 350, 900, 400,
+		450, 750, 200, 300,
+		650, 300, 750, 900
+	};
+
+	class_vec.clear();
+	class_vec.resize(9000);
+
+	calculation_finished = worker->KmeansCluster(point_vec, center_vec, class_vec, 2);
+	if (calculation_finished) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Does KMeans clustering algorithm report success after running large case.");
+
+	res = PASS;
+	for (int i=0; i<2000; i++) {
+		if (class_vec[i] != 1) {
+			std::cout << "at position " << i << ": " << class_vec[i] << std::endl;
+			std::cout << point_vec[i*4] << ',' << point_vec[i*4+1] << ',' << point_vec[i*4+2] << ',' << point_vec[i*4+3] << ',' << std::endl;
+			res = FAIL;
+			break;
+		}
+	}
+	for (int i=2000; i<6000; i++) {
+		if (class_vec[i] != 2) {
+			res = FAIL;
+			break;
+		}
+	}
+	for (int i=6000; i<9000; i++) {
+		if (class_vec[i] != 0) {
+			res = FAIL;
+			break;
+		}
+	}
+	recordTest(res, "Does KMeans clustering algorithm correctly classify after 5 iterations for large case.");
+
+	/*
+	std::cout << "centers:" << std::endl; 
+	int val_counter=0;
+	for(auto e : center_vec) {
+		std::cout << e <<',';
+		val_counter++;
+		if (val_counter >= 4) {
+			val_counter=0;
+			std::cout << std::endl;
+		}
+	}
+	std::cout << "classifications: " << std::endl;
+	for (auto e : class_vec) {
+		std::cout << e << std::endl;
+	}*/
+
+
 }

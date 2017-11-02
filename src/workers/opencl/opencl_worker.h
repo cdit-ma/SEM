@@ -27,7 +27,8 @@ public:
     bool RunParallel(int num_threads, long long ops_per_thread);
     bool MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC);
     bool MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC);
-    std::vector<int> KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, int iterations);
+    bool KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations);
+    bool KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations);
 
 
 protected:
