@@ -93,12 +93,6 @@ def git_credential_id = ""
 def filtered_names = []
 
 stage('Set up'){
-    //Start deploy script
-    if(!checkParamsExist()){
-        currentBuild.result = 'FAILURE'
-        return
-    }
-
     //Get nodes to deploy to
     def names = nodeNames()
     for(n in names){
@@ -107,12 +101,6 @@ stage('Set up'){
             print("Got Node: " + n)
         }
     }
-
-    //Build git url and ref
-    git_credential_id = getCredentialID()
-    git_url = buildGitUrl(env.GIT_URL, PROJECT_NAME)
-    ref_name = buildGitRef(env.GIT_BRANCH, env.GIT_TAG)
-    currentBuild.description = git_url + '/' + ref_name
 }
 
 //Checkout and stash re source
@@ -122,15 +110,6 @@ stage('Checkout'){
             checkout scm
             stash include: "**", name: "re_source"
         }
-    }
-}
-
-//Checkout and stash re source
-stage('Checkout'){
-    node('master'){
-        checkout([$class: 'GitSCM', branches: [[name: "*/master"]], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url, refspec: "+refs/heads/master:refs/remotes/origin/master"]]])
-        
-        stash include: "**", name: "re_source"
     }
 }
 
