@@ -119,12 +119,18 @@ stage('Set up'){
 stage('Checkout'){
     node('master'){
         dir('re'){
-            deleteDir()
-            checkout([$class: 'GitSCM', branches: [[name: ref_name]], doGenerateSubmoduleConfigurations: false,
-                extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]],
-                submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url]]])
+            checkout scm
             stash include: "**", name: "re_source"
         }
+    }
+}
+
+//Checkout and stash re source
+stage('Checkout'){
+    node('master'){
+        checkout([$class: 'GitSCM', branches: [[name: "*/master"]], userRemoteConfigs: [[credentialsId: git_credential_id, url: git_url, refspec: "+refs/heads/master:refs/remotes/origin/master"]]])
+        
+        stash include: "**", name: "re_source"
     }
 }
 
