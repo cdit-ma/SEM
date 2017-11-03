@@ -27,121 +27,75 @@ def getLabels(String name){
     return ""
 }
 
-//Check all required params
-def checkParamsExist(){
-    def git_url = ""
-    git_url = env.GIT_URL
-    if(git_url == null){
-        print("ERROR: \"GIT_URL\" string parameter missing in build configuration")
-        return false
-    }
-    def git_credential_id = ""
-    git_credential_id = env.GIT_CREDENTIAL_ID
-    if(git_credential_id == null) {
-        print("ERROR: \"GIT_CREDENTIAL_ID\" credential parameter missing in build configuration")
-        return false
-    }
-    def branch = env.GIT_BRANCH
-    if(branch == null){
-        print("ERROR: \"GIT_BRANCH\" string parameter missing in build configuration")
-        return false
-    }
-
-    def tag = env.GIT_TAG
-    if(tag == null){
-        print("ERROR: \"GIT_TAG\" string parameter missing in build configuration")
-        return false
-    }
-
-    return true
-}
-
-def getCredentialID(){
-    return env.GIT_CREDENTIAL_ID
-}
-
-//Build git ref pointer. If no branch specified, use tag, if no tag specified use default branch (master).
-def buildGitRef(String branch, String tag){
-    def default_branch = "master"
-    def ref_name = ""
-
-    if(!branch){
-        branch = default_branch
-    }
-    ref_name = "*/" + branch
-
-    if(tag){
-        ref_name = "refs/tags/" + tag
-    }
-    return ref_name
-}
-
-//Build git url. If no url specified, default to cdit-ma github+proj name
-def buildGitUrl(String url, String proj){
-    def default_git_url = "https://github.com/cdit-ma/" + proj + ".git"
-    //Set git url to default if empty
-    if(!url){
-        return default_git_url
-    }
-    return url
-}
-
-
-def ref_name = ""
-def git_url = ""
-def git_credential_id = ""
-def filtered_names = []
-
-stage('Set up'){
-    //Get nodes to deploy to
+//Get labelled nodes
+def getLabelledNodes(String label){
+    def filtered_names = []
     def names = nodeNames()
-    for(n in names){
-        if(getLabels(n).contains(PROJECT_NAME)){
+    for(n in nodeNames()){
+        if(getLabels(n).contains(label)){
             filtered_names << n
-            print("Got Node: " + n)
         }
     }
+    return filtered_names
 }
+
+//Run script, changes to bat if windows detected.
+def runScript(String script){
+    if(isUnix()){
+        out = sh(returnStatus: true, script: script)
+        return out
+    }
+    else{
+        out = powershell(returnStatus:true, script: script)
+        return out
+    }
+}
+
+def buildProject(String generator, String cmake_options){
+    print "Calling CMake generate"
+    if(runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
+        print "Calling CMake --build"
+        if(runScript("cmake --build . --config Release") == 0){
+            return true;
+        }
+    }
+    currentBuild.result = 'Failure'
+    return
+}
+
+
+
+def git_url = "/srv/git"
+
+def re_nodes = getLabelledNodes(PROJECT_NAME);
 
 //Checkout and stash re source
 stage('Checkout'){
     node('master'){
-        dir('re'){
-            checkout scm
-            stash include: "**", name: "re_source"
+        dir(git_url + "/" + PROJECT_NAME){
+            stash include: "**", name: "source_code"
         }
     }
 }
 
-//Unstash re source on all re nodes
-stage('Deploy'){
-    def builders = [:]
-    for(n in filtered_names){
-        def node_name = n
-        builders[node_name] = {
-            node(node_name){
-                dir("${RE_PATH}"){
-                    unstash "re_source"
+def step_build = [:]
+
+for(n in medea_nodes){
+    def node_name = n
+    step_build[node_name] = {
+        node(node_name){
+            dir("${RE_PATH}"){
+                deleteDir()
+                unstash "source_code"
+                dir("build"){
+                    //Build the entire project 
+                    buildProject("Unix Makefiles", "-DCMAKE_CXX_FLAGS=-j8")
                 }
             }
         }
     }
-    parallel builders
 }
-
 //Build re on all re nodes
 stage('Build'){
-    def builders = [:]
-    for(n in filtered_names){ 
-        def node_name = n
-        builders[node_name] = {  
-            node(node_name){
-                dir("${RE_PATH}" + '/build'){
-                    sh 'cmake ..'
-                    sh 'make -j6'
-                }
-            }
-        }
-    }
-    parallel builders
+    parallel step_build
 }
