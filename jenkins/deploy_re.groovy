@@ -53,7 +53,7 @@ def runScript(String script){
 
 def buildProject(String generator, String cmake_options){
     print "Calling CMake generate"
-    if(runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
+    if(runScript("cmake .. -G \"" + generator + "\" -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
         print "Calling CMake --build"
         if(runScript("cmake --build . --config Release") == 0){
             return true;
