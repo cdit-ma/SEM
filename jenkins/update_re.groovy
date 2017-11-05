@@ -7,3 +7,5 @@ stage("checkout") {
         }
     }
 }
+
+build job: 'deploy_re'
