@@ -81,7 +81,7 @@ stage('Checkout'){
 print("TOTOTLTLTL")
 def step_build = [:]
 
-for(n in medea_nodes){
+for(n in re_nodes){
     def node_name = n
     step_build[node_name] = {
         node(node_name){
