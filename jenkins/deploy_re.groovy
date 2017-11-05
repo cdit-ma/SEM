@@ -78,6 +78,7 @@ stage('Checkout'){
     }
 }
 
+print("TOTOTLTLTL")
 def step_build = [:]
 
 for(n in medea_nodes){
