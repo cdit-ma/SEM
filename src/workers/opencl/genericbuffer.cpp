@@ -2,7 +2,7 @@
 
 #include "genericbuffer.h"
 #include "openclutilities.h"
-#include "OpenCLManager.h"
+#include "openclmanager.h"
 
 /*GenericBuffer::GenericBuffer(int id) : id_(id) {
     id_ = OpenCLManager::BufferAttorney::GetNewBufferID(manager)
