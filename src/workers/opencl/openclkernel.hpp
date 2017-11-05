@@ -138,7 +138,7 @@ OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
 template <typename T0>
 typename std::enable_if<std::is_pointer<T0>::value, bool>::type
 OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
-    return SetArg(index, sizeof(*T0), arg);
+    return SetArg(index, sizeof(std::remove_reference(T0)::type), arg);
 }
 
 template <typename T0>

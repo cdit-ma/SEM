@@ -130,7 +130,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 
 	for (auto d : devices) {
 
-		queues_.push_back(std::make_shared<cl::CommandQueue>(*context_, d, NULL, &err));
+		queues_.push_back(std::make_shared<cl::CommandQueue>(*context_, d, CL_QUEUE_PROFILING_ENABLE, &err));
 		if (err != CL_SUCCESS) {
 			LogError(worker_reference,
 				std::string(__func__),
