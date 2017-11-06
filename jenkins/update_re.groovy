@@ -10,5 +10,7 @@ stage("checkout") {
     }
 }
 
+currentBuild.description = env.BRANCH
+
 //Deploy and build
 build(job: 'deploy_re', quietPeriod: 0);
