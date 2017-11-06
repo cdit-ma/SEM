@@ -35,16 +35,6 @@ for(n in cmake_modules_nodes){
             }
         }
     }
-for(n in cmake_modules_nodes){
-    def node_name = n
-    step_build[node_name] = {
-        node(node_name){
-            dir("${CMAKE_MODULE_PATH}"){
-                deleteDir()
-                unstash "source_code"
-            }
-        }
-    }
 }
 
 //Build logan on all logan nodes
