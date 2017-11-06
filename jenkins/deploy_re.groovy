@@ -4,8 +4,8 @@ This script requires the following Jenkins plugins:
 -Pipeline: Utility Steps
 */
 
-@Library('cditma-utils')
-import cditma.Utils;
+@Library('cditma-utils') _
+import cditma.Utils
 
 def PROJECT_NAME = 're'
 def git_url = "/srv/git"
