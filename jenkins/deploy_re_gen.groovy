@@ -37,3 +37,8 @@ for(n in re_gen_nodes){
         }
     }
 }
+
+//Build logan on all logan nodes
+stage('Build'){
+    parallel step_build
+}
