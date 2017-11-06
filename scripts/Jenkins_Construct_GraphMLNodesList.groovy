@@ -13,7 +13,7 @@ def getHost(String name) {
     def label_string = node.getLabelString();
 
     def launcher = node.getLauncher();
-    if(computer.isOnline()){
+    if(computer.isOnline() && launcher instanceof SSHLauncher){
         return launcher.getHost();
     }else{
         return "";
