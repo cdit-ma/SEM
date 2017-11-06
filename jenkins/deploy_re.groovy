@@ -33,7 +33,7 @@ for(n in re_nodes){
                 deleteDir()
                 unstash "source_code"
                 dir("build"){
-                    def result = utils.buildProject("Unix Makefiles", "-DMAKEFLAGS=-j6")
+                    def result = utils.buildProject("Unix Makefiles", "-DMAKEFLAGS=j6")
                     if(!result){
                         error('Failed to compile')
                     }
