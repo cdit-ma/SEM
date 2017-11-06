@@ -1,7 +1,9 @@
 import jenkins.model.Jenkins;  
 import hudson.slaves.SlaveComputer;  
 import hudson.slaves.DumbSlave;  
-import hudson.plugins.sshslaves.SSHLauncher;  
+import hudson.plugins.sshslaves.SSHLauncher;
+import java.util.regex.*;
+import groovy.json.JsonSlurper;
 
 //Get Jenkins Singleton  
 jenkins.model.Jenkins jenkins = jenkins.model.Jenkins.getInstance();
@@ -18,10 +20,15 @@ def static Run(nodeName, runCommand)
     command.addTokenized(runCommand);
     def ps = launcher.launch();
     ps = ps.cmds(command).stdout(listener);
-    // ps = ps.pwd(build.getWorkspace()).envs(build.getEnvironment(listener));
+    
     def proc = launcher.launch(ps);
     int retcode = proc.join();
     return [retcode, output.toString()]
+}
+
+
+def trimWS(String str){
+    return str.trim().replaceAll(" +", " ");
 }
 
 
@@ -80,9 +87,14 @@ OUTPUT <<= '<key attr.name="root_path" attr.type="string" for="all" id="k13"/>' 
 OUTPUT <<= '<key attr.name="load_time" attr.type="string" for="all" id="k14"/>' << nl();
 OUTPUT <<= '<key attr.name="is_online" attr.type="boolean" for="all" id="k15"/>' << nl();
 OUTPUT <<= '<key attr.name="user_name" attr.type="string" for="all" id="k16"/>' << nl();
-OUTPUT <<= '<key attr.name="version" attr.type="string" for="all" id="k17"/>' << nl();
+OUTPUT <<= '<key attr.name="version" attr.type="string" for="all" id="version"/>' << nl();
 OUTPUT <<= '<key attr.name="isExpanded" attr.type="boolean" for="all" id="k22"/>' << nl();
-OUTPUT <<= '<key attr.name="test" attr.type="string" for="all" id="k23"/>' << nl();
+OUTPUT <<= '<key attr.name="vendor" attr.type="string" for="all" id="vendor"/>' << nl();
+OUTPUT <<= '<key attr.name="is_available" attr.type="boolean" for="all" id="is_available"/>' << nl();
+OUTPUT <<= '<key attr.name="memory_size" attr.type="int" for="all" id="memory_size"/>' << nl();
+OUTPUT <<= '<key attr.name="clock_freq" attr.type="int" for="all" id="clock_freq"/>' << nl();
+
+
 OUTPUT <<= '<graph edgedefault="directed" id="' << getID() << '">' << nl();
 OUTPUT <<= t(1) << '<node id="' << getID() << '">' << nl();
 OUTPUT <<= t(2) << '<data key="k1">HardwareDefinitions</data>' << nl();
@@ -131,9 +143,43 @@ for(slave in jenkins.slaves){
     def RE_PATH = c.getEnvironment().get("RE_PATH", "");
 
     if(RE_PATH != ""){
-        //(recode, output) = Run(hostname, "java -version");
+        (recode, output) = Run(hostname, RE_PATH + "/bin/list_opencl_devices");
 
-        OUTPUT <<= t(6) << '<data key="k23">' << RE_PATH << '</data>' << nl();
+        def flat_output = output.replace("\n", "").replace("\r", "");
+        def m = flat_output =~ '(\\{.*\\})'                                           
+        assert m instanceof Matcher                                       
+            if (!m) {                                                         
+                throw new RuntimeException("Oops, text not found!")
+        }else{
+            def slurper = new JsonSlurper()
+            def result = slurper.parseText(m[0][0])
+
+            OUTPUT <<= t(6) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
+
+            for(platform in result.platforms){
+                OUTPUT <<= t(7) << '<node id="' << getID() << '">' << nl();
+                OUTPUT <<= t(8) << '<data key="k1">OpenCLPlatform</data>' << nl();  
+                OUTPUT <<= t(8) << '<data key="k3">' << trimWS(platform.name) << '</data>' << nl();  
+                OUTPUT <<= t(8) << '<data key="version">' << platform.version << '</data>' << nl();
+                OUTPUT <<= t(8) << '<data key="vendor">' << platform.vendor << '</data>' << nl();
+
+                OUTPUT <<= t(8) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
+                for(device in platform.devices){
+                    OUTPUT <<= t(9) << '<node id="' << getID() << '">' << nl();
+                    OUTPUT <<= t(10) << '<data key="k1">OpenCLDevice</data>' << nl();  
+                    OUTPUT <<= t(10) << '<data key="k3">' << trimWS(device.name) << '</data>' << nl();  
+                    OUTPUT <<= t(10) << '<data key="is_available">' << device.available << '</data>' << nl();
+                    OUTPUT <<= t(10) << '<data key="memory_size">' << device.mem_size << '</data>' << nl();
+                    OUTPUT <<= t(10) << '<data key="clock_freq">' << device.max_clock_frequency << '</data>' << nl();
+                    OUTPUT <<= t(10) << '<data key="k2">' << device.type << '</data>' << nl();
+                    OUTPUT <<= t(10) << '<data key="version">' << device.driver_version << '</data>' << nl();
+                    OUTPUT <<= t(9) << '</node>' << nl();
+                }
+                OUTPUT <<= t(9) << '</graph>' << nl();
+                OUTPUT <<= t(8) << '</node>' << nl();
+            }
+            OUTPUT <<= t(7) << '</graph>' << nl();
+        }
     }
 
 

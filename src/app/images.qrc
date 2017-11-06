@@ -282,5 +282,8 @@
         <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
         <file alias="filterList">Resources/Icons/filterList.png</file>
         <file alias="running">Resources/Icons/running.png</file>
+        <file alias="amd">Resources/Icons/amd.png</file>
+        <file alias="intel">Resources/Icons/intel.png</file>
+        <file alias="nvidia">Resources/Icons/nvidia.png</file>
     </qresource>
 </RCC>

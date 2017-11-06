@@ -463,11 +463,36 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             case NODE_KIND::WORKLOAD:{
+                QString type = viewItem->getData("type").toString();
                 if(nodeViewItem->getViewAspect() == VIEW_ASPECT::WORKERS){
                     //If we are
                     alias = icon_prefix;
                     image = icon;
                 }
+                break;
+            }
+            case NODE_KIND::OPENCL_PLATFORM:{
+                QString type = viewItem->getData("vendor").toString();
+                alias = "Icons";
+                
+                if(type == "Advanced Micro Devices, Inc."){
+                    image = "amd";
+                }else if(type == "intel"){
+                    image = "intel";
+                }else if(type == "nvidia"){
+                    image = "nvidia";
+                }
+                
+                break;
+            }
+            case NODE_KIND::OPENCL_DEVICE:{
+                QString type = viewItem->getData("type").toString();
+                if(type == "CL_DEVICE_TYPE_CPU"){
+                    image = "cpu";
+                }else if(type == "CL_DEVICE_TYPE_GPU"){
+                    image = "gpu";
+                }
+                alias = "Icons";
                 break;
             }
             case NODE_KIND::VARIADIC_PARAMETER:{
