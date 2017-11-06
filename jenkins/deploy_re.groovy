@@ -29,11 +29,11 @@ for(n in re_nodes){
     def node_name = n
     step_build[node_name] = {
         node(node_name){
-            dir('${RE_PATH}'){
+            dir("${RE_PATH}"){
                 deleteDir()
                 unstash "source_code"
                 dir("build"){
-                    def result = utils.buildProject("Unix Makefiles", "")
+                    def result = utils.buildProject("Unix Makefiles", "-DMAKEFLAGS=-j6")
                     if(!result){
                         error('Failed to compile')
                     }
