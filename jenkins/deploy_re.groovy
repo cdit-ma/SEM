@@ -31,7 +31,12 @@ for(n in re_nodes){
                 unstash "source_code"
                 dir("build"){
                     //Build the entire project 
-                    Utils.buildProject("Unix Makefiles", "")
+                    def result = Utils.buildProject("Unix Makefiles", "")
+                    
+
+                    if(!result){
+                        error('Failed to compile')
+                    }
                 }
             }
         }
