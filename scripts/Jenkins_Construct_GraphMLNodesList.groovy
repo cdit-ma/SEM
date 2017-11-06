@@ -7,13 +7,31 @@ import hudson.plugins.sshslaves.SSHLauncher;
 jenkins.model.Jenkins jenkins = jenkins.model.Jenkins.getInstance();
 ID_COUNTER = 0;
 
+def static Run(nodeName, runCommand)
+{
+    def output = new java.io.ByteArrayOutputStream();
+    def listener = new hudson.util.StreamTaskListener(output);
+    def node = hudson.model.Hudson.instance.getNode(nodeName);
+    def launcher = node.createLauncher(listener);
+
+    def command = new hudson.util.ArgumentListBuilder();
+    command.addTokenized(runCommand);
+    def ps = launcher.launch();
+    ps = ps.cmds(command).stdout(listener);
+    // ps = ps.pwd(build.getWorkspace()).envs(build.getEnvironment(listener));
+    def proc = launcher.launch(ps);
+    int retcode = proc.join();
+    return [retcode, output.toString()]
+}
+
+
 def getHost(String name) {
     def computer = jenkins.model.Jenkins.getInstance().getComputer(name);
     def node = computer.getNode();
     def label_string = node.getLabelString();
 
     def launcher = node.getLauncher();
-    if(computer.isOnline()){
+    if(computer.isOnline() && launcher instanceof SSHLauncher){
         return launcher.getHost();
     }else{
         return "";
@@ -64,6 +82,7 @@ OUTPUT <<= '<key attr.name="is_online" attr.type="boolean" for="all" id="k15"/>'
 OUTPUT <<= '<key attr.name="user_name" attr.type="string" for="all" id="k16"/>' << nl();
 OUTPUT <<= '<key attr.name="version" attr.type="string" for="all" id="k17"/>' << nl();
 OUTPUT <<= '<key attr.name="isExpanded" attr.type="boolean" for="all" id="k22"/>' << nl();
+OUTPUT <<= '<key attr.name="test" attr.type="string" for="all" id="k23"/>' << nl();
 OUTPUT <<= '<graph edgedefault="directed" id="' << getID() << '">' << nl();
 OUTPUT <<= t(1) << '<node id="' << getID() << '">' << nl();
 OUTPUT <<= t(2) << '<data key="k1">HardwareDefinitions</data>' << nl();
@@ -107,7 +126,18 @@ for(slave in jenkins.slaves){
 			OUTPUT <<= t(6) << '<data key="k8">' << c.getSystemProperties().get("os.arch", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k9">' << c.getSystemProperties().get("os.version", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k13">' << slave.getRootPath() << '</data>' << nl();
+            
 	}
+    def RE_PATH = c.getEnvironment().get("RE_PATH", "");
+
+    if(RE_PATH != ""){
+        //(recode, output) = Run(hostname, "java -version");
+
+        OUTPUT <<= t(6) << '<data key="k23">' << RE_PATH << '</data>' << nl();
+    }
+
+
+    
 
     OUTPUT <<= t(6) << '<data key="k12">' << sort_order++ << '</data>' << nl();
     OUTPUT <<= t(6) << '<data key="k14">' << LOAD_TIME << '</data>' << nl();

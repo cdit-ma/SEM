@@ -41,6 +41,8 @@ enum class NODE_KIND
         OUTEVENTPORT_INSTANCE,
         HARDWARE_CLUSTER,
         HARDWARE_NODE,
+        OPENCL_PLATFORM,
+        OPENCL_DEVICE,
 
         ATTRIBUTE_IMPL,
         BRANCH,

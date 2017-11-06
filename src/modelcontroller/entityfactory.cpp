@@ -75,6 +75,8 @@
 #include "Entities/DeploymentDefinitions/outeventportdelegate.h"
 #include "Entities/DeploymentDefinitions/loggingprofile.h"
 #include "Entities/DeploymentDefinitions/loggingserver.h"
+#include "Entities/DeploymentDefinitions/openclplatform.h"
+#include "Entities/DeploymentDefinitions/opencldevice.h"
 
 //Definition Elements
 #include "Entities/InterfaceDefinitions/aggregate.h"
@@ -355,6 +357,9 @@ EntityFactory::EntityFactory()
     OutEventPortDelegate(this);
     LoggingProfile(this);
     LoggingServer(this);
+    
+    OpenCLDevice(this);
+    OpenCLPlatform(this);
 
     //Definition Elements
     Aggregate(this);

@@ -11,7 +11,7 @@ protected:
 	HardwareNode(EntityFactory* factory);
 	HardwareNode();
 public:
-    bool canAdoptChild(Node*);
+    bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

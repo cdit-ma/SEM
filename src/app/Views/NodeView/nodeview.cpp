@@ -803,11 +803,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             secondary_icon.first = "Icons";
             switch(nodeKind){
             case NODE_KIND::HARDWARE_NODE:
-                nodeItem = new HardwareNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
                 secondary_icon.second = "arrowTransfer";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT);
+                nodeItem->setExpandEnabled(true);
                 break;
             case NODE_KIND::MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
