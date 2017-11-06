@@ -9,7 +9,7 @@ import cditma.*;
 
 def PROJECT_NAME = 're'
 def git_url = "/srv/git"
-def re_nodes = getLabelledNodes(PROJECT_NAME);
+def re_nodes = Utils.getLabelledNodes(PROJECT_NAME);
 
 //Checkout and stash re source
 stage('Checkout'){
@@ -31,7 +31,7 @@ for(n in re_nodes){
                 unstash "source_code"
                 dir("build"){
                     //Build the entire project 
-                    buildProject("Unix Makefiles", "")
+                    Utils.buildProject("Unix Makefiles", "")
                 }
             }
         }
