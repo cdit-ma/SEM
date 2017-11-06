@@ -1,6 +1,12 @@
 build
+build64
+.vs
 .vscode
 lib
 bin
 .sql
 
+scripts/configure.bat
+build.bat
+run.bat
+CMakeSettings.json.bak
