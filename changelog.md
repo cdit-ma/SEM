@@ -7,10 +7,25 @@
 ## Testing:
 * Added Google Test as testing framework
 * Tests can be built by adding -DBUILD_TEST ON (defaults to false)
-* Added a PeriodicEventPort tester
+* Added test_periodicevent
+* Added test_cpuworker
+* Added a jenkinsFile to run simple model tests
 
 ## JIRA Issues:
-* RE_96 RE_99 RE_87 RE-92
+|	Issue key	|	Summary	|
+|	--- | --- |
+|	[RE-102](https://cdit-ma.atlassian.net/browse/RE-102)	|	Create a regression test job to compile and run the re tests/build process	|
+|	[RE-100](https://cdit-ma.atlassian.net/browse/RE-100)	|	Add all commands/options + examples for execution of all programs into README.md	|
+|	[RE-98](https://cdit-ma.atlassian.net/browse/RE-98)	|	Update model parser to pull out model comment.	|
+|	[GEN-36](https://cdit-ma.atlassian.net/browse/GEN-36)	|	Cleanup JenkinsFiles across all projects and use standard naming schema	|
+|	[GEN-30](https://cdit-ma.atlassian.net/browse/GEN-30)	|	Update run model tests jenkins job to recurse subdirs.	|
+|	[RE-97](https://cdit-ma.atlassian.net/browse/RE-97)	|	Add tutorial models to test_models repo.	|
+|	[RE-92](https://cdit-ma.atlassian.net/browse/RE-92)	|	Add a changelog.md file with the list of changed features	|
+|	[RE-96](https://cdit-ma.atlassian.net/browse/RE-96)	|	Periodic Event should sleep for the correct length of time	|
+|	[RE-99](https://cdit-ma.atlassian.net/browse/RE-99)	|	Integrate Google Test with RE	|
+|	[RE-87](https://cdit-ma.atlassian.net/browse/RE-87)	|	Build jenkins job to test re with a series of models	|
+|	[RE-51](https://cdit-ma.atlassian.net/browse/RE-51)	|	Test RE on windows	|
+
 
 ---
 
