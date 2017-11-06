@@ -7,9 +7,11 @@ This script requires the following Jenkins plugins:
 @Library('cditma-utils')
 import cditma.Utils
 
+def utils = Utils(this);
+
 def PROJECT_NAME = 're'
 def git_url = "/srv/git"
-def re_nodes = Utils.getLabelledNodes(PROJECT_NAME);
+def re_nodes = utils.getLabelledNodes(PROJECT_NAME);
 
 //Checkout and stash re source
 stage('Checkout'){
@@ -31,7 +33,7 @@ for(n in re_nodes){
                 unstash "source_code"
                 dir("build"){
                     //Build the entire project 
-                    def result = Utils.buildProject("Unix Makefiles", "")
+                    def result = utils.buildProject("Unix Makefiles", "")
                     
 
                     if(!result){
