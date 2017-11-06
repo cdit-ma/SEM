@@ -34,7 +34,7 @@ for(n in cmake_modules_nodes){
                 unstash "source_code"
             }
         }
-    }_build = [:]
+    }
 for(n in cmake_modules_nodes){
     def node_name = n
     step_build[node_name] = {
