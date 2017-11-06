@@ -1,6 +1,7 @@
 #include "opencl_worker.h"
 #include "openclutilities.h"
 
+#include <math.h>
 #include <iostream>
 
 OpenCLWorker::OpenCLWorker(Component* component, std::string inst_name, int platform_id)
@@ -125,7 +126,8 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     //std::cout << "Block length: " << block_length << std::endl;
 
 
-    size_t block_data_size = block_length*block_length*sizeof(cl_float);
+    //size_t block_data_size = block_length*block_length*sizeof(cl_float);
+    cl::LocalSpaceArg block_data_size = cl::Local(block_length*block_length*sizeof(cl_float));
 
     unsigned int max_mat_width = std::max(M, K);
     unsigned int max_mat_height = std::max(N, K);
@@ -137,7 +139,8 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
 
     // TODO: Mutex this stuff
     bool did_set_args = matrix_kernel_->SetArgs(matA, matB, matC, M, K, N,
-        cl::Local(block_data_size), cl::Local(block_data_size));
+        block_data_size, block_data_size);
+        //cl::Local(block_data_size), cl::Local(block_data_size));
     if (!did_set_args) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to set args for MatrixMult");
