@@ -4,6 +4,9 @@ This script requires the following Jenkins plugins:
 -Pipeline: Utility Steps
 */
 
+@Library('cdit-ma-utils');
+import cdit-ma.*;
+
 def PROJECT_NAME = 're'
 def git_url = "/srv/git"
 def re_nodes = getLabelledNodes(PROJECT_NAME);
