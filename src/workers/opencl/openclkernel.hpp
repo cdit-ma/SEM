@@ -103,8 +103,7 @@ OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     
     if (!success) {
         LogError(__func__,
-            "Unable to set parameter "+std::to_string(index)+" of a kernel",
-            err);
+            "Unable to set parameter "+std::to_string(index)+" of a kernel");
         return false;
     }
     //std::cerr << "set arg " << index << std::endl;
