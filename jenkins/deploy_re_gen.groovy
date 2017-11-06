@@ -32,7 +32,6 @@ for(n in re_gen_nodes){
             dir("${RE_GEN_PATH}"){
                 deleteDir()
                 unstash "source_code"
-                }
             }
         }
     }
