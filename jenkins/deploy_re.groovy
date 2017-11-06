@@ -4,7 +4,7 @@ This script requires the following Jenkins plugins:
 -Pipeline: Utility Steps
 */
 
-@Library('cditma-utils') _
+@Library('cditma-utils')
 import cditma.Utils
 
 def PROJECT_NAME = 're'
