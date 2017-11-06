@@ -7,7 +7,7 @@ This script requires the following Jenkins plugins:
 @Library('cditma-utils')
 import cditma.Utils
 
-def utils = Utils(this);
+def utils = new Utils(this);
 
 def PROJECT_NAME = 're'
 def git_url = "/srv/git"
