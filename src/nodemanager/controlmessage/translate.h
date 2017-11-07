@@ -1,13 +1,13 @@
 #ifndef PB_TRANSLATE_H
 #define PB_TRANSLATE_H
 
-#include "../attribute.h"
+#include <core/attribute.h>
 
 namespace NodeManager{
     class Attribute;
 };
 
-::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a = 0);
+std::shared_ptr<::Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<::Attribute> a = 0);
 
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr);
 

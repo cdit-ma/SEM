@@ -4,9 +4,9 @@
 
 #include "execution.hpp"
 
-#include "../../re_common/zmq/protoreceiver/protoreceiver.h"
-#include "../controlmessage/controlmessage.pb.h"
-#include "../controlmessage/translate.h"
+#include <re_common/zmq/protoreceiver/protoreceiver.h>
+#include "controlmessage/controlmessage.pb.h"
+#include "controlmessage/translate.h"
 
 #include <google/protobuf/util/json_util.h>
 #include <google/protobuf/message.h>

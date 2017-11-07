@@ -4,9 +4,9 @@
 #include <chrono>
 #include <algorithm>
 #include <map>
-#include "../controlmessage/controlmessage.pb.h"
+#include "controlmessage/controlmessage.pb.h"
 
-#include "../../re_common/zmq/protowriter/protowriter.h"
+#include <re_common/zmq/protowriter/protowriter.h>
 #include "executionparser/modelparser.h"
 #include "executionparser/datatypes.h"
 

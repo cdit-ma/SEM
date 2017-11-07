@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <functional>
 
-#include "../component.h"
+#include <core/component.h>
 
 namespace NodeManager{
     class ControlMessage;

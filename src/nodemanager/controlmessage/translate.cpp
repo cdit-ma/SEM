@@ -27,13 +27,14 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
     return ATTRIBUTE_TYPE::STRING;
 }
 
-::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a){
+
+std::shared_ptr<::Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<::Attribute> a){
     
     auto type = GetAttributeTypeFromPb(attr);
     
     bool set_type = a == 0;
     if(a == 0){
-        a = ::new Attribute(type, attr->mutable_info()->name());
+        a = std::make_shared<Attribute>(type, attr->mutable_info()->name());
     }
     switch(type){
         case ATTRIBUTE_TYPE::INTEGER:

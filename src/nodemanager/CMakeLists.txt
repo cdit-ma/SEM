@@ -7,8 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
+#Include the parent directory
+include_directories("../")
 
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 
 #Pass Version info into cmakevars.h
 configure_file(
@@ -20,6 +23,7 @@ set(EXECUTION_TESTER re_execution_tester)
 
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
+
 
 #Find Protobuf
 find_package(Protobuf REQUIRED)

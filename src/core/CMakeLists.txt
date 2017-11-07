@@ -10,9 +10,6 @@ set(PROJ_NAME re_core)
 project(${PROJ_NAME})
 #Add the re_node_manager to the directory listings
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nodemanager")
-
 #Find protobuf
 find_package(Protobuf REQUIRED)
 #Find ZMQ

@@ -90,3 +90,26 @@ void Activatable::WaitForStartup(){
 
 Activatable::~Activatable(){
 }
+        
+std::shared_ptr<Attribute> Activatable::AddAttribute(std::shared_ptr<Attribute> attribute){
+    std::lock_guard<std::mutex> lock(attributes_mutex_);
+    if(attribute){
+        auto name = attribute->get_name();
+        if(attributes_.count(name) == 0){
+            attributes_[name] = attribute;
+            return attribute;
+        }
+    }
+    attribute.reset();
+    return attribute;
+}
+
+std::shared_ptr<Attribute> Activatable::GetAttribute(std::string name){
+    std::lock_guard<std::mutex> lock(attributes_mutex_);
+    std::shared_ptr<Attribute> attribute;
+    
+    if(attributes_.count(name)){
+        attribute = attributes_[name];
+    }
+    return attribute;
+}

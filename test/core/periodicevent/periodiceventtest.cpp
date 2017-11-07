@@ -16,7 +16,12 @@ struct PeriodTestCase{
         //Calculate 
         lower = expected_ticks * error_confidence;
         upper  = expected_ticks * (1 + (1 - error_confidence));
-        callback_time_ms = (1000.0 / (double) periodic_hz) * workload_perc;
+
+        if(periodic_hz > 0){
+            callback_time_ms = (1000.0 / (double) periodic_hz) * workload_perc;
+        }else{
+            callback_time_ms = 0;
+        }
     }
     int test_time_ms;
     int periodic_hz;
@@ -64,8 +69,8 @@ TEST_P(PeriodicEventTest, TickCount)
        //Destructor of the PE will passivate and teardown the process
    }
 
-   ASSERT_GT(tick_count, p.lower);
-   ASSERT_LT(tick_count, p.upper);
+   ASSERT_GE(tick_count, p.lower);
+   ASSERT_LE(tick_count, p.upper);
 }
 
 //Define a helper to generate a range of test cases for a particular hz/time/confidence interval
@@ -74,16 +79,18 @@ std::vector<PeriodTestCase> getTestCases(int hz, double time, double confidence_
     std::vector<PeriodTestCase> test_cases;
     for(auto workload : {0.0, 0.50, .75}){
         auto time_ms = time * 1000;
-        auto expected_ticks = hz * time;
+        auto expected_ticks = (hz * time);
+        //We have a sleep at the start
+        if(expected_ticks > 0){
+            expected_ticks --;
+        }
         auto test_case = PeriodTestCase(time_ms, hz, workload, expected_ticks, confidence_interval);
         test_cases.push_back(test_case);
     }
     return test_cases;
 };
 
-
-
-
+INSTANTIATE_TEST_CASE_P(0Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(0, 5, 1)));
 INSTANTIATE_TEST_CASE_P(1Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(1, 5)));
 INSTANTIATE_TEST_CASE_P(2Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(2, 5)));
 INSTANTIATE_TEST_CASE_P(4Hz_5s, PeriodicEventTest, ::testing::ValuesIn(getTestCases(4, 5)));

@@ -1,5 +1,5 @@
 #include "registrant.h"
-#include "../../modellogger.h"
+#include <core/modellogger.h>
 
 #include <zmq.hpp>
 #include <iostream>

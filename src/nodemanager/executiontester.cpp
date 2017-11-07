@@ -3,7 +3,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 
-#include "../controlmessage/controlmessage.pb.h"
+#include "controlmessage/controlmessage.pb.h"
 
 #include "deploymentmanager.h"
 #include "executionmanager.h"

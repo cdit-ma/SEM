@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include "modellogger.h"
-#include "attribute.h"
 #include "eventport.h"
 #include "worker.h"
 
@@ -153,25 +152,7 @@ void Component::RemoveEventPort(EventPort* event_port){
     //TODO:
 }
 
-void Component::AddAttribute(Attribute* attribute){
-    std::lock_guard<std::mutex> lock(mutex_);
-    if(attribute){
-        auto name = attribute->get_name();
-        if(eventports_.count(name) == 0){
-            attributes_[name] = attribute;
-        }
-    }
-}
 
-Attribute* Component::GetAttribute(std::string name){
-    std::lock_guard<std::mutex> lock(mutex_);
-    Attribute* attribute = 0;
-    
-    if(attributes_.count(name)){
-        attribute = attributes_[name];
-    }
-    return attribute;
-}
 
 
 std::function<void (::BaseMessage*)> Component::GetCallback(std::string port_name){

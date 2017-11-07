@@ -9,20 +9,23 @@ PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std
     //Force set the kind
     SetKind(EventPort::Kind::PE);
     SetMaxQueueSize(1);
-    this->duration_ = std::chrono::milliseconds(milliseconds);
+
+    frequency_ = AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::DOUBLE, "frequency"));
+    frequency_->set_Double(0);
 };
 
 void PeriodicEventPort::SetFrequency(double hz){
-    if(hz > 0){
-        int milliseconds = 1000.0 / hz;
-        SetDuration(milliseconds);
-    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    frequency_->set_Double(hz);
 }
 
 void PeriodicEventPort::SetDuration(int milliseconds){
-    if(milliseconds >= 0){
-        std::unique_lock<std::mutex> lock(mutex_);
-        this->duration_ = std::chrono::milliseconds(milliseconds);
+    auto hz = milliseconds / 1000.0;
+
+    if(milliseconds > 0){
+        SetFrequency(1000 / milliseconds);
+    }else{
+        SetFrequency(0);
     }
 }
 
@@ -32,6 +35,7 @@ bool PeriodicEventPort::Passivate(){
         if(tick_thread_){
             std::unique_lock<std::mutex> lock(mutex_);
             terminate_ = true;
+            lock_condition_.notify_all();
         }
         return true;
     }
@@ -45,11 +49,25 @@ void PeriodicEventPort::Loop(){
     //Log the port becoming online
     EventPort::LogActivation();
     
-    bool ticking = true;
-    while(ticking){
+    while(true){
+        //Sleep first
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            auto frequency = frequency_->get_Double();
+            if(frequency <= 0){
+                //Sleep indefinately
+                lock_condition_.wait(lock, [this]{return terminate_;});
+            }else{
+                //Get the duration in milliseconds
+                auto ms = 1000.0 / frequency;
+                auto duration = std::chrono::milliseconds((int) ms);
+                lock_condition_.wait_for(lock, duration, [this]{return terminate_;});
+            }
+            if(terminate_){
+                break;
+            }
+        }
         EnqueueMessage(new BaseMessage());
-        std::unique_lock<std::mutex> lock(mutex_);
-        ticking = !lock_condition_.wait_for(lock, duration_, [this]{return terminate_;});
     }
 
     EventPort::LogPassivation();
@@ -62,12 +80,8 @@ PeriodicEventPort::~PeriodicEventPort(){
     Teardown();
 }
 
-void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
+void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*>){
     std::lock_guard<std::mutex> lock(control_mutex_);
-
-    if(attributes.count("frequency")){
-        SetFrequency(attributes["frequency"]->get_Double());
-    }
 
     if(!tick_thread_){
         tick_thread_ = new std::thread(&PeriodicEventPort::Loop, this);

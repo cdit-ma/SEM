@@ -8,8 +8,8 @@
 #include <condition_variable>
 #include <thread>
 
+#include <core/modellogger.h>
 #include "nodecontainer.h"
-#include "../modellogger.h"
 
 namespace zmq{class ProtoReceiver;};
 namespace google{namespace protobuf{class MessageLite;}};

@@ -30,7 +30,9 @@ class PeriodicEventPort: public ::InEventPort<BaseMessage>{
         
         std::mutex mutex_;
         std::condition_variable lock_condition_;
+        
         std::chrono::milliseconds duration_;
+        std::shared_ptr<Attribute> frequency_;
         bool terminate_ = false;
 };
 #endif //PERIODICEVENTPORT_H

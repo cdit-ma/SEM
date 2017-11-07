@@ -11,11 +11,11 @@
     #include <dlfcn.h>
 #endif
 
-#include "../modellogger.h"
-#include "../periodiceventport.h"
+#include <core/modellogger.h>
+#include <core/periodiceventport.h>
 
-#include "../controlmessage/controlmessage.pb.h"
-#include "../controlmessage/translate.h"
+#include "controlmessage/controlmessage.pb.h"
+#include "controlmessage/translate.h"
 
 
 
@@ -86,6 +86,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                     SetAttributeFromPb(&a, attribute);
                 }
             }
+
             for(auto p : c.ports()){
                 auto p_info = p.mutable_info();
                 auto port = component->GetEventPort(p_info->id());
@@ -117,16 +118,17 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                     port->set_id(p_info->id());
                     port->set_type(p_info->type());
 
-                    std::map<std::string, ::Attribute*> attributes_;
-
                     for(auto a: p.attributes()){
-                        auto att = SetAttributeFromPb(&a);
-                        if(att){
-                            attributes_[att->get_name()] = att;
+                        auto a_info = a.mutable_info();
+                        auto attribute = port->GetAttribute(a_info->name());
+                        if(attribute){
+                            SetAttributeFromPb(&a, attribute);
+                        }else{
+                            std::cerr << "Can't find attribute '" << a_info->name() << "' in eventport '" << port->get_name() << std::endl;
                         }
                     }
                     //Configure the port
-                    port->Startup(attributes_);
+                    port->Startup({});
                 }else{
                     ModelLogger::get_model_logger()->LogFailedPortConstruction(p_info->type(), p_info->name(), p_info->id());
                 }

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "attribute.h"
+
 
 class ModelLogger;
 
@@ -36,6 +38,7 @@ class Activatable{
         void StartupFinished();
         void WaitForActivate();
         void WaitForStartup();
+        std::shared_ptr<Attribute> GetAttribute(std::string name);
    private:
         bool active_ = false;
         bool startup_finished_ = false;
@@ -46,10 +49,15 @@ class Activatable{
 
         std::mutex state_mutex_;
         std::mutex startup_mutex_;
+        std::mutex attributes_mutex_;
         std::condition_variable activate_condition_;
         std::condition_variable startup_condition_;
 
         Activatable::STATE state_ = Activatable::STATE::PASSIVE;
+
+        std::map<std::string, std::shared_ptr<Attribute> > attributes_;
+   protected:
+        std::shared_ptr<Attribute> AddAttribute(std::shared_ptr<Attribute> attribute);
 };
 
 #endif //ACTIVATABLE_H
