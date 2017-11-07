@@ -1,73 +1,10 @@
 def PROJECT_NAME = 'test_medea'
 
-// This method collects a list of Node names from the current Jenkins instance
-@NonCPS
-def nodeNames() {
-  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
-}
+//Load shared pipeline utility library
+@Library('cditma-utils')
+import cditma.Utils
 
-//Gets nodes label
-def getLabels(String name){
-    def computer = Jenkins.getInstance().getComputer(name)
-    def node = computer.getNode()
-    if(computer.isOnline()){
-        return node.getLabelString()
-    }
-    return ""
-}
-
-//Get labelled nodes
-def getLabelledNodes(String label){
-    def filtered_names = []
-    def names = nodeNames()
-    for(n in nodeNames()){
-        if(getLabels(n).contains(label)){
-            filtered_names << n
-        }
-    }
-    return filtered_names
-}
-
-//Run script, changes to bat if windows detected.
-def runScript(String script){
-    if(isUnix()){
-        out = sh(returnStatus: true, script: script)
-        return out
-    }
-    else{
-        out = powershell(returnStatus:true, script: script)
-        return out
-    }
-}
-
-def buildProject(String generator, String cmake_options){
-    print "Calling CMake generate"
-    if(runScript("cmake .. -G " + generator + " -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
-        print "Calling CMake --build"
-        if(runScript("cmake --build . --config Release") == 0){
-            return true;
-        }
-    }
-    currentBuild.result = 'Failure'
-    return
-}
-
-def trimExtension(String filename){
-    def index = filename.lastIndexOf(".")
-    if (index > 0){
-        filename = filename.take(filename.lastIndexOf('.'))
-    }
-    return filename;
-}
-
-stage("Checkout"){
-    node("master"){
-        dir(PROJECT_NAME){
-            checkout scm
-        }
-        stash includes: "**", name: "source_code"
-    }
-}
+def utils = new Utils(this);
 
 def step_build_test = [:]
 def step_test = [:]
@@ -82,7 +19,7 @@ for(n in medea_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
+                utils.buildProject("Ninja", "-DBUILD_TEST=ON -DBUILD_APP=ON -DBUILD_CLI=ON")
             }
         }
     }
@@ -126,7 +63,7 @@ for(n in medea_nodes){
     step_archive[node_name] = {
         node(node_name){
             dir(PROJECT_NAME + "/build"){
-                runScript("cpack")
+                utils.runScript("cpack")
                 dir("installers"){
                     def globstr = ""
 
@@ -138,7 +75,7 @@ for(n in medea_nodes){
 
                     def file_list = findFiles glob: globstr
 
-                    def archiveName = trimExtension(file_list[0].name) + "-installer.zip"
+                    def archiveName = utils.trimExtension(file_list[0].name) + "-installer.zip"
                     zip glob: globstr, zipFile: archiveName
 
                     archiveArtifacts "*.zip"
