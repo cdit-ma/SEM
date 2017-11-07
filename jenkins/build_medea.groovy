@@ -54,7 +54,7 @@ for(n in medea_nodes){
                         def test_output = file_name + "_" + node_name + ".xml"
                         print("Running Test: " + file_path)
                         //Launch the output test cases, in a folder
-                        def test_error_code = runScript("../" + file_path + " -o " + test_output + ",xunitxml")
+                        def test_error_code = utils.runScript("../" + file_path + " -o " + test_output + ",xunitxml")
 
                         if(test_error_code != 0){
                             test_error_count ++
