@@ -26,7 +26,10 @@ for(n in re_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                def success = utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                if(!success){
+                    error("Cannot Compile")
+                }
             }
         }
     }
