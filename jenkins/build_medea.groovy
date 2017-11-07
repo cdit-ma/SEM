@@ -10,7 +10,7 @@ def step_build_test = [:]
 def step_test = [:]
 def step_archive = [:]
 
-def medea_nodes = getLabelledNodes("MEDEA")
+def medea_nodes = utils.getLabelledNodes("MEDEA")
 for(n in medea_nodes){
     def node_name = n
 
