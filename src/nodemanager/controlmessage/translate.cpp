@@ -28,7 +28,7 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
 }
 
 
-std::shared_ptr<::Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<::Attribute> a){
+std::shared_ptr<Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<Attribute> a){
     
     auto type = GetAttributeTypeFromPb(attr);
     

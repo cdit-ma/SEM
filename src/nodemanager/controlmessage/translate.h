@@ -7,7 +7,7 @@ namespace NodeManager{
     class Attribute;
 };
 
-std::shared_ptr<::Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<::Attribute> a = 0);
+std::shared_ptr<Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<Attribute> a = 0);
 
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr);
 
