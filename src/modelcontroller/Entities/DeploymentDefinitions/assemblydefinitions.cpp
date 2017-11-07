@@ -28,7 +28,8 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
     switch(node->getNodeKind()){
     case NODE_KIND::COMPONENT_ASSEMBLY:
-
+    case NODE_KIND::COMPONENT_INSTANCE:
+        break;
     case NODE_KIND::MANAGEMENT_COMPONENT:
         foreach(Node* child, getChildrenOfKind(NODE_KIND::MANAGEMENT_COMPONENT, 0)){
             if(node->compareData(child, "type")){
