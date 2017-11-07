@@ -6,6 +6,15 @@ import cditma.Utils
 
 def utils = new Utils(this);
 
+stage("Checkout"){
+    node("master"){
+        dir(PROJECT_NAME){
+            checkout scm
+        }
+        stash includes: "**", name: "source_code"
+    }
+}
+
 def step_build_test = [:]
 def step_test = [:]
 def step_archive = [:]
