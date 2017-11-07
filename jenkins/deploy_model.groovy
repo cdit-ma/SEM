@@ -1,20 +1,11 @@
 //This script requires the following Jenkins plugins:
 //-Pipeline: Utility Steps
 
-// This method collects a list of Node names from the current Jenkins instance
-@NonCPS
-def nodeNames() {
-  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
-}
+//Load shared pipeline utility library
+@Library('cditma-utils')
+import cditma.Utils
 
-def getLabels(String name){
-    def computer = Jenkins.getInstance().getComputer(name)
-    def node = computer.getNode()
-    if(computer.isOnline()){
-        return node.getLabelString()
-    }
-    return ""
-}
+def utils = new Utils(this);
 
 def runScriptPid(String script){
     def out = ""
@@ -24,16 +15,6 @@ def runScriptPid(String script){
             out = sh(returnStdout: true, script: command)
         }
         return out.trim()
-    }
-    else{
-        //TODO: do windows things here
-    }
-}
-
-def runScript(String script){
-    if(isUnix()){
-        out = sh(returnStatus: true, script: script)
-        return out
     }
     else{
         //TODO: do windows things here
@@ -138,12 +119,12 @@ withEnv(["model=''"]){
             unstash 'model'
             stage('C++ Generation'){
                 def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-                if(runScript(typeGenCommand) != 0){
+                if(utils.runScript(typeGenCommand) != 0){
                     failureList << "Datatype code generation failed"
                     fail_flag = true;
                 } 
                 def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-                if(runScript(componentGenCommand) !=0){
+                if(utils.runScript(componentGenCommand) !=0){
                     failureList << "Component code generation failed"
                     fail_flag = true;
                 }
@@ -152,7 +133,7 @@ withEnv(["model=''"]){
                     //Generate QOS into lib directory
                     def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
                     print(qosGenCommand)
-                    if(runScript(qosGenCommand) != 0){
+                    if(utils.runScript(qosGenCommand) != 0){
                         failureList << "QoS generation failed"
                         fail_flag = true;
                     }
@@ -205,11 +186,11 @@ withEnv(["model=''"]){
                     print("CMAKE_MODULES: " + "${RE_PATH}" + '/cmake_modules')
                     withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
                         dir(buildDir + "/build"){
-                            if(runScript('cmake ..') != 0){
+                            if(utils.runScript('cmake ..') != 0){
                                 failureList << ("cmake failed on node: " + nodeName)
                                 fail_flag = true;
                             }
-                            if(runScript('make') != 0){
+                            if(utils.runScript('make') != 0){
                                 failureList << ("Compilation failed on node: " + nodeName)
                                 fail_flag = true;
                             }
@@ -226,7 +207,7 @@ withEnv(["model=''"]){
                     dir(buildPath){
                         unstash 'model'
                         def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                        if(runScript(command) != 0){
+                        if(utils.runScript(command) != 0){
                             failureList << ("Node manager failed on node: " + nodeName)
                             fail_flag = true
                         } 
