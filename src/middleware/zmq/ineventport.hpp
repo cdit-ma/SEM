@@ -1,17 +1,11 @@
 #ifndef ZMQ_INEVENTPORT_H
 #define ZMQ_INEVENTPORT_H
 
-#include "../../core/eventports/ineventport.hpp"
-#include "../../core/eventport.h"
-#include <vector>
-#include <iostream>
-#include <thread>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-#include <string>
+#include <core/eventports/ineventport.hpp>
 #include "zmqhelper.h"
+
+#include <thread>
+#include <mutex>
 
 namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
@@ -30,10 +24,9 @@ namespace zmq{
 
             std::thread* zmq_thread_ = 0;
             std::string terminate_endpoint_;
-            std::vector<std::string> end_points_;
+            std::shared_ptr<Attribute> end_points_;
 
             std::mutex control_mutex_;
-            bool configured_ = false;
             const std::string terminate_str = "TERMINATE";
     }; 
 };
@@ -45,10 +38,10 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 
     try{
         socket->connect(terminate_endpoint_.c_str());    
-        for(auto end_point: end_points_){
+        for(auto e: end_points_->StringList()){
             //std::cout << "zmq::InEventPort<T, S>::zmq_loop(): " << this->get_name() << " Connecting To: " << end_point << std::endl;
             //Connect to the publisher
-            socket->connect(end_point.c_str());   
+            socket->connect(e.c_str());   
         }
     }catch(zmq::error_t ex){
         std::cerr << "zmq::InEventPort<T, S>::zmq_loop(): Couldn't connect to endpoints!" << std::endl;
@@ -98,21 +91,16 @@ template <class T, class S>
 zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
 ::InEventPort<T>(component, name, callback_function, "zmq"){
     terminate_endpoint_ = "inproc://term*" + component->get_name() + "*" + name + "*";
+    end_points_ = ::InEventPort<T>::AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"));
 };
 
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    end_points_.clear();
-
-    if(attributes.count("publisher_address")){
-        for(auto s : attributes["publisher_address"]->StringList()){
-            end_points_.push_back(s);
-        }
-    }
-        
-    if(!end_points_.empty()){
+    
+    bool valid = end_points_->StringList().size() > 0;
+    if(valid){
         if(!zmq_thread_){
             zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
             Activatable::WaitForStartup();
