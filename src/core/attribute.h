@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 enum class ATTRIBUTE_TYPE{
     STRING = 0,
