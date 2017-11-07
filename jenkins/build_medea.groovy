@@ -50,7 +50,7 @@ for(n in medea_nodes){
                 dir("results"){
                     for(def file : test_list){
                         def file_path = file.name
-                        def file_name = trimExtension(file_path)
+                        def file_name = utils.trimExtension(file_path)
                         def test_output = file_name + "_" + node_name + ".xml"
                         print("Running Test: " + file_path)
                         //Launch the output test cases, in a folder
