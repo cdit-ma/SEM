@@ -1,64 +1,9 @@
 def PROJECT_NAME = 'test_re'
+//Load shared pipeline utility library
+@Library('cditma-utils')
+import cditma.Utils
 
-// This method collects a list of Node names from the current Jenkins instance
-@NonCPS
-def nodeNames() {
-  return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
-}
-
-//Gets nodes label
-def getLabels(String name){
-    def computer = Jenkins.getInstance().getComputer(name)
-    def node = computer.getNode()
-    if(computer.isOnline()){
-        return node.getLabelString()
-    }
-    return ""
-}
-
-//Get labelled nodes
-def getLabelledNodes(String label){
-    def filtered_names = []
-    def names = nodeNames()
-    for(n in nodeNames()){
-        if(getLabels(n).contains(label)){
-            filtered_names << n
-        }
-    }
-    return filtered_names
-}
-
-//Run script, changes to bat if windows detected.
-def runScript(String script){
-    if(isUnix()){
-        out = sh(returnStatus: true, script: script)
-        return out
-    }
-    else{
-        out = powershell(returnStatus:true, script: script)
-        return out
-    }
-}
-
-def buildProject(String generator, String cmake_options){
-    print "Calling CMake generate"
-    if(runScript("cmake .. -G \"" + generator + "\" -DCMAKE_BUILD_TYPE=Release " + cmake_options) == 0){
-        print "Calling CMake --build"
-        if(runScript("cmake --build . --config Release") == 0){
-            return true;
-        }
-    }
-    currentBuild.result = 'Failure';
-    error('Failed to build!')
-}
-
-def trimExtension(String filename){
-    def index = filename.lastIndexOf(".")
-    if (index > 0){
-        filename = filename.take(filename.lastIndexOf('.'))
-    }
-    return filename;
-}
+def utils = new Utils(this);
 
 stage("Checkout"){
     node("master"){
@@ -72,7 +17,7 @@ stage("Checkout"){
 def step_build_test = [:]
 def step_test = [:]
 
-def re_nodes = getLabelledNodes("build_re")
+def re_nodes = utils.getLabelledNodes("build_re")
 for(n in re_nodes){
     def node_name = n
 
@@ -81,7 +26,7 @@ for(n in re_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
             }
         }
     }
@@ -100,10 +45,10 @@ for(n in re_nodes){
                 dir("results"){
                     for(def file : test_list){
                         def file_path = file.name
-                        def file_name = trimExtension(file_path)
+                        def file_name = utils.trimExtension(file_path)
                         def test_output = file_name + "_" + node_name + ".xml"
                         print("Running Test: " + file_path)
-                        def test_error_code = runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
                         if(test_error_code != 0){
                             test_error_count ++
