@@ -8,6 +8,7 @@ class OpenCLManager;
 namespace cl {
     class Kernel;
     class Memory;
+    class Buffer;
     class NDRange;
     struct LocalSpaceArg;
 }
@@ -23,6 +24,7 @@ public:
 
     bool SetArg(unsigned int index, size_t size, const void* value);
     bool SetArg(unsigned int index, const cl::Memory& mem_obj);
+    bool SetArg(unsigned int index, const cl::Buffer& buf_obj);
     bool SetArg(unsigned int index, const cl::LocalSpaceArg& local_space);
 
     std::string GetName() const;

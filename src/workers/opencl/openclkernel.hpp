@@ -114,7 +114,7 @@ template <typename T0>
 typename std::enable_if<std::is_base_of<GenericBuffer, T0>::value, bool>::type
 OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     //std::cerr << "entering base call for GenericBuffer object of type " << typeid(T0).name() <<std::endl;
-    const cl::Memory& buffer_ref = static_cast<const GenericBuffer*>(&arg0)->GetBackingRef();
+    const cl::Buffer& buffer_ref = static_cast<const GenericBuffer*>(&arg0)->GetBackingRef();
     bool success = SetArg(index, buffer_ref);
     
     if (!success) {

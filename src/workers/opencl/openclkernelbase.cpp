@@ -64,6 +64,10 @@ bool OpenCLKernelBase::SetArg(unsigned int index, const cl::Memory& mem_obj) {
     return true;
 }
 
+bool OpenCLKernelBase::SetArg(unsigned int index, const cl::Buffer& buf_obj) {
+    return SetArg(index, (const cl::Memory&) buf_obj);
+}
+
 bool OpenCLKernelBase::SetArg(unsigned int index, const cl::LocalSpaceArg& local_space) {
     cl_int err;
     
