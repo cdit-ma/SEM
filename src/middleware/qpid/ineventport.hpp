@@ -106,7 +106,7 @@ template <class T, class S>
 bool qpid::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(this->is_active() && connection_.isOpen()){
+    if(this->is_running() && connection_.isOpen()){
         //do passivation things here
         receiver_.close();
     }

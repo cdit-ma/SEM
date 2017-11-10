@@ -10,9 +10,15 @@ namespace NodeManager{
     class ControlMessage;
 };
 
-typedef std::function<EventPort* (std::string, Component*)> TxConstructor;
-typedef std::function<EventPort* (std::string, Component*)> RxConstructor;
-typedef std::function<Component* (std::string)> ComponentConstructor;
+typedef void (*SignalHandler)(int signum);
+
+typedef std::shared_ptr<EventPort> (TxCConstructor) (std::string, std::shared_ptr<Component>);
+typedef std::shared_ptr<EventPort> (RxCConstructor) (std::string, std::shared_ptr<Component>);
+typedef std::shared_ptr<Component> (ComponentCConstructor) (std::string);
+
+typedef std::function<TxCConstructor> TxConstructor;
+typedef std::function<RxCConstructor> RxConstructor;
+typedef std::function<ComponentCConstructor> ComponentConstructor;
 
 class NodeContainer{ 
     public:
@@ -29,8 +35,8 @@ class NodeContainer{
         
         void Teardown();
 
-        bool AddComponent(Component* component, std::string component_id);
-        Component* GetComponent(std::string component_id);
+        bool AddComponent(std::shared_ptr<Component> component, std::string component_id);
+        std::shared_ptr<Component> GetComponent(std::string component_id);
 
     private:
         //DLL functions
@@ -51,11 +57,10 @@ class NodeContainer{
     
     public:
         //Constructor functions
-        EventPort* ConstructPeriodicEvent(Component* component, std::string port_name);
-        EventPort* ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name, std::string namespace_name);
-        EventPort* ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name, std::string namespace_name);
-
-        Component* ConstructComponent(std::string component_type, std::string component_name, std::string component_id);
+        std::shared_ptr<EventPort> ConstructPeriodicEvent(std::shared_ptr<Component> component, std::string port_name);
+        std::shared_ptr<EventPort> ConstructTx(std::string middleware, std::string datatype, std::shared_ptr<Component> component, std::string port_name, std::string namespace_name);
+        std::shared_ptr<EventPort> ConstructRx(std::string middleware, std::string datatype, std::shared_ptr<Component> component, std::string port_name, std::string namespace_name);
+        std::shared_ptr<Component> ConstructComponent(std::string component_type, std::string component_name, std::string component_id);
 
      private:
         std::string library_path_;
@@ -71,7 +76,7 @@ class NodeContainer{
         std::unordered_map<std::string, ComponentConstructor> component_constructors_;
         
         //Map for quick insertion and stuffs.
-        std::map<std::string, Component*> components_;
+        std::map<std::string, std::shared_ptr<Component>> components_;
 
         
 };

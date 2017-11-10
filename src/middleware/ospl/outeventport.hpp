@@ -41,7 +41,7 @@ namespace ospl{
 template <class T, class S>
 void ospl::OutEventPort<T, S>::tx(T* message){
    std::lock_guard<std::mutex> lock(control_mutex_);
-   if(this->is_active() && writer_ != dds::core::null){
+   if(this->is_running() && writer_ != dds::core::null){
        auto m = ospl::translate(message);
        //De-reference the message and send
        writer_.write(*m);

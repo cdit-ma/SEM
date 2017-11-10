@@ -186,6 +186,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
        
    }
    EventPort::LogPassivation();
+   std::cerr << "IEP DED" << std::endl;
 };
 
 #endif //OSPL_INEVENTPORT_H

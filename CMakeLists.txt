@@ -20,7 +20,8 @@ option(BUILD_TEST "Build testing" OFF)
 
 
 #Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
+#set(RE_PATH "$ENV{RE_PATH}")
+set(RE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 
 #Set the binary and library locations

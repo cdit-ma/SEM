@@ -13,7 +13,7 @@
  * implementation.
  */
 
-Gpu_Worker::Gpu_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Gpu_Worker::Gpu_Worker(std::shared_ptr<Component> component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Gpu_Worker_Impl();
 	Initialise(false);
 }

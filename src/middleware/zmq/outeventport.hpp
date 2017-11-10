@@ -7,20 +7,18 @@
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(Component* component, std::string name);
+            OutEventPort(std::shared_ptr<Component> component, std::string name);
             ~OutEventPort(){
-                Passivate();
-                Teardown();
+                Activatable::Terminate();
             }
-            void tx(T* message);
-
-            void Startup(std::map<std::string, ::Attribute*> attributes);
-            bool Teardown();
-
-            bool Passivate();
+        protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
+        public:
+            bool tx(T* message);
         private:
-            void setup_tx();
-
+            bool setup_tx();
             std::mutex control_mutex_;
             
             zmq::socket_t* socket_ = 0;
@@ -29,67 +27,80 @@ namespace zmq{
 };
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::tx(T* message){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(this->is_active() && socket_){
-        std::string str = proto::encode(message);
-        zmq::message_t data(str.c_str(), str.size());
-        socket_->send(data);
-        ::OutEventPort<T>::tx(message);
-    }
-};
-
-template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
+zmq::OutEventPort<T, S>::OutEventPort(std::shared_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
     end_points_ = ::OutEventPort<T>::AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"));
 };
 
 
+
 template <class T, class S>
-void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*>){
+bool zmq::OutEventPort<T, S>::HandleConfigure(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
     bool valid = end_points_->StringList().size() > 0;
 
-    if(valid){
-        setup_tx();
+    if(valid && ::OutEventPort<T>::HandleConfigure()){
+        return setup_tx();
     }
+    return false;
 };
 
 template <class T, class S>
-bool zmq::OutEventPort<T, S>::Teardown(){
+bool zmq::OutEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::OutEventPort<T>::Teardown()){
+    if(::OutEventPort<T>::HandlePassivate()){
+        if(socket_){
+            delete socket_;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            socket_ = 0;
+
+        }
         return true;
     }
     return false;
 };
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::setup_tx(){
+bool zmq::OutEventPort<T, S>::HandleTerminate(){
+    HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
+    return ::OutEventPort<T>::HandleTerminate();
+};
+
+template <class T, class S>
+bool zmq::OutEventPort<T, S>::setup_tx(){
     auto helper = ZmqHelper::get_zmq_helper();
     this->socket_ = helper->get_publisher_socket();
     for(auto e: end_points_->StringList()){
         try{
-            //std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
             //Bind the addresses provided
             this->socket_->bind(e.c_str());
-        }catch(zmq::error_t){
-            std::cout << "Couldn't Bind!" << std::endl;
+        }catch(zmq::error_t ex){
+            std::cerr << "zmq::OutEventPort<T, S>::zmq_loop(): Couldn't connect to endpoint: '" << e << "'" << std::endl;
+            std::cerr << ex.what() << std::endl;
         }
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    return true;
 };
 
 template <class T, class S>
-bool zmq::OutEventPort<T, S>::Passivate(){
+bool zmq::OutEventPort<T, S>::tx(T* message){
     std::lock_guard<std::mutex> lock(control_mutex_);
+    bool should_send = ::OutEventPort<T>::tx(message);
 
-    if(this->is_active() && socket_){
-        delete socket_;
-        socket_ = 0;
+    if(should_send){
+        if(socket_){
+            std::string str = proto::encode(message);
+            zmq::message_t data(str.c_str(), str.size());
+            socket_->send(data);
+            delete message;
+            return true;
+        }else{
+            std::cerr << "Socket Dead when not meant to be" << std::endl;
+        }
     }
-    return ::OutEventPort<T>::Passivate();
+    return false;
 };
 
-
-
 #endif //ZMQ_INEVENTPORT_H
+

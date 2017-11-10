@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include "component.h"
-#include "eventport.h"
+#include "eventports/eventport.h"
 
 class Worker;
 
@@ -50,18 +50,20 @@ class ModelLogger{
         zmq::ProtoWriter* writer_;
         ~ModelLogger();
     public:
-        void LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
-
-        void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
-        void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
-
-        void LogComponentEvent(EventPort* eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+        
+        void LogWorkerEvent(Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+        void LogLifecycleEvent(Component& component, ModelLogger::LifeCycleEvent event);
+        void LogLifecycleEvent(EventPort& eventport, ModelLogger::LifeCycleEvent event);
+        void LogComponentEvent(EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+        
+        
+        void LogMessageEvent(EventPort& eventport);
+        void LogUserMessageEvent(Component& component, std::string message);
+        void LogUserFlagEvent(Component& component, std::string message);
+        
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 
-        void LogMessageEvent(EventPort* eventport);
-        void LogUserMessageEvent(Component* component, std::string message);
-        void LogUserFlagEvent(Component* component, std::string message);
         const std::string get_hostname();
     private:
         void PushMessage(google::protobuf::MessageLite* message);

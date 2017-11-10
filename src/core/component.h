@@ -22,26 +22,23 @@ class Component: public Activatable{
         bool Passivate();
         bool Teardown();
 
-        void AddWorker(Worker* worker);
-        Worker* GetWorker(std::string name);
+        void AddWorker(std::shared_ptr<Worker> worker);
 
-        void AddEventPort(EventPort* event_port);
-        void RemoveEventPort(EventPort* event_port);
-        EventPort* GetEventPort(std::string name);
+        std::shared_ptr<Worker> GetWorker(std::string name);
 
-        
-
+        void AddEventPort(std::shared_ptr<EventPort> event_port);
+        void RemoveEventPort(std::shared_ptr<EventPort> event_port);
+        std::shared_ptr<EventPort> GetEventPort(std::string name);
 
         void AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function);
         std::function<void (::BaseMessage*)> GetCallback(std::string port_name);
     private:
-        std::vector<EventPort*> GetSortedPorts(bool forward = true);
         std::mutex state_mutex_;
         std::mutex mutex_;
 
         
-        std::map<std::string, Worker*> workers_;
-        std::map<std::string, EventPort*> eventports_;    
+        std::map<std::string, std::shared_ptr<Worker> > workers_;
+        std::map<std::string, std::shared_ptr<EventPort> > eventports_;    
         std::map<std::string, std::function<void (::BaseMessage*)> > callback_functions_;
         std::string inst_name_;
 };

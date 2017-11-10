@@ -47,7 +47,7 @@ namespace qpid{
 template <class T, class S>
 void qpid::OutEventPort<T, S>::tx(T* message){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(this->is_active()){
+    if(this->is_running()){
         auto str = proto::encode(message);
         qpid::messaging::Message m;
         m.setContentObject(str);
@@ -94,7 +94,7 @@ template <class T, class S>
 bool qpid::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(this->is_active()){
+    if(this->is_running()){
         if(connection_.isOpen()){
             connection_.close();
             connection_ = 0;

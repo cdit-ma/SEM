@@ -4,10 +4,10 @@
 #include <algorithm>
 
 #include "modellogger.h"
-#include "eventport.h"
+#include "eventports/eventport.h"
 #include "worker.h"
 
-int get_eventport_order(const EventPort* a){
+int get_eventport_order(const std::shared_ptr<EventPort> a){
     //Required Order:
     //1. InEventPorts
     //2. OutEventPorts
@@ -24,7 +24,7 @@ int get_eventport_order(const EventPort* a){
     }
 }
 
-bool compare_eventport(const EventPort* a, const EventPort* b){
+bool compare_eventport(const std::shared_ptr<EventPort> a, const std::shared_ptr<EventPort> b){
     return get_eventport_order(a) < get_eventport_order(b);
 }
 
@@ -38,21 +38,8 @@ Component::~Component(){
     Teardown();
     std::lock_guard<std::mutex> lock(state_mutex_);
     //Destory Ports
-    for(auto it = eventports_.begin(); it != eventports_.end();){
-        auto p = it->second;
-        if(p){
-            delete p;
-        }
-        it = eventports_.erase(it);
-    }
-    //Destory Workers
-    for(auto it = workers_.begin(); it != workers_.end();){
-        auto p = it->second;
-        if(p){
-            delete p;
-        }
-        it = workers_.erase(it);
-    }
+    eventports_.clear();
+    workers_.clear();
 }
 
 bool Component::Activate(){
@@ -60,12 +47,12 @@ bool Component::Activate(){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(Activatable::Activate()){
         //Get the ports
-        auto ports = GetSortedPorts(true);
-        for(auto e : ports){
+        for(auto itt : eventports_){
+            auto e = itt.second; 
             //std::cout << "Activating: " << e->get_name() << std::endl;
             e->Activate();
         }
-        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
+        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
         return true;
     }
     return false;
@@ -75,12 +62,12 @@ bool Component::Passivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(Activatable::Passivate()){
-        auto ports = GetSortedPorts(false);
-        for(auto e : ports){
+        for(auto itt : eventports_){
+            auto e = itt.second;
             bool success = e->Passivate();
         }
         //Log message
-        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
         return true;
     }
     return false;
@@ -89,17 +76,17 @@ bool Component::Passivate(){
 bool Component::Teardown(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(Activatable::Teardown()){
+    if(Activatable::Terminate()){
         for(auto e : eventports_){
             auto eventport = e.second;
-            eventport->Teardown();
+            eventport->Terminate();
         }
         return true;
     }
     return false;
 }
 
-void Component::AddEventPort(EventPort* event_port){
+void Component::AddEventPort(std::shared_ptr<EventPort> event_port){
     std::lock_guard<std::mutex> lock(mutex_);
     if(event_port){
         std::string name = event_port->get_name();
@@ -110,7 +97,7 @@ void Component::AddEventPort(EventPort* event_port){
     }
 }
 
-void Component::AddWorker(Worker* worker){
+void Component::AddWorker(std::shared_ptr<Worker> worker){
     std::lock_guard<std::mutex> lock(mutex_);
     if(worker){
         std::string name = worker->get_name();
@@ -120,35 +107,16 @@ void Component::AddWorker(Worker* worker){
     }
 }
 
-Worker* Component::GetWorker(std::string name){
+std::shared_ptr<Worker> Component::GetWorker(std::string name){
     std::lock_guard<std::mutex> lock(mutex_);
-    Worker* worker = 0;
-    
     if(workers_.count(name)){
-        worker = workers_[name];
+        return workers_[name];
     }
-    return worker;
+    return nullptr;
 }
 
-std::vector<EventPort*> Component::GetSortedPorts(bool forward){
-    std::vector<EventPort*> eventports;
-    {
-        for(auto e : eventports_){
-            eventports.push_back(e.second);
-        }
-    }
 
-    //Sort forward or backward
-    if(forward){
-        std::sort(eventports.begin(), eventports.end(), compare_eventport);
-    }else{
-        std::sort(eventports.rbegin(), eventports.rend(), compare_eventport);
-    }
-
-    return eventports;
-}
-
-void Component::RemoveEventPort(EventPort* event_port){
+void Component::RemoveEventPort(std::shared_ptr<EventPort> event_port){
     //TODO:
 }
 
@@ -176,11 +144,10 @@ void Component::AddCallback(std::string port_name, std::function<void (::BaseMes
     }
 }
 
-EventPort* Component::GetEventPort(std::string name){
+std::shared_ptr<EventPort> Component::GetEventPort(std::string name){
     std::lock_guard<std::mutex> lock(mutex_);
-    EventPort* port = 0;
     if(eventports_.count(name)){
-        port = eventports_[name];
+        return eventports_[name];
     }
-    return port;
+    return nullptr;
 }

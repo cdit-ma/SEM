@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-Utility_Worker::Utility_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Utility_Worker::Utility_Worker(std::shared_ptr<Component> component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Utility_Worker_Impl();
     //Need to get down into the small itty bitty time differences to get nice random between nodes happenning! hahaa XD
     impl_->SetRandomSeed(GetTimeOfDay() * 100000);

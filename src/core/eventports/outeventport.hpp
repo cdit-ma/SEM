@@ -1,34 +1,55 @@
 #ifndef OUTEVENTPORT_HPP
 #define OUTEVENTPORT_HPP
 
+#include "eventport.h"
 #include "../modellogger.h"
 #include "../component.h"
-#include "../eventport.h"
 
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(Component* component, std::string name, std::string middleware);
-        virtual bool Activate();
-        virtual bool Passivate();
-        virtual bool Teardown();
-        
-        virtual void tx(T* t);
+        OutEventPort(std::shared_ptr<Component> component, std::string name, std::string middleware);
+        int GetEventsReceived();
+        int GetEventsSent();
+    protected:
+        bool tx(T* t);
+    private:
+        std::mutex queue_mutex_;
+        int tx_count = 0;
+        int tx_sent_count = 0;
+
 };
 
 template <class T>
-OutEventPort<T>::OutEventPort(Component* component, std::string name, std::string middleware)
+OutEventPort<T>::OutEventPort(std::shared_ptr<Component> component, std::string name, std::string middleware)
 :EventPort(component, name, EventPort::Kind::TX, middleware){
 };
+template <class T>
+int OutEventPort<T>::GetEventsReceived(){
+    return tx_count;    
+}
+
+template <class T>
+int OutEventPort<T>::GetEventsSent(){
+    return tx_sent_count;    
+}
 
 
 template <class T>
-void OutEventPort<T>::tx(T* t){
-    if(is_active() && logger()){
-        logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::SENT);
+bool OutEventPort<T>::tx(T* t){
+    if(t){
+        tx_count ++;
+        if(is_running()){
+            tx_sent_count ++;
+            //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::SENT);
+            return true;
+        }else{
+            //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
+        }
     }
+    return false;
 };
-
+/*
 template <class T>
 bool OutEventPort<T>::Activate(){
     auto success = EventPort::Activate();
@@ -51,7 +72,7 @@ bool OutEventPort<T>::Passivate(){
 template <class T>
 bool OutEventPort<T>::Teardown(){
     return EventPort::Teardown();
-};
+};*/
 
 
 #endif //OUTEVENTPORT_HPP

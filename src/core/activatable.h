@@ -12,10 +12,20 @@
 class ModelLogger;
 
 class Activatable{
-    enum class STATE{
-        PASSIVE = 0,
-        ACTIVE = 1,
-        DEAD = 2,
+public:
+    enum class Transition{
+        NO_TRANSITION = 0,
+        CONFIGURE = 1,
+        ACTIVATE = 2,
+        PASSIVATE = 3,
+        TERMINATE = 4,
+    };
+
+    enum class State{
+        NOT_CONFIGURED = 0,
+        CONFIGURED = 1,
+        RUNNING = 2,
+        NOT_RUNNING = 3,
     };
 
     public: 
@@ -26,34 +36,50 @@ class Activatable{
         void set_name(std::string name);
         void set_id(std::string id);
         void set_type(std::string type);
-        Activatable::STATE get_state();
-        bool is_active();
+        bool is_running();
         ModelLogger* logger();
 
-        virtual bool Activate();            //Start Component (Start Middleware etc)
-        virtual bool Passivate();           //Stop Component 
-        virtual bool Teardown();            //Teardown
-        
-        
+    protected:
+        virtual bool HandleConfigure() = 0;
+        virtual bool HandleActivate() = 0;
+        virtual bool HandlePassivate() = 0;
+        virtual bool HandleTerminate() = 0;
+    public:
+        bool Configure();
+        bool Activate();
+        bool Passivate();
+        bool Terminate();
+        Activatable::State get_state();
+
+    public:
         void StartupFinished();
-        void WaitForActivate();
-        void WaitForStartup();
+
+
+        bool BlockUntilStateChanged(const Activatable::State state);
+
+        bool WaitForActivate();
+        bool WaitForStartup();
         std::shared_ptr<Attribute> GetAttribute(std::string name);
    private:
-        bool active_ = false;
+        bool transition_state(const Activatable::Transition transition);
         bool startup_finished_ = false;
 
         std::string name_;
         std::string type_;
         std::string id_;
 
-        std::mutex state_mutex_;
         std::mutex startup_mutex_;
         std::mutex attributes_mutex_;
+        
         std::condition_variable activate_condition_;
         std::condition_variable startup_condition_;
-
-        Activatable::STATE state_ = Activatable::STATE::PASSIVE;
+        std::condition_variable state_condition_;
+        
+        
+        std::mutex state_mutex_;
+        std::mutex transition_mutex_;
+        Activatable::State state_ = Activatable::State::NOT_CONFIGURED;
+        Activatable::Transition transition_ = Activatable::Transition::NO_TRANSITION;
 
         std::map<std::string, std::shared_ptr<Attribute> > attributes_;
    protected:

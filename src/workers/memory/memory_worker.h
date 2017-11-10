@@ -7,7 +7,7 @@ class Memory_Worker_Impl;
 
 class Memory_Worker : public Worker{
     public:
-        Memory_Worker(Component* component, std::string inst_name);
+        Memory_Worker(std::shared_ptr<Component> component, std::string inst_name);
         ~Memory_Worker();
         void Allocate(double kilobytes);
         void Deallocate(double kilobytes);

@@ -22,7 +22,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
 	)
 
-
 add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${SOURCE} ${PROTO_HDRS} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})

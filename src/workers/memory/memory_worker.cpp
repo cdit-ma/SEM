@@ -1,7 +1,7 @@
 #include "memory_worker.h"
 #include "memory_worker_impl.h"
 
-Memory_Worker::Memory_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Memory_Worker::Memory_Worker(std::shared_ptr<Component> component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Memory_Worker_Impl();
 }
 

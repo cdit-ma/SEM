@@ -1,8 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
-
-#Use C++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #Set our module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
@@ -11,20 +10,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 include_directories("../")
 
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 
 #Pass Version info into cmakevars.h
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
+
 set(NODE_MANAGER re_node_manager)
 set(EXECUTION_TESTER re_execution_tester)
-
+    
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
-
-
+    
+    
 #Find Protobuf
 find_package(Protobuf REQUIRED)
 
@@ -35,6 +31,8 @@ find_package(ZMQ REQUIRED)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 
 set(NODE_MANAGER_SOURCE
@@ -69,20 +67,29 @@ set(EXECUTION_TESTER_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
 	)
 
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${ZMQ_INCLUDE_DIRS})
-include_directories(${PROTOBUF_INCLUDE_DIRS})
-
-
 add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${NODE_MANAGER_HEADERS})
 add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${EXECUTION_TESTER_HEADERS})
 
-target_include_directories(${NODE_MANAGER} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${EXECUTION_TESTER} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+target_include_directories(${EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${EXECUTION_TESTER} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${EXECUTION_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+
+
+
 
 if (MSVC)
-	#Windows requires protobuf in DLLs
-    add_definitions(-DPROTOBUF_USE_DLLS)
+    #Windows requires protobuf in DLLs
+    target_compile_definitions(${NODE_MANAGER} PRIVATE -DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${EXECUTION_TESTER} PRIVATE -DPROTOBUF_USE_DLLS)
 elseif(UNIX)
 	target_link_libraries(${NODE_MANAGER} pthread)
     target_link_libraries(${NODE_MANAGER} dl)
