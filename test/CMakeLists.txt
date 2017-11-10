@@ -7,7 +7,7 @@ set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest)
 #The MEDEA tests must be left in the directory bin containing the test cases. All paths for test cases
 #Are relative to this location. On windows may require Qt5_DIR/bin in path
 add_subdirectory("googletest/googletest")
-#add_subdirectory("core")
+add_subdirectory("core")
 add_subdirectory("workers")
 add_subdirectory("middleware")
 
