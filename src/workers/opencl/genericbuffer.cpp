@@ -10,6 +10,15 @@
 
 GenericBuffer::GenericBuffer(OpenCLManager& manager, size_t size, Worker* worker_ref) :
     manager_(manager), size_(size), worker_reference_(worker_ref) {
+
+    if (size ==0) {
+        LogError(worker_reference_,
+            __func__,
+            "Unable to create a buffer of length 0");
+        valid_ = false;
+        return;
+    }
+
     id_ = OpenCLManager::BufferAttorney::GetNewBufferID(manager, *this);
     if (id_ == OpenCLManager::invalid_buffer_id_) {
         LogError(worker_reference_,
@@ -41,8 +50,6 @@ GenericBuffer::~GenericBuffer() {
     }
 }
 
-static_assert(std::is_nothrow_move_constructible<GenericBuffer>::value, "MyType should be noexcept MoveConstructible");
-
 
 bool GenericBuffer::is_valid() const{
     return valid_;
@@ -68,6 +75,20 @@ const cl::Buffer& GenericBuffer::GetBackingRef() const {
 bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* worker_reference) const {
     cl_int err;
 
+    if (!valid_) {
+        LogError(worker_reference,
+            __func__,
+            "Trying to read from an invalid OpenCL buffer");
+        return false;
+    }
+
+    if (size == 0) {
+        LogError(worker_reference,
+            __func__,
+            "Trying to read data of length 0  to buffer");
+        return false;
+    }
+
     // NEEDS TO HAVE LENGTH INITIALISED FIRST
     //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
     err = manager_.GetQueues().at(0)->enqueueReadBuffer(GetBackingRef(), blocking, 0, size, dest);
@@ -76,7 +97,7 @@ bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* wor
             __func__,
             "An error occurred while copying data from an OpenCL buffer",
             err);
-            return false;
+        return false;
     }
 
     return true;
@@ -85,6 +106,20 @@ bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* wor
 bool GenericBuffer::WriteData(const void* source, size_t size, bool blocking, Worker* worker_reference) {
     cl_int err;
 
+    if (!valid_) {
+        LogError(worker_reference,
+            __func__,
+            "Trying to write to an invalid OpenCL buffer");
+        return false;
+    }
+
+    if (size == 0) {
+        LogError(worker_reference,
+            __func__,
+            "Trying to write length 0 data to buffer");
+        return false;
+    }
+
     //err = cl::copy(manager_->GetQueues().at(0), data.begin(), data.end(), buffer_);
     err = manager_.GetQueues().at(0)->enqueueWriteBuffer(GetBackingRef(), blocking, 0, size, source);
     if(err != CL_SUCCESS){
@@ -92,7 +127,7 @@ bool GenericBuffer::WriteData(const void* source, size_t size, bool blocking, Wo
             __func__,
             "An error occurred while copying data to an OpenCL buffer",
             err);
-            return false;
+        return false;
     }
 
     return true;
