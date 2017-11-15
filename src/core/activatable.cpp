@@ -1,8 +1,9 @@
 #include "activatable.h"
 #include "modellogger.h"
 #include <iostream>
+#include <typeinfo>
 
-const std::string Activatable::get_name(){
+std::string Activatable::get_name() const{
     return name_;
 }
 
@@ -10,7 +11,7 @@ void Activatable::set_name(std::string name){
     name_ = name;
 }
 
-const std::string Activatable::get_id(){
+std::string Activatable::get_id() const{
     return id_;
 }
 
@@ -18,7 +19,7 @@ void Activatable::set_id(std::string id){
     id_ = id;
 }
 
-const std::string Activatable::get_type(){
+std::string Activatable::get_type() const{
     return type_;
 }
 
@@ -131,6 +132,8 @@ bool Activatable::transition_state(Transition transition){
                 transitioned = HandleTerminate();
                 break;
             }
+            default:
+                break;
         }
 
         //If transitioned, move the state, otherwise fail
@@ -142,7 +145,6 @@ bool Activatable::transition_state(Transition transition){
             state_condition_.notify_all();
             return true;
         }else{
-            std::cerr << "Can't Transition from state: Due to Transition function Failing " << ((uint)current_state) << " = " << ((uint)transition) << std::endl;
             return false;
         }
     }else{
@@ -180,25 +182,28 @@ bool Activatable::BlockUntilStateChanged(const Activatable::State desired_state)
 Activatable::~Activatable(){
 }
         
-std::shared_ptr<Attribute> Activatable::AddAttribute(std::shared_ptr<Attribute> attribute){
+std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> attribute){
     std::lock_guard<std::mutex> lock(attributes_mutex_);
     if(attribute){
-        auto name = attribute->get_name();
+        std::string name = attribute->get_name();
         if(attributes_.count(name) == 0){
-            attributes_[name] = attribute;
-            return attribute;
+            attributes_[name] = std::move(attribute);
+            return attributes_[name];
+        }else{
+            std::cerr << "Activatable '" << get_name()  << "' already has an Attribute with name '" << name << "'" << std::endl;
         }
+    }else{
+        std::cerr << "Activatable '" << get_name()  << "' cannot add a null Attribute" << std::endl;
     }
-    attribute.reset();
-    return attribute;
+    return std::weak_ptr<Attribute>();
 }
 
-std::shared_ptr<Attribute> Activatable::GetAttribute(std::string name){
+std::weak_ptr<Attribute> Activatable::GetAttribute(const std::string& name){
     std::lock_guard<std::mutex> lock(attributes_mutex_);
-    std::shared_ptr<Attribute> attribute;
-    
     if(attributes_.count(name)){
-        attribute = attributes_[name];
+        return attributes_[name];
+    }else{
+        std::cerr << "Activatable '" << get_name()  << "' doesn't has an Attribute with name '" << name << "'" << std::endl;
+        return std::weak_ptr<Attribute>();
     }
-    return attribute;
 }

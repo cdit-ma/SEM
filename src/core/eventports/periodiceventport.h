@@ -13,7 +13,7 @@
 class Component;
 class PeriodicEventPort: public ::InEventPort<BaseMessage>{
     public:
-        PeriodicEventPort(std::shared_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds = 1000);
+        PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds = 1000);
         ~PeriodicEventPort();
         void SetFrequency(double hz);
         void SetDuration(int milliseconds);
@@ -36,7 +36,5 @@ class PeriodicEventPort: public ::InEventPort<BaseMessage>{
         bool thread_ready_ = false;
         std::condition_variable thread_ready_condition_;
         std::shared_ptr<Attribute> frequency_;
-        
-        
 };
 #endif //PERIODICEVENTPORT_H

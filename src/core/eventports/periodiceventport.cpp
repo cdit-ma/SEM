@@ -2,27 +2,31 @@
 #include "../modellogger.h"
 #include "../component.h"
 #include <iostream>
+#include <memory>
 
-
-PeriodicEventPort::PeriodicEventPort(std::shared_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
-::InEventPort<BaseMessage>(component, name, callback, "periodic"){
+PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
+::InEventPort<BaseMessage>(component, name, callback, "periodic")
+{
     //Force set the kind
     SetKind(EventPort::Kind::PE);
     SetMaxQueueSize(1);
 
-    frequency_ = AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::DOUBLE, "frequency"));
+    auto freq_wp = AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::DOUBLE, "frequency")));
+    frequency_ = freq_wp.lock();
     frequency_->set_Double(0);
 };
 
 PeriodicEventPort::~PeriodicEventPort(){
-    Activatable::Terminate();
-};
+    Terminate();
+}
 
 void PeriodicEventPort::SetFrequency(double hz){
     //Changing the Frequency should wake the PeriodicEvent, so it can change its frequency
     std::unique_lock<std::mutex> lock(tick_mutex_);
-    frequency_->set_Double(hz);
-    thread_ready_condition_.notify_all();
+    if(frequency_){
+        frequency_->set_Double(hz);
+        thread_ready_condition_.notify_all();
+    }
 }
 
 void PeriodicEventPort::SetDuration(int milliseconds){
@@ -78,7 +82,7 @@ void PeriodicEventPort::Loop(){
         while(true){
             {
                 std::unique_lock<std::mutex> lock(tick_mutex_);
-                auto frequency = frequency_->get_Double();
+                auto frequency = frequency_ ? frequency_->get_Double() : 0.0;
 
                 if(frequency <= 0){
                     //Sleep indefinately

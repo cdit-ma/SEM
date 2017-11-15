@@ -8,9 +8,9 @@
 #include <mutex>
 
 namespace zmq{
-     template <class T, class S> class InEventPort: public ::InEventPort<T>{
+     template <typename T, typename S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(std::shared_ptr<Component> component, std::string name, std::function<void (T*) > callback_function);
+            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function);
             ~InEventPort(){
                 Activatable::Terminate();
             }
@@ -40,18 +40,20 @@ namespace zmq{
 
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(std::shared_ptr<Component> component, std::string name, std::function<void (T*) > callback_function):
+zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function):
 ::InEventPort<T>(component, name, callback_function, "zmq"){
-    auto component_name = component ? component->get_name() : "??";
+    auto component_ = component.lock();
+    auto component_name = component_ ? component_->get_name() : "??";
     terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*";
-    end_points_ = ::InEventPort<T>::AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"));
+
+    end_points_ = Activatable::AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"))).lock();;
 };
 
 template <class T, class S>
 bool zmq::InEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
-    bool valid = end_points_->StringList().size() > 0;
+    bool valid = end_points_->StringList().size() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
         if(!zmq_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);

@@ -7,7 +7,7 @@
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(std::shared_ptr<Component> component, std::string name);
+            OutEventPort(std::weak_ptr<Component> component, std::string name);
             ~OutEventPort(){
                 Activatable::Terminate();
             }
@@ -27,8 +27,8 @@ namespace zmq{
 };
 
 template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(std::shared_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
-    end_points_ = ::OutEventPort<T>::AddAttribute(std::make_shared<Attribute>(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"));
+zmq::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
+    end_points_ = Activatable::AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"))).lock();
 };
 
 
@@ -93,7 +93,6 @@ bool zmq::OutEventPort<T, S>::tx(T* message){
             std::string str = proto::encode(message);
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
-            delete message;
             return true;
         }else{
             std::cerr << "Socket Dead when not meant to be" << std::endl;

@@ -26,8 +26,11 @@ class ActivatableFSMTester : public ::testing::Test {
         }
 
         void TearDown(){
+            std::cout << "HELLO" << std::endl;
             if(a){
+                std::cout << "DELETING A" << std::endl;
                 delete a;
+                std::cout << "DELETED A" << std::endl;
             }
         }
     

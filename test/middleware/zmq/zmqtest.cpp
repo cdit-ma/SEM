@@ -16,8 +16,15 @@ class ZeroMQ_InEventPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new zmq::InEventPort<Base::Basic, Basic>(0,  port_name, empty_callback);
-            port->GetAttribute("publisher_address")->StringList().push_back("inproc://zmq" + port_name);
+            auto port = new zmq::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            {
+                auto address = port->GetAttribute("publisher_address").lock();
+                EXPECT_TRUE(address);
+                if(address){
+                    address->StringList().push_back("inproc://zmq" + port_name);
+                }
+            }
+
             a = port;
             ASSERT_TRUE(a);
         }
@@ -28,12 +35,19 @@ protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new zmq::OutEventPort<Base::Basic, Basic>(0, port_name);
-        port->GetAttribute("publisher_address")->StringList().push_back("inproc://zmq" + port_name);
+        auto port = new zmq::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        {
+            auto address = port->GetAttribute("publisher_address").lock();
+            EXPECT_TRUE(address);
+            if(address){
+                address->StringList().push_back("inproc://zmq" + port_name);
+            }
+        }
         a = port;
         ASSERT_TRUE(a);
     }
 };
+
 
 #define TEST_FSM_CLASS ZeroMQ_InEventPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
@@ -43,19 +57,30 @@ protected:
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-
 TEST(ZeroMQ_EventportPair, Stable100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 
-    zmq::OutEventPort<Base::Basic, Basic> out_port(nullptr, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(nullptr, "rx_" + test_name, [&rx_callback_count](Base::Basic*){
+    
+    auto c = std::make_shared<Component>("Test");
+    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic*){
             rx_callback_count ++;
     });
 
-    auto address = "inproc://" + get_long_test_name();
-    out_port.GetAttribute("publisher_address")->StringList().push_back(address);
-    in_port.GetAttribute("publisher_address")->StringList().push_back(address);
+    auto address = "inproc://" + test_name;
+    {
+        auto out_address = out_port.GetAttribute("publisher_address").lock();
+        auto in_address = in_port.GetAttribute("publisher_address").lock();
+        EXPECT_TRUE(out_address);
+        EXPECT_TRUE(in_address);
+
+        if(out_address && in_address){
+            out_address->StringList().push_back(address);
+            in_address->StringList().push_back(address);
+        }
+    }
+    
 
     EXPECT_TRUE(in_port.Configure());
     EXPECT_TRUE(out_port.Configure());
@@ -98,15 +123,26 @@ TEST(ZeroMQ_EventportPair, Busy100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 
-    zmq::OutEventPort<Base::Basic, Basic> out_port(nullptr, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(nullptr, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic*){
+    auto c = std::make_shared<Component>("Test");
+    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic*){
             rx_callback_count ++;
             sleep_ms(100);
     });
 
-    auto address = "inproc://" + get_long_test_name();
-    out_port.GetAttribute("publisher_address")->StringList().push_back(address);
-    in_port.GetAttribute("publisher_address")->StringList().push_back(address);
+    auto address = "inproc://" + test_name;
+    {
+        auto out_address = out_port.GetAttribute("publisher_address").lock();
+        auto in_address = in_port.GetAttribute("publisher_address").lock();
+        EXPECT_TRUE(out_address);
+        EXPECT_TRUE(in_address);
+
+        if(out_address && in_address){
+            out_address->StringList().push_back(address);
+            in_address->StringList().push_back(address);
+        }
+    }
+
 
     EXPECT_TRUE(in_port.Configure());
     EXPECT_TRUE(out_port.Configure());

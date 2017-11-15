@@ -2,19 +2,15 @@
 #include "../component.h"
 #include "../modellogger.h"
 
-EventPort::EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware):
-    EventPort::EventPort(std::shared_ptr<Component>(component), name, kind, middleware){
-
-    };
-
-EventPort::EventPort(std::shared_ptr<Component> component, std::string name, EventPort::Kind kind, std::string middleware){
-    set_name(name);
+EventPort::EventPort(std::weak_ptr<Component> component, std::string name, EventPort::Kind kind, std::string middleware)
+{
     component_ = component;
+    set_name(name);
     kind_ = kind;
     middleware_ = middleware;
 }
 
-std::shared_ptr<Component> EventPort::get_component(){
+std::weak_ptr<Component> EventPort::get_component() const{
     return component_;
 };
 

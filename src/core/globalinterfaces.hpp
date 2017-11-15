@@ -3,7 +3,7 @@
 
 #if defined(_WIN32) || defined(__WIN32__)
 	#define EXPORT_FUNC __declspec(dllexport)
-#elif
+#else
 	#define EXPORT_FUNC __attribute__((visibility("default")))
 #endif
 

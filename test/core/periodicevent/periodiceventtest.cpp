@@ -13,11 +13,15 @@ class PeriodicEventPort_0hz_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new PeriodicEventPort(nullptr, port_name, empty_callback);
+            c = std::make_shared<Component>();
+            
+            auto port = new PeriodicEventPort(c, port_name, empty_callback);
             port->SetFrequency(0);
             a = port;
             ASSERT_TRUE(a);
         };
+
+        std::shared_ptr<Component> c;
 };
 
 class PeriodicEventPort_1hz_FSMTester : public ActivatableFSMTester{
@@ -25,11 +29,13 @@ class PeriodicEventPort_1hz_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new PeriodicEventPort(nullptr, port_name, empty_callback);
+            c = std::make_shared<Component>();
+            auto port = new PeriodicEventPort(c, port_name, empty_callback);
             port->SetFrequency(1);
             a = port;
             ASSERT_TRUE(a);
         };
+         std::shared_ptr<Component> c;
 };
 
 
@@ -84,7 +90,8 @@ TEST_P(PeriodicEventTest, TickCount)
 
    int callback_tick_count = 0;
    {
-       PeriodicEventPort port(nullptr, "PeriodicEvent", [&callback_tick_count, p](BaseMessage* m){
+       auto c = std::make_shared<Component>("Test");
+       PeriodicEventPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage* m){
                std::this_thread::sleep_for(std::chrono::milliseconds(p.callback_time_ms));
                callback_tick_count ++;
            });

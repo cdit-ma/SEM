@@ -17,7 +17,7 @@
 //Interface for a standard templated InEventPort
 template <class T> class InEventPort: public EventPort{
     public:
-        InEventPort(std::shared_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
+        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
         ~InEventPort();
         void SetMaxQueueSize(int max_queue_size);
         int GetEventsReceieved();
@@ -62,7 +62,7 @@ template <class T> class InEventPort: public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(std::shared_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware)
+InEventPort<T>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware)
 :EventPort(component, name, EventPort::Kind::RX, middleware){
     if(callback_function){
         callback_function_ = callback_function;

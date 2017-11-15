@@ -45,23 +45,30 @@ NodeContainer::~NodeContainer(){
 }
 
 bool NodeContainer::Activate(std::string component_id){
-    auto component = GetComponent(component_id);
+    auto component = GetSharedComponent(component_id);
     if(component){
         return component->Activate();
     }
     return false;
 }
+
 bool NodeContainer::Passivate(std::string component_id){
-    auto component = GetComponent(component_id);
+    auto component = GetSharedComponent(component_id);
     if(component){
         return component->Passivate();
     }
     return false;
 }
 
-std::shared_ptr<EventPort> NodeContainer::ConstructPeriodicEvent(std::shared_ptr<Component> component, std::string port_name){
+std::shared_ptr<Component> NodeContainer::GetSharedComponent(const std::string& name){
+    return GetComponent(name).lock();
+}
+
+std::shared_ptr<EventPort> NodeContainer::ConstructPeriodicEvent(std::weak_ptr<Component> weak_component, std::string port_name){
+    auto component = weak_component.lock();
     if(component){
-        return std::make_shared<PeriodicEventPort>(component, port_name, component->GetCallback(port_name), 1000);
+        auto u_ptr = std::unique_ptr<EventPort>(new PeriodicEventPort(weak_component, port_name, component->GetCallback(port_name), 1000));
+        return component->AddEventPort(std::move(u_ptr)).lock();
     }
     return nullptr;
 }
@@ -69,78 +76,68 @@ std::shared_ptr<EventPort> NodeContainer::ConstructPeriodicEvent(std::shared_ptr
 void NodeContainer::Configure(NodeManager::ControlMessage* message){
     auto n = message->mutable_node();
 
-    for(auto c : n->components()){
-        auto c_info = c.mutable_info();
-        auto component = GetComponent(c_info->id());
+    for(const auto& c : n->components()){
+        const auto& c_info = c.info();
+        auto component = GetSharedComponent(c_info.id());
 
         if(!component){
-            //Construct Component
-            component = ConstructComponent(c_info->type(), c_info->name(), c_info->id());
+            component = ConstructComponent(c_info.type(), c_info.name(), c_info.id());
         }
 
         if(component){
             //Set features on component
-            component->set_id(c_info->id());
-            component->set_type(c_info->type());
-            for(auto a: c.attributes()){
-                auto a_info = a.mutable_info();
-                auto attribute = component->GetAttribute(a_info->name());
-                if(attribute){
-                    SetAttributeFromPb(&a, attribute);
-                }
+            component->set_id(c_info.id());
+            component->set_type(c_info.type());
+
+            //Set the Attributes
+            for(const auto& a: c.attributes()){
+                SetAttributeFromPb(component, a);
             }
 
-            for(auto p : c.ports()){
-                auto p_info = p.mutable_info();
-                auto port = component->GetEventPort(p_info->id());
+            for(const auto& p : c.ports()){
+                const auto& p_info = p.info();
+                const auto& middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
 
-                //Get the middleware
-                std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
+                auto port = component->GetEventPort(p_info.id()).lock();
 
                 if(!port){
                     switch(p.kind()){
                         case NodeManager::EventPort::IN_PORT:{
-                            port = ConstructRx(middleware, p_info->type(), component, p_info->name(), p.namespace_name());
+                            port = ConstructRx(middleware, p_info.type(), component, p_info.name(), p.namespace_name());
                             break;
                         }
                         case NodeManager::EventPort::OUT_PORT:{
-                            port = ConstructTx(middleware, p_info->type(), component, p_info->name(), p.namespace_name());
+                            port = ConstructTx(middleware, p_info.type(), component, p_info.name(), p.namespace_name());
                             break;
                         }
                         case NodeManager::EventPort::PERIODIC_PORT:{
-                            port = ConstructPeriodicEvent(component, p_info->name());
+                            port = ConstructPeriodicEvent(component, p_info.name());
                             break;
                         }
                         default:
                             break;
                     }
+
+                    //Only setup once
                     if(port){
-                        component->AddEventPort(port);
+                        port->set_id(p_info.id());
+                        port->set_type(p_info.type());
                     }
                 }
-
+                
                 //Configure the port
                 if(port){
-                    port->set_id(p_info->id());
-                    port->set_type(p_info->type());
-
-                    for(auto a: p.attributes()){
-                        auto a_info = a.mutable_info();
-                        auto attribute = port->GetAttribute(a_info->name());
-                        if(attribute){
-                            SetAttributeFromPb(&a, attribute);
-                        }else{
-                            std::cerr << "Can't find attribute '" << a_info->name() << "' in eventport '" << port->get_name() << std::endl;
-                        }
+                    for(const auto& a : p.attributes()){
+                        SetAttributeFromPb(port, a);
                     }
-                    //Configure the port
-                    port->Configure();
                 }else{
-                    ModelLogger::get_model_logger()->LogFailedPortConstruction(p_info->type(), p_info->name(), p_info->id());
+                    ModelLogger::get_model_logger()->LogFailedPortConstruction(p_info.type(), p_info.name(), p_info.id());
                 }
             }
-        }else{
-            ModelLogger::get_model_logger()->LogFailedComponentConstruction(c_info->type(), c_info->name(), c_info->id());
+        }
+
+        if(!(component && component->Configure())){
+            ModelLogger::get_model_logger()->LogFailedComponentConstruction(c_info.type(), c_info.name(), c_info.id());
         }
     }
 }
@@ -161,32 +158,42 @@ bool NodeContainer::PassivateAll(){
     return true;
 }
 void NodeContainer::Teardown(){
-    PassivateAll();
-    
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
-        if(c && c->Teardown()){
+        if(c && c->Terminate()){
             it = components_.erase(it);
         }
     }
 }
 
-bool NodeContainer::AddComponent(std::shared_ptr<Component> component, std::string component_id){
-    
-    if(components_.count(component_id) == 0){
-        components_[component_id] = component;
-        return true;
+
+std::weak_ptr<Component> NodeContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
+    if(components_.count(name) == 0){
+        components_[name] = std::move(component);
+        return components_[name];
     }else{
-        std::cerr << "'" << component_id << "' Not an unique ID!" << std::endl;
-        return false;
+        std::cerr << "NodeContainer already has a Component with name '" << name << "'" << std::endl;
+        return std::weak_ptr<Component>();
     }
 }
 
-std::shared_ptr<Component> NodeContainer::GetComponent(std::string component_name){
-    if(components_.count(component_name)){
-        return components_[component_name];
+std::weak_ptr<Component> NodeContainer::GetComponent(const std::string& name){
+    if(components_.count(name)){
+        return components_[name];
+    }else{
+        return std::weak_ptr<Component>();
     }
-    return nullptr;
+}
+
+std::shared_ptr<Component> NodeContainer::RemoveComponent(const std::string& name){
+    if(components_.count(name)){
+        auto component = components_[name];
+        components_.erase(name);
+        return component;
+    }else{ 
+        std::cerr << "NodeContainer doesn't have a Component with name '" << name << "'" << std::endl;
+        return std::shared_ptr<Component>();
+    }
 }
 
 void* NodeContainer::LoadLibrary_(std::string library_path){
@@ -303,7 +310,7 @@ std::string get_port_binary(std::string middleware, std::string namespace_name, 
     return to_lower(p);
 }
 
-std::shared_ptr<EventPort> NodeContainer::ConstructTx(std::string middleware, std::string datatype, std::shared_ptr<Component> component, 
+std::shared_ptr<EventPort> NodeContainer::ConstructTx(std::string middleware, std::string datatype, std::weak_ptr<Component> component, 
                                       std::string port_name, std::string namespace_name){
 
     auto port_lib = get_port_binary(middleware, namespace_name, datatype);
@@ -321,12 +328,18 @@ std::shared_ptr<EventPort> NodeContainer::ConstructTx(std::string middleware, st
     }
 
     if(tx_constructors_.count(port_lib)){
-        return tx_constructors_[port_lib](port_name, component);
+        auto ep = tx_constructors_[port_lib](port_name, component);
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            return component_shared->AddEventPort(std::unique_ptr<EventPort>(ep)).lock();
+        }
+        return std::shared_ptr<EventPort>(ep);
     }
-    return 0;
+    return nullptr;
 }
 
-std::shared_ptr<EventPort> NodeContainer::ConstructRx(std::string middleware, std::string datatype, std::shared_ptr<Component> component,
+std::shared_ptr<EventPort> NodeContainer::ConstructRx(std::string middleware, std::string datatype, std::weak_ptr<Component> component,
                                       std::string port_name, std::string namespace_name){
     
     auto port_lib = get_port_binary(middleware, namespace_name, datatype);
@@ -342,9 +355,16 @@ std::shared_ptr<EventPort> NodeContainer::ConstructRx(std::string middleware, st
     }
 
     if(rx_constructors_.count(port_lib)){
-        return rx_constructors_[port_lib](port_name, component);
+        auto ep = rx_constructors_[port_lib](port_name, component);
+        
+        auto component_shared = component.lock();
+
+        if(component_shared){
+            return component_shared->AddEventPort(std::unique_ptr<EventPort>(ep)).lock();
+        }
+        return std::shared_ptr<EventPort>(ep);
     }
-    return 0;
+    return nullptr;
 }
 
 std::string NodeContainer::GetLibrarySuffix() const{
@@ -378,9 +398,9 @@ std::shared_ptr<Component> NodeContainer::ConstructComponent(std::string compone
     if(component_constructors_.count(component_type)){
         auto component = component_constructors_[component_type](component_name);
         if(component){
+
             //Add the Component to the NodeContainer
-            AddComponent(component, component_id);
-            return component;
+            return AddComponent(std::unique_ptr<Component>(component), component_id).lock();
         }
     }
     return nullptr;

@@ -1,13 +1,14 @@
 #ifndef PB_TRANSLATE_H
 #define PB_TRANSLATE_H
 
+#include <core/activatable.h>
 #include <core/attribute.h>
 
 namespace NodeManager{
     class Attribute;
 };
 
-std::shared_ptr<Attribute> SetAttributeFromPb(NodeManager::Attribute* attr, std::shared_ptr<Attribute> a = 0);
+std::weak_ptr<Attribute> SetAttributeFromPb(std::shared_ptr<Activatable> a, const NodeManager::Attribute& attr);
 
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr);
 

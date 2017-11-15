@@ -51,15 +51,15 @@ class ModelLogger{
         ~ModelLogger();
     public:
         
-        void LogWorkerEvent(Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
-        void LogLifecycleEvent(Component& component, ModelLogger::LifeCycleEvent event);
-        void LogLifecycleEvent(EventPort& eventport, ModelLogger::LifeCycleEvent event);
-        void LogComponentEvent(EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+        void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+        void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
+        void LogLifecycleEvent(const EventPort& eventport, ModelLogger::LifeCycleEvent event);
+        void LogComponentEvent(const EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
         
         
-        void LogMessageEvent(EventPort& eventport);
-        void LogUserMessageEvent(Component& component, std::string message);
-        void LogUserFlagEvent(Component& component, std::string message);
+        void LogMessageEvent(const EventPort& eventport);
+        void LogUserMessageEvent(const Component& component, std::string message);
+        void LogUserFlagEvent(const Component& component, std::string message);
         
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);

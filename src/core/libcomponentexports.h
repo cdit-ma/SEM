@@ -1,17 +1,24 @@
 #ifndef CORE_LIBCOMPONENTEXPORTS_H
 #define CORE_LIBCOMPONENTEXPORTS_H
 
+#include "globalinterfaces.hpp"
 #include "component.h"
 #include <string>
+#include <memory>
+ 
 
-#ifdef _WIN32
-    #define WIN_DLL_EXPORT __declspec(dllexport)
-#else
-    #define WIN_DLL_EXPORT
-#endif
-
+typedef Component* (ComponentCConstructor) (const std::string&);
 extern "C"{
-    WIN_DLL_EXPORT Component* ConstructComponent(std::string component_name);
-}
+    EXPORT_FUNC Component* ConstructComponent(std::string component_name);
+};
+
+template<class T>
+Component* ConstructComponent(const std::string& component_name){
+    static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
+    return new T(component_name);
+};
+
+
+
 
 #endif //CORE_LIBPORTEXPORTS_H

@@ -12,9 +12,8 @@ namespace NodeManager{
 
 typedef void (*SignalHandler)(int signum);
 
-typedef std::shared_ptr<EventPort> (TxCConstructor) (std::string, std::shared_ptr<Component>);
-typedef std::shared_ptr<EventPort> (RxCConstructor) (std::string, std::shared_ptr<Component>);
-typedef std::shared_ptr<Component> (ComponentCConstructor) (std::string);
+#include <core/libportexports.h>
+#include <core/libcomponentexports.h>
 
 typedef std::function<TxCConstructor> TxConstructor;
 typedef std::function<RxCConstructor> RxConstructor;
@@ -35,9 +34,9 @@ class NodeContainer{
         
         void Teardown();
 
-        bool AddComponent(std::shared_ptr<Component> component, std::string component_id);
-        std::shared_ptr<Component> GetComponent(std::string component_id);
-
+        std::weak_ptr<Component> AddComponent(std::unique_ptr<Component> component, const std::string& name);
+        std::weak_ptr<Component> GetComponent(const std::string& name);
+        std::shared_ptr<Component> RemoveComponent(const std::string& name);
     private:
         //DLL functions
         void* LoadLibrary_(std::string dll_path);
@@ -57,12 +56,13 @@ class NodeContainer{
     
     public:
         //Constructor functions
-        std::shared_ptr<EventPort> ConstructPeriodicEvent(std::shared_ptr<Component> component, std::string port_name);
-        std::shared_ptr<EventPort> ConstructTx(std::string middleware, std::string datatype, std::shared_ptr<Component> component, std::string port_name, std::string namespace_name);
-        std::shared_ptr<EventPort> ConstructRx(std::string middleware, std::string datatype, std::shared_ptr<Component> component, std::string port_name, std::string namespace_name);
+        std::shared_ptr<EventPort> ConstructPeriodicEvent(std::weak_ptr<Component> component, std::string port_name);
+        std::shared_ptr<EventPort> ConstructTx(std::string middleware, std::string datatype, std::weak_ptr<Component> component, std::string port_name, std::string namespace_name);
+        std::shared_ptr<EventPort> ConstructRx(std::string middleware, std::string datatype, std::weak_ptr<Component> component, std::string port_name, std::string namespace_name);
         std::shared_ptr<Component> ConstructComponent(std::string component_type, std::string component_name, std::string component_id);
 
      private:
+        std::shared_ptr<Component> GetSharedComponent(const std::string& name);
         std::string library_path_;
 
         //Library Path -> void *

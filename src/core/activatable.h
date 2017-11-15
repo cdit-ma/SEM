@@ -30,9 +30,9 @@ public:
 
     public: 
         virtual ~Activatable();
-        const std::string get_name();
-        const std::string get_id();
-        const std::string get_type();
+        std::string get_name() const;
+        std::string get_id() const;
+        std::string get_type() const;
         void set_name(std::string name);
         void set_id(std::string id);
         void set_type(std::string type);
@@ -59,7 +59,8 @@ public:
 
         bool WaitForActivate();
         bool WaitForStartup();
-        std::shared_ptr<Attribute> GetAttribute(std::string name);
+        std::weak_ptr<Attribute> GetAttribute(const std::string& name);
+        std::weak_ptr<Attribute> AddAttribute(std::unique_ptr<Attribute> attribute);
    private:
         bool transition_state(const Activatable::Transition transition);
         bool startup_finished_ = false;
@@ -83,7 +84,7 @@ public:
 
         std::map<std::string, std::shared_ptr<Attribute> > attributes_;
    protected:
-        std::shared_ptr<Attribute> AddAttribute(std::shared_ptr<Attribute> attribute);
+        
 };
 
 #endif //ACTIVATABLE_H

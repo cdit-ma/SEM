@@ -8,7 +8,7 @@ class Utility_Worker_Impl;
 
 class Utility_Worker: public Worker{
     public:
-        Utility_Worker(std::shared_ptr<Component> component, std::string inst_name);
+        Utility_Worker(std::weak_ptr<Component> component, std::string inst_name);
         ~Utility_Worker();
 
 

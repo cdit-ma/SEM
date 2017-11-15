@@ -8,11 +8,10 @@
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(std::shared_ptr<Component> component, std::string name, std::string middleware);
+        OutEventPort(std::weak_ptr<Component> component, std::string name, std::string middleware);
         int GetEventsReceived();
         int GetEventsSent();
-    protected:
-        bool tx(T* t);
+        virtual bool tx(T* t);
     private:
         std::mutex queue_mutex_;
         int tx_count = 0;
@@ -21,7 +20,7 @@ template <class T> class OutEventPort: public EventPort{
 };
 
 template <class T>
-OutEventPort<T>::OutEventPort(std::shared_ptr<Component> component, std::string name, std::string middleware)
+OutEventPort<T>::OutEventPort(std::weak_ptr<Component> component, std::string name, std::string middleware)
 :EventPort(component, name, EventPort::Kind::TX, middleware){
 };
 template <class T>

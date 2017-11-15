@@ -86,35 +86,44 @@ std::chrono::milliseconds get_current_time(){
 }
 
 
-void fill_info(re_common::Info* info){
-    if(info){
-        info->set_hostname(ModelLogger::get_model_logger()->get_hostname());
-        info->set_timestamp(get_current_time().count() / 1000.0);
-        info->set_uid(12);
+void fill_info(re_common::Info& info){
+    info.set_hostname(ModelLogger::get_model_logger()->get_hostname());
+    info.set_timestamp(get_current_time().count() / 1000.0);
+    info.set_uid(12);
+}
+
+void fill_component(re_common::Component& c, const Component& component){
+    c.set_name(component.get_name());
+    c.set_id(component.get_id());
+    c.set_type(component.get_type());
+}
+
+void fill_component(re_common::Component& c, std::weak_ptr<Component>& c_wp){
+    auto component = c_wp.lock();
+    if(component){
+        fill_component(c, *component);
     }
 }
 
-void fill_component(re_common::Component* c, Component& component){
-    if(c){
-        c->set_name(component.get_name());
-        c->set_id(component.get_id());
-        c->set_type(component.get_type());
+void fill_port(re_common::Port& p, const EventPort& eventport){
+    p.set_name(eventport.get_name());
+    p.set_id(eventport.get_id());
+    p.set_type(eventport.get_type());
+    p.set_kind((re_common::Port::Kind)((int)eventport.get_kind()));
+    p.set_middleware(eventport.get_middleware());
+}
+
+void fill_port(re_common::Port& p, std::weak_ptr<EventPort>& e_wp){
+    auto eventport = e_wp.lock();
+    if(eventport){
+        fill_port(p, *eventport);
     }
 }
 
-void fill_port(re_common::Port* p, EventPort& eventport){
-    if(p){
-        p->set_name(eventport.get_name());
-        p->set_id(eventport.get_id());
-        p->set_type(eventport.get_type());
-        p->set_kind((re_common::Port::Kind)((int)eventport.get_kind()));
-        p->set_middleware(eventport.get_middleware());
-    }
-}
-void ModelLogger::LogLifecycleEvent(Component& component, ModelLogger::LifeCycleEvent event){
+void ModelLogger::LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event){
     auto e = new re_common::LifecycleEvent();
-    fill_info(e->mutable_info());
-    fill_component(e->mutable_component(), component);
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
     
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
     
@@ -129,31 +138,28 @@ void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
     }
 }
 
-void ModelLogger::LogLifecycleEvent(EventPort& eventport, ModelLogger::LifeCycleEvent event){
+void ModelLogger::LogLifecycleEvent(const EventPort& eventport, ModelLogger::LifeCycleEvent event){
     auto e = new re_common::LifecycleEvent();
     auto component = eventport.get_component();
     //Set info
 
-    fill_info(e->mutable_info());
+    fill_info(*e->mutable_info());
     
-    if(component){
-        fill_component(e->mutable_component(), *component);
-    }
-    fill_port(e->mutable_port(), eventport);
+    fill_component(*e->mutable_component(), component);
+    fill_port(*e->mutable_port(), eventport);
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
 
     PushMessage(e);
 }
 
-void ModelLogger::LogWorkerEvent(Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
+void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
     auto e = new re_common::WorkloadEvent();
 
-    fill_info(e->mutable_info());
-    
     auto component = worker.get_component();
-    if(component){
-        fill_component(e->mutable_component(), *component);
-    }
+    
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
+
     //Set Type, Name
     e->set_type(worker.get_worker_name());
     e->set_name(worker.get_name());
@@ -177,17 +183,15 @@ void ModelLogger::LogWorkerEvent(Worker& worker, std::string function_name, Mode
     PushMessage(e);
 }
 
-void ModelLogger::LogComponentEvent(EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event){
+void ModelLogger::LogComponentEvent(const EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event){
     if(message){
         auto component = eventport.get_component();
         int ID = message->get_base_message_id();
         auto e = new re_common::ComponentUtilizationEvent();
 
-        fill_info(e->mutable_info());
-        if(component){
-            fill_component(e->mutable_component(), *component);
-        }
-        fill_port(e->mutable_port(), eventport);
+        fill_info(*e->mutable_info());
+        fill_component(*e->mutable_component(), component);
+        fill_port(*e->mutable_port(), eventport);
 
          //Set Type, Name
         e->set_port_event_id(ID);
@@ -198,7 +202,7 @@ void ModelLogger::LogComponentEvent(EventPort& eventport, ::BaseMessage* message
 
 void ModelLogger::LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id){
     auto e = new re_common::LifecycleEvent();
-    fill_info(e->mutable_info());
+    fill_info(*e->mutable_info());
 
     auto comp = e->mutable_component();
 
@@ -213,7 +217,7 @@ void ModelLogger::LogFailedComponentConstruction(std::string component_type, std
 
 void ModelLogger::LogFailedPortConstruction(std::string port_type, std::string port_name, std::string port_id){
     auto e = new re_common::LifecycleEvent();
-    fill_info(e->mutable_info());
+    fill_info(*e->mutable_info());
 
     auto port = e->mutable_port();
 
@@ -226,25 +230,23 @@ void ModelLogger::LogFailedPortConstruction(std::string port_type, std::string p
     PushMessage(e);
 }
 
-void ModelLogger::LogMessageEvent(EventPort& eventport){
+void ModelLogger::LogMessageEvent(const EventPort& eventport){
     //Do Nothing
     auto e = new re_common::MessageEvent();
     auto component = eventport.get_component();
     //Set info
 
-    fill_info(e->mutable_info());
-    if(component){
-        fill_component(e->mutable_component(), *component);
-    }
-    fill_port(e->mutable_port(), eventport);
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
+    fill_port(*e->mutable_port(), eventport);
 
     PushMessage(e);
 }
 
-void ModelLogger::LogUserMessageEvent(Component& component, std::string message){
+void ModelLogger::LogUserMessageEvent(const Component& component, std::string message){
     auto e = new re_common::UserEvent();
-    fill_info(e->mutable_info());
-    fill_component(e->mutable_component(), component);
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
     
     e->set_type(re_common::UserEvent::MESSAGE);
     e->set_message(message);
@@ -252,10 +254,10 @@ void ModelLogger::LogUserMessageEvent(Component& component, std::string message)
     PushMessage(e);
 }
 
-void ModelLogger::LogUserFlagEvent(Component& component, std::string message){
+void ModelLogger::LogUserFlagEvent(const Component& component, std::string message){
     auto e = new re_common::UserEvent();
-    fill_info(e->mutable_info());
-    fill_component(e->mutable_component(), component);
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);

@@ -19,8 +19,7 @@ class EventPort: public Activatable
             PE = 3
         };
 
-        EventPort(Component* component, std::string name, EventPort::Kind kind, std::string middleware = "");
-        EventPort(std::shared_ptr<Component> component, std::string name, EventPort::Kind kind, std::string middleware = "");
+        EventPort(std::weak_ptr<Component> component, std::string name, EventPort::Kind kind, std::string middleware = "");
         
 
     protected:
@@ -34,11 +33,12 @@ class EventPort: public Activatable
 
         EventPort::Kind get_kind() const;
         std::string get_middleware() const;
-        std::shared_ptr<Component> get_component();
+        std::weak_ptr<Component> get_component() const;
     protected:
         void SetKind(EventPort::Kind kind);
     private:
-        std::shared_ptr<Component> component_;
+        std::weak_ptr<Component> component_;
+        
         
         EventPort::Kind kind_ = EventPort::Kind::NONE;
         

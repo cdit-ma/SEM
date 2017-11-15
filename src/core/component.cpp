@@ -34,120 +34,208 @@ Component::Component(std::string inst_name){
 }
 
 Component::~Component(){
-    Passivate();
-    Teardown();
+    Activatable::Terminate();
     std::lock_guard<std::mutex> lock(state_mutex_);
     //Destory Ports
     eventports_.clear();
     workers_.clear();
 }
 
-bool Component::Activate(){
+bool Component::HandleActivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(Activatable::Activate()){
-        //Get the ports
-        for(auto itt : eventports_){
-            auto e = itt.second; 
-            //std::cout << "Activating: " << e->get_name() << std::endl;
-            e->Activate();
+    for(auto &p : workers_){
+        auto a = p.second;
+        if(a){
+            a->Activate();
         }
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
-        return true;
     }
-    return false;
+    for(auto &p : eventports_){
+        auto a = p.second;
+        if(a){
+            a->Activate();
+        }
+    }
+    logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::ACTIVATED);
+    return true;
 }
 
-bool Component::Passivate(){
+bool Component::HandlePassivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(Activatable::Passivate()){
-        for(auto itt : eventports_){
-            auto e = itt.second;
-            bool success = e->Passivate();
+    for(auto &p : workers_){
+        auto a = p.second;
+        if(a){
+            a->Passivate();
         }
-        //Log message
-        logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
-        return true;
     }
-    return false;
+    for(auto &p : eventports_){
+        auto a = p.second;
+        if(a){
+            a->Passivate();
+        }
+    }
+    //Log message
+    logger()->LogLifecycleEvent(*this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    return true;
 }
 
-bool Component::Teardown(){
+bool Component::HandleTerminate(){
+    HandlePassivate();
+
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    if(Activatable::Terminate()){
-        for(auto e : eventports_){
-            auto eventport = e.second;
-            eventport->Terminate();
+    std::lock_guard<std::mutex> lock2(mutex_);
+    for(auto& p : workers_){
+        auto a = p.second;
+        if(a){
+            a->Terminate();
         }
-        return true;
     }
-    return false;
+    for(auto& p : eventports_){
+        auto a = p.second;
+        if(a){
+            a->Terminate();
+        }
+    }
+    return true;
 }
 
-void Component::AddEventPort(std::shared_ptr<EventPort> event_port){
+bool Component::HandleConfigure(){
+    //Gain mutex lock
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    
+    for(auto &p : workers_){
+        auto a = p.second;
+        if(a){
+            auto success = a->Configure();
+            if(!success){
+                std::cerr << get_name() << " " << a->get_name() << std::endl;
+            }
+        }
+    }
+    for(auto &p : eventports_){
+        auto a = p.second;
+        if(a){
+            auto success = a->Configure();
+            if(!success){
+                std::cerr << get_name() << " " << a->get_name() << std::endl;
+            }
+        }
+    }
+    return true;
+}
+
+std::weak_ptr<EventPort> Component::AddEventPort(std::unique_ptr<EventPort> event_port){
     std::lock_guard<std::mutex> lock(mutex_);
     if(event_port){
         std::string name = event_port->get_name();
         if(eventports_.count(name) == 0){
-            eventports_[name] = event_port;
+            eventports_[name] = std::move(event_port);
+            return eventports_[name];
+        }else{
+            std::cerr << "Component '" << get_name()  << "' already has an EventPort with name '" << name << "'" << std::endl;
         }
+    }else{
+        std::cerr << "Component '" << get_name()  << "' cannot add a null EventPort" << std::endl;
+    }
+    return std::weak_ptr<EventPort>();
+}
 
+std::weak_ptr<EventPort> Component::GetEventPort(const std::string& name){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(eventports_.count(name)){
+        return eventports_[name];
+    }else{
+        //std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << name << "'" << std::endl;
+    }
+    return std::weak_ptr<EventPort>();
+}
+
+std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& name){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(eventports_.count(name)){
+        auto port = eventports_[name];
+        eventports_.erase(name);
+        return port;
+    }else{ 
+        std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << name << "'" << std::endl;
+        return std::shared_ptr<EventPort>();
     }
 }
 
-void Component::AddWorker(std::shared_ptr<Worker> worker){
+
+std::weak_ptr<Worker> Component::AddWorker(std::unique_ptr<Worker> worker){
     std::lock_guard<std::mutex> lock(mutex_);
     if(worker){
         std::string name = worker->get_name();
         if(workers_.count(name) == 0){
-            workers_[name] = worker;
+            workers_[name] = std::move(worker);
+            return workers_[name];
+        }else{
+            std::cerr << "Component '" << get_name()  << "' already has an Worker with name '" << name << "'" << std::endl;
         }
+    }else{
+        std::cerr << "Component '" << get_name()  << "' cannot add a null Worker" << std::endl;
     }
+    return std::weak_ptr<Worker>();
 }
 
-std::shared_ptr<Worker> Component::GetWorker(std::string name){
+std::weak_ptr<Worker> Component::GetWorker(const std::string& name){
     std::lock_guard<std::mutex> lock(mutex_);
     if(workers_.count(name)){
         return workers_[name];
-    }
-    return nullptr;
-}
-
-
-void Component::RemoveEventPort(std::shared_ptr<EventPort> event_port){
-    //TODO:
-}
-
-
-
-
-std::function<void (::BaseMessage*)> Component::GetCallback(std::string port_name){
-    std::lock_guard<std::mutex> lock(mutex_);
-    std::function<void (::BaseMessage*)> f = NULL;
-    if(callback_functions_.count(port_name)){
-        f = callback_functions_[port_name];
     }else{
-        std::cout << "No Callbacks for: " << port_name << " !" << std::endl;
+        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << name << "'" << std::endl;
+    }
+    return std::weak_ptr<Worker>();
+}
+
+
+std::shared_ptr<Worker> Component::RemoveWorker(const std::string& name){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(workers_.count(name)){
+        auto worker = workers_[name];
+        workers_.erase(name);
+        return worker;
+    }else{
+        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << name << "'" << std::endl;
+    }
+    return std::shared_ptr<Worker>();
+}
+
+void Component::AddCallback(const std::string& name, std::function<void (::BaseMessage*)> function){
+    //auto port = GetEventPort(port_name);
+    std::lock_guard<std::mutex> lock(mutex_);
+    
+    if(callback_functions_.count(name) == 0){
+        //Store the callback
+        callback_functions_[name] = function;
+    }
+}
+
+std::function<void (::BaseMessage*)> Component::GetCallback(const std::string& name){
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::function<void (::BaseMessage*)> f;
+    if(callback_functions_.count(name)){
+        f = callback_functions_[name];
+    }else{
+        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << name << "'" << std::endl;
     }
     return f;
 }
 
-void Component::AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function){
-    auto port = GetEventPort(port_name);
+bool Component::RemoveCallback(const std::string& name){
+    //auto port = GetEventPort(port_name);
     std::lock_guard<std::mutex> lock(mutex_);
     
-    if(callback_functions_.count(port_name) == 0){
-        //Store the callback
-        callback_functions_[port_name] = function;
+    if(callback_functions_.count(name) == 0){
+        callback_functions_.erase(name);
+        return true;
+    }else{
+        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << name << "'" << std::endl;
     }
+    return false;
 }
 
-std::shared_ptr<EventPort> Component::GetEventPort(std::string name){
-    std::lock_guard<std::mutex> lock(mutex_);
-    if(eventports_.count(name)){
-        return eventports_[name];
-    }
-    return nullptr;
-}
+
