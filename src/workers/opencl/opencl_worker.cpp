@@ -4,21 +4,33 @@
 #include <math.h>
 #include <iostream>
 
-OpenCLWorker::OpenCLWorker(Component* component, std::string inst_name, int platform_id)
+OpenCLWorker::OpenCLWorker(Component* component, std::string inst_name)
     : Worker(component, __func__, inst_name) {
+    
+}
+
+OpenCLWorker::~OpenCLWorker() {
+    
+}
+
+bool OpenCLWorker::Configure(int platform_id, int device_id) {
+    // TODO: Pull out platforms and devices using GetAttribute later
 
     manager_ = OpenCLManager::GetReferenceByPlatform(platform_id, this);
     if (manager_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to obtain a reference to an OpenCLManager");
-        return;
+        return false;
     } else {
         is_valid_ = true;
     }
-}
 
-OpenCLWorker::~OpenCLWorker() {
-    
+    //std::vector<std::shared_ptr<cl::Device> > devices = manager_->GetDevices();
+    std::vector<unsigned int> device_ids;
+    device_ids.push_back(device_id);
+    load_balancer_ = new OpenCLLoadBalancer(device_ids);
+
+    return true;
 }
 
 bool OpenCLWorker::IsValid() const {
@@ -48,12 +60,16 @@ bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
         return false;
     }
 
-    success = parallel_kernel_->Run(0, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
+    auto device_id = load_balancer_->RequestDevice();
+
+    success = parallel_kernel_->Run(device_id, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
     if (!success) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to execute RunParallel kernel");
         return false;
     }
+
+    load_balancer_->ReleaseDevice(device_id);
     
     return true;
 }

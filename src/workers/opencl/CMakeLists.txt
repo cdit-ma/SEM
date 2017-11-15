@@ -38,6 +38,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.cpp
     )
 
 set(HEADERS
@@ -49,6 +50,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernelbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclkernel.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.h
     )
 
 

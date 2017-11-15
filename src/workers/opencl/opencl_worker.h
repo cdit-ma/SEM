@@ -5,12 +5,14 @@
 #include "openclmanager.h"
 #include "oclbuffer.hpp"
 #include "openclkernel.hpp"
+#include "openclloadbalancer.h"
 
 class OpenCLWorker : public Worker {
 public:
-    OpenCLWorker(Component* component, std::string inst_name, int platform_id=0);
+    OpenCLWorker(Component* component, std::string inst_name);
     ~OpenCLWorker();
 
+    bool Configure(int platform_id=0, int device_id=0);
     bool IsValid() const;
 
     // Base/Utility functions
@@ -42,6 +44,7 @@ private:
     bool is_valid_ = false;
 
     OpenCLManager* manager_ = NULL;
+    OpenCLLoadBalancer* load_balancer_ = NULL;
     
     OpenCLKernel* parallel_kernel_ = NULL;
     OpenCLKernel* matrix_kernel_ = NULL;

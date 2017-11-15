@@ -15,6 +15,7 @@
 #include "openclkernel.hpp"
 #include "opencl_worker.h"
 #include "openclutilities.h"
+#include "openclloadbalancer.h"
 
 #define RANDSEED 13520
 
@@ -95,6 +96,9 @@ void recordTest(Result result, std::string description) {
 	}*/
 	//std::cout << "[" << resultToString(result) << "] " << description << std::endl;
 }
+
+void testLoadBalancer(OpenCLManager& manager);
+
 void testBufferReadWrite(OpenCLManager& manager);
 void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_kernel);
 
@@ -200,6 +204,8 @@ int main(int argc, char** argv) {
 
 	testKernelPassthrough(*manager, *pt_kernel);
 
+	testLoadBalancer(*manager);
+
 
 	OpenCLWorker* worker = testWorkerConstruction();
 
@@ -234,6 +240,43 @@ int main(int argc, char** argv) {
 	} else {
 		return 0;
 	}
+}
+
+void testLoadBalancer(OpenCLManager& manager) {
+	std::vector<unsigned int> device_ids = {1,2,3};
+	OpenCLLoadBalancer load_balancer(device_ids);
+
+	unsigned int job1_dev = load_balancer.RequestDevice();
+	unsigned int job2_dev = load_balancer.RequestDevice();
+	unsigned int job3_dev = load_balancer.RequestDevice();
+	Result res;
+	if (job1_dev != job2_dev && job1_dev != job3_dev && job2_dev != job3_dev) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "requesting 3 jobs across 3 devices results in each job on a separate device");
+
+	unsigned int job4_dev = load_balancer.RequestDevice();
+	unsigned int job5_dev = load_balancer.RequestDevice();
+	unsigned int job6_dev = load_balancer.RequestDevice();
+	if (job4_dev != job5_dev && job4_dev != job6_dev && job5_dev != job6_dev) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "requesting another 3 jobs across 3 devices results in each job on a separate device");
+
+	load_balancer.ReleaseDevice(job4_dev);
+	unsigned int job7_dev = load_balancer.RequestDevice();
+	if (job4_dev == job7_dev) {
+		res = PASS;
+	} else {
+		res = FAIL;
+		std::cout << "4: " << job4_dev << ", 7: " << job7_dev << std::endl; 
+	}
+	recordTest(res, "releasing and re-aquiring when job numbers are blananced returns same device");
+
 }
 
 void testBufferReadWrite(OpenCLManager& manager) {
@@ -387,6 +430,7 @@ OpenCLWorker* testWorkerConstruction() {
 	Component test_component("TestComponent");
 
 	OpenCLWorker* worker = new OpenCLWorker(&test_component, "OpenCLWorker_ConstructionTest");
+	worker->Configure(0, 0);
 
 	if (worker->IsValid()) {
 		res = PASS;
