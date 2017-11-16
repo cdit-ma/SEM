@@ -204,14 +204,21 @@ std::shared_ptr<Worker> Component::RemoveWorker(const std::string& name){
     return std::shared_ptr<Worker>();
 }
 
-void Component::AddCallback(const std::string& name, std::function<void (::BaseMessage*)> function){
+bool Component::AddCallback_(const std::string& name, std::function<void (::BaseMessage*)> function){
     //auto port = GetEventPort(port_name);
     std::lock_guard<std::mutex> lock(mutex_);
     
     if(callback_functions_.count(name) == 0){
         //Store the callback
         callback_functions_[name] = function;
+    }else{
+        std::cerr << "Component '" << get_name() << "' already has a callback with name '" << name << "'" << std::endl;
+        return false;
     }
+    return true;
+}
+bool Component::AddPeriodicCallback(const std::string& name, std::function<void()> function){
+    return AddCallback_(name, [function](::BaseMessage* bm){if(bm)function();});
 }
 
 std::function<void (::BaseMessage*)> Component::GetCallback(const std::string& name){

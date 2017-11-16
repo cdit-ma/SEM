@@ -8,8 +8,6 @@
 #include "controlmessage/controlmessage.pb.h"
 #include "controlmessage/translate.h"
 
-#include <google/protobuf/util/json_util.h>
-#include <google/protobuf/message.h>
 
 DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
     std::unique_lock<std::mutex> lock(mutex_);
@@ -18,12 +16,12 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
 
     //Construct a live receiever
     subscriber_ = new zmq::ProtoReceiver();
+
     //Get all Main messages
     subscriber_->Filter("*");
     
     //Subscribe to NodeManager::ControlMessage Types
-    auto cm_callback = std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1);
-    subscriber_->RegisterNewProto(NodeManager::ControlMessage::default_instance(), cm_callback);
+    subscriber_->RegisterNewProto<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
 
     if(!control_queue_thread_){
         //Construct a thread to process the control queue
@@ -62,13 +60,13 @@ bool DeploymentManager::TeardownModelLogger(){
     return ModelLogger::shutdown_logger();
 }
 
-void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
-    auto control_message = (NodeManager::ControlMessage*)ml;
-
-    //Gain mutex lock and append message to queue
-    std::unique_lock<std::mutex> lock(notify_mutex_);
-    control_message_queue_.push(control_message);
-    notify_lock_condition_.notify_all();
+void DeploymentManager::GotControlMessage(NodeManager::ControlMessage* control_message){
+    if(control_message){
+        //Gain mutex lock and append message to queue
+        std::unique_lock<std::mutex> lock(notify_mutex_);
+        control_message_queue_.push(control_message);
+        notify_lock_condition_.notify_all();
+    }
 }
 
 bool DeploymentManager::ProcessStartupMessage(std::string startup_str){

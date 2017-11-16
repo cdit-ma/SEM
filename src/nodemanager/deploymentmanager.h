@@ -26,7 +26,7 @@ class DeploymentManager{
         bool TeardownModelLogger();
 
         bool ProcessStartupMessage(std::string startup_str);
-        void GotControlMessage(google::protobuf::MessageLite* ml);
+        void GotControlMessage(NodeManager::ControlMessage* control_message);
         NodeContainer* get_deployment();
 
     private:
