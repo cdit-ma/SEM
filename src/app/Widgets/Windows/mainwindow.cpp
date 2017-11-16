@@ -104,6 +104,8 @@ void MainWindow::setViewController(ViewController* view_controller)
     connect(view_controller, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
     connect(view_controller, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
     connect(view_controller, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
+
+    addActions(action_controller->getAllActions());
 }
 
 /**

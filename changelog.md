@@ -1,4 +1,4 @@
-# MEDEA v2.3.2
+# MEDEA v2.3.3
 ## New Features:
 * Added a MEDEA_cli shell program which allows command line import/export of models
 * Added test frameworks for components:
