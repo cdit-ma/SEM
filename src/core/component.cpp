@@ -44,14 +44,14 @@ Component::~Component(){
 bool Component::HandleActivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    for(auto &p : workers_){
-        auto a = p.second;
+    for(auto& p : workers_){
+        auto& a = p.second;
         if(a){
             a->Activate();
         }
     }
-    for(auto &p : eventports_){
-        auto a = p.second;
+    for(auto& p : eventports_){
+        auto& a = p.second;
         if(a){
             a->Activate();
         }
@@ -63,14 +63,14 @@ bool Component::HandleActivate(){
 bool Component::HandlePassivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    for(auto &p : workers_){
-        auto a = p.second;
+    for(auto& p : workers_){
+        auto& a = p.second;
         if(a){
             a->Passivate();
         }
     }
-    for(auto &p : eventports_){
-        auto a = p.second;
+    for(auto& p : eventports_){
+        auto& a = p.second;
         if(a){
             a->Passivate();
         }
@@ -87,13 +87,13 @@ bool Component::HandleTerminate(){
     std::lock_guard<std::mutex> lock(state_mutex_);
     std::lock_guard<std::mutex> lock2(mutex_);
     for(auto& p : workers_){
-        auto a = p.second;
+        auto& a = p.second;
         if(a){
             a->Terminate();
         }
     }
     for(auto& p : eventports_){
-        auto a = p.second;
+        auto& a = p.second;
         if(a){
             a->Terminate();
         }
@@ -105,8 +105,8 @@ bool Component::HandleConfigure(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
     
-    for(auto &p : workers_){
-        auto a = p.second;
+    for(auto& p : workers_){
+        auto& a = p.second;
         if(a){
             auto success = a->Configure();
             if(!success){
@@ -114,8 +114,8 @@ bool Component::HandleConfigure(){
             }
         }
     }
-    for(auto &p : eventports_){
-        auto a = p.second;
+    for(auto& p : eventports_){
+        auto& a = p.second;
         if(a){
             auto success = a->Configure();
             if(!success){
