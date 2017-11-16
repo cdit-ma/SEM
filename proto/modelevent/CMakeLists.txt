@@ -14,18 +14,17 @@ find_package(Protobuf REQUIRED)
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/modelevent.proto)
 
-include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${PROTO_HDRS})
+
+target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
-    add_definitions(-DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
 	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif()
 
 #Link against protobuf
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-

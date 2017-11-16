@@ -45,7 +45,10 @@ namespace zmq{
             
             void Connect(std::string address);
             void Filter(std::string topic_filter);
-            void RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
+            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
+
+            template<class T>
+            bool RegisterNewProto(std::function<void(T*)> fn);
         private:
             google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
             void Connect_(std::string address);
@@ -79,5 +82,16 @@ namespace zmq{
             bool terminate_proto_convert_thread_ = false;
     };
 };
+
+template<class T>
+bool zmq::ProtoReceiver::RegisterNewProto(std::function<void(T*)> fn){
+    static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value, "T must inherit from google::protobuf::MessageLite");
+    const auto& default_instance = T::default_instance();
+    RegisterNewProto(default_instance, [fn](google::protobuf::MessageLite* ml){
+        auto t_message = (T*) ml;
+        fn(t_message);
+    });
+    return true;
+}
 
 #endif //RE_COMMON_ZMQ_PROTORECEIVER_H

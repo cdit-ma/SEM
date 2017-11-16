@@ -133,13 +133,16 @@ void zmq::ProtoReceiver::RecieverThread(){
 }
 
 
-void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
     std::string type = ml.GetTypeName();
-    //Function pointer winraring
-    callback_lookup_[type] = fn;
-
-    auto construct_fn = [&ml](){return ml.New();};
-    proto_lookup_[type] = construct_fn;
+    if(!callback_lookup_.count(type) && !proto_lookup_.count(type)){
+        //Function pointer winraring
+        callback_lookup_[type] = fn;
+        auto construct_fn = [&ml](){return ml.New();};
+        proto_lookup_[type] = construct_fn;
+        return true;
+    }
+    return false;
 }
 
 google::protobuf::MessageLite* zmq::ProtoReceiver::ConstructMessage(std::string type, std::string data){

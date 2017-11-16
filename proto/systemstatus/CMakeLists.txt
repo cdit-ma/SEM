@@ -19,9 +19,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
+target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
 if (MSVC)
-    #Windows requires protobuf in DLLs
-    add_definitions(-DPROTOBUF_USE_DLLS)
+	#Windows requires protobuf in DLLs
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
 	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif()
