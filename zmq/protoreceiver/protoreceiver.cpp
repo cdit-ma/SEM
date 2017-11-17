@@ -106,7 +106,7 @@ void zmq::ProtoReceiver::RecieverThread(){
     zmq::message_t topic;
     zmq::message_t type;
     zmq::message_t data;
-    
+
     while(true){
 		try{
             //Wait for Topic, Type and Data

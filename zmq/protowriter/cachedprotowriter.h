@@ -56,6 +56,7 @@ namespace zmq{
 
 
             int log_count_ = 0;
+            int written_to_disk_count = 0;
             int cache_count_ = 0;
             
             std::queue<std::pair<std::string, google::protobuf::MessageLite*> > write_queue_;

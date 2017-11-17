@@ -65,6 +65,7 @@ bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::proto
 }
 
 bool zmq::CachedProtoWriter::Terminate(){
+
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -78,30 +79,32 @@ bool zmq::CachedProtoWriter::Terminate(){
     int sent_count = 0;
     
     //Read the messages from the queue
-    auto messages = ReadMessagesFromFile(temp_file_path_);
-
-    //Send the messages serialized in the temp file
-    while(!messages.empty()){
-        auto s = messages.front();
-        messages.pop();
-        if(s){
-            if(zmq::ProtoWriter::PushString(s->topic, s->type, s->data)){
-                sent_count ++;
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        if(written_to_disk_count){
+            auto messages = ReadMessagesFromFile(temp_file_path_);
+            //Send the messages serialized in the temp file
+            while(!messages.empty()){
+                auto s = messages.front();
+                if(s){
+                    if(zmq::ProtoWriter::PushString(s->topic, s->type, s->data)){
+                        sent_count ++;
+                    }
+                    delete s;
+                }
+                messages.pop();
             }
-            delete s;
         }
     }
+   
 
     //Send the Messages still in the write queue
     while(!write_queue_.empty()){
         const auto& topic = write_queue_.front().first;
         auto message = write_queue_.front().second;
         
-        if(message){
-            if(zmq::ProtoWriter::PushMessage(topic, message)){
-                sent_count ++;
-            }
-            delete message;
+        if(zmq::ProtoWriter::PushMessage(topic, message)){
+            sent_count ++;
         }
         write_queue_.pop();
     }
@@ -132,8 +135,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
         }
         
         if(replace_queue.size()){
-            int filedesc = open(temp_file_path_.c_str(), O_CREAT | O_WRONLY);
-
+            int filedesc = open(temp_file_path_.c_str(), O_APPEND | O_CREAT | O_WRONLY, S_IWRITE | S_IREAD);
             if(filedesc < 0){
                 std::cerr << "Failed to open temp file '" << temp_file_path_ << "' to write." << std::endl;
                 break;
@@ -143,19 +145,30 @@ void zmq::CachedProtoWriter::WriteQueue(){
             ::google::protobuf::io::FileOutputStream raw_output(filedesc);
             raw_output.SetCloseOnDelete(true);
             
+            int write_count = 0;
+            
             //Write all messages in queue
             while(!replace_queue.empty()){
                 const auto& topic = replace_queue.front().first;
                 auto message = replace_queue.front().second;
                 
-                if(!(message && WriteDelimitedTo(topic, *message, &raw_output))){
-                    std::cerr << "Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
+                if(message){
+                    if(WriteDelimitedTo(topic, *message, &raw_output)){
+                        write_count ++;
+                    }else{
+                        std::cerr << "zmq::CachedProtoWriter::WriteQueue(): Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
+                    }
+                    //Delete protobuf message
+                    delete message;
+                }else{
+                    std::cerr << "zmq::CachedProtoWriter::WriteQueue(): got NULL message." << std::endl;
                 }
-
-                //Delete protobuf message
-                delete message;
                 replace_queue.pop();
             }
+
+            //Obtain lock for the queue
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            written_to_disk_count += write_count;
         }
     }
 }
@@ -163,9 +176,10 @@ void zmq::CachedProtoWriter::WriteQueue(){
 std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::string file_path){
     //Construct a return queue
     std::queue<Message_Struct*> queue;
+    
 
 
-    int filedesc = open(file_path.c_str(), O_RDONLY);
+    int filedesc = open(file_path.c_str(), O_RDONLY, S_IWRITE | S_IREAD);
 
     if(filedesc < 0){
         std::cerr << "Failed to open file '" << file_path << "' to read." << std::endl;
