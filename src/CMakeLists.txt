@@ -1,5 +1,7 @@
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
-
+if(BUILD_CLIENT OR BUILD_SERVER)
+	message(STATUS "Building re_common")
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+endif()
 
 
 if(BUILD_CLIENT)

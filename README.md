@@ -1,39 +1,49 @@
 # logan
 logan is a lightweight, high performance, cross-platform, distributed hardware logging system. It is designed to aggregate system hardware performance metrics to facilitate analysis.
 
+Both executables are shell tools, which will run indefinately until a `Ctrl+C` or `SIGINT` interupts the process, resulting in a safe teardown.
+
 ### logan server
-logan server connects to one or many logan clients and stores all received metrics in a SQLite3 database.
+logan server connects to one or many logan clients and stores all received metrics in a SQLite3 database. It is also able to listen to logging produces by the `ModelLogger` from the [Runtime Environment](https://github.com/cdit-ma/re).
 
 ### logan client
 logan client utilises the sigar system monitoring interface to collect system metrics and ZeroMQ to communicate with one or many logan servers. Logging can be run in live or cached mode to optimise for either network traffic or disk I/O. Logging frequency can also be specified to control data point granularity.
 
-## Supported Operating Systems:
-* Windows 7 (> Visual Studio 2015)
-* MacOSX 10.10 (Or Newer)
-* Ubuntu 14.04 (or Newer)
+## Minimum software requirements:
+* C++11 compatible compiler
+* [CMake 3.0](https://cmake.org/)
+* [libzmq](https://github.com/zeromq/libzmq)
+* [Google Protobuf](https://github.com/google/protobuf)
+* [Sigar](https://github.com/hyperic/sigar)
 
-## Required Libraries:
-* https://github.com/google/protobuf
-* https://github.com/zeromq/libzmq
-* https://github.com/hyperic/sigar
+## Optional software requirements
+* [Ninja](https://ninja-build.org/)
 
-## Build Tool:
-* https://github.com/Kitware/CMake
+## Build Instructions:
+```
+git clone https://github.com/cdit-ma/logan --recursive
+cd MEDEA
+mkdir build
+cd build
+cmake .. -G "Ninja"
+cmake --build .
+```
 
-## Installation:
-* Build and install all required libraries
-* ``git clone --recursive https://github.com/cdit-ma/logan``
-* ``cd logan``
-* ``mkdir build``
-* ``cd build``
-* ``cmake .. -DBUILD_SERVER=ON -DBUILD_CLIENT=ON``
-* To disable re-model or hardware logging, ``-DDISABLE_MODEL_LOGGING`` or ``-DDISABLE_HARDWARE_LOGGING`` can be added to above cmake command.
-* **Unix -** ``make``
-* **Windows -** ``msbuild logan.sln /p:Configuration=Release``
-* Executables will be placed in logan/bin
+### Notes:
+* Run `cmake -G` to list all generators supported for your OS (ie `"Unix Makefiles"` for `Unix`)
+
+### Windows Notes:
+* Add `-DCMAKE_BUILD_TYPE=Release` to the cmake generator command
+* Add `--config Release` to the cmake build command
+
+### CMake Options:
+* `-DBUILD_CLIENT=ON/OFF` - Toggles building of logan_client
+* `-DBUILD_SERVER=ON/OFF` - Toggles building of logan_server
+* `-DDISABLE_MODEL_LOGGING` - Disables logan_server's model logging capibilities 
+* `-DDISABLE_HARDWARE_LOGGING` - Disables logan_server's hardware logging capibilities
+
 
 ## Usage
-A command line version of MEDEA, provides command line import/export functionality. Returns an error code if failed.
 
 ### Server command line options
 | Flag                                  | Description                           |
@@ -53,13 +63,14 @@ A command line version of MEDEA, provides command line import/export functionali
 | -p, --publisher [arg]                 | Publisher endpoint (ie tcp://192.168.111.1:5555)|
 
 
-### Example Usage
-Running a simple logging scenario with one logging server and two logging clients.
+## Example Usage
+Running a simple logging scenerio on localhost. These commands can be run in different shells, and `CTRL+C` can be used to interupt instead of the `killall command`
+
 ```
->Start client 1 (Logs every 2 seconds, with extra information about a process called "logan_server")
-./logan_client -p tcp://192.168.111.100:5555 -f 0.5 -p logan_server
->Start client 2 (Logs every 2 secondts, sending information as it is generated)
-./logan_client -p tcp://192.168.111.100:5556 -f 0.5 --live_mode true
->Start server listening to both clients and outputting to "output.sql"
-./logan_server -c tcp://192.168.111.100:5555 tcp://192.168.111.100:5556 -d output.sql
+cd logan/bin
+./logan_server -c tcp://127.0.0.1:7001 tcp://127.0.0.1:7002 -d output.sql &
+./logan_client -p tcp://127.0.0.1:7001 -f 0.5 -P logan_server &
+./logan_client -p tcp://127.0.0.1:7002 -f 2 --live_mode true &
+killall logan_client --wait
+killall logan_server --wait
 ```
