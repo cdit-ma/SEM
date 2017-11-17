@@ -17,24 +17,26 @@
  * License along with this library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
- 
-#ifndef RE_COMMON_ZMQ_MONITORABLE_H
-#define RE_COMMON_ZMQ_MONITORABLE_H
 
-#include <mutex>
-#include <string>
+syntax="proto3";
 
-namespace zmq{
-    class Monitor;
+package re_common;
 
-    class Monitorable{
-        public:
-            virtual bool AttachMonitor(zmq::Monitor* monitor, const int event_type) = 0;
-            std::string GetNewMonitorAddress();
-        private:
-            int GetNewMonitorID();    
-            static int count_;
-            static std::mutex mutex_;
-    };
+message Control{
+    string origin = 1;
+    double timestamp = 2;
+    double message_id = 3;
+    
+    enum Type{
+        ERROR = 0;
+        MESSAGE = 1;
+        REGISTER = 2;
+        DEREGISTER = 3;
+        START = 4;
+        STOP = 5;
+    }
+
+    Type type = 4;
+
+    string message = 5;
 }
-#endif //RE_COMMON_ZMQ_MONITORABLE_H

@@ -24,19 +24,22 @@
 
 zmq::ProtoReceiver::ProtoReceiver(){
     //Setup ZMQ context
-    context_ = new zmq::context_t(1);
+    context_ = new zmq::context_t();
 }
 
-void zmq::ProtoReceiver::Start(){
-    if(callback_lookup_.empty()){
-        std::cout << "Can't start zmq::ProtoReceiver: No ProtoHandler." << std::endl;
+bool zmq::ProtoReceiver::Start(){
+    std::unique_lock<std::mutex> lock(thread_mutex_);
+    if(!reciever_thread_ && !reciever_thread_){
+        terminate_proto_convert_thread_ = false;
+        reciever_thread_ = new std::thread(&zmq::ProtoReceiver::RecieverThread, this);
+        proto_convert_thread_ = new std::thread(&zmq::ProtoReceiver::ProtoConvertThread, this);
+        return true;
     }
-
-    reciever_thread_ = new std::thread(&zmq::ProtoReceiver::RecieverThread, this);
-    proto_convert_thread_ = new std::thread(&zmq::ProtoReceiver::ProtoConvertThread, this);
+    return false;
 }
 
 void zmq::ProtoReceiver::SetBatchMode(bool on, int size){
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     batch_size_ = on ? size : 0;
 
     if(batch_size_ < 0){
@@ -44,111 +47,130 @@ void zmq::ProtoReceiver::SetBatchMode(bool on, int size){
     }
 }
 
-zmq::ProtoReceiver::~ProtoReceiver(){
-    {
-        //Gain the lock so we can notify and set our terminate flag.
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        terminate_proto_convert_thread_ = true;
-        queue_lock_condition_.notify_all();
-    }
-
-    //Terminate the proto thread
-    if(proto_convert_thread_){
+bool zmq::ProtoReceiver::End(){
+    std::unique_lock<std::mutex> lock(thread_mutex_);
+    if(proto_convert_thread_ && reciever_thread_){
+        {
+            //Gain the lock so we can notify and set our terminate flag.
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            terminate_proto_convert_thread_ = true;
+            queue_lock_condition_.notify_all();
+        }
         proto_convert_thread_->join();
         delete proto_convert_thread_;
-    }
+        proto_convert_thread_ = 0;
 
-    delete context_;
-
-    //Terminate the receiver thread
-    if(reciever_thread_){
+        if(context_){
+            delete context_;
+            context_ = 0;
+        }
+        //Terminate the receiver thread
         reciever_thread_->join();
         delete reciever_thread_;
+        reciever_thread_ = 0;
+        return true;
     }
+    return false;
 }
 
-void zmq::ProtoReceiver::AttachMonitor(zmq::Monitor* monitor, int event_type){
-    std::unique_lock<std::mutex> lock(address_mutex_);
+zmq::ProtoReceiver::~ProtoReceiver(){
+    End();
+}
+
+bool zmq::ProtoReceiver::AttachMonitor(zmq::Monitor* monitor, const int event_type){
+    std::unique_lock<std::mutex> lock(zmq_mutex_);
     if(monitor && socket_){
         //Attach monitor; using a new address
         monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
+        return true;
     }
+    return false;
 }
+
 
 void zmq::ProtoReceiver::RecieverThread(){
     //Gain mutex lock to ensure we are the only thing working at this point.
     {
-        std::unique_lock<std::mutex> lock(address_mutex_);
+        std::unique_lock<std::mutex> lock(zmq_mutex_);
         //Setup our Subscriber socket
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
 
         //Connect to all nodes on our network
-        for (auto a : addresses_){
+        for (const auto& a : addresses_){
             Connect_(a);
         }
-        for (auto f : filters_){
+        for (const auto& f : filters_){
             Filter_(f);
         }
     }
-    zmq::message_t *topic = new zmq::message_t();
-    zmq::message_t *type = new zmq::message_t();
-    zmq::message_t *data = new zmq::message_t();
+    zmq::message_t topic;
+    zmq::message_t type;
+    zmq::message_t data;
     
     while(true){
 		try{
-            //Wait for next message
-            socket_->recv(topic);
-            socket_->recv(type);
-			socket_->recv(data);
+            //Wait for Topic, Type and Data
+            socket_->recv(&topic);
+            socket_->recv(&type);
+			socket_->recv(&data);
             
-            //If we have a valid message
-            if(type->size() > 0 && data->size() > 0){
-                //Construct a string out of the zmq data
-                std::string topic_str(static_cast<char *>(topic->data()), topic->size());
-                std::string type_str(static_cast<char *>(type->data()), type->size());
-                std::string msg_str(static_cast<char *>(data->data()), data->size());
+            if(type.size()){
+                //Construct strings
+                std::string type_str(static_cast<char *>(type.data()), type.size());
+                std::string msg_str(static_cast<char *>(data.data()), data.size());
 
                 //Gain the lock so we can push this message onto our queue
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 rx_message_queue_.push(std::make_pair(type_str, msg_str));
 
-                //Notify the condition when we have > 20 messages to process
+                //Notify the ProtoConvertThread
                 if(rx_message_queue_.size() > batch_size_){
                     queue_lock_condition_.notify_all();
                 }
             }
         }catch(zmq::error_t &ex){
             if(ex.num() != ETERM){
-                std::cerr << "ZMQ::Registrant::RegistrationThread: " << ex.what() << std::endl;
+                std::cerr << "zmq::ProtoReceiver::RecieverThread: " << ex.what() << std::endl;
             }
 			break;
         }
     }
-    //Free our memory
-    delete topic;
-    delete type;
-    delete data;
+
+    std::unique_lock<std::mutex> lock(zmq_mutex_);
     delete socket_;
     socket_ = 0;
 }
 
 
-void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+    std::unique_lock<std::mutex> lock(proto_mutex_);
     std::string type = ml.GetTypeName();
-    //Function pointer winraring
-    callback_lookup_[type] = fn;
-
-    auto construct_fn = [&ml](){return ml.New();};
-    proto_lookup_[type] = construct_fn;
+    if(!callback_lookup_.count(type) && !proto_lookup_.count(type)){
+        //Function pointer winraring
+        callback_lookup_[type] = fn;
+        auto construct_fn = [&ml](){return ml.New();};
+        proto_lookup_[type] = construct_fn;
+        return true;
+    }else{
+        std::cerr << "zmq::ProtoReceiver::Cannot Register Proto Type: " << type << " As type has been registered" << std::endl;
+    }
+    return false;
 }
 
-google::protobuf::MessageLite* zmq::ProtoReceiver::ConstructMessage(std::string type, std::string data){
-    if(proto_lookup_.count(type)){
+bool zmq::ProtoReceiver::ProcessMessage(const std::string& type, const std::string& data){
+    std::unique_lock<std::mutex> lock(proto_mutex_);
+    if(proto_lookup_.count(type) && callback_lookup_.count(type)){
         auto a = proto_lookup_[type]();
-        a->ParseFromString(data);
-        return a;
+        if(a->ParseFromString(data)){
+            callback_lookup_[type](a);
+            return true;
+        }else{
+            std::cerr << "zmq::ProtoReceiver::Cannot Parse: Proto Type: " << type << std::endl;
+        }
+    }else{
+        std::cerr << "zmq::ProtoReceiver::Proto Type: " << type << " not registered" << std::endl;
     }
-    return 0;
+    return false;
 }
 
 
@@ -159,76 +181,79 @@ void zmq::ProtoReceiver::ProtoConvertThread(){
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
+            //Wait until we have messages or are told to terminate
+            queue_lock_condition_.wait(lock, [this]{
+                return terminate_proto_convert_thread_ || !rx_message_queue_.empty();
+            });
+
+            //Break out if we need to terminat
             if(terminate_proto_convert_thread_){
                 return;
-            }
-            //Wait for the condition to be notified
-            queue_lock_condition_.wait(lock);
-            
-            //Now that we have access, swap out queues and release the mutex
-            if(!rx_message_queue_.empty()){
+            }else{
+                //Now that we have access, swap out queues and release the mutex
                 rx_message_queue_.swap(replace_queue);
             }
         }
 
         while(!replace_queue.empty()){
-            std::string type = replace_queue.front().first;
-            std::string msg = replace_queue.front().second;
+            const auto& type = replace_queue.front().first;
+            const auto& msg = replace_queue.front().second;
 
-            if(callback_lookup_.count(type)){
-                auto message = ConstructMessage(type, msg);
-                if(message){
-                    callback_lookup_[type](message);
-                }
-            }
+            ProcessMessage(type, msg);
             replace_queue.pop();
         }
     }
 }
 
-void zmq::ProtoReceiver::Connect_(std::string address){
+bool zmq::ProtoReceiver::Connect_(const std::string& address){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
             socket_->connect(address.c_str());
+            return true;
         }
     }
     catch(zmq::error_t ex){
-        std::cout << zmq_strerror(ex.num()) << std::endl;
+        std::cerr << "zmq::ProtoReceiver: Connect to: " << address << " Failed! " << ex.what() << std::endl;
     }    
+    return false;
 }
 
-void zmq::ProtoReceiver::Filter_(std::string topic_filter){
+bool zmq::ProtoReceiver::Filter_(const std::string& topic_filter){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
             //Subscribe to specific topic
             socket_->setsockopt(ZMQ_SUBSCRIBE, topic_filter.c_str(), topic_filter.size());
+            return true;
         }
     }
     catch(zmq::error_t ex){
-        std::cout << zmq_strerror(ex.num()) << std::endl;
+        std::cerr << "zmq::ProtoReceiver: Filter: " << topic_filter << " Failed! " << ex.what() << std::endl;
     }    
-
+    return false;
 }
-void zmq::ProtoReceiver::Filter(std::string filter){
-    std::unique_lock<std::mutex> lock(address_mutex_);
+
+bool zmq::ProtoReceiver::Filter(const std::string& filter){
+    std::unique_lock<std::mutex> lock(zmq_mutex_);
 
     if(!reciever_thread_){
         //Append to addresses.
         filters_.push_back(filter);        
+        return true;
     }else{
-        Filter_(filter);
+        return Filter_(filter);
     }
 }
 
-void zmq::ProtoReceiver::Connect(std::string address){
-    std::unique_lock<std::mutex> lock(address_mutex_);
+bool zmq::ProtoReceiver::Connect(const std::string& address){
+    std::unique_lock<std::mutex> lock(zmq_mutex_);
 
     if(!reciever_thread_){
         //Append to addresses.
         addresses_.push_back(address);        
+        return true;
     }else{
-        Connect_(address);
+        return Connect_(address);
     }
 }
