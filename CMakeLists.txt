@@ -29,7 +29,7 @@ if(MSVC)
 	SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 endif()
 
-SET(LOGAN_VERSION "1.4.0")
+SET(LOGAN_VERSION "1.4.0a")
 
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)
