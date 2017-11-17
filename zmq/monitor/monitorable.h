@@ -29,7 +29,7 @@ namespace zmq{
 
     class Monitorable{
         public:
-            virtual void AttachMonitor(zmq::Monitor* monitor, int event_type) = 0;
+            virtual bool AttachMonitor(zmq::Monitor* monitor, const int event_type) = 0;
             std::string GetNewMonitorAddress();
         private:
             int GetNewMonitorID();    

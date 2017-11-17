@@ -26,36 +26,27 @@
 #include "../monitor/monitor.h"
 
 zmq::ProtoWriter::ProtoWriter(){
+    std::unique_lock<std::mutex> lock(mutex_);
     context_ = new zmq::context_t();
     socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
-    
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
     socket_->setsockopt(ZMQ_SNDHWM, 10000);
 }
 
 zmq::ProtoWriter::~ProtoWriter(){
-    //Gain the lock
-    std::unique_lock<std::mutex> lock(mutex_);
-
     Terminate();
-
-    if(socket_){
-        delete socket_;
-    }
-
-    if(context_){
-        delete context_;
-    }
 }
 
-void zmq::ProtoWriter::AttachMonitor(zmq::Monitor* monitor, int event_type){
+bool zmq::ProtoWriter::AttachMonitor(zmq::Monitor* monitor, const int event_type){
+    std::unique_lock<std::mutex> lock(mutex_);
     if(monitor && socket_){
         //Attach monitor; using a new address
-        monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
+        return monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
     }
+    return false;
 }
 
-bool zmq::ProtoWriter::BindPublisherSocket(std::string endpoint){
+bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){
@@ -70,35 +61,50 @@ bool zmq::ProtoWriter::BindPublisherSocket(std::string endpoint){
     return false;
 }
 
-void zmq::ProtoWriter::PushMessage(std::string topic, google::protobuf::MessageLite* message){
-    //Gain the lock
-    std::unique_lock<std::mutex> lock(mutex_);
-
-    std::string type_name;
-    std::string str;
+bool zmq::ProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
+    bool success = false;
     if(message){
-        if(message->SerializeToString(&str)){
-            type_name = message->GetTypeName();
-            PushString(&topic, &type_name, &str);
+        std::string message_str;
+        if(message->SerializeToString(&message_str)){
+           success = PushString(topic, message->GetTypeName(), message_str);
         }
         delete message;
     }
+    return success;
 }
 
-void zmq::ProtoWriter::PushString(std::string* topic, std::string* type, std::string* message){
-    if(message){
+bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& type, const std::string& message){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(socket_){
         //Construct a zmq message for both the type and message data
-        zmq::message_t topic_data(topic->c_str(), topic->size());
-        zmq::message_t type_data(type->c_str(), type->size());
-        zmq::message_t message_data(message->c_str(), message->size());
+        zmq::message_t topic_data(topic.c_str(), topic.size());
+        zmq::message_t type_data(type.c_str(), type.size());
+        zmq::message_t message_data(message.c_str(), message.size());
         
         //Send Type then Data
-        socket_->send(topic_data, ZMQ_SNDMORE);
-        socket_->send(type_data, ZMQ_SNDMORE);
-        socket_->send(message_data);
+        try{
+            socket_->send(topic_data, ZMQ_SNDMORE);
+            socket_->send(type_data, ZMQ_SNDMORE);
+            socket_->send(message_data);
+            return true;   
+        }catch(zmq::error_t &ex){
+            std::cerr << "zmq::ProtoWriter::PushString(): " << ex.what() << std::endl;
+        }
     }
+    return false;
 }
 
-void zmq::ProtoWriter::Terminate(){
-    //Do nothing
+bool zmq::ProtoWriter::Terminate(){
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    if(context_ && socket_){
+        delete socket_;
+        socket_ = 0;
+        delete context_;
+        context_ = 0;
+        return true;
+    }
+    return false;
 }
+//Gain the lock
+    

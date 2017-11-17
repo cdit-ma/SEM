@@ -34,13 +34,13 @@ namespace zmq{
             ProtoWriter();
             virtual ~ProtoWriter();
             
-            void AttachMonitor(zmq::Monitor* monitor, int event_type);
+            bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
+            bool BindPublisherSocket(const std::string& endpoint);
 
-            bool BindPublisherSocket(std::string endpoint);
-            virtual void PushMessage(std::string topic, google::protobuf::MessageLite* message);
-            virtual void Terminate();
+            virtual bool PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
+            virtual bool Terminate();
         protected:
-            void PushString(std::string* topic, std::string* message_type, std::string* message);
+            bool PushString(const std::string& topic, const std::string& message_type, const std::string& message);
         private:
             zmq::socket_t* socket_;
             zmq::context_t* context_;

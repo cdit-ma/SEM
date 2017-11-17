@@ -36,11 +36,13 @@ void zmq::Monitor::RegisterEventCallback(std::function<void(int, std::string)> f
     callback_ = fn;
 }
 
-void zmq::Monitor::MonitorSocket(zmq::socket_t* socket, std::string address, int event_type){
+bool zmq::Monitor::MonitorSocket(zmq::socket_t* socket, std::string address, int event_type){
     if(socket && !monitor_thread_){
         //Call a thread to run monitor
         monitor_thread_ = new std::thread([=]{monitor(*socket, address.c_str(), event_type);});
+        return true;
     }
+    return false;
 }
 
 void zmq::Monitor::on_event(const zmq_event_t &event, const char* addr){

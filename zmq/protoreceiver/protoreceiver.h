@@ -39,46 +39,48 @@ namespace zmq{
         public:
             ProtoReceiver();
             ~ProtoReceiver();
-            void SetBatchMode(bool on, int size);
-            void AttachMonitor(zmq::Monitor* monitor, int event_type);
-            void Start();
+
+            void SetBatchMode(const bool on, const int size);
+            bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
+
+            bool Start();
+            bool End();
             
-            void Connect(std::string address);
-            void Filter(std::string topic_filter);
-            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
+            bool Connect(const std::string& address);
+            bool Filter(const std::string& topic_filter);
 
             template<class T>
             bool RegisterNewProto(std::function<void(T*)> fn);
         private:
-            google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
-            void Connect_(std::string address);
-            void Filter_(std::string topic_filter);
-            void RecieverThread();
-            void ProtoConvertThread();
-            void MonitorThread();
-
-            zmq::socket_t* socket_ = 0;
-
-            int batch_size_ = 0;
+            bool ProcessMessage(const std::string& type, const std::string& data);
+            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
             
+            void RecieverThread();
+            //RecieverThread helper functions
+            bool Connect_(const std::string& address);
+            bool Filter_(const std::string& topic_filter);
+            
+            void ProtoConvertThread();
+
+            std::mutex zmq_mutex_;
+            zmq::context_t *context_ = 0;
+            zmq::socket_t* socket_ = 0;
             std::vector<std::string> addresses_;
             std::vector<std::string> filters_;
 
+            std::mutex proto_mutex_;
+            std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
+            std::map<std::string, std::function<google::protobuf::MessageLite* ()> > proto_lookup_;
+
+            std::mutex queue_mutex_;
+            int batch_size_ = 0;
+            std::condition_variable queue_lock_condition_;
+            std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
+            
+
+            std::mutex thread_mutex_;
             std::thread* reciever_thread_ = 0;
             std::thread* proto_convert_thread_ = 0;
-
-            zmq::context_t *context_ = 0;
-
-            std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
-            std::map<std::string, std::function< google::protobuf::MessageLite* ()> > proto_lookup_;
-
-            std::condition_variable queue_lock_condition_;
-            std::mutex queue_mutex_;
-            std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
-
-            std::mutex address_mutex_;
-            
-            bool terminate_reciever_ = false;
             bool terminate_proto_convert_thread_ = false;
     };
 };
