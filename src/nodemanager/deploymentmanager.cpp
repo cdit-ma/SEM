@@ -33,7 +33,7 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
 
 DeploymentManager::~DeploymentManager(){
     if(subscriber_){
-        subscriber_->End();
+        subscriber_->Terminate();
         delete subscriber_;
         subscriber_ =  0;
     }

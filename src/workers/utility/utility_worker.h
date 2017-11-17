@@ -11,7 +11,6 @@ class Utility_Worker: public Worker{
         Utility_Worker(std::weak_ptr<Component> component, std::string inst_name);
         ~Utility_Worker();
 
-
         void Log(const std::string format_str, bool print, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         
