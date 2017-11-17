@@ -1,6 +1,2 @@
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto/modelevent")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto/systemstatus")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto/control")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq/protowriter")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq/protoreceiver")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq/monitor")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proto")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/zmq")

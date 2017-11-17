@@ -14,9 +14,6 @@ find_package(Protobuf REQUIRED)
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/systemstatus.proto)
 
-include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
