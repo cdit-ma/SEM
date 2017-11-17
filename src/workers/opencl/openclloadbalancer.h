@@ -31,7 +31,7 @@ private:
             return num_jobs_ < rhs.num_jobs_;
         }
         bool operator()(const DeviceJobList& lhs, const DeviceJobList& rhs) const {
-            return lhs.num_jobs_ < rhs.num_jobs_;
+            return lhs < rhs;
         }
     };
 
