@@ -32,6 +32,12 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
 }
 
 DeploymentManager::~DeploymentManager(){
+    if(subscriber_){
+        subscriber_->End();
+        delete subscriber_;
+        subscriber_ =  0;
+    }
+
     std::unique_lock<std::mutex> lock(mutex_);
     if(deployment_){
         delete deployment_;

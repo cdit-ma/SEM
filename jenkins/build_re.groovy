@@ -17,7 +17,7 @@ stage("Checkout"){
 def step_build_test = [:]
 def step_test = [:]
 
-def re_nodes = utils.getLabelledNodes("build_re")
+def re_nodes = utils.getLabelledNodes("builder")
 for(n in re_nodes){
     def node_name = n
 

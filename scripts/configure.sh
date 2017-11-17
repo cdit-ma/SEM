@@ -10,7 +10,7 @@ PUGIXML_ROOT="/opt/pugixml-1.8/"
 
 #Set library path to include the re_core location
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$RE_LIB_PATH
-DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}:$RE_LIB_PATH
+DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}:$RE_LIB_PATH:/usr/lib:/usr/local/lib:
 
 export RE_PATH PUGIXML_ROOT LD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH CMAKE_MODULE_PATH
 echo "<<< cdit-ma runtime environment configure script >>>"
