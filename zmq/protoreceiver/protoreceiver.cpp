@@ -47,7 +47,7 @@ void zmq::ProtoReceiver::SetBatchMode(bool on, int size){
     }
 }
 
-bool zmq::ProtoReceiver::End(){
+bool zmq::ProtoReceiver::Terminate(){
     std::unique_lock<std::mutex> lock(thread_mutex_);
     if(proto_convert_thread_ && reciever_thread_){
         {
@@ -74,7 +74,7 @@ bool zmq::ProtoReceiver::End(){
 }
 
 zmq::ProtoReceiver::~ProtoReceiver(){
-    End();
+    Terminate();
 }
 
 bool zmq::ProtoReceiver::AttachMonitor(zmq::Monitor* monitor, const int event_type){
@@ -123,6 +123,7 @@ void zmq::ProtoReceiver::RecieverThread(){
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 rx_message_queue_.push(std::make_pair(type_str, msg_str));
 
+                
                 //Notify the ProtoConvertThread
                 if(rx_message_queue_.size() > batch_size_){
                     queue_lock_condition_.notify_all();
@@ -157,11 +158,17 @@ bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &m
     return false;
 }
 
+int zmq::ProtoReceiver::GetRxCount(){
+    std::unique_lock<std::mutex> lock(proto_mutex_);
+    return rx_count_;
+}
+
 bool zmq::ProtoReceiver::ProcessMessage(const std::string& type, const std::string& data){
     std::unique_lock<std::mutex> lock(proto_mutex_);
     if(proto_lookup_.count(type) && callback_lookup_.count(type)){
         auto a = proto_lookup_[type]();
         if(a->ParseFromString(data)){
+            rx_count_ ++;
             callback_lookup_[type](a);
             return true;
         }else{

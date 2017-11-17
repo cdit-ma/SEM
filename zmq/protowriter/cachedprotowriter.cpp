@@ -36,10 +36,11 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     temp_file_path_ = temp.string();
-    std::cout << "* CachedProtoWriter File: '" << temp_file_path_ << "'" << std::endl;
+    
 
     //Start the writer thread
     writer_thread_ = new std::thread(&zmq::CachedProtoWriter::WriteQueue, this);
+    running = true;
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
@@ -49,73 +50,77 @@ zmq::CachedProtoWriter::~CachedProtoWriter(){
 
 //Takes ownership of message
 bool zmq::CachedProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
-    if(message){
-        //Gain the lock
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        //Push the message onto the queue
-        write_queue_.push(std::make_pair(topic, message));
-        log_count_ ++;
-        if(write_queue_.size() >= cache_count_){
-            //Notify the writer_thread to flush the queue if we have hit our write limit
-            queue_lock_condition_.notify_all();
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(running){
+        if(message){
+            //Gain the lock
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            //Push the message onto the queue
+            write_queue_.push(std::make_pair(topic, message));
+            log_count_ ++;
+            if(write_queue_.size() >= cache_count_){
+                //Notify the writer_thread to flush the queue if we have hit our write limit
+                queue_lock_condition_.notify_all();
+            }
+            return true;
+        }else{
+            std::cerr << "zmq::CachedProtoWriter::PushMessage() Given a null message" << std::endl;
         }
-        return true;
     }
-    return true;
+    return false;
 }
 
 bool zmq::CachedProtoWriter::Terminate(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(running){
+        {
+            //Gain the lock so we can notify and set our terminate flag.
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            writer_terminate_ = true;
+            queue_lock_condition_.notify_all();
+        }
 
-    {
-        //Gain the lock so we can notify and set our terminate flag.
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        writer_terminate_ = true;
-        queue_lock_condition_.notify_all();
-    }
+        //Wait for the writer_thread to finish
+        writer_thread_->join();
 
-    //Wait for the writer_thread to finish
-    writer_thread_->join();
-
-    int sent_count = 0;
-    
-    //Read the messages from the queue
-    {
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        if(written_to_disk_count){
-            auto messages = ReadMessagesFromFile(temp_file_path_);
-            //Send the messages serialized in the temp file
-            while(!messages.empty()){
-                auto s = messages.front();
-                if(s){
-                    if(zmq::ProtoWriter::PushString(s->topic, s->type, s->data)){
-                        sent_count ++;
-                    }
-                    delete s;
+        //Read the messages from the queue
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            if(written_to_disk_count){
+                auto messages = ReadMessagesFromFile(temp_file_path_);
+                if(messages.size() == written_to_disk_count){
+                    std::cout << "# zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
+                }else{
+                    std::cerr << "# zmq::CachedProtoWriter: Could only read " << messages.size() << "/" << written_to_disk_count  << "messages in cache file '" << temp_file_path_ << "'" << std::endl;
                 }
-                messages.pop();
+
+                //Send the messages serialized in the temp file
+                while(!messages.empty()){
+                    auto s = messages.front();
+                    if(s){
+                        zmq::ProtoWriter::PushString(s->topic, s->type, s->data);
+                        delete s;
+                    }
+                    messages.pop();
+                }
             }
         }
-    }
-   
+    
 
-    //Send the Messages still in the write queue
-    while(!write_queue_.empty()){
-        const auto& topic = write_queue_.front().first;
-        auto message = write_queue_.front().second;
-        
-        if(zmq::ProtoWriter::PushMessage(topic, message)){
-            sent_count ++;
+        //Send the Messages still in the write queue
+        while(!write_queue_.empty()){
+            const auto& topic = write_queue_.front().first;
+            auto message = write_queue_.front().second;
+            zmq::ProtoWriter::PushMessage(topic, message);
+            write_queue_.pop();
         }
-        write_queue_.pop();
-    }
 
-    if(log_count_ != 0){
-        std::cout << "Successfully Written: " << sent_count << "/" << log_count_ << std::endl;
+        //Remove the temp file
+        std::remove(temp_file_path_.c_str());
+        running = false;
+        return true;
     }
-
-    //Remove the temp file
-    std::remove(temp_file_path_.c_str());
-    return true;
+    return false;
 }
 
 void zmq::CachedProtoWriter::WriteQueue(){
@@ -204,8 +209,6 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
             break;
         }
     }
-
-    std::cout << "Read # " << queue.size() << " Messages from '" << file_path << "'" << std::endl;
     return queue;
 }
 

@@ -61,6 +61,11 @@ bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
     return false;
 }
 
+int zmq::ProtoWriter::GetTxCount(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    return tx_count_;
+}
+
 bool zmq::ProtoWriter::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
     bool success = false;
     if(message){
@@ -86,6 +91,7 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
             socket_->send(topic_data, ZMQ_SNDMORE);
             socket_->send(type_data, ZMQ_SNDMORE);
             socket_->send(message_data);
+            tx_count_ ++;
             return true;   
         }catch(zmq::error_t &ex){
             std::cerr << "zmq::ProtoWriter::PushString(): " << ex.what() << std::endl;

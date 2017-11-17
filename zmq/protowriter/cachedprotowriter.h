@@ -50,6 +50,8 @@ namespace zmq{
             bool WriteDelimitedTo(const std::string& topic, const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* raw_output);
             bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string& topic, std::string& type, std::string& message);
 
+            std::mutex mutex_;
+
             std::string temp_file_path_;
 
             std::thread* writer_thread_ = 0;
@@ -64,6 +66,7 @@ namespace zmq{
             std::condition_variable queue_lock_condition_;
             std::mutex queue_mutex_;
             bool writer_terminate_ = false;
+            bool running = false;
     };
 };
 

@@ -43,8 +43,9 @@ namespace zmq{
             void SetBatchMode(const bool on, const int size);
             bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
 
+            int GetRxCount(); 
             bool Start();
-            bool End();
+            bool Terminate();
             
             bool Connect(const std::string& address);
             bool Filter(const std::string& topic_filter);
@@ -76,7 +77,7 @@ namespace zmq{
             int batch_size_ = 0;
             std::condition_variable queue_lock_condition_;
             std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
-            
+            int rx_count_ = 0;
 
             std::mutex thread_mutex_;
             std::thread* reciever_thread_ = 0;

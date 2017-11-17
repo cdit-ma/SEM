@@ -33,6 +33,8 @@ namespace zmq{
         public:
             ProtoWriter();
             virtual ~ProtoWriter();
+
+            int GetTxCount();
             
             bool AttachMonitor(zmq::Monitor* monitor, const int event_type);
             bool BindPublisherSocket(const std::string& endpoint);
@@ -42,6 +44,7 @@ namespace zmq{
         protected:
             bool PushString(const std::string& topic, const std::string& message_type, const std::string& message);
         private:
+            int tx_count_ = 0;
             zmq::socket_t* socket_;
             zmq::context_t* context_;
             std::mutex mutex_;
