@@ -36,12 +36,13 @@ class Server{
         ~Server();
 
         void AddProtoHandler(ProtoHandler* handler);
-        void Start();
-
+        bool Start();
+        bool Terminate();
     private:
         SQLiteDatabase* database_ = 0;
         zmq::ProtoReceiver* receiver_ = 0;
-        bool started_ = false;
+        bool running_ = false;
+
 
         std::vector<ProtoHandler*> handler_list_;
 };

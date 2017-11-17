@@ -26,44 +26,12 @@
 #include "sigarsysteminfo.h"
 #include "systeminfo.h"
 
-#include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmq/protowriter/cachedprotowriter.h"
-#include "../re_common/zmq/monitor/monitor.h"
+#include <re_common/proto/systemstatus/systemstatus.pb.h>
+#include <re_common/zmq/protowriter/cachedprotowriter.h>
+#include <re_common/zmq/monitor/monitor.h>
 #include <zmq.hpp>
 
 #include <google/protobuf/util/json_util.h>
-
-LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode){
-    if(!live_mode){
-        writer_ = new zmq::CachedProtoWriter();
-    }else{
-        writer_ = new zmq::ProtoWriter();
-    }
-
-    //Monitor
-    monitor_ = new zmq::Monitor();
-    monitor_->RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
-    writer_->AttachMonitor(monitor_, ZMQ_EVENT_ACCEPTED);
-
-    std::cout << "Publishing on: " << endpoint << std::endl;
-    writer_->BindPublisherSocket(endpoint);
-
-    //Construct our SystemInfo class
-    system_info_ = new SigarSystemInfo();
-
-    //Zero check before division
-    if(frequency <= 0){
-        frequency = 1;
-    }
-    
-    //Convert frequency to period
-    sleep_time_ = (int)((1 / frequency) * 1000);
-    processes_ = processes;
-    
-    writer_thread_ = new std::thread(&LogController::WriteThread, this);
-    logging_thread_ = new std::thread(&LogController::LogThread, this);
-
-}
 
 //Constructor used for print only call
 LogController::LogController(){
@@ -71,7 +39,7 @@ LogController::LogController(){
     system_info_ = new SigarSystemInfo();
 }
 
-void LogController::Print(){
+std::string LogController::GetSystemInfoJson(){
     //Let sigar do its thing for 1 second
     std::this_thread::sleep_for(std::chrono::seconds(1));
     system_info_->update();
@@ -82,14 +50,59 @@ void LogController::Print(){
     options.add_whitespace = true;
 
     google::protobuf::util::MessageToJsonString(*info, &output, options);
-
-    std::cout << output;
-
+    return output;
 }
 
-void LogController::Terminate(){
-    TerminateLogger();
-    TerminateWriter();
+bool LogController::Start(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode){
+    if(!running){
+        if(live_mode){
+            writer_ = new zmq::ProtoWriter();
+        }else{
+            writer_ = new zmq::CachedProtoWriter();
+        }
+
+        //Monitor
+        monitor_ = new zmq::Monitor();
+        monitor_->RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
+        writer_->AttachMonitor(monitor_, ZMQ_EVENT_ACCEPTED);
+
+        if(!writer_->BindPublisherSocket(endpoint)){
+            return false;
+        }
+
+        //Zero check before division
+        if(frequency <= 0){
+            frequency = 1;
+        }
+    
+        //Convert frequency to period
+        sleep_time_ = (int)((1 / frequency) * 1000);
+        processes_ = processes;
+    
+        writer_thread_ = new std::thread(&LogController::WriteThread, this);
+        logging_thread_ = new std::thread(&LogController::LogThread, this);
+        running = true;
+        return true;
+    }
+    return false;
+}
+
+bool LogController::Terminate(){
+    if(running){
+        TerminateLogger();
+        TerminateWriter();
+        delete logging_thread_;
+        delete writer_thread_;
+        delete system_info_;
+        if(writer_){
+            writer_->Terminate();
+            std::cout << "* Logged " << writer_->GetTxCount() << " messages." << std::endl;
+            delete writer_;
+        }
+        running = false;
+        return true;
+    }
+    return false;
 }
 
 void LogController::TerminateLogger(){
@@ -113,10 +126,8 @@ void LogController::TerminateWriter(){
 }
 
 LogController::~LogController(){
-    delete logging_thread_;
-    delete writer_thread_;
-    delete system_info_;
-    delete writer_;
+    Terminate();
+   
 }
 
 void LogController::GotNewConnection(int, std::string){
@@ -164,7 +175,6 @@ void LogController::LogThread(){
 
         std::this_thread::sleep_for(s_c::milliseconds(sleep_time_)-s_c::milliseconds(duration));
     }
-    std::cout << "Logging thread terminated." << std::endl;
 }
 
 void LogController::WriteThread(){
@@ -191,7 +201,6 @@ void LogController::WriteThread(){
             replace_queue.pop();
         }
     }
-    std::cout << "Writer thread terminated." << std::endl;
 }
 
 re_common::SystemInfo* LogController::GetOneTimeInfo(){

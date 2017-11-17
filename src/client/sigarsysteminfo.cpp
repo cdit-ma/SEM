@@ -211,7 +211,7 @@ bool SigarSystemInfo::update(){
     std::chrono::milliseconds currentTime = get_current_time();
     auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastUpdate_);
 
-    //don't update more than 5 times a second
+    //don't update more than 10 times a second
     if(difference.count() < 100){
         return false;
     }

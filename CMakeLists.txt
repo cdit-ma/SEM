@@ -1,25 +1,41 @@
 cmake_minimum_required (VERSION 2.6)
 
-#Set output directory
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+#Required for dynamic linking magic
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+#Set the projects RPATH to look in the executable directory
+if(APPLE)
+	set(CMAKE_MACOSX_RPATH 1)
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+endif(APPLE)
+
+
+set(LOGAN_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
+
+#Set the binary and library locations
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
-project(logan)
+if(MSVC)
+	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+	SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+	SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+endif()
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+SET(LOGAN_VERSION "1.4.0")
+
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)
 option(BUILD_CLIENT "Build logan_client" ON)
 option(DISABLE_MODEL_LOGGING "Disable model logging tables in logan_server")
 option(DISABLE_HARDWARE_LOGGING "Disable hardware logging tables in logan_server")
 
-if(BUILD_CLIENT)
-	message(STATUS "Building logan_client")
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/client")
-endif(BUILD_CLIENT)
-
-if(BUILD_SERVER)
-	message(STATUS "Building logan_server")
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/server")
-endif(BUILD_SERVER)
+#Build the source
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")

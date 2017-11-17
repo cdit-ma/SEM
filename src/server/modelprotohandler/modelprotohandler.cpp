@@ -73,17 +73,10 @@ void ModelProtoHandler::ConstructTables(SQLiteDatabase* database){
 }
 
 void ModelProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){
-    auto ue_callback = std::bind(&ModelProtoHandler::ProcessUserEvent, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::UserEvent::default_instance(), ue_callback);
-
-    auto le_callback = std::bind(&ModelProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
-
-    auto we_callback = std::bind(&ModelProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::WorkloadEvent::default_instance(), we_callback);
-
-    auto cu_callback = std::bind(&ModelProtoHandler::ProcessComponentUtilizationEvent, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::ComponentUtilizationEvent::default_instance(), cu_callback);
+    receiver->RegisterNewProto<re_common::UserEvent>(std::bind(&ModelProtoHandler::ProcessUserEvent, this, std::placeholders::_1));
+    receiver->RegisterNewProto<re_common::LifecycleEvent>(std::bind(&ModelProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1));
+    receiver->RegisterNewProto<re_common::WorkloadEvent>(std::bind(&ModelProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1));
+    receiver->RegisterNewProto<re_common::ComponentUtilizationEvent>(std::bind(&ModelProtoHandler::ProcessComponentUtilizationEvent, this, std::placeholders::_1));
 }
 
 
@@ -201,8 +194,7 @@ void ModelProtoHandler::CreateComponentUtilizationTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void ModelProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* message){
-    re_common::LifecycleEvent* event = (re_common::LifecycleEvent*)message;
+void ModelProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
         std::cout << "Got port lifecycle event" << std::endl;
@@ -234,9 +226,7 @@ void ModelProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* mes
     }
 }
 
-void ModelProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
-
-    re_common::UserEvent* event = (re_common::UserEvent*)message;
+void ModelProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
     auto ins = table_map_[LOGAN_EVENT_USER_TABLE]->get_insert_statement();
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
@@ -248,8 +238,7 @@ void ModelProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message)
     database_->QueueSqlStatement(ins.get_statement());
 }
 
-void ModelProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
-    re_common::WorkloadEvent* event = (re_common::WorkloadEvent*)message;
+void ModelProtoHandler::ProcessWorkloadEvent(re_common::WorkloadEvent* event){
     auto ins = table_map_[LOGAN_EVENT_WORKLOAD_TABLE]->get_insert_statement();
     //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
@@ -270,8 +259,7 @@ void ModelProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* mess
     database_->QueueSqlStatement(ins.get_statement());
 }
 
-void ModelProtoHandler::ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message){
-    re_common::ComponentUtilizationEvent* event = (re_common::ComponentUtilizationEvent*)message;
+void ModelProtoHandler::ProcessComponentUtilizationEvent(re_common::ComponentUtilizationEvent* event){
     auto ins = table_map_[LOGAN_EVENT_COMPONENT_TABLE]->get_insert_statement();
 
     //Info

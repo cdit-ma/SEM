@@ -29,6 +29,11 @@
 
 class Table;
 
+namespace re_common{
+    class SystemInfo;
+    class SystemStatus;
+}
+
 class HardwareProtoHandler : public ProtoHandler{
     public:
         HardwareProtoHandler();
@@ -50,8 +55,8 @@ class HardwareProtoHandler : public ProtoHandler{
         void CreateProcessInfoTable();
 
         //Callback functions
-        void ProcessSystemStatus(google::protobuf::MessageLite* status);
-        void ProcessOneTimeSystemInfo(google::protobuf::MessageLite* info);
+        void ProcessSystemStatus(re_common::SystemStatus* status);
+        void ProcessOneTimeSystemInfo(re_common::SystemInfo* info);
 
         //Members
         SQLiteDatabase* database_;

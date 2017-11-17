@@ -1,24 +1,17 @@
 cmake_minimum_required (VERSION 2.6)
-
-#Use C++11
 set(CMAKE_CXX_STANDARD 11)
-#get the cmake module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PROJ_NAME logan_server)
-
 project (${PROJ_NAME})
 
-find_package(Protobuf REQUIRED)
-include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
+#Pass Version info into cmakevars.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
-#Link against boost dynamically
-add_definitions(-DBOOST_ALL_DYN_LINK)
-#Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
+
+
+find_package(Protobuf REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -40,27 +33,25 @@ set(HEADERS
 #Link our Server against all the Cpps
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
+#Link against boost dynamically
+target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
+
 if (MSVC)
-    #Windows requires protobuf in DLLs
-    add_definitions(-DPROTOBUF_USE_DLLS)
 else()
-    #Unix needs to include pthread
-    target_link_libraries(${PROJ_NAME} pthread dl)
+	#Unix needs to include pthread
+	target_link_libraries(${PROJ_NAME} pthread)
+	target_link_libraries(${PROJ_NAME} dl)
 endif()
 
-#include the current binary directory to server as it requires the .h file from the pb generated files
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-#Link against our Protobuf source/headers
-target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
-target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
+#include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../)
+
 target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
-
-#Link against our required libraries
-target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
 
 if(NOT DISABLE_MODEL_LOGGING)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler")
@@ -75,3 +66,4 @@ if(NOT DISABLE_HARDWARE_LOGGING)
 else()
     target_compile_definitions(${PROJ_NAME} PRIVATE DISABLE_HARDWARE_HANDLER)
 endif()
+

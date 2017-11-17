@@ -44,12 +44,12 @@ namespace zmq{
 
 class LogController{
     public:
-        LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached = false);
         LogController();
-        void Print();
         ~LogController();
 
-        void Terminate();
+        std::string GetSystemInfoJson();
+        bool Start(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode = false);
+        bool Terminate();
     private:
 
         void LogThread();
@@ -76,7 +76,7 @@ class LogController{
         std::mutex queue_mutex_;
         std::queue<std::pair<std::string, google::protobuf::MessageLite*> > message_queue_;
 
-
+        bool running = false;
         int sleep_time_ = 0;
 
         int message_id_ = 0;

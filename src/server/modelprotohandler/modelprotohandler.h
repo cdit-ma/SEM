@@ -29,6 +29,13 @@
 
 class Table;
 
+namespace re_common{
+    class UserEvent;
+    class LifecycleEvent;
+    class WorkloadEvent;
+    class ComponentUtilizationEvent;
+    class MessageEvent;
+}
 class ModelProtoHandler : public ProtoHandler{
     public:
         ModelProtoHandler();
@@ -41,17 +48,15 @@ class ModelProtoHandler : public ProtoHandler{
         //Table creation
         void CreatePortEventTable();
         void CreateComponentEventTable();
-        void CreateMessageEventTable();
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
         void CreateComponentUtilizationTable();
 
         //Callback functions
-        void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
-        void ProcessMessageEvent(google::protobuf::MessageLite* message);
-        void ProcessUserEvent(google::protobuf::MessageLite* message);
-        void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
-        void ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message);
+        void ProcessLifecycleEvent(re_common::LifecycleEvent* message);
+        void ProcessUserEvent(re_common::UserEvent* message);
+        void ProcessWorkloadEvent(re_common::WorkloadEvent* message);
+        void ProcessComponentUtilizationEvent(re_common::ComponentUtilizationEvent* message);
 
         //Members
         SQLiteDatabase* database_;

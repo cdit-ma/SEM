@@ -21,35 +21,48 @@ Server::Server(std::string database_path, std::vector<std::string> addresses){
 }
 
 Server::~Server(){
-    delete receiver_;
-    for(auto handler : handler_list_){
-        delete handler;
-    }
-    delete database_;
+    
 }
 
 void Server::AddProtoHandler(ProtoHandler* handler){
-    if(!started_){
+    if(!running_){
         handler_list_.push_back(handler);
     }else{
         std::cerr << "Could not add proto handler, receiver started." << std::endl;
     }
 }
 
-void Server::Start(){
-    if(!started_){
-        std::cout << "# Constructing tables" << std::endl;
+bool Server::Start(){
+    bool success = false;
+    if(!running_){
         for(auto handler : handler_list_){
             handler->ConstructTables(database_);
             handler->BindCallbacks(receiver_);
         }
         database_->BlockingFlush();
         std::cout << "# Constructed tables" << std::endl;
-        started_ = true;
-        receiver_->Start();
-        std::cout << "# Started receiver" << std::endl;        
-    }else{
-        std::cerr << "Could not start server, already started." << std::endl;
+        running_ = true;
+        success = receiver_->Start();
     }
+    return success;
+}
+
+bool Server::Terminate(){
+    if(running_){
+        receiver_->Terminate();
+        std::cout << "* Logged " << receiver_->GetRxCount() << " messages." << std::endl;
+        delete receiver_;
+        receiver_ = 0;
+
+        for(auto handler : handler_list_){
+            delete handler;
+        }
+        handler_list_.clear();
+        delete database_;
+        database_ = 0;
+        running_ = false;
+        return true;
+    }
+    return false;
 
 }

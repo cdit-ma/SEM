@@ -71,11 +71,8 @@ void HardwareProtoHandler::ConstructTables(SQLiteDatabase* database){
 
 void HardwareProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){
     //Register call back functions and type with zmqreceiver
-    auto ss_callback = std::bind(&HardwareProtoHandler::ProcessSystemStatus, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::SystemStatus::default_instance(), ss_callback);
-
-    auto si_callback = std::bind(&HardwareProtoHandler::ProcessOneTimeSystemInfo, this, std::placeholders::_1);
-    receiver->RegisterNewProto(re_common::SystemInfo::default_instance(), si_callback);
+    receiver->RegisterNewProto<re_common::SystemStatus>(std::bind(&HardwareProtoHandler::ProcessSystemStatus, this, std::placeholders::_1));
+    receiver->RegisterNewProto<re_common::SystemInfo>(std::bind(&HardwareProtoHandler::ProcessOneTimeSystemInfo, this, std::placeholders::_1));
 }
 
 void HardwareProtoHandler::CreateSystemStatusTable(){
@@ -257,8 +254,7 @@ void HardwareProtoHandler::CreateProcessInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void HardwareProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
-    re_common::SystemStatus* status = (re_common::SystemStatus*)ml;
+void HardwareProtoHandler::ProcessSystemStatus(re_common::SystemStatus* status){
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname();
@@ -345,9 +341,7 @@ void HardwareProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml
     }
 }
 
-void HardwareProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* message){
-    re_common::SystemInfo* info = (re_common::SystemInfo*)message;
-
+void HardwareProtoHandler::ProcessOneTimeSystemInfo(re_common::SystemInfo* info){
     std::string hostname = info->hostname();
     //Check if we have this node info already
     if(registered_nodes_.find(hostname) != registered_nodes_.end()){
