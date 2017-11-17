@@ -102,7 +102,7 @@ void testLoadBalancer(OpenCLManager& manager);
 void testBufferReadWrite(OpenCLManager& manager);
 void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_kernel);
 
-OpenCLWorker* testWorkerConstruction();
+OpenCLWorker* testWorkerConstruction(Component& component);
 void testWorkerDestruction(OpenCLWorker* worker);
 void testWorkerCreateBuffer(OpenCLWorker* worker);
 void testWorkerReleaseBuffer(OpenCLWorker* worker);
@@ -207,7 +207,8 @@ int main(int argc, char** argv) {
 	testLoadBalancer(*manager);
 
 
-	OpenCLWorker* worker = testWorkerConstruction();
+	Component test_component("TestComponent");
+	OpenCLWorker* worker = testWorkerConstruction(test_component);
 
 	// Run worker tests conditional on worker having been successfully constructed
 	if (worker != NULL) {
@@ -422,14 +423,12 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 	manager.ReleaseBuffer(out_buffer);
 }
 
-OpenCLWorker* testWorkerConstruction() {
+OpenCLWorker* testWorkerConstruction(Component& component) {
 	Result res = UNKNOWN;
 
 	printInfo("Creating an OpenCLWorker...");
 
-	Component test_component("TestComponent");
-
-	OpenCLWorker* worker = new OpenCLWorker(&test_component, "OpenCLWorker_ConstructionTest");
+	OpenCLWorker* worker = new OpenCLWorker(&component, "OpenCLWorker_ConstructionTest");
 	worker->Configure(0, 0);
 
 	if (worker->IsValid()) {
