@@ -22,7 +22,8 @@ option(BUILD_TEST "Build testing" OFF)
 #Get the RE_PATH
 #set(RE_PATH "$ENV{RE_PATH}")
 set(RE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
+#Use the local submoduled cmake_modules if we don't have a global one set
+set(CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
 #Set the binary and library locations
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
