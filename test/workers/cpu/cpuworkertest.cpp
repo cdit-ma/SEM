@@ -1,5 +1,7 @@
 
-#include "../../../src/workers/cpu/cpu_worker.h"
+#include <core/component.h>
+#include <core/workers/cpu/cpu_worker.h>
+
 #include "gtest/gtest.h"
 #include <limits>
 #include <chrono>
