@@ -5,6 +5,8 @@
 #include "gtest/gtest.h"
 #include <limits>
 #include <chrono>
+#include <memory>
+
 std::vector<float> GetIdentityMatrix(int dimension){
     auto size = dimension * dimension;
     std::vector<float> mat(size);
