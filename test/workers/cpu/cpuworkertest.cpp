@@ -1,6 +1,6 @@
 
 #include <core/component.h>
-#include <core/workers/cpu/cpu_worker.h>
+#include <workers/cpu/cpu_worker.h>
 
 #include "gtest/gtest.h"
 #include <limits>
