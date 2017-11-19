@@ -159,11 +159,14 @@ TEST(ZeroMQ_EventportPair, Busy100){
         out_port.tx(b);
     }
 
-    EXPECT_TRUE(in_port.Passivate());
-    EXPECT_TRUE(out_port.Passivate());
+    //Sleep for a reasonable time
+    sleep_ms(10);
 
-    EXPECT_TRUE(in_port.Terminate());
+    EXPECT_TRUE(out_port.Passivate());
+    EXPECT_TRUE(in_port.Passivate());
+
     EXPECT_TRUE(out_port.Terminate());
+    EXPECT_TRUE(in_port.Terminate());
 
     auto total_rxd = in_port.GetEventsReceieved();
     auto proc_rxd = in_port.GetEventsProcessed();
