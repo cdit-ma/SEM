@@ -17,11 +17,9 @@ class Cpu_Worker : public Worker{
         int Dhrystone(double loops);
         int MWIP(double loops);
         int DMIP(double loops);
-        int MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
-                        std::vector<float> &matrixC);
-
+        int MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB, std::vector<float> &matrixC);
     private:
-        Cpu_Worker_Impl * impl_;
+        Cpu_Worker_Impl * impl_ = 0 ;
 };
 
 #endif  //WORKERS_CPU_CPUWORKER_H

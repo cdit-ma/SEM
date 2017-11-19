@@ -15,7 +15,7 @@ class Memory_Worker : public Worker{
         long GetAllocatedCount() const;
 
     private:
-        Memory_Worker_Impl* impl_;
+        Memory_Worker_Impl* impl_ = 0;
 };
 
 #endif  //WORKERS_MEMORY_MEMORYWORKER

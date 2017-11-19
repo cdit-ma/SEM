@@ -11,10 +11,10 @@ std::string get_long_test_name(){
 }
 
 void sleep_ms(int ms){
-    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    if(ms > 0){
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
 };
-
-
 
 class ActivatableFSMTester : public ::testing::Test {
     protected:
@@ -26,11 +26,8 @@ class ActivatableFSMTester : public ::testing::Test {
         }
 
         void TearDown(){
-            std::cout << "HELLO" << std::endl;
             if(a){
-                std::cout << "DELETING A" << std::endl;
                 delete a;
-                std::cout << "DELETED A" << std::endl;
             }
         }
     
