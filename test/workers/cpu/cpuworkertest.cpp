@@ -3,7 +3,6 @@
 #include "gtest/gtest.h"
 #include <limits>
 #include <chrono>
-
 std::vector<float> GetIdentityMatrix(int dimension){
     auto size = dimension * dimension;
     std::vector<float> mat(size);
@@ -17,7 +16,8 @@ std::vector<float> GetIdentityMatrix(int dimension){
 }
 
 TEST(MatrixMult, Trivial) {
-    Cpu_Worker worker(nullptr, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(c, "worker");
 
     std::vector<float> mat_a(2 * 2);
     std::vector<float> mat_b(2 * 2);
@@ -36,7 +36,8 @@ TEST(MatrixMult, Trivial) {
 }
 
 TEST(MatrixMult, IdentityTest) {
-    Cpu_Worker worker(nullptr, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(c, "worker");
 
     std::vector<float> mat_a(2 * 2);
     std::vector<float> mat_c(2 * 2);
@@ -53,8 +54,8 @@ TEST(MatrixMult, IdentityTest) {
 
 
 TEST(MatrixMult, Big1024) {
-    
-    Cpu_Worker worker(nullptr, "test");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(c, "worker");
 
     std::vector<float> mat_a(1024 * 1024);
     std::vector<float> mat_b(1024 * 1024);
@@ -85,7 +86,8 @@ TEST(MatrixMult, Big1024) {
 }
 
 TEST(IntOp, Big) {
-    Cpu_Worker worker(nullptr, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(c, "worker");
     double run_count = 1000000000;
 
     auto start = std::chrono::steady_clock::now();
@@ -98,7 +100,8 @@ TEST(IntOp, Big) {
 }
 
 TEST(FloatOp, Big) {
-    Cpu_Worker worker(nullptr, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(c, "worker");
     double run_count = 1000000000;
 
     auto start = std::chrono::steady_clock::now();
