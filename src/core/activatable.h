@@ -59,9 +59,13 @@ public:
 
         bool WaitForActivate();
         bool WaitForStartup();
+
+        
         std::weak_ptr<Attribute> GetAttribute(const std::string& name);
+        std::weak_ptr<Attribute> ConstructAttribute(const ATTRIBUTE_TYPE type, const std::string name);
+    protected:
         std::weak_ptr<Attribute> AddAttribute(std::unique_ptr<Attribute> attribute);
-   private:
+    private:
         bool transition_state(const Activatable::Transition transition);
         bool startup_finished_ = false;
 

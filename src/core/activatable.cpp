@@ -198,6 +198,20 @@ std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> at
     return std::weak_ptr<Attribute>();
 }
 
+std::weak_ptr<Attribute> Activatable::ConstructAttribute(const ATTRIBUTE_TYPE type, const std::string name){
+    //Try get the attribute, if it exists
+    auto attribute_sp = GetAttribute(name).lock();
+    if(attribute_sp){
+        if(attribute_sp->get_type() != type){
+            std::cerr << "Activatable '" << get_name()  << "' already has an Attribute with name '" << name << "' with differing Type" << std::endl;
+            attribute_sp.reset();
+        }
+    }else{
+        attribute_sp = AddAttribute(std::unique_ptr<Attribute>(new Attribute(type, name))).lock();
+    }
+    return attribute_sp;
+}
+
 std::weak_ptr<Attribute> Activatable::GetAttribute(const std::string& name){
     std::lock_guard<std::mutex> lock(attributes_mutex_);
     if(attributes_.count(name)){

@@ -11,9 +11,11 @@ PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::st
     SetKind(EventPort::Kind::PE);
     SetMaxQueueSize(1);
 
-    auto freq_wp = AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::DOUBLE, "frequency")));
-    frequency_ = freq_wp.lock();
-    frequency_->set_Double(0);
+    //Construct an attribute called frequency
+    frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "frequency").lock();
+    if(frequency_){
+        frequency_->set_Double(0);
+    }
 };
 
 PeriodicEventPort::~PeriodicEventPort(){

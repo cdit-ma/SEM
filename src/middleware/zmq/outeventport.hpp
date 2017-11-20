@@ -28,7 +28,7 @@ namespace zmq{
 
 template <class T, class S>
 zmq::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "zmq"){
-    end_points_ = Activatable::AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"))).lock();
+    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };
 
 

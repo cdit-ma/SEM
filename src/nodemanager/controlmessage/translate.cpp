@@ -31,12 +31,8 @@ std::weak_ptr<Attribute> SetAttributeFromPb(std::shared_ptr<Activatable> a, cons
     const auto name = attr.info().name();
     
     if(a){
-        auto attribute = a->GetAttribute(name).lock();
-        if(!attribute){
-            //Construct and add
-            auto attr_wp = a->AddAttribute(std::unique_ptr<Attribute>(new Attribute(type, name)));
-            attribute = attr_wp.lock();
-        }
+        //Try get/construct an Attribute with the type/name
+        auto attribute = a->ConstructAttribute(type, name).lock();
 
         if(attribute){
             switch(type){

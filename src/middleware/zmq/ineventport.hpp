@@ -46,7 +46,7 @@ zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::str
     auto component_name = component_ ? component_->get_name() : "??";
     terminate_endpoint_ = "inproc://term*" + component_name + "*" + name + "*";
 
-    end_points_ = Activatable::AddAttribute(std::unique_ptr<Attribute>(new Attribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address"))).lock();;
+    end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
 };
 
 template <class T, class S>
