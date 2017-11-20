@@ -75,8 +75,7 @@ bool zmq::OutEventPort<T, S>::setup_tx(){
             //Bind the addresses provided
             this->socket_->bind(e.c_str());
         }catch(zmq::error_t ex){
-            std::cerr << "zmq::OutEventPort<T, S>::zmq_loop(): Couldn't connect to endpoint: '" << e << "'" << std::endl;
-            std::cerr << ex.what() << std::endl;
+            Log(Severity::ERROR).Context(this).Func(GET_FUNC).Msg("Cannot bind endpoint: '" + e + "' " + ex.what());
         }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -95,7 +94,7 @@ bool zmq::OutEventPort<T, S>::tx(T* message){
             socket_->send(data);
             return true;
         }else{
-            std::cerr << "Socket Dead when not meant to be" << std::endl;
+            Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Socket unexpectedly null");
         }
     }
     return false;

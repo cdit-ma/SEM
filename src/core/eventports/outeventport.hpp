@@ -8,7 +8,7 @@
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(std::weak_ptr<Component> component, std::string name, std::string middleware);
+        OutEventPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
         int GetEventsReceived();
         int GetEventsSent();
         virtual bool tx(T* t);
@@ -20,9 +20,10 @@ template <class T> class OutEventPort: public EventPort{
 };
 
 template <class T>
-OutEventPort<T>::OutEventPort(std::weak_ptr<Component> component, std::string name, std::string middleware)
-:EventPort(component, name, EventPort::Kind::TX, middleware){
+OutEventPort<T>::OutEventPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware)
+:EventPort(component, port_name, EventPort::Kind::TX, middleware){
 };
+
 template <class T>
 int OutEventPort<T>::GetEventsReceived(){
     return tx_count;    
@@ -33,45 +34,19 @@ int OutEventPort<T>::GetEventsSent(){
     return tx_sent_count;    
 }
 
-
 template <class T>
 bool OutEventPort<T>::tx(T* t){
     if(t){
         tx_count ++;
         if(is_running()){
             tx_sent_count ++;
-            //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::SENT);
+            logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::SENT);
             return true;
         }else{
-            //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
+            logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
         }
     }
     return false;
 };
-/*
-template <class T>
-bool OutEventPort<T>::Activate(){
-    auto success = EventPort::Activate();
-    if(success){
-        EventPort::LogActivation();
-    }
-    return success;
-};
-
-template <class T>
-bool OutEventPort<T>::Passivate(){
-    auto success = EventPort::Passivate();
-    if(success){
-        EventPort::LogPassivation();
-    }
-    return success;
-};
-
-
-template <class T>
-bool OutEventPort<T>::Teardown(){
-    return EventPort::Teardown();
-};*/
-
 
 #endif //OUTEVENTPORT_HPP

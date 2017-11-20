@@ -148,7 +148,7 @@ bool Activatable::transition_state(Transition transition){
             return false;
         }
     }else{
-        //std::cerr << "Can't Transition from state: " << ((uint)current_state) << " = " << ((uint)transition) << std::endl;
+        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Cannot transition from state: " + std::to_string((uint)current_state) + " transition: " + std::to_string((uint)transition));
     }
     return false;
 }
@@ -178,10 +178,6 @@ bool Activatable::BlockUntilStateChanged(const Activatable::State desired_state)
     }
 }
 
-
-Activatable::~Activatable(){
-}
-        
 std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> attribute){
     std::lock_guard<std::mutex> lock(attributes_mutex_);
     if(attribute){
@@ -190,10 +186,10 @@ std::weak_ptr<Attribute> Activatable::AddAttribute(std::unique_ptr<Attribute> at
             attributes_[name] = std::move(attribute);
             return attributes_[name];
         }else{
-            std::cerr << "Activatable '" << get_name()  << "' already has an Attribute with name '" << name << "'" << std::endl;
+            Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Already got an Attribute with name '" + name + "'");
         }
     }else{
-        std::cerr << "Activatable '" << get_name()  << "' cannot add a null Attribute" << std::endl;
+        Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Cannot attach a null Attribute");
     }
     return std::weak_ptr<Attribute>();
 }
@@ -203,7 +199,7 @@ std::weak_ptr<Attribute> Activatable::ConstructAttribute(const ATTRIBUTE_TYPE ty
     auto attribute_sp = GetAttribute(name).lock();
     if(attribute_sp){
         if(attribute_sp->get_type() != type){
-            std::cerr << "Activatable '" << get_name()  << "' already has an Attribute with name '" << name << "' with differing Type" << std::endl;
+            Log(Severity::WARNING).Context(this).Func(GET_FUNC).Msg("Already got an Attribute with name '" + name + "' with a differing type");
             attribute_sp.reset();
         }
     }else{
@@ -217,7 +213,6 @@ std::weak_ptr<Attribute> Activatable::GetAttribute(const std::string& name){
     if(attributes_.count(name)){
         return attributes_[name];
     }else{
-        std::cerr << "Activatable '" << get_name()  << "' doesn't has an Attribute with name '" << name << "'" << std::endl;
         return std::weak_ptr<Attribute>();
     }
 }

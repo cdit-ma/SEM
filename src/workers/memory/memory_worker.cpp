@@ -1,7 +1,7 @@
 #include "memory_worker.h"
 #include "memory_worker_impl.h"
 
-Memory_Worker::Memory_Worker(std::shared_ptr<Component> component, std::string inst_name) : Worker(component, __func__, inst_name){
+Memory_Worker::Memory_Worker(std::shared_ptr<Component> component, std::string inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Memory_Worker_Impl();
 }
 
@@ -14,7 +14,7 @@ Memory_Worker::~Memory_Worker(){
 
 void Memory_Worker::Allocate(double kilobytes){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before
@@ -33,7 +33,7 @@ void Memory_Worker::Allocate(double kilobytes){
 
 void Memory_Worker::Deallocate(double kilobytes){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before

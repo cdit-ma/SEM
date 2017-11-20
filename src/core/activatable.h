@@ -29,7 +29,7 @@ public:
     };
 
     public: 
-        virtual ~Activatable();
+        virtual ~Activatable(){};
         std::string get_name() const;
         std::string get_id() const;
         std::string get_type() const;

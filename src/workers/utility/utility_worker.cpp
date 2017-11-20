@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-Utility_Worker::Utility_Worker(std::weak_ptr<Component> component, std::string inst_name) : Worker(component, __func__, inst_name){
+Utility_Worker::Utility_Worker(std::weak_ptr<Component> component, std::string inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Utility_Worker_Impl();
     impl_->SetRandomSeed(GetTimeOfDay());
 }

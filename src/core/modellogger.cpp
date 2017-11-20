@@ -89,7 +89,6 @@ std::chrono::milliseconds get_current_time(){
 void fill_info(re_common::Info& info){
     info.set_hostname(ModelLogger::get_model_logger()->get_hostname());
     info.set_timestamp(get_current_time().count() / 1000.0);
-    info.set_uid(12);
 }
 
 void fill_component(re_common::Component& c, const Component& component){
@@ -264,3 +263,40 @@ void ModelLogger::LogUserFlagEvent(const Component& component, std::string messa
 
     PushMessage(e);
 }
+
+Log& Log::Msg(const std::string& message){
+    message_ = message;
+    return *this;
+}
+
+Log& Log::Context(Activatable* context){
+    context_ = context;
+    return *this;
+}
+
+Log& Log::Func(const std::string& function_name){
+    function_name_ = function_name;
+    return *this;
+}
+
+Log& Log::Class(const std::string& class_name){
+    class_name_ = class_name;
+    return *this;
+}
+
+Log::Log(const Severity& severity){
+    severity_ = severity;
+}
+
+Log::~Log(){
+    //TODO NEED TO ACTUALLY IMPLEMENT THIS LOGGING
+    auto logger = ModelLogger::get_model_logger();
+    if(severity_ < Severity::WARNING){
+        std::cerr << "[" << (int)severity_ << "] " << function_name_ << ": " << message_ << std::endl;
+    }
+}
+
+Log& Log(const Severity& severity){
+    return Log(severity);
+}
+

@@ -6,20 +6,18 @@
 #include <mutex>
 #include <queue>
 #include <functional>
-
-
-#include "eventport.h"
-
-#include "../modellogger.h"
-#include "../component.h"
 #include <iostream>
 
+#include "eventport.h"
+#include "../modellogger.h"
+#include "../component.h"
+
 //Interface for a standard templated InEventPort
-template <class T> class InEventPort: public EventPort{
+template <class T> class InEventPort : public EventPort{
     public:
-        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware);
+        InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T*) > callback_function, const std::string& middleware);
         ~InEventPort();
-        void SetMaxQueueSize(int max_queue_size);
+        void SetMaxQueueSize(const int max_queue_size);
         int GetEventsReceieved();
         int GetEventsProcessed();
     protected:
@@ -62,18 +60,17 @@ template <class T> class InEventPort: public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function, std::string middleware)
-:EventPort(component, name, EventPort::Kind::RX, middleware){
+InEventPort<T>::InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T*) > callback_function, const std::string& middleware)
+:EventPort(component, port_name, EventPort::Kind::RX, middleware){
     if(callback_function){
         callback_function_ = callback_function;
     }else{
-        std::cerr << "InEventPort: " << name << " has a NULL Callback Function!" << std::endl;
+        Log(Severity::WARNING).Msg("Got a null callback function").Context(this).Func(GET_FUNC);
     }
 };
 
 template <class T>
 InEventPort<T>::~InEventPort(){
-    //Activatable::Terminate();
 };
 
 template <class T>
@@ -145,14 +142,13 @@ template <class T>
 bool InEventPort<T>::rx(T* t){
     bool rx_d = false;
     if(is_running() && callback_function_){
-
-        //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::STARTED_FUNC);
+        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::STARTED_FUNC);
         callback_function_(t);
-        //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::FINISHED_FUNC);
         rx_d = true;
     }else{
         //Log that didn't call back on this message
-        //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
+        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
     }
     if(t){
         //Free memory
@@ -168,7 +164,6 @@ void InEventPort<T>::receive_loop(){
         std::lock_guard<std::mutex> lock(rx_setup_mutex_);
         rx_setup_ = true;
         rx_setup_condition_.notify_all();
-        
     }
 
     std::queue<T*> queue_;
