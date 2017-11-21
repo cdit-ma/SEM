@@ -5,9 +5,13 @@
 #include <functional>
 
 #include <core/component.h>
+#include "dllloader.h"
 
 namespace NodeManager{
     class ControlMessage;
+    class Component;
+    class EventPort;
+    class Worker;
 };
 
 typedef void (*SignalHandler)(int signum);
@@ -30,7 +34,7 @@ class NodeContainer{
         bool ActivateAll();
         bool PassivateAll();
 
-        void Configure(NodeManager::ControlMessage* message);
+        void Configure(const NodeManager::ControlMessage& message);
         
         void Teardown();
 
@@ -38,47 +42,37 @@ class NodeContainer{
         std::weak_ptr<Component> GetComponent(const std::string& name);
         std::shared_ptr<Component> RemoveComponent(const std::string& name);
     private:
-        //DLL functions
-        void* LoadLibrary_(std::string dll_path);
-        bool CloseLibrary_(void* lib);
-
-        std::string GetLibraryPrefix() const;
-        std::string GetLibrarySuffix() const;
-
-        std::string GetLibraryError();
-        
-        void* GetLibraryFunction_(std::string dll_path, std::string function_name);
-        void* GetLibraryFunction_(void* lib_handle, std::string function_name);
-
         void AddTxConstructor(std::string middleware, TxConstructor constructor);
         void AddRxConstructor(std::string middleware, TxConstructor constructor);
         void AddComponentConstructor(std::string component_type, ComponentConstructor constructor);
-    
+        std::shared_ptr<EventPort> ConstructEventPort(std::weak_ptr<Component> component, const NodeManager::EventPort& event_port);
+
+
+        std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);
+        std::shared_ptr<Component> GetConfiguredComponent(const NodeManager::Component& component_pb);
+        std::shared_ptr<EventPort> GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb);
     public:
         //Constructor functions
-        std::shared_ptr<EventPort> ConstructPeriodicEvent(std::weak_ptr<Component> component, std::string port_name);
-        std::shared_ptr<EventPort> ConstructTx(std::string middleware, std::string datatype, std::weak_ptr<Component> component, std::string port_name, std::string namespace_name);
-        std::shared_ptr<EventPort> ConstructRx(std::string middleware, std::string datatype, std::weak_ptr<Component> component, std::string port_name, std::string namespace_name);
-        std::shared_ptr<Component> ConstructComponent(std::string component_type, std::string component_name, std::string component_id);
+        std::shared_ptr<EventPort> ConstructPeriodicEvent(std::weak_ptr<Component> component, const std::string& port_name);
+        std::shared_ptr<EventPort> ConstructTx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
+        std::shared_ptr<EventPort> ConstructRx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
+        std::shared_ptr<Component> ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id);
 
      private:
+        std::string get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
+        std::string get_component_library_name(const std::string& component_type);
+
         std::shared_ptr<Component> GetSharedComponent(const std::string& name);
         std::string library_path_;
 
-        //Library Path -> void *
-        std::unordered_map<std::string, void *> loaded_libraries_;
-
         //Middleware -> construct functions
-        std::unordered_map<std::string, TxConstructor> tx_constructors_;
-        std::unordered_map<std::string, RxConstructor> rx_constructors_;
-
-        //Component Type -> construct functions
-        std::unordered_map<std::string, ComponentConstructor> component_constructors_;
+        std::map<std::string, TxConstructor> tx_constructors_;
+        std::map<std::string, RxConstructor> rx_constructors_;
+        std::map<std::string, ComponentConstructor> component_constructors_;
         
         //Map for quick insertion and stuffs.
         std::map<std::string, std::shared_ptr<Component>> components_;
-
-        
+        DllLoader dll_loader;
 };
       
 

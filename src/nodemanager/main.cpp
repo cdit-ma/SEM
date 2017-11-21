@@ -25,13 +25,12 @@ void signal_handler(int sig)
 }
 
 int main(int argc, char **argv){
-
     //Connect the SIGINT/SIGTERM signals to our handler.
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
-
     exe = new Execution();
+
     //Get the library path from the argument variables
     std::string dll_path;
     std::string graphml_path;
@@ -120,37 +119,37 @@ int main(int argc, char **argv){
 
     zmq::Registrar* master = 0;
     zmq::Registrant* slave = 0;
-    NodeContainer* node_container = 0;
-    ExecutionManager* execution_manager = 0;
-    DeploymentManager* deployment_manager = 0;
 
-    if(is_slave){
+    bool success = true;
+
+    if(success && is_master){
+        auto execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration, exe);
+        master = new zmq::Registrar(execution_manager, master_endpoint);
+
+        if(!execution_manager->IsValid()){
+            success = false;
+        }
+    }
+
+    if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
-        deployment_manager = new DeploymentManager(dll_path, exe);
-        //Get the NodeContainer from the DLL
-        node_container = deployment_manager->get_deployment();
+        auto deployment_manager = new DeploymentManager(dll_path, exe);
         slave = new zmq::Registrant(deployment_manager, slave_endpoint);
     }
 
-    if(is_master){
-        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration, exe);
-        master = new zmq::Registrar(execution_manager, master_endpoint);
+    if(success){
+        //Use execution class to wait for interrupt
+        exe->Start();
     }
 
-    //Use execution class to wait for interrupt
-    exe->Start();
-
-    if(is_slave){
+    if(slave){
         delete slave;
     }
 
-
-    if(is_master){
+    if(master){
         delete master;
-        delete execution_manager;
     }
 
     delete exe;
-   
-    return 0;
+    return success ? 0 : 1;
 }

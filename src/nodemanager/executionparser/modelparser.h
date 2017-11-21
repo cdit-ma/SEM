@@ -27,6 +27,7 @@ namespace Graphml{
     class ModelParser{
         public:
             ModelParser(const std::string filename);
+            bool IsValid();
         public:
             Graphml::HardwareNode* GetHardwareNodeByName(std::string host_name);
             Graphml::HardwareNode* GetHardwareNodeByIPAddress(std::string ip_address);

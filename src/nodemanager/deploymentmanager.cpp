@@ -82,7 +82,7 @@ bool DeploymentManager::ProcessStartupMessage(std::string startup_str){
         NodeManager::ControlMessage message;
         auto success = message.ParseFromString(startup_str);
         if(success){
-            deployment_->Configure(&message);
+            deployment_->Configure(message);
             return true;
         }
     }
@@ -115,7 +115,7 @@ void DeploymentManager::ProcessControlQueue(){
                 case NodeManager::ControlMessage::STARTUP:{
                     if(!deployment_){
                         deployment_ = new NodeContainer(library_path_);    
-                        deployment_->Configure(cm);
+                        deployment_->Configure(*cm);
                     }
                     break;
                 }
@@ -137,7 +137,7 @@ void DeploymentManager::ProcessControlQueue(){
                     break;
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:
                     if(deployment_){
-                        deployment_->Configure(cm);
+                        deployment_->Configure(*cm);
                     }
                     break;
                 default:

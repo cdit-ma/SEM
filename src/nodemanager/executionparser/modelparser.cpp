@@ -22,19 +22,17 @@ bool string_list_contains(const std::vector<std::string> list, const std::string
 Graphml::ModelParser::ModelParser(const std::string filename){
     //Setup the parser
     graphml_parser_ = new GraphmlParser(filename);
-    
-    auto start = std::chrono::steady_clock::now();
-    success = Process();
-    auto end = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    //std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+    success = graphml_parser_->IsValid() && Process();
+}
+
+bool Graphml::ModelParser::IsValid(){
+    return success;
 }
 
 bool Graphml::ModelParser::Process(){
     if(!graphml_parser_){
         return false;
     }
-
     model_ = new Model();
     std::vector<std::string> modelIdVec = graphml_parser_->FindNodes("Model");
     if(modelIdVec.size() > 0){

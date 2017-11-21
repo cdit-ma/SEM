@@ -44,6 +44,7 @@ class ExecutionManager{
 
         std::string GetSlaveStartupMessage(std::string slave_host_name);
         bool Finished();
+        bool IsValid();
         
         std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
     private:
@@ -63,6 +64,7 @@ class ExecutionManager{
         std::condition_variable terminate_lock_condition_;
         bool terminate_flag_ = false;
         bool finished_ = false;
+        bool parse_succeed_ = false;
 
         Execution* execution_;
         

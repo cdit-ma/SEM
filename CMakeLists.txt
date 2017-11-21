@@ -14,7 +14,7 @@ if(APPLE)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 endif(APPLE)
 
-SET(RE_VERSION "1.3.2")
+SET(RE_VERSION "1.4.0a")
 
 option(BUILD_TEST "Build testing" OFF)
 

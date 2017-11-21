@@ -5,6 +5,10 @@
 
 GraphmlParser::GraphmlParser(std::string filename){
     auto result = doc.load_file(filename.c_str());
+    legal_parse = result.status == pugi::status_ok;;
+    if(!legal_parse){
+        std::cerr << "GraphmlParser:Parse(" + filename + ") Error: " << result.description() << std::endl;
+    }
 
     auto keys = doc.select_nodes("/graphml/key");
     for(auto key : keys){
@@ -13,6 +17,11 @@ GraphmlParser::GraphmlParser(std::string filename){
 
         attribute_map_[name] = id;
     }
+}
+
+bool GraphmlParser::IsValid(){
+    return legal_parse;
+    
 }
 
 std::vector<std::string> GraphmlParser::FindNodes(std::string kind, std::string parent_id){

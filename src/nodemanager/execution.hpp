@@ -9,11 +9,8 @@
 class Execution{
     private:
         std::mutex mutex_;
-        std::condition_variable lock_condition_;
-
         bool terminated = false;
-
-        std::mutex bool_mutex_;
+        std::condition_variable lock_condition_;
 
         std::vector<std::function<void()> > terminate_functions_;
 
@@ -22,9 +19,7 @@ class Execution{
             //Wait for the signal_handler to notify for exit
             {
                 std::unique_lock<std::mutex> lock(mutex_);
-                lock_condition_.wait(lock);
-                std::unique_lock<std::mutex> bool_lock(bool_mutex_);
-                terminated = true;
+                lock_condition_.wait(lock, [this]{return terminated;});
             }
             for(auto func : terminate_functions_){
                 func();
@@ -37,15 +32,8 @@ class Execution{
         }
 
         void Interrupt(){
-            bool interupt = false;
-            {
-                std::unique_lock<std::mutex> bool_lock(bool_mutex_);
-                interupt = !terminated;
-            }   
-
-            if(interupt){
-                std::unique_lock<std::mutex> lock(mutex_);
-                lock_condition_.notify_all();
-            }
+            std::unique_lock<std::mutex> lock(mutex_);
+            terminated = true;
+            lock_condition_.notify_all();
         };
 }; 

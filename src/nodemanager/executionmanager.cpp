@@ -51,12 +51,16 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     //Setup the parser
     auto start = std::chrono::steady_clock::now();
     model_parser_ = new Graphml::ModelParser(graphml_path);
-    bool success = ConstructControlMessages();
+    parse_succeed_ = ConstructControlMessages();
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+    if(parse_succeed_){
+        std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+    }else{
+        std::cout << "* Deployment Parsing Failed!" << std::endl;
+    }
 
-    if(execution){
+    if(parse_succeed_ && execution){
         std::cout << "--------[Slave Registration]--------" << std::endl;
         //Start Execution thread for 60!
         execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
@@ -81,12 +85,16 @@ std::string ExecutionManager::GetSlaveStartupMessage(std::string slave_host_name
 
         if(slave_host_name == host_name){
             auto startup_message_pb = a.second;
-            if(startup_message_pb && startup_message_pb->SerializeToString(&str)){
-                std::cout << "Serialized: " << host_name << std::endl;
+            if(startup_message_pb){
+                startup_message_pb->SerializeToString(&str);
             }
         }
     }
     return str;
+}
+
+bool ExecutionManager::IsValid(){
+    return parse_succeed_;
 }
 
 void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
@@ -196,6 +204,9 @@ NodeManager::Attribute_Kind GetAttributeType(std::string type){
 bool ExecutionManager::ConstructControlMessages(){
     std::unique_lock<std::mutex>(mutex_);
 
+    if(!model_parser_->IsValid()){
+        return false;
+    }
     //Construct the Protobuf messages
     auto nodes = model_parser_->GetHardwareNodes();
     //Get the Deployed Hardware nodes. Construct STARTUP messages

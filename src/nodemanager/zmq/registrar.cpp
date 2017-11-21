@@ -57,7 +57,6 @@ void zmq::Registrar::RegistrationLoop(std::string endpoint){
             socket.recv(&slave_addr);
 
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
-            
             //Get the matching hostname from the execution manager
             std::string host_name = execution_manager_->GetNodeNameFromNodeManagerAddress(slave_addr_str);
             std::string slave_logger_pub_addr_str = execution_manager_->GetModelLoggerAddressFromNodeName(host_name);

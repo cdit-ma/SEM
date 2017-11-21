@@ -35,40 +35,38 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 
-set(NODE_MANAGER_SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+
+
+set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
 	)
 
-set(NODE_MANAGER_HEADERS
+set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
     )
     
 set(EXECUTION_TESTER_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
+    ${SOURCE}
 	)
 
-set(EXECUTION_TESTER_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
+set(NODE_MANAGER_SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${SOURCE}
 	)
 
-add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${NODE_MANAGER_HEADERS})
-add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${EXECUTION_TESTER_HEADERS})
+add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${HEADERS})
+add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${HEADERS})
 
 target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})

@@ -11,6 +11,7 @@ class GraphmlParser{
 
     public:
         GraphmlParser(std::string filename);
+        bool IsValid();
         std::vector<std::string> FindNodes(std::string kind, std::string parent_id = "");
         std::vector<std::string> FindEdges(std::string kind ="");
 
@@ -21,6 +22,7 @@ class GraphmlParser{
         
 
     private:
+        bool legal_parse = false;
         std::map<std::string, std::string> attribute_map_;
         pugi::xml_document doc;
         std::map<std::string, std::string> data_lookup_;
