@@ -106,6 +106,7 @@ bool Activatable::transition_state(Transition transition){
 
 
 
+
     if(new_state != current_state){
         //Notify
         {
@@ -145,6 +146,7 @@ bool Activatable::transition_state(Transition transition){
             state_condition_.notify_all();
             return true;
         }else{
+            Log(Severity::ERROR).Context(this).Func(GET_FUNC).Msg("Cannot transition from state: " + std::to_string((uint)current_state) + " transition: " + std::to_string((uint)transition));
             return false;
         }
     }else{

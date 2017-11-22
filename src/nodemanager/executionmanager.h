@@ -26,29 +26,30 @@ class Execution;
 
 class ExecutionManager{
     public:
-        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution);
+        ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration, Execution* execution);
 
         std::vector<std::string> GetNodeManagerSlaveAddresses();
         
-        std::string GetNodeNameFromNodeManagerAddress(std::string address);
-        std::string GetModelLoggerAddressFromNodeName(std::string host_name);
-        std::string GetModelLoggerModeFromNodeName(std::string host_name);
+        std::string GetNodeNameFromNodeManagerAddress(const std::string& address);
+        std::string GetModelLoggerAddressFromNodeName(const std::string& host_name);
+        std::string GetModelLoggerModeFromNodeName(const std::string& host_name);
 
         void ExecutionLoop(double duration_sec);
 
         void ActivateExecution();
         void TerminateExecution();
 
-        void PushMessage(std::string topic, google::protobuf::MessageLite* message);
-        void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
+        void PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
+        void SlaveOnline(const std::string& response, const std::string& endpoint, const std::string& host_name);
 
-        std::string GetSlaveStartupMessage(std::string slave_host_name);
+        std::string GetSlaveStartupMessage(const std::string& slave_host_name);
         bool Finished();
         bool IsValid();
         
         std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
     private:
-        void HandleSlaveOnline(std::string endpoint);
+        
+        void HandleSlaveOnline(const std::string& endpoint);
         bool ConstructControlMessages();
 
         std::mutex mutex_;

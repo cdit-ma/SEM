@@ -40,7 +40,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
@@ -49,7 +49,7 @@ set(SOURCE
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h

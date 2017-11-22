@@ -34,11 +34,11 @@ bool str2bool(std::string str) {
 }
 
 
-void set_attr_string(NodeManager::Attribute* attr, std::string val){
+void set_attr_string(NodeManager::Attribute* attr, const std::string& val){
     attr->add_s(val);
 }
 
-ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration, Execution* execution){
+ExecutionManager::ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration, Execution* execution){
     if(execution){
         //Setup writer
         proto_writer_ = new zmq::ProtoWriter();
@@ -67,7 +67,7 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     }
 }
 
-void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageLite* message){
+void ExecutionManager::PushMessage(const std::string& topic, google::protobuf::MessageLite* message){
     proto_writer_->PushMessage(topic, message);
 }
 
@@ -75,15 +75,12 @@ std::vector<std::string> ExecutionManager::GetNodeManagerSlaveAddresses(){
     return required_slave_addresses_;
 }
 
-std::string ExecutionManager::GetSlaveStartupMessage(std::string slave_host_name){
+std::string ExecutionManager::GetSlaveStartupMessage(const std::string& slave_host_name){
     std::unique_lock<std::mutex>(mutex_);
     std::string str;
     //Look through the deployment map for instructions to send the newly online slave
-    for(auto a: deployment_map_){
-        //Match the host_name 
-        std::string host_name = a.second->mutable_node()->mutable_info()->name();
-
-        if(slave_host_name == host_name){
+    for(const auto& a: deployment_map_){
+        if(slave_host_name == a.second->host_name()){
             auto startup_message_pb = a.second;
             if(startup_message_pb){
                 startup_message_pb->SerializeToString(&str);
@@ -93,35 +90,20 @@ std::string ExecutionManager::GetSlaveStartupMessage(std::string slave_host_name
     return str;
 }
 
+
 bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
 
-void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
+void ExecutionManager::SlaveOnline(const std::string& response, const std::string& endpoint, const std::string& slave_host_name){
     bool slave_online = response == "OKAY";
 
     if(slave_online){
         std::cout << "* Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
-        std::unique_lock<std::mutex>(mutex_);
-
-        //Look through the deployment map for instructions to send the newly online slave
-        for(auto a: deployment_map_){
-            //Match the host_name 
-            std::string host_name = a.second->mutable_node()->mutable_info()->name();
-
-            if(slave_host_name == host_name){
-                //std::cout << "Sending Startup Instructions: " << host_name << std::endl;
-                auto copy = new NodeManager::ControlMessage(*(a.second));
-                proto_writer_->PushMessage(host_name + "*", copy);
-            }   
-        }
+        HandleSlaveOnline(endpoint);
     }else{
         std::cerr << "Slave: '" << slave_host_name << "' @ " << endpoint << " Error!" << std::endl;
         std::cerr << response << std::endl;
-    }
-
-    if(slave_online){
-        HandleSlaveOnline(endpoint);
     }
 }
 
@@ -133,7 +115,7 @@ std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessag
     return messages;
 }
 
-void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
+void ExecutionManager::HandleSlaveOnline(const std::string& endpoint){
     //Get the initial size
     int initial_size = inactive_slave_addresses_.size();
     //Find the itterator position of the element
@@ -145,7 +127,7 @@ void ExecutionManager::HandleSlaveOnline(std:: string endpoint){
     }
 }
 
-std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(std::string tcp_address){
+std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(const std::string& tcp_address){
     //Trim off the tcp:// and port
     auto first = tcp_address.find_last_of("/");
     auto last = tcp_address.find_last_of(":");
@@ -164,7 +146,7 @@ std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(std::string tcp_
     return str;
 }
 
-std::string ExecutionManager::GetModelLoggerAddressFromNodeName(std::string host_name){
+std::string ExecutionManager::GetModelLoggerAddressFromNodeName(const std::string& host_name){
     auto node = model_parser_->GetHardwareNodeByName(host_name);
     std::string str;
     if(node){
@@ -173,7 +155,7 @@ std::string ExecutionManager::GetModelLoggerAddressFromNodeName(std::string host
     return str;
 }
 
-std::string ExecutionManager::GetModelLoggerModeFromNodeName(std::string host_name){
+std::string ExecutionManager::GetModelLoggerModeFromNodeName(const std::string& host_name){
     auto node = model_parser_->GetHardwareNodeByName(host_name);
     std::string str = "OFF";
     if(node && node->logging_profile_id != ""){
@@ -183,7 +165,7 @@ std::string ExecutionManager::GetModelLoggerModeFromNodeName(std::string host_na
     return str;
 }
 
-NodeManager::Attribute_Kind GetAttributeType(std::string type){
+NodeManager::Attribute_Kind GetAttributeType(const std::string& type){
     if(type == "Integer"){
         return NodeManager::Attribute::INTEGER;
     }else if(type == "Boolean"){
@@ -214,8 +196,15 @@ bool ExecutionManager::ConstructControlMessages(){
         if(node->is_deployed()){
             auto cm = new NodeManager::ControlMessage();
 
+            auto node_pb = cm->add_nodes();
+            cm->set_host_name(node->name);
+
+
+
             // Set the node name of the protobuf message
-            cm->mutable_node()->mutable_info()->set_name(node->name);
+            node_pb->mutable_info()->set_name(node->name);
+            node_pb->mutable_info()->set_id(node->id);
+
             // Set the configure messages
             cm->set_type(NodeManager::ControlMessage::STARTUP);
             deployment_map_[node->id] = cm;
@@ -230,7 +219,8 @@ bool ExecutionManager::ConstructControlMessages(){
 
         NodeManager::Node* node_pb = 0;
         if(deployment_map_.count(h_id)){
-            node_pb = deployment_map_[h_id]->mutable_node();
+
+            node_pb = deployment_map_[h_id]->mutable_nodes(0);
         }
 
         if(hardware_node && component && node_pb){
@@ -335,7 +325,7 @@ bool ExecutionManager::ConstructControlMessages(){
                     port_pb->set_kind(k);
                     //Get the Middleware for the ports
                     if(k != NodeManager::EventPort::PERIODIC_PORT){
-                        std::string port_middleware = event_port->middleware;
+                        const std::string& port_middleware = event_port->middleware;
                         NodeManager::EventPort::Middleware mw;
                         
                         //Parse the middleware
@@ -537,14 +527,11 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     auto passivate = new NodeManager::ControlMessage();
     passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
     PushMessage("*", passivate);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
+    
     std::cout << "* Terminating Deployment" << std::endl;
     //Send Terminate Function
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     finished_ = true;
 }

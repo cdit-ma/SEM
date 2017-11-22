@@ -16,7 +16,7 @@
 class Worker;
 class EventPort;
 
-class Component: public Activatable{
+class Component : public Activatable{
     public:
         Component(std::string inst_name ="");
         virtual ~Component();

@@ -87,8 +87,6 @@ public:
         Activatable::Transition transition_ = Activatable::Transition::NO_TRANSITION;
 
         std::map<std::string, std::shared_ptr<Attribute> > attributes_;
-   protected:
-        
 };
 
 #endif //ACTIVATABLE_H

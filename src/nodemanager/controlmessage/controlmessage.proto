@@ -4,23 +4,19 @@ package NodeManager;
 message ControlMessage{
     enum Type{
         NO_TYPE = 0;
-        
         STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/Eventports
         TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and Eventports.
-
         CONFIGURE = 3;
-        
         ACTIVATE = 4;       //Start executing a Component, Requires Startup first
         PASSIVATE = 5;      //Stop executing a Component, Requires Startup and Passivate
-        
         TERMINATE = 6;      //Terminate Node Manager on Slaves, Death to the infidels
-        
         SET_ATTRIBUTE = 7;  //Set the Attribute of Components, requires Startup
     }
 
     Type type = 1;
     double time_stamp = 2;
-    Node node = 3;
+    string host_name = 3;
+    repeated Node nodes = 4;
 }
 
 message Info{

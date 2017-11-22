@@ -1,15 +1,4 @@
-#include "nodecontainer.h"
-#include <iostream>
-#include <algorithm>
-#include <string>
-
-
-#ifdef _WIN32
-    #include <windows.h>
-    #include <stdio.h>
-#else
-    #include <dlfcn.h>
-#endif
+#include "deploymentcontainer.h"
 
 #include <core/worker.h>
 #include <core/modellogger.h>
@@ -18,7 +7,9 @@
 #include "controlmessage/controlmessage.pb.h"
 #include "controlmessage/translate.h"
 
-
+#include <iostream>
+#include <algorithm>
+#include <string>
 
 //Converts std::string to lower
 std::string to_lower(std::string str){
@@ -26,36 +17,19 @@ std::string to_lower(std::string str){
     return str;
 }
 
+DeploymentContainer::DeploymentContainer(){
+    set_name("Deployment Container");
+}
 
-NodeContainer::NodeContainer(std::string library_path){
+DeploymentContainer::~DeploymentContainer(){
+    Terminate();
+}
+
+void DeploymentContainer::SetLibraryPath(const std::string library_path){
     library_path_ = library_path;
 }
 
-NodeContainer::~NodeContainer(){
-    Teardown();
-}
-
-bool NodeContainer::Activate(std::string component_id){
-    auto component = GetSharedComponent(component_id);
-    if(component){
-        return component->Activate();
-    }
-    return false;
-}
-
-bool NodeContainer::Passivate(std::string component_id){
-    auto component = GetSharedComponent(component_id);
-    if(component){
-        return component->Passivate();
-    }
-    return false;
-}
-
-std::shared_ptr<Component> NodeContainer::GetSharedComponent(const std::string& name){
-    return GetComponent(name).lock();
-}
-
-std::shared_ptr<EventPort> NodeContainer::ConstructPeriodicEvent(std::weak_ptr<Component> weak_component, const std::string& port_name){
+std::shared_ptr<EventPort> DeploymentContainer::ConstructPeriodicEvent(std::weak_ptr<Component> weak_component, const std::string& port_name){
     auto component = weak_component.lock();
     if(component){
         auto u_ptr = std::unique_ptr<EventPort>(new PeriodicEventPort(weak_component, port_name, component->GetCallback(port_name), 1000));
@@ -64,20 +38,18 @@ std::shared_ptr<EventPort> NodeContainer::ConstructPeriodicEvent(std::weak_ptr<C
     return nullptr;
 }
 
-void NodeContainer::Configure(const NodeManager::ControlMessage& message){
-    const auto& node = message.node();
-    
+bool DeploymentContainer::Configure(const NodeManager::Node& node){
+    set_name(node.info().name());
+    set_id(node.info().id());
+
     for(const auto& component_pb : node.components()){
         auto component = GetConfiguredComponent(component_pb);
-
-        //Configure the Component
-        if(!(component && component->Configure())){
-            ModelLogger::get_model_logger()->LogFailedComponentConstruction(component_pb.info().type(), component_pb.info().name(), component_pb.info().id());
-        }
     }
+    std::cout << "* Configured DeploymentContainer: " << get_name() << std::endl;
+    return Activatable::Configure();
 }
 
-std::shared_ptr<Worker> NodeContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
+std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
     std::shared_ptr<Worker> worker;
     if(component){
         const auto& worker_info_pb = worker_pb.info();
@@ -94,11 +66,11 @@ std::shared_ptr<Worker> NodeContainer::GetConfiguredWorker(std::shared_ptr<Compo
     return worker;
 }
 
-std::shared_ptr<Component> NodeContainer::GetConfiguredComponent(const NodeManager::Component& component_pb){
+std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const NodeManager::Component& component_pb){
     const auto& component_info_pb = component_pb.info();
      
     //Try and get the Component first
-    auto component = GetSharedComponent(component_info_pb.id());
+    auto component = GetComponent(component_info_pb.id()).lock();
     if(!component){
         //Construct the Component
         component = ConstructComponent(component_info_pb.type(), component_info_pb.name(), component_info_pb.id());
@@ -123,7 +95,7 @@ std::shared_ptr<Component> NodeContainer::GetConfiguredComponent(const NodeManag
     return component;
 }
 
-std::shared_ptr<EventPort> NodeContainer::GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb){
+std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shared_ptr<Component> component, const NodeManager::EventPort& eventport_pb){
     std::shared_ptr<EventPort> eventport;
 
     if(component){
@@ -173,42 +145,53 @@ std::shared_ptr<EventPort> NodeContainer::GetConfiguredEventPort(std::shared_ptr
 
        
 
-bool NodeContainer::ActivateAll(){
+bool DeploymentContainer::HandleActivate(){
+    auto success = true;
     for(auto c : components_){
-        c.second->Activate();
+        success = c.second->Activate() ? success : false;
     }
     return true;
 }
 
-bool NodeContainer::PassivateAll(){
-    //Passivate
+bool DeploymentContainer::HandlePassivate(){
+    auto success = true;
     for(auto c : components_){
-        auto component = c.second;
-        component->Passivate();
+        success = c.second->Passivate() ? success : false;
     }
-    return true;
+    return success;
 }
-void NodeContainer::Teardown(){
-    for(auto it=components_.begin(); it!=components_.end();){
-        auto c = it->second;
-        if(c && c->Terminate()){
-            it = components_.erase(it);
-        }
+
+bool DeploymentContainer::HandleTerminate(){
+    auto success = true;
+    for(auto c : components_){
+        success = c.second->Terminate() ? success : false;
     }
+    components_.clear();
+    return success;
+}
+
+bool DeploymentContainer::HandleConfigure(){
+    auto success = true;
+    for(auto c : components_){
+        success = c.second->Configure() ? success : false;
+    }
+    return success;
 }
 
 
-std::weak_ptr<Component> NodeContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
+
+
+std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
     if(components_.count(name) == 0){
         components_[name] = std::move(component);
         return components_[name];
     }else{
-        std::cerr << "NodeContainer already has a Component with name '" << name << "'" << std::endl;
+        std::cerr << "DeploymentContainer already has a Component with name '" << name << "'" << std::endl;
         return std::weak_ptr<Component>();
     }
 }
 
-std::weak_ptr<Component> NodeContainer::GetComponent(const std::string& name){
+std::weak_ptr<Component> DeploymentContainer::GetComponent(const std::string& name){
     if(components_.count(name)){
         return components_[name];
     }else{
@@ -216,18 +199,18 @@ std::weak_ptr<Component> NodeContainer::GetComponent(const std::string& name){
     }
 }
 
-std::shared_ptr<Component> NodeContainer::RemoveComponent(const std::string& name){
+std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::string& name){
     if(components_.count(name)){
         auto component = components_[name];
         components_.erase(name);
         return component;
     }else{ 
-        std::cerr << "NodeContainer doesn't have a Component with name '" << name << "'" << std::endl;
+        std::cerr << "DeploymentContainer doesn't have a Component with name '" << name << "'" << std::endl;
         return std::shared_ptr<Component>();
     }
 }
 
-std::string NodeContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype){
+std::string DeploymentContainer::get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype){
     std::string p = middleware + "_";
     if(!namespace_name.empty()){
         p += namespace_name + "_";
@@ -236,12 +219,12 @@ std::string NodeContainer::get_port_library_name(const std::string& middleware, 
     
     return to_lower(p);
 }
-std::string NodeContainer::get_component_library_name(const std::string& component_type){
+std::string DeploymentContainer::get_component_library_name(const std::string& component_type){
     std::string c = "components_" + component_type;
     return to_lower(c);
 }
 
-std::shared_ptr<EventPort> NodeContainer::ConstructTx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+std::shared_ptr<EventPort> DeploymentContainer::ConstructTx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<EventPort> eventport;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
@@ -265,7 +248,7 @@ std::shared_ptr<EventPort> NodeContainer::ConstructTx(const std::string& middlew
     return eventport;
 }
 
-std::shared_ptr<EventPort> NodeContainer::ConstructRx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+std::shared_ptr<EventPort> DeploymentContainer::ConstructRx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<EventPort> eventport;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
@@ -289,7 +272,7 @@ std::shared_ptr<EventPort> NodeContainer::ConstructRx(const std::string& middlew
     return eventport;
 }
 
-std::shared_ptr<Component> NodeContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id){
+std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id){
     std::shared_ptr<Component> component;
     const auto& library_name = get_component_library_name(component_type);
 
@@ -305,7 +288,7 @@ std::shared_ptr<Component> NodeContainer::ConstructComponent(const std::string& 
         if(component_ptr){
             component_ptr->set_id(component_id);
             component_ptr->set_type(component_type);
-            //Add the Component to the NodeContainer
+            //Add the Component to the DeploymentContainer
             component = AddComponent(std::unique_ptr<Component>(component_ptr), component_id).lock();
         }
     }
