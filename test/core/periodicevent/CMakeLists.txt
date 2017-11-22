@@ -10,8 +10,6 @@ add_executable(${PROJ_NAME} ${SOURCE})
 target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
-add_executable(${PROJ_NAME} ${SOURCE})
-
 if(UNIX)
     target_link_libraries(${PROJ_NAME} pthread)
 endif(UNIX)
