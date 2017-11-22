@@ -25,6 +25,8 @@ for(n in re_nodes){
         node(node_name){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
+                //Clean the directory so we have to build from fresh
+                deleteDir()
                 //Build the entire project 
                 def success = utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
                 if(!success){
