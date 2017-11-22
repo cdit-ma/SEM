@@ -53,10 +53,10 @@ class ModelProtoHandler : public ProtoHandler{
         void CreateComponentUtilizationTable();
 
         //Callback functions
-        void ProcessLifecycleEvent(re_common::LifecycleEvent* message);
-        void ProcessUserEvent(re_common::UserEvent* message);
-        void ProcessWorkloadEvent(re_common::WorkloadEvent* message);
-        void ProcessComponentUtilizationEvent(re_common::ComponentUtilizationEvent* message);
+        void ProcessLifecycleEvent(const re_common::LifecycleEvent& message);
+        void ProcessUserEvent(const re_common::UserEvent& message);
+        void ProcessWorkloadEvent(const re_common::WorkloadEvent& message);
+        void ProcessComponentUtilizationEvent(const re_common::ComponentUtilizationEvent& message);
 
         //Members
         SQLiteDatabase* database_;

@@ -55,8 +55,8 @@ class HardwareProtoHandler : public ProtoHandler{
         void CreateProcessInfoTable();
 
         //Callback functions
-        void ProcessSystemStatus(re_common::SystemStatus* status);
-        void ProcessOneTimeSystemInfo(re_common::SystemInfo* info);
+        void ProcessSystemStatus(const re_common::SystemStatus& status);
+        void ProcessOneTimeSystemInfo(const re_common::SystemInfo& info);
 
         //Members
         SQLiteDatabase* database_;
