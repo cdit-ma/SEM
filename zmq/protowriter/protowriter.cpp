@@ -82,9 +82,9 @@ bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& t
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){
         //Construct a zmq message for both the type and message data
-        zmq::message_t topic_data(topic.c_str(), topic.size());
-        zmq::message_t type_data(type.c_str(), type.size());
-        zmq::message_t message_data(message.c_str(), message.size());
+        zmq::message_t topic_data(topic.begin(), topic.end());
+        zmq::message_t type_data(type.begin(), type.end());
+        zmq::message_t message_data(message.begin(), message.end());
         
         //Send Type then Data
         try{

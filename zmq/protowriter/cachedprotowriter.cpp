@@ -91,9 +91,9 @@ bool zmq::CachedProtoWriter::Terminate(){
             if(written_to_disk_count){
                 auto messages = ReadMessagesFromFile(temp_file_path_);
                 if(messages.size() == written_to_disk_count){
-                    std::cout << "# zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
+                    std::cout << "* zmq::CachedProtoWriter: Read all " << messages.size() << " messages in cache file '" << temp_file_path_ << "'" << std::endl;
                 }else{
-                    std::cerr << "# zmq::CachedProtoWriter: Could only read " << messages.size() << "/" << written_to_disk_count  << "messages in cache file '" << temp_file_path_ << "'" << std::endl;
+                    std::cerr << "* zmq::CachedProtoWriter: Could only read " << messages.size() << "/" << written_to_disk_count  << "messages in cache file '" << temp_file_path_ << "'" << std::endl;
                 }
 
                 //Send the messages serialized in the temp file
