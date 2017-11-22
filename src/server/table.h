@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include "sqlitedatabase.h"
 
 class TableInsert;
@@ -61,9 +62,9 @@ class Table{
         std::string table_name_;
         std::string table_insert_;
 
+        std::unordered_map<std::string, int> column_lookup_;
         std::vector<TableColumn*> columns_;
         std::string table_create_;
-        std::stringstream insert_ss;
         
         void ConstructTableStatement();
         sqlite3_stmt* GetSqlStatement(const std::string& query);

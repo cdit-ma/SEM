@@ -6,22 +6,18 @@
 #include "protohandler.h"
 #include "../re_common/zmq/protoreceiver/protoreceiver.h"
 
-Server::Server(std::string database_path, std::vector<std::string> addresses){
+Server::Server(const std::string& database_path, std::vector<std::string> addresses){
     //Construct database
 	database_ = new SQLiteDatabase(database_path);
 
     //Construct receiver
 	receiver_ = new zmq::ProtoReceiver();
-    for(auto c : addresses){
+    for(const auto& c : addresses){
         receiver_->Connect(c);
     }
 
-    //Set no filter
+    //Receieve all messages
     receiver_->Filter("");
-}
-
-Server::~Server(){
-    
 }
 
 void Server::AddProtoHandler(ProtoHandler* handler){
@@ -35,12 +31,12 @@ void Server::AddProtoHandler(ProtoHandler* handler){
 bool Server::Start(){
     bool success = false;
     if(!running_){
-        for(auto handler : handler_list_){
+        for(const auto& handler : handler_list_){
             handler->ConstructTables(database_);
             handler->BindCallbacks(receiver_);
         }
         database_->BlockingFlush();
-        std::cout << "# Constructed tables" << std::endl;
+        std::cout << "* Constructed tables" << std::endl;
         running_ = true;
         success = receiver_->Start();
     }

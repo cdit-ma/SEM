@@ -103,7 +103,7 @@ int main(int ac, char** av){
 				}
 				std::cout << "** " << processes[i] << std::endl;
 			}
-			std::cout << "---------------------------------" << std::endl;
+			std::cout << "-------[ Logging ]-------" << std::endl;
 
 
 			if(!log_controller.Start(publisher_endpoint, log_frequency, processes, live_mode)){
@@ -111,11 +111,11 @@ int main(int ac, char** av){
 			}
 
 			{
-				std::cout << "# Starting Logging." << std::endl;
+				std::cout << "* Starting Logging." << std::endl;
 				std::unique_lock<std::mutex> lock(mutex_);
 				//Wait for the signal_handler to notify for exit
 				lock_condition_.wait(lock);
-				std::cout << "# Stopping Logging." << std::endl;
+				std::cout << "* Stopping Logging." << std::endl;
 			}
 			
 			if(!log_controller.Terminate()){

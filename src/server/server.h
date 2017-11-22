@@ -32,9 +32,7 @@ class ProtoHandler;
 
 class Server{
     public:
-        Server(std::string database_path, std::vector<std::string> addresses);
-        ~Server();
-
+        Server(const std::string& database_path, std::vector<std::string> addresses);
         void AddProtoHandler(ProtoHandler* handler);
         bool Start();
         bool Terminate();
@@ -42,8 +40,6 @@ class Server{
         SQLiteDatabase* database_ = 0;
         zmq::ProtoReceiver* receiver_ = 0;
         bool running_ = false;
-
-
         std::vector<ProtoHandler*> handler_list_;
 };
 

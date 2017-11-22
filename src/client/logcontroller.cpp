@@ -37,6 +37,7 @@
 LogController::LogController(){
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
+    host_name = system_info_->get_hostname();
 }
 
 std::string LogController::GetSystemInfoJson(){
@@ -45,6 +46,7 @@ std::string LogController::GetSystemInfoJson(){
     system_info_->update();
 
     auto info = GetOneTimeInfo();
+
     std::string output;
     google::protobuf::util::JsonOptions options;
     options.add_whitespace = true;
@@ -162,10 +164,10 @@ void LogController::LogThread(){
             std::unique_lock<std::mutex> lock(queue_mutex_);
             
             if(one_time_flag_){
-                message_queue_.push(std::make_pair("SystemInfo*", new re_common::SystemInfo(*one_time_info)));
+                message_queue_.push(new re_common::SystemInfo(*one_time_info));
                 one_time_flag_ = false;
             }
-            message_queue_.push(std::make_pair("SystemStatus*", status));
+            message_queue_.push(status);
 
             queue_lock_condition_.notify_all();
         }
@@ -179,7 +181,7 @@ void LogController::LogThread(){
 
 void LogController::WriteThread(){
     while(!writer_terminate_){
-        std::queue<std::pair<std::string, google::protobuf::MessageLite*> > replace_queue;
+        std::queue<google::protobuf::MessageLite* > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -194,8 +196,8 @@ void LogController::WriteThread(){
         //Empty our write queue
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
-            if(m.second){
-                writer_->PushMessage(m.first, m.second);
+            if(m){
+                writer_->PushMessage(host_name, m);
             }
             
             replace_queue.pop();

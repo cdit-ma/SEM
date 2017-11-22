@@ -33,19 +33,24 @@ Table::Table(SQLiteDatabase* database, const std::string& name){
 }
 
 Table::~Table(){
-    for(auto i : columns_){
+    for(const auto& i : columns_){
         delete i;
     }
 }
 
 bool Table::AddColumn(const std::string& name, const std::string& type){
+    bool success = false;
     if(!finalized_){
-        int pos = columns_.size();
-        auto t = new TableColumn(pos, name, type);
-        columns_.push_back(t);
-        return true;
+        auto t = new TableColumn(columns_.size(), name, type);
+        if(!column_lookup_.count(name)){
+            column_lookup_[name] = t->column_number_;
+            columns_.push_back(t);
+            success = true;
+        }else{
+            std::cerr << table_name_ << " has duplicate column '" << name << "'" << std::endl;
+        }
     }
-    return false;
+    return success;
 }
 
 TableInsert Table::get_insert_statement(){
@@ -54,13 +59,18 @@ TableInsert Table::get_insert_statement(){
 }
 
 int Table::get_field_id(const std::string& field){
-    for(int i = 0; i < size_; i++){
-        if(field == columns_[i]->column_name_){
-            return columns_[i]->column_number_;
+    int field_id = -1;
+    for(auto i = 1; i < columns_.size(); i++){
+        if(columns_[i]->column_name_ == field){
+            field_id = columns_[i]->column_number_;
+            break;
         }
     }
-    std::cerr << "Can't find field '" << field << "' in table: '" << table_name_ << std::endl;
-    return -1;
+    /*
+    if(column_lookup_.count(field)){
+        field_id = column_lookup_[field];
+    }*/
+    return field_id;
 }
 
 void Table::ConstructTableStatement(){
@@ -69,10 +79,9 @@ void Table::ConstructTableStatement(){
         //Create table
         ss << CREATE_TABLE_PREFIX << " " << table_name_ << " (";
         ss << LID_INSERT << " ";
-        for(size_t i = 1; i < columns_.size(); i++){
-            auto c = columns_[i];
-            ss << c->column_name_ << " " << c->column_type_;
-
+        //Ignore the LID_INSERT
+        for(auto i = 1; i < columns_.size(); i++){
+            ss << columns_[i]->column_name_ << " " << columns_[i]->column_type_;
             if(i + 1 != columns_.size()){
                 ss << ", ";
             }
@@ -91,7 +100,7 @@ sqlite3_stmt* Table::get_table_construct_statement(){
 }
 
 sqlite3_stmt* Table::get_table_insert_statement(){
-    auto s =GetSqlStatement(table_insert_);
+    auto s = GetSqlStatement(table_insert_);
     if(!s){
         if(!database_){
             std::cout << "NULL DATABSE?!: " << database_ << std::endl;    
@@ -114,15 +123,16 @@ void Table::Finalize(){
         //Create table
         top_ss << INSERT_TABLE_PREFIX << " " << table_name_ << " (";
         bottom_ss << " VALUES (";
-        for(size_t i = 1; i < columns_.size(); i++){
-            auto c = columns_[i];
-            top_ss << c->column_name_;
+
+        for(auto i = 1; i < columns_.size(); i++){
+            top_ss << columns_[i]->column_name_;
             bottom_ss << "?" << std::to_string(i);
             if(i + 1 != columns_.size()){
                 top_ss << ", ";
                 bottom_ss << ", ";
             }
         }
+
         top_ss << ") ";
         bottom_ss << ");";
         table_insert_ = top_ss.str() + bottom_ss.str();

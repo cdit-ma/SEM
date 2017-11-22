@@ -31,7 +31,8 @@
 class SQLiteDatabase{
     public:
         SQLiteDatabase(const std::string& databaseFilepath);
-        virtual ~SQLiteDatabase();
+        ~SQLiteDatabase();
+        
         sqlite3_stmt* GetSqlStatement(const std::string& query);
         void QueueSqlStatement(sqlite3_stmt * statement);
         void BlockingFlush();

@@ -117,11 +117,11 @@ int main(int ac, char** av)
 			return 1;
 		}
 
-		std::cout << "# Started Logging." << std::endl;
+		std::cout << "* Started Logging." << std::endl;
 		std::unique_lock<std::mutex> lock(mutex_);
 		//Wait for the signal_handler to notify for exit
 		lock_condition_.wait(lock);
-		std::cout << "# Stopping Logging." << std::endl;
+		std::cout << "* Stopping Logging." << std::endl;
 
 		if(!server.Terminate()){
 			return 1;
