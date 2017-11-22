@@ -51,10 +51,10 @@ namespace zmq{
             bool Filter(const std::string& topic_filter);
 
             template<class T>
-            bool RegisterNewProto(std::function<void(T*)> fn);
+            bool RegisterProtoCallback(std::function<void(const T&)> fn);
         private:
             bool ProcessMessage(const std::string& type, const std::string& data);
-            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
+            bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(const google::protobuf::MessageLite&)> fn);
             
             void RecieverThread();
             //RecieverThread helper functions
@@ -70,7 +70,7 @@ namespace zmq{
             std::vector<std::string> filters_;
 
             std::mutex proto_mutex_;
-            std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
+            std::multimap<std::string, std::function<void(const google::protobuf::MessageLite&)> > callback_lookup_;
             std::map<std::string, std::function<google::protobuf::MessageLite* ()> > proto_lookup_;
 
             std::mutex queue_mutex_;
@@ -87,11 +87,11 @@ namespace zmq{
 };
 
 template<class T>
-bool zmq::ProtoReceiver::RegisterNewProto(std::function<void(T*)> fn){
+bool zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const T&)> fn){
     static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value, "T must inherit from google::protobuf::MessageLite");
     const auto& default_instance = T::default_instance();
-    RegisterNewProto(default_instance, [fn](google::protobuf::MessageLite* ml){
-        auto t_message = (T*) ml;
+    RegisterNewProto(default_instance, [fn](const google::protobuf::MessageLite& ml){
+        auto t_message = (const T&) ml;
         fn(t_message);
     });
     return true;

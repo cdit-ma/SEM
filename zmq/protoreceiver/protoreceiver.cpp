@@ -143,19 +143,18 @@ void zmq::ProtoReceiver::RecieverThread(){
 }
 
 
-bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &message_type, std::function<void(const google::protobuf::MessageLite&)> fn){
     std::unique_lock<std::mutex> lock(proto_mutex_);
-    std::string type = ml.GetTypeName();
-    if(!callback_lookup_.count(type) && !proto_lookup_.count(type)){
-        //Function pointer winraring
-        callback_lookup_[type] = fn;
-        auto construct_fn = [&ml](){return ml.New();};
-        proto_lookup_[type] = construct_fn;
-        return true;
-    }else{
-        std::cerr << "zmq::ProtoReceiver::Cannot Register Proto Type: " << type << " As type has been registered" << std::endl;
+    
+    const auto& type_name = message_type.GetTypeName();
+    
+    //Register a constructor
+    if(!proto_lookup_.count(type_name)){
+        proto_lookup_[type_name] = [&message_type](){return message_type.New();};
     }
-    return false;
+    //Add the callback
+    callback_lookup_.insert(std::make_pair(type_name, fn));
+    return true;
 }
 
 int zmq::ProtoReceiver::GetRxCount(){
@@ -165,19 +164,31 @@ int zmq::ProtoReceiver::GetRxCount(){
 
 bool zmq::ProtoReceiver::ProcessMessage(const std::string& type, const std::string& data){
     std::unique_lock<std::mutex> lock(proto_mutex_);
-    if(proto_lookup_.count(type) && callback_lookup_.count(type)){
-        auto a = proto_lookup_[type]();
-        if(a->ParseFromString(data)){
+    
+    bool success = false;
+    if(proto_lookup_.count(type)){
+        //Construct a new protobuff message
+        auto message_object = proto_lookup_[type]();
+        
+        //Parse into the message_object
+        if(message_object->ParseFromString(data)){
             rx_count_ ++;
-            callback_lookup_[type](a);
-            return true;
+
+            //Run our callbacks
+            for(const auto& c : callback_lookup_){
+                if(c.first == type){
+                    c.second(*message_object);
+                }
+            }
+            success = true;
         }else{
             std::cerr << "zmq::ProtoReceiver::Cannot Parse: Proto Type: " << type << std::endl;
         }
+        delete message_object;
     }else{
         std::cerr << "zmq::ProtoReceiver::Proto Type: " << type << " not registered" << std::endl;
     }
-    return false;
+    return success;
 }
 
 
