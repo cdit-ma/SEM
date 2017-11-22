@@ -31,24 +31,25 @@ TableInsert::TableInsert(Table* table){
     stmt_ = table_->get_table_insert_statement();
 }
 
-int TableInsert::BindString(std::string field, std::string val){
+int TableInsert::BindString(const std::string& field, const std::string& val){
     auto id = table_->get_field_id(field);
     //SQLITE_TRANSIENT = Copy straight away
     return sqlite3_bind_text(stmt_, id, val.c_str(), val.size(), SQLITE_TRANSIENT);
 }
 
-int TableInsert::BindInt(std::string field, int val){
+int TableInsert::BindInt(const std::string& field, const int& val){
     auto id = table_->get_field_id(field);
     return sqlite3_bind_int(stmt_, id, val);
 }
 
-int TableInsert::BindDouble(std::string field, double val){
-    if(isnan(val)){
+int TableInsert::BindDouble(const std::string& field, const double& val){
+    double dbl_var(val);
+    if(isnan(dbl_var)){
         //avoid NULL in database
-        val = 0.0;
+        dbl_var = 0.0;
     }
     auto id = table_->get_field_id(field);
-    return sqlite3_bind_double(stmt_, id, val);
+    return sqlite3_bind_double(stmt_, id, dbl_var);
 }
 
 sqlite3_stmt* TableInsert::get_statement(){

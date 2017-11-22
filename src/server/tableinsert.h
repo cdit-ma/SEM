@@ -29,9 +29,9 @@ class TableInsert{
     public:   
         TableInsert(Table* table);
 
-        int BindString(std::string field, std::string val);
-        int BindInt(std::string field, int val);
-        int BindDouble(std::string field, double val);
+        int BindString(const std::string& field, const std::string& val);
+        int BindInt(const std::string& field, const int& val);
+        int BindDouble(const std::string& field, const double& val);
 
         sqlite3_stmt* get_statement();
     private:

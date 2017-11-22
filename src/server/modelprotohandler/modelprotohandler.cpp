@@ -31,34 +31,37 @@
 #include "../../re_common/zmq/protoreceiver/protoreceiver.h"
 
 //Types
-#define LOGAN_DECIMAL "DECIMAL"
-#define LOGAN_VARCHAR "VARCHAR"
-#define LOGAN_INT "INTEGER"
+const std::string LOGAN_DECIMAL = "DECIMAL";
+const std::string LOGAN_VARCHAR = "VARCHAR";
+const std::string LOGAN_INT = "INTEGER";
 
 //Common column names
-#define LOGAN_TIMEOFDAY "timeofday"
-#define LOGAN_HOSTNAME "hostname"
-#define LOGAN_COMPONENT_NAME "component_name"
-#define LOGAN_COMPONENT_ID "component_id"
-#define LOGAN_COMPONENT_TYPE "component_type"
-#define LOGAN_PORT_NAME "port_name"
-#define LOGAN_PORT_ID "port_id"
-#define LOGAN_PORT_KIND "port_kind"
-#define LOGAN_PORT_TYPE "port_type"
-#define LOGAN_PORT_MIDDLEWARE "port_middleware"
-#define LOGAN_WORKER_NAME "worker_name"
-#define LOGAN_WORKER_TYPE "worker_type"
-#define LOGAN_EVENT "event"
-#define LOGAN_MESSAGE_ID "id"
-#define LOGAN_NAME "name"
-#define LOGAN_TYPE "type"
+const std::string LOGAN_TIMEOFDAY = "timeofday";
+const std::string LOGAN_HOSTNAME = "hostname";
+const std::string LOGAN_MESSAGE_ID = "id";
+const std::string LOGAN_NAME = "name";
+const std::string LOGAN_TYPE = "type";
+
+//Common column names
+const std::string LOGAN_COMPONENT_NAME = "component_name";
+const std::string LOGAN_COMPONENT_ID = "component_id";
+const std::string LOGAN_COMPONENT_TYPE = "component_type";
+const std::string LOGAN_PORT_NAME = "port_name";
+const std::string LOGAN_PORT_ID = "port_id";
+const std::string LOGAN_PORT_KIND = "port_kind";
+const std::string LOGAN_PORT_TYPE = "port_type";
+const std::string LOGAN_PORT_MIDDLEWARE = "port_middleware";
+const std::string LOGAN_WORKER_NAME = "worker_name";
+const std::string LOGAN_WORKER_TYPE = "worker_type";
+const std::string LOGAN_EVENT = "event";
+
 
 //Model Table names
-#define LOGAN_LIFECYCLE_PORT_TABLE "Model_Lifecycle_EventPort"
-#define LOGAN_LIFECYCLE_COMPONENT_TABLE "Model_Lifecycle_Component"
-#define LOGAN_EVENT_USER_TABLE "Model_Event_User"
-#define LOGAN_EVENT_WORKLOAD_TABLE "Model_Event_Workload"
-#define LOGAN_EVENT_COMPONENT_TABLE "Model_Event_Component"
+const std::string LOGAN_LIFECYCLE_PORT_TABLE = "Model_Lifecycle_EventPort";
+const std::string LOGAN_LIFECYCLE_COMPONENT_TABLE = "Model_Lifecycle_Component";
+const std::string LOGAN_EVENT_USER_TABLE = "Model_Event_User";
+const std::string LOGAN_EVENT_WORKLOAD_TABLE = "Model_Event_Workload";
+const std::string LOGAN_EVENT_COMPONENT_TABLE = "Model_Event_Component";
 
 ModelProtoHandler::ModelProtoHandler() : ProtoHandler(){}
 ModelProtoHandler::~ModelProtoHandler(){}

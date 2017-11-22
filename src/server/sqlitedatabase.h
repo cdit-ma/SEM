@@ -30,9 +30,9 @@
 
 class SQLiteDatabase{
     public:
-        SQLiteDatabase(std::string databaseFilepath);
+        SQLiteDatabase(const std::string& databaseFilepath);
         virtual ~SQLiteDatabase();
-        sqlite3_stmt* GetSqlStatement(std::string query);
+        sqlite3_stmt* GetSqlStatement(const std::string& query);
         void QueueSqlStatement(sqlite3_stmt * statement);
         void BlockingFlush();
         void Flush();

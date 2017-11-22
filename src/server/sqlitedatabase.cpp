@@ -26,7 +26,7 @@
 
 #define SQL_BATCH_SIZE 100
 
-SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
+SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
     //Open Database, create it if it's not there
     int result = sqlite3_open_v2(dbFilepath.c_str(), &database_, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
@@ -57,7 +57,7 @@ SQLiteDatabase::~SQLiteDatabase(){
     }
 }
 
-sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
+sqlite3_stmt* SQLiteDatabase::GetSqlStatement(const std::string& query){
     sqlite3_stmt *statement;
     int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
     if(result == SQLITE_OK){

@@ -31,27 +31,27 @@
 #include "../../re_common/proto/systemstatus/systemstatus.pb.h"
 
 //Type names
-#define LOGAN_DECIMAL "DECIMAL"
-#define LOGAN_VARCHAR "VARCHAR"
-#define LOGAN_INT "INTEGER"
+const std::string LOGAN_DECIMAL = "DECIMAL";
+const std::string LOGAN_VARCHAR = "VARCHAR";
+const std::string LOGAN_INT = "INTEGER";
 
 //Common column names
-#define LOGAN_TIMEOFDAY "timeofday"
-#define LOGAN_HOSTNAME "hostname"
-#define LOGAN_MESSAGE_ID "id"
-#define LOGAN_NAME "name"
-#define LOGAN_TYPE "type"
+const std::string LOGAN_TIMEOFDAY = "timeofday";
+const std::string LOGAN_HOSTNAME = "hostname";
+const std::string LOGAN_MESSAGE_ID = "id";
+const std::string LOGAN_NAME = "name";
+const std::string LOGAN_TYPE = "type";
 
 //Hardware table names
-#define LOGAN_SYSTEM_STATUS_TABLE "Hardware_SystemStatus"
-#define LOGAN_SYSTEM_INFO_TABLE "Hardware_SystemInfo"
-#define LOGAN_CPU_TABLE "Hardware_SystemCPUCoreStatus"
-#define LOGAN_FILE_SYSTEM_TABLE "Hardware_FileSystemStatus"
-#define LOGAN_FILE_SYSTEM_INFO_TABLE "Hardware_FileSystemInfo"
-#define LOGAN_INTERFACE_STATUS_TABLE "Hardware_InterfaceStatus"
-#define LOGAN_INTERFACE_INFO_TABLE "Hardware_InterfaceInfo"
-#define LOGAN_PROCESS_STATUS_TABLE "Hardware_ProcessStatus"
-#define LOGAN_PROCESS_INFO_TABLE "Hardware_ProcessInfo"
+const std::string LOGAN_SYSTEM_STATUS_TABLE = "Hardware_SystemStatus";
+const std::string LOGAN_SYSTEM_INFO_TABLE = "Hardware_SystemInfo";
+const std::string LOGAN_CPU_TABLE = "Hardware_SystemCPUCoreStatus";
+const std::string LOGAN_FILE_SYSTEM_TABLE = "Hardware_FileSystemStatus";
+const std::string LOGAN_FILE_SYSTEM_INFO_TABLE = "Hardware_FileSystemInfo";
+const std::string LOGAN_INTERFACE_STATUS_TABLE = "Hardware_InterfaceStatus";
+const std::string LOGAN_INTERFACE_INFO_TABLE = "Hardware_InterfaceInfo";
+const std::string LOGAN_PROCESS_STATUS_TABLE = "Hardware_ProcessStatus";
+const std::string LOGAN_PROCESS_INFO_TABLE = "Hardware_ProcessInfo";
 
 HardwareProtoHandler::HardwareProtoHandler() : ProtoHandler(){}
 HardwareProtoHandler::~HardwareProtoHandler(){}

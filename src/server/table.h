@@ -30,7 +30,7 @@ class TableInsert;
 
 struct TableColumn{
     public:
-        TableColumn(int column, std::string name, std::string type){
+        TableColumn(int column, const std::string& name, const std::string& type){
             column_number_ = column;
             column_name_ = name;
             column_type_ = type;
@@ -42,12 +42,12 @@ struct TableColumn{
 
 class Table{
     public:
-        Table(SQLiteDatabase* database, std::string name);
+        Table(SQLiteDatabase* database, const std::string& name);
         ~Table();
-        bool AddColumn(std::string name, std::string type);
+        bool AddColumn(const std::string& name, const std::string& type);
         TableInsert get_insert_statement();
 
-        int get_field_id(std::string field);
+        int get_field_id(const std::string& field);
         sqlite3_stmt* get_table_construct_statement();
         sqlite3_stmt* get_table_insert_statement();
 
@@ -66,6 +66,6 @@ class Table{
         std::stringstream insert_ss;
         
         void ConstructTableStatement();
-        sqlite3_stmt* GetSqlStatement(std::string query);
+        sqlite3_stmt* GetSqlStatement(const std::string& query);
 };
 #endif //LOGAN_TABLE_H
