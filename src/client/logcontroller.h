@@ -26,7 +26,7 @@
 #include <queue>
 #include <thread>
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <google/protobuf/message_lite.h>
 
@@ -86,7 +86,7 @@ class LogController{
         std::vector<std::string> processes_;
         //set of seen pids
         //don't send onetime info for any contained pids
-        std::map<int, double> pid_updated_times_;
+        std::unordered_map<int, double> pid_updated_times_;
 
         std::set<std::string> seen_hostnames_;
         std::set<std::string> seen_fs_;

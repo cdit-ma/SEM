@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <chrono>
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <string>
 #include <vector>
@@ -191,7 +191,7 @@ class SigarSystemInfo: public SystemInfo{
 
 
 
-        std::map<int, Process*> processes_;
+        std::unordered_map<int, Process*> processes_;
         std::set<int> current_pids_;
         std::set<int> tracked_pids_;
         std::vector<std::string> tracked_process_names_;

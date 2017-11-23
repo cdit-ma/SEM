@@ -23,7 +23,7 @@
 
 #include "../protohandler.h"
 
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <google/protobuf/message_lite.h>
 
@@ -60,7 +60,7 @@ class ModelProtoHandler : public ProtoHandler{
 
         //Members
         SQLiteDatabase* database_;
-        std::map<std::string, Table*> table_map_;
+        std::unordered_map<std::string, Table*> table_map_;
         std::set<std::string> registered_nodes_;
 };
 
