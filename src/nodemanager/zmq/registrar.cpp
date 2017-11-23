@@ -2,7 +2,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include "../executionmanager.h"
-#include "../../re_common/zmqutils.hpp"
+#include "../../re_common/zmq/zmqutils.hpp"
 
 zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& publisher_endpoint){
     //Construct a context for creating sockets

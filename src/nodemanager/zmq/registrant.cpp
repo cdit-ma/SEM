@@ -4,7 +4,7 @@
 #include <zmq.hpp>
 #include <iostream>
 #include <chrono>
-#include "../../re_common/zmqutils.hpp"
+#include "../../re_common/zmq/zmqutils.hpp"
 
 zmq::Registrant::Registrant(DeploymentManager* manager, std::string endpoint){
     deployment_manager_ = manager;
