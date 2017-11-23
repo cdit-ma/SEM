@@ -3,7 +3,7 @@
 
 #include <string>
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <mutex>
 #include <vector>
 #include <memory>
@@ -55,11 +55,11 @@ class Component : public Activatable{
         std::mutex state_mutex_;
         std::mutex mutex_;
 
-        std::map<std::string, std::shared_ptr<Worker> > workers_;
-        std::map<std::string, std::shared_ptr<EventPort> > eventports_;    
+        std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;
+        std::unordered_map<std::string, std::shared_ptr<EventPort> > eventports_;    
         
-        std::map<std::string, std::string> callback_functions_type_;
-        std::map<std::string, std::function<void (::BaseMessage*)> > callback_functions_;
+        std::unordered_map<std::string, std::string> callback_functions_type_;
+        std::unordered_map<std::string, std::function<void (::BaseMessage*)> > callback_functions_;
 };
 
 template<class T>

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <set>
 
 class GraphmlParser;
@@ -75,19 +75,19 @@ namespace Graphml{
             //Lookup Maps
 
             Graphml::Model* model_;
-            std::map<std::string, Graphml::HardwareNode*> hardware_nodes_;
-            std::map<std::string, Graphml::HardwareCluster*> hardware_clusters_;
+            std::unordered_map<std::string, Graphml::HardwareNode*> hardware_nodes_;
+            std::unordered_map<std::string, Graphml::HardwareCluster*> hardware_clusters_;
 
-            std::map<std::string, Graphml::LoggingProfile*> logging_profiles_;
-            std::map<std::string, Graphml::LoggingServer*> logging_servers_;
+            std::unordered_map<std::string, Graphml::LoggingProfile*> logging_profiles_;
+            std::unordered_map<std::string, Graphml::LoggingServer*> logging_servers_;
 
-            std::map<std::string, Graphml::Component*> components_;
-            std::map<std::string, Graphml::ComponentInstance*> component_instances_;
-            std::map<std::string, Graphml::ComponentAssembly*> component_assemblies_;
+            std::unordered_map<std::string, Graphml::Component*> components_;
+            std::unordered_map<std::string, Graphml::ComponentInstance*> component_instances_;
+            std::unordered_map<std::string, Graphml::ComponentAssembly*> component_assemblies_;
 
-            std::map<std::string, Graphml::EventPort*> event_ports_;
-            std::map<std::string, Graphml::Attribute*> attributes_;
-            std::map<std::string, Graphml::Edge*> edges_;
+            std::unordered_map<std::string, Graphml::EventPort*> event_ports_;
+            std::unordered_map<std::string, Graphml::Attribute*> attributes_;
+            std::unordered_map<std::string, Graphml::Edge*> edges_;
 
             std::vector<std::string> deployment_edge_ids_;
             std::vector<std::string> assembly_edge_ids_;
@@ -95,21 +95,21 @@ namespace Graphml{
             std::vector<std::string> aggregate_edge_ids_;
             std::vector<std::string> qos_edge_ids_;
 
-            std::map<std::string, std::set<std::string> > entity_edge_ids_;
+            std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
 
-            std::map<std::string, std::string> deployed_entities_map_;
-            std::map<std::string, std::string> definition_ids_;
-            std::map<std::string, std::string> aggregate_ids_;
-            std::map<std::string, std::string> entity_qos_map_;
+            std::unordered_map<std::string, std::string> deployed_entities_map_;
+            std::unordered_map<std::string, std::string> definition_ids_;
+            std::unordered_map<std::string, std::string> aggregate_ids_;
+            std::unordered_map<std::string, std::string> entity_qos_map_;
 
 
             std::vector<std::string> required_slaves_;
             std::vector<std::string> inactive_slaves_;
 
 
-            std::map<std::string, ComponentReplication*> component_replications_;
+            std::unordered_map<std::string, ComponentReplication*> component_replications_;
 
-            std::map<std::string, std::vector<AssemblyConnection *> > assembly_map_;
+            std::unordered_map<std::string, std::vector<AssemblyConnection *> > assembly_map_;
     };
 };
 

@@ -13,10 +13,10 @@ namespace zmq{
 
     class Registrar{
         public:
-            Registrar(ExecutionManager* manager, std::string publisher_endpoint);
+            Registrar(ExecutionManager* manager, const std::string& publisher_endpoint);
             ~Registrar();
         private:
-            void RegistrationLoop(std::string endpoint);
+            void RegistrationLoop(const std::string& endpoint);
             std::vector<std::string> slaves_;
 
             std::string publisher_endpoint_;

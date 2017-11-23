@@ -22,7 +22,7 @@ namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
-    enum class Mode {LIVE, CACHED, OFF};
+    enum class Mode {OFF, LIVE, CACHED};
         
 
         enum class LifeCycleEvent{

@@ -80,3 +80,27 @@ message Attribute{
     int64 i = 4;
     double d = 5;
 }
+
+message Logger{
+    enum Mode{
+        OFF = 0;
+        LIVE = 1;
+        CACHED = 2;
+    }
+    
+    string publisher_address = 1;
+    Mode mode = 2;
+}
+
+message Startup{
+    string host_name = 1;
+    string publisher_address = 2;
+    Logger logger = 3;
+    ControlMessage configure = 4;
+}
+
+message StartupResponse{
+    string host_name = 1;
+    bool success = 2;
+    repeated string error_codes = 3;
+}

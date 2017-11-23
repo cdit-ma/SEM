@@ -1,7 +1,7 @@
 #ifndef CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H
 #define CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H
 
-#include <map>
+#include <unordered_map>
 #include <functional>
 
 #include <core/component.h>
@@ -54,12 +54,11 @@ class DeploymentContainer : public Activatable{
         std::string library_path_;
 
         //Middleware -> construct functions
-        std::map<std::string, TxConstructor> tx_constructors_;
-        std::map<std::string, RxConstructor> rx_constructors_;
-        std::map<std::string, ComponentConstructor> component_constructors_;
-        
-        //Map for quick insertion and stuffs.
-        std::map<std::string, std::shared_ptr<Component> > components_;
+        std::unordered_map<std::string, TxConstructor> tx_constructors_;
+        std::unordered_map<std::string, RxConstructor> rx_constructors_;
+        std::unordered_map<std::string, ComponentConstructor> component_constructors_;
+        std::unordered_map<std::string, std::shared_ptr<Component> > components_;
+
         DllLoader dll_loader;
 };
 #endif //CORE_NODEMANAGER_DEPLOYMENTCONTAINER_H

@@ -7,7 +7,7 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 #include <core/modellogger.h>
@@ -22,18 +22,16 @@ class Execution;
 
 class DeploymentManager{
     public:
-        DeploymentManager(std::string library_path, Execution* execution);
+        DeploymentManager(const std::string& library_path, Execution* execution);
         ~DeploymentManager();
 
-        bool SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name);
-        bool SetupModelLogger(std::string pub_endpoint, std::string host_name, ModelLogger::Mode mode);
-        bool TeardownModelLogger();
+        NodeManager::StartupResponse HandleStartup(const NodeManager::Startup startup);
 
-        bool ProcessStartupMessage(const std::string& startup_str);
+        bool TeardownModelLogger();
     private:
         std::shared_ptr<DeploymentContainer> GetDeploymentContainer(const std::string& node_name);
         void GotControlMessage(const NodeManager::ControlMessage& control_message);
-        bool ConfigureDeploymentContainer(const NodeManager::ControlMessage& control_message);
+        bool ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message);
         void InteruptQueueThread();
         void ProcessControlQueue();
 
@@ -43,7 +41,7 @@ class DeploymentManager{
         
         Execution* execution_;
 
-        std::map<std::string, std::shared_ptr<DeploymentContainer> > deployment_containers_;
+        std::unordered_map<std::string, std::shared_ptr<DeploymentContainer> > deployment_containers_;
 
 
         std::queue<NodeManager::ControlMessage> control_message_queue_;

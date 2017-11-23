@@ -3,7 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include "controlmessage/controlmessage.pb.h"
 
 #include <re_common/zmq/protowriter/protowriter.h>
@@ -47,6 +47,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint, const std::strin
         execution_ = execution;
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
+    master_endpoint_ = endpoint;
 
     //Setup the parser
     auto start = std::chrono::steady_clock::now();
@@ -71,41 +72,20 @@ void ExecutionManager::PushMessage(const std::string& topic, google::protobuf::M
     proto_writer_->PushMessage(topic, message);
 }
 
-std::vector<std::string> ExecutionManager::GetNodeManagerSlaveAddresses(){
-    return required_slave_addresses_;
+std::vector<std::string> ExecutionManager::GetSlaveAddresses(){
+    std::vector<std::string> slave_addresses;
+    for(const auto& ss : slave_states_){
+        slave_addresses.push_back(ss.first);
+    }
+    return slave_addresses;
 }
 
-std::string ExecutionManager::GetSlaveStartupMessage(const std::string& slave_host_name){
-    std::unique_lock<std::mutex>(mutex_);
-    std::string str;
-    //Look through the deployment map for instructions to send the newly online slave
-    for(const auto& a: deployment_map_){
-        if(slave_host_name == a.second->host_name()){
-            auto startup_message_pb = a.second;
-            if(startup_message_pb){
-                startup_message_pb->SerializeToString(&str);
-            }
-        }
-    }
-    return str;
-}
 
 
 bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
 
-void ExecutionManager::SlaveOnline(const std::string& response, const std::string& endpoint, const std::string& slave_host_name){
-    bool slave_online = response == "OKAY";
-
-    if(slave_online){
-        std::cout << "* Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
-        HandleSlaveOnline(endpoint);
-    }else{
-        std::cerr << "Slave: '" << slave_host_name << "' @ " << endpoint << " Error!" << std::endl;
-        std::cerr << response << std::endl;
-    }
-}
 
 std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessage(){
     std::vector<NodeManager::ControlMessage*> messages;
@@ -115,19 +95,78 @@ std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessag
     return messages;
 }
 
-void ExecutionManager::HandleSlaveOnline(const std::string& endpoint){
-    //Get the initial size
-    int initial_size = inactive_slave_addresses_.size();
-    //Find the itterator position of the element
-    inactive_slave_addresses_.erase(std::remove(inactive_slave_addresses_.begin(), inactive_slave_addresses_.end(), endpoint), inactive_slave_addresses_.end());
-    
-    if(initial_size > 0 && inactive_slave_addresses_.empty()){
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        ActivateExecution();
+bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response){
+    auto slave_state = SlaveState::ERROR;
+    auto slave_host_name = GetSlaveNameFromAddress(slave_address);
+    if(response.IsInitialized()){
+        slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR;
     }
+
+    if(slave_state == SlaveState::ERROR){
+        std::cerr << "* Slave: '" << slave_host_name << "' @ " << slave_address << " Error!" << std::endl;
+        for(const auto& error_str : response.error_codes()){
+            std::cerr << "* " << error_str << std::endl;
+        }
+    }else{
+        std::cout << "* Slave: '" << slave_host_name << "' @ " << slave_address << " Online" << std::endl;
+    }
+
+    if(slave_states_.count(slave_address)){
+        slave_states_[slave_address] = slave_state;
+        
+        if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
+            bool should_execute = GetSlaveStateCount(SlaveState::ERROR) == 0;
+            TriggerExecution(should_execute);
+        }
+        return true;
+    }
+    return false;
+}   
+
+const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::string& address){
+    NodeManager::Startup startup;
+    
+    const auto& host_name = GetSlaveNameFromAddress(address);
+    
+    auto node = model_parser_->GetHardwareNodeByName(host_name);
+    
+    if(node){
+        //Set the logging settings
+        auto logging_profile = model_parser_->GetLoggingProfile(node->logging_profile_id);
+        if(logging_profile){
+            if(logging_profile->mode == "OFF"){
+                startup.mutable_logger()->set_mode(NodeManager::Logger::OFF);
+            }else if(logging_profile->mode == "LIVE"){
+                startup.mutable_logger()->set_mode(NodeManager::Logger::LIVE);
+            }else if(logging_profile->mode == "CACHED"){
+                startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
+            }
+        }
+        startup.mutable_logger()->set_publisher_address(node->GetModelLoggerAddress());
+        startup.set_host_name(host_name);
+    }
+
+     for(const auto& a: deployment_map_){
+        if(host_name == a.second->host_name()){
+            startup.set_allocated_configure(a.second);
+        }
+    }
+    startup.set_publisher_address(master_endpoint_);
+    return startup;
 }
 
-std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(const std::string& tcp_address){
+int ExecutionManager::GetSlaveStateCount(const SlaveState& state){
+    int count = 0;
+    for(const auto& ss : slave_states_){
+        if(ss.second == state){
+            count ++;
+        }
+    }
+    return count;
+}
+
+
+std::string ExecutionManager::GetSlaveNameFromAddress(const std::string& tcp_address){
     //Trim off the tcp:// and port
     auto first = tcp_address.find_last_of("/");
     auto last = tcp_address.find_last_of(":");
@@ -142,25 +181,6 @@ std::string ExecutionManager::GetNodeNameFromNodeManagerAddress(const std::strin
     std::string str;
     if(node){
         str = node->name;
-    }
-    return str;
-}
-
-std::string ExecutionManager::GetModelLoggerAddressFromNodeName(const std::string& host_name){
-    auto node = model_parser_->GetHardwareNodeByName(host_name);
-    std::string str;
-    if(node){
-        str = node->GetModelLoggerAddress();
-    }
-    return str;
-}
-
-std::string ExecutionManager::GetModelLoggerModeFromNodeName(const std::string& host_name){
-    auto node = model_parser_->GetHardwareNodeByName(host_name);
-    std::string str = "OFF";
-    if(node && node->logging_profile_id != ""){
-        auto profile = model_parser_->GetLoggingProfile(node->logging_profile_id);
-        str = profile->mode;
     }
     return str;
 }
@@ -452,10 +472,11 @@ bool ExecutionManager::ConstructControlMessages(){
     bool okay = false;
     for(auto node : nodes){
         if(node->is_deployed()){
-            std::cout << "* Node: '" << node->name << "' Deploys:" << std::endl;
-            //Push this node onto the required slaves list
-            required_slave_addresses_.push_back(node->GetNodeManagerSlaveAddress());
+            std::cout << "* Slave: '" << node->name << "' Deploys:" << std::endl;
 
+            const auto& slave_address = node->GetNodeManagerSlaveAddress();
+            slave_states_[slave_address] = SlaveState::OFFLINE;
+            
             for(auto c_id: node->component_ids){
                 auto component = model_parser_->GetComponentInstance(c_id);
                 if(component){
@@ -465,73 +486,68 @@ bool ExecutionManager::ConstructControlMessages(){
             okay = true;
         }
     }
-
-    inactive_slave_addresses_ = required_slave_addresses_;
-    
     //TODO: Add fail cases
     return okay;
 }
 
-void ExecutionManager::ActivateExecution(){
+void ExecutionManager::TriggerExecution(bool execute){
     //Obtain lock
-    std::unique_lock<std::mutex> lock(activate_mutex_);
+    std::unique_lock<std::mutex> lock(execution_mutex_);
+    terminate_flag_ = !execute;
     //Notify
-    activate_lock_condition_.notify_all();
+    execution_lock_condition_.notify_all();
 }
+
 void ExecutionManager::TerminateExecution(){
-    //Obtain lock
-    {
-        std::unique_lock<std::mutex> lock(terminate_mutex_);
-        //Set termination flag
-        terminate_flag_ = true;
-        terminate_lock_condition_.notify_all();
-    }
+    //Interupt 
+    TriggerExecution(false);
+
     if(execution_thread_){
         //Notify
         execution_thread_->join();
     }
 }
 
-bool ExecutionManager::Finished(){
-    return finished_;
-}
-
 void ExecutionManager::ExecutionLoop(double duration_sec){
-
     auto execution_duration = std::chrono::duration<double>(duration_sec);
+    
+    bool execute = true;
     {
-        //Obtain lock
-        std::unique_lock<std::mutex> lock(activate_mutex_);
-        //Wait for notify
-        activate_lock_condition_.wait(lock);
-    }
-    std::cout << "-------------[Execution]------------" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    std::cout << "* Activating Components" << std::endl;
-    //Send Activate function
-    auto activate = new NodeManager::ControlMessage();
-    activate->set_type(NodeManager::ControlMessage::ACTIVATE);
-    PushMessage("*", activate);
-
-    {
-        //Obtain lock
-        std::unique_lock<std::mutex> lock(terminate_mutex_);
-        auto cancelled = terminate_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
-        if(cancelled){
-            std::cout << "* Caught Ctrl+C" << std::endl;        
+        //Wait to be executed or terminated
+        std::unique_lock<std::mutex> lock(execution_mutex_);
+        execution_lock_condition_.wait(lock);
+        if(terminate_flag_){
+            execute = false;
         }
     }
 
-    std::cout << "* Passivating Components" << std::endl;
-    //Send Terminate Function
-    auto passivate = new NodeManager::ControlMessage();
-    passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
-    PushMessage("*", passivate);
+    std::cout << "-------------[Execution]------------" << std::endl;
+
+    if(execute){
+        std::cout << "* Activating Deployment" << std::endl;
+        
+        //Send Activate function
+        auto activate = new NodeManager::ControlMessage();
+        activate->set_type(NodeManager::ControlMessage::ACTIVATE);
+        PushMessage("*", activate);
+
+        {
+            std::unique_lock<std::mutex> lock(execution_mutex_);
+            auto cancelled = execution_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+        }
+
+        std::cout << "* Passivating Deployment" << std::endl;
+        //Send Terminate Function
+        auto passivate = new NodeManager::ControlMessage();
+        passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
+        PushMessage("*", passivate);
+    }
     
     std::cout << "* Terminating Deployment" << std::endl;
     //Send Terminate Function
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
-    finished_ = true;
+
+    execution_->Interrupt();
 }

@@ -1,7 +1,7 @@
 #ifndef CORE_DLL_LOADER_H
 #define CORE_DLL_LOADER_H
 
-#include <map>
+#include <unordered_map>
 #include <mutex>
 #include <string>
 
@@ -23,8 +23,8 @@ class DllLoader{
         
         //Library Path -> void *
         std::mutex mutex_;
-        std::map<std::string, void *> loaded_libraries_;
-        std::map<std::string, void *> loaded_library_functions_;
+        std::unordered_map<std::string, void *> loaded_libraries_;
+        std::unordered_map<std::string, void *> loaded_library_functions_;
 };
 
 template<class T>

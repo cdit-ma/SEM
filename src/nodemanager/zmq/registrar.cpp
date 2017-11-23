@@ -2,8 +2,9 @@
 #include <iostream>
 #include <zmq.hpp>
 #include "../executionmanager.h"
+#include "../../re_common/zmqutils.hpp"
 
-zmq::Registrar::Registrar(ExecutionManager* manager, std::string publisher_endpoint){
+zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& publisher_endpoint){
     //Construct a context for creating sockets
     context_ = new zmq::context_t();
 
@@ -14,7 +15,7 @@ zmq::Registrar::Registrar(ExecutionManager* manager, std::string publisher_endpo
     execution_manager_ = manager;
 
     //Construct a new thread for each slave
-    for(auto s : execution_manager_->GetNodeManagerSlaveAddresses()){
+    for(const auto& s : execution_manager_->GetSlaveAddresses()){
         auto t = new std::thread(&zmq::Registrar::RegistrationLoop, this, s);
     }
 }
@@ -36,62 +37,32 @@ zmq::Registrar::~Registrar(){
     }
 }
 
-void zmq::Registrar::RegistrationLoop(std::string endpoint){
+void zmq::Registrar::RegistrationLoop(const std::string& endpoint){
     //Construct a socket (Using Pair)
-    auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
-
     try{
+        auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
         //Connect to the socket
         socket.connect(endpoint.c_str()); 
-    }catch(zmq::error_t &ex){
-        std::cout << "ZMQMaster::RegistrationLoop():Connect(" << endpoint << "): " << ex.what() << std::endl;
-    }
+        zmq::message_t slave_addr;
+        zmq::message_t slave_response;
+        
+        //Wait for a slave address
+        socket.recv(&slave_addr);
+        const auto& slave_addr_str = zmq::Zmq2String(slave_addr);
 
-    //Messages from the slave
-    zmq::message_t slave_addr;
-    zmq::message_t slave_response;
+        //Send the startup response
+        const auto& slave_startup_pb = execution_manager_->GetSlaveStartupMessage(slave_addr_str);
+        socket.send(Proto2Zmq(slave_startup_pb));
 
-    while(true){
-        try{
-            //Wait for Slave to send its endpoint
-            socket.recv(&slave_addr);
 
-            std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
-            //Get the matching hostname from the execution manager
-            std::string host_name = execution_manager_->GetNodeNameFromNodeManagerAddress(slave_addr_str);
-            std::string slave_logger_pub_addr_str = execution_manager_->GetModelLoggerAddressFromNodeName(host_name);
-            std::string slave_logger_mode_str = execution_manager_->GetModelLoggerModeFromNodeName(host_name);
-            std::string slave_startup_str = execution_manager_->GetSlaveStartupMessage(host_name);
-
-            //Construct our reply messages
-            zmq::message_t slave_mode(slave_logger_mode_str.c_str(), slave_logger_mode_str.size());
-            zmq::message_t master_control_pub_addr(publisher_endpoint_.c_str(), publisher_endpoint_.size());
-            zmq::message_t slave_name(host_name.c_str(), host_name.size());
-            zmq::message_t slave_logging_pub_addr(slave_logger_pub_addr_str.c_str(), slave_logger_pub_addr_str.size());
-            zmq::message_t slave_startup(slave_startup_str.c_str(), slave_startup_str.size());
-            
-            //Send the server address for the publisher
-            socket.send(slave_mode, ZMQ_SNDMORE);
-            //Send the server address for the publisher
-            socket.send(master_control_pub_addr, ZMQ_SNDMORE);
-            //Send the slave hostname
-            socket.send(slave_name, ZMQ_SNDMORE);
-            //Send the slave hostname
-            socket.send(slave_logging_pub_addr, ZMQ_SNDMORE);
-            //Send the startup
-            socket.send(slave_startup);
-
-            //Wait for Slave to send a message
-            socket.recv(&slave_response);
-            std::string slave_response_str(static_cast<char *>(slave_response.data()), slave_response.size());
-            
-            //Tell the execution manager
-            execution_manager_->SlaveOnline(slave_response_str, slave_addr_str, host_name);
-        }catch(const zmq::error_t& exception){
-            if(exception.num() != ETERM){
-                std::cout << "ZMQMaster::RegistrationLoop(): " << exception.what() << std::endl;
-            }
-            break;
+        //Wait for Slave to send a message
+        socket.recv(&slave_response);
+        NodeManager::StartupResponse slave_response_pb;
+        slave_response_pb.ParseFromArray(slave_response.data(), slave_response.size());
+        execution_manager_->HandleSlaveResponseMessage(slave_addr_str, slave_response_pb);
+    }catch(const zmq::error_t& ex){
+        if(ex.num() != ETERM){
+            std::cerr << "zmq::Registrar::RegistrationLoop():" << ex.what() << std::endl;
         }
     }
 }

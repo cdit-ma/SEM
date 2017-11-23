@@ -39,14 +39,19 @@ std::shared_ptr<EventPort> DeploymentContainer::ConstructPeriodicEvent(std::weak
 }
 
 bool DeploymentContainer::Configure(const NodeManager::Node& node){
+    bool success = true;
+    
     set_name(node.info().name());
     set_id(node.info().id());
 
     for(const auto& component_pb : node.components()){
         auto component = GetConfiguredComponent(component_pb);
+        success = component ? success : false;
     }
-    std::cout << "* Configured DeploymentContainer: " << get_name() << std::endl;
-    return Activatable::Configure();
+    if(success){
+        std::cout << "* Configured DeploymentContainer: " << get_name() << std::endl;
+    }
+    return success && Activatable::Configure();
 }
 
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){

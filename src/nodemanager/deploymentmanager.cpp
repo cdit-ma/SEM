@@ -9,7 +9,7 @@
 #include "controlmessage/translate.h"
 
 
-DeploymentManager::DeploymentManager(std::string library_path, Execution* execution){
+DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution){
     std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
     execution_ = execution;
@@ -33,10 +33,55 @@ DeploymentManager::DeploymentManager(std::string library_path, Execution* execut
     subscriber_->Start();
 }
 
+NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager::Startup startup){
+    NodeManager::StartupResponse slave_response;
+    bool success = true;
+
+    const auto& host_name = startup.host_name();
+    //Handle Logger setup
+    {   
+        const auto& logger = startup.logger();
+        
+        bool setup_logger = ModelLogger::setup_model_logger(host_name, logger.publisher_address(), (ModelLogger::Mode)logger.mode());
+        success = setup_logger ? success : false;
+
+        if(!setup_logger){
+            slave_response.add_error_codes("Setting Model Logger Failed");
+        }
+    }
+
+
+    //Setup our subscriber
+    {
+         if(subscriber_){
+             if(!subscriber_->Connect(startup.publisher_address())){
+                 slave_response.add_error_codes("Subscriber couldn't connect to: '" + startup.publisher_address() + "'");
+                 success = false;
+             }
+             if(!subscriber_->Filter(host_name + "*")){
+                 slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
+                 success = false;
+             }
+        }else{
+            success = false;
+        }
+    }
+
+    {
+        bool configure_deployment = ConfigureDeploymentContainers(startup.configure());
+        success = configure_deployment ? success : false;
+        if(!configure_deployment){
+            slave_response.add_error_codes("Deployment Containers failed to be configured");
+        }
+    }
+    slave_response.set_host_name(host_name);
+    slave_response.set_success(success);
+    return slave_response;
+}
+
 void DeploymentManager::InteruptQueueThread(){
     std::unique_lock<std::mutex> lock(notify_mutex_);
     if(!terminate_){
-        std::cout << "* Interupting DeploymentManager" << std::endl;
         terminate_ = true;
     }
     notify_lock_condition_.notify_all();
@@ -58,19 +103,6 @@ DeploymentManager::~DeploymentManager(){
     }
 }
 
-bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name){
-    if(subscriber_){
-        subscriber_->Connect(pub_endpoint);
-        subscriber_->Filter(host_name + "*");
-        return true;
-    }
-    return false;
-}
-
-bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string host_name, ModelLogger::Mode mode){
-    return ModelLogger::setup_model_logger(host_name, pub_endpoint, mode);
-}
-
 bool DeploymentManager::TeardownModelLogger(){
     return ModelLogger::shutdown_logger();
 }
@@ -83,16 +115,9 @@ void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& con
     notify_lock_condition_.notify_all();
 }
 
-bool DeploymentManager::ProcessStartupMessage(const std::string& startup_str){
-    NodeManager::ControlMessage control_message;
-    auto success = control_message.ParseFromString(startup_str);
-    if(success){
-        return ConfigureDeploymentContainer(control_message);
-    }
-    return false;
-}
 
-bool DeploymentManager::ConfigureDeploymentContainer(const NodeManager::ControlMessage& control_message){
+
+bool DeploymentManager::ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message){
     bool success = true;
     for(const auto& node : control_message.nodes()){
         const auto& node_name = node.info().name();
@@ -148,7 +173,7 @@ void DeploymentManager::ProcessControlQueue(){
             switch(control_message.type()){
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
-                    auto success = ConfigureDeploymentContainer(control_message);
+                    auto success = ConfigureDeploymentContainers(control_message);
                     std::cout << "NodeManager::ControlMessage::Configure: " << (success ? "YES" : "NO") << std::endl;
                     break;
                 }
