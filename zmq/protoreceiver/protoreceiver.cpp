@@ -21,6 +21,7 @@
 #include "protoreceiver.h"
 #include <iostream>
 #include "../monitor/monitor.h"
+#include "../zmqutils.hpp"
 
 zmq::ProtoReceiver::ProtoReceiver(){
     //Setup ZMQ context
@@ -103,31 +104,25 @@ void zmq::ProtoReceiver::RecieverThread(){
             Filter_(f);
         }
     }
-    zmq::message_t topic;
-    zmq::message_t type;
-    zmq::message_t data;
+    
 
     while(true){
 		try{
+            zmq::message_t topic;
+
+            std::pair<zmq::message_t, zmq::message_t> p;
+
             //Wait for Topic, Type and Data
             socket_->recv(&topic);
-            socket_->recv(&type);
-			socket_->recv(&data);
+            socket_->recv(&(p.first));
+            socket_->recv(&(p.second));
             
-            if(type.size()){
-                //Construct strings
-                std::string type_str(static_cast<char *>(type.data()), type.size());
-                std::string msg_str(static_cast<char *>(data.data()), data.size());
-
-                //Gain the lock so we can push this message onto our queue
-                std::unique_lock<std::mutex> lock(queue_mutex_);
-                rx_message_queue_.push(std::make_pair(type_str, msg_str));
-
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            rx_message_queue_.push(std::move(p));
                 
-                //Notify the ProtoConvertThread
-                if(rx_message_queue_.size() > batch_size_){
-                    queue_lock_condition_.notify_all();
-                }
+            //Notify the ProtoConvertThread
+            if(rx_message_queue_.size() > batch_size_){
+                queue_lock_condition_.notify_all();
             }
         }catch(zmq::error_t &ex){
             if(ex.num() != ETERM){
@@ -150,7 +145,15 @@ bool zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &m
     
     //Register a constructor
     if(!proto_lookup_.count(type_name)){
-        proto_lookup_[type_name] = [&message_type](){return message_type.New();};
+        proto_lookup_[type_name] = [&message_type](const zmq::message_t& message){
+            auto message_pb = message_type.New();
+
+            if(!message_pb->ParseFromArray(message.data(), message.size())){
+                delete message_pb;
+                message_pb = 0;
+            };
+            return message_pb;
+            };
     }
     //Add the callback
     callback_lookup_.insert(std::make_pair(type_name, fn));
@@ -162,31 +165,31 @@ int zmq::ProtoReceiver::GetRxCount(){
     return rx_count_;
 }
 
-bool zmq::ProtoReceiver::ProcessMessage(const std::string& type, const std::string& data){
+bool zmq::ProtoReceiver::ProcessMessage(const zmq::message_t& type, const zmq::message_t& data){
+    const auto& type_str = Zmq2String(type);
     std::unique_lock<std::mutex> lock(proto_mutex_);
-    
     bool success = false;
-    if(proto_lookup_.count(type)){
+    if(proto_lookup_.count(type_str)){
         //Construct a new protobuff message
-        auto message_object = proto_lookup_[type]();
+        auto message_object = proto_lookup_[type_str](data);
         
         //Parse into the message_object
-        if(message_object->ParseFromString(data)){
+        if(message_object){
             rx_count_ ++;
 
             //Run our callbacks
             for(const auto& c : callback_lookup_){
-                if(c.first == type){
+                if(c.first == type_str){
                     c.second(*message_object);
                 }
             }
             success = true;
         }else{
-            std::cerr << "zmq::ProtoReceiver::Cannot Parse: Proto Type: " << type << std::endl;
+            std::cerr << "zmq::ProtoReceiver::Cannot Parse: Proto Type: " << type_str << std::endl;
         }
         delete message_object;
     }else{
-        std::cerr << "zmq::ProtoReceiver::Proto Type: " << type << " not registered" << std::endl;
+        std::cerr << "zmq::ProtoReceiver::Proto Type: " << type_str << " not registered" << std::endl;
     }
     return success;
 }
@@ -195,7 +198,7 @@ bool zmq::ProtoReceiver::ProcessMessage(const std::string& type, const std::stri
 void zmq::ProtoReceiver::ProtoConvertThread(){
     //Update loop.
     while(true){
-        std::queue<std::pair<std::string, std::string> > replace_queue;
+        std::queue<std::pair<zmq::message_t, zmq::message_t> > replace_queue; 
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);

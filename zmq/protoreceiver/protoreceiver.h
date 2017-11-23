@@ -27,6 +27,7 @@
 #include <condition_variable>
 #include <string>
 #include <functional>
+#include <unordered_map>
 #include <map>
 
 #include <zmq.hpp>
@@ -53,7 +54,7 @@ namespace zmq{
             template<class T>
             bool RegisterProtoCallback(std::function<void(const T&)> fn);
         private:
-            bool ProcessMessage(const std::string& type, const std::string& data);
+            bool ProcessMessage(const zmq::message_t& type, const zmq::message_t& data);
             bool RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(const google::protobuf::MessageLite&)> fn);
             
             void RecieverThread();
@@ -71,12 +72,13 @@ namespace zmq{
 
             std::mutex proto_mutex_;
             std::multimap<std::string, std::function<void(const google::protobuf::MessageLite&)> > callback_lookup_;
-            std::map<std::string, std::function<google::protobuf::MessageLite* ()> > proto_lookup_;
+            
+            std::unordered_map<std::string, std::function<google::protobuf::MessageLite* (const zmq::message_t&)> > proto_lookup_;
 
             std::mutex queue_mutex_;
             int batch_size_ = 0;
             std::condition_variable queue_lock_condition_;
-            std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
+            std::queue<std::pair<zmq::message_t, zmq::message_t> > rx_message_queue_; 
             int rx_count_ = 0;
 
             std::mutex thread_mutex_;
@@ -90,6 +92,7 @@ template<class T>
 bool zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const T&)> fn){
     static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value, "T must inherit from google::protobuf::MessageLite");
     const auto& default_instance = T::default_instance();
+
     RegisterNewProto(default_instance, [fn](const google::protobuf::MessageLite& ml){
         auto t_message = (const T&) ml;
         fn(t_message);
