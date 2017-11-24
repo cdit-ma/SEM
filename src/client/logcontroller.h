@@ -30,8 +30,9 @@
 #include <vector>
 #include <google/protobuf/message_lite.h>
 
+#include "systeminfo.h"
+
 //Forward declare
-class SystemInfo;
 namespace re_common{
     class SystemInfo;
     class SystemStatus;
@@ -48,53 +49,39 @@ class LogController{
         ~LogController();
 
         std::string GetSystemInfoJson();
-        bool Start(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode = false);
-        bool Terminate();
+        bool Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
+        bool Stop();
+
+        
     private:
-
-        void LogThread();
-        void WriteThread();
-        void TerminateLogger();
-        void TerminateWriter();
-
+        void InteruptLogThread();
+        void LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode);
+        
         re_common::SystemStatus* GetSystemStatus();
-        re_common::SystemInfo* GetOneTimeInfo();
-        void QueueOneTimeInfo();
+        re_common::SystemInfo* GetSystemInfo();
         
         void GotNewConnection(int event_type, std::string address);
-
-        SystemInfo* system_info_ = 0;
-        bool one_time_flag_ = false;
-
-        zmq::Monitor* monitor_ = 0;
-        zmq::ProtoWriter* writer_ = 0;
-
+        void QueueOneTimeInfo();
+        
+        SystemInfo* system_ = 0;
+        
+        std::mutex state_mutex_;
         std::thread* logging_thread_ = 0;
-        std::thread* writer_thread_ = 0;
+        
+        std::mutex one_time_mutex_;
+        bool send_onetime_info_ = false;
 
+        
         std::condition_variable queue_lock_condition_;
-        std::mutex queue_mutex_;
-        std::queue<google::protobuf::MessageLite*> message_queue_;
-
-        bool running = false;
-        int sleep_time_ = 0;
-
-        std::string host_name;
+        
+        std::mutex interupt_mutex_;
+        std::condition_variable log_condition_;
+        bool interupt_ = false;
 
         int message_id_ = 0;
 
-        std::vector<std::string> processes_;
-        //set of seen pids
         //don't send onetime info for any contained pids
         std::unordered_map<int, double> pid_updated_times_;
-
-        std::set<std::string> seen_hostnames_;
-        std::set<std::string> seen_fs_;
-        std::set<std::string> seen_if_;
-
-
-        bool logger_terminate_ = false;
-        bool writer_terminate_ = false;
 };
 
 #endif //LOGCONTROLLER_H

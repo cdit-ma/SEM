@@ -118,7 +118,7 @@ int main(int ac, char** av){
 				std::cout << "* Stopping Logging." << std::endl;
 			}
 			
-			if(!log_controller.Terminate()){
+			if(!log_controller.Stop()){
 				return 1;
 			}
 		}

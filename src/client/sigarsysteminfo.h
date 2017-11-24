@@ -78,18 +78,19 @@ class SigarSystemInfo: public SystemInfo{
         int64_t get_interface_speed(const int interface_index) const;
         
 
-        std::vector<int> get_process_pids() const;
+        std::set<int> get_process_pids() const;
         SystemInfo::ProcessState get_process_state(const int pid) const;
         std::string get_process_name(const int pid) const;
         std::string get_process_arguments(const int pid) const;
         
         void monitor_process(const int pid);
         void ignore_process(const int pid);
-        std::vector<int> get_monitored_pids() const;
+        std::set<int> get_monitored_pids() const;
 
 
         void monitor_processes(const std::string processName);
         void ignore_processes(const std::string processName);
+        void ignore_processes();
         std::vector<std::string> get_monitored_processes_names() const;
 
         int get_monitored_process_cpu(const int pid) const;
@@ -180,6 +181,7 @@ class SigarSystemInfo: public SystemInfo{
         };
 
         std::chrono::milliseconds lastUpdate_;
+        
  
         sigar_mem_t phys_mem_;
         sigar_sys_info_t sys;
@@ -196,7 +198,7 @@ class SigarSystemInfo: public SystemInfo{
         std::set<int> tracked_pids_;
         std::vector<std::string> tracked_process_names_;
         bool force_process_name_check_ = false;
-        
+        int update_count_ = 0;
 
         bool stringInString(const std::string haystack, const std::string needle) const;
 

@@ -28,8 +28,7 @@
 
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
-    
-    initial_update();
+    std::cout << initial_update() << std::endl;;
 }
 
 SigarSystemInfo::~SigarSystemInfo(){
@@ -540,10 +539,10 @@ double SigarSystemInfo::get_fs_utilization(const int fs_index) const{
 }
 
 
-std::vector<int> SigarSystemInfo::get_process_pids() const{
-    std::vector<int> out;
+std::set<int> SigarSystemInfo::get_process_pids() const{
+    std::set<int> out;
     for(auto pid : processes_){
-        out.push_back(pid.first);
+        out.insert(pid.first);
     }
     return out;
 }
@@ -769,8 +768,8 @@ void SigarSystemInfo::ignore_process(const int pid){
     tracked_pids_.erase(pid);
 }
 
-std::vector<int> SigarSystemInfo::get_monitored_pids() const{
-    return std::vector<int>(tracked_pids_.begin(), tracked_pids_.end());
+std::set<int> SigarSystemInfo::get_monitored_pids() const{
+    return tracked_pids_;
 }
 
 
@@ -788,6 +787,10 @@ void SigarSystemInfo::ignore_processes(const std::string processName){
     if(location != tracked_process_names_.end()){
         tracked_process_names_.erase(location);
     }
+}
+
+void SigarSystemInfo::ignore_processes(){
+    tracked_process_names_.clear();
 }
 
 std::vector<std::string> SigarSystemInfo::get_monitored_processes_names() const{

@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <algorithm>
 
 #include "sigarsysteminfo.h"
 #include "systeminfo.h"
@@ -36,336 +37,269 @@
 //Constructor used for print only call
 LogController::LogController(){
     //Construct our SystemInfo class
-    system_info_ = new SigarSystemInfo();
-    host_name = system_info_->get_hostname();
+    system_ = new SigarSystemInfo();
 }
 
 std::string LogController::GetSystemInfoJson(){
     //Let sigar do its thing for 1 second
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    system_info_->update();
-
-    auto info = GetOneTimeInfo();
+    system_->update();
+    auto info = GetSystemInfo();
 
     std::string output;
     google::protobuf::util::JsonOptions options;
     options.add_whitespace = true;
 
     google::protobuf::util::MessageToJsonString(*info, &output, options);
+    delete info;
     return output;
 }
 
-bool LogController::Start(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode){
-    if(!running){
-        if(live_mode){
-            writer_ = new zmq::ProtoWriter();
-        }else{
-            writer_ = new zmq::CachedProtoWriter();
-        }
-
-        //Monitor
-        monitor_ = new zmq::Monitor();
-        monitor_->RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
-        writer_->AttachMonitor(monitor_, ZMQ_EVENT_ACCEPTED);
-
-        if(!writer_->BindPublisherSocket(endpoint)){
-            return false;
-        }
-
-        //Zero check before division
-        if(frequency <= 0){
-            frequency = 1;
-        }
-    
-        //Convert frequency to period
-        sleep_time_ = (int)((1 / frequency) * 1000);
-        processes_ = processes;
-    
-        writer_thread_ = new std::thread(&LogController::WriteThread, this);
-        logging_thread_ = new std::thread(&LogController::LogThread, this);
-        running = true;
+bool LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if(!logging_thread_){
+        std::lock_guard<std::mutex> lock(interupt_mutex_);
+        interupt_ = false;
+        logging_thread_ = new std::thread(&LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
         return true;
     }
     return false;
 }
 
-bool LogController::Terminate(){
-    if(running){
-        TerminateLogger();
-        TerminateWriter();
+bool LogController::Stop(){
+
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    if(logging_thread_){
+        std::cout << "YPPYPYPYP" << std::endl;
+        InteruptLogThread();
+        std::cout << "Waiting for Tjerad" << std::endl;
+        logging_thread_->join();
         delete logging_thread_;
-        delete writer_thread_;
-        delete system_info_;
-        if(writer_){
-            writer_->Terminate();
-            std::cout << "* Logged " << writer_->GetTxCount() << " messages." << std::endl;
-            delete writer_;
-        }
-        running = false;
+        logging_thread_ = 0;
         return true;
     }
     return false;
 }
 
-void LogController::TerminateLogger(){
-    {
-        //Gain the lock so we can notify and set our terminate flag.
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        logger_terminate_ = true;
-        queue_lock_condition_.notify_all();
-    }
-    logging_thread_->join();
+void LogController::InteruptLogThread(){
+    std::cout << "IUNTERUPTPT" << std::endl;
+    std::lock_guard<std::mutex> lock(interupt_mutex_);
+    interupt_ = true;
+    log_condition_.notify_all();
 }
 
-void LogController::TerminateWriter(){
-    {
-        //Gain the lock so we can notify and set our terminate flag.
-        std::unique_lock<std::mutex> lock(queue_mutex_);
-        writer_terminate_ = true;
-        queue_lock_condition_.notify_all();
-    }
-    writer_thread_->join();
-}
 
 LogController::~LogController(){
-    Terminate();
-   
+    Stop();
 }
 
 void LogController::GotNewConnection(int, std::string){
+    //Enqueue
     QueueOneTimeInfo();
 }
 
-void LogController::LogThread(){
-    //Subscribe to our desired process names
-    for(std::string process_name : processes_){
-        system_info_->monitor_processes(process_name);
-    }
-
-    namespace s_c = std::chrono;
-
-    //Don't get our first log reading for 1 second
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    re_common::SystemInfo* one_time_info = 0;
-
-    //Update loop.
-    while(!logger_terminate_){
-        auto before_time = 
-            s_c::duration_cast<s_c::milliseconds>(s_c::system_clock::now().time_since_epoch());
-        if(system_info_->update()){
-	
-            //Get a new filled protobuf message
-            re_common::SystemStatus* status = GetSystemStatus();
-            if(!one_time_info){
-                one_time_info = GetOneTimeInfo();
-            }
-
-            //Lock the Queue, and notify the writer queue.
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            
-            if(one_time_flag_){
-                message_queue_.push(new re_common::SystemInfo(*one_time_info));
-                one_time_flag_ = false;
-            }
-            message_queue_.push(status);
-
-            queue_lock_condition_.notify_all();
-        }
-        auto after_time = 
-            s_c::duration_cast<s_c::milliseconds>(s_c::system_clock::now().time_since_epoch());
-        auto duration = after_time - before_time;
-
-        std::this_thread::sleep_for(s_c::milliseconds(sleep_time_)-s_c::milliseconds(duration));
-    }
-}
-
-void LogController::WriteThread(){
-    while(!writer_terminate_){
-        std::queue<google::protobuf::MessageLite* > replace_queue;
-        {
-            //Obtain lock for the queue
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            //Wait for notify
-            queue_lock_condition_.wait(lock);
-            //Swap our queues
-            if(!message_queue_.empty()){
-                message_queue_.swap(replace_queue);
-            }
-        }
-
-        //Empty our write queue
-        while(!replace_queue.empty()){
-            auto m = replace_queue.front();
-            if(m){
-                writer_->PushMessage(host_name, m);
-            }
-            
-            replace_queue.pop();
-        }
-    }
-}
-
-re_common::SystemInfo* LogController::GetOneTimeInfo(){
-    
-    re_common::SystemInfo* onetime_system_info = new re_common::SystemInfo();
-
-    auto info = system_info_;
-
-    onetime_system_info->set_hostname(info->get_hostname());
-    onetime_system_info->set_timestamp(info->get_update_timestamp());
-
-    //Send OS Info
-    onetime_system_info->set_os_name(info->get_os_name());
-    onetime_system_info->set_os_arch(info->get_os_arch());
-    onetime_system_info->set_os_description(info->get_os_description());
-    onetime_system_info->set_os_version(info->get_os_version());
-    onetime_system_info->set_os_vendor(info->get_os_vendor());
-    onetime_system_info->set_os_vendor_name(info->get_os_vendor_name());
-
-    //Send Hardware Info
-    onetime_system_info->set_cpu_model(info->get_cpu_model());
-    onetime_system_info->set_cpu_vendor(info->get_cpu_vendor());
-    onetime_system_info->set_cpu_frequency(info->get_cpu_frequency());
-    onetime_system_info->set_physical_memory(info->get_phys_mem());
-
-    int fs_count = info->get_fs_count();
-    for(int i = 0; i < fs_count; i++){
-        re_common::FileSystemInfo* fss = onetime_system_info->add_file_system_info();    
-        //send onetime info
-        fss->set_name(info->get_fs_name(i));
-        fss->set_type((re_common::FileSystemInfo::Type)info->get_fs_type(i));
-        fss->set_size(info->get_fs_size(i));
-    }
-
-    int interface_count = info->get_interface_count();
-    for(int i = 0; i < interface_count; i++){ 
-        if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
-            re_common::InterfaceInfo* is = onetime_system_info->add_interface_info();
-            //get onetime info
-            is->set_name(info->get_interface_name(i));            
-            is->set_type(info->get_interface_type(i));
-            is->set_description(info->get_interface_description(i));
-            is->set_ipv4_addr(info->get_interface_ipv4(i));
-            is->set_ipv6_addr(info->get_interface_ipv6(i));
-            is->set_mac_addr(info->get_interface_mac(i));
-            is->set_speed(info->get_interface_speed(i));
-        }
-    }
-
-/*
-    ps->set_name(info->get_process_name(pid));
-    ps->set_args(info->get_process_arguments(pid));
-    ps->set_start_time(info->get_monitored_process_start_time(pid));
-*/
-    return onetime_system_info;
-
-}
-
 void LogController::QueueOneTimeInfo(){
-    //Get Lock
-    std::unique_lock<std::mutex> lock(queue_mutex_);
-    one_time_flag_ = true;
+    std::lock_guard<std::mutex> lock(one_time_mutex_);
+    send_onetime_info_ = true;
 }
+
+void LogController::LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
+    auto writer = live_mode ? std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter()) : std::unique_ptr<zmq::ProtoWriter>(new zmq::ProtoWriter());
+    zmq::Monitor monitor;
+    
+    monitor.RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
+    writer->AttachMonitor(&monitor, ZMQ_EVENT_ACCEPTED);
+
+    if(!writer->BindPublisherSocket(publisher_endpoint)){
+        std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
+        return;
+    }
+    
+    //Get the duration in milliseconds
+    auto tick_duration = std::chrono::milliseconds((int)(1000.0 / std::max(0.0, frequency)));
+
+    system_->ignore_processes();
+    
+    //Subscribe to our desired process names
+    for(const auto& process_name : processes){
+        system_->monitor_processes(process_name);
+    }
+    
+
+    //We need to sleep for at least 1 second, if our duration is less than 1 second, calculate the offset to get at least 1 second
+    auto last_duration = std::min(std::chrono::milliseconds(-1000) + tick_duration, std::chrono::milliseconds(0));
+    while(true){
+        auto sleep_duration = tick_duration - last_duration;
+        //std::cout << "Sleeping for: " << sleep_duration.count() << " Milliseconds" << std::endl;
+        
+        {
+            std::unique_lock<std::mutex> lock(interupt_mutex_);
+            log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});
+            if(interupt_){
+                break;
+            }
+        }
+
+        auto start = std::chrono::steady_clock::now();
+        {
+            //Whenever a new server connects, send one time information, using our client address as the topic
+            std::lock_guard<std::mutex> lock(one_time_mutex_);
+            if(send_onetime_info_){
+                writer->PushMessage(publisher_endpoint, GetSystemInfo());
+                send_onetime_info_ = false;
+            }
+        }
+
+        {
+            //Send the tick'd information to all servers
+            if(system_->update()){
+                writer->PushMessage(GetSystemStatus());
+            }
+        }
+
+        //Calculate the duration we should sleep for
+        auto end = std::chrono::steady_clock::now();
+        last_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    }
+    writer->Terminate();
+    std::cout << "* Logged " << writer->GetTxCount() << " messages." << std::endl;
+}
+
 
 re_common::SystemStatus* LogController::GetSystemStatus(){
-    //Construct a protobuf message to fill with information
-    re_common:: SystemStatus* status = new re_common::SystemStatus();
-
-    auto info = system_info_;
-
-    status->set_hostname(info->get_hostname());
-    status->set_timestamp(info->get_update_timestamp());
+    auto system_status = new re_common::SystemStatus();
+    
+    system_status->set_hostname(system_->get_hostname());
+    system_status->set_timestamp(system_->get_update_timestamp());
     
     //Increment the message_id
-    status->set_message_id(++message_id_);
+    system_status->set_message_id(++message_id_);
     
-
-    for(int i = 0; i < info->get_cpu_count(); i++){
-        status->add_cpu_core_utilization(info->get_cpu_utilization(i));
+    for(auto i = 0; i < system_->get_cpu_count(); i++){
+        system_status->add_cpu_core_utilization(system_->get_cpu_utilization(i));
     }
-    status->set_cpu_utilization(info->get_cpu_overall_utilization());
-    status->set_phys_mem_utilization(info->get_phys_mem_utilization());
+
+    system_status->set_cpu_utilization(system_->get_cpu_overall_utilization());
+    system_status->set_phys_mem_utilization(system_->get_phys_mem_utilization());
     
     
-    std::vector<int> pids = info->get_monitored_pids();
-    //prune update time map based on currently alive processes
+    auto alive_pids = system_->get_monitored_pids();
+
+    //Prune our update time map
     for(auto it = pid_updated_times_.begin(); it != pid_updated_times_.end();){
-        bool delete_flag = true;
-
-
-        for(auto pid : pids){
-            if(pid == it->first){
-                delete_flag = false;
-            }
+        if(!alive_pids.count(it->first)){
+            pid_updated_times_.erase(it++);
+        }else{
+            ++it;
         }
-        if(delete_flag){
-            pid_updated_times_.erase(it);
-        }
-        ++it;
     }
 
-    for(size_t i = 0; i < pids.size(); i++){
-        int pid = pids[i];
+    for(const auto& pid : alive_pids){
+        auto last_update_time = system_->get_monitored_process_update_time(pid);
 
-        double last_updated_time = info->get_monitored_process_update_time(pid);
-        
+        auto seen_pid_before = pid_updated_times_.count(pid) > 0;
+        auto send_pid = true;
 
-        bool seen_pid = pid_updated_times_.count(pid) > 0;
-        bool send_pid_update = !seen_pid;
-        
-        if(seen_pid){
-            double last_sent_time = pid_updated_times_.at(pid);
-            
-            if(last_updated_time > last_sent_time){
-                send_pid_update = true;
+        //We shouldn't send the pid info if we haven't updated it since our last send
+        if(seen_pid_before){
+            auto last_sent_time = pid_updated_times_[pid];
+            if(last_update_time <= last_sent_time){
+                send_pid = false;
             }
         }
-        
-        if(send_pid_update){
-            re_common::ProcessStatus* ps = status->add_processes();
-            ps->set_pid(pid);
 
-            ps->set_state((re_common::ProcessStatus::State)info->get_process_state(pid));
+        if(send_pid){
+            auto process_status = system_status->add_processes();
+            process_status->set_pid(pid);
+            process_status->set_state((re_common::ProcessStatus::State)system_->get_process_state(pid));
 
-            re_common::ProcessInfo* pi = status->add_process_info();
-            if(!seen_pid){
-                //send onetime info
-                pi->set_pid(pid);
-                pi->set_name(info->get_process_name(pid));
-                pi->set_args(info->get_process_arguments(pid));
-                pi->set_start_time(info->get_monitored_process_start_time(pid));
+            //send onetime info
+            if(!seen_pid_before){
+                auto process_info = system_status->add_process_info();
+                process_info->set_pid(pid);
+                process_info->set_name(system_->get_process_name(pid));
+                process_info->set_args(system_->get_process_arguments(pid));
+                process_info->set_start_time(system_->get_monitored_process_start_time(pid));
             }
-            ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
-            ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
-            ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pid));
-            ps->set_thread_count(info->get_monitored_process_thread_count(pid));
-            ps->set_disk_read(info->get_monitored_process_disk_read(pid));
-            ps->set_disk_written(info->get_monitored_process_disk_written(pid));
-            ps->set_disk_total(info->get_monitored_process_disk_total(pid));
+            //Set the status info
+            process_status->set_cpu_core_id(system_->get_monitored_process_cpu(pid));
+            process_status->set_cpu_utilization(system_->get_monitored_process_cpu_utilization(pid));
+            process_status->set_phys_mem_utilization(system_->get_monitored_process_phys_mem_utilization(pid));
+            process_status->set_thread_count(system_->get_monitored_process_thread_count(pid));
+            process_status->set_disk_read(system_->get_monitored_process_disk_read(pid));
+            process_status->set_disk_written(system_->get_monitored_process_disk_written(pid));
+            process_status->set_disk_total(system_->get_monitored_process_disk_total(pid));
             
             //Update our Map to include this PID
-            pid_updated_times_[pid] = last_updated_time;
+            pid_updated_times_[pid] = last_update_time;
         }
     }
 
-    int fs_count = info->get_fs_count();
+    int fs_count = system_->get_fs_count();
+    for(auto i = 0; i < fs_count; i++){
+        auto file_system_status = system_status->add_file_systems();
+        file_system_status->set_name(system_->get_fs_name(i));
+        file_system_status->set_utilization(system_->get_fs_utilization(i));
+    }
+
+    int interface_count = system_->get_interface_count();
+    for(auto i = 0; i < interface_count; i++){ 
+        if(system_->get_interface_state(i, SystemInfo::InterfaceState::UP)){
+            auto interface_status = system_status->add_interfaces();
+            interface_status->set_name(system_->get_interface_name(i));
+            interface_status->set_rx_bytes(system_->get_interface_rx_bytes(i));
+            interface_status->set_rx_packets(system_->get_interface_rx_packets(i));
+            interface_status->set_tx_bytes(system_->get_interface_tx_bytes(i));
+            interface_status->set_tx_packets(system_->get_interface_tx_packets(i));
+        }
+    }
+    return system_status;
+}
+
+re_common::SystemInfo* LogController::GetSystemInfo(){
+    auto system_info = new re_common::SystemInfo();
+    
+    system_info->set_hostname(system_->get_hostname());
+    system_info->set_timestamp(system_->get_update_timestamp());
+
+    //OS info
+    system_info->set_os_name(system_->get_os_name());
+    system_info->set_os_arch(system_->get_os_arch());
+    system_info->set_os_description(system_->get_os_description());
+    system_info->set_os_version(system_->get_os_version());
+    system_info->set_os_vendor(system_->get_os_vendor());
+    system_info->set_os_vendor_name(system_->get_os_vendor_name());
+
+    //Hardware info
+    system_info->set_cpu_model(system_->get_cpu_model());
+    system_info->set_cpu_vendor(system_->get_cpu_vendor());
+    system_info->set_cpu_frequency(system_->get_cpu_frequency());
+    system_info->set_physical_memory(system_->get_phys_mem());
+
+    //File systems info
+    int fs_count = system_->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        re_common::FileSystemStatus* fss = status->add_file_systems();
-        fss->set_name(info->get_fs_name(i));
-        fss->set_utilization(info->get_fs_utilization(i));
+        auto file_system_info = system_info->add_file_system_info();    
+        //send onetime info
+        file_system_info->set_name(system_->get_fs_name(i));
+        file_system_info->set_type((re_common::FileSystemInfo::Type)system_->get_fs_type(i));
+        file_system_info->set_size(system_->get_fs_size(i));
     }
 
-    int interface_count = info->get_interface_count();
+    //Network interface info
+    int interface_count = system_->get_interface_count();
     for(int i = 0; i < interface_count; i++){ 
-        if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
-            re_common::InterfaceStatus* is = status->add_interfaces();
-            is->set_name(info->get_interface_name(i));
-            is->set_rx_bytes(info->get_interface_rx_bytes(i));
-            is->set_rx_packets(info->get_interface_rx_packets(i));
-            is->set_tx_bytes(info->get_interface_tx_bytes(i));
-            is->set_tx_packets(info->get_interface_tx_packets(i));
+        if(system_->get_interface_state(i, SystemInfo::InterfaceState::UP)){
+            auto interface_info = system_info->add_interface_info();
+            //get onetime info
+            interface_info->set_name(system_->get_interface_name(i));            
+            interface_info->set_type(system_->get_interface_type(i));
+            interface_info->set_description(system_->get_interface_description(i));
+            interface_info->set_ipv4_addr(system_->get_interface_ipv4(i));
+            interface_info->set_ipv6_addr(system_->get_interface_ipv6(i));
+            interface_info->set_mac_addr(system_->get_interface_mac(i));
+            interface_info->set_speed(system_->get_interface_speed(i));
         }
     }
-
-    return status;
+    return system_info;
 }

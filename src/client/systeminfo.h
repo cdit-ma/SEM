@@ -109,7 +109,7 @@ enum class InterfaceState{
         virtual int64_t get_interface_tx_bytes(const int interface_index) const = 0;
         
 
-        virtual std::vector<int> get_process_pids() const = 0;
+        virtual std::set<int> get_process_pids() const = 0;
         
         virtual std::string get_process_name(const int pid) const = 0;
         virtual std::string get_process_arguments(const int pid) const = 0;
@@ -121,7 +121,9 @@ enum class InterfaceState{
         virtual void monitor_process(const int pid) = 0;
         virtual void ignore_process(const int pid) = 0;
         
-        virtual std::vector<int> get_monitored_pids() const = 0;
+        virtual std::set<int> get_monitored_pids() const = 0;
+
+        virtual void ignore_processes() = 0;
         
         virtual std::vector<std::string> get_monitored_processes_names() const = 0;
 
