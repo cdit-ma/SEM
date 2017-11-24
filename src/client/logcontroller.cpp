@@ -58,6 +58,9 @@ std::string LogController::GetSystemInfoJson(){
 bool LogController::Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode){
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(!logging_thread_){
+        //Reset
+        message_id_ = 0;
+        pid_updated_times_.clear();
         std::lock_guard<std::mutex> lock(interupt_mutex_);
         interupt_ = false;
         logging_thread_ = new std::thread(&LogController::LogThread, this, publisher_endpoint, frequency, processes, live_mode);
@@ -70,9 +73,7 @@ bool LogController::Stop(){
 
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(logging_thread_){
-        std::cout << "YPPYPYPYP" << std::endl;
         InteruptLogThread();
-        std::cout << "Waiting for Tjerad" << std::endl;
         logging_thread_->join();
         delete logging_thread_;
         logging_thread_ = 0;
@@ -82,7 +83,6 @@ bool LogController::Stop(){
 }
 
 void LogController::InteruptLogThread(){
-    std::cout << "IUNTERUPTPT" << std::endl;
     std::lock_guard<std::mutex> lock(interupt_mutex_);
     interupt_ = true;
     log_condition_.notify_all();
@@ -91,6 +91,7 @@ void LogController::InteruptLogThread(){
 
 LogController::~LogController(){
     Stop();
+    delete system_;
 }
 
 void LogController::GotNewConnection(int, std::string){
@@ -130,8 +131,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     auto last_duration = std::min(std::chrono::milliseconds(-1000) + tick_duration, std::chrono::milliseconds(0));
     while(true){
         auto sleep_duration = tick_duration - last_duration;
-        //std::cout << "Sleeping for: " << sleep_duration.count() << " Milliseconds" << std::endl;
-        
         {
             std::unique_lock<std::mutex> lock(interupt_mutex_);
             log_condition_.wait_for(lock, sleep_duration, [this]{return interupt_;});

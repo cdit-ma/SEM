@@ -94,28 +94,27 @@ int main(int ac, char** av){
 		}else{
 			//Print output
 			std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
-			std::cout << "* Endpoint: " << publisher_endpoint << std::endl;
-			std::cout << "* Frequency: " << log_frequency << "Hz" << std::endl;
-			std::cout << "* Live Logging: " << (live_mode ? "On" : "Off") << std::endl;
+			std::cout << "* Logging Endpoint: " << publisher_endpoint << std::endl;
+			std::cout << "* Logging Frequency: " << log_frequency << "Hz" << std::endl;
+			std::cout << "* Logging Mode: " << (live_mode ? "Live" : "Cached") << std::endl;
 			for(int i = 0; i < processes.size(); i++){
 				if(i == 0){
-					std::cout << "* Monitoring Processes:" << std::endl;
+					std::cout << "* Monitored Processes:" << std::endl;
 				}
 				std::cout << "** " << processes[i] << std::endl;
 			}
-			std::cout << "-------[ Logging ]-------" << std::endl;
-
+			std::cout << "-------------[ Logging ]-------------" << std::endl;
 
 			if(!log_controller.Start(publisher_endpoint, log_frequency, processes, live_mode)){
 				return 1;
 			}
 
 			{
-				std::cout << "* Starting Logging." << std::endl;
+				std::cout << "* Starting logging." << std::endl;
 				std::unique_lock<std::mutex> lock(mutex_);
 				//Wait for the signal_handler to notify for exit
 				lock_condition_.wait(lock);
-				std::cout << "* Stopping Logging." << std::endl;
+				std::cout << "* Stopping logging." << std::endl;
 			}
 			
 			if(!log_controller.Stop()){
@@ -123,7 +122,5 @@ int main(int ac, char** av){
 			}
 		}
 	}
-
-
     return 0;
 }

@@ -28,7 +28,7 @@
 
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
-    std::cout << initial_update() << std::endl;;
+    initial_update();
 }
 
 SigarSystemInfo::~SigarSystemInfo(){

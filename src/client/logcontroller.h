@@ -51,17 +51,14 @@ class LogController{
         std::string GetSystemInfoJson();
         bool Start(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode = false);
         bool Stop();
-
-        
     private:
         void InteruptLogThread();
         void LogThread(const std::string& publisher_endpoint, const double& frequency, const std::vector<std::string>& processes, const bool& live_mode);
+        void GotNewConnection(int event_type, std::string address);
+        void QueueOneTimeInfo();
         
         re_common::SystemStatus* GetSystemStatus();
         re_common::SystemInfo* GetSystemInfo();
-        
-        void GotNewConnection(int event_type, std::string address);
-        void QueueOneTimeInfo();
         
         SystemInfo* system_ = 0;
         
@@ -70,14 +67,10 @@ class LogController{
         
         std::mutex one_time_mutex_;
         bool send_onetime_info_ = false;
-
-        
-        std::condition_variable queue_lock_condition_;
         
         std::mutex interupt_mutex_;
         std::condition_variable log_condition_;
         bool interupt_ = false;
-
         int message_id_ = 0;
 
         //don't send onetime info for any contained pids
