@@ -70,7 +70,6 @@ bool LogController::Start(const std::string& publisher_endpoint, const double& f
 }
 
 bool LogController::Stop(){
-
     std::lock_guard<std::mutex> lock(state_mutex_);
     if(logging_thread_){
         InteruptLogThread();
@@ -87,7 +86,6 @@ void LogController::InteruptLogThread(){
     interupt_ = true;
     log_condition_.notify_all();
 }
-
 
 LogController::~LogController(){
     Stop();
