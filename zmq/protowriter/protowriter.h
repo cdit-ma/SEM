@@ -40,6 +40,7 @@ namespace zmq{
             bool BindPublisherSocket(const std::string& endpoint);
 
             virtual bool PushMessage(const std::string& topic, google::protobuf::MessageLite* message);
+            bool PushMessage(google::protobuf::MessageLite* message);
             virtual bool Terminate();
         protected:
             bool PushString(const std::string& topic, const std::string& message_type, const std::string& message);

@@ -63,8 +63,9 @@ namespace zmq{
             
             std::queue<std::pair<std::string, google::protobuf::MessageLite*> > write_queue_;
             
-            std::condition_variable queue_lock_condition_;
             std::mutex queue_mutex_;
+            std::condition_variable queue_lock_condition_;
+            //std::mutex ;
             bool writer_terminate_ = false;
             bool running = false;
     };

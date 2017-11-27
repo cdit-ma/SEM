@@ -78,6 +78,10 @@ bool zmq::ProtoWriter::PushMessage(const std::string& topic, google::protobuf::M
     return success;
 }
 
+bool zmq::ProtoWriter::PushMessage(google::protobuf::MessageLite* message){
+    return PushMessage("", message);
+}
+
 bool zmq::ProtoWriter::PushString(const std::string& topic, const std::string& type, const std::string& message){
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){

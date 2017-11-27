@@ -27,5 +27,5 @@ if (MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif()
 
-#Link against protobuf
+target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})

@@ -46,7 +46,6 @@ zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
 }   
 
 zmq::CachedProtoWriter::~CachedProtoWriter(){
-    //Terminate
     Terminate();
 }
 
@@ -108,7 +107,6 @@ bool zmq::CachedProtoWriter::Terminate(){
             }
         }
     
-
         //Send the Messages still in the write queue
         while(!write_queue_.empty()){
             const auto& topic = write_queue_.front().first;
