@@ -63,7 +63,9 @@
 
     <xsl:function name="o:angle_wrap">
         <xsl:param name="str" as="xs:string" />
-        <xsl:value-of select="concat(o:lt(), $str, o:gt())" />
+        <xsl:variable name="type" select="if(ends-with($str, o:gt())) then concat($str, ' ') else $str" />
+
+        <xsl:value-of select="concat(o:lt(), $type, o:gt())" />
     </xsl:function>	
 
     <xsl:function name="o:angle_wrap_end">
@@ -1938,35 +1940,33 @@
         <xsl:value-of select="concat($var_name, '().push_back(', $value, ')')" />
     </xsl:function>
 
-
-
-
-     <xsl:function name="o:construct_rx">
-        <xsl:param name="middleware" as="xs:string" />
-        <xsl:param name="base_type" as="xs:string" />
-        <xsl:param name="mw_type" as="xs:string" />
-
-        <xsl:value-of select="'EventPort* ConstructRx(std::string port_name, Component* component){'" />
-        <xsl:value-of select="o:nl()" />
-        <xsl:value-of select="concat(o:t(1), 'EventPort* p = 0;', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'if(component){', o:nl())" />
-        <xsl:value-of select="concat(o:t(2), 'auto fn = component', o:fp(), 'GetCallback(port_name);', o:nl())" />
-        <xsl:value-of select="concat(o:t(2), 'if(fn){', o:nl())" />
-        <xsl:value-of select="concat(o:t(3), 'p = new ', $middleware, '::InEventPort', o:angle_wrap(concat($base_type, ', ', $mw_type)),'(component, port_name, fn);', o:nl())" />
-        <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'return p;', o:nl())" />
-        <xsl:value-of select="concat('};', o:nl())" />
+    <xsl:function name="o:cpp_shared_ptr">
+        <xsl:param name="type_name" as="xs:string" />
+        <xsl:value-of select="concat('std::shared_ptr', o:angle_wrap($type_name))" />
     </xsl:function>
 
-    <xsl:function name="o:construct_tx">
+    <xsl:function name="o:cpp_weak_ptr">
+        <xsl:param name="type_name" as="xs:string" />
+        <xsl:value-of select="concat('std::weak_ptr', o:angle_wrap($type_name))" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_make_shared_ptr">
+        <xsl:param name="type_name" as="xs:string" />
+        <xsl:param name="value_name" as="xs:string" />
+        <xsl:value-of select="concat('std::make_shared', o:angle_wrap($type_name), o:bracket_wrap($value_name))" />
+    </xsl:function>
+
+    <xsl:function name="o:construct_port_constructor">
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="base_type" as="xs:string" />
         <xsl:param name="mw_type" as="xs:string" />
+        <xsl:param name="type" as="xs:string" />
 
-        <xsl:value-of select="'EventPort* ConstructTx(std::string port_name, Component* component){'" />
-        <xsl:value-of select="o:nl()" />
-        <xsl:value-of select="concat(o:t(1), 'return new ', $middleware, '::OutEventPort', o:angle_wrap(concat($base_type, ', ', $mw_type)),'(component, port_name);', o:nl())" />
+        <xsl:variable name="fn_name" select="concat('Construct', $type)" />
+        <xsl:variable name="mw_class" select="o:angle_wrap(concat($middleware, '::', $type, o:angle_wrap(concat($base_type, ', ', $mw_type))))" />
+        
+        <xsl:value-of select="concat('EventPort* ', $fn_name, '(const std::string', o:and(), ' port_name, ', o:cpp_weak_ptr('Component'), ' component){', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return ', $fn_name, $mw_class, o:bracket_wrap('port_name, component'), ';', o:nl())" />
         <xsl:value-of select="concat('};', o:nl())" />
     </xsl:function>
 
@@ -2086,9 +2086,9 @@
         <xsl:value-of select="o:nl()" />
         
         <!-- Construct RX -->
-        <xsl:value-of select="o:construct_rx($middleware, $base_type, $mw_type)" />
+        <xsl:value-of select="o:construct_port_constructor($middleware, $base_type, $mw_type, 'InEventPort')" />
         <xsl:value-of select="o:nl()" />
-        <xsl:value-of select="o:construct_tx($middleware, $base_type, $mw_type)" />
+        <xsl:value-of select="o:construct_port_constructor($middleware, $base_type, $mw_type, 'OutEventPort')" />
     </xsl:function>
     
 
