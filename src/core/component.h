@@ -75,12 +75,7 @@ bool Component::AddCallback(const std::string& event_port_name, std::function<vo
     static_assert(std::is_base_of<::BaseMessage, T>::value, "T must inherit from ::BaseMessage");
 
     return AddCallback_(event_port_name, [this, function] (::BaseMessage& message){
-            const auto& t_message = static_cast<T>(message);
-            if(t_message){
-                function(t_message);
-            }else{
-                std::cerr << "Component: " << get_name() << " cannot upcast message to original type." << std::endl;
-            }
+            function((T&) message);
         });
 };
 

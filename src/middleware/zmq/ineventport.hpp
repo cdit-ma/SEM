@@ -3,6 +3,7 @@
 
 #include <core/eventports/ineventport.hpp>
 #include "zmqhelper.h"
+#include <re_common/zmq/zmqutils.hpp>
 
 #include <thread>
 #include <mutex>
@@ -149,14 +150,11 @@ void zmq::InEventPort<T, S>::zmq_loop(){
             try{
                 //Wait for next message
                 socket->recv(&data);
-    
-                std::string msg_str(static_cast<char *>(data.data()), data.size());
                 
+                auto msg_str = Zmq2String(data);
                 
-                if(msg_str.size() == terminate_str.size()){
-                    if(msg_str == terminate_str){
-                        break;
-                    }
+                if(msg_str == terminate_str){
+                    break;
                 }
                 
                 auto m = proto::decode<S>(msg_str);

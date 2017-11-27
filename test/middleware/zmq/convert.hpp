@@ -28,7 +28,7 @@ namespace proto{
 		std::string out_;
 		auto pb_ = translate(src);
 		pb_->SerializeToString(&out_);
-		delete pb_;
+		//delete pb_;
 		return out_;
 	};
 

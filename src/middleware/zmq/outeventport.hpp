@@ -3,6 +3,7 @@
 
 #include <core/eventports/outeventport.hpp>
 #include "zmqhelper.h"
+#include <re_common/zmq/zmqutils.hpp>
 
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
@@ -89,7 +90,7 @@ bool zmq::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(socket_){
-            const auto& str = proto::encode(message);
+            auto str = proto::encode(message);
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
             return true;
