@@ -10,10 +10,10 @@
 
 class Worker: public Activatable{
     public:
-        Worker(std::weak_ptr<Component> component, std::string worker_name, std::string inst_name);
+        Worker(const Component& component, const std::string& worker_name, const std::string& inst_name);
         virtual ~Worker();
 
-        std::weak_ptr<Component> get_component() const;
+        const Component& get_component() const;
         std::string get_worker_name() const;
         
         std::string get_arg_string(const std::string str_format, va_list args);
@@ -28,7 +28,7 @@ class Worker: public Activatable{
         void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
         
     private:
-        std::weak_ptr<Component> component_;
+        const Component& component_;
         std::mutex mutex_;
         std::string worker_name_;
         int work_id_ = 0;

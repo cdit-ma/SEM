@@ -154,7 +154,7 @@ void ModelLogger::LogLifecycleEvent(const EventPort& eventport, ModelLogger::Lif
 void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
     auto e = new re_common::WorkloadEvent();
 
-    auto component = worker.get_component();
+    const auto& component = worker.get_component();
     
     fill_info(*e->mutable_info());
     fill_component(*e->mutable_component(), component);
@@ -182,21 +182,19 @@ void ModelLogger::LogWorkerEvent(const Worker& worker, std::string function_name
     PushMessage(e);
 }
 
-void ModelLogger::LogComponentEvent(const EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event){
-    if(message){
-        auto component = eventport.get_component();
-        int ID = message->get_base_message_id();
-        auto e = new re_common::ComponentUtilizationEvent();
+void ModelLogger::LogComponentEvent(const EventPort& eventport, const ::BaseMessage& message, ModelLogger::ComponentEvent event){
+    auto component = eventport.get_component();
+    int ID = message.get_base_message_id();
+    auto e = new re_common::ComponentUtilizationEvent();
 
-        fill_info(*e->mutable_info());
-        fill_component(*e->mutable_component(), component);
-        fill_port(*e->mutable_port(), eventport);
+    fill_info(*e->mutable_info());
+    fill_component(*e->mutable_component(), component);
+    fill_port(*e->mutable_port(), eventport);
 
-         //Set Type, Name
-        e->set_port_event_id(ID);
-        e->set_type((re_common::ComponentUtilizationEvent::Type)(int)event);
-        PushMessage(e);
-    }
+        //Set Type, Name
+    e->set_port_event_id(ID);
+    e->set_type((re_common::ComponentUtilizationEvent::Type)(int)event);
+    PushMessage(e);
 }
 
 void ModelLogger::LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id){

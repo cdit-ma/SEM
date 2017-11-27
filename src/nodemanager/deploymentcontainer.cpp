@@ -114,11 +114,11 @@ std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shar
         if(!eventport){
             switch(eventport_pb.kind()){
                 case NodeManager::EventPort::IN_PORT:{
-                    eventport = ConstructRx(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructInEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
                     break;
                 }
                 case NodeManager::EventPort::OUT_PORT:{
-                    eventport = ConstructTx(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
+                    eventport = ConstructOutEventPort(middleware, eventport_info_pb.type(), component, eventport_info_pb.name(), eventport_pb.namespace_name());
                     break;
                 }
                 case NodeManager::EventPort::PERIODIC_PORT:{
@@ -229,19 +229,19 @@ std::string DeploymentContainer::get_component_library_name(const std::string& c
     return to_lower(c);
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::ConstructTx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+std::shared_ptr<EventPort> DeploymentContainer::ConstructOutEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<EventPort> eventport;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
-    if(!tx_constructors_.count(library_name)){
-        auto function = dll_loader.GetLibraryFunction<TxCConstructor>(library_path_, library_name, "ConstructTx");
+    if(!out_eventport_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<EventPortCConstructor>(library_path_, library_name, "ConstructOutEventPort");
         if(function){
-            tx_constructors_[library_name] = function;
+            out_eventport_constructors_[library_name] = function;
         }
     }
 
-    if(tx_constructors_.count(library_name)){
-        auto eventport_ptr = tx_constructors_[library_name](port_name, component);
+    if(out_eventport_constructors_.count(library_name)){
+        auto eventport_ptr = out_eventport_constructors_[library_name](port_name, component);
         auto component_shared = component.lock();
 
         if(component_shared){
@@ -253,19 +253,19 @@ std::shared_ptr<EventPort> DeploymentContainer::ConstructTx(const std::string& m
     return eventport;
 }
 
-std::shared_ptr<EventPort> DeploymentContainer::ConstructRx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
+std::shared_ptr<EventPort> DeploymentContainer::ConstructInEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<EventPort> eventport;
     const auto& library_name = get_port_library_name(middleware, namespace_name, datatype);
 
-    if(!rx_constructors_.count(library_name)){
-        auto function = dll_loader.GetLibraryFunction<RxCConstructor>(library_path_, library_name, "ConstructRx");
+    if(!in_eventport_constructors_.count(library_name)){
+        auto function = dll_loader.GetLibraryFunction<EventPortCConstructor>(library_path_, library_name, "ConstructInEventPort");
         if(function){
-            rx_constructors_[library_name] = function;
+            in_eventport_constructors_[library_name] = function;
         }
     }
 
-    if(rx_constructors_.count(library_name)){
-        auto eventport_ptr = rx_constructors_[library_name](port_name, component);
+    if(in_eventport_constructors_.count(library_name)){
+        auto eventport_ptr = in_eventport_constructors_[library_name](port_name, component);
         auto component_shared = component.lock();
 
         if(component_shared){

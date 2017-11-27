@@ -6,7 +6,7 @@
 #include "../activatablefsmtester.h"
 
 
-void empty_callback(BaseMessage* b){};
+void empty_callback(BaseMessage& b){};
 
 class PeriodicEventPort_0hz_FSMTester : public ActivatableFSMTester{
     protected:
@@ -91,7 +91,7 @@ TEST_P(PeriodicEventTest, TickCount)
    int callback_tick_count = 0;
    {
        auto c = std::make_shared<Component>("Test");
-       PeriodicEventPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage* m){
+       PeriodicEventPort port(c, "PeriodicEvent", [&callback_tick_count, p](BaseMessage& m){
                std::this_thread::sleep_for(std::chrono::milliseconds(p.callback_time_ms));
                callback_tick_count ++;
            });

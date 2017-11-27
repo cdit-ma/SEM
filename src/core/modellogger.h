@@ -68,7 +68,7 @@ class ModelLogger{
         
         void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(const EventPort& eventport, ModelLogger::LifeCycleEvent event);
-        void LogComponentEvent(const EventPort& eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+        void LogComponentEvent(const EventPort& eventport, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 

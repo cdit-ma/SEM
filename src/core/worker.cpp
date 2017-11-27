@@ -3,15 +3,14 @@
 #include <iostream>
 #include <stdarg.h>
 
-Worker::Worker( std::weak_ptr<Component> component, std::string worker_name, std::string inst_name)
+Worker::Worker(const Component& component, const std::string& worker_name, const std::string& inst_name):
+component_(component)
 {
-    component_ = component;
     set_name(inst_name);
     worker_name_ = worker_name;
 };
 
 Worker::~Worker(){
-
 };
 
 std::string Worker::get_worker_name() const{
@@ -23,7 +22,7 @@ int Worker::get_new_work_id(){
     return work_id_ ++;
 };
 
-std::weak_ptr<Component> Worker::get_component() const{
+const Component& Worker::get_component() const{
     return component_;
 };
 

@@ -15,7 +15,7 @@
 //Interface for a standard templated InEventPort
 template <class T> class InEventPort : public EventPort{
     public:
-        InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T*) > callback_function, const std::string& middleware);
+        InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T&) > callback_function, const std::string& middleware);
         ~InEventPort();
         void SetMaxQueueSize(const int max_queue_size);
         int GetEventsReceieved();
@@ -31,7 +31,7 @@ template <class T> class InEventPort : public EventPort{
         bool rx(T* t);
         void receive_loop();
     private:
-        std::function<void (T*) > callback_function_;
+        std::function<void (T&) > callback_function_;
 
         
         std::mutex queue_mutex_;
@@ -60,7 +60,7 @@ template <class T> class InEventPort : public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T*) > callback_function, const std::string& middleware)
+InEventPort<T>::InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T&) > callback_function, const std::string& middleware)
 :EventPort(component, port_name, EventPort::Kind::RX, middleware){
     if(callback_function){
         callback_function_ = callback_function;
@@ -142,13 +142,13 @@ template <class T>
 bool InEventPort<T>::rx(T* t){
     bool rx_d = false;
     if(is_running() && callback_function_){
-        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::STARTED_FUNC);
-        callback_function_(t);
-        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::STARTED_FUNC);
+        callback_function_(*t);
+        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
         rx_d = true;
     }else{
         //Log that didn't call back on this message
-        logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
+        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::IGNORED);
     }
     if(t){
         //Free memory

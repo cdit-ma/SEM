@@ -8,7 +8,7 @@
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
 
-void empty_callback(Base::Basic* b){};
+void empty_callback(Base::Basic& b){};
 
 //Define an In/Out Port FSM Tester
 class ZeroMQ_InEventPort_FSMTester : public ActivatableFSMTester{
@@ -64,7 +64,7 @@ TEST(ZeroMQ_EventportPair, Stable100){
     
     auto c = std::make_shared<Component>("Test");
     zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic*){
+    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -91,9 +91,9 @@ TEST(ZeroMQ_EventportPair, Stable100){
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
-        auto b = new Base::Basic();
-        b->int_val = i;
-        b->str_val = std::to_string(i);
+       Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
         out_port.tx(b);
         sleep_ms(1);
     }
@@ -125,7 +125,7 @@ TEST(ZeroMQ_EventportPair, Busy100){
 
     auto c = std::make_shared<Component>("Test");
     zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic*){
+    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(100);
     });
@@ -153,9 +153,9 @@ TEST(ZeroMQ_EventportPair, Busy100){
 
     //Send as fast as possible
     for(int i = 0; i < send_count; i++){
-        auto b = new Base::Basic();
-        b->int_val = i;
-        b->str_val = std::to_string(i);
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
         out_port.tx(b);
     }
 

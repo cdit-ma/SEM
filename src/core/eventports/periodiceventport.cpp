@@ -4,7 +4,7 @@
 #include <iostream>
 #include <memory>
 
-PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
+PeriodicEventPort::PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage&)> callback, int milliseconds):
 ::InEventPort<BaseMessage>(component, name, callback, "periodic")
 {
     //Force set the kind

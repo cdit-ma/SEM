@@ -16,7 +16,7 @@ namespace zmq{
             bool HandlePassivate();
             bool HandleTerminate();
         public:
-            bool tx(T* message);
+            bool tx(const T& message);
         private:
             bool setup_tx();
             std::mutex control_mutex_;
@@ -83,13 +83,13 @@ bool zmq::OutEventPort<T, S>::setup_tx(){
 };
 
 template <class T, class S>
-bool zmq::OutEventPort<T, S>::tx(T* message){
+bool zmq::OutEventPort<T, S>::tx(const T& message){
     std::lock_guard<std::mutex> lock(control_mutex_);
     bool should_send = ::OutEventPort<T>::tx(message);
 
     if(should_send){
         if(socket_){
-            std::string str = proto::encode(message);
+            const auto& str = proto::encode(message);
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
             return true;

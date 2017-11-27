@@ -11,7 +11,7 @@ template <class T> class OutEventPort: public EventPort{
         OutEventPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
         int GetEventsReceived();
         int GetEventsSent();
-        virtual bool tx(T* t);
+        virtual bool tx(const T& t);
     private:
         std::mutex queue_mutex_;
         int tx_count = 0;
@@ -35,16 +35,14 @@ int OutEventPort<T>::GetEventsSent(){
 }
 
 template <class T>
-bool OutEventPort<T>::tx(T* t){
-    if(t){
-        tx_count ++;
-        if(is_running()){
-            tx_sent_count ++;
-            logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::SENT);
-            return true;
-        }else{
-            logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
-        }
+bool OutEventPort<T>::tx(const T& message){
+    tx_count ++;
+    if(is_running()){
+        tx_sent_count ++;
+        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
+        return true;
+    }else{
+        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
     }
     return false;
 };

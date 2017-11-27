@@ -9,7 +9,7 @@
 
 typedef Component* (ComponentCConstructor) (const std::string&);
 extern "C"{
-    EXPORT_FUNC Component* ConstructComponent(std::string component_name);
+    EXPORT_FUNC Component* ConstructComponent(const std::string& component_name);
 };
 
 template<class T>

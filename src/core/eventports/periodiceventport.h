@@ -13,7 +13,7 @@
 class Component;
 class PeriodicEventPort: public ::InEventPort<BaseMessage>{
     public:
-        PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds = 1000);
+        PeriodicEventPort(std::weak_ptr<Component> component, std::string name, std::function<void(BaseMessage&)> callback, int milliseconds = 1000);
         ~PeriodicEventPort();
         void SetFrequency(double hz);
         void SetDuration(int milliseconds);

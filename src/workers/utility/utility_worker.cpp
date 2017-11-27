@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-Utility_Worker::Utility_Worker(std::weak_ptr<Component> component, std::string inst_name) : Worker(component, GET_FUNC, inst_name){
+Utility_Worker::Utility_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Utility_Worker_Impl();
     impl_->SetRandomSeed(GetTimeOfDay());
 }
@@ -41,10 +41,8 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
     Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message);
 
     if(print){
-        auto c = get_component().lock();
-        if(c){
-            std::cout << c->get_name() << "<" << c->get_type() << ">: ";
-        }
+        const auto& c = get_component();
+        std::cout << c.get_name() << "<" << c.get_type() << ">: ";
         std::cout << message << std::endl;
     }
 }

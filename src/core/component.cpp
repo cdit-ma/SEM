@@ -29,8 +29,8 @@ bool compare_eventport(const std::shared_ptr<EventPort> a, const std::shared_ptr
 }
 
 
-Component::Component(std::string inst_name){
-    set_name(inst_name);
+Component::Component(const std::string& component_name){
+    set_name(component_name);
 }
 
 Component::~Component(){
@@ -142,24 +142,24 @@ std::weak_ptr<EventPort> Component::AddEventPort(std::unique_ptr<EventPort> even
     return std::weak_ptr<EventPort>();
 }
 
-std::weak_ptr<EventPort> Component::GetEventPort(const std::string& name){
+std::weak_ptr<EventPort> Component::GetEventPort(const std::string& event_port_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    if(eventports_.count(name)){
-        return eventports_[name];
+    if(eventports_.count(event_port_name)){
+        return eventports_[event_port_name];
     }else{
         //std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << name << "'" << std::endl;
     }
     return std::weak_ptr<EventPort>();
 }
 
-std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& name){
+std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& event_port_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    if(eventports_.count(name)){
-        auto port = eventports_[name];
-        eventports_.erase(name);
+    if(eventports_.count(event_port_name)){
+        auto port = eventports_[event_port_name];
+        eventports_.erase(event_port_name);
         return port;
     }else{ 
-        std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << event_port_name << "'" << std::endl;
         return std::shared_ptr<EventPort>();
     }
 }
@@ -168,12 +168,12 @@ std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& name){
 std::weak_ptr<Worker> Component::AddWorker(std::unique_ptr<Worker> worker){
     std::lock_guard<std::mutex> lock(mutex_);
     if(worker){
-        std::string name = worker->get_name();
-        if(workers_.count(name) == 0){
-            workers_[name] = std::move(worker);
-            return workers_[name];
+        const auto& worker_name = worker->get_name();
+        if(workers_.count(worker_name) == 0){
+            workers_[worker_name] = std::move(worker);
+            return workers_[worker_name];
         }else{
-            std::cerr << "Component '" << get_name()  << "' already has an Worker with name '" << name << "'" << std::endl;
+            std::cerr << "Component '" << get_name()  << "' already has an Worker with name '" << worker_name << "'" << std::endl;
         }
     }else{
         std::cerr << "Component '" << get_name()  << "' cannot add a null Worker" << std::endl;
@@ -181,66 +181,65 @@ std::weak_ptr<Worker> Component::AddWorker(std::unique_ptr<Worker> worker){
     return std::weak_ptr<Worker>();
 }
 
-std::weak_ptr<Worker> Component::GetWorker(const std::string& name){
+std::weak_ptr<Worker> Component::GetWorker(const std::string& worker_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    if(workers_.count(name)){
-        return workers_[name];
+    if(workers_.count(worker_name)){
+        return workers_[worker_name];
     }else{
-        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << worker_name << "'" << std::endl;
     }
     return std::weak_ptr<Worker>();
 }
 
 
-std::shared_ptr<Worker> Component::RemoveWorker(const std::string& name){
+std::shared_ptr<Worker> Component::RemoveWorker(const std::string& worker_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    if(workers_.count(name)){
-        auto worker = workers_[name];
-        workers_.erase(name);
+    if(workers_.count(worker_name)){
+        auto worker = workers_[worker_name];
+        workers_.erase(worker_name);
         return worker;
     }else{
-        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name() << "' doesn't have an Worker with name '" << worker_name << "'" << std::endl;
     }
     return std::shared_ptr<Worker>();
 }
 
-bool Component::AddCallback_(const std::string& name, std::function<void (::BaseMessage*)> function){
+bool Component::AddCallback_(const std::string& event_port_name, std::function<void (::BaseMessage&)> function){
     //auto port = GetEventPort(port_name);
     std::lock_guard<std::mutex> lock(mutex_);
     
-    if(callback_functions_.count(name) == 0){
+    if(callback_functions_.count(event_port_name) == 0){
         //Store the callback
-        callback_functions_[name] = function;
+        callback_functions_[event_port_name] = function;
     }else{
-        std::cerr << "Component '" << get_name() << "' already has a callback with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name() << "' already has a callback with name '" << event_port_name << "'" << std::endl;
         return false;
     }
     return true;
 }
-bool Component::AddPeriodicCallback(const std::string& name, std::function<void()> function){
-    return AddCallback_(name, [function](::BaseMessage* bm){if(bm)function();});
+bool Component::AddPeriodicCallback(const std::string& event_port_name, std::function<void()> function){
+    return AddCallback_(event_port_name, [function](::BaseMessage& bm){function();});
 }
 
-std::function<void (::BaseMessage*)> Component::GetCallback(const std::string& name){
+std::function<void (::BaseMessage&)> Component::GetCallback(const std::string& event_port_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    std::function<void (::BaseMessage*)> f;
-    if(callback_functions_.count(name)){
-        f = callback_functions_[name];
+    if(callback_functions_.count(event_port_name)){
+        return callback_functions_[event_port_name];
     }else{
-        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << event_port_name << "'" << std::endl;
     }
-    return f;
+    return nullptr;
 }
 
-bool Component::RemoveCallback(const std::string& name){
+bool Component::RemoveCallback(const std::string& event_port_name){
     //auto port = GetEventPort(port_name);
     std::lock_guard<std::mutex> lock(mutex_);
     
-    if(callback_functions_.count(name) == 0){
-        callback_functions_.erase(name);
+    if(callback_functions_.count(event_port_name) == 0){
+        callback_functions_.erase(event_port_name);
         return true;
     }else{
-        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << name << "'" << std::endl;
+        std::cerr << "Component '" << get_name()  << "' doesn't have a callback with name '" << event_port_name << "'" << std::endl;
     }
     return false;
 }

@@ -10,7 +10,7 @@
 namespace zmq{
      template <typename T, typename S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function);
+            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
             ~InEventPort(){
                 Activatable::Terminate();
             }
@@ -40,7 +40,7 @@ namespace zmq{
 
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function):
+zmq::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
 ::InEventPort<T>(component, name, callback_function, "zmq"){
     auto component_ = component.lock();
     auto component_name = component_ ? component_->get_name() : "??";

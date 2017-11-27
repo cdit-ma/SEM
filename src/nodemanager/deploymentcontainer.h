@@ -17,8 +17,7 @@ namespace NodeManager{
     class Node;
 };
 
-typedef std::function<TxCConstructor> TxConstructor;
-typedef std::function<RxCConstructor> RxConstructor;
+typedef std::function<EventPortCConstructor> EventPortConstructor;
 typedef std::function<ComponentCConstructor> ComponentConstructor;
 
 class DeploymentContainer : public Activatable{
@@ -44,8 +43,8 @@ class DeploymentContainer : public Activatable{
         
         //Constructor functions
         std::shared_ptr<EventPort> ConstructPeriodicEvent(std::weak_ptr<Component> component, const std::string& port_name);
-        std::shared_ptr<EventPort> ConstructTx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
-        std::shared_ptr<EventPort> ConstructRx(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
+        std::shared_ptr<EventPort> ConstructOutEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
+        std::shared_ptr<EventPort> ConstructInEventPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string& namespace_name);
         std::shared_ptr<Component> ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& component_id);
         
         std::string get_port_library_name(const std::string& middleware, const std::string& namespace_name, const std::string& datatype);
@@ -54,8 +53,8 @@ class DeploymentContainer : public Activatable{
         std::string library_path_;
 
         //Middleware -> construct functions
-        std::unordered_map<std::string, TxConstructor> tx_constructors_;
-        std::unordered_map<std::string, RxConstructor> rx_constructors_;
+        std::unordered_map<std::string, EventPortConstructor> out_eventport_constructors_;
+        std::unordered_map<std::string, EventPortConstructor> in_eventport_constructors_;
         std::unordered_map<std::string, ComponentConstructor> component_constructors_;
         std::unordered_map<std::string, std::shared_ptr<Component> > components_;
 
