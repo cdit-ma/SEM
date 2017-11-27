@@ -21,11 +21,9 @@
 #ifndef LOGCONTROLLER_H
 #define LOGCONTROLLER_H
 
-#include <condition_variable>
 #include <mutex>
-#include <queue>
+#include <condition_variable>
 #include <thread>
-#include <set>
 #include <unordered_map>
 #include <vector>
 #include <google/protobuf/message_lite.h>
@@ -37,11 +35,6 @@ namespace re_common{
     class SystemInfo;
     class SystemStatus;
 };
-
-namespace zmq{
-    class Monitor;
-    class ProtoWriter;
-}
 
 class LogController{
     public:
