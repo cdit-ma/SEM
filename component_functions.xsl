@@ -1086,7 +1086,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
-            <xsl:value-of select="concat(o:t(2), 'void In_', $label, '(', $cpp_type, ' m);', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'void In_', $label, '(', $cpp_type, o:and(),' m);', o:nl())" />
         </xsl:for-each>
 
         <!-- InEventPorts are declared as pure virtual, and are defined in the Impl-->
@@ -1224,7 +1224,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 0)" />
-            <xsl:value-of select="concat('void ', $class_name, '::', $function_name, '(', $cpp_type, ' m){', o:nl())" />
+            <xsl:value-of select="concat('void ', $class_name, '::', $function_name, '(', $cpp_type, o:and(), ' m){', o:nl())" />
             <xsl:value-of select="cdit:translate_workload(.,., 1)" />
             <xsl:value-of select="concat('};', o:nl())" />
         </xsl:for-each>
@@ -1329,7 +1329,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
-            <xsl:value-of select="concat(o:t(2), 'virtual void ', $function_name, '(', $cpp_type, ' m) = 0;', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'virtual void ', $function_name, '(', $cpp_type, o:and(), ' m) = 0;', o:nl())" />
         </xsl:for-each>
 
         <!-- OutEventPorts are declared and defined in the interface -->
@@ -1344,7 +1344,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 2)" />
-            <xsl:value-of select="concat(o:t(2), 'void ', $function_name, '(', $cpp_type, ' m);', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'void ', $function_name, '(const ', $cpp_type, o:and(), ' m);', o:nl())" />
         </xsl:for-each>
 
         <!-- Process Attributes -->
@@ -1458,11 +1458,11 @@
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 0)" />
             
             <!--Define Function-->
-            <xsl:value-of select="concat('void ', $class_name, '::', 'Out_', $label, '(', $cpp_type, ' m){', o:nl())" />
+            <xsl:value-of select="concat('void ', $class_name, '::', 'Out_', $label, '(const ', $cpp_type, o:and(), ' m){', o:nl())" />
             
             <xsl:value-of select="concat(o:t(1), 'auto p = GetTypedEventPort', o:angle_wrap($port_cpp_type), '(', o:dblquote_wrap($label), ');', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'if(p){', o:nl())" />
-            <xsl:value-of select="concat(o:t(2), 'p', o:fp(), 'tx(', o:and(), 'm);', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'p', o:fp(), 'tx(m);', o:nl())" />
             <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
             
             <xsl:value-of select="concat('};', o:nl())" />

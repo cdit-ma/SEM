@@ -306,7 +306,7 @@
         <xsl:variable name="member_label" select="cdit:get_key_value($member_root, 'label')" />
         <xsl:variable name="member_type" select="cdit:get_key_value($member_root, 'type')" />
 
-        <xsl:variable name="value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($member_label, $src_mw))" />
+        <xsl:variable name="value" select="concat($in_var, '.' , o:cpp_mw_get_func($member_label, $src_mw))" />
         
         <xsl:choose>
              <xsl:when test="o:member_requires_cast($member_type, $dst_mw) = true()">
@@ -366,20 +366,20 @@
 
         <!-- translate functions -->
         <xsl:value-of select="o:tabbed_cpp_comment('Translate Functions', 1)" />
-        <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(const ', $base_type ,'* val);', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), $base_type, '* translate(const ', $mw_type ,'* val);', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(const ', $base_type , o:and(), ' val);', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), $base_type, '* translate(const ', $mw_type , o:and(), ' val);', o:nl())" />
 
         <xsl:if test="lower-case($mw) = 'proto'">
             <!-- Helper functions -->
                 <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="o:tabbed_cpp_comment('Helper Functions', 1)" />
-                <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap('class T'), ' ', $base_type, '* decode(const std::string val);', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), 'std::string ', 'encode(const ', $base_type, '* val);', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap('class T'), ' ', $base_type, '* decode(const std::string', o:and(), ' val);', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), 'std::string ', 'encode(const ', $base_type, o:and(), ' val);', o:nl())" />
                 
                 <!-- Forward declared template function -->
                 <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="o:tabbed_cpp_comment('Forward declare the decode function with concrete type', 1)" />
-                <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap(''), ' ', $base_type, '* decode', o:angle_wrap($mw_type), '(const std::string val);', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap(''), ' ', $base_type, '* decode', o:angle_wrap($mw_type), '(const std::string', o:and(), ' val);', o:nl())" />
         </xsl:if>
 
         <xsl:value-of select="concat('};', o:nl())" />
@@ -455,15 +455,15 @@
         <xsl:if test="lower-case($mw) = 'proto'">
             <!-- Define decode functions -->
             <xsl:value-of select="concat('template', o:angle_wrap(''), o:nl())" />
-            <xsl:value-of select="concat($base_type, '* ', $mw, '::decode', o:angle_wrap($mw_type), '(const std::string val){', o:nl())" />
+            <xsl:value-of select="concat($base_type, '* ', $mw, '::decode', o:angle_wrap($mw_type), '(const std::string', o:and(), ' val){', o:nl())" />
             <xsl:value-of select="concat(o:t(1), $mw_type, ' out_;', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'out_.ParseFromString(val);', o:nl())" />
-            <xsl:value-of select="concat(o:t(1), 'return translate(', o:and(), 'out_);', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'return translate(out_);', o:nl())" />
             <xsl:value-of select="concat('};', o:nl())" />
             <xsl:value-of select="o:nl()" />
 
             <!-- encode function base->str -->
-            <xsl:value-of select="concat('std::string proto::encode(const ', $base_type, '* val){', o:nl())" />
+            <xsl:value-of select="concat('std::string proto::encode(const ', $base_type, o:and(), ' val){', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'std::string out_;', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'auto pb_ = translate(val);', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'pb_', o:fp(), 'SerializeToString(', o:and(), 'out_);', o:nl())" />
@@ -1723,7 +1723,7 @@
 
         
 
-        <xsl:value-of select="concat($dst_type, '* ', $class_namespace, '::translate(const ', $src_type , ' *', $in_var, '){', o:nl())" />
+        <xsl:value-of select="concat($dst_type, '* ', $class_namespace, '::translate(const ', $src_type , o:and(), ' ', $in_var, '){', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'auto ', $out_var, ' = new ', $dst_type, '();', o:nl())" />
         
 
@@ -2441,17 +2441,10 @@
         </xsl:choose>
     </xsl:function>	
 
-    <xsl:function name="cdit:get_edge_target_ids">
-        <xsl:param name="root" />
-        <xsl:param name="edge_kind" as="xs:string" />
-        <xsl:param name="edge_source" as="xs:string" />
 
-        <xsl:variable name="kind_key" select="cdit:get_key_id($root, 'kind')" />
+   
 
-        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />
-        
-        <xsl:sequence select="$doc_root//gml:edge[@source = $edge_source]/gml:data[@key=$kind_key and text()=$edge_kind]/../@target" />
-    </xsl:function>
+    
 
    <xsl:function name="cdit:get_definition">
         <xsl:param name="root" />
@@ -2512,6 +2505,12 @@
         </xsl:for-each>
    </xsl:function>
 
+   <xsl:function name="cdit:get_child_node_ids">
+        <xsl:param name="root" />
+
+        <xsl:sequence select="$root//gml:node/@id" />
+   </xsl:function>
+
    
 
    <xsl:function name="cdit:get_all_edge_targets">
@@ -2539,18 +2538,59 @@
         <xsl:variable name="kind_key" select="cdit:get_key_id($root, 'kind')" />
 
         <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />
-        
-        <xsl:sequence select="$doc_root//gml:edge[@target = $edge_target]/gml:data[@key=$kind_key and text()=$edge_kind]/../@source" />
+
+
+       <xsl:for-each select="$doc_root">
+            <xsl:for-each select="key('get_edge_by_target', $edge_target)">
+                <xsl:if test="gml:data[@key=$kind_key and text()=$edge_kind]">
+                     <xsl:sequence select="@source" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each> 
     </xsl:function>
+
+    <xsl:key name="get_key_by_name" match="gml:key" use="@attr.name"/>
 
     <xsl:function name="cdit:get_key_id" as="xs:string">
         <xsl:param name="root"/>
         <xsl:param name="key_name" as="xs:string"/>
         
         <xsl:for-each select="$root">
-            <xsl:value-of select="//gml:key[@attr.name = $key_name]/@id" />
+            <xsl:value-of select="key('get_key_by_name', $key_name)/@id" />
         </xsl:for-each>
     </xsl:function>
+
+    <xsl:function name="cdit:get_key_by_id" as="element()*">
+        <xsl:param name="root"/>
+        <xsl:param name="id" as="xs:string"/>
+        
+        <xsl:for-each select="$root">
+            <xsl:sequence select="//gml:key[@id=$id]" />
+        </xsl:for-each>
+    </xsl:function>
+
+     <xsl:key name="get_edge_by_source" match="gml:edge" use="@source"/>
+     <xsl:key name="get_edge_by_target" match="gml:edge" use="@target"/>
+
+    <xsl:function name="cdit:get_edge_target_ids">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="edge_source" as="xs:string" />
+
+        <xsl:variable name="kind_key" select="cdit:get_key_id($root, 'kind')" />
+
+        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />
+
+         <xsl:for-each select="$doc_root">
+            <xsl:for-each select="key('get_edge_by_source', $edge_source)">
+                <xsl:if test="gml:data[@key=$kind_key and text()=$edge_kind]">
+                     <xsl:sequence select="@target" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:key name="get_data_by_key" match="gml:data" use="@key"/>
 
     <xsl:function name="cdit:get_key_value" as="xs:string">
         <xsl:param name="root" />
@@ -2558,7 +2598,7 @@
 
         <xsl:for-each select="$root">
             <xsl:variable name="key_id" select="cdit:get_key_id(., $key_name)" />        
-            <xsl:value-of select="$root/gml:data[@key=$key_id]/text()" />
+            <xsl:value-of select="gml:data[@key=$key_id]/text()" />
         </xsl:for-each>
     </xsl:function>
 
@@ -2613,6 +2653,17 @@
             <xsl:sort select="number(cdit:get_key_value(., 'index'))"/>
             <xsl:sequence select="." />
         </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_required_keys" as="element()*">
+        <xsl:param name="root" />
+
+        
+    
+
+        <xsl:for-each-group select="$root//gml:data/@key" group-by="." >
+            <xsl:sequence select="o:get_key_by_id($root, .)" />
+        </xsl:for-each-group>
     </xsl:function>
 
     
@@ -2698,13 +2749,15 @@
         </xsl:choose>
     </xsl:function>
 
+    <xsl:key name="get_node_by_id" match="gml:node" use="@id"/>
+
     <xsl:function name="cdit:get_node_by_id">
         <xsl:param name="root" />
         <xsl:param name="id"  as="xs:string"/>
 
-        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />        
-
-        <xsl:sequence select="$doc_root//gml:node[@id = $id]" />
+         <xsl:for-each select="$root">
+            <xsl:sequence select="key('get_node_by_id', $id)" />
+        </xsl:for-each>
     </xsl:function>
 
     <xsl:function name="cdit:get_first_child_node">
