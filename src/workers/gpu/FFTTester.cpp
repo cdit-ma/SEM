@@ -19,7 +19,8 @@ using namespace test;
  * its own set of tests, wrapper testing can afford to be a little lighter (for the moment)
  */
 FFTTester::FFTTester(DebugLevel dLevel) : Tester(dLevel) {
-	worker = new Gpu_Worker(0, "");
+	auto c = std::make_shared<Component>("Test");
+	worker = new Gpu_Worker(*c, "worker");
 
 	verbosity = dLevel;
 	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
