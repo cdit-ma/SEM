@@ -51,8 +51,7 @@ bool Graphml::ModelParser::Process(){
     aggregate_edge_ids_ = graphml_parser_->FindEdges("Edge_Aggregate");
     qos_edge_ids_ = graphml_parser_->FindEdges("Edge_QOS");
 
-    auto all_edges = graphml_parser_->FindEdges();
-    for(const auto& edge_id : all_edges){
+    for(const auto& edge_id : graphml_parser_->FindEdges()){
         auto source_id = GetAttribute(edge_id, "source");
         auto target_id = GetAttribute(edge_id, "target");
         auto edge_kind = GetDataValue(edge_id, "kind");
@@ -63,7 +62,6 @@ bool Graphml::ModelParser::Process(){
     for(const auto& c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
         RecurseEdge(c_id, c_id);
     }
-
             
     //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
     for(const auto& e_id: deployment_edge_ids_){
@@ -79,9 +77,6 @@ bool Graphml::ModelParser::Process(){
         entity_qos_map_[source_id] = target_id;
     }
 
-
-    
-
     //Parse HardwareClusters
     for(const auto& c_id : graphml_parser_->FindNodes("HardwareCluster")){
         if(!GetHardwareCluster(c_id)){
@@ -91,7 +86,6 @@ bool Graphml::ModelParser::Process(){
             hardware_clusters_[c_id] = cluster;
         }
     }
-    
 
     //Parse HardwareNodes
     for(const auto& n_id : graphml_parser_->FindNodes("HardwareNode")){

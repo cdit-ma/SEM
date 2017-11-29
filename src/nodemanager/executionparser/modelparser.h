@@ -74,7 +74,7 @@ namespace Graphml{
             bool success = false;
             //Lookup Maps
 
-            Graphml::Model* model_;
+            Graphml::Model* model_ = 0;
             std::unordered_map<std::string, Graphml::HardwareNode*> hardware_nodes_;
             std::unordered_map<std::string, Graphml::HardwareCluster*> hardware_clusters_;
 
