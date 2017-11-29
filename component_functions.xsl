@@ -1411,7 +1411,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('Attribute ', o:square_wrap($id), ': ', $label), 1)" />
-            <xsl:value-of select="concat(o:t(1), 'AddAttribute(new Attribute(',$attr_type, ', ', o:dblquote_wrap($label),'));' ,o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'ConstructAttribute(',$attr_type, ', ', o:dblquote_wrap($label),');' ,o:nl())" />
         </xsl:for-each>
 
         <!-- Construct Attributes -->

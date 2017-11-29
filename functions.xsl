@@ -2140,9 +2140,9 @@
         <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
 
         <!-- Copy Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, ' val')), ';', o:nl())" />
-        <!-- Pointer Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat('const ', $variable_type, o:and(), ' val')), ';', o:nl())" />
+        <!-- Pointer Setter
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" /> -->
         
         <!-- Copy Getter -->
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ';', o:nl())" />
@@ -2163,29 +2163,29 @@
         <xsl:variable name="variable_ptr_type" select="concat($cpp_type, o:and())" />
 
         <!-- Copy Setter -->
-        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($cpp_type, ' val'))" />
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat('const ', $cpp_type, o:and(), ' val'))" />
         <xsl:value-of select="concat('{', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ').lock();', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'if(a){', o:nl())" />
         <xsl:value-of select="concat(o:t(2), 'a', o:fp(), 'set_', $attr_type, '(val);', o:nl())" />
         <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
         <xsl:value-of select="concat('}', o:nl())" />
         <xsl:value-of select="o:nl()" />
 
-        <!-- Pointer Setter -->
+        <!-- Pointer Setter
         <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($cpp_type, '* val'))" />
         <xsl:value-of select="concat('{', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'if(val){', o:nl())" />
         <xsl:value-of select="concat(o:t(2), o:cpp_base_set_func($variable_name), '(*val);', o:nl())" />
         <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
         <xsl:value-of select="concat('};', o:nl())" />
-        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:nl()" /> -->
 
         <!-- Copy Getter -->
         <xsl:value-of select="o:cpp_func_def($cpp_type, $class_name, o:cpp_base_get_func($variable_name), '')" />
         <xsl:value-of select="concat('{', o:nl())" />
         <xsl:value-of select="concat(o:t(1), $cpp_type, ' val;', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ').lock();', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'if(a){', o:nl())" />
         <xsl:value-of select="concat(o:t(2), 'val = a', o:fp(), 'get_', $attr_type, '();', o:nl())" />
         <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
@@ -2196,7 +2196,7 @@
         <!-- Inplace Getter -->
         <xsl:value-of select="o:cpp_func_def($variable_ptr_type, $class_name, $variable_name, '')" />
         <xsl:value-of select="concat('{', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ').lock();', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'return a', o:fp(), $attr_type, '();', o:nl())" />
         <xsl:value-of select="concat('}', o:nl())" />
         <xsl:value-of select="o:nl()" />
