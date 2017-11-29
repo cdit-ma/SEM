@@ -1624,11 +1624,11 @@
         <xsl:variable name="src_var" select="concat('src_', lower-case($aggregate_label), '_')" />
         <xsl:variable name="dst_var" select="concat('dst_', lower-case($aggregate_label), '_')" />
 
-        <xsl:variable name="get_value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($aggregate_label, $src_mw))" />
+        <xsl:variable name="get_value" select="concat($in_var, '.' , o:cpp_mw_get_func($aggregate_label, $src_mw))" />
         
         <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($aggregate_type)), 1)" />
         <xsl:value-of select="concat(o:t(1), 'auto ', $src_var, ' = ', $get_value, ';', o:nl())" />
-        <xsl:value-of select="concat(o:t(1), 'auto ', $dst_var, ' = ', $class_namespace, '::translate(',o:and(), $src_var, ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto ', $dst_var, ' = ', $class_namespace, '::translate(', $src_var, ');', o:nl())" />
                 
         <xsl:value-of select="concat(o:t(1), 'if(', $dst_var, '){', o:nl())" />
             <xsl:choose>
