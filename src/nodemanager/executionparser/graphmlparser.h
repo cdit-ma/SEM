@@ -10,20 +10,18 @@
 class GraphmlParser{
 
     public:
-        GraphmlParser(std::string filename);
+        GraphmlParser(const std::string& filename);
         bool IsValid();
-        std::vector<std::string> FindNodes(std::string kind, std::string parent_id = "");
-        std::vector<std::string> FindEdges(std::string kind ="");
+        std::vector<std::string> FindNodes(const std::string& kind, const std::string& parent_id = "");
+        std::vector<std::string> FindEdges(const std::string& kind = "");
 
-        std::string GetAttribute(std::string id, std::string attribute_name);
-        std::string GetDataValue(std::string id, std::string key_name);
-
-        std::string GetParentNode(std::string id);
-        
-
+        std::string GetAttribute(const std::string& id, const std::string& attribute_name);
+        std::string GetDataValue(const std::string& id, const std::string& key_name);
+        std::string GetParentNode(const std::string& id);
     private:
         bool legal_parse = false;
         std::unordered_map<std::string, std::string> attribute_map_;
+        std::unordered_map<std::string, pugi::xml_node> id_lookup_;
         pugi::xml_document doc;
         std::unordered_map<std::string, std::string> data_lookup_;
         std::unordered_map<std::string, std::string> attr_lookup_;

@@ -29,40 +29,40 @@ namespace Graphml{
             ModelParser(const std::string filename);
             bool IsValid();
         public:
-            Graphml::HardwareNode* GetHardwareNodeByName(std::string host_name);
-            Graphml::HardwareNode* GetHardwareNodeByIPAddress(std::string ip_address);
+            Graphml::HardwareNode* GetHardwareNodeByName(const std::string& host_name);
+            Graphml::HardwareNode* GetHardwareNodeByIPAddress(const std::string& ip_address);
 
             //Get List functions        
             std::vector<HardwareNode*> GetHardwareNodes();
             std::vector<ComponentInstance*> GetComponentInstances();
 
             //Getter Functions from ID
-            Graphml::HardwareNode* GetHardwareNode(std::string id);
-            Graphml::HardwareCluster* GetHardwareCluster(std::string id);
-            Graphml::LoggingProfile* GetLoggingProfile(std::string id);
-            Graphml::LoggingServer* GetLoggingServer(std::string id);
-            Graphml::Component* GetComponentDefinition(std::string id);
-            Graphml::ComponentInstance* GetComponentInstance(std::string id);
-            Graphml::ComponentAssembly* GetComponentAssembly(std::string id);
-            Graphml::ComponentReplication* GetComponentReplication(std::string id);
-            Graphml::EventPort* GetEventPort(std::string id);
-            Graphml::Attribute* GetAttribute(std::string id);
-            Graphml::Edge* GetEdge(std::string id);
-            std::string GetAttribute(std::string id, std::string attr_name);
-            std::string GetDataValue(std::string id, std::string key_name);
+            Graphml::HardwareNode* GetHardwareNode(const std::string& id);
+            Graphml::HardwareCluster* GetHardwareCluster(const std::string& id);
+            Graphml::LoggingProfile* GetLoggingProfile(const std::string& id);
+            Graphml::LoggingServer* GetLoggingServer(const std::string& id);
+            Graphml::Component* GetComponentDefinition(const std::string& id);
+            Graphml::ComponentInstance* GetComponentInstance(const std::string& id);
+            Graphml::ComponentAssembly* GetComponentAssembly(const std::string& id);
+            Graphml::ComponentReplication* GetComponentReplication(const std::string& id);
+            Graphml::EventPort* GetEventPort(const std::string& id);
+            Graphml::Attribute* GetAttribute(const std::string& id);
+            Graphml::Edge* GetEdge(const std::string& id);
+            std::string GetAttribute(const std::string& id, const std::string& attr_name);
+            std::string GetDataValue(const std::string& id, std::string key_name);
             
             std::string GetDeploymentJSON();
         private:
-            std::string to_lower(std::string str);
+            std::string to_lower(const std::string& str);
             bool Process();
             GraphmlParser* graphml_parser_;
 
             std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
-            std::string GetDefinitionId(std::string id);
-            std::string GetAggregateID(std::string id);
-            std::string GetDeployedID(std::string id);
-            std::string GetImplId(std::string id);
-            void RecurseEdge(std::string source_id, std::string current_id);
+            std::string GetDefinitionId(const std::string& id);
+            std::string GetAggregateID(const std::string& id);
+            std::string GetDeployedID(const std::string& id);
+            std::string GetImplId(const std::string& id);
+            void RecurseEdge(const std::string& source_id, std::string current_id);
             std::string GetUniquePrefix(int count);
 
 

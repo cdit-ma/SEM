@@ -3,19 +3,22 @@
 
 #include <iostream>
 
-GraphmlParser::GraphmlParser(std::string filename){
+GraphmlParser::GraphmlParser(const std::string& filename){
     auto result = doc.load_file(filename.c_str());
     legal_parse = result.status == pugi::status_ok;;
     if(!legal_parse){
         std::cerr << "GraphmlParser:Parse(" + filename + ") Error: " << result.description() << std::endl;
     }
-
-    auto keys = doc.select_nodes("/graphml/key");
-    for(auto key : keys){
-        std::string name = key.node().attribute("attr.name").value();
-        std::string id = key.node().attribute("id").value();
-
+    for(auto& key : doc.select_nodes("/graphml/key")){
+        const auto &name = key.node().attribute("attr.name").value();
+        const auto &id = key.node().attribute("id").value();
         attribute_map_[name] = id;
+    }
+
+    for(auto& xpath_node : doc.select_nodes("//*[@id]")){
+        auto node = xpath_node.node();
+        auto id = node.attribute("id").value();
+        id_lookup_[id] = node;
     }
 }
 
@@ -24,23 +27,22 @@ bool GraphmlParser::IsValid(){
     
 }
 
-std::vector<std::string> GraphmlParser::FindNodes(std::string kind, std::string parent_id){
+std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const std::string& parent_id){
+    auto search_node = doc.document_element();
 
-    std::string search = ".//node";
-
-    if(parent_id.length() > 0){
-        search += "[@id='"+ parent_id + "']/";
+    if(parent_id.length() > 0 && id_lookup_.count(parent_id)){
+        search_node = id_lookup_[parent_id];
     }
-    search += "/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
+    std::string search = ".//node/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
     std::vector<std::string> out;
 
-    for(auto n : doc.select_nodes(search.c_str())){
+    for(auto& n : search_node.select_nodes(search.c_str())){
         out.push_back(n.node().attribute("id").value());
     }
     return out;
 }
 
-std::vector<std::string> GraphmlParser::FindEdges(std::string kind){
+std::vector<std::string> GraphmlParser::FindEdges(const std::string& kind){
     std::string search = ".//edge";
     
     if(kind != ""){
@@ -49,64 +51,82 @@ std::vector<std::string> GraphmlParser::FindEdges(std::string kind){
 
     std::vector<std::string> out;
 
-    for(auto n : doc.select_nodes(search.c_str())){
+    for(auto& n : doc.select_nodes(search.c_str())){
         out.push_back(n.node().attribute("id").value());
     }
     return out;
 }
 
-std::string GraphmlParser::GetAttribute(std::string id, std::string attribute_name){
+std::string GraphmlParser::GetAttribute(const std::string& id, const std::string& attribute_name){
 
     std::string key = id + "|" + attribute_name;
 
     if(attr_lookup_.count(key)){
         return attr_lookup_[key];
     }else{
-        std::string search = ".//*[@id='" + id + "']";
         std::string out;
-        try{
-            auto res = doc.select_node(search.c_str());
-            out = res.node().attribute(attribute_name.c_str()).value();
-        } catch(...){}
-        attr_lookup_[key] = out;
+        
+        if(id_lookup_.count(id)){
+            auto& entity = id_lookup_[id];
+            if(entity){
+                auto attribute = entity.attribute(attribute_name.c_str());
+                if(attribute){
+                    out = attribute.value();
+                    attr_lookup_[key] = out;
+                }else{
+                    std::cerr << "GraphmlParser: Entity with ID: '" << id << "' doesn't have an attribute: '" << attribute_name << "'" << std::endl;
+                }
+            }
+        }else{
+            std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
+        }
         return out;
     }
 }
 
-std::string GraphmlParser::GetDataValue(std::string id, std::string key_name){
+std::string GraphmlParser::GetDataValue(const std::string& id, const std::string& key_name){
     std::string key = id + "|" + key_name;
 
     if(data_lookup_.count(key)){
         return data_lookup_[key];
     }else{
-        std::string search = ".//*[@id='" + id + "']/data[@key='" + attribute_map_[key_name] + "']";
         std::string out;
-        try{
-            auto res = doc.select_node(search.c_str());
-            out = res.node().child_value();
-        } catch(...){}
-        data_lookup_[key] = out;
+        
+        if(id_lookup_.count(id)){
+            auto& entity = id_lookup_[id];
+            if(entity){
+                auto search = "data[@key='" + attribute_map_[key_name] + "']";
+
+                auto res = entity.select_node(search.c_str());
+                auto node = res.node();
+
+                if(node){
+                    out = node.child_value();
+                    data_lookup_[id] = out;
+                }else{
+                    std::cerr << "GraphmlParser: Entity with ID: '" << id << "' doesn't have an data value with key: '" << key_name << "'" << std::endl;
+                }
+            }
+        }else{
+            std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
+        }
         return out;
     }
 }
 
-std::string GraphmlParser::GetParentNode(std::string id){
+std::string GraphmlParser::GetParentNode(const std::string& id){
     if(parent_id_lookup_.count(id)){
         return parent_id_lookup_[id];
     }else{
-        std::string search = ".//*[@id='" + id + "']/../..";
+        auto search_node = doc.document_element();
         std::string out;
-        bool success = false;
-        try{
-            auto res = doc.select_node(search.c_str());
+        if(id_lookup_.count(id)){
+            search_node = id_lookup_[id];
+            auto res = search_node.select_node("../..");
             out = res.node().attribute("id").value();
-            success = true;
-        }catch(...){
-            std::cout << "ERROR" << std::endl;
-        }
-
-        if(success){
             parent_id_lookup_[id] = out;
+        }else{
+            std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
         }
         return out;
     }
