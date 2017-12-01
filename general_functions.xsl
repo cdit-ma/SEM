@@ -2,7 +2,7 @@
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:o="http://github.com/cdit-ma"
+    xmlns:o="http://github.com/cdit-ma/o"
     >
 
     <!--
@@ -80,9 +80,9 @@
         ${start}${str}${end}
     -->
     <xsl:function name="o:wrap" as="xs:string">
-        <xsl:param name="start" as="xs:string" />
-        <xsl:param name="str" as="xs:string" />
-        <xsl:param name="end" as="xs:string" />
+        <xsl:param name="start" />
+        <xsl:param name="str" as="xs:string"/>
+        <xsl:param name="end" />
         <xsl:value-of select="concat($start, $str, $end)" />
     </xsl:function>	
 
@@ -91,7 +91,7 @@
         '${str}'
     -->
     <xsl:function name="o:wrap_quote" as="xs:string">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap(o:quote(), $str, o:quote())" />
     </xsl:function>
 
@@ -100,7 +100,7 @@
         "${str}"
     -->
     <xsl:function name="o:wrap_dblquote" as="xs:string">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap(o:dblquote(), $str, o:dblquote())" />
     </xsl:function>
 
@@ -109,7 +109,7 @@
         (${str})
     -->
     <xsl:function name="o:wrap_bracket" as="xs:string">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap('(', $str, ')')" />
     </xsl:function>
 
@@ -118,7 +118,7 @@
         <${str}>
     -->
     <xsl:function name="o:wrap_angle" as="xs:string">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap(o:lt(), $str, o:gt())" />
     </xsl:function>	
 
@@ -127,7 +127,7 @@
         [${str}]
     -->
     <xsl:function name="o:wrap_square">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap('[', $str, ']')" />
     </xsl:function>
 
@@ -136,7 +136,7 @@
         {${str}}
     -->
     <xsl:function name="o:wrap_curly" as="xs:string">
-        <xsl:param name="str" as="xs:string" />
+        <xsl:param name="str" as="xs:string"/>
         <xsl:value-of select="o:wrap('{', $str, '}')" />
     </xsl:function>
 
@@ -155,8 +155,26 @@
         Produces a message to say that this file will be produced
     -->
     <xsl:function name="o:write_file" as="xs:string">
-        <xsl:param name="file_path" as="xs:string" />
+        <xsl:param name="file_path" />
         <xsl:message>Created File: <xsl:value-of select="$file_path" /></xsl:message>
         <xsl:value-of select="$file_path" />
+    </xsl:function>
+
+    <!--
+        List joins
+    -->
+    <xsl:function name="o:join_list" as="xs:string">
+        <xsl:param name="list" as="xs:string*"/>
+        <xsl:param name="token" as="xs:string" />
+        
+        <xsl:variable name="pruned_list" as="xs:string*">
+            <xsl:for-each select="$list">
+                <xsl:if test=". != ''">
+                    <xsl:value-of select="." />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="string-join($pruned_list, $token)" />
     </xsl:function>
 </xsl:stylesheet>

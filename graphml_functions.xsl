@@ -3,7 +3,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:graphml="http://github.com/cdit-ma"
+    xmlns:graphml="http://github.com/cdit-ma/graphml"
     >
 
     <!-- Use keys to speed up parsing -->
@@ -79,7 +79,7 @@
         <xsl:param name="root" />
         <xsl:param name="key_name" as="xs:string"/>
 
-        <xsl:value-of select="lower-case(cdit:get_data_value($root, $key_name)) = 'true'" />
+        <xsl:value-of select="lower-case(graphml:get_data_value($root, $key_name)) = 'true'" />
     </xsl:function>
 
     <!--
@@ -101,7 +101,7 @@
 
         <xsl:for-each select="$root/gml:graph/gml:node">
             <!-- Sort by the index -->
-            <xsl:sort select="number(graphml:get_key_value(., 'index'))"/>
+            <xsl:sort select="number(graphml:get_data_value(., 'index'))"/>
             <xsl:sequence select="." />
         </xsl:for-each>
     </xsl:function>
