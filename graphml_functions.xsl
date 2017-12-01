@@ -17,30 +17,145 @@
     <xsl:key name="get_edge_by_source_id" match="gml:edge" use="@source"/>
     <xsl:key name="get_edge_by_target_id" match="gml:edge" use="@target"/>
 
-
     <!--
         Gets the id attribute from the element
     -->
     <xsl:function name="graphml:get_id" as="xs:string">
-        <xsl:param name="root" as="element()"/>
+        <xsl:param name="root" />
         <xsl:value-of select="$root/@id" />
     </xsl:function>
 
     <!--
-        Gets the top most
+        Gets the top most graphml element
     -->
-    <xsl:function name="graphml:get_graphml" as="xs:element()">
-        <xsl:param name="root" as="element()"/>
-        <xsl:value-of select="$root/*" />
+    <xsl:function name="graphml:get_graphml" as="element()">
+        <xsl:param name="root" />
+        
+        <xsl:choose>
+            <xsl:when test="count($root/ancestor::gml:graphml) = 1">
+                <xsl:sequence select="$root/ancestor::gml:graphml" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="$root" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
-
-    <xsl:function name="cdit:get_node_by_id">
+    <!--
+        Gets a node by id
+    -->
+    <xsl:function name="graphml:get_node_by_id" as="element()">
         <xsl:param name="root" />
         <xsl:param name="id"  as="xs:string"/>
 
-         <xsl:for-each select="$root">
-            <xsl:sequence select="key('get_node_by_id', $id)" />
+        <xsl:sequence select="$root/key('get_node_by_id', $id)" />
+    </xsl:function>
+
+    <!--
+        Gets a node by id
+    -->
+    <xsl:function name="graphml:get_key_id"  as="xs:string">
+        <xsl:param name="root" />
+        <xsl:param name="key_name"  as="xs:string"/>
+
+        <xsl:value-of select="$root/key('get_key_by_name', $key_name)/@id" />
+    </xsl:function>
+
+    <!--
+        Returns the data value with the key: ${key_name} in a node/edge
+    -->
+    <xsl:function name="graphml:get_data_value" as="xs:string">
+        <xsl:param name="root" />
+        <xsl:param name="key_name" as="xs:string"/>
+
+        <xsl:variable name="key_id" select="graphml:get_key_id($root, $key_name)" />
+        <xsl:value-of select="$root/gml:data[@key=$key_id]/text()" />
+    </xsl:function>
+
+    <!--
+        Compares the data value with key ${key_name} against the string representation of true
+    -->
+    <xsl:function name="graphml:evaluate_data_value_as_boolean" as="xs:boolean">
+        <xsl:param name="root" />
+        <xsl:param name="key_name" as="xs:string"/>
+
+        <xsl:value-of select="lower-case(cdit:get_data_value($root, $key_name)) = 'true'" />
+    </xsl:function>
+
+    <!--
+        Checks to see if a node/edge contains a data value with the key: ${key_name}
+    -->
+    <xsl:function name="graphml:got_key_value" as="xs:boolean">
+        <xsl:param name="root" />
+        <xsl:param name="key_name" as="xs:string"/>
+
+        <xsl:variable name="key_id" select="graphml:get_key_id($root, $key_name)" />
+        <xsl:value-of select="boolean($root/gml:data[@key=$key_id])" />
+    </xsl:function>
+
+    <!--
+        Gets the child nodes of the current node, sorted by index
+    -->
+    <xsl:function name="graphml:get_child_nodes" as="element()*">
+        <xsl:param name="root" />
+
+        <xsl:for-each select="$root/gml:graph/gml:node">
+            <!-- Sort by the index -->
+            <xsl:sort select="number(graphml:get_key_value(., 'index'))"/>
+            <xsl:sequence select="." />
         </xsl:for-each>
+    </xsl:function>
+
+    <!--
+        Gets the child node of the current node, based on the index
+    -->
+    <xsl:function name="graphml:get_child_node" as="element()*">
+        <xsl:param name="root" />
+        <xsl:param name="index" as="xs:integer" />
+        <xsl:sequence select="graphml:get_child_nodes($root)[$index]" />
+    </xsl:function>
+
+    <!--
+        Gets the parent of the current node, by looking two levels up
+    -->
+    <xsl:function name="graphml:get_parent_node" as="element()">
+        <xsl:param name="root"/>
+        <xsl:sequence select="$root/../.." />
+    </xsl:function>
+
+    <!--
+        Gets any descendant child of ${root} of a particular kind
+    -->
+    <xsl:function name="graphml:get_descendant_nodes_of_kind" as="element()*">
+        <xsl:param name="root" />
+        <xsl:param name="kind" as="xs:string" />
+        <xsl:variable name="kind_id" select="graphml:get_key_id($root, 'kind')" />
+        <xsl:sequence select="$root//gml:node/gml:data[@key=$kind_id and text() = $kind]/.." />
+    </xsl:function>
+
+    <!--
+        Gets any edges of kind ${edge_kind} which start at the node ${node}
+    -->
+    <xsl:function name="graphml:get_sources" as="element()*">
+        <xsl:param name="node" />
+        <xsl:param name="edge_kind" as="xs:string" />
+
+        <xsl:variable name="node_id" select="graphml:get_id($node)" />
+        <xsl:variable name="kind_key" select="graphml:get_key_id($node, 'kind')" />
+
+        <xsl:sequence select="$node/key('get_edge_by_source_id', $node_id)/gml:data[@key=$kind_key and text()=$edge_kind]/.." />
+    </xsl:function>
+
+    <!--
+        Gets any edges of kind ${edge_kind} which end at the node ${node}
+    -->
+    <xsl:function name="graphml:get_targets" as="element()*">
+        <xsl:param name="node" />
+        <xsl:param name="edge_kind" as="xs:string" />
+
+        <xsl:variable name="node_id" select="graphml:get_id($node)" />
+        <xsl:variable name="kind_key" select="graphml:get_key_id($node, 'kind')" />
+
+        <xsl:sequence select="$node/key('get_edge_by_target_id', $node_id)/gml:data[@key = $kind_key and text() = $edge_kind]/.." />
     </xsl:function>
 </xsl:stylesheet>
