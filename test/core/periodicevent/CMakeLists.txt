@@ -10,6 +10,13 @@ SET(SOURCE
 
 
 add_executable(${PROJ_NAME} ${SOURCE})
-target_link_libraries(${PROJ_NAME} pthread)
+if (MSVC)
+    #Windows requires protobuf in DLLs
+    add_definitions(-DPROTOBUF_USE_DLLS)
+    #Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
+    #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+elseif(UNIX)
+    target_link_libraries(${PROJ_NAME} pthread)
+endif(UNIX)
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
