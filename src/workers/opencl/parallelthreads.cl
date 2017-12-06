@@ -1,7 +1,7 @@
 
-#pragma OPENCL EXTENSION cl_amd_printf : enable
+//#pragma OPENCL EXTENSION cl_amd_printf : enable
 
-__kernel void runParallel(/*__global int* in_buffer,*/ long num_ops) {
+__kernel void runParallel(long num_ops) {
     volatile long accumulator=0;
     //__local long accumulator[4096];
     // /#pragma UNROLL 1
@@ -13,3 +13,5 @@ __kernel void runParallel(/*__global int* in_buffer,*/ long num_ops) {
         printf("%lld",accumulator);
     }*/
 }
+
+//__kernel void runParallel(/*__global int* in_buffer,*/ long num_ops) {

@@ -3,6 +3,7 @@
 
 #include <memory>
 
+class OpenCLDevice;
 class OpenCLManager;
 
 namespace cl {
@@ -19,7 +20,7 @@ namespace cl {
 class OpenCLKernelBase {
 public:
 
-    bool Run(unsigned int gpu_num, bool block, const cl::NDRange& offset,
+    bool Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset,
         const cl::NDRange& global, const cl::NDRange& local);
 
     bool SetArg(unsigned int index, size_t size, const void* value);

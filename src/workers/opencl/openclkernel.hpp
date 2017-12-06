@@ -142,6 +142,7 @@ OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
 template <typename T0>
 typename std::enable_if<!std::is_pointer<T0>::value, bool>::type
 OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
+    std::cerr << "entering base call for memory object of type " << typeid(T0).name() <<std::endl;
     return SetArg(index, sizeof(T0), &arg);
 }
 

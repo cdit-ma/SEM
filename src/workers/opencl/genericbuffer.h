@@ -11,6 +11,7 @@ namespace cl {
 }
 
 class OpenCLManager;
+class OpenCLDevice;
 
 class GenericBuffer {
 public:
@@ -30,8 +31,8 @@ public:
 
 protected:
 
-    bool ReadData(void* dest, size_t length, bool blocking=true, Worker* worker_reference=NULL) const;
-    bool WriteData(const void* source, size_t size, bool blocking=true, Worker* worker_reference=NULL);
+    bool ReadData(void* dest, size_t length, const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL) const;
+    bool WriteData(const void* source, size_t size, const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL);
     
     virtual void LogError(Worker* worker_reference, std::string function_name, std::string error_message, int cl_error_code) const;
     virtual void LogError(Worker* worker_reference, std::string function_name, std::string error_message) const;

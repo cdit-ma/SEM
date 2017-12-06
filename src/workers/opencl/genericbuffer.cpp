@@ -72,7 +72,7 @@ const cl::Buffer& GenericBuffer::GetBackingRef() const {
 }
 
 
-bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* worker_reference) const {
+bool GenericBuffer::ReadData(void* dest, size_t size, const OpenCLDevice& device, bool blocking, Worker* worker_reference) const {
     cl_int err;
 
     if (!valid_) {
@@ -91,7 +91,7 @@ bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* wor
 
     // NEEDS TO HAVE LENGTH INITIALISED FIRST
     //err = cl::copy(manager_->GetQueues().at(0), buffer_, data.begin(), data.end());
-    err = manager_.GetQueues().at(0)->enqueueReadBuffer(GetBackingRef(), blocking, 0, size, dest);
+    err = device.GetQueue().enqueueReadBuffer(GetBackingRef(), blocking, 0, size, dest);
     if(err != CL_SUCCESS){
         LogError(worker_reference,
             __func__,
@@ -103,7 +103,7 @@ bool GenericBuffer::ReadData(void* dest, size_t size, bool blocking, Worker* wor
     return true;
 }
 
-bool GenericBuffer::WriteData(const void* source, size_t size, bool blocking, Worker* worker_reference) {
+bool GenericBuffer::WriteData(const void* source, size_t size, const OpenCLDevice& device, bool blocking, Worker* worker_reference) {
     cl_int err;
 
     if (!valid_) {
@@ -121,7 +121,7 @@ bool GenericBuffer::WriteData(const void* source, size_t size, bool blocking, Wo
     }
 
     //err = cl::copy(manager_->GetQueues().at(0), data.begin(), data.end(), buffer_);
-    err = manager_.GetQueues().at(0)->enqueueWriteBuffer(GetBackingRef(), blocking, 0, size, source);
+    err = device.GetQueue().enqueueWriteBuffer(GetBackingRef(), blocking, 0, size, source);
     if(err != CL_SUCCESS){
         LogError(worker_reference,
             __func__,

@@ -99,8 +99,8 @@ void recordTest(Result result, std::string description) {
 
 void testLoadBalancer(OpenCLManager& manager);
 
-void testBufferReadWrite(OpenCLManager& manager);
-void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_kernel);
+void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device);
+void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device, OpenCLKernel& passthrough_kernel);
 
 OpenCLWorker* testWorkerConstruction(Component& component);
 void testWorkerDestruction(OpenCLWorker* worker);
@@ -140,22 +140,27 @@ int main(int argc, char** argv) {
 		std::cout << " - " << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
 	}
 	
-	auto manager = OpenCLManager::GetReferenceByPlatform(0);
+	OpenCLManager* manager = OpenCLManager::GetReferenceByPlatform(0);
+	if (manager != NULL) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Attempt to retreive reference to first available OpenCLPlatform did not return null");
 	if (manager->IsValid()) {
 		res = PASS;
-		printPass("Successfully retrieved OpenCLManager (first available)");
 	}
 	else {
 		res = FAIL;
 	}
-	recordTest(res, "Initialise and return reference to first available OpenCLManager");
+	recordTest(res, "Reference to first available OpenCLManager reports itself as being valid");
 	if (res == FAIL) {
 		return 1;
 	}
 
 	printInfo("Listing available devices for platform:");
-	for (auto device : manager->GetDevices()) {
-		std::cout << " - " << device->getInfo<CL_DEVICE_NAME>() << std::endl;
+	for (const auto& device : manager->GetDevices()) {
+		std::cout << " - " << device.GetName() << std::endl;
 	}
 
 	// Generate the list of source files
@@ -174,24 +179,30 @@ int main(int argc, char** argv) {
 
 	// Generate the kernels for the provided source files
 	auto kernels = manager->CreateKernels(filenames);
-	if (kernels.size() == 0) {
+	/*if (kernels.size() == 0) {
 		res = FAIL;
 	} else {
 		res = PASS;
 	}
-	recordTest(res, "Create kernels from OpenCL source code");
+	recordTest(res, "Create kernels from OpenCL source code");*/
+	std::cout << "Hello" << std::endl;
+	std::cout << & manager->GetDevices()[0].GetRef() << std::endl;
 
-	if (kernels.size() != 0) {
+	std::cout << manager->GetDevices()[0].GetRef().getInfo<CL_DEVICE_NAME>() << std::endl;
+
+	/*if (kernels.size() != 0) {
 		printInfo("Listing built kernels:");
 		for (auto k : kernels) {
 			std::cout << " - " << k.GetName() << std::endl;
 		}
+	}*/
+
+	for (auto& device : manager->GetDevices()) {
+		testBufferReadWrite(*manager, device);
 	}
 
-	testBufferReadWrite(*manager);
-
 	OpenCLKernel* pt_kernel;
-	bool found_pt_kernel = false;
+	/*bool found_pt_kernel = false;
 	for (auto& k : kernels) {
 		if (k.GetName() == "dataPassthroughTest") {
 			pt_kernel = &k;
@@ -200,9 +211,11 @@ int main(int argc, char** argv) {
 	}
 	if (!found_pt_kernel) {
 		printFail("Unable to find dataPasshtoughTest kernel");
-	}
+	}*/
 
-	testKernelPassthrough(*manager, *pt_kernel);
+	for (auto& device : manager->GetDevices()) {
+		testKernelPassthrough(*manager, device, *pt_kernel);
+	}
 
 	testLoadBalancer(*manager);
 
@@ -213,6 +226,8 @@ int main(int argc, char** argv) {
 	// Run worker tests conditional on worker having been successfully constructed
 	if (worker != NULL) {
 		testWorkerCreateBuffer(worker);
+
+	std::cout << "DASDAFGADASD" << std::endl;
 		testWorkerRunParallel(worker);
 		testWorkerMatrixMult(worker);
 		testWorkerKMeans(worker);
@@ -280,7 +295,7 @@ void testLoadBalancer(OpenCLManager& manager) {
 
 }
 
-void testBufferReadWrite(OpenCLManager& manager) {
+void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	Result res = UNKNOWN;
 
 	// Create a test buffer
@@ -301,7 +316,9 @@ void testBufferReadWrite(OpenCLManager& manager) {
 	for (int i=0; i<in_data.size(); i++) {
 		in_data[i] = (float)i+10;
 	}
-	bool did_write_data = buffer->WriteData(in_data);
+	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
+	bool did_write_data = buffer->WriteData(in_data, device);
+	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 	if (did_write_data) {
 		res = PASS;
 	} else {
@@ -311,7 +328,7 @@ void testBufferReadWrite(OpenCLManager& manager) {
 
 	// Read it back
 	printInfo("Reading the data back...");
-	auto out_data = buffer->ReadData();
+	auto out_data = buffer->ReadData(device);
 	bool vectors_match = true;
 	//std::cout << in_data.size() << ", " << out_data.size() <<std::endl;
 	if (in_data.size() != out_data.size()) {
@@ -332,7 +349,7 @@ void testBufferReadWrite(OpenCLManager& manager) {
 	}
 	recordTest(res, "Write to buffer of length 4 then read back the result");
 
-	auto out_data2 = buffer->ReadData();
+	auto out_data2 = buffer->ReadData(device);
 	vectors_match = true;
 	//std::cout << in_data.size() << ", " << out_data.size() <<std::endl;
 	if (out_data.size() != out_data2.size()) {
@@ -357,11 +374,11 @@ void testBufferReadWrite(OpenCLManager& manager) {
 }
 
 
-void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_kernel) {
+void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device, OpenCLKernel& passthrough_kernel) {
 	Result res = UNKNOWN;
 
 	auto in_data = std::vector<float>(4, 0.3f);
-	auto in_buffer = manager.CreateBuffer<float>(in_data);
+	auto in_buffer = manager.CreateBuffer<float>(in_data, device);
 	if (in_buffer->is_valid()) {
 		res = PASS;
 	} else {
@@ -377,8 +394,19 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 	}
 	recordTest(res, "Created valid OCLBuffer to read data from");
 
+	std::cout << "Hi there!" << std::endl;
+
+	OpenCLKernel* passthrough_kernel_ptr = NULL;
+	std::reference_wrapper<OpenCLKernel> ptk_ref();
+	for (auto& kernel : device.GetKernels()) {
+		if (kernel.get().GetName() == "dataPassthroughTest") {
+			passthrough_kernel_ptr = &kernel.get();
+			//ptk_ref = kernel;
+		}
+	}
+
 	printInfo("Setting passthrough kernel arguments...");
-	bool did_set_args = passthrough_kernel.SetArgs((*in_buffer), (*out_buffer));
+	bool did_set_args = passthrough_kernel_ptr->SetArgs((*in_buffer), (*out_buffer));
 	if (did_set_args) {
 		res = PASS;
 	} else {
@@ -388,7 +416,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 	//kernel->SetArgs(*in_buffer, 2);
 
 	printInfo("Running passthrough kernel...");
-	bool kernel_success = passthrough_kernel.Run(0, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
+	bool kernel_success = passthrough_kernel_ptr->Run(device, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
 	if (kernel_success) {
 		res = PASS;
 	} else {
@@ -397,7 +425,7 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLKernel& passthrough_ker
 	recordTest(res, "Passthrough kernel that copies write buffer contents to read buffer reported successful run");
 
 	printInfo("Reading back result...");
-	auto out_data = out_buffer->ReadData();
+	auto out_data = out_buffer->ReadData(device);
 	if (out_data.size() > 0) {
 		res = PASS;
 	} else {
@@ -457,7 +485,13 @@ void testWorkerCreateBufferOfType(OpenCLWorker* worker, std::string type_name, s
 		res = FAIL;
 	}
 	recordTest(res, "Create buffer for empty "+type_name+" vector did not return null");
-	if (buffer_empty->ReadData(true, worker).empty()) {
+	if (!buffer_empty->is_valid()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for empty "+type_name+" does signal that it is invalid");
+	if (worker->ReadBuffer(*buffer_empty).empty()) {
 		res = PASS;
 	} else {
 		res = FAIL;
@@ -474,7 +508,20 @@ void testWorkerCreateBufferOfType(OpenCLWorker* worker, std::string type_name, s
 		res = FAIL;
 	}
 	recordTest(res, "Create buffer for length 4 "+type_name+" vector did not return null");
-	if (buffer_4->ReadData(true, worker) == vec_4) {
+	if (buffer_4->is_valid()) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Create buffer for length 4 "+type_name+" does signal that it is valid");
+	const auto& vec_4_out = worker->ReadBuffer(*buffer_4);
+	bool contents_equal = true;
+	if (vec_4_out.size() != vec_4.size()) contents_equal = false;
+	for (int i=0; i<vec_4.size(); i++) {
+		if (vec_4_out[i] != vec_4[i]) contents_equal = false;
+	}
+	//if (worker->ReadBuffer(*buffer_4) == vec_4) {
+	if (contents_equal) {
 		res = PASS;
 	} else {
 		res = FAIL;
@@ -487,7 +534,7 @@ void testWorkerCreateBufferOfType(OpenCLWorker* worker, std::string type_name, s
 	} else {
 		res = PASS;
 	}
-	recordTest(res, "Writing 5 elements to"+type_name+" buffer of length 4 reported failure");
+	recordTest(res, "Writing 5 elements to "+type_name+" buffer of length 4 reported failure");
 	auto vec_4_rev(vec_4);
 	std::reverse(vec_4_rev.begin(), vec_4_rev.end());
 	if (worker->WriteBuffer(*buffer_4, vec_4_rev, true)) {
@@ -496,18 +543,18 @@ void testWorkerCreateBufferOfType(OpenCLWorker* worker, std::string type_name, s
 		res = FAIL;
 	}
 	recordTest(res, "Writing 4 elements to"+type_name+" buffer of length 4 reported success");
-	if (buffer_4->ReadData(true, worker) == vec_4_rev) {
+	/*if (buffer_4->ReadData(true, worker) == vec_4_rev) {
 		res = PASS;			
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Read back the correct elements from the underlying buffer");
+	recordTest(res, "Read back the correct elements from the underlying buffer");*/
 	if (worker->ReadBuffer(*buffer_4, true) == vec_4_rev) {
 		res = PASS;			
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Read back the correct elements from the underlying buffer");
+	recordTest(res, "Read back the correct elements from the buffer");
 
 	worker->ReleaseBuffer(buffer_4);
 }

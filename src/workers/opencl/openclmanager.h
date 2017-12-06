@@ -10,12 +10,12 @@
 #include <core/worker.h>
 
 #include "oclbuffer.hpp"
+#include "opencldevice.h"
 
 class OpenCLKernel;
 
 namespace cl {
 	class Platform;
-	class Device;
 	class Context;
 	class CommandQueue;
 	class Program;
@@ -40,11 +40,11 @@ class OpenCLManager {
 
 		const cl::Context& GetContext() const;
 
-		const std::vector<std::shared_ptr<cl::Device> > GetDevices(Worker* worker_reference=NULL) const;
+		std::vector<OpenCLDevice>& GetDevices(Worker* worker_reference=NULL);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
-		const std::vector<OpenCLKernel> CreateKernels(std::vector<std::string> filenames, Worker* worker_reference = NULL);
+		const std::vector<OpenCLKernel> CreateKernels(const std::vector<std::string>& filenames, Worker* worker_reference = NULL);
 
 		/*template <typename KernelArg_t>
 		void SetKernelArg(cl::Kernel& kernel, cl_int index, KernelArg_t value);
@@ -55,7 +55,7 @@ class OpenCLManager {
 		template <typename T>
 		OCLBuffer<T>* CreateBuffer(size_t buffer_size, Worker* worker_reference=NULL);
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(const std::vector<T>& data, bool blocking=true, Worker* worker_reference=NULL);
+		OCLBuffer<T>* CreateBuffer(const std::vector<T>& data, OpenCLDevice& device,  bool blocking=true, Worker* worker_reference=NULL);
 
 		template <typename T>
 		void ReleaseBuffer(OCLBuffer<T>* buffer, Worker* worker_reference=NULL);
@@ -108,7 +108,7 @@ class OpenCLManager {
 		bool valid_ = false;
 		cl::Platform& platform_;
 		cl::Context* context_;
-		std::vector<std::shared_ptr<cl::Device> > device_list_;
+		std::vector<OpenCLDevice> device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
 		cl::Program* program_;
 		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
@@ -126,9 +126,9 @@ OCLBuffer<T>* OpenCLManager::CreateBuffer(size_t buffer_size, Worker* worker_ref
 }
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, bool blocking, Worker* worker_reference) {
+OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, OpenCLDevice& device, bool blocking, Worker* worker_reference) {
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(*this, data, blocking, worker_reference);
+	auto buffer = new OCLBuffer<T>(*this, data, device, blocking, worker_reference);
 	return buffer;
 }
 
