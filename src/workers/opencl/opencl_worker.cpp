@@ -149,7 +149,8 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
                 return false;
         }
     }*/
-    auto& matrix_kernel = GetKernel(device, "matrixMultFull", "matrixmult.cl");
+    std::string filename = GetSourcePath("matrixmult.cl");
+    auto& matrix_kernel = GetKernel(device, "matrixMultFull", filename);
 
     // Specifies the width and height of the blocks used to increase cache performance, will be hardware dependant
     unsigned int block_length = 4;
@@ -213,7 +214,7 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices()[device_id];
 
-    auto& filename = GetSourcePath("kmeans.cl");
+    std::string filename = GetSourcePath("kmeans.cl");
     auto& cluster_classify_kernel = GetKernel(device, "classifyPoints", filename);
     auto& cluster_adjust_kernel = GetKernel(device, "adjustCentroids", filename);
     
