@@ -45,12 +45,6 @@ class OpenCLManager {
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
 		const std::vector<OpenCLKernel> CreateKernels(const std::vector<std::string>& filenames, Worker* worker_reference = NULL);
-
-		/*template <typename KernelArg_t>
-		void SetKernelArg(cl::Kernel& kernel, cl_int index, KernelArg_t value);
-
-		template <typename KernelArg_t>
-		void SetKernelArg(cl::Kernel& kernel, cl_int index, OCLBuffer<KernelArg_t> value);*/
 		
 		template <typename T>
 		OCLBuffer<T>* CreateBuffer(size_t buffer_size, Worker* worker_reference=NULL);
@@ -86,11 +80,6 @@ class OpenCLManager {
 		int TrackBuffer(GenericBuffer* buffer);
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
-		
-		
-		/*template <typename T>
-		friend OCLBuffer<T>::~OCLBuffer();*/
-		
 
 		static void LogError(Worker* worker_reference,
 							std::string function_name,
@@ -138,9 +127,6 @@ void OpenCLManager::ReleaseBuffer(OCLBuffer<T>* buffer,
 		Worker* worker_reference) {
 
 	delete buffer;
-	/*if (buffer->is_valid()) {
-		buffer_store_.erase(buffer->GetID());
-	}*/
 }
 
 #endif // OPENCL_MANAGER_H

@@ -27,7 +27,6 @@ bool OpenCLWorker::Configure(int platform_id, int device_id) {
         is_valid_ = true;
     }
 
-    //std::vector<std::shared_ptr<cl::Device> > devices = manager_->GetDevices();
     std::vector<unsigned int> device_ids;
     device_ids.push_back(device_id);
     load_balancer_ = new OpenCLLoadBalancer(device_ids);
@@ -48,22 +47,7 @@ bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
     auto& device = manager_->GetDevices()[device_id];
 
     std::string filename = GetSourcePath("parallelthreads.cl");
-    std::cout << manager_->GetDevices().size() << std::endl;
     auto& parallel_kernel = GetKernel(device, "runParallel", filename);
-    std::cout << parallel_kernel.GetName() << std::endl;
-
-    /*if (parallel_kernel_ == NULL) {
-        std::string source_file_path(__FILE__);
-        auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
-        std::string filename = source_dir + "parallelthreads.cl";
-        
-        parallel_kernel_ = InitKernel(*manager_, "runParallel", filename);
-        if (parallel_kernel_ == NULL) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to initialise RunParallel kernel, skipping");
-                return false;
-        }
-    }*/
 
     success = parallel_kernel.SetArgs(ops_per_thread);
     if (!success) {
@@ -136,19 +120,6 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
         return false;
     }
 
-    /*if (matrix_kernel == NULL) {
-        //std::string source_file_path(__FILE__);
-        //auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
-        //std::string filename = source_dir + "matrixmult.cl";
-        std::string filename = GetSourcePath("matrixmult.cl");
-
-        matrix_kernel = InitKernel(*manager_, "matrixMultFull", filename);
-        if (matrix_kernel == NULL) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to initialise matrixmult kernel, skipping calculation");
-                return false;
-        }
-    }*/
     std::string filename = GetSourcePath("matrixmult.cl");
     auto& matrix_kernel = GetKernel(device, "matrixMultFull", filename);
 
@@ -157,10 +128,8 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     cl::Device dev = manager_->GetContext().getInfo<CL_CONTEXT_DEVICES>()[0];
     cl::size_type workgroup_size = matrix_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(dev);
     block_length = (unsigned int) sqrt(workgroup_size);
-    //std::cout << "Block length: " << block_length << std::endl;
 
 
-    //size_t block_data_size = block_length*block_length*sizeof(cl_float);
     cl::LocalSpaceArg block_data_size = cl::Local(block_length*block_length*sizeof(cl_float));
 
     unsigned int max_mat_width = std::max(M, K);
@@ -174,7 +143,6 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     // TODO: Mutex this stuff
     bool did_set_args = matrix_kernel.SetArgs(matA, matB, matC, M, K, N,
         block_data_size, block_data_size);
-        //cl::Local(block_data_size), cl::Local(block_data_size));
     if (!did_set_args) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Failed to set args for MatrixMult");
@@ -217,28 +185,6 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     std::string filename = GetSourcePath("kmeans.cl");
     auto& cluster_classify_kernel = GetKernel(device, "classifyPoints", filename);
     auto& cluster_adjust_kernel = GetKernel(device, "adjustCentroids", filename);
-    
-    /*if (cluster_classify_kernel_ == NULL) {
-        auto filename = GetSourcePath("kmeans.cl");
-        
-        cluster_classify_kernel_ = InitKernel(*manager_, "classifyPoints", filename);
-        if (cluster_classify_kernel_ == NULL) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to initialise classifyPoints kernel, skipping");
-                return false;
-        }
-    }
-
-    if (cluster_adjust_kernel_ == NULL) {
-        auto filename = GetSourcePath("kmeans.cl");
-        
-        cluster_adjust_kernel_ = InitKernel(*manager_, "adjustCentroids", filename);
-        if (cluster_adjust_kernel_ == NULL) {
-            Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to initialise adjustCentroids kernel, skipping");
-                return false;
-        }
-    }*/
 
     cl_uint num_centroids = (cl_uint) centroids.GetNumElements() / (sizeof(cl_float4) / sizeof(float));
     cl_uint num_points = (cl_uint) points.GetNumElements() / (sizeof(cl_float4) / sizeof(float));
@@ -248,13 +194,6 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
             "Attempting to run K-means cluster algorithm, but the point and classification vector lengths don't match");
         return false;
     }
-
-    // std::vector<cl_float4> center_vec;
-    // center_vec.push_back({0,0,0,0});
-    // center_vec.push_back({1,1,1,1});
-    // OCLBuffer<cl_float4>* test_centroids = new OCLBuffer<cl_float4>(*manager_, center_vec, this);
-
-    //cluster_classify_kernel_->GetBackingRef().setArg()
 
     // Calculate classification parameters
     cl::NDRange global_classify_threads(num_points);
@@ -266,7 +205,6 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     }
     
     // Calculate adjust parameters
-    //cl::Device dev = manager_->GetContext().getInfo<CL_CONTEXT_DEVICES>()[0];
     cl_uint num_compute_units = device.GetRef().getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
     cl_uint adjust_local_size =
         (cl_uint) cluster_adjust_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device.GetRef());
@@ -319,8 +257,6 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
         cl_uint count_accumulator = 0;
         unsigned int centers_processed = 0;
         for (int i=0; i<wg_count_vec.size(); i+=1) {
-            //std::cout << wg_center_vec[i*4+0] << ',' << wg_center_vec[i*4+1] << ',' << wg_center_vec[i*4+2] << ',' << wg_center_vec[i*4+3] << std::endl;
-            //std::cout << wg_count_vec[i] << std::endl;
             center_accumulator[0] += wg_center_vec[i*4+0];
             center_accumulator[1] += wg_center_vec[i*4+1];
             center_accumulator[2] += wg_center_vec[i*4+2];
@@ -364,7 +300,7 @@ void OpenCLWorker::Log(std::string function_name, ModelLogger::WorkloadEvent eve
 }
 
 OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
-    std::vector<std::string> filenames;// = {source_file};
+    std::vector<std::string> filenames;
     filenames.push_back(source_file);
 
     auto kernel_vec = manager_->CreateKernels(filenames, this);
@@ -382,11 +318,9 @@ OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kerne
         }
     }
 
-    //if (!found_kernel) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
-            "Unable to find a kernel called "+kernel_name+" in "+source_file);
-        return NULL;
-    //}
+    Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+        "Unable to find a kernel called "+kernel_name+" in "+source_file);
+    return NULL;
 }
 
 OpenCLKernel& OpenCLWorker::GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file) {
@@ -397,12 +331,9 @@ OpenCLKernel& OpenCLWorker::GetKernel(OpenCLDevice& device, const std::string& k
         }
     }
 
-    std::vector<std::string> filenames;// = {source_file};
+    std::vector<std::string> filenames;
     filenames.push_back(source_file);
-
     device.LoadKernelsFromSource(filenames, *this);
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
     auto kernel_vec = device.GetKernels();
     if (kernel_vec.size() == 0) {
@@ -411,11 +342,9 @@ OpenCLKernel& OpenCLWorker::GetKernel(OpenCLDevice& device, const std::string& k
         throw std::invalid_argument("No kernels in file "+source_file);
     }
     
-    //bool found_kernel = false;
     for (auto& kernel_wrapper : kernel_vec) {
         auto& kernel = kernel_wrapper.get();
         if (kernel.GetName() == kernel_name) {
-            //found_kernel = true;
             return kernel;
         }
     }

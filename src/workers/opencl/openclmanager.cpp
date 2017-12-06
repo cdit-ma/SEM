@@ -160,67 +160,16 @@ const std::vector<std::shared_ptr<cl::CommandQueue> > OpenCLManager::GetQueues()
 }
 
 const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(const std::vector<std::string>& filenames, Worker* worker_reference) {
-	cl_int err;
-
 	std::vector<OpenCLKernel> kernels;
-
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames, worker_reference);
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
 	for (auto& device : device_list_) {
 		device.LoadKernelsFromSource(filenames, *worker_reference);
 	}
 
-	/*program_ = new cl::Program(*context_, sources, &err);
-	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
-			std::string(__func__),
-			"Unable to create OpenCL program from OpenCL source code",
-			err);
-		return kernels;
-	}
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
-	std::vector<cl::Device> devices;
-	for (const auto& d: device_list_) {
-		std::cout << devices.size() << std::endl;
-		devices.emplace_back(d.GetRef());
-	}
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
-	std::cout << devices.size() << std::endl;
-	err = program_->build(devices);
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
-	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
-			std::string(__func__),
-			"An error occurred while building an OpenCL program: \n" +
-			program_->getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]),
-			err);
-		return kernels;
-	}
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
-
-	std::vector<cl::Kernel>* cl_kernels = new std::vector<cl::Kernel>();
-	kernel_vector_store_.push_back(cl_kernels);
-	err = program_->createKernels(cl_kernels);
-	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
-			std::string(__func__),
-			"An error occurred during the creation of OpenCL kernels from a built program",
-			err);
-		return kernels;
-	}
-
-	for (auto &cl_kernel : *cl_kernels) {
-		// kernels.push_back(new OpenCLKernel(*this, cl_kernel, worker_reference));
-		kernels.emplace_back(*this, cl_kernel, worker_reference);
-	}*/
-
 	return kernels;
-	
 }
 
 bool OpenCLManager::IsValid() const {

@@ -47,11 +47,6 @@ private:
 
     OpenCLManager* manager_ = NULL;
     OpenCLLoadBalancer* load_balancer_ = NULL;
-    
-    //OpenCLKernel* parallel_kernel_ = NULL;
-    //OpenCLKernel* matrix_kernel_ = NULL;
-    //OpenCLKernel* cluster_classify_kernel_ = NULL;
-    //OpenCLKernel* cluster_adjust_kernel_ = NULL;
 
     std::vector<std::reference_wrapper<OpenCLDevice> > devices_;
 
@@ -61,11 +56,11 @@ private:
 template <typename T>
 OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
     OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(data.size(), this);
-    for (const auto& dev_wrapper : devices_) {
+    /*for (const auto& dev_wrapper : devices_) {
         new_buffer->WriteData(data, dev_wrapper.get(), blocking, this);
-    }
+    }*/
+    WriteBuffer(*new_buffer, data, blocking);
     return new_buffer;
-    //return manager_->CreateBuffer(data);
 }
 
 template <typename T>
@@ -96,15 +91,6 @@ bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data,
         }
     }
     return did_all_succeed;
-    /*auto& device = devices_.at(0);
-    bool success = buffer.WriteData(data, device, blocking, this);
-    if (!success) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to write to OpenCLBuffer for device "+dev_wrapper.get().GetName());
-        return false
-    }
-    return true;*/
-    //return buffer.WriteData(data, blocking, this);
 }
 
 template <typename T>
@@ -122,10 +108,6 @@ std::vector<T> OpenCLWorker::ReadBuffer(const OCLBuffer<T>& buffer, bool blockin
     }
 
     return buffer.ReadData(devices_.at(0), blocking, this);
-    /*for (const auto& dev_wrapper : devices_) {
-        return buffer.ReadData(dev_wrapper.get(), blocking, this);
-    }
-    return std::vector<T>();*/
 }
 
 #endif

@@ -106,7 +106,6 @@ OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
             "Unable to set parameter "+std::to_string(index)+" of a kernel");
         return false;
     }
-    //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 
@@ -121,7 +120,6 @@ OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
         LogError(__func__, "Unable to set parameter "+std::to_string(index)+" of a kernel");
         return false;
     }
-    //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 
@@ -129,7 +127,6 @@ template <typename T0>
 typename std::enable_if<!std::is_base_of<cl::Memory, T0>::value && !std::is_base_of<GenericBuffer, T0>::value , bool>::type
 OpenCLKernel::SetArgsRecursive(unsigned int index, T0& arg0) {
     //std::cerr << "entering base call for regular object of type " << typeid(T0).name() <<std::endl;
-    //return SetArg(index, sizeof(T0), arg0);
     return setGenericArg(index, arg0);
 }
 
@@ -142,7 +139,7 @@ OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
 template <typename T0>
 typename std::enable_if<!std::is_pointer<T0>::value, bool>::type
 OpenCLKernel::setGenericArg(unsigned int index, T0& arg) {
-    std::cerr << "entering base call for memory object of type " << typeid(T0).name() <<std::endl;
+    //std::cerr << "entering base call for memory object of type " << typeid(T0).name() <<std::endl;
     return SetArg(index, sizeof(T0), &arg);
 }
 

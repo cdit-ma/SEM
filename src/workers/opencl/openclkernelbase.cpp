@@ -13,8 +13,7 @@ OpenCLKernelBase::OpenCLKernelBase(OpenCLManager& manager, cl::Kernel& kernel, W
 
 bool OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDRange& offset, const cl::NDRange& global,
     const cl::NDRange& local) {
-        
-    //auto queue = manager_.GetQueues()[gpu_num];
+    
     auto& queue = device.GetQueue();
 
     cl_int err;
@@ -36,20 +35,15 @@ bool OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDR
 
 bool OpenCLKernelBase::SetArg(unsigned int index, size_t size, const void* value) {
     cl_int err;
-    std::cout << kernel_->getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(index, &err) << std::endl;
     
     // If we are passed something derived from GenericBuffer we know the backing reference will be properly handled
-    //err = kernel_->setArg(index, size, value);
-    std::cout << size << std::endl;
-    err = clSetKernelArg(kernel_->get(), index, size, value);
-    //err = clSetKernelArg(kernel_->get(), index, 4, value);
+    err = kernel_->setArg(index, size, value);
     if (err != CL_SUCCESS) {
         LogError(__func__,
             "Unable to set parameter "+std::to_string(index)+" of a kernel",
             err);
         return false;
     }
-    //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 
@@ -64,7 +58,6 @@ bool OpenCLKernelBase::SetArg(unsigned int index, const cl::Memory& mem_obj) {
             err);
         return false;
     }
-    //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 
@@ -83,7 +76,6 @@ bool OpenCLKernelBase::SetArg(unsigned int index, const cl::LocalSpaceArg& local
             err);
         return false;
     }
-    //std::cerr << "set arg " << index << std::endl;
     return true;
 }
 

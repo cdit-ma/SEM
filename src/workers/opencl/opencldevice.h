@@ -34,7 +34,6 @@ private:
     virtual void LogError(const Worker& worker_ref, std::string function_name, std::string error_message, int cl_error_code);
     virtual void LogError(const Worker& worker_ref, std::string function_name, std::string error_message);
 
-    // /std::unique_ptr<cl::Device> device;
     std::unique_ptr<cl::Device> dev_;
     OpenCLManager& manager_;
     std::unique_ptr<cl::CommandQueue> queue_;

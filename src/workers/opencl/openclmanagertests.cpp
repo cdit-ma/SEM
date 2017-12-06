@@ -100,7 +100,7 @@ void recordTest(Result result, std::string description) {
 void testLoadBalancer(OpenCLManager& manager);
 
 void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device);
-void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device, OpenCLKernel& passthrough_kernel);
+void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device);
 
 OpenCLWorker* testWorkerConstruction(Component& component);
 void testWorkerDestruction(OpenCLWorker* worker);
@@ -185,10 +185,6 @@ int main(int argc, char** argv) {
 		res = PASS;
 	}
 	recordTest(res, "Create kernels from OpenCL source code");*/
-	std::cout << "Hello" << std::endl;
-	std::cout << & manager->GetDevices()[0].GetRef() << std::endl;
-
-	std::cout << manager->GetDevices()[0].GetRef().getInfo<CL_DEVICE_NAME>() << std::endl;
 
 	/*if (kernels.size() != 0) {
 		printInfo("Listing built kernels:");
@@ -201,20 +197,8 @@ int main(int argc, char** argv) {
 		testBufferReadWrite(*manager, device);
 	}
 
-	OpenCLKernel* pt_kernel;
-	/*bool found_pt_kernel = false;
-	for (auto& k : kernels) {
-		if (k.GetName() == "dataPassthroughTest") {
-			pt_kernel = &k;
-			found_pt_kernel = true;
-		}
-	}
-	if (!found_pt_kernel) {
-		printFail("Unable to find dataPasshtoughTest kernel");
-	}*/
-
 	for (auto& device : manager->GetDevices()) {
-		testKernelPassthrough(*manager, device, *pt_kernel);
+		testKernelPassthrough(*manager, device);
 	}
 
 	testLoadBalancer(*manager);
@@ -226,8 +210,6 @@ int main(int argc, char** argv) {
 	// Run worker tests conditional on worker having been successfully constructed
 	if (worker != NULL) {
 		testWorkerCreateBuffer(worker);
-
-	std::cout << "DASDAFGADASD" << std::endl;
 		testWorkerRunParallel(worker);
 		testWorkerMatrixMult(worker);
 		testWorkerKMeans(worker);
@@ -316,9 +298,7 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	for (int i=0; i<in_data.size(); i++) {
 		in_data[i] = (float)i+10;
 	}
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 	bool did_write_data = buffer->WriteData(in_data, device);
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 	if (did_write_data) {
 		res = PASS;
 	} else {
@@ -330,8 +310,7 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	printInfo("Reading the data back...");
 	auto out_data = buffer->ReadData(device);
 	bool vectors_match = true;
-	//std::cout << in_data.size() << ", " << out_data.size() <<std::endl;
-	if (in_data.size() != out_data.size()) {
+	/*if (in_data.size() != out_data.size()) {
 		vectors_match = false;
 	} else {
 		for (int i=0; i<in_data.size(); i++) {
@@ -340,9 +319,10 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 				vectors_match = false;
 			}
 		}
-	}
+	}*/
 	
-	if (vectors_match) {
+	//if (vectors_match) {
+	if (in_data == out_data) { 
 		res = PASS;
 	} else {
 		res = FAIL;
@@ -374,7 +354,7 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 }
 
 
-void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device, OpenCLKernel& passthrough_kernel) {
+void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	Result res = UNKNOWN;
 
 	auto in_data = std::vector<float>(4, 0.3f);
@@ -394,29 +374,24 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device, OpenCLK
 	}
 	recordTest(res, "Created valid OCLBuffer to read data from");
 
-	std::cout << "Hi there!" << std::endl;
-
-	OpenCLKernel* passthrough_kernel_ptr = NULL;
-	std::reference_wrapper<OpenCLKernel> ptk_ref();
+	OpenCLKernel* passthrough_kernel = NULL;
 	for (auto& kernel : device.GetKernels()) {
 		if (kernel.get().GetName() == "dataPassthroughTest") {
-			passthrough_kernel_ptr = &kernel.get();
-			//ptk_ref = kernel;
+			passthrough_kernel = &kernel.get();
 		}
 	}
 
 	printInfo("Setting passthrough kernel arguments...");
-	bool did_set_args = passthrough_kernel_ptr->SetArgs((*in_buffer), (*out_buffer));
+	bool did_set_args = passthrough_kernel->SetArgs((*in_buffer), (*out_buffer));
 	if (did_set_args) {
 		res = PASS;
 	} else {
 		res = FAIL;
 	}
 	recordTest(res, "Setting arguments of passthrough kernel did report success");
-	//kernel->SetArgs(*in_buffer, 2);
 
 	printInfo("Running passthrough kernel...");
-	bool kernel_success = passthrough_kernel_ptr->Run(device, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
+	bool kernel_success = passthrough_kernel->Run(device, true, cl::NullRange, cl::NDRange(4), cl::NDRange(4));
 	if (kernel_success) {
 		res = PASS;
 	} else {

@@ -14,7 +14,6 @@ namespace cl {
     struct LocalSpaceArg;
 }
 
-//#include "openclmanager.h"
 #include "core/worker.h"
 
 class OpenCLKernelBase {

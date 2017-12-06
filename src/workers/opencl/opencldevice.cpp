@@ -50,13 +50,9 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
     cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames, &worker);
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
 	programs_.emplace_back(manager_.GetContext(), sources, &err);
 	if (err != CL_SUCCESS) {
@@ -67,16 +63,9 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
 		return false;
 	}
     cl::Program& new_program = programs_.back();
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
     std::vector<cl::Device> device_vec;
-	//std::cout << GetName() << std::endl;
-	//std::cout << device_store.size() << std::endl;
-	//std::cout << dev_.getInfo<CL_DEVICE_NAME>() << std::endl;
     device_vec.emplace_back(*dev_);
-	
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 	err = new_program.build(device_vec);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
@@ -86,11 +75,8 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
 			err);
 		return false;
 	}
-	std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
-	//std::vector<cl::Kernel>* cl_kernels = new std::vector<cl::Kernel>();
     std::vector<cl::Kernel> new_kernels;
-	//kernel_vector_store_.push_back(cl_kernels);
 	err = new_program.createKernels(&new_kernels);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
@@ -101,7 +87,6 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
 	}
 
 	for (auto& kernel : new_kernels) {
-		// kernels.push_back(new OpenCLKernel(*this, cl_kernel, worker_reference));
 		kernels_.emplace_back(manager_, kernel, &worker);
 	}
 
@@ -138,11 +123,8 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::vector<std::string>& filenam
 			err);
 		return false;
 	}
-	//std::cout << "Test print in " << __func__ << " on line " << __LINE__ << std::endl;
 
-	//std::vector<cl::Kernel>* cl_kernels = new std::vector<cl::Kernel>();
     std::vector<cl::Kernel> new_kernels;
-	//kernel_vector_store_.push_back(cl_kernels);
 	err = new_program.createKernels(&new_kernels);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
@@ -167,7 +149,6 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::vector<std::string>& filenam
 				err);
 			continue;
 		}
-		// kernels.push_back(new OpenCLKernel(*this, cl_kernel, worker_reference));
 		kernels_.emplace_back(manager_, kernel, &worker);
 	}
 
