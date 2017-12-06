@@ -27,6 +27,7 @@ public:
 
 protected:
 
+    /*
     virtual void LogError(Worker* worker_reference,
         std::string function_name,
         std::string error_message,
@@ -34,6 +35,7 @@ protected:
     virtual void LogError(Worker* worker_reference,
         std::string function_name,
         std::string error_message) const;
+    */
 
 };
 
@@ -89,6 +91,7 @@ size_t OCLBuffer<T>::GetNumElements() const {
     return size_/sizeof(T);
 }
 
+/*
 template <typename T>
 void OCLBuffer<T>::LogError(Worker* worker_reference, std::string function_name, std::string error_message, int cl_error_code) const {
     LogOpenCLError(worker_reference,
@@ -102,6 +105,6 @@ void OCLBuffer<T>::LogError(Worker* worker_reference, std::string function_name,
     LogOpenCLError(worker_reference,
         "OCLBuffer::" + function_name,
         error_message);
-}
+}*/
 
 #endif // OCLBUFFER_H
