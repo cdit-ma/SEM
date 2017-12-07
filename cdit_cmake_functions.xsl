@@ -172,6 +172,19 @@
         </xsl:if>
     </xsl:function>
 
+    <xsl:function name="cmake:target_link_middleware_libraries">
+        <xsl:param name="target" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
+        <xsl:variable name="include_directory" select="upper-case(concat($middleware_package, '_LIBRARIES'))" />
+
+        <xsl:if test="$middleware_package != ''">
+            <xsl:value-of select="cmake:target_link_libraries($target, cmake:wrap_variable($include_directory), $tab)" />
+        </xsl:if>
+    </xsl:function>
+
     <xsl:function name="cmake:generate_middleware_compiler">
         <xsl:param name="file" as="xs:string" />
         <xsl:param name="middleware" as="xs:string" />
@@ -203,5 +216,23 @@
         <xsl:value-of select="concat($middleware_compiler, o:wrap_bracket($compiler_args), o:nl(1))" />
     </xsl:function>
 
+
+    <xsl:function name="cmake:get_aggregates_middleware_shared_library_name" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+        
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'lib'), '_'))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:get_aggregates_middleware_module_library_name" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+        
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label), '_'))" />
+    </xsl:function>
 
 </xsl:stylesheet>

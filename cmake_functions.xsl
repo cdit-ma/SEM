@@ -10,10 +10,12 @@
         Places the text (handles newlines) in a cmake comment, can be tabbed
     -->
     <xsl:function name="cmake:comment" as="xs:string">
-        <xsl:param name="text" as="xs:string" />
+        <xsl:param name="text" as="xs:string*" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:for-each select="tokenize($text, '\n\r?')[.]">
+        <xsl:variable name="joined_text" select="o:join_list($text, ' ')" />
+
+        <xsl:for-each select="tokenize($joined_text, '\n\r?')[.]">
             <xsl:value-of select="concat(o:t($tab), '# ', ., o:nl(1))" />
         </xsl:for-each>
     </xsl:function>
@@ -29,12 +31,24 @@
 
     <!--
         Used to include a directory for a particular target
+        target_compile_definitions(${target} PRIVATE ${args})
+    -->
+    <xsl:function name="cmake:target_compile_definitions" as="xs:string">
+        <xsl:param name="target" as="xs:string" />
+        <xsl:param name="args" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'target_compile_definitions', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), 'PRIVATE', o:wrap_dblquote($args)), ' ')), o:nl(1))" />
+    </xsl:function>
+
+    <!--
+        Used to set a compiler flag for a particular target
         target_include_directories(${target} PRIVATE ${directory})
     -->
     <xsl:function name="cmake:target_include_directories" as="xs:string">
         <xsl:param name="target" as="xs:string" />
         <xsl:param name="directory" as="xs:string" />
-        <xsl:value-of select="concat('target_include_directories(', $target, ' PRIVATE ', o:wrap_dblquote($directory), ')', o:nl(1))" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'target_include_directories', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), 'PRIVATE', o:wrap_dblquote($directory)), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
@@ -44,13 +58,14 @@
     <xsl:function name="cmake:target_link_libraries" as="xs:string">
         <xsl:param name="target" as="xs:string" />
         <xsl:param name="library_name" as="xs:string" />
-        <xsl:value-of select="concat('target_link_libraries(', $target, ' ', $library_name, ')', o:nl(1))" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'target_link_libraries', o:wrap_bracket(o:join_list((cmake:wrap_variable($target), o:wrap_dblquote($library_name)), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
         Used to include a subdirectory
     -->
-    <xsl:function name="cmake:add_subdirectory" as="xs:string">
+    <xsl:function name="cmake:add_subdirectory">
         <xsl:param name="directory" as="xs:string" />
         <xsl:value-of select="concat('add_subdirectory(', o:wrap_dblquote($directory), ')', o:nl(1))" />
     </xsl:function>
@@ -61,7 +76,7 @@
         # Find library re_core
         find_library(${libary_variable} ${library_name} "${library_path}")
     -->
-    <xsl:function name="cmake:find_library" as="xs:string">
+    <xsl:function name="cmake:find_library">
         <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="libary_variable" as="xs:string" />
         <xsl:param name="library_path" as="xs:string" />
@@ -76,15 +91,12 @@
         # Find library re_core
         find_library(${package_name} ${args})
     -->
-    <xsl:function name="cmake:find_package" as="xs:string">
+    <xsl:function name="cmake:find_package">
         <xsl:param name="package_name" as="xs:string" />
         <xsl:param name="args" as="xs:string" />
 
         <xsl:value-of select="cmake:comment(concat('Find package ', $package_name), 0)" />
-        <xsl:value-of select="concat('find_package(', $package_name)" />
-        <xsl:if test="$args != ''">
-            <xsl:value-of select="concat(' ', $args)" />
-        </xsl:if>
+        <xsl:value-of select="concat('find_package', o:wrap_bracket(o:join_list(($package_name, $args), ' ')))" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
@@ -106,7 +118,7 @@
         set(PROJ_NAME ${project_name})
         project(${project_name)
     -->
-    <xsl:function name="cmake:set_project_name" as="xs:string">
+    <xsl:function name="cmake:set_project_name">
         <xsl:param name="project_name" as="xs:string" />
 
         <xsl:value-of select="cmake:set_variable('PROJ_NAME', $project_name)" />
@@ -120,19 +132,63 @@
     -->
     <xsl:function name="cmake:add_shared_library" as="xs:string">
         <xsl:param name="library_name" as="xs:string" />
-        <xsl:param name="sources" as="xs:string" />
-        <xsl:param name="headers" as="xs:string" />
+        <xsl:param name="library_type" as="xs:string" />
+        <xsl:param name="args" as="xs:string" />
 
-        <xsl:value-of select="concat('add_library(', $library_name, ' SHARED')" />
-
-        <xsl:if test="$sources != ''">
-            <xsl:value-of select="concat(' ', $sources)" />
-        </xsl:if>
-
-        <xsl:if test="$headers != ''">
-            <xsl:value-of select="concat(' ', $headers)" />
-        </xsl:if>
-
-        <xsl:value-of select="concat(')', o:nl(1))" />
+        <xsl:value-of select="concat('add_library', o:wrap_bracket(o:join_list((cmake:wrap_variable($library_name), $library_type, $args), ' ')), o:nl(1))" />
     </xsl:function>
+
+
+    <xsl:function name="cmake:if_start">
+        <xsl:param name="condition" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), 'if', o:wrap_bracket($condition), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:if_elseif">
+        <xsl:param name="condition" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), 'elseif', o:wrap_bracket($condition), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:if_else">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), 'else', o:wrap_bracket(''), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:if_end">
+        <xsl:param name="condition" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), 'endif', o:wrap_bracket($condition), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:message">
+        <xsl:param name="message" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), 'message', o:wrap_bracket(o:join_list(('STATUS', $message), ' ')), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:return">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), 'return', o:wrap_bracket(''), o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:configure_file">
+        <xsl:param name="input_file" as="xs:string"/>
+        <xsl:param name="output_dir" as="xs:string"/>
+        <xsl:value-of select="concat('configure_file', o:wrap_bracket(o:join_list(($input_file, $output_dir, 'COPYONLY'), ' ')), o:nl(1))" />
+    </xsl:function>
+
+     <xsl:function name="cmake:current_binary_dir_var">
+        <xsl:value-of select="cmake:wrap_variable('CMAKE_CURRENT_BINARY_DIR')" />
+    </xsl:function>
+
+    <xsl:function name="cmake:current_source_dir_var">
+        <xsl:value-of select="cmake:wrap_variable('CMAKE_CURRENT_SOURCE_DIR')" />
+    </xsl:function>
+
 </xsl:stylesheet>

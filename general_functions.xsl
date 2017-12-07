@@ -177,4 +177,20 @@
 
         <xsl:value-of select="string-join($pruned_list, $token)" />
     </xsl:function>
+
+    <!--
+        List joins
+    -->
+    <xsl:function name="o:join_paths" as="xs:string">
+        <xsl:param name="list" as="xs:string*"/>
+        <xsl:value-of select="o:join_list($list, '/')" />
+    </xsl:function>
+
+    <!--
+        prints a warning
+    -->
+    <xsl:function name="o:warning">
+        <xsl:param name="message" as="xs:string*"/>
+        <xsl:message>Warning: <xsl:value-of select="$message" /></xsl:message>
+    </xsl:function>
 </xsl:stylesheet>
