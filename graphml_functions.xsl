@@ -87,6 +87,30 @@
         <xsl:param name="root" />
         <xsl:value-of select="graphml:get_data_value($root, 'label')" />
     </xsl:function>
+    
+    <!--
+        Returns the data value with key: type in a node/edge
+    -->
+    <xsl:function name="graphml:get_type" as="xs:string">
+        <xsl:param name="root" />
+        <xsl:value-of select="graphml:get_data_value($root, 'type')" />
+    </xsl:function>
+
+    <!--
+        Returns the data value with key: index in a node/edge
+    -->
+    <xsl:function name="graphml:get_index" as="xs:integer">
+        <xsl:param name="root" />
+        <xsl:value-of select="number(graphml:get_data_value($root, 'index'))" />
+    </xsl:function>
+
+    <!--
+        Returns the data value with key: is_key in a node/edge as boolean
+    -->
+    <xsl:function name="graphml:is_key" as="xs:boolean">
+        <xsl:param name="root" />
+        <xsl:value-of select="graphml:evaluate_data_value_as_boolean($root, 'key')" />
+    </xsl:function>
 
     <!--
         Returns the data value with key: namespace in a node/edge
@@ -94,14 +118,6 @@
     <xsl:function name="graphml:get_namespace" as="xs:string">
         <xsl:param name="root" />
         <xsl:value-of select="graphml:get_data_value($root, 'namespace')" />
-    </xsl:function>
-
-    <!--
-        Returns the data value with key: type in a node/edge
-    -->
-    <xsl:function name="graphml:get_type" as="xs:string">
-        <xsl:param name="root" />
-        <xsl:value-of select="graphml:get_data_value($root, 'type')" />
     </xsl:function>
 
     <!--
@@ -132,6 +148,21 @@
         <xsl:param name="root" />
 
         <xsl:for-each select="$root/gml:graph/gml:node">
+            <!-- Sort by the index -->
+            <xsl:sort select="number(graphml:get_data_value(., 'index'))"/>
+            <xsl:sequence select="." />
+        </xsl:for-each>
+    </xsl:function>
+
+    <!--
+        Gets any descendant child of ${root} of a particular kind
+    -->
+    <xsl:function name="graphml:get_child_nodes_of_kind" as="element()*">
+        <xsl:param name="root" />
+        <xsl:param name="kind" as="xs:string" />
+        <xsl:variable name="kind_id" select="graphml:get_key_id($root, 'kind')" />
+
+        <xsl:for-each select="$root/gml:graph/gml:node/gml:data[@key=$kind_id and text() = $kind]/..">
             <!-- Sort by the index -->
             <xsl:sort select="number(graphml:get_data_value(., 'index'))"/>
             <xsl:sequence select="." />

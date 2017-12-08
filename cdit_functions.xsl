@@ -6,6 +6,8 @@
     xmlns:graphml="http://github.com/cdit-ma/graphml"
     xmlns:cdit="http://github.com/cdit-ma/cdit"
     xmlns:cpp="http://github.com/cdit-ma/cpp"
+    xmlns:proto="http://github.com/cdit-ma/proto"
+    xmlns:idl="http://github.com/cdit-ma/idl"
     >
 
     <!--
@@ -16,7 +18,7 @@
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="file" as="xs:string" />
 
-        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_data_value($aggregate, 'namespace'))" />
+        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
         <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
 
          <xsl:value-of select="o:join_paths((lower-case($middleware), $aggregate_namespace, $aggregate_label, $file))" />
@@ -48,7 +50,7 @@
         <xsl:value-of select="concat(lower-case(graphml:get_label($aggregate)), $middleware_extension)" />
     </xsl:function>
 
-     <!--
+    <!--
         Gets the name of the middleware_generated_header_name
     -->
     <xsl:function name="cdit:middleware_uses_ref_setter" as="xs:boolean">
@@ -207,12 +209,116 @@
         </xsl:variable>
         <xsl:value-of select="cpp:get_qualified_type(($extra_namespace, $aggregate_namespace, $aggregate_label))" />
     </xsl:function>
-
-
-
     
+    <!-- Converts from the Aggregate Types into primitive CPP types -->
+    <xsl:function name="cdit:get_cpp_type" as="xs:string">
+        <xsl:param name="type" as="xs:string"  />
+
+        <xsl:choose>
+            <xsl:when test="$type = 'String'">
+                <xsl:value-of select="'std::string'" />
+            </xsl:when>
+            <xsl:when test="$type = 'Boolean'">
+                <xsl:value-of select="'bool'" />
+            </xsl:when>
+            <xsl:when test="$type = 'Character'">
+                <xsl:value-of select="'char'" />
+            </xsl:when>
+            <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
+                <xsl:value-of select="'float'" />
+            </xsl:when>
+            <xsl:when test="$type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Double'">
+                <xsl:value-of select="'double'" />
+            </xsl:when>
+            <xsl:when test="$type = 'LongInteger' or $type = 'Integer'">
+                <xsl:value-of select="'int'" />
+            </xsl:when>
+            <xsl:when test="$type = 'UnsignedLongInteger'">
+                <xsl:value-of select="'unsigned int'" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>Warning: Unknown Type <xsl:value-of select="o:wrap_quote($type)" /></xsl:message>
+                <xsl:value-of select="''" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="proto:get_aggregate_qualified_type" as="xs:string">
+        <xsl:param name="aggregate" as="element()"/>
+
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="aggregate_label" select="o:title_case(graphml:get_label($aggregate))" />
+        
+        <xsl:value-of select="o:join_list(($aggregate_namespace, $aggregate_label), '.')" />
+    </xsl:function>
+
+    <xsl:function name="idl:get_aggregate_qualified_type" as="xs:string">
+        <xsl:param name="aggregate" as="element()"/>
+
+        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
+        <xsl:variable name="aggregate_label" select="o:title_case(graphml:get_label($aggregate))" />
 
 
+        <xsl:choose>
+            <xsl:when test="$aggregate_namespace = ''">
+                <xsl:value-of select="concat('::', $aggregate_label)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cpp:get_qualified_type(($aggregate_namespace, $aggregate_label))" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
 
+    <xsl:function name="cdit:parse_middlewares" as="xs:string*">
+        <xsl:param name="middlewares" as="xs:string*"/>
+
+        <xsl:variable name="token_middlewares" select="tokenize(normalize-space(lower-case($middlewares)), ',')" /> 
+
+        <xsl:variable name="middlewares_list" as="xs:string*">
+            <xsl:sequence select="$token_middlewares" />
+            <xsl:if test="'zmq' = $token_middlewares">
+                <xsl:sequence select="'proto'" />
+            </xsl:if>
+            <xsl:if test="'qpid' = $token_middlewares">
+                <xsl:sequence select="'proto'" />
+            </xsl:if>
+            <xsl:if test="count($token_middlewares) > 0">
+                <xsl:sequence select="'base'" />
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:sequence select="distinct-values($middlewares_list)"/>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_aggregates_path" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        
+        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
+        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
+        
+        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_base_aggregates_cpp_path" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        
+        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
+        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
+
+        <xsl:variable name="file" select="concat($aggregate_label,'.cpp')" />
+        
+        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label, $file))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_base_aggregate_h_path" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        
+        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
+        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
+
+        <xsl:variable name="file" select="concat($aggregate_label,'.h')" />
+        
+        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label, $file))" />
+    </xsl:function>
 
 </xsl:stylesheet>

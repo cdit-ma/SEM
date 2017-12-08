@@ -137,16 +137,16 @@
         <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
     </xsl:function>
 
+
+
     <xsl:function name="cmake:get_aggregates_middleware_file_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
+        <xsl:variable name="file_path" select="cdit:get_aggregates_path($aggregate)" />
         <xsl:variable name="file_name" select="cmake:get_aggregates_middleware_file_name($aggregate, $middleware)" />
-
-        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
         
-        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label, $file_name))" />
+        <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
     </xsl:function>
 
     <xsl:function name="cmake:get_middleware_generated_header_var" as="xs:string">
@@ -216,7 +216,6 @@
         <xsl:value-of select="concat($middleware_compiler, o:wrap_bracket($compiler_args), o:nl(1))" />
     </xsl:function>
 
-
     <xsl:function name="cmake:get_aggregates_middleware_shared_library_name" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -226,6 +225,7 @@
         <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'lib'), '_'))" />
     </xsl:function>
 
+
     <xsl:function name="cmake:get_aggregates_middleware_module_library_name" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -234,5 +234,8 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label), '_'))" />
     </xsl:function>
+    
+
+    
 
 </xsl:stylesheet>

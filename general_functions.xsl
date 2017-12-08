@@ -146,7 +146,7 @@
     <xsl:function name="o:title_case" as="xs:string">
         <xsl:param name="str" as="xs:string"  />
 
-        <xsl:if test="string-length($str) > 2">
+        <xsl:if test="string-length($str) > 0">
             <xsl:value-of select="concat(upper-case(substring($str, 1, 1)), substring($str, 2))" />
         </xsl:if>
     </xsl:function>

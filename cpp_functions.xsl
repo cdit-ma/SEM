@@ -446,6 +446,17 @@
         <xsl:value-of select="concat(o:t($tab), 'for', o:wrap_bracket($arguments), $prefix)" />
     </xsl:function>
 
+    <xsl:function name="cpp:for_each">
+        <xsl:param name="first" as="xs:string" />
+        <xsl:param name="second" as="xs:string" />
+        <xsl:param name="prefix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="arguments" select="string-join(($first, $second), ' : ')" />
+
+        <xsl:value-of select="concat(o:t($tab), 'for', o:wrap_bracket($arguments), $prefix)" />
+    </xsl:function>
+
     <xsl:function name="cpp:compare" as="xs:string">
         <xsl:param name="val1" as="xs:string" />
         <xsl:param name="operator" as="xs:string" />
@@ -486,11 +497,35 @@
         <xsl:value-of select="concat($array, o:wrap_square($index))" />
     </xsl:function>
 
-     <xsl:function name="cpp:static_cast" as="xs:string">
+    <xsl:function name="cpp:static_cast" as="xs:string">
         <xsl:param name="type" as="xs:string" />
         <xsl:param name="value" as="xs:string" />
 
         <xsl:value-of select="concat('static_cast', o:wrap_angle($type), o:wrap_bracket($value))" />
+    </xsl:function>
+
+    <xsl:function name="cpp:declare_class" as="xs:string">
+        <xsl:param name="class_name" as="xs:string" />
+        <xsl:param name="sub_classes" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="arguments" select="o:join_list(($class_name, $sub_classes), ' : ')" />
+        <xsl:value-of select="concat(o:t($tab), 'class ', $arguments, cpp:scope_start(0))" />
+    </xsl:function>
+
+    <xsl:function name="cpp:public" as="xs:string">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'public:', o:nl(1))" />
+    </xsl:function>
+    
+    <xsl:function name="cpp:private" as="xs:string">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'private:', o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cpp:protected" as="xs:string">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'protected:', o:nl(1))" />
     </xsl:function>
 
    
