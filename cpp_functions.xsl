@@ -15,7 +15,7 @@
         <xsl:variable name="joined_text" select="o:join_list($text, ' ')" />
 
         <xsl:for-each select="tokenize($joined_text, '\n\r?')[.]">
-            <xsl:value-of select="concat(o:t($tab), '// ', ., o:nl(1))" />
+            <xsl:value-of select="concat(o:t($tab), '// ', normalize-space(.), o:nl(1))" />
         </xsl:for-each>
     </xsl:function>
 
@@ -170,9 +170,9 @@
         <xsl:param name="prefix" as="xs:string" />
 
         <!-- Attach the namespace to the function_name -->
-        <xsl:variable name="namespaced_function" select="cpp:get_qualified_type(($namespace, $function_name))" />
+        <xsl:variable name="namespaced_function" select="cpp:combine_namespaces(($namespace, $function_name))" />
 
-        <xsl:value-of select="concat($return_type, ' ', $namespaced_function, '(', $parameters, ')', $prefix, o:nl(1))" />
+        <xsl:value-of select="concat($return_type, ' ', $namespaced_function, '(', $parameters, ')', $prefix)" />
     </xsl:function>
 
     <!--
@@ -283,20 +283,21 @@
         };
     -->
     <xsl:function name="cpp:forward_declare_class" as="xs:string*">
-        <xsl:param name="namespace" as="xs:string" />
+        <xsl:param name="namespaces" as="xs:string*" />
         <xsl:param name="class_name" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:if test="$namespace != ''">
-            <xsl:value-of select="cpp:namespace_start($namespace, $tab)" />
-            <xsl:value-of select="o:t($tab + 1)" />
-        </xsl:if>
+        <xsl:variable name="pruned_namespaces" as="xs:string*" select="o:prune_list($namespaces)" />
 
-        <xsl:value-of select="concat('class ', $class_name, ';', o:nl(1))" />
+        <xsl:for-each select="$pruned_namespaces">
+            <xsl:value-of select="cpp:namespace_start(., $tab + position() -1)" />
+        </xsl:for-each>
 
-        <xsl:if test="$namespace != ''">
-            <xsl:value-of select="cpp:namespace_end($namespace, $tab)" />
-        </xsl:if>
+        <xsl:value-of select="concat(o:t($tab + count($pruned_namespaces)), 'class ', $class_name, ';', o:nl(1))" />
+
+        <xsl:for-each select="$pruned_namespaces">
+            <xsl:value-of select="cpp:namespace_end(., $tab + position() -1)" />
+        </xsl:for-each>
     </xsl:function>
     
     <!--
@@ -418,7 +419,7 @@
         Produces a function definition
         ie. void namespace::function(int value)
     -->
-    <xsl:function name="cpp:get_qualified_type">
+    <xsl:function name="cpp:combine_namespaces">
         <xsl:param name="name_list" as="xs:string*" />
         <xsl:value-of select="o:join_list($name_list, '::')" />
     </xsl:function>

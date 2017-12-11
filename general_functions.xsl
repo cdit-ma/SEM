@@ -155,9 +155,12 @@
         Produces a message to say that this file will be produced
     -->
     <xsl:function name="o:write_file" as="xs:string">
-        <xsl:param name="file_path" />
-        <xsl:message>Created File: <xsl:value-of select="$file_path" /></xsl:message>
-        <xsl:value-of select="$file_path" />
+        <xsl:param name="file_path" as="xs:string*" />
+
+        <xsl:variable name="joined_path" select="o:join_paths($file_path)" />
+        
+        <xsl:message>Created File: <xsl:value-of select="$joined_path" /></xsl:message>
+        <xsl:value-of select="$joined_path" />
     </xsl:function>
 
     <!--
@@ -167,16 +170,24 @@
         <xsl:param name="list" as="xs:string*"/>
         <xsl:param name="token" as="xs:string" />
         
-        <xsl:variable name="pruned_list" as="xs:string*">
-            <xsl:for-each select="$list">
-                <xsl:if test=". != ''">
-                    <xsl:value-of select="." />
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:variable>
+        <xsl:variable name="pruned_list" as="xs:string*" select="o:prune_list($list)" />
 
         <xsl:value-of select="string-join($pruned_list, $token)" />
     </xsl:function>
+
+    <!--
+        List joins
+    -->
+    <xsl:function name="o:prune_list" as="xs:string*">
+        <xsl:param name="list" as="xs:string*"/>
+        
+        <xsl:for-each select="$list">
+            <xsl:if test=". != ''">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
 
     <!--
         List joins
@@ -191,6 +202,14 @@
     -->
     <xsl:function name="o:warning">
         <xsl:param name="message" as="xs:string*"/>
-        <xsl:message>Warning: <xsl:value-of select="$message" /></xsl:message>
+        <xsl:message>Warning: <xsl:value-of select="o:join_list($message, ' ')" /></xsl:message>
+    </xsl:function>
+
+    <!--
+        prints a warning
+    -->
+    <xsl:function name="o:message">
+        <xsl:param name="message" as="xs:string*"/>
+        <xsl:message><xsl:value-of select="o:join_list($message, ' ')" /></xsl:message>
     </xsl:function>
 </xsl:stylesheet>

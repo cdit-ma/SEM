@@ -191,4 +191,9 @@
         <xsl:value-of select="cmake:wrap_variable('CMAKE_CURRENT_SOURCE_DIR')" />
     </xsl:function>
 
+    <xsl:function name="cmake:cmake_file" as="xs:string">
+        <xsl:value-of select="'CMakeLists.txt'" />
+    </xsl:function>
+
+
 </xsl:stylesheet>

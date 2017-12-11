@@ -10,6 +10,7 @@
     xmlns:o="http://github.com/cdit-ma/o"
     xmlns:graphml="http://github.com/cdit-ma/graphml"
     xmlns:cpp="http://github.com/cdit-ma/cpp"
+    xmlns:cmake="http://github.com/cdit-ma/cmake"
     exclude-result-prefixes="gml exsl xalan">
 
     <!-- Load in Functions -->
@@ -32,55 +33,75 @@
 	 
     <xsl:template match="/">
         <xsl:variable name="parsed_middlewares" select="cdit:parse_middlewares($middlewares)" as="xs:string*" />
+        <xsl:variable name="output_directory" select="'datatypes2'" as="xs:string*" />
 
-        <xsl:for-each select="$parsed_middlewares">
-            <xsl:message>MW:<xsl:value-of select="." /></xsl:message>
-        </xsl:for-each>
+        
         
         <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'Aggregate')">
-            <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
+            <xsl:variable name="aggregate" select="." />
+            <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+            <xsl:variable name="file_label" select="lower-case($aggregate_label)" />
 
-            <xsl:if test="0 = 1">
-                <xsl:variable name="convert_h" select="concat($label, '_convert.h')" />
-                <xsl:variable name="convert_cpp" select="concat($label, '_convert.cpp')" />
-                <xsl:variable name="convert_cmake" select="concat($label, '_CMakeLists.txt')" />
-                <xsl:variable name="convert_proto" select="concat($label, '.proto')" />
-                <xsl:variable name="convert_idl" select="concat($label, '.idl')" />
-            
-                <xsl:result-document href="{o:write_file($convert_h)}">
-                    <xsl:value-of select="cdit:get_convert_h(., 'proto')" />
-                </xsl:result-document>
+            <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label)))" />
+
+            <xsl:for-each select="$parsed_middlewares">
+                <xsl:variable name="middleware" select="lower-case(.)" />
+                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label), 'For:', o:wrap_quote($middleware)))" />
                 
-                <xsl:result-document href="{o:write_file($convert_cpp)}">
-                    <xsl:value-of select="cdit:get_convert_cpp(., 'proto')" />
-                </xsl:result-document>
-
-                <xsl:result-document href="{o:write_file($convert_cmake)}">
-                    <xsl:value-of select="cdit:get_convert_cmake(., 'proto')" />
-                </xsl:result-document>
-
-                <xsl:result-document href="{o:write_file($convert_proto)}">
-                    <xsl:value-of select="cdit:get_proto_file(.)" />
-                </xsl:result-document>
-
-                <xsl:result-document href="{o:write_file($convert_idl)}">
-                    <xsl:value-of select="cdit:get_idl_file(.)" />
-                </xsl:result-document>
-            </xsl:if>
-
-            <xsl:variable name="base_h" select="concat('base_', $label, '.h')" />
-            <xsl:variable name="base_cpp" select="concat('base_', $label, '.cpp')" />
-            <xsl:variable name="base_cmake" select="concat('base_', $label, '_CMakeLists.txt')" />
-
-             <xsl:result-document href="{o:write_file($base_h)}">
-                <xsl:value-of select="cdit:get_aggregate_base_h(.)" />
-            </xsl:result-document>
-                
-
-        </xsl:for-each>
-
-
+                <xsl:variable name="aggregate_path" select="o:join_paths(($output_directory, $middleware, cdit:get_aggregates_path($aggregate)))" />
         
+                <xsl:variable name="proto_file" select="concat($file_label, '.proto')" />
+                <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
+                <xsl:variable name="base_h" select="concat($file_label, '.h')" />
+                <xsl:variable name="base_cpp" select="concat($file_label, '.cpp')" />
+                <xsl:variable name="base_cmake" select="'CMakeLists.txt'" />
 
+                <xsl:if test="cdit:build_shared_library($middleware)">
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.h'))}">
+                        <xsl:value-of select="cdit:get_convert_h($aggregate, $middleware)" />
+                    </xsl:result-document>
+                    
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.cpp'))}">
+                        <xsl:value-of select="cdit:get_convert_cpp($aggregate, $middleware)" />
+                    </xsl:result-document>
+
+                    <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
+                        <xsl:value-of select="cdit:get_convert_cmake($aggregate, $middleware)" />
+                    </xsl:result-document>
+
+                    <xsl:result-document href="{o:write_file(($aggregate_path, $proto_file))}">
+                        <xsl:value-of select="cdit:get_proto_file($aggregate)" />
+                    </xsl:result-document>
+
+                    <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
+                        <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
+                            <xsl:value-of select="cdit:get_idl_file($aggregate)" />
+                        </xsl:result-document>
+                    </xsl:if>
+                </xsl:if>
+
+                <xsl:if test="cdit:build_module_library($middleware)">
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'libportexports.cpp'))}">
+                        <xsl:value-of select="cdit:get_port_export($aggregate, $middleware)" />
+                    </xsl:result-document>
+                </xsl:if>
+
+                
+
+                <xsl:if test="$middleware = 'base'">
+                    <xsl:result-document href="{o:write_file(($aggregate_path, $base_h))}">
+                        <xsl:value-of select="cdit:get_aggregate_base_h($aggregate)" />
+                    </xsl:result-document>
+
+                    <xsl:result-document href="{o:write_file(($aggregate_path, $base_cpp))}">
+                        <xsl:value-of select="cdit:get_aggregate_base_cpp($aggregate)" />
+                    </xsl:result-document>
+
+                    <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
+                        <xsl:value-of select="cdit:get_aggregate_base_cmake($aggregate)" />
+                    </xsl:result-document>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each>
     </xsl:template>
 </xsl:stylesheet>

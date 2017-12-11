@@ -36,6 +36,8 @@
         </xsl:choose>
     </xsl:function>
 
+   
+
     <xsl:function name="cmake:get_middleware_extension" as="xs:string">
         <xsl:param name="middleware" as="xs:string"/>
 
@@ -84,7 +86,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base'">
                 <xsl:value-of select="false()" />
             </xsl:when>
             <xsl:otherwise>
@@ -99,7 +101,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'rti'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'ospl'">
                 <xsl:value-of select="true()" />
             </xsl:when>
             <xsl:otherwise>
@@ -234,6 +236,8 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label), '_'))" />
     </xsl:function>
+
+  
     
 
     
