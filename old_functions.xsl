@@ -2052,7 +2052,7 @@
 
         
         <!-- Include libportexports.h -->            
-        <xsl:value-of select="o:lib_include('core/libportexports.h')" />
+        <xsl:value-of select="o:lib_include('core/libportexport.h')" />
         <xsl:value-of select="o:nl(1)" />
 
 

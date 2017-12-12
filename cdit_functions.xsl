@@ -134,8 +134,65 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '')" />
+        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '', 0)" />
     </xsl:function>
+
+    <xsl:function name="cdit:invoke_middleware_add_vector_function" as="xs:string">
+        <xsl:param name="obj" as="xs:string"/>
+        <xsl:param name="operator" as="xs:string"/>
+        <xsl:param name="node" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+
+        <xsl:variable name="node_kind" select="graphml:get_kind($node)" />
+        <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($node, $middleware)" />
+
+        <xsl:variable name="vector_child" select="graphml:get_vector_child($node)" />
+        <xsl:variable name="vector_kind" select="graphml:get_kind($vector_child)" />
+
+        <xsl:variable name="function_value">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'base' and $vector_kind = 'AggregateInstance'">
+                    <xsl:value-of select="cpp:dereference($value)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$value" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="function_name">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                    <!-- DDS implementations use set via accessors -->
+                    <xsl:value-of select="$variable_syntax" />
+                </xsl:when>
+                <xsl:when test="$middleware = 'base'">
+                    <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'emplace_back')" />
+                </xsl:when>
+                <xsl:when test="$middleware = 'proto'">
+                    <xsl:choose>
+                        <xsl:when test="$vector_kind = 'AggregateInstance'">
+                            <!-- Vectors with Objects in it can use a mutable_swap function -->
+                            <xsl:value-of select="concat(cpp:invoke_function('', '', concat('add_', $variable_syntax), '', 0), cpp:arrow(), 'Swap')" />
+                        </xsl:when>
+                        <xsl:when test="$vector_kind = 'Member'">
+                            <!-- Protobuf uses swap for Instances -->
+                            <xsl:value-of select="concat('add_', $variable_syntax)" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="cpp:comment_inline(concat('Protobuf doesnt support vector with child kind ', o:wrap_quote($vector_kind)))" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="cpp:comment_inline(concat('Middleware ', $middleware, ' not implemented'))" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $function_value, 0)" />
+    </xsl:function>
+    
 
     <xsl:function name="cdit:invoke_middleware_set_function" as="xs:string">
         <xsl:param name="obj" as="xs:string"/>
@@ -162,25 +219,7 @@
                     <xsl:choose>
                         <xsl:when test="$node_kind = 'AggregateInstance'">
                             <!-- Protobuf uses swap for Instances -->
-                            <xsl:value-of select="concat(cpp:invoke_function('', '', concat('mutable_', $variable_syntax), ''), cpp:arrow(), 'Swap')" />
-                        </xsl:when>
-                        <xsl:when test="$node_kind = 'Vector'">
-                            <xsl:variable name="vector_child" select="graphml:get_child_node($node, 1)" />
-                            <xsl:variable name="vector_kind" select="graphml:get_kind($vector_child)" />
-
-                            <xsl:choose>
-                                <xsl:when test="$vector_kind = 'AggregateInstance'">
-                                    <!-- Vectors with Objects in it can use a mutable_swap function -->
-                                    <xsl:value-of select="concat(cpp:invoke_function('', '', concat('add_', $variable_syntax), ''), cpp:arrow(), 'Swap')" />
-                                </xsl:when>
-                                <xsl:when test="$vector_kind = 'Member'">
-                                    <!-- Protobuf uses swap for Instances -->
-                                    <xsl:value-of select="concat('add_', $variable_syntax)" />
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="cpp:comment_inline(concat('Protobuf doesnt support vector with child kind ', o:wrap_quote($vector_kind)))" />
-                                </xsl:otherwise>
-                            </xsl:choose>
+                            <xsl:value-of select="concat(cpp:invoke_function('', '', concat('mutable_', $variable_syntax), '', 0), cpp:arrow(), 'Swap')" />
                         </xsl:when>
                         <xsl:when test="$node_kind = 'Member' or $node_kind = 'EnumInstance'">
                             <!-- Protobuf implementations use set via functions -->
@@ -200,10 +239,10 @@
         <xsl:choose>
             <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
                 <!-- DDS implementations use set via accessors -->
-                <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, ''), ' = ', $value)" />
+                <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, '', 0), ' = ', $value)" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value)" />
+                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -382,12 +421,9 @@
     <xsl:function name="cdit:get_base_aggregates_cpp_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
-        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
-
-        <xsl:variable name="file" select="concat($aggregate_label,'.cpp')" />
-        
-        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label, $file))" />
+        <xsl:variable name="path" select="cdit:get_aggregates_path($aggregate)" />
+        <xsl:variable name="file" select="cdit:get_base_aggregate_cpp_name($aggregate)" />
+        <xsl:value-of select="o:join_paths(($path, $file))" />
     </xsl:function>
 
     <xsl:function name="cdit:get_base_aggregate_h_name" as="xs:string">
@@ -397,15 +433,19 @@
         <xsl:value-of select="concat($aggregate_label,'.h')" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_base_aggregate_h_path" as="xs:string">
+    <xsl:function name="cdit:get_base_aggregate_cpp_name" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
         <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:variable name="aggregate_namespace" select="lower-case(graphml:get_namespace($aggregate))" />
+        <xsl:value-of select="concat($aggregate_label,'.cpp')" />
+    </xsl:function>
 
+    <xsl:function name="cdit:get_base_aggregate_h_path" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+
+        <xsl:variable name="path" select="cdit:get_aggregates_path($aggregate)" />
         <xsl:variable name="file" select="cdit:get_base_aggregate_h_name($aggregate)" />
-        
-        <xsl:value-of select="o:join_paths(($aggregate_namespace, $aggregate_label, $file))" />
+        <xsl:value-of select="o:join_paths(($path, $file))" />
     </xsl:function>
 
     <!-- Get all required aggregates -->

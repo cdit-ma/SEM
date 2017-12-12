@@ -108,8 +108,10 @@
     <xsl:function name="cmake:set_variable" as="xs:string">
         <xsl:param name="variable" as="xs:string" />
         <xsl:param name="value" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        
 
-        <xsl:value-of select="concat('set(', $variable, ' ', o:wrap_dblquote($value), ')', o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), 'set(', $variable, ' ', o:wrap_dblquote($value), ')', o:nl(1))" />
     </xsl:function>
 
     <!--
@@ -121,7 +123,7 @@
     <xsl:function name="cmake:set_project_name">
         <xsl:param name="project_name" as="xs:string" />
 
-        <xsl:value-of select="cmake:set_variable('PROJ_NAME', $project_name)" />
+        <xsl:value-of select="cmake:set_variable('PROJ_NAME', $project_name, 0)" />
         <xsl:value-of select="concat('project(${PROJ_NAME})', o:nl(1))" />
     </xsl:function>
 
@@ -194,6 +196,79 @@
     <xsl:function name="cmake:cmake_file" as="xs:string">
         <xsl:value-of select="'CMakeLists.txt'" />
     </xsl:function>
+
+    <xsl:function name="cmake:add_subdirectories">
+        <xsl:param name="sub_directories" as="xs:string*"/>
+
+        <xsl:for-each select="$sub_directories">
+            <xsl:value-of select="cmake:add_subdirectory(o:join_paths((cmake:current_source_dir_var(), .)))" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cmake:cmake_minimum_required">
+        <xsl:param name="version" as="xs:string"/>
+        <xsl:value-of select="concat('cmake_minimum_required(VERSION ', $version, ')', o:nl(1))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:set_cpp11">
+        <xsl:value-of select="cmake:comment('CMake C++11 Options', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD', '11', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD_REQUIRED', 'ON', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_CXX_EXTENSIONS', 'OFF', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:value-of select="cmake:comment('MacOSX specific code', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_POSITION_INDEPENDENT_CODE', 'ON', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_BUILD_WITH_INSTALL_RPATH', 'ON', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', concat('@loader_path;', o:and(), 'ORIGIN'), 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <xsl:function name="cmake:set_output_directory">
+        <xsl:param name="var" as="xs:string"/>
+        <xsl:param name="output_directory" as="xs:string"/>
+        
+        <xsl:value-of select="cmake:set_variable($var, $output_directory, 0)" />
+        <xsl:value-of select="cmake:if_start('MSVC', 0)" />
+        <xsl:value-of select="cmake:set_variable(concat($var, '_DEBUG'), cmake:wrap_variable($var), 1)" />
+        <xsl:value-of select="cmake:set_variable(concat($var, '_RELEASE'), cmake:wrap_variable($var), 1)" />
+        <xsl:value-of select="cmake:if_end('MSVC', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <xsl:function name="cmake:set_runtime_output_directory">
+        <xsl:param name="output_directory" as="xs:string"/>
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_RUNTIME_OUTPUT_DIRECTORY', $output_directory)" />
+    </xsl:function>
+
+    <xsl:function name="cmake:set_library_output_directory">
+        <xsl:param name="output_directory" as="xs:string"/>
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_LIBRARY_OUTPUT_DIRECTORY', $output_directory)" />
+    </xsl:function>
+
+    <xsl:function name="cmake:set_archive_output_directory">
+        <xsl:param name="output_directory" as="xs:string"/>
+        <xsl:value-of select="cmake:set_output_directory('CMAKE_ARCHIVE_OUTPUT_DIRECTORY', $output_directory)" />
+    </xsl:function>
+
+    <!--
+        gets the system environment variable in cmake syntax for access
+        $env{variable_name}
+    -->
+    <xsl:function name="cmake:get_env_var" as="xs:string">
+        <xsl:param name="variable_name" as="xs:string" />
+        <xsl:value-of select="concat('$ENV', o:wrap_curly($variable_name))" />
+    </xsl:function>
+
+
+    <xsl:function name="cmake:setup_re_path">
+        <xsl:value-of select="cmake:comment('CDIT Runtime Paths', 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_PATH', cmake:get_env_var('RE_PATH'), 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+
 
 
 </xsl:stylesheet>

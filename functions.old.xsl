@@ -2051,8 +2051,8 @@
         <xsl:variable name="mw_header_file" select="cdit:get_middleware_file_header($aggregate_label_lc, $middleware)" />
 
         
-        <!-- Include libportexports.h -->            
-        <xsl:value-of select="o:lib_include('core/libportexports.h')" />
+        <!-- Include libportexport.h -->            
+        <xsl:value-of select="o:lib_include('core/libportexport.h')" />
         <xsl:value-of select="o:nl(1)" />
 
 

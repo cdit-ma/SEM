@@ -159,6 +159,22 @@
     </xsl:function>
 
     <!--
+        Calls a templated function
+        ie. function<ConcreteType>(int value);
+    -->
+    <xsl:function name="cpp:invoke_templated_static_function">
+        <xsl:param name="concrete_template_type" as="xs:string" />
+        <xsl:param name="function_name" as="xs:string" />
+        <xsl:param name="parameters" as="xs:string" />
+        <xsl:param name="prefix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="template_function_name" select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
+
+        <xsl:value-of select="cpp:invoke_static_function('', $template_function_name, $parameters, $prefix, $tab)" />
+    </xsl:function>
+
+    <!--
         Produces a function definition
         ie. void namespace::function(int value)
     -->
@@ -329,6 +345,14 @@
     </xsl:function>
 
     <!--
+        Used to derefence a pointer
+    -->
+    <xsl:function name="cpp:dereference">
+        <xsl:param name="var" as="xs:string"/>
+        <xsl:value-of select="concat('*', $var)" />
+    </xsl:function>
+
+    <!--
         Used to convert a type into a const reference
     -->
     <xsl:function name="cpp:const_ref_var_def">
@@ -389,8 +413,23 @@
         <xsl:param name="operator" as="xs:string"/>
         <xsl:param name="function_name" as="xs:string"/>
         <xsl:param name="parameters" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
 
-        <xsl:value-of select="concat(o:join_list(($obj, $function_name), $operator), o:wrap_bracket($parameters))" />
+        <xsl:value-of select="concat(o:t($tab), o:join_list(($obj, $function_name), $operator), o:wrap_bracket($parameters))" />
+    </xsl:function>
+
+    <!--
+        Used to call a function on an object using a ref
+        ie. ${obj}${operator}(${parameters})
+    -->
+    <xsl:function name="cpp:invoke_static_function">
+        <xsl:param name="namespace" as="xs:string"/>
+        <xsl:param name="function_name" as="xs:string"/>
+        <xsl:param name="parameters" as="xs:string"/>
+        <xsl:param name="prefix" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), cpp:combine_namespaces(($namespace, $function_name)), o:wrap_bracket($parameters), $prefix)" />
     </xsl:function>
 
     <!--
@@ -432,7 +471,7 @@
         <xsl:param name="name_list" as="xs:string*" />
         <xsl:param name="parameters" as="xs:string" />
 
-        <xsl:value-of select="concat('new ', cpp:invoke_function('', '', o:join_list($name_list, '::'), $parameters))" />
+        <xsl:value-of select="concat('new ', cpp:invoke_function('', '', o:join_list($name_list, '::'), $parameters, 0))" />
     </xsl:function>
 
     <xsl:function name="cpp:for">
@@ -528,6 +567,18 @@
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'protected:', o:nl(1))" />
     </xsl:function>
+
+    <xsl:function name="cpp:join_args" as="xs:string">
+        <xsl:param name="args" as="xs:string*" />
+        <xsl:value-of select="o:join_list($args, ', ')" />
+    </xsl:function>
+
+    <xsl:function name="cpp:templated_type" as="xs:string">
+        <xsl:param name="class" as="xs:string" />
+        <xsl:param name="template_type" as="xs:string" />
+        <xsl:value-of select="concat($class, cpp:wrap_template($template_type))" />
+    </xsl:function>
+
 
    
 </xsl:stylesheet>

@@ -224,7 +224,18 @@
         
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-        <xsl:value-of select="lower-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'lib'), '_'))" />
+
+        <xsl:variable name="shared_middleware">
+             <xsl:choose>
+                <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                    <xsl:value-of select="'proto'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$middleware" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="lower-case(o:join_list(($shared_middleware, $aggregate_namespace, $aggregate_label, 'lib'), '_'))" />
     </xsl:function>
 
 

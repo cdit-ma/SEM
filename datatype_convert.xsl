@@ -34,9 +34,10 @@
         <!-- Include the base message type -->
         <xsl:value-of select="cpp:comment('Include the base type', 0)" />
         <xsl:variable name="header_file" select="cdit:get_datatype_path('Base', $aggregate, concat(lower-case($aggregate_label), '.h'))"/>
+
         <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
-        <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, $aggregate_label, 0)" />
+        <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, cpp:get_aggregate_type_name($aggregate), 0)" />
         <xsl:value-of select="o:nl(1)" />
         
         <!-- Define the namespace -->
@@ -124,15 +125,15 @@
         <xsl:if test="lower-case($middleware) = 'proto'">
             <xsl:value-of select="cpp:define_templated_function_specialisation($middleware_type, cpp:pointer_var_def($base_type, ''), $middleware_namespace, 'decode', cpp:const_ref_var_def('std::string', 'value'), cpp:scope_start(0))" />
             <xsl:value-of select="cpp:declare_variable($middleware_type, 'out', cpp:nl(), 1)" />
-            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('out', cpp:dot(), 'ParseFromString', 'value'), cpp:nl())" />
-            <xsl:value-of select="cpp:return(cpp:invoke_function('', '', 'translate', 'out'), 1)" />
+            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('out', cpp:dot(), 'ParseFromString', 'value', 0), cpp:nl())" />
+            <xsl:value-of select="cpp:return(cpp:invoke_function('', '', 'translate', 'out', 0), 1)" />
             <xsl:value-of select="cpp:scope_end(0)" />
             <xsl:value-of select="o:nl(1)" />
 
             <xsl:value-of select="cpp:define_function('std::string', $middleware_namespace, 'encode', cpp:const_ref_var_def($base_type, 'value'), cpp:scope_start(0))" />
             <xsl:value-of select="cpp:declare_variable('std::string', 'out', cpp:nl(), 1)" />
-            <xsl:value-of select="cpp:define_variable('auto', 'pb', cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), 'value'), cpp:nl(), 1)" />
-            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('pb', cpp:arrow(), 'SerializeToString', cpp:ref_var('out')), cpp:nl())" />
+            <xsl:value-of select="cpp:define_variable('auto', 'pb', cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), 'value', 0), cpp:nl(), 1)" />
+            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('pb', cpp:arrow(), 'SerializeToString', cpp:ref_var('out'), 0), cpp:nl())" />
             <xsl:value-of select="cpp:delete('pb', 1)" />
             <xsl:value-of select="cpp:return('out', 1)" />
             <xsl:value-of select="cpp:scope_end(0)" />
@@ -402,6 +403,8 @@
         <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
 
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(($middleware, $aggregate_namespace, $aggregate_label))" />
+
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
         <!-- Find the Middleware specific package -->
@@ -418,7 +421,7 @@
 
         <!-- Do the things to generate required files for the middleware shared library-->
         <xsl:if test="$build_shared_library">
-            <xsl:value-of select="cmake:set_variable('SHARED_LIBRARY_NAME', $shared_lib_name)" />
+            <xsl:value-of select="cmake:set_variable('SHARED_LIBRARY_NAME', $shared_lib_name, 0)" />
             <xsl:value-of select="cmake:comment(('Copy the', o:wrap_angle($middleware_extension), 'file into the binary directory so it can be used by the middleware compilers'), 0)" />
 
             <xsl:variable name="middleware_file" select="cmake:get_aggregates_middleware_file_name($aggregate, $middleware)" />
@@ -466,7 +469,7 @@
             <xsl:value-of select="cmake:add_shared_library('SHARED_LIBRARY_NAME', 'SHARED', $args)" />
         </xsl:if>
         <xsl:if test="$build_module_library">
-           <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', o:join_paths(($source_dir_var, 'libportexports.cpp')))" />
+           <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', o:join_paths(($source_dir_var, 'libportexport.cpp')))" />
         </xsl:if>
 
         
@@ -480,7 +483,7 @@
             <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $binary_dir_var, 0)" />
             <xsl:value-of select="o:nl(1)" />
 
-            <xsl:variable name="relative_path" select="cmake:get_relative_path(($middleware, $aggregate_namespace, $aggregate_label))" />
+            
 
             <!-- Include the required aggregate files -->
             <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
@@ -502,8 +505,8 @@
 
                     
                     <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                    <xsl:variable name="required_file" select="o:join_paths(($relative_path, cmake:get_aggregates_middleware_file_path(., $middleware)))" />
-                    <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $binary_dir_var, 0)" />
+                    <xsl:variable name="required_file" select="o:join_paths(($binary_dir_var, $relative_path, cdit:get_aggregates_path(.)))" />
+                    <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_file, 0)" />
 
                     <xsl:if test="position() = last()">
                         <xsl:value-of select="o:nl(1)" />
@@ -546,7 +549,18 @@
             <!-- Include re_path -->
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
 
-            <xsl:value-of select="cmake:target_link_middleware_libraries('SHARED_LIBRARY_NAME', $middleware, 0)" />
+            <xsl:variable name="required_source_dir" select="o:join_paths(($source_dir_var, $relative_path))" />
+            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_source_dir, 0)" />
+            <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
+
+            
+
+            <xsl:value-of select="cmake:target_link_middleware_libraries('PROJ_NAME', $middleware, 0)" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($middleware_helper_libraries), 0)" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $shared_lib_name, 0)" />
+    
+            
             <xsl:value-of select="o:nl(1)" />
         </xsl:if>
     </xsl:function>
@@ -583,6 +597,7 @@
 
         <!-- Import the definitions of each aggregate instance used -->
         <xsl:for-each select="$required_aggregates">
+            
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Include required base Aggregate header files', 0)" />
             </xsl:if>
@@ -660,13 +675,33 @@
 
         <xsl:value-of select="cpp:comment(('Include the convert function'), 0)" />
         <xsl:value-of select="cpp:include_local_header(o:join_paths(($convert_header_path, 'convert.h')))" />
-        
-
-
         <xsl:value-of select="o:nl(1)" />
+
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'ineventport.hpp')))" />
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'outeventport.hpp')))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="port_type" select="cpp:join_args(($base_type, $middleware_type))" />
+
+        <xsl:variable name="func_args" select="cpp:join_args((cpp:const_ref_var_def('std::string', 'port_name'), cpp:declare_variable(cpp:weak_ptr('Component'), 'component', '', 0)))" />
+
+
+        <xsl:variable name="inport_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'InEventPort')), $port_type)" />
+        <xsl:variable name="outport_type" select="cpp:templated_type(cpp:combine_namespaces(($middleware, 'OutEventPort')), $port_type)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('EventPort', ''), '', 'ConstructInEventPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="inport_func" select="cpp:invoke_templated_static_function($inport_type, 'ConstructInEventPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:return($inport_func, 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('EventPort', ''), '', 'ConstructOutEventPort', $func_args, cpp:scope_start(0))" />
+        <xsl:variable name="outport_func" select="cpp:invoke_templated_static_function($outport_type, 'ConstructOutEventPort', cpp:join_args(('port_name', 'component')), '', 0)" />
+        <xsl:value-of select="cpp:return($outport_func, 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
 
 
@@ -778,6 +813,36 @@
         </xsl:for-each>
     </xsl:function>
 
+    <xsl:function name="cdit:get_middleware_cmake">
+        <xsl:param name="aggregates" as="element()*" />
+
+        <!-- Include the required aggregate folders -->
+        <xsl:variable name="sub_directories" as="xs:string*">
+            <xsl:for-each select="$aggregates">
+                <xsl:sequence select="cdit:get_aggregates_path(.)" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_datatypes_cmake">
+        <xsl:param name="middlewares" as="xs:string*" />
+
+        
+        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
+        <xsl:value-of select="cmake:set_cpp11()" />
+        <xsl:value-of select="cmake:setup_re_path()" />
+
+        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(),'..', 'lib'))" />
+
+        <xsl:value-of select="cmake:set_cpp11()" />
+        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
+        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
+        
+        <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
+    </xsl:function>
+
 
     <xsl:function name="cpp:declare_aggregate_member_functions">
         <xsl:param name="node" as="element()" />
@@ -868,7 +933,7 @@
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $aggregate_instance, $source_middleware)" />
         <xsl:variable name="temp_variable" select="lower-case(concat('value_', graphml:get_label($aggregate_instance)))" />
-        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $get_func)" />
+        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $get_func, 0)" />
 
         <xsl:variable name="value">
             <xsl:choose>
@@ -911,17 +976,17 @@
         <xsl:variable name="temp_variable" select="'element'" />
         <xsl:variable name="temp_element_variable" select="o:join_list(($target_middleware, $temp_variable), '_')" />
         <xsl:variable name="temp_size_variable" select="o:join_list(($temp_variable, 'size'), '_')" />
-        <xsl:variable name="get_size" select="cpp:invoke_function($temp_variable, cpp:dot(), 'size', '')" />
+        <xsl:variable name="get_size" select="cpp:invoke_function($temp_variable, cpp:dot(), 'size', '', 0)" />
         <xsl:variable name="get_value" select="cpp:array_get($temp_variable, 'i')" />
       
-        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $temp_variable)" />
+        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $temp_variable, 0)" />
         <xsl:variable name="set_func">
             <xsl:choose>
                 <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                    <xsl:value-of select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_element_variable)" />
                 </xsl:when>
                 <xsl:when test="$vector_child_kind = 'Member'">
-                    <xsl:value-of select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable)" />
+                    <xsl:value-of select="cdit:invoke_middleware_add_vector_function('out', cpp:arrow(), $vector, $target_middleware, $temp_variable)" />
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>

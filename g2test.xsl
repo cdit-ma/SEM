@@ -31,30 +31,33 @@
 
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 	 
-    <xsl:template match="/">
+    <xsl:template match="/*">
         <xsl:variable name="parsed_middlewares" select="cdit:parse_middlewares($middlewares)" as="xs:string*" />
+        <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind(., 'Aggregate')" />
+        
         <xsl:variable name="output_directory" select="'datatypes2'" as="xs:string*" />
-
+       
         
         
-        <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'Aggregate')">
-            <xsl:variable name="aggregate" select="." />
-            <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-            <xsl:variable name="file_label" select="lower-case($aggregate_label)" />
+        <xsl:for-each select="$parsed_middlewares">
+            <xsl:variable name="middleware" select="lower-case(.)" />
+            <xsl:variable name="middleware_path" select="o:join_paths(($output_directory, $middleware))" />
 
-            <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label)))" />
+            <xsl:value-of select="o:message(('Processing:', o:wrap_quote($middleware)))" />
+            
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="aggregate" select="." />
+                <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+                <xsl:variable name="file_label" select="lower-case($aggregate_label)" />
 
-            <xsl:for-each select="$parsed_middlewares">
-                <xsl:variable name="middleware" select="lower-case(.)" />
-                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label), 'For:', o:wrap_quote($middleware)))" />
+                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label)))" />
                 
-                <xsl:variable name="aggregate_path" select="o:join_paths(($output_directory, $middleware, cdit:get_aggregates_path($aggregate)))" />
+                <xsl:variable name="aggregate_path" select="o:join_paths(($middleware_path, cdit:get_aggregates_path($aggregate)))" />
         
                 <xsl:variable name="proto_file" select="concat($file_label, '.proto')" />
                 <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
                 <xsl:variable name="base_h" select="concat($file_label, '.h')" />
                 <xsl:variable name="base_cpp" select="concat($file_label, '.cpp')" />
-                <xsl:variable name="base_cmake" select="'CMakeLists.txt'" />
 
                 <xsl:if test="cdit:build_shared_library($middleware)">
                     <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.h'))}">
@@ -63,10 +66,6 @@
                     
                     <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.cpp'))}">
                         <xsl:value-of select="cdit:get_convert_cpp($aggregate, $middleware)" />
-                    </xsl:result-document>
-
-                    <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
-                        <xsl:value-of select="cdit:get_convert_cmake($aggregate, $middleware)" />
                     </xsl:result-document>
 
                     <xsl:result-document href="{o:write_file(($aggregate_path, $proto_file))}">
@@ -81,12 +80,16 @@
                 </xsl:if>
 
                 <xsl:if test="cdit:build_module_library($middleware)">
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'libportexports.cpp'))}">
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'libportexport.cpp'))}">
                         <xsl:value-of select="cdit:get_port_export($aggregate, $middleware)" />
                     </xsl:result-document>
                 </xsl:if>
 
-                
+                <xsl:if test="cdit:build_module_library($middleware) or cdit:build_shared_library($middleware)">
+                    <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
+                        <xsl:value-of select="cdit:get_convert_cmake($aggregate, $middleware)" />
+                    </xsl:result-document>
+                </xsl:if>
 
                 <xsl:if test="$middleware = 'base'">
                     <xsl:result-document href="{o:write_file(($aggregate_path, $base_h))}">
@@ -102,6 +105,14 @@
                     </xsl:result-document>
                 </xsl:if>
             </xsl:for-each>
+
+            <xsl:result-document href="{o:write_file(($middleware_path, cmake:cmake_file()))}">
+                <xsl:value-of select="cdit:get_middleware_cmake($aggregates)" />
+            </xsl:result-document>
         </xsl:for-each>
+
+        <xsl:result-document href="{o:write_file(($output_directory, cmake:cmake_file()))}">
+            <xsl:value-of select="cdit:get_datatypes_cmake($parsed_middlewares)" />
+        </xsl:result-document>
     </xsl:template>
 </xsl:stylesheet>
