@@ -26,7 +26,7 @@ public:
     const cl::CommandQueue& GetQueue() const;
 
     bool LoadKernelsFromSource(const std::vector<std::string>& filenames, Worker& worker);
-    bool LoadKernelsFromBinary(const std::vector<std::string>& filenames, Worker& worker);
+    bool LoadKernelsFromBinary(const std::string& filename, Worker& worker);
     const std::vector<std::reference_wrapper<OpenCLKernel> > GetKernels();
     OpenCLKernel& GetKernel(const std::string& kernel_name) const;
 

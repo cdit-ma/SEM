@@ -93,12 +93,13 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
 	return true;
 }
 
-bool OpenCLDevice::LoadKernelsFromBinary(const std::vector<std::string>& filenames, Worker& worker) {
+bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& worker) {
 	cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
 
-	// Read, compile and link the Program from OpenCL code
+	std::vector<std::string> filenames;
+	filenames.push_back(filename);
 	cl::Program::Binaries binaries = ReadOpenCLBinaries(filenames, &worker);
 
     std::vector<cl::Device> device_vec;
@@ -109,7 +110,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::vector<std::string>& filenam
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
-			"Unable to create OpenCL program from OpenCL source code",
+			"Unable to create OpenCL program from OpenCL binary",
 			err);
 		return false;
 	}

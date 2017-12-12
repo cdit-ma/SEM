@@ -96,8 +96,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	// Manager shouldn't be marked as valid until creation has completed successfully
 	valid_ = false;
 
-	std::string platform_name;
-	platform_name = platform_.getInfo<CL_PLATFORM_NAME>(&err);
+	platform_name_ = platform_.getInfo<CL_PLATFORM_NAME>(&err);
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
 			std::string(__func__),
@@ -110,10 +109,9 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	std::vector<cl::Device> devices;
 	err = platform_.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 	if (err != CL_SUCCESS) {
-		std::string platform_name = platform_.getInfo<CL_PLATFORM_NAME>();
 		LogError(worker_reference,
 			std::string(__func__),
-			"Failed to retrieve the list of devices for platform " + platform_name,
+			"Failed to retrieve the list of devices for platform " + platform_name_,
 			err);
 	}
 
@@ -121,7 +119,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	{
 		LogError(worker_reference,
 			std::string(__func__),
-			"Unable to find any devices for the given OpenCL platform (" + platform_name + ")");
+			"Unable to find any devices for the given OpenCL platform (" + platform_name_ + ")");
 		return;
 	}
 
@@ -130,7 +128,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	if (err != CL_SUCCESS) {
 		LogError(worker_reference,
 			std::string(__func__),
-			"Unable to create an OpenCL context (" + platform_name + ")",
+			"Unable to create an OpenCL context (" + platform_name_ + ")",
 			err);
 		return;
 	}
@@ -141,6 +139,8 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 		//device_list_.push_back(std::move(OpenCLDevice(*context_, d, *worker_reference)));
 	}
 
+	LoadAllBinaries(worker_reference);
+
 	// Mark the manager as having been properly initialized
 	valid_ = true;
 }
@@ -149,7 +149,9 @@ const cl::Context& OpenCLManager::GetContext() const {
 	return *context_;
 }
 
-
+std::string OpenCLManager::GetPlatformName() const {
+	return platform_name_;
+}
 
 std::vector<OpenCLDevice>& OpenCLManager::GetDevices(Worker* worker_reference) {
 	return device_list_;
@@ -210,6 +212,30 @@ int OpenCLManager::TrackBuffer(GenericBuffer* buffer){
 
 void OpenCLManager::UntrackBuffer(int buffer_id) {
 	buffer_store_.erase(buffer_id);
+}
+
+bool OpenCLManager::LoadAllBinaries(Worker* worker_ref) {
+
+    /*if (load_balancer_ == NULL) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            "Trying to load binaries when no load balancer is specified");
+            return false;
+    }*/
+
+    //std::string plat_name = manager_->GetPlatformName();
+
+    bool did_all_succeed = true;
+    for (auto& device : device_list_) {
+        std::string dev_name = device.GetName();
+        std::string binary_path = GetSourcePath(platform_name_+"-"+dev_name+".clbin");
+        bool success = device.LoadKernelsFromBinary(binary_path, *worker_ref);
+        if (!success) {
+            LogError(worker_ref, __func__,
+                "Failed to load binary for device "+dev_name);
+            did_all_succeed = false;
+        }
+    }
+    return did_all_succeed;
 }
 
 void OpenCLManager::LogError(Worker* worker_reference,

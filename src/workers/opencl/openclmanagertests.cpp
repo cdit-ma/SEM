@@ -50,17 +50,17 @@ void printFail(std::string description) {
 }
 
 void printSkipped(std::string description) {
-	std::cerr << "\033[34m" << "[SKIPPED] " << "\033[0m";
+	std::cout << "\033[34m" << "[SKIPPED] " << "\033[0m";
 	std::cout << description << std::endl;
 }
 
 void printWarning(std::string description) {
-	std::cerr << "\033[33m" << "[WARNING] " << "\033[0m";
+	std::cout << "\033[33m" << "[WARNING] " << "\033[0m";
 	std::cout << description << std::endl;
 }
 
 void printInfo(std::string description) {
-	std::cerr << "\033[36m" << "[INFO] " << "\033[0m";
+	std::cout << "\033[36m" << "[INFO] " << "\033[0m";
 	std::cout << description << std::endl;
 }
 

@@ -40,6 +40,8 @@ class OpenCLManager {
 
 		const cl::Context& GetContext() const;
 
+		std::string GetPlatformName() const;
+
 		std::vector<OpenCLDevice>& GetDevices(Worker* worker_reference=NULL);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
@@ -81,6 +83,8 @@ class OpenCLManager {
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
 
+    	bool LoadAllBinaries(Worker* worker_ref);
+
 		static void LogError(Worker* worker_reference,
 							std::string function_name,
 							std::string error_message,
@@ -96,6 +100,7 @@ class OpenCLManager {
 		// Variables
 		bool valid_ = false;
 		cl::Platform& platform_;
+		std::string platform_name_;
 		cl::Context* context_;
 		std::vector<OpenCLDevice> device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
