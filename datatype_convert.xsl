@@ -26,7 +26,7 @@
         <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
         <xsl:variable name="middleware_namespace" select="lower-case($middleware)" />
         
-        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'convert', 'h'), '_'))" />
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'convert'), '_'))" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
@@ -582,6 +582,7 @@
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('base', $aggregate_namespace, $aggregate_label), '_'))" />
 
         <xsl:variable name="children" select="graphml:get_child_nodes($aggregate)" />
+        <xsl:variable name="enums" select="graphml:get_definitions(graphml:get_child_nodes_of_kind($aggregate, 'EnumInstance'))" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
@@ -597,11 +598,23 @@
 
         <!-- Import the definitions of each aggregate instance used -->
         <xsl:for-each select="$required_aggregates">
-            
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Include required base Aggregate header files', 0)" />
             </xsl:if>
             <xsl:variable name="required_file" select="cdit:get_base_aggregate_h_path(.)" />
+            <xsl:value-of select="cpp:include_local_header(o:join_paths(($relative_path, $required_file)))" />
+            
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
+
+        <!-- Import the definitions of each enum instances used -->
+        <xsl:for-each select="$enums">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Include required enum header files', 0)" />
+            </xsl:if>
+            <xsl:variable name="required_file" select="cdit:get_base_enum_h_path(.)" />
             <xsl:value-of select="cpp:include_local_header(o:join_paths(($relative_path, $required_file)))" />
             
             <xsl:if test="position() = last()">
@@ -828,7 +841,6 @@
 
     <xsl:function name="cdit:get_datatypes_cmake">
         <xsl:param name="middlewares" as="xs:string*" />
-
         
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
         <xsl:value-of select="cmake:set_cpp11()" />
@@ -836,13 +848,73 @@
 
         <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(),'..', 'lib'))" />
 
-        <xsl:value-of select="cmake:set_cpp11()" />
         <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
         <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
         
         <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_enum_h">
+        <xsl:param name="enum" as="element()" />
+        
+        <xsl:variable name="namespaces" select="o:trim_list(('Base', graphml:get_namespace($enum)))" />
+        <xsl:variable name="label" select="graphml:get_label($enum)" />
+        <xsl:variable name="tab" select="count($namespaces)" />
+        <xsl:variable name="qualified_type" select="cpp:combine_namespaces(($namespaces, $label))" />
+
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('ENUMS', $namespaces, $label), '_'))" />
+
+        <xsl:variable name="enum_members" select="graphml:get_child_nodes_of_kind($enum, 'EnumMember')" />
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
+        <xsl:value-of select="cpp:include_library_header('string')" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Define the namespaces -->
+        <xsl:for-each select="$namespaces">
+            <xsl:value-of select="cpp:namespace_start(., position() - 1)" />
+        </xsl:for-each>
+
+        <!-- Define the Enum -->
+        <xsl:value-of select="cpp:enum($label, $tab)" />
+        <xsl:for-each select="$enum_members">
+            <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
+            <xsl:value-of select="cpp:enum_value($member_label, position() - 1, position() = last(), $tab + 1)" />
+        </xsl:for-each>
+        <xsl:value-of select="cpp:scope_end($tab)" />
+
+        <!-- End the namespaces -->
+        <xsl:for-each select="$namespaces">
+            <xsl:value-of select="cpp:namespace_end(., position() - 1)" />
+        </xsl:for-each>
+
+        <!-- Define to_string function -->
+        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cpp:define_function('inline std::string', '', 'to_string', cpp:const_ref_var_def($qualified_type, 'value'), cpp:scope_start(0))" />
+        <xsl:value-of select="cpp:switch('value', 1)" />
+
+        <xsl:for-each select="$enum_members">
+            <xsl:variable name="enum_label" select="upper-case(graphml:get_label(.))" />
+            <xsl:variable name="enum_type" select="cpp:combine_namespaces(($namespaces, $label, $enum_label))" />
+            <xsl:value-of select="cpp:switch_case($enum_type, 2)" />
+            <xsl:value-of select="cpp:return(o:wrap_dblquote($enum_label), 3)" />
+            <xsl:value-of select="cpp:scope_end(2)" />
+        </xsl:for-each>
+        <xsl:value-of select="cpp:switch_default(2)" />
+        <xsl:value-of select="cpp:return(o:wrap_dblquote('UNKNOWN_TYPE'), 3)" />
+        <xsl:value-of select="cpp:scope_end(2)" />
+        <xsl:value-of select="cpp:scope_end(1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+        
+        <!-- Define to_integer function -->
+        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cpp:define_function('inline int', '', 'to_integer', cpp:const_ref_var_def($qualified_type, 'value'), cpp:scope_start(0))" />
+        <xsl:value-of select="cpp:return(cpp:static_cast('int', 'value'), 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+
+        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+    </xsl:function>
 
     <xsl:function name="cpp:declare_aggregate_member_functions">
         <xsl:param name="node" as="element()" />
@@ -911,8 +983,9 @@
 
         <!-- Get the type of the Enum -->
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $enum_instance, $source_middleware)" />
-        <xsl:variable name="enum_cast_type" select="cpp:get_enum_qualified_type($enum_instance)" />
-        <xsl:variable name="cast_enum_value" select="o:join_list(($enum_cast_type, cpp:static_cast('int', $get_func)), ' ')" />
+        <xsl:variable name="enum_cast_type" select="cpp:get_enum_qualified_type($enum_instance, $target_middleware)" />
+
+        <xsl:variable name="cast_enum_value" select="o:join_list((o:wrap_bracket($enum_cast_type), cpp:static_cast('int', $get_func)), ' ')" />
         <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $cast_enum_value)" />
         
         <xsl:value-of select="cpp:scope_start($tab)" />

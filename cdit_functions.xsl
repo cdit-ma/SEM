@@ -153,7 +153,7 @@
         <xsl:variable name="function_value">
             <xsl:choose>
                 <xsl:when test="$middleware = 'base' and $vector_kind = 'AggregateInstance'">
-                    <xsl:value-of select="cpp:dereference($value)" />
+                    <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="$value" />
@@ -256,7 +256,7 @@
                 <xsl:value-of select="cpp:get_member_type($node)" />
             </xsl:when>
             <xsl:when test="$kind = 'EnumInstance'">
-                <xsl:value-of select="cpp:get_enum_qualified_type($node)" />
+                <xsl:value-of select="cpp:get_enum_qualified_type($node, 'base')" />
             </xsl:when>
             <xsl:when test="$kind = 'AggregateInstance'">
                 <xsl:value-of select="cpp:get_aggregate_qualified_type($node, 'base')" />
@@ -279,12 +279,20 @@
 
     <xsl:function name="cpp:get_enum_qualified_type" as="xs:string">
         <xsl:param name="enum" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="enum_definition" select="graphml:get_definition($enum)" />
         <xsl:variable name="namespace" select="graphml:get_namespace($enum_definition)" />
         <xsl:variable name="label" select="o:title_case(graphml:get_label($enum_definition))" />
 
-        <xsl:value-of select="cpp:combine_namespaces(($namespace, $label))" />
+        <xsl:variable name="extra_namespace" as="xs:string*">
+            <xsl:if test="$middleware = 'base'">
+                <!-- DDS implementations use set via accessors -->
+                <xsl:value-of select="'Base'" />
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $namespace, $label))" />
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
@@ -446,6 +454,14 @@
         <xsl:variable name="path" select="cdit:get_aggregates_path($aggregate)" />
         <xsl:variable name="file" select="cdit:get_base_aggregate_h_name($aggregate)" />
         <xsl:value-of select="o:join_paths(($path, $file))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_base_enum_h_path" as="xs:string">
+        <xsl:param name="enum" as="element()" />
+
+        <xsl:variable name="path" select="cdit:get_aggregates_path($enum)" />
+        <xsl:variable name="file" select="cdit:get_base_aggregate_h_name($enum)" />
+        <xsl:value-of select="o:join_paths(('enums', $path, $file))" />
     </xsl:function>
 
     <!-- Get all required aggregates -->

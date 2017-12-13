@@ -217,10 +217,10 @@
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_EXTENSIONS', 'OFF', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!--<xsl:value-of select="cmake:set_variable('CMAKE_POSITION_INDEPENDENT_CODE', 'ON', 0)" />
         <xsl:value-of select="cmake:comment('MacOSX specific code', 0)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_POSITION_INDEPENDENT_CODE', 'ON', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_BUILD_WITH_INSTALL_RPATH', 'ON', 0)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', concat('@loader_path;', o:and(), 'ORIGIN'), 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', concat('@loader_path;', o:and(), 'ORIGIN'), 0)" />-->
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 

@@ -65,7 +65,7 @@
         Returns the data value with the key: ${key_name} in a node/edge
     -->
     <xsl:function name="graphml:get_data_value" as="xs:string">
-        <xsl:param name="root" />
+        <xsl:param name="root" as="element()" />
         <xsl:param name="key_name" as="xs:string"/>
 
         <xsl:variable name="key_id" select="graphml:get_key_id($root, $key_name)" />
@@ -195,6 +195,7 @@
         <xsl:variable name="kind_id" select="graphml:get_key_id($root, 'kind')" />
         <xsl:sequence select="$root//gml:node/gml:data[@key=$kind_id and text() = $kind]/.." />
     </xsl:function>
+
 
     <!--
         Gets any edges of kind ${edge_kind} which start at the node ${node}

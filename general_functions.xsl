@@ -170,15 +170,15 @@
         <xsl:param name="list" as="xs:string*"/>
         <xsl:param name="token" as="xs:string" />
         
-        <xsl:variable name="pruned_list" as="xs:string*" select="o:prune_list($list)" />
+        <xsl:variable name="pruned_list" as="xs:string*" select="o:trim_list($list)" />
 
         <xsl:value-of select="string-join($pruned_list, $token)" />
     </xsl:function>
 
     <!--
-        List joins
+        Remove empty strings from list
     -->
-    <xsl:function name="o:prune_list" as="xs:string*">
+    <xsl:function name="o:trim_list" as="xs:string*">
         <xsl:param name="list" as="xs:string*"/>
         
         <xsl:for-each select="$list">

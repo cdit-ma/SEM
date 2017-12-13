@@ -1,10 +1,13 @@
-<!-- Functions for cpp syntax output -->
+<!--
+    Functions for cpp syntax output
+-->
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:o="http://github.com/cdit-ma/o"
     xmlns:cpp="http://github.com/cdit-ma/cpp"
     >
+
     <!--
         Places the text (handles newlines) in a cpp comment, can be tabbed
     -->
@@ -18,7 +21,6 @@
             <xsl:value-of select="concat(o:t($tab), '// ', normalize-space(.), o:nl(1))" />
         </xsl:for-each>
     </xsl:function>
-
 
     <!--
         Places the text in an inline comment block, useful for returning errors into code
@@ -62,8 +64,6 @@
         <xsl:value-of select="o:wrap_angle($safe_type)" />
     </xsl:function>
 
-    
-
     <!--
         Used for including system library headers
         #include <${library_path}>
@@ -85,7 +85,7 @@
     </xsl:function>
 
     <!--
-        Used for header files
+        Produces a define guard
         #ifndef ${CLASS_NAME}_H
         #define ${CLASS_NAME}_H
     -->
@@ -99,7 +99,7 @@
     </xsl:function>
 
     <!--
-        Used for header files
+        Terminates a define guard
         #endif ${CLASS_NAME}_H
     -->
     <xsl:function name="cpp:define_guard_end">
@@ -222,7 +222,6 @@
         <xsl:value-of select="concat(o:t($tab), o:join_list(($variable_type, $variable_name), ' '), $prefix)" />
     </xsl:function>
 
-
     <!--
         Produces a variable definition
         ie. std::string message
@@ -268,10 +267,9 @@
         <xsl:value-of select="concat('std::make_shared', cpp:wrap_template($type), o:wrap_bracket($args))" />
     </xsl:function>
 
-
     <!--
         Used to open a namespace
-        ie namespace ${namespace} {
+        ie namespace ${namespace}{
     -->
     <xsl:function name="cpp:namespace_start">
         <xsl:param name="namespace" as="xs:string" />
@@ -282,7 +280,7 @@
 
     <!--
         Used to close a namespace
-        ie }
+        ie };
     -->
     <xsl:function name="cpp:namespace_end">
         <xsl:param name="namespace" as="xs:string" />
@@ -291,9 +289,8 @@
         <xsl:value-of select="concat(o:t($tab), '}; ', cpp:comment($namespace, 0))" />
     </xsl:function>
 
-
     <!--
-        Used to forward declare a class
+        Used to forward declare a class, handles multiple namespaces
         ie namespace ${namespace}{
             class ${class_name};
         };
@@ -303,7 +300,7 @@
         <xsl:param name="class_name" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="pruned_namespaces" as="xs:string*" select="o:prune_list($namespaces)" />
+        <xsl:variable name="pruned_namespaces" as="xs:string*" select="o:trim_list($namespaces)" />
 
         <xsl:for-each select="$pruned_namespaces">
             <xsl:value-of select="cpp:namespace_start(., $tab + position() -1)" />
@@ -318,6 +315,7 @@
     
     <!--
         Used to convert a type into a reference
+        ie. ${var}&
     -->
     <xsl:function name="cpp:ref_var">
         <xsl:param name="var" as="xs:string"/>
@@ -326,7 +324,8 @@
     </xsl:function>
 
     <!--
-        Used to convert a type into a reference
+        Used to define a type as a reference
+        ie. ${type}& ${value}
     -->
     <xsl:function name="cpp:ref_var_def">
         <xsl:param name="type" as="xs:string"/>
@@ -336,24 +335,8 @@
     </xsl:function>
 
     <!--
-        Used to convert a type into a pointer
-    -->
-    <xsl:function name="cpp:pointer_var_def">
-        <xsl:param name="type" as="xs:string"/>
-        <xsl:param name="value" as="xs:string"/>
-        <xsl:value-of select="o:join_list((concat($type, '*'), $value), ' ')" />
-    </xsl:function>
-
-    <!--
-        Used to derefence a pointer
-    -->
-    <xsl:function name="cpp:dereference">
-        <xsl:param name="var" as="xs:string"/>
-        <xsl:value-of select="concat('*', $var)" />
-    </xsl:function>
-
-    <!--
-        Used to convert a type into a const reference
+        Used to define a type as a const reference
+        ie const ${type}& ${value}
     -->
     <xsl:function name="cpp:const_ref_var_def">
         <xsl:param name="type" as="xs:string"/>
@@ -363,14 +346,35 @@
     </xsl:function>
 
     <!--
-        Returns a const auto&
+        Used to define a type as a pointer
+        ie. ${type}* ${value}
+    -->
+    <xsl:function name="cpp:pointer_var_def">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="value" as="xs:string"/>
+        <xsl:value-of select="o:join_list((concat($type, '*'), $value), ' ')" />
+    </xsl:function>
+
+    <!--
+        Used to dereference a pointed object
+        ie. *${var}
+    -->
+    <xsl:function name="cpp:dereference_var">
+        <xsl:param name="var" as="xs:string"/>
+        <xsl:value-of select="concat('*', $var)" />
+    </xsl:function>
+
+    <!--
+        Returns a const auto reference
+        ie. const auto&
     -->
     <xsl:function name="cpp:const_ref_auto">
         <xsl:value-of select="cpp:const_ref_var_def(cpp:auto(), '')" />
     </xsl:function>
 
     <!--
-        Returns a auto
+        returns auto
+        ie. auto
     -->
     <xsl:function name="cpp:auto">
         <xsl:value-of select="'auto'" />
@@ -378,14 +382,13 @@
 
     <!--
         Used to start a scoped bracketted section
-        ie }
+        ie {
     -->
     <xsl:function name="cpp:scope_start">
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:value-of select="concat(o:t($tab), '{', o:nl(1))" />
     </xsl:function>
-
 
     <!--
         Used to close a scoped bracketted section
@@ -399,14 +402,15 @@
 
     <!--
         Used to end a command
+        ie ;\n
     -->
     <xsl:function name="cpp:nl">
         <xsl:value-of select="concat(';', o:nl(1))" />
     </xsl:function>
 
     <!--
-        Used to call a function on an object using a ref
-        ie. ${obj}${operator}(${parameters})
+        Used to invoke a function on an object
+        ie. ${obj}${operator}${function_name}(${parameters})
     -->
     <xsl:function name="cpp:invoke_function">
         <xsl:param name="obj" as="xs:string"/>
@@ -419,22 +423,22 @@
     </xsl:function>
 
     <!--
-        Used to call a function on an object using a ref
-        ie. ${obj}${operator}(${parameters})
+         Used to invoke a static function
+        ie. ${namespaces}::${function_name}(${parameters})${prefix}
     -->
     <xsl:function name="cpp:invoke_static_function">
-        <xsl:param name="namespace" as="xs:string"/>
+        <xsl:param name="namespaces" as="xs:string*"/>
         <xsl:param name="function_name" as="xs:string"/>
         <xsl:param name="parameters" as="xs:string"/>
         <xsl:param name="prefix" as="xs:string"/>
         <xsl:param name="tab" as="xs:integer"/>
 
-        <xsl:value-of select="concat(o:t($tab), cpp:combine_namespaces(($namespace, $function_name)), o:wrap_bracket($parameters), $prefix)" />
+        <xsl:value-of select="concat(o:t($tab), cpp:combine_namespaces(($namespaces, $function_name)), o:wrap_bracket($parameters), $prefix)" />
     </xsl:function>
 
     <!--
-        Used to delete an allocataed object
-        ie }
+        Used to delete an allocated object
+        ie delete ${var};
     -->
     <xsl:function name="cpp:delete">
         <xsl:param name="var" as="xs:string" />
@@ -444,19 +448,19 @@
     </xsl:function>
 
     <!--
-        Used to delete an allocataed object
-        ie }
+        Used to return out of a function
+        ie return ${var};
     -->
     <xsl:function name="cpp:return">
         <xsl:param name="var" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="concat(o:t($tab), 'return ', $var, cpp:nl())" />
+        <xsl:value-of select="concat(o:join_list((o:t($tab), 'return', $var), ' '), cpp:nl())" />
     </xsl:function>
 
     <!--
-        Produces a function definition
-        ie. void namespace::function(int value)
+        Used to combine a list of namespace elements into CPP namespace syntax
+        ie. namespace::namespace::function
     -->
     <xsl:function name="cpp:combine_namespaces">
         <xsl:param name="name_list" as="xs:string*" />
@@ -464,16 +468,20 @@
     </xsl:function>
 
     <!--
-        Produces a function definition
-        ie. void namespace::function(int value)
+        Constructs a new object of the provided type (Combines the list into namespace syntax)
+        ie. new namespace::class(${parameters})
     -->
     <xsl:function name="cpp:new_object">
         <xsl:param name="name_list" as="xs:string*" />
         <xsl:param name="parameters" as="xs:string" />
 
-        <xsl:value-of select="concat('new ', cpp:invoke_function('', '', o:join_list($name_list, '::'), $parameters, 0))" />
+        <xsl:value-of select="concat('new ', cpp:invoke_function('', '', cpp:combine_namespaces($name_list), $parameters, 0))" />
     </xsl:function>
 
+    <!--
+        Declares a for loop.
+        ie. for($first, $second, $third)$prefix
+    -->
     <xsl:function name="cpp:for">
         <xsl:param name="first" as="xs:string" />
         <xsl:param name="second" as="xs:string" />
@@ -486,6 +494,10 @@
         <xsl:value-of select="concat(o:t($tab), 'for', o:wrap_bracket($arguments), $prefix)" />
     </xsl:function>
 
+    <!--
+        Declares a for each loop
+        ie. for($first : $second)$prefix
+    -->
     <xsl:function name="cpp:for_each">
         <xsl:param name="first" as="xs:string" />
         <xsl:param name="second" as="xs:string" />
@@ -497,6 +509,9 @@
         <xsl:value-of select="concat(o:t($tab), 'for', o:wrap_bracket($arguments), $prefix)" />
     </xsl:function>
 
+    <!--
+        Compare ${val1} against ${val2} using an operator
+    -->
     <xsl:function name="cpp:compare" as="xs:string">
         <xsl:param name="val1" as="xs:string" />
         <xsl:param name="operator" as="xs:string" />
@@ -505,17 +520,10 @@
         <xsl:value-of select="o:join_list(($val1, $operator, $val2), ' ')" />
     </xsl:function>
 
-    <xsl:function name="cpp:plusplus" as="xs:string">
-        <xsl:value-of select="'++'" />
-    </xsl:function>
-
-    <xsl:function name="cpp:increment" as="xs:string">
-        <xsl:param name="val" as="xs:string" />
-        <xsl:value-of select="concat($val, cpp:plusplus())" />
-    </xsl:function>
-
-    
-
+    <!--
+        Compares ${val1} is less than ${val2}
+        ie ${val1} < ${val2}
+    -->
     <xsl:function name="cpp:compare_lt" as="xs:string">
         <xsl:param name="val1" as="xs:string" />
         <xsl:param name="val2" as="xs:string" />
@@ -523,6 +531,10 @@
         <xsl:value-of select="cpp:compare($val1, o:lt(), $val2)" />
     </xsl:function>
 
+    <!--
+        Compares ${val1} is greater than ${val2}
+        ie ${val1} > ${val2}
+    -->
     <xsl:function name="cpp:compare_gt" as="xs:string">
         <xsl:param name="val1" as="xs:string" />
         <xsl:param name="val2" as="xs:string" />
@@ -530,6 +542,26 @@
         <xsl:value-of select="cpp:compare($val1, o:gt(), $val2)" />
     </xsl:function>
 
+    <!--
+        produces a ++
+    -->
+    <xsl:function name="cpp:plusplus" as="xs:string">
+        <xsl:value-of select="'++'" />
+    </xsl:function>
+
+    <!--
+        Increments a val by 1
+        ie. ${val}++
+    -->
+    <xsl:function name="cpp:increment" as="xs:string">
+        <xsl:param name="val" as="xs:string" />
+        <xsl:value-of select="concat($val, cpp:plusplus())" />
+    </xsl:function>
+
+    <!--
+        Gets the value of an array at a position
+        ie. ${array}[${index}]
+    -->
     <xsl:function name="cpp:array_get" as="xs:string">
         <xsl:param name="array" as="xs:string" />
         <xsl:param name="index" as="xs:string" />
@@ -537,13 +569,21 @@
         <xsl:value-of select="concat($array, o:wrap_square($index))" />
     </xsl:function>
 
+    <!--
+        static casts a value as a type
+        ie. static_cast<int>(value)
+    -->
     <xsl:function name="cpp:static_cast" as="xs:string">
         <xsl:param name="type" as="xs:string" />
         <xsl:param name="value" as="xs:string" />
 
-        <xsl:value-of select="concat('static_cast', o:wrap_angle($type), o:wrap_bracket($value))" />
+        <xsl:value-of select="cpp:invoke_templated_static_function($type, 'static_cast', $value, '', 0)" />
     </xsl:function>
 
+    <!--
+        Declares a class, handles optional inheritted classes
+        ie class ${class_name} : ${sub_classes}
+    -->
     <xsl:function name="cpp:declare_class" as="xs:string">
         <xsl:param name="class_name" as="xs:string" />
         <xsl:param name="sub_classes" as="xs:string" />
@@ -553,32 +593,98 @@
         <xsl:value-of select="concat(o:t($tab), 'class ', $arguments, cpp:scope_start(0))" />
     </xsl:function>
 
+    <!--
+        Produces a public access specifier
+        ie public:
+    -->
     <xsl:function name="cpp:public" as="xs:string">
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'public:', o:nl(1))" />
     </xsl:function>
     
+    <!--
+        Produces a private access specifier
+        ie private:
+    -->
     <xsl:function name="cpp:private" as="xs:string">
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'private:', o:nl(1))" />
     </xsl:function>
 
+    <!--
+        Produces a protected access specifier
+        ie protected:
+    -->
     <xsl:function name="cpp:protected" as="xs:string">
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'protected:', o:nl(1))" />
     </xsl:function>
 
+    <!--
+        Joins a list of arguments seperating them with commas
+    -->
     <xsl:function name="cpp:join_args" as="xs:string">
         <xsl:param name="args" as="xs:string*" />
         <xsl:value-of select="o:join_list($args, ', ')" />
     </xsl:function>
 
+    <!--
+        Used to acces a templated type
+        ie ${class}<${template_type}>
+    -->
     <xsl:function name="cpp:templated_type" as="xs:string">
         <xsl:param name="class" as="xs:string" />
         <xsl:param name="template_type" as="xs:string" />
         <xsl:value-of select="concat($class, cpp:wrap_template($template_type))" />
     </xsl:function>
 
+    <!--
+        Produces an enum declaration (strongly typed)
+        enum class ${label} {
+    -->
+    <xsl:function name="cpp:enum" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'enum class ', $label, cpp:scope_start(0))" />
+    </xsl:function>
 
-   
+    <!--
+        Produces a enum member declaration (strongly typed)
+    -->
+    <xsl:function name="cpp:enum_value" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="value" as="xs:integer" />
+        <xsl:param name="is_last" as="xs:boolean" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), o:join_list(($label, string($value)), ' = '), if($is_last) then '' else ',', o:nl(1))" />
+    </xsl:function>
+
+    <!--
+        Produces a switch statement declaration
+        ie. switch(${label}){
+    -->
+    <xsl:function name="cpp:switch" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'switch', o:wrap_bracket($label), cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a switch statement case declaration
+        ie. case ${label}:{
+    -->
+    <xsl:function name="cpp:switch_case" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'case ', $label, ':', cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a switch statement default case declaration
+        ie. default:{
+    -->
+    <xsl:function name="cpp:switch_default" as="xs:string">
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'default:', cpp:scope_start(0))" />
+    </xsl:function>
 </xsl:stylesheet>
