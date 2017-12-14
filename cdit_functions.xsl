@@ -252,20 +252,31 @@
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
         
         <xsl:choose>    
-            <xsl:when test="$kind = 'Member'">
+            <xsl:when test="$kind = 'Member' or $kind = 'Attribute'">
                 <xsl:value-of select="cpp:get_member_type($node)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Variable'">
+                <xsl:variable name="child" select="graphml:get_child_node($node, 1)" />
+                <xsl:choose>
+                    <xsl:when test="$child">
+                        <xsl:value-of select="cpp:get_qualified_type($child)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cpp:get_member_type($node)" />
+                    </xsl:otherwise>
+                </xsl:choose> 
             </xsl:when>
             <xsl:when test="$kind = 'EnumInstance'">
                 <xsl:value-of select="cpp:get_enum_qualified_type($node, 'base')" />
             </xsl:when>
-            <xsl:when test="$kind = 'AggregateInstance'">
+            <xsl:when test="$kind = 'AggregateInstance' or $kind = 'Aggregate'">
                 <xsl:value-of select="cpp:get_aggregate_qualified_type($node, 'base')" />
             </xsl:when>
             <xsl:when test="$kind = 'Vector'">
                 <xsl:value-of select="cpp:get_vector_qualified_type($node)" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>Node Kind <xsl:value-of select="o:wrap_quote($kind)"/> Not Implemented</xsl:message>
+                <xsl:value-of select="o:warning(('cpp:get_qualified_type()', 'Node Kind:', o:wrap_quote($kind), 'Not Implemented'))" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -305,12 +316,14 @@
         </xsl:if>
     </xsl:function>
 
+    <xsl:function name="cdit:variablize_value" as="xs:string">
+        <xsl:param name="variable" as="xs:string" />
+        <xsl:value-of select="if($variable != '') then concat($variable, '_') else ''" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_variable_label" as="xs:string">
         <xsl:param name="variable" as="element()" />
-
-        <xsl:variable name="label" select="o:title_case(graphml:get_label($variable))" />
-
-        <xsl:value-of select="concat(lower-case($label), '_')" />
+        <xsl:value-of select="cdit:variablize_value(graphml:get_label($variable))" />
     </xsl:function>
 
     <xsl:function name="cpp:get_aggregate_type_name" as="xs:string">
@@ -417,6 +430,13 @@
         <xsl:sequence select="distinct-values($middlewares_list)"/>
     </xsl:function>
 
+    <xsl:function name="cdit:parse_components" as="xs:string*">
+        <xsl:param name="components" as="xs:string*"/>
+
+        <xsl:variable name="token_middlewares" select="tokenize(normalize-space(lower-case($components)), ',')" />
+        <xsl:sequence select="distinct-values($token_middlewares)"/>
+    </xsl:function>
+
     <xsl:function name="cdit:get_aggregates_path" as="xs:string">
         <xsl:param name="aggregate" as="element()" />
         
@@ -472,6 +492,181 @@
         <xsl:sequence select="graphml:get_definitions($aggregate_instances)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_eventport_function_name" as="xs:string">
+        <xsl:param name="port" as="element()"/>
+        <xsl:variable name="port_def" select="graphml:get_definition($port)" />
+        <xsl:variable name="label" select="graphml:get_label($port_def)" />
+        <xsl:variable name="kind" select="graphml:get_kind($port_def)" />
+
+        <xsl:variable name="prefix">
+            <xsl:choose>
+                <xsl:when test="$kind = 'InEventPort'">
+                    <xsl:value-of select="'In'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'OutEventPort'">
+                    <xsl:value-of select="'Out'" />
+                </xsl:when>
+                <xsl:when test="$kind = 'PeriodicEvent'">
+                    <xsl:value-of select="'Periodic'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="o:warning(('Kind:', $kind, 'Not supported'))" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="o:join_list(($prefix, $label), '_')" />
+    </xsl:function>
+    
+
+    <xsl:function name="cdit:comment_graphml_node">
+        <xsl:param name="element" as="element()" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:value-of select="cpp:comment((o:wrap_square(graphml:get_kind($element)), graphml:get_label($element), o:wrap_angle(graphml:get_id($element))), $tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:declare_datatype_functions">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="tab" as="xs:integer" />
+        
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
+        <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
+        <xsl:variable name="value" select="graphml:get_data_value($aggregate, 'value')" />
+
+        
+        <xsl:choose>
+            <xsl:when test="$cpp_type != ''">
+                <!-- Public Declarations -->
+                <xsl:value-of select="cpp:public($tab)" />
+                <xsl:value-of select="cdit:comment_graphml_node($aggregate, $tab + 1)" />
+                <xsl:value-of select="cpp:declare_function('void', concat('set_', $label), cpp:const_ref_var_def($cpp_type, 'value'), ';', $tab + 1)" />
+                <xsl:value-of select="cpp:declare_function(cpp:const_ref_var_def($cpp_type, ''), concat('get_', $label), '', ' const;', $tab + 1)" />
+                <xsl:value-of select="cpp:declare_function(cpp:ref_var_def($cpp_type, ''), $label, '', ';', $tab + 1)" />
+                <!-- Private Declarations -->
+                <xsl:value-of select="cpp:private($tab)" />
+                <xsl:choose>
+                    <xsl:when test="$kind != 'Attribute'">
+                        <xsl:value-of select="cpp:define_variable($cpp_type, $var_label, $value, cpp:nl(), $tab + 1)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cpp:declare_variable(cpp:shared_ptr('Attribute'), $var_label, cpp:nl(), $tab + 1)" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:comment_graphml_node($aggregate, $tab)" />
+                <xsl:value-of select="cpp:comment('Cannot find valid CPP type for this element', $tab)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:define_datatype_functions">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="class_name" as="xs:string" />
+        
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
+        <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
+
+        <xsl:if test="$cpp_type != ''">
+                <!-- Define Setter Function -->
+                <xsl:value-of select="cpp:define_function('void', $class_name, concat('set_', $label), cpp:const_ref_var_def($cpp_type, 'value'), cpp:scope_start(0))" />
+                    <xsl:choose>
+                        <xsl:when test="$kind != 'Attribute'">
+                            <xsl:value-of select="cpp:define_variable('', $var_label, 'value', cpp:nl(), 1)" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_set_function($aggregate), 'value', 1)" />
+                            <xsl:value-of select="cpp:nl()" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                <xsl:value-of select="cpp:scope_end(0)" />
+                <xsl:value-of select="o:nl(1)" />
+
+                <!-- Define Getter Function -->
+                <xsl:value-of select="cpp:define_function(cpp:const_ref_var_def($cpp_type, ''), $class_name, concat('get_', $label), '', concat(' const', cpp:scope_start(0)))" />
+                    <xsl:choose>
+                        <xsl:when test="$kind != 'Attribute'">
+                            <xsl:value-of select="cpp:return($var_label, 1)" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_get_function($aggregate), '', 0)" />
+                            <xsl:value-of select="cpp:return($get_var, 1)" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                <xsl:value-of select="o:nl(1)" />
+
+                <xsl:value-of select="cpp:define_function(cpp:ref_var_def($cpp_type, ''), $class_name, $label, '', cpp:scope_start(0))" />
+                    <xsl:choose>
+                        <xsl:when test="$kind != 'Attribute'">
+                            <xsl:value-of select="cpp:return($var_label, 1)" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($aggregate), '', 0)" />
+                            <xsl:value-of select="cpp:return($get_var, 1)" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:value-of select="cpp:scope_end(0)" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_attribute_enum_type" as="xs:string">
+        <xsl:param name="attribute" as="element()"  />
+        <xsl:value-of select="cpp:combine_namespaces(('ATTRIBUTE_TYPE', upper-case(graphml:get_type($attribute))))" />
+    </xsl:function>	
+
+    <xsl:function name="cdit:get_attribute_set_function" as="xs:string">
+        <xsl:param name="attribute" as="element()"  />
+        <xsl:value-of select="o:join_list(('set', graphml:get_type($attribute)), '_')" />
+    </xsl:function>	
+
+    <xsl:function name="cdit:get_attribute_get_function" as="xs:string">
+        <xsl:param name="attribute" as="element()"  />
+        <xsl:value-of select="o:join_list(('get', graphml:get_type($attribute)), '_')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_attribute_ref_function" as="xs:string">
+        <xsl:param name="attribute" as="element()"  />
+        <xsl:value-of select="graphml:get_type($attribute)" />
+    </xsl:function>
 
 
+    <xsl:function name="cdit:get_unique_workers" as="element()*">
+        <xsl:param name="component_impl" as="element()"  />
+
+        <xsl:variable name="workers" select="graphml:get_child_nodes_of_kind($component_impl, 'WorkerProcess')" />
+
+        <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'workerID')">
+            <xsl:sequence select="." />
+        </xsl:for-each-group>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_worker_path" as="xs:string">
+        <xsl:param name="worker" as="element()"  />
+        <xsl:variable name="worker_name" select="lower-case(graphml:get_data_value($worker, 'worker'))" />
+        <xsl:value-of select="o:join_paths(('workers', $worker_name))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_worker_header" as="xs:string">
+        <xsl:param name="worker" as="element()"  />
+        <xsl:variable name="worker_name" select="lower-case(graphml:get_data_value($worker, 'worker'))" />
+        <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_name, '.h')))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_resolved_enum_member_type" as="xs:string">
+        <xsl:param name="enum_member" as="element()"/>
+
+        <xsl:variable name="member_label" select="upper-case(graphml:get_label($enum_member))" />
+        <xsl:variable name="enum" select="graphml:get_parent_node($enum_member)" />
+        <xsl:variable name="enum_namespaces" select="o:trim_list(('Base', graphml:get_namespace($enum)))" />
+        <xsl:variable name="enum_label" select="graphml:get_label($enum)" />
+
+        <xsl:value-of select="cpp:combine_namespaces(($enum_namespaces, $enum_label, $member_label))" />
+    </xsl:function>
+
+    
 </xsl:stylesheet>

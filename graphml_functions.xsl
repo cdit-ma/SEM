@@ -65,7 +65,7 @@
         Returns the data value with the key: ${key_name} in a node/edge
     -->
     <xsl:function name="graphml:get_data_value" as="xs:string">
-        <xsl:param name="root" as="element()" />
+        <xsl:param name="root" as="element()*" />
         <xsl:param name="key_name" as="xs:string"/>
 
         <xsl:variable name="key_id" select="graphml:get_key_id($root, $key_name)" />
@@ -94,6 +94,14 @@
     <xsl:function name="graphml:get_type" as="xs:string">
         <xsl:param name="root" />
         <xsl:value-of select="graphml:get_data_value($root, 'type')" />
+    </xsl:function>
+
+    <!--
+        Returns the data value with key: value in a node/edge
+    -->
+    <xsl:function name="graphml:get_value" as="xs:string">
+        <xsl:param name="root" />
+        <xsl:value-of select="graphml:get_data_value($root, 'value')" />
     </xsl:function>
 
     <!--
@@ -159,7 +167,7 @@
     -->
     <xsl:function name="graphml:get_child_nodes_of_kind" as="element()*">
         <xsl:param name="root" />
-        <xsl:param name="kind" as="xs:string" />
+        <xsl:param name="kind" as="xs:string*" />
         <xsl:variable name="kind_id" select="graphml:get_key_id($root, 'kind')" />
 
         <xsl:for-each select="$root/gml:graph/gml:node/gml:data[@key=$kind_id and text() = $kind]/..">
@@ -172,7 +180,7 @@
     <!--
         Gets the child node of the current node, based on the index
     -->
-    <xsl:function name="graphml:get_child_node" as="element()">
+    <xsl:function name="graphml:get_child_node" as="element()*">
         <xsl:param name="root" />
         <xsl:param name="index" as="xs:integer" />
         <xsl:sequence select="graphml:get_child_nodes($root)[$index]" />
@@ -181,7 +189,7 @@
     <!--
         Gets the parent of the current node, by looking two levels up
     -->
-    <xsl:function name="graphml:get_parent_node" as="element()">
+    <xsl:function name="graphml:get_parent_node" as="element()*">
         <xsl:param name="root" as="element()" />
         <xsl:sequence select="$root/../.." />
     </xsl:function>
@@ -198,7 +206,7 @@
 
 
     <!--
-        Gets any edges of kind ${edge_kind} which start at the node ${node}
+        Gets any edges of kind ${edge_kind} which ends at the node ${node}
     -->
     <xsl:function name="graphml:get_sources" as="element()*">
         <xsl:param name="node" as="element()" />
@@ -213,7 +221,7 @@
     </xsl:function>
 
     <!--
-        Gets any edges of kind ${edge_kind} which end at the node ${node}
+        Gets any edges of kind ${edge_kind} which starts at the node ${node}
     -->
     <xsl:function name="graphml:get_targets" as="element()*">
         <xsl:param name="node" as="element()" />
@@ -283,6 +291,17 @@
     <xsl:function name="graphml:get_vector_kind" as="xs:string">
         <xsl:param name="vector" as="element()" />
         <xsl:value-of select="graphml:get_kind(graphml:get_vector_child($vector))" />
+    </xsl:function>
+
+    <!--
+        Gets the child of the vector provided
+    -->
+    <xsl:function name="graphml:get_port_aggregate" as="element()">
+        <xsl:param name="port" as="element()" />
+
+        <xsl:variable name="definition" as="element()" select="graphml:get_definition($port)" />
+        <xsl:variable name="child" as="element()" select="graphml:get_child_node($definition, 1)" />
+        <xsl:sequence select="graphml:get_definition($child)" />
     </xsl:function>
 
     

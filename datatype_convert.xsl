@@ -636,27 +636,7 @@
         
         <!-- Define functions -->
         <xsl:for-each select="$children">
-            <xsl:variable name="label" select="graphml:get_label(.)" />
-            <xsl:variable name="kind" select="graphml:get_kind(.)" />
-            <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
-            <xsl:variable name="var_label" select="cdit:get_variable_label(.)" />
-
-            <xsl:value-of select="cpp:comment((o:wrap_square($kind), ':', $label, o:wrap_angle(graphml:get_id(.))), $tab + 1)" />
-            <xsl:choose>
-                <xsl:when test="$cpp_type != ''">
-                    <!-- Public Declarations -->
-                    <xsl:value-of select="cpp:public($tab)" />
-                    <xsl:value-of select="cpp:declare_function('void', concat('set_', $label), cpp:const_ref_var_def($cpp_type, 'value'), ';', $tab + 2)" />
-                    <xsl:value-of select="cpp:declare_function(cpp:const_ref_var_def($cpp_type, ''), concat('get_', $label), '', ' const;', $tab + 2)" />
-                    <xsl:value-of select="cpp:declare_function(cpp:ref_var_def($cpp_type, ''), $label, '', ';', $tab + 2)" />
-                    <!-- Private Declarations -->
-                    <xsl:value-of select="cpp:private($tab)" />
-                    <xsl:value-of select="cpp:declare_variable($cpp_type, $var_label, cpp:nl(), $tab + 2)" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="cpp:comment('Cannot find valid CPP type for this element', $tab + 1)" />
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:value-of select="cdit:declare_datatype_functions(., $tab + 1)" />
         </xsl:for-each>
 
         
@@ -671,6 +651,8 @@
 
         <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
     </xsl:function>
+
+    
 
     <xsl:function name="cdit:get_port_export">
         <xsl:param name="aggregate" as="element()" />
@@ -730,26 +712,7 @@
 
         <!-- Define functions -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
-            <xsl:variable name="label" select="graphml:get_label(.)" />
-            <xsl:variable name="cpp_type" select="cpp:get_qualified_type(.)" />
-            <xsl:variable name="var_label" select="cdit:get_variable_label(.)" />
-
-            <xsl:if test="$cpp_type != ''">
-                <xsl:value-of select="cpp:define_function('void', $class_type, concat('set_', $label), cpp:const_ref_var_def($cpp_type, 'value'), cpp:scope_start(0))" />
-                <xsl:value-of select="cpp:define_variable('',$var_label, 'value', cpp:nl(), 1)" />
-                <xsl:value-of select="cpp:scope_end(0)" />
-                <xsl:value-of select="o:nl(1)" />
-
-                <xsl:value-of select="cpp:define_function(cpp:const_ref_var_def($cpp_type, ''), $class_type, concat('get_', $label), '', concat(' const', cpp:scope_start(0)))" />
-                <xsl:value-of select="cpp:return($var_label, 1)" />
-                <xsl:value-of select="cpp:scope_end(0)" />
-                <xsl:value-of select="o:nl(1)" />
-
-                <xsl:value-of select="cpp:define_function(cpp:ref_var_def($cpp_type, ''), $class_type, $label, '', cpp:scope_start(0))" />
-                <xsl:value-of select="cpp:return($var_label, 1)" />
-                <xsl:value-of select="cpp:scope_end(0)" />
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
+            <xsl:value-of select="cdit:define_datatype_functions(., $class_type)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -854,6 +817,8 @@
         <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
     </xsl:function>
 
+    
+
     <xsl:function name="cdit:get_enum_h">
         <xsl:param name="enum" as="element()" />
         
@@ -895,8 +860,7 @@
         <xsl:value-of select="cpp:switch('value', 1)" />
 
         <xsl:for-each select="$enum_members">
-            <xsl:variable name="enum_label" select="upper-case(graphml:get_label(.))" />
-            <xsl:variable name="enum_type" select="cpp:combine_namespaces(($namespaces, $label, $enum_label))" />
+            <xsl:variable name="enum_type" select="cdit:get_resolved_enum_member_type(.)" />
             <xsl:value-of select="cpp:switch_case($enum_type, 2)" />
             <xsl:value-of select="cpp:return(o:wrap_dblquote($enum_label), 3)" />
             <xsl:value-of select="cpp:scope_end(2)" />

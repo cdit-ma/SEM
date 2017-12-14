@@ -267,8 +267,4 @@
         <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), 0)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
-
-
-
-
 </xsl:stylesheet>

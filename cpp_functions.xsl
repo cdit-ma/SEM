@@ -26,8 +26,10 @@
         Places the text in an inline comment block, useful for returning errors into code
     -->
     <xsl:function name="cpp:comment_inline">
-        <xsl:param name="text" as="xs:string" />
-        <xsl:value-of select="o:join_list(('/*', $text, '*/'), ' ')" />
+        <xsl:param name="text" as="xs:string*" />
+
+        <xsl:variable name="joined_text" select="o:join_list($text, ' ')" />
+        <xsl:value-of select="o:join_list(('/*', $joined_text, '*/'), ' ')" />
     </xsl:function>
 
     <!--
@@ -187,8 +189,9 @@
 
         <!-- Attach the namespace to the function_name -->
         <xsl:variable name="namespaced_function" select="cpp:combine_namespaces(($namespace, $function_name))" />
-
-        <xsl:value-of select="concat($return_type, ' ', $namespaced_function, '(', $parameters, ')', $prefix)" />
+        <xsl:variable name="function_call" select="concat($namespaced_function, '(', $parameters, ')', $prefix)" />
+        
+        <xsl:value-of select="o:join_list(($return_type, $function_call), ' ')" />
     </xsl:function>
 
     <!--
@@ -233,10 +236,7 @@
         <xsl:param name="prefix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="variable_decl" select="o:join_list(($variable_type, $variable_name), ' ')" />
-        
-
-        <xsl:value-of select="cpp:declare_variable($variable_type, $variable_name, o:join_list((' = ', $value, $prefix),''), $tab) " />
+        <xsl:value-of select="cpp:declare_variable($variable_type, o:join_list(($variable_name, $value), ' = '), $prefix, $tab) " />
     </xsl:function>
 
     <!--
@@ -419,7 +419,9 @@
         <xsl:param name="parameters" as="xs:string"/>
         <xsl:param name="tab" as="xs:integer"/>
 
-        <xsl:value-of select="concat(o:t($tab), o:join_list(($obj, $function_name), $operator), o:wrap_bracket($parameters))" />
+        <xsl:if test="$function_name != ''">
+            <xsl:value-of select="concat(o:t($tab), o:join_list(($obj, $function_name), $operator), o:wrap_bracket($parameters))" />
+        </xsl:if>
     </xsl:function>
 
     <!--
@@ -686,5 +688,16 @@
     <xsl:function name="cpp:switch_default" as="xs:string">
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'default:', cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a an if statement
+        ie. if(${val}(){
+    -->
+    <xsl:function name="cpp:if" as="xs:string">
+        <xsl:param name="val" as="xs:string" />
+        <xsl:param name="prefix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'if', o:wrap_bracket($val), $prefix)" />
     </xsl:function>
 </xsl:stylesheet>

@@ -33,7 +33,7 @@
         <xsl:variable name="parsed_middlewares" select="cdit:parse_middlewares($middlewares)" as="xs:string*" />
         <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind(., 'Aggregate')" />
         
-        <xsl:variable name="output_path" select="'datatypes'" as="xs:string*" />
+        <xsl:variable name="output_path" select="'datatypes'" />
 
         
         <!-- Itterate through all middlewares-->
