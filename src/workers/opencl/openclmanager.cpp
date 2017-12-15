@@ -233,7 +233,12 @@ bool OpenCLManager::LoadAllBinaries(Worker* worker_ref) {
             LogError(worker_ref, __func__,
                 "Failed to load binary for device "+dev_name);
             did_all_succeed = false;
-        }
+        } else {
+			std::cout << "finished reading precompiled binary for " << dev_name << ", list of avaialble kernels: " << std::endl;
+			for (auto& kernel : device.GetKernels()) {
+				std::cout << " - " << kernel.get().GetName() << std::endl;
+			}
+		}
     }
     return did_all_succeed;
 }

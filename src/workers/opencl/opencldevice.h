@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <list>
 
 #include <core/worker.h>
 
@@ -28,7 +29,7 @@ public:
     bool LoadKernelsFromSource(const std::vector<std::string>& filenames, Worker& worker);
     bool LoadKernelsFromBinary(const std::string& filename, Worker& worker);
     const std::vector<std::reference_wrapper<OpenCLKernel> > GetKernels();
-    OpenCLKernel& GetKernel(const std::string& kernel_name) const;
+    //OpenCLKernel& GetKernel(const std::string& kernel_name) const;
 
 private:
     virtual void LogError(const Worker& worker_ref, std::string function_name, std::string error_message, int cl_error_code);
@@ -39,8 +40,8 @@ private:
     std::unique_ptr<cl::CommandQueue> queue_;
     std::string name_;
 
-    std::vector<cl::Program> programs_;
-    std::vector<OpenCLKernel> kernels_;
+    std::list<cl::Program> programs_;
+    std::list<OpenCLKernel> kernels_;
 
     bool valid_ = false;
     int err_;

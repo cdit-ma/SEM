@@ -151,6 +151,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& wo
 			continue;
 		}
 		kernels_.emplace_back(manager_, kernel, &worker);
+		//std::cout << name << std::endl;
 	}
 
 	return true;

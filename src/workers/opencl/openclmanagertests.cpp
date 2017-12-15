@@ -159,10 +159,14 @@ int main(int argc, char** argv) {
 	}
 
 	printInfo("Listing available devices for platform:");
-	for (const auto& device : manager->GetDevices()) {
+	for (auto& device : manager->GetDevices()) {
 		std::cout << " - " << device.GetName() << std::endl;
+		/*for (auto& kernel : device.GetKernels()) {
+			std::cout << "   - " << kernel.get().GetName() << std::endl;
+		}*/
 	}
 
+	/*
 	// Generate the list of source files
 	// For now, just add the "kernel" and "matrixmult" OpenCL files in the source directory
 	std::string source_file_path(__FILE__);
@@ -179,14 +183,14 @@ int main(int argc, char** argv) {
 
 	// Generate the kernels for the provided source files
 	auto kernels = manager->CreateKernels(filenames);
-	/*if (kernels.size() == 0) {
+	if (kernels.size() == 0) {
 		res = FAIL;
 	} else {
 		res = PASS;
 	}
-	recordTest(res, "Create kernels from OpenCL source code");*/
+	recordTest(res, "Create kernels from OpenCL source code");
 
-	/*if (kernels.size() != 0) {
+	if (kernels.size() != 0) {
 		printInfo("Listing built kernels:");
 		for (auto k : kernels) {
 			std::cout << " - " << k.GetName() << std::endl;
@@ -293,7 +297,7 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	//OCLBuffer<std::string>* stringBuffer = manager->CreateBuffer<std::string>(1024);
 
 	// Send some data through
-	printInfo("Writing data to a buffer (4 elements containing numbers 11~14)...");
+	printInfo("Writing data to a buffer (4 elements containing numbers 10~13)...");
 	auto in_data = std::vector<float>(4);
 	for (int i=0; i<in_data.size(); i++) {
 		in_data[i] = (float)i+10;
@@ -327,7 +331,7 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Write to buffer of length 4 then read back the result");
+	recordTest(res, "Write to buffer of length 4 then reading returns the correct result");
 
 	auto out_data2 = buffer->ReadData(device);
 	vectors_match = true;
@@ -356,6 +360,10 @@ void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device) {
 
 void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	Result res = UNKNOWN;
+	printInfo("Running kernel passthrough test...");
+
+	Component passthroughComponent("passthroughComponent");
+	Worker passthroughWorker(&passthroughComponent, "OpenCLWorker", "passthroughWorker");
 
 	auto in_data = std::vector<float>(4, 0.3f);
 	auto in_buffer = manager.CreateBuffer<float>(in_data, device);
@@ -374,12 +382,29 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	}
 	recordTest(res, "Created valid OCLBuffer to read data from");
 
+	std::vector<std::string> filenames;
+	filenames.push_back(GetSourcePath("kernel.cl"));
+	if (device.LoadKernelsFromSource(filenames, passthroughWorker)) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Loading passthrough kernel file onto device reported success");
+
 	OpenCLKernel* passthrough_kernel = NULL;
 	for (auto& kernel : device.GetKernels()) {
 		if (kernel.get().GetName() == "dataPassthroughTest") {
 			passthrough_kernel = &kernel.get();
 		}
 	}
+	if (passthrough_kernel != NULL) {
+		res = PASS;
+	} else {
+		res = FAIL;
+	}
+	recordTest(res, "Was able to find passthrough kernel in the list of available kernels for the device");
+
+	printInfo(passthrough_kernel->GetName());
 
 	printInfo("Setting passthrough kernel arguments...");
 	bool did_set_args = passthrough_kernel->SetArgs((*in_buffer), (*out_buffer));
