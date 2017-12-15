@@ -36,6 +36,8 @@
 
         <!-- Library Includes-->
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'component.h')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'ineventport.hpp')))" />
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'outeventport.hpp')))" />
         <xsl:value-of select="cpp:include_library_header('string')" />
         <xsl:value-of select="o:nl(1)" />
 
@@ -180,7 +182,7 @@
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="function_name" select="cdit:get_eventport_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
-            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('::OutEventPort', $port_type), 'GetTypedEventPort', o:wrap_dblquote($port_label), '', 0) " />
+            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('OutEventPort', $port_type), 'GetTypedEventPort', o:wrap_dblquote($port_label), '', 0) " />
 
             <!-- Define the tx function -->
             <xsl:value-of select="cpp:define_function('bool', $qualified_class_name, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
@@ -188,7 +190,9 @@
                 <xsl:value-of select="cpp:if('p', cpp:scope_start(0), $tab + 1)" />
                     <xsl:value-of select="cpp:invoke_function('p', cpp:arrow(), 'tx', 'm', $tab + 2)" />
                     <xsl:value-of select="cpp:nl()" />
+                    <xsl:value-of select="cpp:return('true', $tab + 1)" />
                 <xsl:value-of select="cpp:scope_end($tab + 1)" />
+            <xsl:value-of select="cpp:return('false', $tab)" />
             <xsl:value-of select="cpp:scope_end(0)" />
             <xsl:value-of select="o:nl(1)" />
         </xsl:for-each>
@@ -327,7 +331,7 @@
         <xsl:variable name="workers" select="cdit:get_unique_workers($component_impl)" />
 
         <!-- Library Includes-->
-        <xsl:value-of select="cpp:include_local_header(lower-case(concat($int_class_name, '.h')))" />
+        <xsl:value-of select="cpp:include_local_header(lower-case(concat($impl_class_name, '.h')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Header elements in model files -->
@@ -375,10 +379,10 @@
             <xsl:variable name="port_label" select="graphml:get_label(.)" />
             <xsl:variable name="function_name" select="cdit:get_eventport_function_name(.)" />
             <xsl:variable name="port_type" select="cpp:get_qualified_type(graphml:get_port_aggregate(.))" />
-            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('::OutEventPort', $port_type), 'GetTypedEventPort', o:wrap_dblquote($port_label), '', 0) " />
+            <xsl:variable name="get_port" select="cpp:invoke_templated_static_function(cpp:templated_type('::InEventPort', $port_type), 'GetTypedEventPort', o:wrap_dblquote($port_label), '', 0) " />
 
             <!-- Define the callback function -->
-            <xsl:value-of select="cpp:define_function('void', $qualified_impl_type, $function_name, cpp:const_ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
+            <xsl:value-of select="cpp:define_function('void', $qualified_impl_type, $function_name, cpp:ref_var_def($port_type, 'm'), cpp:scope_start(0))" />
             <xsl:value-of select="cdit:generate_workflow_code(., ., 1)" />
             <xsl:value-of select="cpp:scope_end(0)" />
             <xsl:value-of select="o:nl(1)" />
@@ -395,20 +399,16 @@
             <xsl:value-of select="cpp:scope_end(0)" />
             <xsl:value-of select="o:nl(1)" />
         </xsl:for-each>
+
+        <!-- Handle variables -->
+        <xsl:for-each select="$variables">
+            <xsl:value-of select="cdit:define_datatype_functions(., $qualified_impl_type)" />
+        </xsl:for-each>
     </xsl:function>
 
     <xsl:function name="cdit:get_components_cmake">
         <xsl:param name="component_impls" as="element()*" />
-        
-        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
-        <xsl:value-of select="cmake:set_cpp11()" />
-        <xsl:value-of select="cmake:setup_re_path()" />
 
-        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(),'..', 'lib'))" />
-
-        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
-        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
-        
         <xsl:variable name="sub_directories" as="xs:string*">
             <xsl:for-each select="$component_impls">
                 <xsl:variable name="namespace" select="lower-case(graphml:get_namespace(.))" />
@@ -418,6 +418,19 @@
         </xsl:variable>
         
         <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_top_cmake">
+        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
+        <xsl:value-of select="cmake:set_cpp11()" />
+        <xsl:value-of select="cmake:setup_re_path()" />
+
+        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(), 'lib'))" />
+
+        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
+        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
+        
+        <xsl:value-of select="cmake:add_subdirectories(('datatypes', 'components'))" />
     </xsl:function>
 
     <xsl:function name="cdit:generate_worker_process_code">
@@ -771,7 +784,16 @@
                 <xsl:choose>
                     <!-- Handle Vector Operations -->
                     <xsl:when test="$kind = 'InputParameter' or $kind = 'VariadicParameter'">
-                        <xsl:sequence select="cdit:get_resolved_getter_function(., false(), false())"/>
+                        <xsl:variable name="value" select="graphml:get_data_value(., 'value')" />
+                        <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., false(), false())" />
+
+                        <xsl:variable name="suffix">
+                            <xsl:if test="$kind = 'VariadicParameter' and $value = 'String'">
+                                <xsl:value-of select="'.c_str()'" />
+                            </xsl:if>
+                        </xsl:variable>
+
+                        <xsl:sequence select="o:join_list(($getter, $suffix), '')"/>
                     </xsl:when>
                 </xsl:choose>
             </xsl:for-each>
@@ -816,7 +838,6 @@
             <xsl:when test="$kind = 'Condition'" />
             <xsl:when test="$kind = 'ForCondition'" />
             <xsl:when test="$kind = 'Termination'" />
-            <xsl:when test="$kind = 'WorkerProcess'" />
             <xsl:when test="$kind = 'MemberInstance'" />
             <xsl:when test="$kind = 'EnumInstance'" />
             <xsl:when test="$kind = 'WorkerProcess'">
@@ -850,6 +871,124 @@
                 <xsl:value-of select="cdit:generate_workflow_code(., $node, $tab)" />
             </xsl:for-each>
         </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_component_export">
+        <xsl:param name="component_impl" as="element()" />
+        
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'libcomponentexport.h')))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:variable name="component" select="graphml:get_definition($component_impl)" />
+        <xsl:variable name="namespaces" select="o:trim_list(graphml:get_namespace($component))" />
+        <xsl:variable name="component_impl_label" select="graphml:get_label($component_impl)" />
+        <xsl:variable name="impl_class_name" select="concat(o:title_case($component_impl_label), 'Impl')" />
+        <xsl:variable name="qualified_impl_type" select="cpp:combine_namespaces(($namespaces, $impl_class_name))" />
+        
+        <xsl:variable name="component_header_path" select="lower-case(concat($impl_class_name, '.h'))" />
+
+        <xsl:value-of select="cpp:comment(('Include the component impl'), 0)" />
+        <xsl:value-of select="cpp:include_local_header($component_header_path)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:value-of select="cpp:define_function(cpp:pointer_var_def('Component', ''), '', 'ConstructComponent', cpp:const_ref_var_def('std::string', 'name'), cpp:scope_start(0))" />
+        <xsl:variable name="constructor" select="cpp:invoke_static_function('', $qualified_impl_type, 'name', '', 0)" />
+        <xsl:value-of select="cpp:return(concat('new ', $constructor), 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_component_cmake">
+        <xsl:param name="component_impl" as="element()" />
+
+        <xsl:variable name="component" select="graphml:get_definition($component_impl)" />
+        <xsl:variable name="component_label" select="graphml:get_label($component_impl)" />
+        <xsl:variable name="component_label_lc" select="lower-case($component_label)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($component)" />
+        
+        
+        <xsl:variable name="module_lib_name" select="lower-case(o:join_list(('component', $namespace, $component_label), '_'))" />
+        <xsl:variable name="proj_name" select="$module_lib_name" />
+
+        <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
+        <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
+
+        <xsl:value-of select="cmake:set_project_name($proj_name)" />
+
+        <!-- Find re_core -->
+        <xsl:value-of select="cmake:find_re_core_library()" />
+
+
+        <xsl:variable name="component_impl_h" select="concat($component_label_lc, 'impl.h')" />
+        <xsl:variable name="component_impl_cpp" select="concat($component_label_lc, 'impl.cpp')" />
+        <xsl:variable name="component_int_h" select="concat($component_label_lc, 'int.h')" />
+        <xsl:variable name="component_int_cpp" select="concat($component_label_lc, 'int.cpp')" />
+        
+        
+        
+         <!-- Set Source files -->
+        <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_int_cpp)), o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_impl_cpp)), o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, 'libcomponentexport.cpp')), o:nl(1))" />
+        <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Set Header files -->
+        <xsl:value-of select="concat('set(HEADERS', o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_int_h)), o:nl(1))" />
+        <xsl:value-of select="concat(o:t(1), o:join_paths(($source_dir_var, $component_impl_h)), o:nl(1))" />
+        <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS')), ' ')" />
+        <xsl:value-of select="cmake:add_shared_library('PROJ_NAME', 'MODULE', $args)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:value-of select="cmake:comment('Include the runtime environment directory', 0)" />
+        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', cmake:get_re_path('src'), 0)" />
+
+        <xsl:value-of select="cmake:comment('Link against runtime environment', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <xsl:variable name="relative_path" select="cmake:get_relative_path(('component', $namespace, $component_label))" />
+        <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($component_impl)" />
+
+        <xsl:variable name="workers" select="cdit:get_unique_workers($component_impl)" />
+
+         <!-- Include the headers once for each worker type -->
+         <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'worker')">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment('Include Worker Header Files', 0)" />
+            </xsl:if>
+            <xsl:variable name="worker_lib_name" select="graphml:get_data_value(., 'file')" />
+            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
+            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'))" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each-group>
+
+        <!-- Include the required aggregate files -->
+        <xsl:if test="count($required_aggregates) > 0">
+            <xsl:value-of select="cmake:comment('Include required aggregates source dirs', 0)" />
+            <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path, 'datatypes', 'base'))" />
+            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
+            <xsl:value-of select="o:nl(1)" />
+        </xsl:if>
+
+        <!-- Include the required aggregate files -->
+        <xsl:for-each select="$required_aggregates">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cmake:comment('Link against required aggregates libraries', 0)" />
+            </xsl:if>
+            <xsl:variable name="required_lib_name" select="cmake:get_aggregates_middleware_shared_library_name(., 'base')" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $required_lib_name, 0)" />
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
     </xsl:function>
 
 </xsl:stylesheet>

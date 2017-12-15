@@ -593,10 +593,11 @@
                             <xsl:value-of select="cpp:return($var_label, 1)" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_get_function($aggregate), '', 0)" />
+                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($aggregate), '', 0)" />
                             <xsl:value-of select="cpp:return($get_var, 1)" />
                         </xsl:otherwise>
                     </xsl:choose>
+                <xsl:value-of select="cpp:scope_end(0)" />
                 <xsl:value-of select="o:nl(1)" />
 
                 <xsl:value-of select="cpp:define_function(cpp:ref_var_def($cpp_type, ''), $class_name, $label, '', cpp:scope_start(0))" />
@@ -647,14 +648,16 @@
 
     <xsl:function name="cdit:get_worker_path" as="xs:string">
         <xsl:param name="worker" as="element()"  />
-        <xsl:variable name="worker_name" select="lower-case(graphml:get_data_value($worker, 'worker'))" />
-        <xsl:value-of select="o:join_paths(('workers', $worker_name))" />
+        <xsl:variable name="worker_folder" select="lower-case(graphml:get_data_value($worker, 'folder'))" />
+        
+        <xsl:variable name="rel_folder" select="replace($worker_folder, '\$\{re_path\}/src/', '')" />
+        <xsl:value-of select="$rel_folder" />
     </xsl:function>
 
     <xsl:function name="cdit:get_worker_header" as="xs:string">
         <xsl:param name="worker" as="element()"  />
-        <xsl:variable name="worker_name" select="lower-case(graphml:get_data_value($worker, 'worker'))" />
-        <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_name, '.h')))" />
+        <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($worker, 'file'))" />
+        <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_file, '.h')))" />
     </xsl:function>
 
     <xsl:function name="cdit:get_resolved_enum_member_type" as="xs:string">

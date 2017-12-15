@@ -457,7 +457,7 @@
         <xsl:param name="var" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="concat(o:join_list((o:t($tab), 'return', $var), ' '), cpp:nl())" />
+        <xsl:value-of select="concat(o:t($tab), o:join_list(('return', $var), ' '), cpp:nl())" />
     </xsl:function>
 
     <!--

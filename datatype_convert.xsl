@@ -804,16 +804,6 @@
 
     <xsl:function name="cdit:get_datatypes_cmake">
         <xsl:param name="middlewares" as="xs:string*" />
-        
-        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
-        <xsl:value-of select="cmake:set_cpp11()" />
-        <xsl:value-of select="cmake:setup_re_path()" />
-
-        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(),'..', 'lib'))" />
-
-        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
-        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
-        
         <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
     </xsl:function>
 
@@ -861,6 +851,7 @@
 
         <xsl:for-each select="$enum_members">
             <xsl:variable name="enum_type" select="cdit:get_resolved_enum_member_type(.)" />
+            <xsl:variable name="enum_label" select="upper-case(graphml:get_label(.))" />
             <xsl:value-of select="cpp:switch_case($enum_type, 2)" />
             <xsl:value-of select="cpp:return(o:wrap_dblquote($enum_label), 3)" />
             <xsl:value-of select="cpp:scope_end(2)" />
