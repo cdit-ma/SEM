@@ -30,14 +30,18 @@
     <xsl:param name="preview" as="xs:boolean" select="false()" />
 	 
     <xsl:template match="/*">
+        <xsl:variable name="model" select="graphml:get_model(.)" />
+        
         <!-- Parse the components parameter to produce a list of labels -->
         <xsl:variable name="parsed_components" select="cdit:parse_components($components)" />
         
         <xsl:variable name="output_path" select="'components'" />
 
+        
+
         <!-- Construct a list of ComponentImpl Objects to code-gen -->
         <xsl:variable name="component_impls_to_generate" as="element()*">
-            <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'ComponentImpl')">
+            <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')">
                 <xsl:variable name="component_label" select="graphml:get_label(.)" />
                 <xsl:if test="count($parsed_components) = 0 or index-of($parsed_components, lower-case($component_label))">
                     <xsl:sequence select="." />
