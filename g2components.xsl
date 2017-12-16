@@ -3,15 +3,12 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:exsl="http://exslt.org/common"
-    xmlns:xalan="http://xml.apache.org/xslt"	
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
     xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
     xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
-    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
     xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
-    exclude-result-prefixes="gml exsl xalan">
+    exclude-result-prefixes="gml">
+
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 
     <!-- Load in Functions -->
@@ -32,10 +29,7 @@
         
         <!-- Parse the components parameter to produce a list of labels -->
         <xsl:variable name="parsed_components" select="cdit:parse_components($components)" />
-        
         <xsl:variable name="output_path" select="'components'" />
-
-        
 
         <!-- Construct a list of ComponentImpl Objects to code-gen -->
         <xsl:variable name="component_impls_to_generate" as="element()*">
@@ -51,11 +45,11 @@
             <xsl:variable name="component_impl" select="." />
             <xsl:variable name="component_def" select="graphml:get_definition($component_impl)" />
             
+            <!-- Get the labels of the definition and impl -->
             <xsl:variable name="component_def_label" select="graphml:get_label($component_def)" />
             <xsl:variable name="component_impl_label" select="graphml:get_label($component_impl)" />
             <xsl:variable name="component_int_prefix" select="lower-case($component_def_label)" />
             <xsl:variable name="component_impl_prefix" select="lower-case($component_impl_label)" />
-            
             <xsl:variable name="component_path" select="o:join_paths(($output_path, $component_int_prefix))" />
 
             <xsl:value-of select="o:message(('Generating Component:', o:wrap_quote($component_impl_label)))" />
@@ -85,7 +79,7 @@
             <xsl:variable name="impl_h" select="concat($component_impl_prefix, 'impl.h')" />
             <xsl:variable name="impl_cpp" select="concat($component_impl_prefix, 'impl.cpp')" />
 
-            <!-- Always Generate the Impl -->
+            <!-- The Impl is always generated -->
             <xsl:result-document href="{o:write_file(($component_path, $impl_h))}">
                 <xsl:value-of select="cdit:get_component_impl_h($component_impl)" />
             </xsl:result-document>
@@ -95,15 +89,14 @@
             </xsl:result-document>
         </xsl:for-each>
 
-        <!-- Generate the component CMakeFile if we aren't in preview mode -->
+
         <xsl:if test="not($preview)">
+            <!-- Generate the Component CMakeFile -->
             <xsl:result-document href="{o:write_file(($output_path, cmake:cmake_file()))}">
                 <xsl:value-of select="cdit:get_components_cmake($component_impls_to_generate)" />
             </xsl:result-document>
-        </xsl:if>
 
-        <!-- Generate the top level cmake file -->
-        <xsl:if test="not($preview)">
+            <!-- Generate the top level cmake file -->
             <xsl:result-document href="{o:write_file((cmake:cmake_file()))}">
                 <xsl:value-of select="cdit:get_top_cmake()" />
             </xsl:result-document>

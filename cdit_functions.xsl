@@ -249,7 +249,7 @@
     </xsl:function>
 
     <xsl:function name="cpp:get_qualified_type" as="xs:string">
-        <xsl:param name="node" as="element()" />
+        <xsl:param name="node" as="element()?" />
         <xsl:variable name="kind" select="graphml:get_kind($node)" />
         
         <xsl:choose>    
