@@ -1,14 +1,17 @@
-<!-- Functions for cmake syntax output -->
+<!--
+    A set of XSLT2.0 Functions for outputting Interface Definition Language files.
+-->
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:idl="http://github.com/cdit-ma/idl"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:idl="http://github.com/cdit-ma/re_gen/idl"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
     >
 
     <!--
-        produces include statement for idl files
+        Produces an include statement
+        (Same as CPP)
     -->
     <xsl:function name="idl:include" as="xs:string">
         <xsl:param name="idl_file" as="xs:string" />
@@ -17,8 +20,8 @@
     </xsl:function>
 
     <!--
-        produces
-        module ${label} {
+        Produces a module element
+        ie. module ${label} {
     -->
     <xsl:function name="idl:module" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -26,8 +29,8 @@
     </xsl:function>
 
     <!--
-        produces an enum definition
-        enum ${label} {
+        Produces an enum definition
+        ie. enum ${label} {
     -->
     <xsl:function name="idl:enum" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -35,7 +38,8 @@
     </xsl:function>
 
     <!--
-        produces an enum value definition
+        Produces an enum value definition
+        ie. ${label},
     -->
     <xsl:function name="idl:enum_value" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -44,8 +48,8 @@
     </xsl:function>
 
     <!--
-        produces
-        struct ${label} {
+        Produces a struct definition
+        ie. struct ${label} {
     -->
     <xsl:function name="idl:struct" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -54,8 +58,8 @@
     </xsl:function>
 
     <!--
-        produces
-        // @key
+        Produces key pragma for RTI
+        ie. // @key
     -->
     <xsl:function name="idl:key" as="xs:string">
         <xsl:param name="is_key" as="xs:boolean" />
@@ -63,8 +67,8 @@
     </xsl:function>
 
     <!--
-        produces
-        // @key
+        Produces key pragma for OSPL
+        ie. #pragma keylist ${type} ${key}
     -->
     <xsl:function name="idl:key_pragma" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -75,8 +79,8 @@
     </xsl:function>
 
     <!--
-        produces
-        ${type} ${label} = ${index}; //@key
+        Produces a member definition
+        ie. ${type} ${label} = ${index}; //@key
     -->
     <xsl:function name="idl:member" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -89,8 +93,8 @@
     </xsl:function>
 
     <!--
-        produces
-        sequence<${type}> ${label}; //@key
+        Produces a sequence member definition
+        ie. sequence<${type}> ${label}; //@key
     -->
     <xsl:function name="idl:sequence_member" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -101,9 +105,11 @@
         <xsl:value-of select="idl:member(concat('sequence', o:wrap_angle($type)), $label, $is_key, $tab)" />
     </xsl:function>
 
-    <!-- Converts from the CPP primitive type to the appropriate idl types -->
+    <!--
+        Converts from the CPP primitive type to the appropriate idl types
+    -->
     <xsl:function name="idl:get_type" as="xs:string">
-        <xsl:param name="cpp_type" as="xs:string"  />
+        <xsl:param name="cpp_type" as="xs:string" />
 
         <xsl:choose>
             <xsl:when test="$cpp_type = 'std::string'">
@@ -119,8 +125,7 @@
                 <xsl:value-of select="$cpp_type" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:message>Warning: Unknown Type <xsl:value-of select="o:wrap_quote($cpp_type)" /></xsl:message>
-                <xsl:value-of select="''" />
+                <xsl:value-of select="o:warning(('Unhandled CPP to IDL conversion', o:wrap_quote($cpp_type)))" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>

@@ -3,13 +3,13 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:cdit="http://github.com/cdit-ma/cdit"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
-    xmlns:cmake="http://github.com/cdit-ma/cmake"
-    xmlns:proto="http://github.com/cdit-ma/proto"
-    xmlns:idl="http://github.com/cdit-ma/idl"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
+    xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:proto="http://github.com/cdit-ma/re_gen/proto"
+    xmlns:idl="http://github.com/cdit-ma/re_gen/idl"
     >
 
     <!--

@@ -2,9 +2,9 @@
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:proto="http://github.com/cdit-ma/proto"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:proto="http://github.com/cdit-ma/re_gen/proto"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
     >
 
     <!--

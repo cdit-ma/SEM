@@ -2,10 +2,10 @@
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:cmake="http://github.com/cdit-ma/cmake"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:cdit="http://github.com/cdit-ma/cdit"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
+    xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
     >
 
     <xsl:function name="cmake:get_middleware_package">

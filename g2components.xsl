@@ -6,11 +6,11 @@
     xmlns:exsl="http://exslt.org/common"
     xmlns:xalan="http://xml.apache.org/xslt"	
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:cdit="http://github.com/cdit-ma/cdit"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
-    xmlns:cmake="http://github.com/cdit-ma/cmake"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
+    xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
     exclude-result-prefixes="gml exsl xalan">
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 

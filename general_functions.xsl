@@ -1,94 +1,96 @@
-<!-- General Functions for XSL output -->
+<!--
+    A set of general purpose XSLT2.0 Functions
+-->
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:o="http://github.com/cdit-ma/o"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
     >
 
     <!--
-        adds a line end
+        Gets n number of new line characters
     -->
     <xsl:function name="o:nl" as="xs:string">
-        <xsl:param name ="count"/>
+        <xsl:param name="n" as="xs:integer"/>
 
-        <xsl:variable name="total">
-             <xsl:for-each select="1 to $count">
+        <xsl:variable name="text">
+            <xsl:for-each select="1 to $n">
                 <xsl:text>&#xa;</xsl:text>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:value-of select="$total" />
+        <xsl:value-of select="$text" />
     </xsl:function>
 
     <!--
-        adds a tab
+        Gets n number of tab characters
     -->
     <xsl:function name="o:t" as="xs:string">
-        <xsl:param name ="count"/>
+        <xsl:param name="n" as="xs:integer"/>
 
-        <xsl:variable name="total">
-             <xsl:for-each select="1 to $count">
+        <xsl:variable name="text">
+            <xsl:for-each select="1 to $n">
                 <xsl:text>&#x9;</xsl:text>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:value-of select="$total" />
+        <xsl:value-of select="$text" />
     </xsl:function>
 
     <!--
-        adds a greater than symbol (>)
+        Gets the greater than symbol (>)
     -->
     <xsl:function name="o:gt" as="xs:string">
         <xsl:text>&gt;</xsl:text>
     </xsl:function>
 
     <!--
-        adds a less than symbol (<)
+        Gets the greater than symbol (<)
     -->
     <xsl:function name="o:lt" as="xs:string">
         <xsl:text>&lt;</xsl:text>
     </xsl:function>	
 
     <!--
-        adds an ampersand symbol (&)
+        Gets the ampersand symbol (&)
     -->
     <xsl:function name="o:and" as="xs:string">
         <xsl:text>&amp;</xsl:text>
     </xsl:function>
 
     <!--
-        adds an at symbol (@)
+        Gets the At symbol (@)
     -->
     <xsl:function name="o:at" as="xs:string">
         <xsl:text>@</xsl:text>
     </xsl:function>
 
     <!--
-        adds a single quote symbol (')
+        Gets the single quote symbol (')
     -->
     <xsl:function name="o:quote" as="xs:string">
         <xsl:text>'</xsl:text>
     </xsl:function>
 
     <!--
-        adds a double quote symbol (")
+        Gets the double quote symbol (") 
     -->
     <xsl:function name="o:dblquote" as="xs:string">
         <xsl:text>"</xsl:text>
     </xsl:function>
 
     <!--
-        wraps a string in the provided string
+        Wraps the provided string in the set of symbols provided
         ${start}${str}${end}
     -->
     <xsl:function name="o:wrap" as="xs:string">
-        <xsl:param name="start" />
+        <xsl:param name="start" as="xs:string"/>
         <xsl:param name="str" as="xs:string"/>
-        <xsl:param name="end" />
+        <xsl:param name="end" as="xs:string"/>
         <xsl:value-of select="concat($start, $str, $end)" />
     </xsl:function>	
 
     <!--
-        Wraps a string in a single quote symbols (')
-        '${str}'
+        Wraps the provided string in single quotes
+        ie. '${str}'
     -->
     <xsl:function name="o:wrap_quote" as="xs:string">
         <xsl:param name="str" as="xs:string"/>
@@ -96,8 +98,8 @@
     </xsl:function>
 
     <!--
-        Wraps a string in a double quote symbols (")
-        "${str}"
+        Wraps the provided string in double quotes
+        ie. "${str}"
     -->
     <xsl:function name="o:wrap_dblquote" as="xs:string">
         <xsl:param name="str" as="xs:string"/>
@@ -105,8 +107,8 @@
     </xsl:function>
 
     <!--
-        Wraps a string in brackets
-        (${str})
+        Wraps the provided string in brackets
+        ie. (${str})
     -->
     <xsl:function name="o:wrap_bracket" as="xs:string">
         <xsl:param name="str" as="xs:string"/>
@@ -114,8 +116,8 @@
     </xsl:function>
 
     <!--
-        Wraps a string in a angle brackets
-        <${str}>
+        Wraps the provided string in a angle brackets
+        ie. <${str}>
     -->
     <xsl:function name="o:wrap_angle" as="xs:string">
         <xsl:param name="str" as="xs:string"/>
@@ -123,8 +125,8 @@
     </xsl:function>	
 
     <!--
-        Wraps a string in square brackets
-        [${str}]
+        Wraps the provided string in a square brackets
+        ie. [${str}]
     -->
     <xsl:function name="o:wrap_square">
         <xsl:param name="str" as="xs:string"/>
@@ -132,7 +134,7 @@
     </xsl:function>
 
     <!--
-        Wraps a string in curly braces
+        Wraps the provided string in a curly brackets
         {${str}}
     -->
     <xsl:function name="o:wrap_curly" as="xs:string">
@@ -141,7 +143,8 @@
     </xsl:function>
 
     <!--
-        Camel cases a string
+        Captilizes the first letter of the string provided
+        ie. 'hello' -> 'Hello'
     -->
     <xsl:function name="o:title_case" as="xs:string">
         <xsl:param name="str" as="xs:string"  />
@@ -152,31 +155,32 @@
     </xsl:function>
 
     <!--
-        Produces a message to say that this file will be produced
+        Concatenates the path provided, and produces a xsl:message saying that the file is to be written.
+        Useful for showing the written files from a transform.
     -->
     <xsl:function name="o:write_file" as="xs:string">
         <xsl:param name="file_path" as="xs:string*" />
 
-        <xsl:variable name="joined_path" select="o:join_paths($file_path)" />
+        <xsl:variable name="resolved_file_path" select="o:join_paths($file_path)" />
         
-        <xsl:message>Created File: <xsl:value-of select="$joined_path" /></xsl:message>
-        <xsl:value-of select="$joined_path" />
+        <xsl:message>Created File: <xsl:value-of select="$resolved_file_path" /></xsl:message>
+        <xsl:value-of select="$resolved_file_path" />
     </xsl:function>
 
     <!--
-        List joins
+        Joins the list of strings provided, seperating them with the provided token.
+        Will remove any blanks strings from the list
     -->
     <xsl:function name="o:join_list" as="xs:string">
         <xsl:param name="list" as="xs:string*"/>
         <xsl:param name="token" as="xs:string" />
         
         <xsl:variable name="pruned_list" as="xs:string*" select="o:trim_list($list)" />
-
         <xsl:value-of select="string-join($pruned_list, $token)" />
     </xsl:function>
 
     <!--
-        Remove empty strings from list
+        Removes any empty strings in a list of strings
     -->
     <xsl:function name="o:trim_list" as="xs:string*">
         <xsl:param name="list" as="xs:string*"/>
@@ -188,9 +192,8 @@
         </xsl:for-each>
     </xsl:function>
 
-
     <!--
-        List joins
+        Joins the list of paths provided, seperating them the '/' character
     -->
     <xsl:function name="o:join_paths" as="xs:string">
         <xsl:param name="list" as="xs:string*"/>
@@ -198,7 +201,7 @@
     </xsl:function>
 
     <!--
-        prints a warning
+        Prints a Warning message
     -->
     <xsl:function name="o:warning">
         <xsl:param name="message" as="xs:string*"/>
@@ -206,7 +209,7 @@
     </xsl:function>
 
     <!--
-        prints a warning
+        Prints a message to standard out
     -->
     <xsl:function name="o:message">
         <xsl:param name="message" as="xs:string*"/>

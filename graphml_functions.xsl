@@ -5,7 +5,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
     >
 
     <!-- xsl:key provide enormous speed ups for repeat searching -->

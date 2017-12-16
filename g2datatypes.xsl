@@ -3,15 +3,14 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:exsl="http://exslt.org/common"
-    xmlns:xalan="http://xml.apache.org/xslt"	
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:cdit="http://github.com/cdit-ma/cdit"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
-    xmlns:cmake="http://github.com/cdit-ma/cmake"
-    exclude-result-prefixes="gml exsl xalan">
+
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
+    xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
+    exclude-result-prefixes="gml"
+    >
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 
     <!-- Load in Functions -->
@@ -29,9 +28,11 @@
     <xsl:param name="middlewares" as="xs:string" select="'Base'" />
 	 
     <xsl:template match="/*">
+        <xsl:variable name="model" select="graphml:get_model(.)" />
         <!-- Parse the middleware parameter to make sure we have all required middlewares-->
         <xsl:variable name="parsed_middlewares" select="cdit:parse_middlewares($middlewares)" as="xs:string*" />
-        <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind(., 'Aggregate')" />
+
+        <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
         
         <xsl:variable name="output_path" select="'datatypes'" />
 
@@ -116,7 +117,7 @@
         </xsl:for-each>
 
         <!-- Generate the Enum headers -->
-        <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'Enum')">
+        <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'Enum')">
             <xsl:variable name="enum" select="." />
             <xsl:variable name="enum_path" select="o:join_paths(($output_path, 'base', 'enums', cdit:get_aggregates_path($enum)))" />
             <xsl:variable name="enum_h" select="lower-case(concat(graphml:get_label($enum), '.h'))" />

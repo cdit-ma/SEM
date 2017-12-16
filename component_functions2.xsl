@@ -3,13 +3,13 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
-    xmlns:cdit="http://github.com/cdit-ma/cdit"
-    xmlns:o="http://github.com/cdit-ma/o"
-    xmlns:graphml="http://github.com/cdit-ma/graphml"
-    xmlns:cpp="http://github.com/cdit-ma/cpp"
-    xmlns:cmake="http://github.com/cdit-ma/cmake"
-    xmlns:proto="http://github.com/cdit-ma/proto"
-    xmlns:idl="http://github.com/cdit-ma/idl"
+    xmlns:cdit="http://github.com/cdit-ma/re_gen/cdit"
+    xmlns:o="http://github.com/cdit-ma/re_gen/o"
+    xmlns:graphml="http://github.com/cdit-ma/re_gen/graphml"
+    xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
+    xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:proto="http://github.com/cdit-ma/re_gen/proto"
+    xmlns:idl="http://github.com/cdit-ma/re_gen/idl"
     >
 
     <!--
@@ -420,18 +420,7 @@
         <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_top_cmake">
-        <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
-        <xsl:value-of select="cmake:set_cpp11()" />
-        <xsl:value-of select="cmake:setup_re_path()" />
-
-        <xsl:variable name="lib_dir" select="o:join_paths((cmake:current_source_dir_var(), 'lib'))" />
-
-        <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
-        <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
-        
-        <xsl:value-of select="cmake:add_subdirectories(('datatypes', 'components'))" />
-    </xsl:function>
+    
 
     <xsl:function name="cdit:generate_worker_process_code">
         <xsl:param name="node" as="element()"/>
