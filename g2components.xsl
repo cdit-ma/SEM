@@ -20,10 +20,8 @@
     <xsl:import href="cmake_functions.xsl"/>
     <xsl:import href="graphml_functions.xsl"/>
     <xsl:import href="cdit_functions.xsl"/> 
-    <xsl:import href="proto_functions.xsl"/>
-    <xsl:import href="idl_functions.xsl"/>
     <xsl:import href="cdit_cmake_functions.xsl"/>
-    <xsl:import href="component_functions2.xsl"/>
+    <xsl:import href="component_functions.xsl"/>
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="components" as="xs:string" select="''" />

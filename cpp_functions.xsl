@@ -7,7 +7,6 @@
     xmlns:o="http://github.com/cdit-ma/re_gen/o"
     xmlns:cpp="http://github.com/cdit-ma/re_gen/cpp"
     >
-
     <!--
         Places the text (handles newlines) in a cpp comment, can be tabbed
     -->

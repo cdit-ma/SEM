@@ -22,7 +22,7 @@
     <xsl:import href="proto_functions.xsl"/>
     <xsl:import href="idl_functions.xsl"/>
     <xsl:import href="cdit_cmake_functions.xsl"/>
-    <xsl:import href="datatype_convert.xsl"/>
+    <xsl:import href="datatype_functions.xsl"/>
 
     <!-- Middleware Input Parameter-->
     <xsl:param name="middlewares" as="xs:string" select="'Base'" />
