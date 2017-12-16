@@ -672,6 +672,15 @@
         <xsl:value-of select="cpp:combine_namespaces(($enum_namespaces, $enum_label, $member_label))" />
     </xsl:function>
 
+
+    
+    <xsl:function name="cmake:setup_re_path">
+        <xsl:value-of select="cmake:comment('CDIT Runtime Paths', 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_PATH', cmake:get_env_var('RE_PATH'), 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), 0)" />
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_top_cmake">
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
         <xsl:value-of select="cmake:set_cpp11()" />
