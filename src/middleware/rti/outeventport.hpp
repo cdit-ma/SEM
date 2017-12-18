@@ -106,7 +106,7 @@ bool rti::OutEventPort<T, S>::setup_tx(){
         auto helper = DdsHelper::get_dds_helper();   
         auto participant = helper->get_participant(domain_id_->Integer());
         auto topic = get_topic<S>(participant, topic_name_->String());
-        auto publisher = helper->get_publisher(participant, publisher_name_->String())
+        auto publisher = helper->get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
         return true;
     }
