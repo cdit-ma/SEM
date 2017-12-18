@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base_basic.h"
-#include "aggregate.hpp"
+#include "basic.hpp"
 
 
 // Forward declare the concrete type
