@@ -154,7 +154,13 @@ void rti::InEventPort<T, S>::receive_loop(){
             {
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
+                //Check to see if we've been interupted before sleeping the first time
+                if(interupt_){
+                    break;
+                }
                 notify_lock_condition_.wait(lock);
+                
+                //Upon wake, check the interupt flag
                 if(interupt_){
                     break;
                 }
