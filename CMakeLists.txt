@@ -5,16 +5,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 #Required for dynamic linking magic
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Set the projects RPATH to look in the executable directory
-if(APPLE)
-	set(CMAKE_MACOSX_RPATH 1)
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
-endif(APPLE)
+#if(APPLE)
+#	set(CMAKE_MACOSX_RPATH 1)
+#	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+#	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+#endif(APPLE)
 
-SET(RE_VERSION "1.4.0a")
+SET(RE_VERSION "1.4.0")
 
 option(BUILD_TEST "Build testing" OFF)
 
