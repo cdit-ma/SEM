@@ -39,7 +39,7 @@ namespace rti{
         ThreadState thread_state_;
         std::condition_variable thread_state_condition_;
         
-        bool interupt = false;
+        bool interupt_ = false;
         std::mutex control_mutex_;
         std::thread* rec_thread_ = 0;
         std::mutex notify_mutex_;
