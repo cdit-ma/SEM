@@ -18,12 +18,12 @@ namespace ospl{
         ~InEventPort(){
             Activatable::Terminate();
         };
+        void notify();
     protected:
         bool HandleConfigure();
         bool HandlePassivate();
         bool HandleTerminate();
     private:
-        void notify();
         void receive_loop();
 
         //Define the Attributes this port uses
