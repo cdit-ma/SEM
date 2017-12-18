@@ -29,9 +29,8 @@ class RTI_InEventPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = new rti::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
-            {
-                EXPECT_TRUE(setup_port(*port, 9, port_name));
-            }
+            
+            EXPECT_TRUE(setup_port(*port, 9, port_name));
 
             a = port;
             ASSERT_TRUE(a);
@@ -44,18 +43,7 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = new rti::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
-        {
-            auto domain_id = port->GetAttribute("domain_id").lock();
-            auto topic_name = port->GetAttribute("topic_name").lock();
-            EXPECT_TRUE(domain_id);
-            EXPECT_TRUE(topic_name);
-            if(domain_id){
-                topic_name->set_Integer(9);
-            }
-            if(topic_name){
-                topic_name->set_String(port_name);
-            }
-        }
+        EXPECT_TRUE(setup_port(*port, 9, port_name));
         a = port;
         ASSERT_TRUE(a);
     }
@@ -81,8 +69,8 @@ TEST(RTI_EventportPair, Stable100){
             rx_callback_count ++;
     });
 
-    EXPECT_TRUE(setup_port(out_port, 9, port_name));
-    EXPECT_TRUE(setup_port(in_port, 9, port_name));
+    EXPECT_TRUE(setup_port(out_port, 9, test_name));
+    EXPECT_TRUE(setup_port(in_port, 9, test_name));
     
 
     EXPECT_TRUE(in_port.Configure());
@@ -133,8 +121,8 @@ TEST(RTI_EventportPair, Busy100){
             sleep_ms(100);
     });
     
-    EXPECT_TRUE(setup_port(out_port, 9, port_name));
-    EXPECT_TRUE(setup_port(in_port, 9, port_name));
+    EXPECT_TRUE(setup_port(out_port, 9, test_name));
+    EXPECT_TRUE(setup_port(in_port, 9, test_name));
 
 
     EXPECT_TRUE(in_port.Configure());
