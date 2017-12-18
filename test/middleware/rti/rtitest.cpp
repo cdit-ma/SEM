@@ -76,8 +76,8 @@ TEST(RTI_EventportPair, Stable100){
 
     
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
+    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -127,8 +127,8 @@ TEST(RTI_EventportPair, Busy100){
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
+    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(100);
     });
