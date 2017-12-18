@@ -114,14 +114,24 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& wo
 			err);
 		return false;
 	}
+	for (auto& result : binary_success) {
+		if (result != CL_SUCCESS) {
+			LogError(worker,
+				std::string(__func__),
+				"An error occurred while loading an OpenCL binary",
+				err);
+		return false;
+		}
+	}
+
     cl::Program& new_program = programs_.back();
 	err = new_program.build(device_vec);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
 			"An error occurred while building an OpenCL program: \n" +
-			new_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*dev_),
-			err);
+				new_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*dev_),
+				err);
 		return false;
 	}
 
@@ -135,6 +145,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& wo
 		return false;
 	}
 
+	std::cout << "about to loop through "<<new_kernels.size()<<" opencl kernels constructed from binary:" << std::endl;
 	for (auto& kernel : new_kernels) {
 		std::string name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
 		bool name_already_exists = false;

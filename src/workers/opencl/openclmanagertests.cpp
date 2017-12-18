@@ -40,7 +40,7 @@ std::string resultToString(Result res) {
 }
 
 void printPass(std::string description) {
-	std::cout << "\033[5m" << "\033[32m" << "[PASS] " << "\033[0m";
+	std::cout << /*"\033[5m" << */ "\033[32m" << "[PASS] " << "\033[0m";
 	std::cout << description << std::endl;
 }
 

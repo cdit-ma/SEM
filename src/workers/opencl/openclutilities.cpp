@@ -121,7 +121,7 @@ cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filena
 }
 
 /**
- * Takes a list of filenames and returns a list of c-strings containg their contents
+ * Takes a list of filenames and returns a list of binary vectors containg their contents
  **/
 cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenames, Worker* worker_reference) {
 	cl::Program::Binaries binary_list;

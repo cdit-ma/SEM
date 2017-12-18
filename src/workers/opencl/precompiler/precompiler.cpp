@@ -16,7 +16,7 @@ void precompile(cl::Device& device, std::string platform_name) {
     source_files.push_back(GetSourcePath("precompiled.cl"));
     cl::Program::Sources source_list = ReadOpenCLSourceCode(source_files);
 
-    cl::Program program(source_list);
+    cl::Program program(context, source_list);
 
     std::string source_path = "-I"+GetSourcePath("");
     err = program.build(source_path.c_str());
@@ -31,13 +31,20 @@ void precompile(cl::Device& device, std::string platform_name) {
 
     cl::Program::Binaries binaries = program.getInfo<CL_PROGRAM_BINARIES>(&err);
     if (err != CL_SUCCESS) {
-        std::cerr << "An error occurred while retrieving  compiled binary data: " << clErrorNames[-err] << std::endl;
+        std::cerr << "An error occurred while retrieving compiled binary data: " << clErrorNames[-err] << std::endl;
         return; 
     }
 
     if (binaries.size() != 1) {
         std::cerr << "expected program compilation to produce one binary, "+std::to_string(binaries.size())+" were produced, skipping" << std::endl;
         return;
+    }
+
+    std::cout << "Compiled a binary containing the following kernels:" << std::endl;
+    std::vector<cl::Kernel> kernels;
+    program.createKernels(&kernels);
+    for (auto& kernel : kernels) {
+        std::cout << " - " << kernel.getInfo<CL_KERNEL_FUNCTION_NAME>() << std::endl;
     }
 
     std::string binaries_folder_path = GetSourcePath("/binaries");
@@ -66,6 +73,8 @@ void precompile(cl::Device& device, std::string platform_name) {
     binary_stream.write((char*)binaries.at(0).data(), binary_length);
 
     binary_stream.close();
+
+    std::cout << "Binary file written to " << binary_filepath << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -75,7 +84,7 @@ int main(int argc, char** argv) {
 
     for (auto& platform : platforms) {
         std::vector<cl::Device> devices;
-        platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+        platform.getDevices(CL_DEVICE_TYPE_CPU, &devices);
         for (auto& device : devices) {
             precompile(device, platform.getInfo<CL_PLATFORM_NAME>());
         }
