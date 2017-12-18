@@ -2,10 +2,6 @@
 set(PROJ_NAME test_ospl)
 project(${PROJ_NAME})
 
-#Find protobuf
-find_package(Protobuf REQUIRED)
-
-
 # Find package OSPL
 find_package(OSPL)
 
@@ -27,7 +23,7 @@ SET(SOURCE
 add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${OSPL_LIBRARIES})
+target_include_directories(${PROJ_NAME} PRIVATE ${OSPL_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(UNIX)

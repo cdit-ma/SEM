@@ -1,5 +1,5 @@
-#ifndef BASE_BASIC_H
-#define BASE_BASIC_H
+#ifndef OSPL_BASE_BASIC_H
+#define OSPL_BASE_BASIC_H
 
 // Include Statements
 #include <core/basemessage.h>
@@ -12,4 +12,4 @@ namespace Base{
 	};
 };
 
-#endif //BASE_BASIC_H
+#endif //OSPL_BASE_BASIC_H

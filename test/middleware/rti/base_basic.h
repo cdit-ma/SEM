@@ -1,5 +1,5 @@
-#ifndef BASE_BASIC_H
-#define BASE_BASIC_H
+#ifndef RTI_BASE_BASIC_H
+#define RTI_BASE_BASIC_H
 
 // Include Statements
 #include <core/basemessage.h>
@@ -12,4 +12,4 @@ namespace Base{
 	};
 };
 
-#endif //BASE_BASIC_H
+#endif //RTI_BASE_BASIC_H
