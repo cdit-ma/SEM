@@ -23,7 +23,7 @@ bool setup_port(EventPort& port, int domain, std::string topic_name){
 }
 
 //Define an In/Out Port FSM Tester
-class Ospl_InEventPort_FSMTester : public ActivatableFSMTester{
+class OSPL_InEventPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
@@ -37,7 +37,7 @@ class Ospl_InEventPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-class ospl_OutEventPort_FSMTester : public ActivatableFSMTester{
+class OSPL_OutEventPort_FSMTester : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
@@ -50,15 +50,15 @@ protected:
 };
 
 
-#define TEST_FSM_CLASS ospl_InEventPort_FSMTester
+#define TEST_FSM_CLASS OSPL_InEventPort_FSMTester
 //#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS ospl_OutEventPort_FSMTester
+#define TEST_FSM_CLASS OSPL_OutEventPort_FSMTester
 //#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(ospl_EventportPair, Stable100){
+TEST(OSPL_EventportPair, Stable100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 
@@ -110,7 +110,7 @@ TEST(ospl_EventportPair, Stable100){
 
 //Run a blocking callback which runs for 1 second,
 //During that one second, send maximum num
-TEST(ospl_EventportPair, Busy100){
+TEST(OSPL_EventportPair, Busy100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 

@@ -1,5 +1,5 @@
-#ifndef OSPL_INEVENTPORT_H
-#define OSPL_INEVENTPORT_H
+#ifndef RTI_INEVENTPORT_H
+#define RTI_INEVENTPORT_H
 
 #include <core/eventports/ineventport.hpp>
 
@@ -7,14 +7,15 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <exception>
 
 #include "helper.hpp"
 #include "datareaderlistener.hpp"
 
-namespace ospl{
+namespace rti{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
     public:
-        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function);
+        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
         ~InEventPort(){
             Activatable::Terminate();
         };
@@ -38,6 +39,7 @@ namespace ospl{
         ThreadState thread_state_;
         std::condition_variable thread_state_condition_;
         
+        bool interupt_ = false;
         std::mutex control_mutex_;
         std::thread* rec_thread_ = 0;
         std::mutex notify_mutex_;
@@ -46,8 +48,8 @@ namespace ospl{
 };
 
 template <class T, class S>
-ospl::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
-::InEventPort<T>(component, name, callback_function, "ospl"){
+rti::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
+::InEventPort<T>(component, name, callback_function, "rti"){
     subscriber_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "subscriber_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
@@ -59,15 +61,19 @@ ospl::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::st
 };
 
 template <class T, class S>
-bool ospl::InEventPort<T, S>::HandleConfigure(){
+bool rti::InEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = topic_name_->String().length() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
-        if(!ospl_thread_){
+        if(!rec_thread_){
+            {
+                std::unique_lock<std::mutex> lock(notify_mutex_);
+                interupt_ = false;
+            }
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
+            rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -76,13 +82,12 @@ bool ospl::InEventPort<T, S>::HandleConfigure(){
 };
 
 template <class T, class S>
-bool ospl::InEventPort<T, S>::HandlePassivate(){
+bool rti::InEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandlePassivate()){ 
         //Set the terminate state in the passivation
-        std::lock_guard<std::mutex> lock(thread_state_mutex_);
-        thread_state_ = ThreadState::TERMINATE;
-        //Wake up the Recieve loop
+        std::lock_guard<std::mutex> lock(notify_mutex_);
+        interupt_ = true;
         notify();
         return true;
     }
@@ -90,12 +95,12 @@ bool ospl::InEventPort<T, S>::HandlePassivate(){
 };
 
 template <class T, class S>
-bool ospl::InEventPort<T, S>::HandleTerminate(){
+bool rti::InEventPort<T, S>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandleTerminate()){
         if(rec_thread_){
-            //Join our ospl_thread
+            //Join our rti_thread
             rec_thread_->join();
             delete rec_thread_;
             rec_thread_ = 0;
@@ -106,33 +111,31 @@ bool ospl::InEventPort<T, S>::HandleTerminate(){
 };
 
 template <class T, class S>
-void ospl::InEventPort<T, S>::notify(){
+void rti::InEventPort<T, S>::notify(){
    //Called by the DataReaderListener to notify our InEventPort thread to get new data
    notify_lock_condition_.notify_all();
 };
 
 template <class T, class S>
-void ospl::InEventPort<T, S>::receive_loop(){
+void rti::InEventPort<T, S>::receive_loop(){
     dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
-    ospl::DataReaderListener<T, S> listener(this);
+    rti::DataReaderListener<T, S> listener(this);
 
-    //Construct a DDS Listener, designed to call back into the receive thread
-    auto listener_ = new (this);
     auto state = ThreadState::STARTED;
 
     try{
        //Construct a DDS Participant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
        auto participant = helper->get_participant(domain_id_->Integer());
-       auto topic = get_topic<S>(participant, topic_name_->String();
+       auto topic = get_topic<S>(participant, topic_name_->String());
 
        auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
-       reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_->String(), qos_profile_name_->String());
+       reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
 
        //Attach listener to only respond to data_available()
-       reader_.listener(&listener_, dds::core::status::StatusMask::data_available());
-    }catch(...){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to startup OSPL DDS Reciever" + ex.what());
+       reader_.listener(&listener, dds::core::status::StatusMask::data_available());
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup OSPL DDS Reciever") + ex.what());
         state = ThreadState::ERROR;
     }
 
@@ -140,21 +143,31 @@ void ospl::InEventPort<T, S>::receive_loop(){
     {
         std::lock_guard<std::mutex> lock(thread_state_mutex_);
         thread_state_ = state;
-        thread_state_condition_.notify_all();
     }
+
+    //Sleep for 250 ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
         EventPort::LogActivation();
-    
-        while(true){
+
+        bool run = true;
+        while(run){ 
             {
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
-                notify_lock_condition_.wait(lock);
-                std::lock_guard<std::mutex> lock(thread_state_mutex_);
-                if(thread_state_ == ThreadState::TERMINATE){
+                //Check to see if we've been interupted before sleeping the first time
+                if(interupt_){
                     break;
+                }
+                notify_lock_condition_.wait(lock);
+                
+                //Upon wake, read all messages, then die.
+                if(interupt_){
+                    run = false;
                 }
             }
 
@@ -164,12 +177,12 @@ void ospl::InEventPort<T, S>::receive_loop(){
                 for(auto sample : samples){
                     //Translate and callback into the component for each valid message we receive
                     if(sample->info().valid()){
-                        auto m = ospl::translate(&sample->data());
+                        auto m = rti::translate(sample->data());
                         this->EnqueueMessage(m);
                     }
                 }
-            }catch(...){
-                Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to process samples." + ex.what());
+            }catch(const std::exception& ex){
+                Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
                 break;
             }
         }
@@ -178,4 +191,4 @@ void ospl::InEventPort<T, S>::receive_loop(){
     }
 };
 
-#endif //OSPL_INEVENTPORT_H
+#endif //RTI_INEVENTPORT_H

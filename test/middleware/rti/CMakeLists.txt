@@ -31,7 +31,7 @@ if(UNIX)
 endif()
 
 # Need this to make sure headers are using the correct function calls.
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
+#target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
 
 
 

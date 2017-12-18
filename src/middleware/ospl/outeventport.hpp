@@ -4,6 +4,7 @@
 #include <core/eventports/outeventport.hpp>
 #include <string>
 #include <mutex>
+#include <exception>
 #include "helper.hpp"
 
 namespace ospl{
@@ -98,16 +99,17 @@ bool ospl::OutEventPort<T, S>::tx(const T& message){
 };
 
 template <class T, class S>
-void ospl::OutEventPort<T, S>::setup_tx(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(writer_ == dds::core::null)){
-        //Construct a DDS Participant, Publisher, Topic and Writer
+bool ospl::OutEventPort<T, S>::setup_tx(){
+    if(writer_ == dds::core::null){
+        //Construct a DDS Paosplcipant, Publisher, Topic and Writer
         auto helper = DdsHelper::get_dds_helper();   
-        auto participant = helper->get_participant(domain_id_->Integer());
-        auto topic = get_topic<S>(participant, topic_name_->String());
-        auto publisher = helper->get_publisher(participant, publisher_name_->String())
+        auto paosplcipant = helper->get_paosplcipant(domain_id_->Integer());
+        auto topic = get_topic<S>(paosplcipant, topic_name_->String());
+        auto publisher = helper->get_publisher(paosplcipant, publisher_name_->String());
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        return true;
     }
+    return false;
 };
 
 
