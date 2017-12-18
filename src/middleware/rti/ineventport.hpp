@@ -66,7 +66,9 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
     bool valid = topic_name_->String().length() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
         if(!rec_thread_){
+            std::cout << "Waiting for thread_state_mutex_ (HandleConfigure)" << std::endl;
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
+            std::cout << "GOT for thread_state_mutex_ (HandleConfigure)" << std::endl;
             thread_state_ = ThreadState::WAITING;
             rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
@@ -81,7 +83,9 @@ bool rti::InEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandlePassivate()){ 
         //Set the terminate state in the passivation
+        std::cout << "Waiting for thread_state_mutex_ (HandlePassivate)" << std::endl;
         std::lock_guard<std::mutex> lock(thread_state_mutex_);
+        std::cout << "GOT for thread_state_mutex_ (HandlePassivate)" << std::endl;
         thread_state_ = ThreadState::TERMINATE;
         //Wake up the Recieve loop
         notify();
@@ -137,10 +141,12 @@ void rti::InEventPort<T, S>::receive_loop(){
 
     //Change the state to be Configured
     {
+        std::cout << "Waiting for thread_state_mutex_ (receive_loop)" << std::endl;
         std::lock_guard<std::mutex> lock(thread_state_mutex_);
+        std::cout << "GOT for thread_state_mutex_ (receive_loop)" << std::endl;
         thread_state_ = state;
-        thread_state_condition_.notify_all();
     }
+    thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
@@ -151,7 +157,9 @@ void rti::InEventPort<T, S>::receive_loop(){
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 notify_lock_condition_.wait(lock);
+                std::cout << "Waiting for thread_state_mutex_ (receive_loop2)" << std::endl;
                 std::lock_guard<std::mutex> lock2(thread_state_mutex_);
+                std::cout << "GOT for thread_state_mutex_ (receive_loop2)" << std::endl;
                 if(thread_state_ == ThreadState::TERMINATE){
                     break;
                 }
