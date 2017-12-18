@@ -87,7 +87,7 @@ bool rti::InEventPort<T, S>::HandlePassivate(){
     if(::InEventPort<T>::HandlePassivate()){ 
         //Set the terminate state in the passivation
         std::lock_guard<std::mutex> lock(notify_mutex_);
-        interupt = true;
+        interupt_ = true;
         notify();
         return true;
     }
