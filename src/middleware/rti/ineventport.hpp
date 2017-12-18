@@ -15,7 +15,7 @@
 namespace rti{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
     public:
-        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T*) > callback_function);
+        InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
         ~InEventPort(){
             Activatable::Terminate();
         };

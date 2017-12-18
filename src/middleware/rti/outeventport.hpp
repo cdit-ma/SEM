@@ -99,7 +99,7 @@ bool rti::OutEventPort<T, S>::tx(const T& message){
 };
 
 template <class T, class S>
-void rti::OutEventPort<T, S>::setup_tx(){
+bool rti::OutEventPort<T, S>::setup_tx(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(writer_ == dds::core::null)){
         //Construct a DDS Participant, Publisher, Topic and Writer
@@ -108,7 +108,9 @@ void rti::OutEventPort<T, S>::setup_tx(){
         auto topic = get_topic<S>(participant, topic_name_->String());
         auto publisher = helper->get_publisher(participant, publisher_name_->String())
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        return true;
     }
+    return false;
 };
 
 
