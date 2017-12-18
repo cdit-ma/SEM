@@ -159,7 +159,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(thread_state_mutex_);
                 std::cout << "SLEEPIN MATE" << std::endl;
-                thread_state_condition_.wait(lock, [=]{return thread_state_ == ThreadState::STARTED;});
+                thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
                 std::cout << "WOKEN MATE" << std::endl;
                 if(thread_state_ != ThreadState::STARTED){
                     std::cout << "GOT TEARDOWN MATE" << std::endl;
