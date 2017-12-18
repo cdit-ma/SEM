@@ -1,4 +1,5 @@
-message Basic{
-    int32 int_val = 1;
-    string str_val = 2;
-}
+struct Basic{
+    long int_val; //@key
+    string str_val;
+};
+#pragma keylist Basic int_val
