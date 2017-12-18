@@ -1,5 +1,5 @@
-#ifndef CONVERT_H
-#define CONVERT_H
+#ifndef OSPL_TEST_CONVERT_H
+#define OSPL_TEST_CONVERT_H
 
 #include <iostream>
 
@@ -26,4 +26,4 @@ namespace ospl{
 	};
 };
 
-#endif //PROTO_AGGREGATE_CONVERT_H
+#endif //OSPL_TEST_CONVERT_H

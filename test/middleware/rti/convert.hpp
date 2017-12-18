@@ -1,5 +1,5 @@
-#ifndef CONVERT_H
-#define CONVERT_H
+#ifndef RTI_TEST_CONVERT_H
+#define RTI_TEST_CONVERT_H
 
 #include <iostream>
 
@@ -26,4 +26,4 @@ namespace rti{
 	};
 };
 
-#endif //PROTO_AGGREGATE_CONVERT_H
+#endif //RTI_TEST_CONVERT_H
