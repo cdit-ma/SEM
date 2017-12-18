@@ -10,7 +10,7 @@
 
 void empty_callback(Base::Basic& b){};
 
-std::string broker("tcp://127.0.0.1:5672")
+std::string broker("tcp://127.0.0.1:5672");
 
 bool setup_port(EventPort& port, std::string topic_name){
     auto b = port.GetAttribute("broker").lock();
