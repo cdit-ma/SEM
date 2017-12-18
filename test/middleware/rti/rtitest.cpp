@@ -51,11 +51,11 @@ protected:
 
 
 #define TEST_FSM_CLASS RTI_InEventPort_FSMTester
-#include "../../core/activatablefsmtestcases.h"
+//#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 #define TEST_FSM_CLASS RTI_OutEventPort_FSMTester
-#include "../../core/activatablefsmtestcases.h"
+//#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(RTI_EventportPair, Stable100){
