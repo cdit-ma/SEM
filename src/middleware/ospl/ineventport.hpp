@@ -65,6 +65,12 @@ bool ospl::InEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = topic_name_->String().length() >= 0;
+
+    std::cerr << "ospl::InEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")" << std::endl;
+    std::cerr << "\t*Domain ID: "<< domain_id_->Integer() << std::endl;
+    std::cerr << "\t*Subscriber Name: "<< subscriber_name_->String() << std::endl;
+    std::cerr << "\t*Topic Name: "<< topic_name_->String() << std::endl;
+
     if(valid && ::InEventPort<T>::HandleConfigure()){
         if(!rec_thread_){
             {
