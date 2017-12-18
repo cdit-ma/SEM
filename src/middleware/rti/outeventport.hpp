@@ -4,6 +4,7 @@
 #include <core/eventports/outeventport.hpp>
 #include <string>
 #include <mutex>
+#include <exception>
 #include "helper.hpp"
 
 namespace rti{

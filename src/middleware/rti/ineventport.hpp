@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <exception>
 
 #include "helper.hpp"
 #include "datareaderlistener.hpp"
@@ -64,7 +65,7 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
     
     bool valid = topic_name_->String().length() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
-        if(!rti_thread_){
+        if(!rec_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
             rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
@@ -116,22 +117,20 @@ void rti::InEventPort<T, S>::receive_loop(){
     dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
     rti::DataReaderListener<T, S> listener(this);
 
-    //Construct a DDS Listener, designed to call back into the receive thread
-    auto listener_ = new (this);
     auto state = ThreadState::STARTED;
 
     try{
        //Construct a DDS Participant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
        auto participant = helper->get_participant(domain_id_->Integer());
-       auto topic = get_topic<S>(participant, topic_name_->String();
+       auto topic = get_topic<S>(participant, topic_name_->String());
 
        auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
-       reader_ = get_data_reader<S>(subscriber, topic, qos_profile_path_->String(), qos_profile_name_->String());
+       reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
 
        //Attach listener to only respond to data_available()
        reader_.listener(&listener_, dds::core::status::StatusMask::data_available());
-    }catch(...){
+    }catch(const std::exception& ex){
         Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to startup OSPL DDS Reciever" + ex.what());
         state = ThreadState::ERROR;
     }
@@ -168,7 +167,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                         this->EnqueueMessage(m);
                     }
                 }
-            }catch(...){
+            }catch(const std::exception& ex){
                 Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to process samples." + ex.what());
                 break;
             }
