@@ -11,7 +11,7 @@ namespace rti{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
        public:
             OutEventPort(std::weak_ptr<Component> component, std::string name);
-           ~OutEventPort(){
+            ~OutEventPort(){
                 Activatable::Terminate();
             }
         protected:
@@ -47,6 +47,38 @@ rti::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::s
 
     //Set default publisher_name
     publisher_name_->set_String("In_" + this->get_name());
+};
+
+
+template <class T, class S>
+bool rti::OutEventPort<T, S>::HandleConfigure(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    bool valid = topic_name_->String().length() > 0;
+
+    if(valid && ::OutEventPort<T>::HandleConfigure()){
+
+        return setup_tx();
+    }
+    return false;
+};
+
+template <class T, class S>
+bool rti::OutEventPort<T, S>::HandlePassivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::OutEventPort<T>::HandlePassivate()){
+        if(writer_ != dds::core::null){
+            writer_ = dds::pub::DataWriter<S>(dds::core::null);
+        }
+        return true;
+    }
+    return false;
+};
+
+template <class T, class S>
+bool rti::OutEventPort<T, S>::HandleTerminate(){
+    HandlePassivate();
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    return ::OutEventPort<T>::HandleTerminate();
 };
 
 
