@@ -2,8 +2,8 @@
 
 // Include the convert functions for the port type
 #include "convert.hpp"
-#include <middleware/ospl/ineventport.hpp>
-#include <middleware/ospl/outeventport.hpp>
+#include <middleware/rti/ineventport.hpp>
+#include <middleware/rti/outeventport.hpp>
 
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
@@ -23,12 +23,12 @@ bool setup_port(EventPort& port, int domain, std::string topic_name){
 }
 
 //Define an In/Out Port FSM Tester
-class Ospl_InEventPort_FSMTester : public ActivatableFSMTester{
+class RTI_InEventPort_FSMTester : public ActivatableFSMTester{
     protected:
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new ospl::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new rti::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             
             EXPECT_TRUE(setup_port(*port, 9, port_name));
 
@@ -37,12 +37,12 @@ class Ospl_InEventPort_FSMTester : public ActivatableFSMTester{
         }
 };
 
-class ospl_OutEventPort_FSMTester : public ActivatableFSMTester{
+class RTI_OutEventPort_FSMTester : public ActivatableFSMTester{
 protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new ospl::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new rti::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
         EXPECT_TRUE(setup_port(*port, 9, port_name));
         a = port;
         ASSERT_TRUE(a);
@@ -50,22 +50,22 @@ protected:
 };
 
 
-#define TEST_FSM_CLASS ospl_InEventPort_FSMTester
+#define TEST_FSM_CLASS RTI_InEventPort_FSMTester
 //#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-#define TEST_FSM_CLASS ospl_OutEventPort_FSMTester
+#define TEST_FSM_CLASS RTI_OutEventPort_FSMTester
 //#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
-TEST(ospl_EventportPair, Stable100){
+TEST(rti_EventportPair, Stable100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 
     
     auto c = std::make_shared<Component>("Test");
-    ospl::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    ospl::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
+    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -110,13 +110,13 @@ TEST(ospl_EventportPair, Stable100){
 
 //Run a blocking callback which runs for 1 second,
 //During that one second, send maximum num
-TEST(ospl_EventportPair, Busy100){
+TEST(rti_EventportPair, Busy100){
     auto test_name = get_long_test_name();
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    ospl::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    ospl::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
+    rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(1000);
     });
