@@ -30,7 +30,7 @@ class RTI_InEventPort_FSMTester : public ActivatableFSMTester{
             auto port_name = get_long_test_name();
             auto port = new rti::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             
-            EXPECT_TRUE(setup_port(*port, 9, port_name));
+            EXPECT_TRUE(setup_port(*port, 0, port_name));
 
             a = port;
             ASSERT_TRUE(a);
@@ -43,7 +43,7 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = new rti::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
-        EXPECT_TRUE(setup_port(*port, 9, port_name));
+        EXPECT_TRUE(setup_port(*port, 0, port_name));
         a = port;
         ASSERT_TRUE(a);
     }
@@ -51,11 +51,11 @@ protected:
 
 
 #define TEST_FSM_CLASS RTI_InEventPort_FSMTester
-//#include "../../core/activatablefsmtestcases.h"
+#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 #define TEST_FSM_CLASS RTI_OutEventPort_FSMTester
-//#include "../../core/activatablefsmtestcases.h"
+#include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS
 
 TEST(rti_EventportPair, Stable100){
@@ -69,8 +69,8 @@ TEST(rti_EventportPair, Stable100){
             rx_callback_count ++;
     });
 
-    EXPECT_TRUE(setup_port(out_port, 9, test_name));
-    EXPECT_TRUE(setup_port(in_port, 9, test_name));
+    EXPECT_TRUE(setup_port(out_port, 0, test_name));
+    EXPECT_TRUE(setup_port(in_port, 0, test_name));
     
 
     EXPECT_TRUE(in_port.Configure());
@@ -121,8 +121,8 @@ TEST(rti_EventportPair, Busy100){
             sleep_ms(1000);
     });
     
-    EXPECT_TRUE(setup_port(out_port, 9, test_name));
-    EXPECT_TRUE(setup_port(in_port, 9, test_name));
+    EXPECT_TRUE(setup_port(out_port, 0, test_name));
+    EXPECT_TRUE(setup_port(in_port, 0, test_name));
 
 
     EXPECT_TRUE(in_port.Configure());
