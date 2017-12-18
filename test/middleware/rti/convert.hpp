@@ -13,8 +13,8 @@ namespace rti{
 	// Translate Functions
 	Basic* translate(const Base::Basic& src){
 		auto dst_ = new Basic();
-		dst_->str_val() = src.str_val;
-		dst_->int_val() = src.int_val;
+		dst_->str_val(src.str_val);
+		dst_->int_val(src.int_val);
 		return dst_;
 	};
 
