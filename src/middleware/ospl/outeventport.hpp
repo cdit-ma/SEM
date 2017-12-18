@@ -56,7 +56,7 @@ bool ospl::OutEventPort<T, S>::HandleConfigure(){
 
      std::cerr << "ospl::OutEventPort<T, S>(" << this->get_id() << " " << this->get_name() << ")" << std::endl;
     std::cerr << "\t*Domain ID: "<< domain_id_->Integer() << std::endl;
-    std::cerr << "\t*Subscriber Name: "<< subscriber_name_->String() << std::endl;
+    std::cerr << "\t*Publisher Name: "<< publisher_name_->String() << std::endl;
     std::cerr << "\t*Topic Name: "<< topic_name_->String() << std::endl;
 
     if(valid && ::OutEventPort<T>::HandleConfigure()){
