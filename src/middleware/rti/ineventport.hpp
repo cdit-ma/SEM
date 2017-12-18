@@ -144,6 +144,10 @@ void rti::InEventPort<T, S>::receive_loop(){
         std::lock_guard<std::mutex> lock(thread_state_mutex_);
         thread_state_ = state;
     }
+
+    //Sleep for 250 ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
     thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
