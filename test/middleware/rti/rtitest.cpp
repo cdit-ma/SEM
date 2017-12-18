@@ -11,8 +11,8 @@
 void empty_callback(Base::Basic& b){};
 
 bool setup_port(EventPort& port, int domain, std::string topic_name){
-    auto d = port->GetAttribute("domain_id").lock();
-    auto t = port->GetAttribute("topic_name").lock();
+    auto d = port.GetAttribute("domain_id").lock();
+    auto t = port.GetAttribute("topic_name").lock();
    
     if(d && t){
         d->set_Integer(domain);
