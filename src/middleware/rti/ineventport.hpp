@@ -147,14 +147,15 @@ void rti::InEventPort<T, S>::receive_loop(){
 
     //Sleep for 250 ms
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+
     thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
         EventPort::LogActivation();
-    
-        while(true){
+
+        bool run = true;
+        while(run){ 
             {
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
@@ -164,9 +165,9 @@ void rti::InEventPort<T, S>::receive_loop(){
                 }
                 notify_lock_condition_.wait(lock);
                 
-                //Upon wake, check the interupt flag
+                //Upon wake, read all messages, then die.
                 if(interupt_){
-                    break;
+                    run = false;
                 }
             }
 
