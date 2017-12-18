@@ -16,7 +16,7 @@ bool setup_port(EventPort& port, std::string topic_name){
     auto b = port.GetAttribute("broker").lock();
     auto t = port.GetAttribute("topic_name").lock();
    
-    if(d && t){
+    if(b && t){
         b->set_String(broker);
         t->set_String(topic_name);
         return true;
@@ -31,7 +31,7 @@ class QPID_InEventPort_FSMTester : public ActivatableFSMTester{
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
             auto port = new qpid::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
-            EXPECT_TRUE(setup_port(port, port_name));
+            EXPECT_TRUE(setup_port(*port, port_name));
             a = port;
             ASSERT_TRUE(a);
         }
@@ -43,7 +43,7 @@ protected:
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
         auto port = new qpid::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
-        EXPECT_TRUE(setup_port(port, port_name));
+        EXPECT_TRUE(setup_port(*port, port_name));
         a = port;
         ASSERT_TRUE(a);
     }
