@@ -14,8 +14,12 @@ if(NOT OSPL_FOUND)
 	return()
 endif()
 
-# Generate the <spl> files for Aggregate
-OSPL_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/basic.idl)
+
+# Copy this <idl> file into the binary directory so the compilation of generated files can succeed
+configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+
+# Generate the <ospl> files for Aggregate
+OSPL_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_BINARY_DIR}/basic.idl)
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltest.cpp
@@ -33,5 +37,5 @@ endif()
 
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${OSPL_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ospl_helper)
