@@ -69,8 +69,8 @@ TEST(QPID_EventportPair, Stable100){
             rx_callback_count ++;
     });
 
-    EXPECT_TRUE(setup_port(port, test_name));
-    EXPECT_TRUE(setup_port(port, test_name));
+    EXPECT_TRUE(setup_port(out_port, test_name));
+    EXPECT_TRUE(setup_port(in_port, test_name));
     
 
     EXPECT_TRUE(in_port.Configure());
@@ -122,8 +122,8 @@ TEST(QPID_EventportPair, Busy100){
     });
 
     
-    EXPECT_TRUE(setup_port(port, test_name));
-    EXPECT_TRUE(setup_port(port, test_name));
+    EXPECT_TRUE(setup_port(in_port, test_name));
+    EXPECT_TRUE(setup_port(out_port, test_name));
 
     EXPECT_TRUE(in_port.Configure());
     EXPECT_TRUE(out_port.Configure());
