@@ -141,7 +141,7 @@ TEST(RTI_EventportPair, Busy100){
     }
 
     //Sleep for a reasonable time
-    sleep_ms(100);
+    sleep_ms(500);
 
     EXPECT_TRUE(out_port.Passivate());
     EXPECT_TRUE(in_port.Passivate());
