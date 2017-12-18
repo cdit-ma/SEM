@@ -1,5 +1,5 @@
-#ifndef ZMQ_TEST_CONVERT_H
-#define ZMQ_TEST_CONVERT_H
+#ifndef QPID_TEST_CONVERT_H
+#define QPID_TEST_CONVERT_H
 
 #include <iostream>
 
@@ -42,4 +42,4 @@ namespace proto{
 	};
 };
 
-#endif //PROTO_AGGREGATE_ZMQ_TEST_CONVERT_H
+#endif //QPID_TEST_CONVERT_H

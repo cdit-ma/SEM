@@ -25,7 +25,7 @@ namespace rti{
         bool HandlePassivate();
         bool HandleTerminate();
     private:
-        void receive_loop();
+        void recv_loop();
 
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;
@@ -41,7 +41,7 @@ namespace rti{
         
         bool interupt_ = false;
         std::mutex control_mutex_;
-        std::thread* rec_thread_ = 0;
+        std::thread* recv_thread_ = 0;
         std::mutex notify_mutex_;
         std::condition_variable notify_lock_condition_;
    };
@@ -66,14 +66,14 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
     
     bool valid = topic_name_->String().length() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
-        if(!rec_thread_){
+        if(!recv_thread_){
             {
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 interupt_ = false;
             }
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
+            recv_thread_ = new std::thread(&rti::InEventPort<T, S>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -99,11 +99,11 @@ bool rti::InEventPort<T, S>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandleTerminate()){
-        if(rec_thread_){
+        if(recv_thread_){
             //Join our rti_thread
-            rec_thread_->join();
-            delete rec_thread_;
-            rec_thread_ = 0;
+            recv_thread_->join();
+            delete recv_thread_;
+            recv_thread_ = 0;
         }
         return true;
     }
@@ -117,7 +117,7 @@ void rti::InEventPort<T, S>::notify(){
 };
 
 template <class T, class S>
-void rti::InEventPort<T, S>::receive_loop(){
+void rti::InEventPort<T, S>::recv_loop(){
     dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
     rti::DataReaderListener<T, S> listener(this);
 

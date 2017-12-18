@@ -20,87 +20,103 @@
 namespace qpid{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(Component* component, std::string name);
-            ~OutEventPort(){
-                Passivate();
-                Teardown();
-            };
-            void tx(T* message);
-
-            void Startup(std::map<std::string, ::Attribute*> attributes);
-            bool Teardown();
-
-            bool Passivate();
-
+            OutEventPort(std::weak_ptr<Component> component, std::string name);
+           ~OutEventPort(){
+                Activatable::Terminate();
+            }
+        protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
+        public:
+            bool tx(const T& message);
         private:
-            void setup_tx();
+            bool setup_tx();
+
             std::mutex control_mutex_;
+            qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Sender sender_ = 0;
 
-            std::string broker_;
-            std::string topic_;
+        
+            std::shared_ptr<Attribute> broker_;
+            std::shared_ptr<Attribute> topic_name_;
 
-            qpid::messaging::Connection connection_;
-            qpid::messaging::Sender sender_;
     };
 };
 
+
 template <class T, class S>
-void qpid::OutEventPort<T, S>::tx(T* message){
+qpid::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name):
+::InEventPort<T>(component, name, "qpid"){
+    topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
+    broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
+};
+
+
+template <class T, class S>
+bool qpid::OutEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(this->is_running()){
-        auto str = proto::encode(message);
-        qpid::messaging::Message m;
-        m.setContentObject(str);
-        sender_.send(m);
-        ::OutEventPort<T>::tx(message);
+    bool valid = topic_name_->String().length() > 0;
+
+    if(valid && ::OutEventPort<T>::HandleConfigure()){
+        return setup_tx();
     }
+    return false;
 };
 
 template <class T, class S>
-qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
-::OutEventPort<T>(component, name, "qpid"){};
-
-template <class T, class S>
-void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
+bool qpid::OutEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-
-    if(attributes.count("broker") && attributes.count("topic_name")){
-        broker_ = attributes["broker"]->get_String();
-        topic_ = attributes["topic_name"]->get_String();
-        setup_tx();
-    }
-
-};
-
-template <class T, class S>
-void qpid::OutEventPort<T, S>::setup_tx(){
-    connection_ = qpid::messaging::Connection(broker_);
-    connection_.open();
-    auto session = connection_.createSession();
-    std::string tn = "amq.topic/" + topic_;
-    sender_ = session.createSender(tn);
-};
-
-template <class T, class S>
-bool qpid::OutEventPort<T, S>::Teardown(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::OutEventPort<T>::Teardown()){
+    if(::OutEventPort<T>::HandlePassivate()){
+        if(connection_.isOpen()){
+            sender_.close();
+            connection_.close();
+            connection_ = 0;
+            sender_ = 0;
+        }
         return true;
     }
     return false;
 };
 
 template <class T, class S>
-bool qpid::OutEventPort<T, S>::Passivate(){
+bool qpid::OutEventPort<T, S>::HandleTerminate(){
+    HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
+    return ::OutEventPort<T>::HandleTerminate();
+};
 
-    if(this->is_running()){
-        if(connection_.isOpen()){
-            connection_.close();
-            connection_ = 0;
-        }
+template <class T, class S>
+bool qpid::OutEventPort<T, S>::tx(const T& message){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    bool should_send = ::OutEventPort<T>::tx(message);
+
+    if(should_send && sender_){
+        auto str = proto::encode(message);
+        qpid::messaging::Message m;
+        m.setContentObject(str);
+        sender_.send(m);
+        return true;
     }
-    return ::OutEventPort<T>::Passivate();
+    return false;
+};
+
+
+template <class T, class S>
+bool qpid::OutEventPort<T, S>::setup_tx(){
+    try{
+        if(!connection_.isOpen()){
+            connection_ = qpid::messaging::Connection(broker_->String());
+            connection_.open();
+            auto session = connection_.createSession();
+            std::string tn = "amq.topic/" + topic_name_->String();
+            sender_ = session.createSender(tn);
+            return true;
+        }
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID Sender") + ex.what());
+    }
+    return false;
 };
 
 #endif //QPID_OUTEVENTPORT_H

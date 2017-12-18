@@ -20,10 +20,10 @@ namespace zmq{
             bool HandlePassivate();
             bool HandleTerminate();
         private:
-            void zmq_loop();
+            void recv_loop();
             
 
-            std::thread* zmq_thread_ = 0;
+            std::thread* recv_thread_ = 0;
             std::string terminate_endpoint_;
             std::shared_ptr<Attribute> end_points_;
 
@@ -56,10 +56,10 @@ bool zmq::InEventPort<T, S>::HandleConfigure(){
     
     bool valid = end_points_->StringList().size() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
-        if(!zmq_thread_){
+        if(!recv_thread_){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+            recv_thread_ = new std::thread(&zmq::InEventPort<T, S>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -73,11 +73,11 @@ bool zmq::InEventPort<T, S>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandleTerminate()){
-        if(zmq_thread_){
+        if(recv_thread_){
             //Join our zmq_thread
-            zmq_thread_->join();
-            delete zmq_thread_;
-            zmq_thread_ = 0;
+            recv_thread_->join();
+            delete recv_thread_;
+            recv_thread_ = 0;
         }
         return true;
     }
@@ -100,7 +100,7 @@ bool zmq::InEventPort<T, S>::HandlePassivate(){
 };
 
 template <class T, class S>
-void zmq::InEventPort<T, S>::zmq_loop(){
+void zmq::InEventPort<T, S>::recv_loop(){
     terminate_mutex_.lock();
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_subscriber_socket();
