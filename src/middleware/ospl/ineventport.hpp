@@ -1,5 +1,5 @@
-#ifndef RTI_INEVENTPORT_H
-#define RTI_INEVENTPORT_H
+#ifndef OSPL_INEVENTPORT_H
+#define OSPL_INEVENTPORT_H
 
 #include <core/eventports/ineventport.hpp>
 
@@ -12,7 +12,7 @@
 #include "helper.hpp"
 #include "datareaderlistener.hpp"
 
-namespace rti{
+namespace ospl{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
     public:
         InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
@@ -48,8 +48,8 @@ namespace rti{
 };
 
 template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
-::InEventPort<T>(component, name, callback_function, "rti"){
+ospl::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
+::InEventPort<T>(component, name, callback_function, "ospl"){
     subscriber_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "subscriber_name").lock();
     domain_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "domain_id").lock();
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
@@ -61,7 +61,7 @@ rti::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::str
 };
 
 template <class T, class S>
-bool rti::InEventPort<T, S>::HandleConfigure(){
+bool ospl::InEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
     bool valid = topic_name_->String().length() >= 0;
@@ -73,7 +73,7 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
             }
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
-            rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
+            rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -82,7 +82,7 @@ bool rti::InEventPort<T, S>::HandleConfigure(){
 };
 
 template <class T, class S>
-bool rti::InEventPort<T, S>::HandlePassivate(){
+bool ospl::InEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandlePassivate()){ 
         //Set the terminate state in the passivation
@@ -95,12 +95,12 @@ bool rti::InEventPort<T, S>::HandlePassivate(){
 };
 
 template <class T, class S>
-bool rti::InEventPort<T, S>::HandleTerminate(){
+bool ospl::InEventPort<T, S>::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandleTerminate()){
         if(rec_thread_){
-            //Join our rti_thread
+            //Join our ospl_thread
             rec_thread_->join();
             delete rec_thread_;
             rec_thread_ = 0;
@@ -111,25 +111,25 @@ bool rti::InEventPort<T, S>::HandleTerminate(){
 };
 
 template <class T, class S>
-void rti::InEventPort<T, S>::notify(){
+void ospl::InEventPort<T, S>::notify(){
    //Called by the DataReaderListener to notify our InEventPort thread to get new data
    notify_lock_condition_.notify_all();
 };
 
 template <class T, class S>
-void rti::InEventPort<T, S>::receive_loop(){
+void ospl::InEventPort<T, S>::receive_loop(){
     dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
-    rti::DataReaderListener<T, S> listener(this);
+    ospl::DataReaderListener<T, S> listener(this);
 
     auto state = ThreadState::STARTED;
 
     try{
-       //Construct a DDS Participant, Subscriber, Topic and Reader
+       //Construct a DDS Paosplcipant, Subscriber, Topic and Reader
        auto helper = DdsHelper::get_dds_helper();    
-       auto participant = helper->get_participant(domain_id_->Integer());
-       auto topic = get_topic<S>(participant, topic_name_->String());
+       auto paosplcipant = helper->get_paosplcipant(domain_id_->Integer());
+       auto topic = get_topic<S>(paosplcipant, topic_name_->String());
 
-       auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
+       auto subscriber = helper->get_subscriber(paosplcipant, subscriber_name_->String());
        reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
 
        //Attach listener to only respond to data_available()
@@ -177,7 +177,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                 for(auto sample : samples){
                     //Translate and callback into the component for each valid message we receive
                     if(sample->info().valid()){
-                        auto m = rti::translate(sample->data());
+                        auto m = ospl::translate(sample->data());
                         this->EnqueueMessage(m);
                     }
                 }
@@ -191,4 +191,4 @@ void rti::InEventPort<T, S>::receive_loop(){
     }
 };
 
-#endif //RTI_INEVENTPORT_H
+#endif //OSPL_INEVENTPORT_H

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base_basic.h"
-#include "aggregate_DCPS.hpp"
+#include "basic_DCPS.hpp"
 
 
 // Forward declare the concrete type
