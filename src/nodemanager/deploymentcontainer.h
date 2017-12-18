@@ -5,8 +5,8 @@
 #include <functional>
 
 #include <core/component.h>
-#include <core/libportexports.h>
-#include <core/libcomponentexports.h>
+#include <core/libportexport.h>
+#include <core/libcomponentexport.h>
 
 #include "dllloader.h"
 

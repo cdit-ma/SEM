@@ -21,7 +21,7 @@ namespace zmq{
             bool HandleTerminate();
         private:
             void zmq_loop();
-            enum class ThreadState{WAITING, STARTED, ERROR};
+            enum class ThreadState{WAITING, STARTED, ERROR, TERMINATE};
 
             std::thread* zmq_thread_ = 0;
             std::string terminate_endpoint_;
@@ -105,7 +105,6 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_subscriber_socket();
     term_socket_ = helper->get_publisher_socket();
-    bool error = false;
 
     auto state = ThreadState::STARTED;
     try{

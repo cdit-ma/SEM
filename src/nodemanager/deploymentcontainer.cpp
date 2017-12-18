@@ -225,7 +225,7 @@ std::string DeploymentContainer::get_port_library_name(const std::string& middle
     return to_lower(p);
 }
 std::string DeploymentContainer::get_component_library_name(const std::string& component_type){
-    std::string c = "components_" + component_type;
+    std::string c = "component_" + component_type;
     return to_lower(c);
 }
 
