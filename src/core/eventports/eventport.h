@@ -6,6 +6,8 @@
 //Forward declare
 class Component;
 
+enum class ThreadState{WAITING, STARTED, ERROR, TERMINATE};
+
 //Interface for a standard EventPort
 class EventPort : public Activatable
 {
@@ -16,7 +18,7 @@ class EventPort : public Activatable
             RX = 2,
             PE = 3
         };
-        enum class ThreadState{WAITING, STARTED, ERROR, TERMINATE};
+        
         EventPort(std::weak_ptr<Component> component, const std::string& port_name, const EventPort::Kind& port_kind, const std::string& port_middleware);
         
         EventPort::Kind get_kind() const;

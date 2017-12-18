@@ -151,7 +151,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 notify_lock_condition_.wait(lock);
-                std::lock_guard<std::mutex> lock(thread_state_mutex_);
+                std::lock_guard<std::mutex> lock2(thread_state_mutex_);
                 if(thread_state_ == ThreadState::TERMINATE){
                     break;
                 }
