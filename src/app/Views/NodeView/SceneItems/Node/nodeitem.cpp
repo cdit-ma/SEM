@@ -1398,21 +1398,8 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
     }
 
-    /*
-    if(gotVisualButton()){
-        if(gotVisualNodeKind()){
-            bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
-
-            if(showHover != hoveredConnect){
-                hoveredConnect = showHover;
-                need_update = true;
-            }
-        }
-    }*/
-
-
     if(isSelected() && isResizeEnabled() && isExpanded() && hasChildNodes()){
-        NodeItem::RectVertex vertex;// = NodeItem::RectVertex::NONE;
+        NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
         for(auto vert : getRectVertex()){
             if(getResizeRect(vert).contains(event->pos())){
                 vertex = vert;
