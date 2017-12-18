@@ -22,8 +22,7 @@ SET(SOURCE
 add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${RTIDDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(UNIX)
@@ -31,7 +30,13 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
 
+# Need this to make sure headers are using the correct function calls.
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
+
+
+
+
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
-target_link_libraries(${SHARED_LIB_NAME} ${RTIDDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
 target_link_libraries(${PROJ_NAME} rti_helper)
