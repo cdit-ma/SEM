@@ -129,9 +129,9 @@ void rti::InEventPort<T, S>::receive_loop(){
        reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
 
        //Attach listener to only respond to data_available()
-       reader_.listener(&listener_, dds::core::status::StatusMask::data_available());
+       reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to startup OSPL DDS Reciever" + ex.what());
+        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup OSPL DDS Reciever") + ex.what());
         state = ThreadState::ERROR;
     }
 
@@ -168,7 +168,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                     }
                 }
             }catch(const std::exception& ex){
-                Log(Severity::ERROR).Context(this).Func(__func__).Msg("Unable to process samples." + ex.what());
+                Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
                 break;
             }
         }
