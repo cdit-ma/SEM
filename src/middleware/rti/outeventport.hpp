@@ -101,7 +101,7 @@ bool rti::OutEventPort<T, S>::tx(const T& message){
 template <class T, class S>
 bool rti::OutEventPort<T, S>::setup_tx(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(writer_ == dds::core::null)){
+    if(writer_ == dds::core::null){
         //Construct a DDS Participant, Publisher, Topic and Writer
         auto helper = DdsHelper::get_dds_helper();   
         auto participant = helper->get_participant(domain_id_->Integer());
