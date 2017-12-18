@@ -30,7 +30,7 @@ class QPID_InEventPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new zmq::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new qpid::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             EXPECT_TRUE(setup_port(port, port_name));
             a = port;
             ASSERT_TRUE(a);
@@ -42,7 +42,7 @@ protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new zmq::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new qpid::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
         EXPECT_TRUE(setup_port(port, port_name));
         a = port;
         ASSERT_TRUE(a);
@@ -64,8 +64,8 @@ TEST(QPID_EventportPair, Stable100){
 
     
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
+    qpid::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    qpid::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -115,8 +115,8 @@ TEST(QPID_EventportPair, Busy100){
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
+    qpid::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    qpid::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(1000);
     });
