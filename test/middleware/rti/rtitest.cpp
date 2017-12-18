@@ -118,7 +118,7 @@ TEST(RTI_EventportPair, Busy100){
     rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
     rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
-            sleep_ms(100);
+            sleep_ms(1000);
     });
     
     EXPECT_TRUE(setup_port(out_port, 9, test_name));
@@ -140,7 +140,7 @@ TEST(RTI_EventportPair, Busy100){
         out_port.tx(b);
     }
 
-    //Sleep for a reasonable time
+    //Sleep for a reasonable time (Bigger than the callback work)
     sleep_ms(500);
 
     EXPECT_TRUE(out_port.Passivate());
