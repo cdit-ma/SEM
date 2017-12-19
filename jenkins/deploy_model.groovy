@@ -129,7 +129,7 @@ withEnv(["model=''"]){
                     fail_flag = true;
                 }
 
-                dir("lib"){
+                /*dir("lib"){
                     //Generate QOS into lib directory
                     def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
                     print(qosGenCommand)
@@ -137,7 +137,7 @@ withEnv(["model=''"]){
                         failureList << "QoS generation failed"
                         fail_flag = true;
                     }
-                }
+                }*/
             }
         }
 
