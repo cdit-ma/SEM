@@ -36,6 +36,7 @@ namespace qpid{
             void recv_loop();
             std::mutex connection_mutex_;
             qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Receiver receiver = 0;
 
             std::mutex control_mutex_;
             std::thread* recv_thread_ = 0;
@@ -81,6 +82,7 @@ bool qpid::InEventPort<T, S>::HandlePassivate(){
         std::lock_guard<std::mutex> lock(connection_mutex_);
         if(connection_.isOpen()){
             //do passivation things here
+            receiver_.close();
             connection_.close();
         }
         connection_ = 0;
@@ -107,9 +109,7 @@ bool qpid::InEventPort<T, S>::HandleTerminate(){
 
 template <class T, class S>
 void qpid::InEventPort<T, S>::recv_loop(){
-    qpid::messaging::Receiver receiver;
     auto state = ThreadState::STARTED;
-
     try{
         std::lock_guard<std::mutex> lock(connection_mutex_);
         //Construct a Qpid Connection
@@ -117,7 +117,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
         //Open the connection
         connection_.open();
         auto session = connection_.createSession();
-        receiver = session.createReceiver( "amq.topic/"  + topic_name_->String());
+        receiver_ = session.createReceiver( "amq.topic/"  + topic_name_->String());
     }catch(const std::exception& ex){
         Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
         state = ThreadState::ERROR;
@@ -139,8 +139,8 @@ void qpid::InEventPort<T, S>::recv_loop(){
         bool run = true;
         while(run){
             try{
-                auto sample = receiver.fetch();
-                if(receiver.isClosed()){
+                auto sample = receiver_.fetch();
+                if(receiver_.isClosed()){
                     run = false;
                 }
                 std::string str = sample.getContent();
