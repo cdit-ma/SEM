@@ -47,7 +47,7 @@ namespace qpid{
 
 template <class T, class S>
 qpid::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::string name):
-::InEventPort<T>(component, name, "qpid"){
+::OutEventPort<T>(component, name, "qpid"){
     topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
     broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };
