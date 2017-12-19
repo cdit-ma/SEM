@@ -174,7 +174,6 @@ void DeploymentManager::ProcessControlQueue(){
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
                     auto success = ConfigureDeploymentContainers(control_message);
-                    std::cout << "NodeManager::ControlMessage::Configure: " << (success ? "YES" : "NO") << std::endl;
                     break;
                 }
                 case NodeManager::ControlMessage::ACTIVATE:{
@@ -182,7 +181,6 @@ void DeploymentManager::ProcessControlQueue(){
                     for(auto c : deployment_containers_){
                         success = c.second->Activate() ? success : false;
                     }
-                    std::cout << "NodeManager::ControlMessage::Activate: " << (success ? "YES" : "NO") << std::endl;
                     break;
                 }
                 case NodeManager::ControlMessage::PASSIVATE:{
@@ -190,7 +188,6 @@ void DeploymentManager::ProcessControlQueue(){
                     for(auto c : deployment_containers_){
                         success = c.second->Passivate() ? success : false;
                     }
-                    std::cout << "NodeManager::ControlMessage::PASSIVATE: " << (success ? "YES" : "NO") << std::endl;
                     break;
                 }
                 case NodeManager::ControlMessage::TERMINATE:{
@@ -198,7 +195,6 @@ void DeploymentManager::ProcessControlQueue(){
                     for(auto c : deployment_containers_){
                         success = c.second->Terminate() ? success : false;
                     }
-                    std::cout << "NodeManager::ControlMessage::TERMINATE: " << (success ? "YES" : "NO") << std::endl;
                     InteruptQueueThread();
                     execution_->Interrupt();
                     break;
