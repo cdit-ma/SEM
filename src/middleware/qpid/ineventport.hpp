@@ -83,9 +83,7 @@ bool qpid::InEventPort<T, S>::HandlePassivate(){
         if(connection_.isOpen()){
             //do passivation things here
             receiver_.close();
-            connection_.close();
         }
-        connection_ = 0;
         return true;
     }
     return false;
@@ -101,6 +99,10 @@ bool qpid::InEventPort<T, S>::HandleTerminate(){
             recv_thread_->join();
             delete recv_thread_;
             recv_thread_ = 0;
+
+            connection_.close();
+            connection_ = 0;
+            receiver_ = 0;
         }
         return true;
     }
