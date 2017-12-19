@@ -102,7 +102,7 @@ void testLoadBalancer(OpenCLManager& manager);
 void testBufferReadWrite(OpenCLManager& manager, OpenCLDevice& device);
 void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device);
 
-OpenCLWorker* testWorkerConstruction(Component& component);
+OpenCLWorker* testWorkerConstruction(Component& component, int device_id);
 void testWorkerDestruction(OpenCLWorker* worker);
 void testWorkerCreateBuffer(OpenCLWorker* worker);
 void testWorkerReleaseBuffer(OpenCLWorker* worker);
@@ -209,21 +209,22 @@ int main(int argc, char** argv) {
 
 
 	Component test_component("TestComponent");
-	OpenCLWorker* worker = testWorkerConstruction(test_component);
+	for (int i=0; i< manager->GetDevices().size(); i++) {
+		OpenCLWorker* worker = testWorkerConstruction(test_component, i);
 
-	// Run worker tests conditional on worker having been successfully constructed
-	if (worker != NULL) {
-		testWorkerCreateBuffer(worker);
-		testWorkerRunParallel(worker);
-		testWorkerMatrixMult(worker);
-		testWorkerKMeans(worker);
-	} else {
-		recordTest(SKIPPED, "testWorkerCreateBuffer");
-		recordTest(SKIPPED, "testWorkerRunParallel");
-		recordTest(SKIPPED, "testWorkerMatrixMult");
-		recordTest(SKIPPED, "testWorkerKMeans");
+		// Run worker tests conditional on worker having been successfully constructed
+		if (worker != NULL) {
+			testWorkerCreateBuffer(worker);
+			testWorkerRunParallel(worker);
+			testWorkerMatrixMult(worker);
+			testWorkerKMeans(worker);
+		} else {
+			recordTest(SKIPPED, "testWorkerCreateBuffer");
+			recordTest(SKIPPED, "testWorkerRunParallel");
+			recordTest(SKIPPED, "testWorkerMatrixMult");
+			recordTest(SKIPPED, "testWorkerKMeans");
+		}
 	}
-	
 	
 	auto end_time = std::chrono::steady_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time-start_time).count();
@@ -451,13 +452,13 @@ void testKernelPassthrough(OpenCLManager& manager, OpenCLDevice& device) {
 	manager.ReleaseBuffer(out_buffer);
 }
 
-OpenCLWorker* testWorkerConstruction(Component& component) {
+OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 	Result res = UNKNOWN;
 
 	printInfo("Creating an OpenCLWorker...");
 
 	OpenCLWorker* worker = new OpenCLWorker(&component, "OpenCLWorker_ConstructionTest");
-	worker->Configure(0, 0);
+	worker->Configure(0, device_id);
 
 	if (worker->IsValid()) {
 		res = PASS;

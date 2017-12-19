@@ -126,7 +126,9 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     // Specifies the width and height of the blocks used to increase cache performance, will be hardware dependant
     unsigned int block_length = 4;
     cl::Device dev = manager_->GetContext().getInfo<CL_CONTEXT_DEVICES>()[0];
-    cl::size_type workgroup_size = matrix_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(dev);
+    cl::size_type kernel_workgroup_size = matrix_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(dev);
+    cl::size_type device_workgroup_size = dev.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+    auto workgroup_size = std::min(kernel_workgroup_size, device_workgroup_size);
     block_length = (unsigned int) sqrt(workgroup_size);
 
 
