@@ -17,7 +17,7 @@ stage("Checkout"){
 def step_build_test = [:]
 def step_test = [:]
 
-def re_nodes = utils.getLabelledNodes("build_re")
+def re_nodes = utils.getLabelledNodes("builder")
 for(n in re_nodes){
     def node_name = n
 
@@ -26,7 +26,10 @@ for(n in re_nodes){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
-                utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                def success = utils.buildProject("Unix Makefiles", "-DBUILD_TEST=ON")
+                if(!success){
+                    error("Cannot Compile")
+                }
             }
         }
     }
