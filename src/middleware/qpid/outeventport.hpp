@@ -56,8 +56,7 @@ qpid::OutEventPort<T, S>::OutEventPort(std::weak_ptr<Component> component, std::
 template <class T, class S>
 bool qpid::OutEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    bool valid = topic_name_->String().length() > 0;
-
+    bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
     if(valid && ::OutEventPort<T>::HandleConfigure()){
         return setup_tx();
     }
@@ -104,7 +103,7 @@ bool qpid::OutEventPort<T, S>::tx(const T& message){
 template <class T, class S>
 bool qpid::OutEventPort<T, S>::setup_tx(){
     try{
-        if(!connection_.isOpen()){
+        if(!connection_){
             connection_ = qpid::messaging::Connection(broker_->String());
             connection_.open();
             auto session = connection_.createSession();
