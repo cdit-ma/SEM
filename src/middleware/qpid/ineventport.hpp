@@ -36,7 +36,7 @@ namespace qpid{
             void recv_loop();
             std::mutex connection_mutex_;
             qpid::messaging::Connection connection_ = 0;
-            qpid::messaging::Receiver receiver = 0;
+            qpid::messaging::Receiver receiver_ = 0;
 
             std::mutex control_mutex_;
             std::thread* recv_thread_ = 0;
