@@ -4,10 +4,9 @@
 #include <iostream>
 #include <stdarg.h>
 
-Utility_Worker::Utility_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Utility_Worker::Utility_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Utility_Worker_Impl();
-    //Need to get down into the small itty bitty time differences to get nice random between nodes happenning! hahaa XD
-    impl_->SetRandomSeed(GetTimeOfDay() * 100000);
+    impl_->SetRandomSeed(GetTimeOfDay());
 }
 
 Utility_Worker::~Utility_Worker(){
@@ -42,10 +41,8 @@ void Utility_Worker::Log(const std::string str_format, bool print, ...){
     Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message);
 
     if(print){
-        auto c = get_component();
-        if(c){
-            std::cout << c->get_name() << "<" << c->get_type() << ">: ";
-        }
+        const auto& c = get_component();
+        std::cout << c.get_name() << "<" << c.get_type() << ">: ";
         std::cout << message << std::endl;
     }
 }

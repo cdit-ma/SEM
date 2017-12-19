@@ -48,17 +48,21 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/clErrorPrinter.h
     )
 
+#Use this for enable_testing
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_executable(${TESTER_NAME} gpu_worker_test.cpp)
+
 #Add RE_PATH to include directories
-include_directories("${RE_PATH}/src")
-include_directories("${CLFFT_ROOT}/include")
-include_directories("${OPENCL_ROOT}/include")
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
+target_include_directories(${PROJ_NAME} PRIVATE "${OPENCL_ROOT}/include")
+
+target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
 
 #Use this in production
 #add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
 
-#Use this for enable_testing
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} gpu_worker_test.cpp)
+
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
