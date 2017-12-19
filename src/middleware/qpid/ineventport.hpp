@@ -150,7 +150,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
                 this->EnqueueMessage(m);
             }
             catch(const std::exception& ex){
-                Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to fetch QPID Messages") + ex.what());
+                //Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to fetch QPID Messages") + ex.what());
                 run = false;
             }
         }
