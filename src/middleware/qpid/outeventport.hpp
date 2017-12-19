@@ -67,7 +67,7 @@ template <class T, class S>
 bool qpid::OutEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::OutEventPort<T>::HandlePassivate()){
-        if(connection_.isOpen()){
+        if(connection_ && connection_.isOpen()){
             connection_.close();
             connection_ = 0;
             sender_ = 0;
