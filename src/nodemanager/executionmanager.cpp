@@ -148,7 +148,7 @@ const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::s
 
      for(const auto& a: deployment_map_){
         if(host_name == a.second->host_name()){
-            startup.set_allocated_configure(a.second);
+            startup.set_allocated_configure(new NodeManager::ControlMessage(*(a.second)));
         }
     }
     startup.set_publisher_address(master_endpoint_);
