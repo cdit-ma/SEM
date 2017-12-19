@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
     for (auto& platform : platforms) {
         std::vector<cl::Device> devices;
-        platform.getDevices(CL_DEVICE_TYPE_CPU, &devices);
+        platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
         for (auto& device : devices) {
             precompile(device, platform.getInfo<CL_PLATFORM_NAME>());
         }
