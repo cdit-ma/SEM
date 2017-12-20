@@ -186,7 +186,7 @@ void LogOpenCLError(const Worker* worker_reference,
 #endif
 	}
 	else {
-		std::cerr << function_signature << ": " << message << std::endl;
+		std::cerr << function_signature << ": " << error_message << std::endl;
 	}
 }
 
