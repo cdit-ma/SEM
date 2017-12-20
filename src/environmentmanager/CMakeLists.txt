@@ -1,0 +1,59 @@
+cmake_minimum_required (VERSION 2.6)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+#Set our module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
+
+#Include the parent directory
+include_directories("../")
+
+set(ENVIRONMENT_MANAGER environment_manager)
+    
+set(PROJ_NAME ${ENVIRONMENT_MANAGER})
+project(${PROJ_NAME})
+
+#Find ZeroMQ
+find_package(ZMQ REQUIRED)
+
+#Link against boost dynamically
+add_definitions(-DBOOST_ALL_DYN_LINK)
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
+
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
+	)
+
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.h
+    )
+    
+add_executable(${ENVIRONMENT_MANAGER} ${SOURCE} ${HEADERS})
+
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+if (MSVC)
+    #Windows requires protobuf in DLLs
+    target_compile_definitions(${ENVIRONMENT_MANAGER} PRIVATE -DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${EXECUTION_TESTER} PRIVATE -DPROTOBUF_USE_DLLS)
+elseif(UNIX)
+	target_link_libraries(${ENVIRONMENT_MANAGER} pthread)
+    target_link_libraries(${ENVIRONMENT_MANAGER} dl)
+
+    target_link_libraries(${EXECUTION_TESTER} pthread)
+    target_link_libraries(${EXECUTION_TESTER} dl)
+endif(MSVC)
+
+#Link executable against all libraries required
+target_link_libraries(${ENVIRONMENT_MANAGER} ${ZMQ_LIBRARIES})
+target_link_libraries(${ENVIRONMENT_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+
+
+
+
+
+
