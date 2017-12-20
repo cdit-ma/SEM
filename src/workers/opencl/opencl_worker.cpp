@@ -212,9 +212,9 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     auto kernel_wg_size = cluster_adjust_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device.GetRef());
     auto device_wg_size = device.GetRef().getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
     // need to ensure that theres space for both the local centroid and count buffers
-    auto mem_wg_size = device.GetRef().getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() / (sizeof(cl_float4)+sizeof(cl_uint)) / num_compute_units;
+    cl_ulong mem_wg_size = device.GetRef().getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() / (sizeof(cl_float4)+sizeof(cl_uint)) / num_compute_units;
 
-    cl_uint adjust_local_size = std::min(std::min(kernel_wg_size, device_wg_size), mem_wg_size);
+    auto adjust_local_size = std::min(std::min(kernel_wg_size, device_wg_size), mem_wg_size);
 
     cl::NDRange adjust_local_range(adjust_local_size);
     cl::NDRange adjust_global_range(adjust_local_size*num_compute_units);
