@@ -2,8 +2,16 @@
 #define CORE_MODELLOGGER_H
 
 #include <mutex>
+#include <string>
+
 #include "component.h"
-#include "eventport.h"
+#include "eventports/eventport.h"
+
+#ifdef MSVC
+    #define GET_FUNC __FUNCTION__
+#else
+    #define GET_FUNC __PRETTY_FUNCTION__
+#endif
 
 class Worker;
 
@@ -14,7 +22,9 @@ namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
-    enum class Mode {LIVE, CACHED, OFF};
+    enum class Mode {OFF, LIVE, CACHED};
+        
+
         enum class LifeCycleEvent{
             STARTED = 0,
             ACTIVATED = 1,
@@ -50,19 +60,20 @@ class ModelLogger{
         zmq::ProtoWriter* writer_;
         ~ModelLogger();
     public:
-        void LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+        void LogWorkerEvent(const Worker& worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+        void LogMessageEvent(const EventPort& eventport);
+        void LogUserMessageEvent(const Component& component, std::string message);
+        void LogUserFlagEvent(const Component& component, std::string message);
 
-        void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
-        void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
-
-        void LogComponentEvent(EventPort* eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+        
+        void LogLifecycleEvent(const Component& component, ModelLogger::LifeCycleEvent event);
+        void LogLifecycleEvent(const EventPort& eventport, ModelLogger::LifeCycleEvent event);
+        void LogComponentEvent(const EventPort& eventport, const ::BaseMessage& message, ModelLogger::ComponentEvent event);
         void LogFailedComponentConstruction(std::string component_type, std::string component_name, std::string component_id);
         void LogFailedPortConstruction(std::string component_type, std::string component_name, std::string component_id);
 
-        void LogMessageEvent(EventPort* eventport);
-        void LogUserMessageEvent(Component* component, std::string message);
-        void LogUserFlagEvent(Component* component, std::string message);
         const std::string get_hostname();
+
     private:
         void PushMessage(google::protobuf::MessageLite* message);
 
@@ -73,5 +84,35 @@ class ModelLogger{
         static ModelLogger* singleton_;
         static std::mutex global_mutex_;
 };
+
+enum class Severity{
+    FATAL = 0,
+    ERROR = 1,
+    WARNING = 2,
+    INFO = 3,
+    DEBUG = 4
+};
+
+
+
+class Log{
+    public:
+        Log& Msg(const std::string& message);
+        Log& Context(Activatable* context);
+        Log& Func(const std::string& function_name);
+        Log& Class(const std::string& class_name);
+
+        ~Log();
+        Log(const Log& log) = delete;
+        Log(const Severity& severity);
+    private:
+        
+        std::string message_;
+        std::string class_name_;
+        std::string function_name_;
+        Activatable* context_ = 0;
+        Severity severity_;
+};
+
 
 #endif //CORE_MODELLOGGER_H

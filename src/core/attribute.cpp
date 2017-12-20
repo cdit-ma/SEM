@@ -1,6 +1,6 @@
 #include "attribute.h"
 
-Attribute::Attribute(ATTRIBUTE_TYPE type, std::string name){
+Attribute::Attribute(const ATTRIBUTE_TYPE type, const std::string name){
     name_ = name;
     type_ = type;
 }

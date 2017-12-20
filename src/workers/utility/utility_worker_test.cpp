@@ -3,8 +3,8 @@
 #include <thread>
 #include <chrono>
 int main(){
-
-    Utility_Worker ute(0, "ute");
+    auto c = std::make_shared<Component>();
+    Utility_Worker ute(c, "ute");
     std::cout << std::fixed; std::cout.precision(8);
     auto time_str = ute.GetTimeOfDayString();
     auto time_dbl = ute.GetTimeOfDay();

@@ -3,7 +3,8 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
+#include <memory>
 
 enum class ATTRIBUTE_TYPE{
     STRING = 0,
@@ -17,7 +18,7 @@ enum class ATTRIBUTE_TYPE{
 
 class Attribute{
     public:
-        Attribute(ATTRIBUTE_TYPE type, std::string name);
+        Attribute(const ATTRIBUTE_TYPE type, const std::string name);
 
         ATTRIBUTE_TYPE get_type() const;
         std::string get_name() const;

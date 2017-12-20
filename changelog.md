@@ -1,3 +1,25 @@
+# re v1.4.0
+
+## New Features:
+* Fixed model parsing issues which made loading large models slow
+* Adjusted network code communication between master/slave to speed up the standup of executions
+* Added checks to ensure that all nodes are configured before the Activate message is sent
+* Various bug fixes and optimizations
+
+## Testing:
+* Added test_rti
+* Added test_zmq
+* Added test_qpid
+* Added test_ospl
+
+## JIRA Issues:
+|	Issue key	|	Summary	|
+|	--- | --- |
+|	[RE-114](https://cdit-ma.atlassian.net/browse/RE-114)	|	Enable Logging in InEventPort/OutEventPort class	|
+|	[RE-115](https://cdit-ma.atlassian.net/browse/RE-115)	|	Add Attribute Factory in Activatable class to save code bloat	|
+
+---
+
 # re v1.3.2
 
 ## New Features:
@@ -25,7 +47,6 @@
 |	[RE-99](https://cdit-ma.atlassian.net/browse/RE-99)	|	Integrate Google Test with RE	|
 |	[RE-87](https://cdit-ma.atlassian.net/browse/RE-87)	|	Build jenkins job to test re with a series of models	|
 |	[RE-51](https://cdit-ma.atlassian.net/browse/RE-51)	|	Test RE on windows	|
-
 
 ---
 

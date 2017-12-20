@@ -1,0 +1,5 @@
+struct Basic{
+    long int_val; //@key
+    string str_val;
+};
+#pragma keylist Basic int_val

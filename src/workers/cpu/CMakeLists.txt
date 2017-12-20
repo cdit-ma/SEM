@@ -15,8 +15,6 @@ SET(CMAKE_CXX_FLAGS_DEBUG "-O0")
 
 
 set(PROJ_NAME cpu_worker)
-set(TESTER_NAME ${PROJ_NAME}_tester)
-
 project(${PROJ_NAME})
 
 set(SOURCE
@@ -29,12 +27,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
     )
 
-#Add RE_PATH to include directories
-include_directories("${RE_PATH}/src")
 
-#Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} cpu_worker_test.cpp)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -45,5 +40,4 @@ endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
 
-target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
-
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/profiler")

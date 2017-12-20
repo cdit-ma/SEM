@@ -9,7 +9,10 @@ set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest)
 if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif(MSVC)
-add_subdirectory("googletest/googletest")
-add_subdirectory("core")
-add_subdirectory("workers")
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/workers")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware")
+
 

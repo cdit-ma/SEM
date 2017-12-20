@@ -37,7 +37,7 @@ public:
 	 * @TODO provide a method for preventing the worker from being stuck using only the CPU
 	 *       due to being locked to one platform (eg grabs intel plaform with no Xeon Phi).
 	 */
-	Gpu_Worker(Component* component, std::string inst_name);
+	Gpu_Worker(const Component& component, const std::string& inst_name);
 
 	/**
 	 * Delete the GPU worker and release any of its GPU related resources.
