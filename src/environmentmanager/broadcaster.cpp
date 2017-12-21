@@ -1,16 +1,17 @@
 #include "broadcaster.h"
 
-Broadcaster::Broadcaster(const std::string& endpoint){
+Broadcaster::Broadcaster(const std::string& endpoint, const std::string& message){
     endpoint_ = endpoint;
+    message_ = message;
     context_ = new zmq::context_t(1);
 }
 
-void Broadcaster::SetEndpoint(const std::string& endpoint){
-    endpoint_ = endpoint;
+void Broadcaster::SetMessage(const std::string& message){
+    message_ = message;
 }
 
-std::string Broadcaster::GetEndpoint() const{
-    return endpoint_;
+std::string Broadcaster::GetMessage() const{
+    return message_;
 }
 
 void Broadcaster::StartBroadcast(){
@@ -19,28 +20,25 @@ void Broadcaster::StartBroadcast(){
 
 void Broadcaster::EndBroadcast(){
 
-    //condition var here
+    terminate_flag_ = true;
+    //TODO: condition var here
 
     broadcast_loop_->join();
-
 }
 
-zmq::message_t Broadcaster::GetMessage(){
-    return zmq::message_t(endpoint_.begin(), endpoint_.end());
+zmq::message_t Broadcaster::GetZMQMessage(){
+    // TODO: Format message nicely?
+    return zmq::message_t(message_.begin(), message_.end());
 }
 
 void Broadcaster::BroadcastLoop(){
     zmq::socket_t publisher(*context_, ZMQ_PUB);
-    std::string bind_addr("tcp://*:" + broadcast_port_);
-    publisher.bind(bind_addr);
+    publisher.bind(endpoint_);
 
-    while(true){
-        //add condition variable to break out of this boi
-        std::string message_str(endpoint_);
-        zmq::message_t message = GetMessage();
+    while(!terminate_flag_){
+        //TODO: add condition variable to break out of this
+        zmq::message_t message = GetZMQMessage();
         publisher.send(message);
-
-        std::cout << "bcast: " << message_str << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(broadcast_period_));
     }

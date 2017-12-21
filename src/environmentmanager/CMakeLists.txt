@@ -23,14 +23,22 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
 	)
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     )
     
 add_executable(${ENVIRONMENT_MANAGER} ${SOURCE} ${HEADERS})
+
+set(TEST_SRC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp
+)
+
+add_executable(reg_tester ${TEST_SRC})
 
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
@@ -52,8 +60,4 @@ endif(MSVC)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ZMQ_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
-
-
-
-
-
+target_link_libraries(reg_tester ${ZMQ_LIBRARIES})

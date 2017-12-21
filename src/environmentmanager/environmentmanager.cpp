@@ -4,16 +4,27 @@
 #include <boost/program_options.hpp>
 
 #include "broadcaster.h"
+#include "deploymentregister.h"
 
 int main(int argc, char **argv){
 
+    std::string address("tcp://*:22334");
+    std::string message("tcp://192.168.111.230:22337");
 
+    int registration_port = 22337;
+    int hb_start_port = 12345;
 
-    std::string address("ADDRESS YO");
-    Broadcaster* broadcaster = new Broadcaster(address);
+    Broadcaster* broadcaster = new Broadcaster(address, message);
     broadcaster->StartBroadcast();
 
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    DeploymentRegister* deployment_register = new DeploymentRegister("192.168.111.230", registration_port, hb_start_port);
+    deployment_register->Start();
 
+
+    //TODO: condition variable to control termination correctly.
+    while(true){
+
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+    }
     return 0;
 }

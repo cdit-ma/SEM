@@ -7,28 +7,26 @@
 class Broadcaster{
 
     public:
-        Broadcaster(const std::string& endpoint);
-        void SetEndpoint(const std::string& endpoint);
-        std::string GetEndpoint() const;
+        Broadcaster(const std::string& endpoint, const std::string& message);
+        void SetMessage(const std::string& message);
+        std::string GetMessage() const;
         void StartBroadcast();
         void EndBroadcast();
 
     private:
         void BroadcastLoop();
-        zmq::message_t GetMessage();
+        zmq::message_t GetZMQMessage();
 
         std::thread* broadcast_loop_;
 
-        std::string broadcast_port_ = "22334";
-
+        std::string message_;
         std::string endpoint_;
         zmq::context_t* context_;
 
-        zmq::message_t stored_message_;
-        bool message_changed_;
-
         //Default broadcast period of one second
         int broadcast_period_ = 1;
+
+        bool terminate_flag_ = false;
 
 };
 
