@@ -1,6 +1,7 @@
 #include "component.h"
 #include <iostream>
 #include <thread>
+#include <list>
 #include <algorithm>
 
 #include "modellogger.h"
@@ -82,21 +83,28 @@ bool Component::HandlePassivate(){
 
 bool Component::HandleTerminate(){
     HandlePassivate();
-
-    //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    std::lock_guard<std::mutex> lock2(mutex_);
-    for(auto& p : workers_){
-        auto& a = p.second;
-        if(a){
-            a->Terminate();
+
+    std::list<std::shared_ptr<Activatable> > elements;
+    //Gain mutex lock
+    {
+        std::lock_guard<std::mutex> lock2(element_mutex_);
+        for(auto& p :  workers_){
+            auto& a = p.second;
+            if(a){
+                elements.push_back(a);
+            }
+        }
+        for(auto& p :  eventports_){
+            auto& a = p.second;
+            if(a){
+                elements.push_back(a);
+            }
         }
     }
-    for(auto& p : eventports_){
-        auto& a = p.second;
-        if(a){
-            a->Terminate();
-        }
+
+    for(auto a : elements){
+        a->Terminate();
     }
     return true;
 }
@@ -127,7 +135,11 @@ bool Component::HandleConfigure(){
 }
 
 std::weak_ptr<EventPort> Component::AddEventPort(std::unique_ptr<EventPort> event_port){
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
+    
     if(event_port){
         std::string name = event_port->get_name();
         if(eventports_.count(name) == 0){
@@ -143,17 +155,19 @@ std::weak_ptr<EventPort> Component::AddEventPort(std::unique_ptr<EventPort> even
 }
 
 std::weak_ptr<EventPort> Component::GetEventPort(const std::string& event_port_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock(element_mutex_);
     if(eventports_.count(event_port_name)){
         return eventports_[event_port_name];
-    }else{
-        //std::cerr << "Component '" << get_name()  << "' doesn't has an EventPort with name '" << name << "'" << std::endl;
     }
     return std::weak_ptr<EventPort>();
 }
 
 std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& event_port_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
     if(eventports_.count(event_port_name)){
         auto port = eventports_[event_port_name];
         eventports_.erase(event_port_name);
@@ -166,7 +180,10 @@ std::shared_ptr<EventPort> Component::RemoveEventPort(const std::string& event_p
 
 
 std::weak_ptr<Worker> Component::AddWorker(std::unique_ptr<Worker> worker){
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
     if(worker){
         const auto& worker_name = worker->get_name();
         if(workers_.count(worker_name) == 0){
@@ -182,7 +199,7 @@ std::weak_ptr<Worker> Component::AddWorker(std::unique_ptr<Worker> worker){
 }
 
 std::weak_ptr<Worker> Component::GetWorker(const std::string& worker_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(element_mutex_);
     if(workers_.count(worker_name)){
         return workers_[worker_name];
     }else{
@@ -193,7 +210,10 @@ std::weak_ptr<Worker> Component::GetWorker(const std::string& worker_name){
 
 
 std::shared_ptr<Worker> Component::RemoveWorker(const std::string& worker_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
     if(workers_.count(worker_name)){
         auto worker = workers_[worker_name];
         workers_.erase(worker_name);
@@ -205,8 +225,10 @@ std::shared_ptr<Worker> Component::RemoveWorker(const std::string& worker_name){
 }
 
 bool Component::AddCallback_(const std::string& event_port_name, std::function<void (::BaseMessage&)> function){
-    //auto port = GetEventPort(port_name);
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
     
     if(callback_functions_.count(event_port_name) == 0){
         //Store the callback
@@ -222,7 +244,7 @@ bool Component::AddPeriodicCallback(const std::string& event_port_name, std::fun
 }
 
 std::function<void (::BaseMessage&)> Component::GetCallback(const std::string& event_port_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(element_mutex_);
     if(callback_functions_.count(event_port_name)){
         return callback_functions_[event_port_name];
     }else{
@@ -232,8 +254,10 @@ std::function<void (::BaseMessage&)> Component::GetCallback(const std::string& e
 }
 
 bool Component::RemoveCallback(const std::string& event_port_name){
-    //auto port = GetEventPort(port_name);
-    std::lock_guard<std::mutex> lock(mutex_);
+    //Stop concurrent Mutators on the Component
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    //Stop reading accessors whilst modifying elements
+    std::lock_guard<std::mutex> lock2(element_mutex_);
     
     if(callback_functions_.count(event_port_name) == 0){
         callback_functions_.erase(event_port_name);

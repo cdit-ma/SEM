@@ -53,3 +53,32 @@ bool EventPort::HandleTerminate(){
 void EventPort::SetKind(const EventPort::Kind& port_kind){
     port_kind_ = port_kind;
 }
+
+int EventPort::GetEventsReceived(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    return received_count_;
+}
+int EventPort::GetEventsProcessed(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    return processed_count_;
+}
+
+int EventPort::GetEventsIgnored(){
+    std::lock_guard<std::mutex> lock(mutex_);
+    return ignored_count_;
+}
+
+void EventPort::EventRecieved(const BaseMessage& message){
+    std::lock_guard<std::mutex> lock(mutex_);
+    received_count_ ++;
+}
+
+void EventPort::EventProcessed(const BaseMessage& message, bool processed){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(processed){
+        processed_count_++;
+    }else{
+        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::IGNORED);
+        ignored_count_ ++;
+    }
+}
