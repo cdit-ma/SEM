@@ -26,7 +26,7 @@ template <class T> class InEventPort : public EventPort{
         void EnqueueMessage(T* t);
         int GetQueuedMessageCount();
     private:
-        bool rx(T* t);
+        bool rx(T* t, bool process_message = true);
         void receive_loop();
     private:
         std::function<void (T&) > callback_function_;
@@ -37,6 +37,8 @@ template <class T> class InEventPort : public EventPort{
         std::queue<T*> message_queue_;
         int max_queue_size_ = -1;
         int processing_count_ = 0;
+
+        const int terminate_timeout_ms_ = 10000;
 
         std::mutex notify_mutex_;
         bool terminate_ = false;
@@ -50,6 +52,10 @@ template <class T> class InEventPort : public EventPort{
         std::mutex control_mutex_;
         //Normal Mutex is for changing properties 
         std::thread* queue_thread_ = 0;
+
+        std::mutex thread_finished_mutex_;
+        std::condition_variable thread_finished_condition_;
+        int running_thread_count_ = 0;
 };
 
 template <class T>
@@ -108,21 +114,32 @@ bool InEventPort<T>::HandleTerminate(){
     InEventPort<T>::HandlePassivate();
     std::unique_lock<std::mutex> lock(control_mutex_);
     if(EventPort::HandleTerminate()){
-        if(queue_thread_){
+        std::unique_lock<std::mutex> thread_lock(thread_finished_mutex_);
+        //Wait until we have no running threads, or we time out.
+        bool thread_finished = thread_finished_condition_.wait_for(thread_lock, std::chrono::milliseconds(terminate_timeout_ms_), [this]{return running_thread_count_ == 0;});
+
+        if(!thread_finished){
+            //If the thread didn't finish we can't terminate it, so we should detach and let the operation system decide what happens to the thread
+            //The thread may remain running after termination, in which case we can't handle this operation
+            //https://stackoverflow.com/questions/19744250/what-happens-to-a-detached-thread-when-main-exits
+            queue_thread_->detach();
+        }else{
+            //Thread should instantly join, as we know its finished
             queue_thread_->join();
-            delete queue_thread_;
-            queue_thread_ = 0;
         }
+
+        delete queue_thread_;
+        queue_thread_ = 0;
         return true;
     }
     return false;
 };
 
 template <class T>
-bool InEventPort<T>::rx(T* t){
+bool InEventPort<T>::rx(T* t, bool process_message){
     if(t){
-        //Only process the message if we are running and we have a callback
-        bool process_message = is_running() && callback_function_;
+        //Only process the message if we are running and we have a callback, and we aren't meant to ignore
+        process_message &= is_running() && callback_function_;
 
         if(process_message){
             //Call into the function and log
@@ -130,6 +147,7 @@ bool InEventPort<T>::rx(T* t){
             callback_function_(*t);
             logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
         }
+
         EventProcessed(*t, process_message);
         delete t;
         return process_message;
@@ -139,6 +157,10 @@ bool InEventPort<T>::rx(T* t){
 
 template <class T>
 void InEventPort<T>::receive_loop(){
+    {
+        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
+        running_thread_count_ ++;
+    }
     {
         //Notify that the thread is ready
         std::lock_guard<std::mutex> lock(rx_setup_mutex_);
@@ -188,6 +210,13 @@ void InEventPort<T>::receive_loop(){
             processing_count_ --;
         }
     }
+
+    {
+        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
+        running_thread_count_ --;
+        //Notify that our thread is dead
+        thread_finished_condition_.notify_all();
+    }
 };
 
 template <class T>
@@ -209,8 +238,8 @@ void InEventPort<T>::EnqueueMessage(T* t){
             notify_lock_condition_.notify_all();
         }else{
             lock.unlock();
-            //Call the rx function which will log the fail
-            rx(t);
+            //Call the rx function, saying that we will ignore the message
+            rx(t, false);
         }
     }
 };

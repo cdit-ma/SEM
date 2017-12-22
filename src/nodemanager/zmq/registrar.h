@@ -3,7 +3,8 @@
 
 #include <string>
 #include <thread>
-#include <vector>
+#include <list>
+#include <future>
 
 
 class ExecutionManager;
@@ -16,12 +17,11 @@ namespace zmq{
             Registrar(ExecutionManager* manager, const std::string& publisher_endpoint);
             ~Registrar();
         private:
-            void RegistrationLoop(const std::string& endpoint);
-            std::vector<std::string> slaves_;
+            bool RegistrationLoop(const std::string& endpoint);
 
             std::string publisher_endpoint_;
             ExecutionManager* execution_manager_;
-            std::vector<std::thread*> registration_threads_;
+            std::list<std::future<bool> > registration_results_;
             zmq::context_t* context_ = 0;
     };
 };

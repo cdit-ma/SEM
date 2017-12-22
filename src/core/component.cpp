@@ -3,6 +3,7 @@
 #include <thread>
 #include <list>
 #include <algorithm>
+#include <future>
 
 #include "modellogger.h"
 #include "eventports/eventport.h"
@@ -45,13 +46,13 @@ Component::~Component(){
 bool Component::HandleActivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    for(auto& p : workers_){
+    for(const auto& p : workers_){
         auto& a = p.second;
         if(a){
             a->Activate();
         }
     }
-    for(auto& p : eventports_){
+    for(const auto& p : eventports_){
         auto& a = p.second;
         if(a){
             a->Activate();
@@ -64,13 +65,13 @@ bool Component::HandleActivate(){
 bool Component::HandlePassivate(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
-    for(auto& p : workers_){
+    for(const auto& p : workers_){
         auto& a = p.second;
         if(a){
             a->Passivate();
         }
     }
-    for(auto& p : eventports_){
+    for(const auto& p : eventports_){
         auto& a = p.second;
         if(a){
             a->Passivate();
@@ -85,27 +86,33 @@ bool Component::HandleTerminate(){
     HandlePassivate();
     std::lock_guard<std::mutex> lock(state_mutex_);
 
-    std::list<std::shared_ptr<Activatable> > elements;
-    //Gain mutex lock
+    auto success = true;
+    std::list<std::future<bool> > results;
+    //Construct a list of async terminate requests.
+    //This should lessen the impact of slow destruction of the ports, allowing them to be concurrent
     {
         std::lock_guard<std::mutex> lock2(element_mutex_);
-        for(auto& p :  workers_){
+        for(const auto& p : workers_){
             auto& a = p.second;
             if(a){
-                elements.push_back(a);
+                //Construct a thread to run the terminate function, which is blocking
+                results.push_back(std::async(&Activatable::Terminate, a));
             }
         }
-        for(auto& p :  eventports_){
+        for(const auto& p : eventports_){
             auto& a = p.second;
             if(a){
-                elements.push_back(a);
+                //Construct a thread to run the terminate function, which is blocking
+                results.push_back(std::async(&Activatable::Terminate, a));
             }
         }
     }
 
-    for(auto a : elements){
-        a->Terminate();
+    //Join all of our termination threads
+    for(auto& result : results){
+        success &= result.get();
     }
+
     return true;
 }
 
@@ -113,7 +120,7 @@ bool Component::HandleConfigure(){
     //Gain mutex lock
     std::lock_guard<std::mutex> lock(state_mutex_);
     
-    for(auto& p : workers_){
+    for(const auto& p : workers_){
         auto& a = p.second;
         if(a){
             auto success = a->Configure();
@@ -122,7 +129,7 @@ bool Component::HandleConfigure(){
             }
         }
     }
-    for(auto& p : eventports_){
+    for(const auto& p : eventports_){
         auto& a = p.second;
         if(a){
             auto success = a->Configure();

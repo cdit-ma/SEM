@@ -127,7 +127,11 @@ TEST(ZeroMQ_EventportPair, Busy100){
     zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
     zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
-            sleep_ms(1000);
+            while(true){
+                sleep_ms(100);
+                std::cout << "YO YOOY" << std::endl;
+            }
+            //sleep_ms(1000);
     });
 
     auto address = "inproc://" + test_name;

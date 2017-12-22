@@ -49,7 +49,6 @@ protected:
     }
 };
 
-
 #define TEST_FSM_CLASS RTI_InEventPort_FSMTester
 #include "../../core/activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS

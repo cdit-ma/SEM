@@ -10,7 +10,10 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <list>
+#include <thread>
 
+#include <future>
 //Converts std::string to lower
 std::string to_lower(std::string str){
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -152,7 +155,7 @@ std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shar
 
 bool DeploymentContainer::HandleActivate(){
     auto success = true;
-    for(auto c : components_){
+    for(const auto& c : components_){
         success = c.second->Activate() ? success : false;
     }
     return true;
@@ -160,31 +163,43 @@ bool DeploymentContainer::HandleActivate(){
 
 bool DeploymentContainer::HandlePassivate(){
     auto success = true;
-    for(auto c : components_){
+
+    for(const auto& c : components_){
         success = c.second->Passivate() ? success : false;
     }
+
     return success;
 }
 
 bool DeploymentContainer::HandleTerminate(){
+    //Using async allows concurrent termination of components, which gives orders of magnitude improvements
     auto success = true;
-    for(auto c : components_){
-        success = c.second->Terminate() ? success : false;
+    std::list<std::future<bool> > results;
+
+    for(const auto& c : components_){
+        results.push_back(std::async(&Activatable::Terminate, c.second));
     }
     components_.clear();
+
+    for(auto& result : results){
+        success &= result.get();
+    }
     return success;
 }
 
 bool DeploymentContainer::HandleConfigure(){
+    //Using async allows concurrent configuration of components, which gives orders of magnitude improvements
     auto success = true;
-    for(auto c : components_){
-        success = c.second->Configure() ? success : false;
+    std::list<std::future<bool> > results;
+
+    for(const auto& c : components_){
+        results.push_back(std::async(&Activatable::Configure, c.second));
+    }
+    for(auto& result : results){
+        success &= result.get();
     }
     return success;
 }
-
-
-
 
 std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
     if(components_.count(name) == 0){
