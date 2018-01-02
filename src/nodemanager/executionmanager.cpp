@@ -96,13 +96,13 @@ std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessag
 }
 
 bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response){
-    auto slave_state = SlaveState::ERROR;
+    auto slave_state = SlaveState::ERROR_;
     auto slave_host_name = GetSlaveNameFromAddress(slave_address);
     if(response.IsInitialized()){
-        slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR;
+        slave_state = response.success() ? SlaveState::ONLINE : SlaveState::ERROR_;
     }
 
-    if(slave_state == SlaveState::ERROR){
+    if(slave_state == SlaveState::ERROR_){
         std::cerr << "* Slave: '" << slave_host_name << "' @ " << slave_address << " Error!" << std::endl;
         for(const auto& error_str : response.error_codes()){
             std::cerr << "* " << error_str << std::endl;
@@ -115,7 +115,7 @@ bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_addre
         slave_states_[slave_address] = slave_state;
         
         if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
-            bool should_execute = GetSlaveStateCount(SlaveState::ERROR) == 0;
+            bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
             TriggerExecution(should_execute);
         }
         return true;
