@@ -42,7 +42,7 @@ int getWriteFileDesc(const char* filename) {
 #ifdef _WIN32
     _sopen_s(&filedesc, filename, _O_APPEND | _O_CREAT | _O_WRONLY, _SH_DENYNO, _S_IWRITE | _S_IREAD);
 #else
-    filedesc = open(filename.c_str(), O_APPEND | O_CREAT | O_WRONLY, S_IWRITE | S_IREAD);
+    filedesc = open(filename, O_APPEND | O_CREAT | O_WRONLY, S_IWRITE | S_IREAD);
 #endif
     return filedesc; 
 }
@@ -52,7 +52,7 @@ int getReadFileDesc(const char* filename) {
 #ifdef _WIN32
     _sopen_s(&filedesc, filename, _O_RDONLY, _SH_DENYNO, _S_IWRITE | _S_IREAD);
 #else
-    filedesc = open(file_path.c_str(), O_RDONLY, S_IWRITE | S_IREAD);
+    filedesc = open(filename, O_RDONLY, S_IWRITE | S_IREAD);
 #endif
     return filedesc; 
 }
