@@ -95,11 +95,11 @@ TEST(OSPL_EventportPair, Stable100){
     EXPECT_TRUE(in_port.Terminate());
     EXPECT_TRUE(out_port.Terminate());
 
-    auto total_rxd = in_port.GetEventsReceieved();
+    auto total_rxd = in_port.GetEventsReceived();
     auto proc_rxd = in_port.GetEventsProcessed();
 
     auto total_txd = out_port.GetEventsReceived();
-    auto total_sent = out_port.GetEventsSent();
+    auto total_sent = out_port.GetEventsProcessed();
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
@@ -149,11 +149,11 @@ TEST(OSPL_EventportPair, Busy100){
     EXPECT_TRUE(out_port.Terminate());
     EXPECT_TRUE(in_port.Terminate());
 
-    auto total_rxd = in_port.GetEventsReceieved();
+    auto total_rxd = in_port.GetEventsReceived();
     auto proc_rxd = in_port.GetEventsProcessed();
 
     auto total_txd = out_port.GetEventsReceived();
-    auto total_sent = out_port.GetEventsSent();
+    auto total_sent = out_port.GetEventsProcessed();
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);

@@ -549,5 +549,6 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
 
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     execution_->Interrupt();
 }

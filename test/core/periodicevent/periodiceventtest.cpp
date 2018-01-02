@@ -106,7 +106,7 @@ TEST_P(PeriodicEventTest, TickCount)
        EXPECT_TRUE(port.Passivate());
        EXPECT_TRUE(port.Terminate());
 
-       auto total_rxd = port.GetEventsReceieved();
+       auto total_rxd = port.GetEventsReceived();
        auto proc_rxd = port.GetEventsProcessed();
 
        //Check that we got the same number of proccessed rx messages as we did in our callback

@@ -155,13 +155,11 @@ void DeploymentManager::ProcessControlQueue(){
         {
             //Gain Mutex
             std::unique_lock<std::mutex> lock(notify_mutex_);
-            
             notify_lock_condition_.wait(lock, [this]{return terminate_ || !control_message_queue_.empty();});
-
             //Swap out the queue's and release the mutex
             control_message_queue_.swap(queue_);
             
-            if(terminate_){
+            if(terminate_ && queue_.empty()){
                 return;
             }
         }
@@ -169,6 +167,9 @@ void DeploymentManager::ProcessControlQueue(){
          //Process the queue
          while(!queue_.empty()){
             const auto& control_message = queue_.front();
+            queue_.pop();
+
+            auto start = std::chrono::steady_clock::now();
 
             switch(control_message.type()){
                 case NodeManager::ControlMessage::STARTUP:
@@ -178,21 +179,22 @@ void DeploymentManager::ProcessControlQueue(){
                 }
                 case NodeManager::ControlMessage::ACTIVATE:{
                     bool success = true;
-                    for(auto c : deployment_containers_){
+                    for(const auto& c : deployment_containers_){
                         success = c.second->Activate() ? success : false;
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::PASSIVATE:{
                     bool success = true;
-                    for(auto c : deployment_containers_){
+                    
+                    for(const auto& c : deployment_containers_){
                         success = c.second->Passivate() ? success : false;
                     }
                     break;
                 }
                 case NodeManager::ControlMessage::TERMINATE:{
                     bool success = true;
-                    for(auto c : deployment_containers_){
+                    for(const auto& c : deployment_containers_){
                         success = c.second->Terminate() ? success : false;
                     }
                     InteruptQueueThread();
@@ -202,7 +204,10 @@ void DeploymentManager::ProcessControlQueue(){
                 default:
                     break;
             }
-            queue_.pop();
+
+            auto ms = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+            std::cout << "* " << NodeManager::ControlMessage_Type_Name(control_message.type()) << " Deployment took: " << ms.count() << " us" << std::endl;
+            
         }
     }
 }
