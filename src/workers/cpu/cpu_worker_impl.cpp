@@ -145,7 +145,6 @@ int Cpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned i
     // Magic maths to determine dimensions of output matrix
     unsigned long long Ksquared = ((unsigned long long)lenA*(unsigned long long)lenB)/lenC;
 	unsigned int k = (unsigned int)sqrt((double)Ksquared);
-    std::cout << Ksquared << std::endl;
 	unsigned int m = lenA/k;
 	unsigned int n = lenB/k;
 	if ((unsigned long)k*k != Ksquared || (unsigned long)m*k != lenA || (unsigned long)n*k != lenB) {
