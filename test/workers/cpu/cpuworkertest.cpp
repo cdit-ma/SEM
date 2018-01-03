@@ -65,9 +65,9 @@ TEST(MatrixMult, Big1024) {
     std::vector<float> mat_b(1024 * 1024);
     std::vector<float> mat_c(1024 * 1024);
 
-    for (unsigned int index=0; index<4; index++) mat_a[index] = (float)index;
-    for (unsigned int index=0; index<4; index++) mat_b[index] = (float)index;
-    for (unsigned int index=0; index<4; index++) mat_c[index] = std::numeric_limits<float>::signaling_NaN();
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_a[index] = (float)index;
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_b[index] = (float)index;
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_c[index] = std::numeric_limits<float>::signaling_NaN();
 
     auto start = std::chrono::steady_clock::now();
     auto result = worker.MatrixMult(mat_a, mat_b, mat_c);
