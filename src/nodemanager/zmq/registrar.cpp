@@ -16,7 +16,7 @@ zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& publishe
 
     //Construct a new thread for each slave
     for(const auto& s : execution_manager_->GetSlaveAddresses()){
-        auto t = new std::thread(&zmq::Registrar::RegistrationLoop, this, s);
+        registration_results_.emplace_back(std::async(&zmq::Registrar::RegistrationLoop, this, s));
     }
 }
 
@@ -27,17 +27,14 @@ zmq::Registrar::~Registrar(){
     }
 
     //Join all registration threads
-    while(!registration_threads_.empty()){
-        auto t = registration_threads_.back();
-        if(t){
-            t->join();
-            delete t;
-        }
-        registration_threads_.pop_back();
+    while(!registration_results_.empty()){
+        auto &t = registration_results_.back();
+        t.get();
+        registration_results_.pop_back();
     }
 }
 
-void zmq::Registrar::RegistrationLoop(const std::string& endpoint){
+bool zmq::Registrar::RegistrationLoop(const std::string& endpoint){
     //Construct a socket (Using Pair)
     try{
         auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
@@ -51,18 +48,20 @@ void zmq::Registrar::RegistrationLoop(const std::string& endpoint){
         const auto& slave_addr_str = zmq::Zmq2String(slave_addr);
 
         //Send the startup response
+
         const auto& slave_startup_pb = execution_manager_->GetSlaveStartupMessage(slave_addr_str);
         socket.send(Proto2Zmq(slave_startup_pb));
-
 
         //Wait for Slave to send a message
         socket.recv(&slave_response);
         NodeManager::StartupResponse slave_response_pb;
         slave_response_pb.ParseFromArray(slave_response.data(), slave_response.size());
         execution_manager_->HandleSlaveResponseMessage(slave_addr_str, slave_response_pb);
+        return true;
     }catch(const zmq::error_t& ex){
         if(ex.num() != ETERM){
             std::cerr << "zmq::Registrar::RegistrationLoop():" << ex.what() << std::endl;
         }
     }
+    return false;
 }

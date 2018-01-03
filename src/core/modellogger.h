@@ -7,7 +7,7 @@
 #include "component.h"
 #include "eventports/eventport.h"
 
-#ifdef MSVC
+#ifdef _WIN32
     #define GET_FUNC __FUNCTION__
 #else
     #define GET_FUNC __PRETTY_FUNCTION__
@@ -87,7 +87,7 @@ class ModelLogger{
 
 enum class Severity{
     FATAL = 0,
-    ERROR = 1,
+    ERROR_ = 1,
     WARNING = 2,
     INFO = 3,
     DEBUG = 4

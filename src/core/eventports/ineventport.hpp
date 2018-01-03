@@ -18,8 +18,6 @@ template <class T> class InEventPort : public EventPort{
         InEventPort(std::weak_ptr<Component> component, const std::string& port_name, std::function<void (T&) > callback_function, const std::string& middleware);
         ~InEventPort();
         void SetMaxQueueSize(const int max_queue_size);
-        int GetEventsReceieved();
-        int GetEventsProcessed();
     protected:
         virtual bool HandleConfigure();
         virtual bool HandlePassivate();
@@ -28,23 +26,20 @@ template <class T> class InEventPort : public EventPort{
         void EnqueueMessage(T* t);
         int GetQueuedMessageCount();
     private:
-        bool rx(T* t);
+        bool rx(T* t, bool process_message = true);
         void receive_loop();
     private:
         std::function<void (T&) > callback_function_;
 
         
-        std::mutex queue_mutex_;
-        
         //Queue Mutex responsible for these Variables
+        std::mutex queue_mutex_;
         std::queue<T*> message_queue_;
         int max_queue_size_ = -1;
-        int process_queue_size_ = 0;
-        
+        int processing_count_ = 0;
 
-        int rx_count = 0;
-        int rx_proc_count = 0;
-        
+        const int terminate_timeout_ms_ = 10000;
+
         std::mutex notify_mutex_;
         bool terminate_ = false;
         std::condition_variable notify_lock_condition_;
@@ -57,6 +52,10 @@ template <class T> class InEventPort : public EventPort{
         std::mutex control_mutex_;
         //Normal Mutex is for changing properties 
         std::thread* queue_thread_ = 0;
+
+        std::mutex thread_finished_mutex_;
+        std::condition_variable thread_finished_condition_;
+        int running_thread_count_ = 0;
 };
 
 template <class T>
@@ -80,29 +79,15 @@ void InEventPort<T>::SetMaxQueueSize(int max_queue_size){
 };
 
 template <class T>
-int InEventPort<T>::GetEventsReceieved(){
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    return rx_count;
-};
-
-template <class T>
-int InEventPort<T>::GetEventsProcessed(){
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    return rx_proc_count;
-};
-
-template <class T>
 bool InEventPort<T>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(EventPort::HandlePassivate()){
-        if(queue_thread_){
-            //Gain the notify_mutex to flag the terminate flag
-            {
-                std::unique_lock<std::mutex> lock(notify_mutex_);
-                terminate_ = true;
-            }
-            notify_lock_condition_.notify_all();
+        //Gain the notify_mutex to flag the terminate flag
+        {
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            terminate_ = true;
         }
+        notify_lock_condition_.notify_all();
         return true;
     }
     return false;
@@ -113,8 +98,9 @@ bool InEventPort<T>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(EventPort::HandleConfigure()){
         if(!queue_thread_){
-            queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
             std::unique_lock<std::mutex> lock2(rx_setup_mutex_);
+            rx_setup_ = false;
+            queue_thread_ = new std::thread(&InEventPort<T>::receive_loop, this);
             rx_setup_condition_.wait(lock2, [=]{return rx_setup_;});
             return true;
         }
@@ -128,113 +114,133 @@ bool InEventPort<T>::HandleTerminate(){
     InEventPort<T>::HandlePassivate();
     std::unique_lock<std::mutex> lock(control_mutex_);
     if(EventPort::HandleTerminate()){
-        if(queue_thread_){
+        std::unique_lock<std::mutex> thread_lock(thread_finished_mutex_);
+        //Wait until we have no running threads, or we time out.
+        bool thread_finished = thread_finished_condition_.wait_for(thread_lock, std::chrono::milliseconds(terminate_timeout_ms_), [this]{return running_thread_count_ == 0;});
+
+        if(!thread_finished){
+            //If the thread didn't finish we can't terminate it, so we should detach and let the operation system decide what happens to the thread
+            //The thread may remain running after termination, in which case we can't handle this operation
+            //https://stackoverflow.com/questions/19744250/what-happens-to-a-detached-thread-when-main-exits
+            queue_thread_->detach();
+        }else{
+            //Thread should instantly join, as we know its finished
             queue_thread_->join();
-            delete queue_thread_;
-            queue_thread_ = 0;
         }
+
+        delete queue_thread_;
+        queue_thread_ = 0;
         return true;
     }
     return false;
 };
 
 template <class T>
-bool InEventPort<T>::rx(T* t){
-    bool rx_d = false;
-    if(is_running() && callback_function_){
-        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::STARTED_FUNC);
-        callback_function_(*t);
-        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
-        rx_d = true;
-    }else{
-        //Log that didn't call back on this message
-        logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::IGNORED);
-    }
+bool InEventPort<T>::rx(T* t, bool process_message){
     if(t){
-        //Free memory
+        //Only process the message if we are running and we have a callback, and we aren't meant to ignore
+        process_message &= is_running() && callback_function_;
+
+        if(process_message){
+            //Call into the function and log
+            logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::STARTED_FUNC);
+            callback_function_(*t);
+            logger()->LogComponentEvent(*this, *t, ModelLogger::ComponentEvent::FINISHED_FUNC);
+        }
+
+        EventProcessed(*t, process_message);
         delete t;
+        return process_message;
     }
-    return rx_d;
+    return false;
 };
 
 template <class T>
 void InEventPort<T>::receive_loop(){
-    //Change the state to be Configured
     {
+        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
+        running_thread_count_ ++;
+    }
+    {
+        //Notify that the thread is ready
         std::lock_guard<std::mutex> lock(rx_setup_mutex_);
         rx_setup_ = true;
         rx_setup_condition_.notify_all();
     }
 
-    std::queue<T*> queue_;
-    int count = 0;
+    //Store a queue of messages
+    std::queue<T*> queue;
     
-    bool terminate = false;
-    while(true){
+    bool running = true;
+    while(running){
         {
-            //Gain Mutex
             std::unique_lock<std::mutex> notify_lock(notify_mutex_);
             notify_lock_condition_.wait(notify_lock, [this]{
-                if(!terminate_){
+                if(terminate_){
+                    //Wake up if the termination flag has been set
+                    return true;
+                }else{
+                    //Wake up if we have new messages to process
                     std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-
-                    return message_queue_.size() != 0;
+                    return message_queue_.size() > 0;
                 }
-                return terminate_;
             });
 
             //Gain Mutex
             std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-            if(message_queue_.size()){
-                //Swap out the queue's and release the mutex
-                message_queue_.swap(queue_);
-                process_queue_size_ = queue_.size();
+            //Swap out the queue's, and release the mutex
+            message_queue_.swap(queue);
+            //Update the current processing count
+            processing_count_ += queue.size();
+
+            if(terminate_ && queue.empty()){
+                running = false;
             }
         }
 
-        //Process the queue
-        while(!queue_.empty()){
-            auto m = queue_.front();
-            auto success = rx(m);
-            queue_.pop();
+        while(!queue.empty()){
+            auto m = queue.front();
+            queue.pop();
+
+            //If the component is Passivated, this will return false instantaneously
+            rx(m);
             
-            //Gain Mutex to update the process queue size and our rx count
-
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            process_queue_size_ = queue_.size();
-            if(success){
-                rx_proc_count ++;
-            }
+            std::unique_lock<std::mutex> queue_lock(queue_mutex_);
+            //Decrement our count of how many messages are currently being processed
+            processing_count_ --;
         }
+    }
 
-
-        //Gain Mutex
-        std::unique_lock<std::mutex> notify_lock(notify_mutex_);
-        std::unique_lock<std::mutex> queue_lock(queue_mutex_);
-        if(message_queue_.empty() && terminate_){
-            break;
-        }
+    {
+        std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
+        running_thread_count_ --;
+        //Notify that our thread is dead
+        thread_finished_condition_.notify_all();
     }
 };
 
 template <class T>
 void InEventPort<T>::EnqueueMessage(T* t){
-    //Log Receive Time
-    //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::RECEIVED);
-    
-    //Gain mutex lock and append message to queue
-    std::unique_lock<std::mutex> lock(queue_mutex_);
-    auto queue_size = message_queue_.size() + process_queue_size_;
-    rx_count ++;
+    if(t){
+        //Log the recieving
+        EventRecieved(*t);
+        
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        //Sum the total number of messages we are processing
+        auto queue_size = message_queue_.size() + processing_count_;
 
+        //We should enqueue the message, if we are running, and we have room in our queue size (Or we don't care about queue size)
+        bool enqueue_message = is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size);
 
-    //If we don't care about queueing, or we have room in our queue size, queue the message
-    if(is_running() && (max_queue_size_ == -1 || max_queue_size_ > queue_size)){
-        message_queue_.push(t);
-        notify_lock_condition_.notify_all();
-    }else{
-        //logger()->LogComponentEvent(*this, t, ModelLogger::ComponentEvent::IGNORED);
-        delete t;
+        if(enqueue_message){
+            message_queue_.push(t);
+            //Notify the thread that we have new messages
+            notify_lock_condition_.notify_all();
+        }else{
+            lock.unlock();
+            //Call the rx function, saying that we will ignore the message
+            rx(t, false);
+        }
     }
 };
 
@@ -244,7 +250,7 @@ template <class T>
 int InEventPort<T>::GetQueuedMessageCount(){
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(queue_mutex_);
-    return message_queue_.size() + process_queue_size_;
+    return message_queue_.size() + processing_count_;
 };
                 
 #endif //INEVENTPORT_HPP

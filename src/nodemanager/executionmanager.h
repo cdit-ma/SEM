@@ -21,7 +21,7 @@ class ExecutionManager{
         enum class SlaveState{
             OFFLINE = 0,
             ONLINE = 1,
-            ERROR = 2,
+            ERROR_ = 2,
         };
 
         ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration, Execution* execution);

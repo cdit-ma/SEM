@@ -71,6 +71,7 @@ bool PeriodicEventPort::HandlePassivate(){
 }
 
 void PeriodicEventPort::Loop(){
+    
     {
         //Toggle the state
         std::unique_lock<std::mutex> lock(thread_ready_mutex_);

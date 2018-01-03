@@ -104,16 +104,16 @@ TEST(ZeroMQ_EventportPair, Stable100){
     EXPECT_TRUE(in_port.Terminate());
     EXPECT_TRUE(out_port.Terminate());
 
-    auto total_rxd = in_port.GetEventsReceieved();
-    auto proc_rxd = in_port.GetEventsProcessed();
+    auto total_rxd = in_port.GetEventsReceived();
+    auto total_received = in_port.GetEventsProcessed();
 
     auto total_txd = out_port.GetEventsReceived();
-    auto total_sent = out_port.GetEventsSent();
+    auto total_sent = out_port.GetEventsProcessed();
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
     EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, send_count);
+    EXPECT_EQ(total_received, send_count);
     EXPECT_EQ(rx_callback_count, send_count);
 }
 
@@ -167,18 +167,77 @@ TEST(ZeroMQ_EventportPair, Busy100){
 
     EXPECT_TRUE(out_port.Terminate());
     EXPECT_TRUE(in_port.Terminate());
-
-    auto total_rxd = in_port.GetEventsReceieved();
-    auto proc_rxd = in_port.GetEventsProcessed();
+    
+    auto total_rxd = in_port.GetEventsReceived();
+    auto total_received = in_port.GetEventsProcessed();
 
     auto total_txd = out_port.GetEventsReceived();
-    auto total_sent = out_port.GetEventsSent();
+    auto total_sent = out_port.GetEventsProcessed();
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
     EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, 1);
+    EXPECT_EQ(total_received, 1);
     EXPECT_EQ(rx_callback_count, 1);
+}
+
+
+//Run a blocking callback which runs for 1 second,
+//During that one second, send maximum num
+TEST(ZeroMQ_SendAfterDead, Test1){
+    auto test_name = get_long_test_name();
+    auto rx_callback_count = 0;
+
+    auto c = std::make_shared<Component>("Test");
+    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    
+
+    auto address = "inproc://" + test_name;
+    {
+        auto out_address = out_port.GetAttribute("publisher_address").lock();
+        EXPECT_TRUE(out_address);
+
+        if(out_address){
+            out_address->StringList().push_back(address);
+        }
+    }
+
+
+    EXPECT_TRUE(out_port.Configure());
+    EXPECT_TRUE(out_port.Activate());
+
+    int send_count = 10;
+
+    //Send as fast as possible
+    for(int i = 0; i < send_count; i++){
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
+        out_port.tx(b);
+    }
+    EXPECT_TRUE(out_port.Passivate());
+    EXPECT_TRUE(out_port.Terminate());
+
+    //Sleep for a reasonable time (Bigger than the callback work)
+    sleep_ms(2000);
+
+
+    //Send as fast as possible
+    for(int i = 0; i < send_count; i++){
+        Base::Basic b;
+        b.int_val = i;
+        b.str_val = std::to_string(i);
+        out_port.tx(b);
+    }
+
+
+    
+
+    auto total_txd = out_port.GetEventsReceived();
+    auto total_sent = out_port.GetEventsProcessed();
+
+    EXPECT_EQ(total_txd, send_count * 2);
+    EXPECT_EQ(total_sent, send_count);
 }
 
 int main(int ac, char* av[])

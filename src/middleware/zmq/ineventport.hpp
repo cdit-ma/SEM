@@ -111,8 +111,8 @@ void zmq::InEventPort<T, S>::recv_loop(){
         term_socket_->bind(terminate_endpoint_.c_str());
         socket->connect(terminate_endpoint_.c_str());
     }catch(zmq::error_t ex){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg("Cannot connect to terminate endpoint: '" + terminate_endpoint_ + "' " + ex.what());
-        state = ThreadState::ERROR;
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to terminate endpoint: '" + terminate_endpoint_ + "' " + ex.what());
+        state = ThreadState::ERROR_;
     }
 
     for(auto e: end_points_->StringList()){
@@ -120,8 +120,8 @@ void zmq::InEventPort<T, S>::recv_loop(){
             //connect the addresses provided
             socket->connect(e.c_str());
         }catch(zmq::error_t ex){
-            Log(Severity::ERROR).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + terminate_endpoint_ + "' " + ex.what());
-            state = ThreadState::ERROR;
+            Log(Severity::ERROR_).Context(this).Func(__func__).Msg("Cannot connect to endpoint: '" + terminate_endpoint_ + "' " + ex.what());
+            state = ThreadState::ERROR_;
         }
     }
 
@@ -159,7 +159,7 @@ void zmq::InEventPort<T, S>::recv_loop(){
                 auto m = proto::decode<S>(msg_str);
                 this->EnqueueMessage(m);
             }catch(zmq::error_t ex){
-                Log(Severity::ERROR).Context(this).Func(__func__).Msg(ex.what());
+                Log(Severity::ERROR_).Context(this).Func(__func__).Msg(ex.what());
                 break;
             }
         }
