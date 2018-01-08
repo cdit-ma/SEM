@@ -4,7 +4,7 @@
 #include <thread>
 #include <chrono>
 
-int main(){
+int main(int argc, char **argv){
 
     zmq::context_t context(1);
     zmq::socket_t sub(context, ZMQ_SUB);
@@ -20,9 +20,13 @@ int main(){
     auto endpoint = std::string(static_cast<const char*>(message.data()), message.size());
     req.connect(endpoint);
 
-    std::string deployment("");
+    std::string type("DEPLOYMENT");
+    zmq::message_t type_msg(type.begin(), type.end());
+
+    std::string deployment(argv[1]);
     zmq::message_t deployment_msg(deployment.begin(), deployment.end());
 
+    req.send(type_msg, ZMQ_SNDMORE);
     req.send(deployment_msg);
 
     zmq::message_t inbound;
@@ -32,11 +36,11 @@ int main(){
 
     std::cout << hb_endpoint << std::endl;
 
-
     zmq::socket_t hb_soc(context, ZMQ_REQ);
     hb_soc.connect(hb_endpoint);
 
     while(true){
+
 
         std::string hb_str("HB");
         zmq::message_t hb_message(hb_str.begin(), hb_str.end());
@@ -47,5 +51,4 @@ int main(){
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-
 }

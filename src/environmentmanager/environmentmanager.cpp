@@ -12,7 +12,7 @@ int main(int argc, char **argv){
     std::string message("tcp://192.168.111.230:22337");
 
     int registration_port = 22337;
-    int hb_start_port = 12345;
+    int hb_start_port = 22340;
 
     Broadcaster* broadcaster = new Broadcaster(address, message);
     broadcaster->StartBroadcast();
