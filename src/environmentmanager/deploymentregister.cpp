@@ -6,8 +6,6 @@ DeploymentRegister::DeploymentRegister(const std::string& ip_addr, int registrat
     ip_addr_ = ip_addr;
     registration_port_ = registration_port;
 
-    hb_start_port_ = hb_start_port;
-    current_port_ = hb_start_port_;
     context_ = new zmq::context_t(1);
 }
 
@@ -20,9 +18,6 @@ void DeploymentRegister::AddDeployment(int port_no, const std::string& deploymen
     std::unique_lock<std::mutex> lock(register_mutex_);
     deployments_[port_no] = deployment_info;
 
-    std::thread* hb_thread = new std::thread(&DeploymentRegister::HeartbeatLoop, this, 
-                                                port_no, deployment_info);
-    hb_threads_.push_back(hb_thread);
 }
 
 void DeploymentRegister::RemoveDeployment(const std::string& deployment_info){
@@ -72,13 +67,30 @@ void DeploymentRegister::RegistrationLoop(){
 
         if(msg_type_str.compare("DEPLOYMENT") == 0){
             //Push work onto new thread and assign that thread a port number.
-            int temp_port_number = current_port_;
-            current_port_++;
+            std::promise<int> port_promise;
+            std::future<int> port_future = port_promise.get_future();
 
-            AddDeployment(temp_port_number, msg_contents_str);
+            std::thread* hb_thread = new std::thread(&DeploymentRegister::HeartbeatLoop, this, 
+                                                    std::move(port_promise));
+            hb_threads_.push_back(hb_thread);
+
+
+            int assigned_port;
+            try{
+                //Wait for port assignment from heartbeat loop, get will throw if out of ports.
+                assigned_port = port_future.get();
+                AddDeployment(assigned_port, msg_contents_str);
+            }
+            catch(const std::exception& e){
+                //TODO: Handle out of ports exception.
+                std::cout << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
+
+                //TODO: Do something better here!
+                continue;
+            }
 
             //Reply with enpoint to send heartbeats and status updates to
-            std::string message_str("tcp://" + ip_addr_ + ":" +  std::to_string(temp_port_number));
+            std::string message_str("tcp://" + ip_addr_ + ":" +  std::to_string(assigned_port));
 
             zmq::message_t reply(message_str.begin(), message_str.end());
 
@@ -89,11 +101,16 @@ void DeploymentRegister::RegistrationLoop(){
             }
         }
 
-        if(msg_type_str.compare("QUERY") == 0){
+        else if(msg_type_str.compare("QUERY") == 0){
             std::string info = GetDeploymentInfo();
             zmq::message_t reply(info.begin(), info.end());
             rep.send(reply);
         }
+
+        else{
+            std::cout << "Recieved unknown message type: " << msg_type_str << std::endl;
+        }
+
     }
 }
 
@@ -103,15 +120,28 @@ void DeploymentRegister::QueryLoop(){
     }
 }
 
-void DeploymentRegister::HeartbeatLoop(int port_no, const std::string& deployment_info){
+void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
     zmq::socket_t hb_soc(*context_, ZMQ_REP);
 
-    std::string heartbeat_endpoint("tcp://" + ip_addr_ + ":" + std::to_string(port_no));
-
+    int assigned_port = 0;
     try{
-        hb_soc.bind(heartbeat_endpoint);
+        //Bind to random port on local ip addr
+        hb_soc.bind(std::string("tcp://" + ip_addr_ + ":*"));
+
+        //Retrieve bound port
+        char sockopt[1024];
+        size_t size = sizeof(sockopt);
+
+        hb_soc.getsockopt(ZMQ_LAST_ENDPOINT, &sockopt, &size);
+        std::string sockopt_str(sockopt);
+        assigned_port = std::stoi(sockopt_str.substr(sockopt_str.find_last_of(":") + 1));
+
+        port_promise.set_value(assigned_port);
+
     }catch(zmq::error_t ex){
-        std::cout << ex.what() <<  std::endl;
+        //Set our promise as exception and exit if we can't find a free port.
+        port_promise.set_exception(std::current_exception());
+        return;
     }
     std::string ack_str("ACK");
 
@@ -138,5 +168,6 @@ void DeploymentRegister::HeartbeatLoop(int port_no, const std::string& deploymen
         zmq::message_t ack(ack_str.begin(), ack_str.end());
         hb_soc.send(ack);
     }
-    RemoveDeployment(port_no);
+
+    RemoveDeployment(assigned_port);
 }

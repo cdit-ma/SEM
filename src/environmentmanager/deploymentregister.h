@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <zmq.hpp>
 #include <mutex>
+#include <future>
 
 class DeploymentRegister{
     public:
@@ -14,7 +15,7 @@ class DeploymentRegister{
         void Start();
         void RegistrationLoop();
         void QueryLoop();
-        void HeartbeatLoop(int port_no, const std::string& deployment_info);
+        void HeartbeatLoop(std::promise<int> assigned_port);
 
         void AddDeployment(int port_no, const std::string& hb_endpoint);
         void RemoveDeployment(int port_no);
@@ -29,8 +30,6 @@ class DeploymentRegister{
         std::thread* registration_loop_;
 
         int registration_port_;
-        int hb_start_port_ = 22338;
-        int current_port_;
 
         std::unordered_map<int, std::string> deployments_;
 
