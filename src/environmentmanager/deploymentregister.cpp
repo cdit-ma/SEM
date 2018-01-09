@@ -1,5 +1,6 @@
 #include "deploymentregister.h"
 #include <iostream>
+#include <chrono>
 
 DeploymentRegister::DeploymentRegister(const std::string& ip_addr, int registration_port,
                                         int hb_start_port = 22338){
@@ -62,49 +63,76 @@ void DeploymentRegister::RegistrationLoop(){
         rep.recv(&msg_type);
         rep.recv(&msg_contents);
 
+
         auto msg_type_str = std::string(static_cast<const char*>(msg_type.data()), msg_type.size());
         auto msg_contents_str = std::string(static_cast<const char*>(msg_contents.data()), msg_contents.size());
 
         if(msg_type_str.compare("DEPLOYMENT") == 0){
-            //Push work onto new thread and assign that thread a port number.
+            //Push work onto new thread with port number promise
             std::promise<int> port_promise;
             std::future<int> port_future = port_promise.get_future();
 
-            std::thread* hb_thread = new std::thread(&DeploymentRegister::HeartbeatLoop, this, 
-                                                    std::move(port_promise));
+            auto hb_thread = new std::thread(&DeploymentRegister::HeartbeatLoop, this, std::move(port_promise));
             hb_threads_.push_back(hb_thread);
 
-
             int assigned_port;
+
             try{
                 //Wait for port assignment from heartbeat loop, get will throw if out of ports.
                 assigned_port = port_future.get();
-                AddDeployment(assigned_port, msg_contents_str);
             }
             catch(const std::exception& e){
-                //TODO: Handle out of ports exception.
                 std::cout << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
 
-                //TODO: Do something better here!
+                std::string error_type("ERROR");
+                zmq::message_t error_type_msg(error_type.begin(), error_type.end());
+
+                std::string error("Exception thrown by deployment register: ");
+                error += e.what();
+                zmq::message_t error_msg(error.begin(), error.end());
+
+                try{
+                    rep.send(error_type_msg, ZMQ_SNDMORE);
+                    rep.send(error_msg);
+                }
+                catch(std::exception f){
+                    std::cout << f.what() << std::endl;
+                }
+
+                //Continue with no state change
                 continue;
             }
+            AddDeployment(assigned_port, msg_contents_str);
 
             //Reply with enpoint to send heartbeats and status updates to
-            std::string message_str("tcp://" + ip_addr_ + ":" +  std::to_string(assigned_port));
-
-            zmq::message_t reply(message_str.begin(), message_str.end());
+            std::string reply_type("SUCCESS");
+            zmq::message_t reply_type_msg(reply_type.begin(), reply_type.end());
+            std::string reply("tcp://" + ip_addr_ + ":" +  std::to_string(assigned_port));
+            zmq::message_t reply_msg(reply.begin(), reply.end());
 
             try{
-                rep.send(reply);
+                rep.send(reply_type_msg, ZMQ_SNDMORE);
+                rep.send(reply_msg);
             }catch(zmq::error_t ex){
                 std::cout << ex.what() << std::endl;
             }
         }
 
         else if(msg_type_str.compare("QUERY") == 0){
+
             std::string info = GetDeploymentInfo();
-            zmq::message_t reply(info.begin(), info.end());
-            rep.send(reply);
+
+            std::string reply_type("SUCCESS");
+            zmq::message_t reply_type_msg(reply_type.begin(), reply_type.end());
+            zmq::message_t reply_msg(info.begin(), info.end());
+
+            try{
+                rep.send(reply_type_msg, ZMQ_SNDMORE);
+                rep.send(reply_msg);
+            }
+            catch(std::exception e){
+                std::cout << "Exception caught when sending query response: " << e.what() << std::endl;
+            }
         }
 
         else{
@@ -125,7 +153,7 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
 
     int assigned_port = 0;
     try{
-        //Bind to random port on local ip addr
+        //Bind to random port on local ip address
         hb_soc.bind(std::string("tcp://" + ip_addr_ + ":*"));
 
         //Retrieve bound port
@@ -136,6 +164,7 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
         std::string sockopt_str(sockopt);
         assigned_port = std::stoi(sockopt_str.substr(sockopt_str.find_last_of(":") + 1));
 
+        //Set our promise to the value of our assigned port.
         port_promise.set_value(assigned_port);
 
     }catch(zmq::error_t ex){
@@ -151,6 +180,21 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
     item.events = ZMQ_POLLIN;
 
     sockets.push_back(item);
+
+    //Wait for first heartbeat, allow more time for this one in case of server congestion
+    int initial_poll = zmq::poll(sockets, 4000);
+
+    if(initial_poll >= 1){
+        zmq::message_t initial_message;
+        hb_soc.recv(&initial_message);
+        zmq::message_t initial_ack(ack_str.begin(), ack_str.end());
+        hb_soc.send(initial_ack);
+    }
+    //Break out early if we never get our first heartbeat
+    else{
+        RemoveDeployment(assigned_port);
+        return;
+    }
 
     //Wait for heartbeats
     while(true){

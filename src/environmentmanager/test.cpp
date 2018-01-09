@@ -45,12 +45,20 @@ int main(int argc, char **argv){
     std::cout << "sent deployment message" << std::endl;
     
 
+    zmq::message_t inbound_type;
+    req.recv(&inbound_type);
     zmq::message_t inbound;
     req.recv(&inbound);
 
     std::cout << "recieved inbound message" << std::endl;
 
+    auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
+
+    std::cout << "Inbound message type: " << type_str << std::endl;
+
     auto hb_endpoint = std::string(static_cast<const char*>(inbound.data()), inbound.size());
+
+
 
     std::cout << "Got heartbeat endpoint: " << hb_endpoint << std::endl;
 
