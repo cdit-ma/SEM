@@ -8,16 +8,16 @@
 
 int main(int argc, char **argv){
 
-    std::string address("tcp://*:22334");
-    std::string message("tcp://192.168.111.230:22337");
+    std::string ip_address("192.168.111.230");
+    std::string registration_port("22337");
 
-    int registration_port = 22337;
-    int hb_start_port = 22340;
+    std::string bcast_address("tcp://*:22334");
+    std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
 
-    Broadcaster* broadcaster = new Broadcaster(address, message);
+    Broadcaster* broadcaster = new Broadcaster(bcast_address, bcast_message);
     broadcaster->StartBroadcast();
 
-    DeploymentRegister* deployment_register = new DeploymentRegister("192.168.111.230", registration_port, hb_start_port);
+    DeploymentRegister* deployment_register = new DeploymentRegister(ip_address, registration_port);
     deployment_register->Start();
 
 

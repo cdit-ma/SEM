@@ -9,34 +9,42 @@
 
 class DeploymentRegister{
     public:
-        DeploymentRegister(const std::string& ip_addr, int registration_port, 
-                            int heartbeat_start_port);
+        DeploymentRegister(const std::string& ip_addr, const std::string& registration_port);
 
         void Start();
         void RegistrationLoop();
         void QueryLoop();
-        void HeartbeatLoop(std::promise<int> assigned_port);
+        void HeartbeatLoop(std::promise<std::string> assigned_port);
 
-        void AddDeployment(int port_no, const std::string& hb_endpoint);
-        void RemoveDeployment(int port_no);
-        void RemoveDeployment(const std::string& deployment_name);
+        void AddDeployment(const std::string& port_no, const std::string& hb_endpoint);
+        void RemoveDeployment(const std::string& port_no);
 
         std::string GetDeploymentInfo() const;
         std::string GetDeploymentInfo(const std::string& name) const;
 
     private:
-        std::string ip_addr_;
+        static const std::string SUCCESS;
+        static const std::string ERROR;
+
+        static const int INITIAL_TIMEOUT = 4000;
+        static const int HEARTBEAT_TIMEOUT = 2000;
+
+        void SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one, const std::string& part_two);
+
+        std::string TCPify(const std::string& ip_address, const std::string& port) const;
+        std::string TCPify(const std::string& ip_address, int port) const;
+
         zmq::context_t* context_;
+
+        std::string ip_addr_;
+        std::string registration_port_;
+
         std::thread* registration_loop_;
-
-        int registration_port_;
-
-        std::unordered_map<int, std::string> deployments_;
-
-        std::vector<std::string> manager_hb_endpoints_;
         std::vector<std::thread*> hb_threads_;
 
         std::mutex register_mutex_;
+        std::unordered_map<std::string, std::string> deployment_map_;
+
 };
 
 

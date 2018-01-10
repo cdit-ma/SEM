@@ -2,8 +2,10 @@
 #include <iostream>
 #include <chrono>
 
-DeploymentRegister::DeploymentRegister(const std::string& ip_addr, int registration_port,
-                                        int hb_start_port = 22338){
+const std::string DeploymentRegister::SUCCESS = "SUCCESS";
+const std::string DeploymentRegister::ERROR = "ERROR";
+
+DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port){
     ip_addr_ = ip_addr;
     registration_port_ = registration_port;
 
@@ -14,28 +16,22 @@ void DeploymentRegister::Start(){
     registration_loop_ = new std::thread(&DeploymentRegister::RegistrationLoop, this);
 }
 
-void DeploymentRegister::AddDeployment(int port_no, const std::string& deployment_info){
-    std::cout << "Add deployment: " << deployment_info << " On port: " << port_no << std::endl;
+void DeploymentRegister::AddDeployment(const std::string& port_no, const std::string& deployment_info){
     std::unique_lock<std::mutex> lock(register_mutex_);
-    deployments_[port_no] = deployment_info;
-
+    std::cout << "Add deployment: " << deployment_info << " on port: " << port_no << std::endl;
+    deployment_map_[port_no] = deployment_info;
 }
 
-void DeploymentRegister::RemoveDeployment(const std::string& deployment_info){
+void DeploymentRegister::RemoveDeployment(const std::string& port_no){
     std::unique_lock<std::mutex> lock(register_mutex_);
-}
-
-void DeploymentRegister::RemoveDeployment(int port_no){
-    std::cout << "Remove deployment on port: " << port_no << std::endl;
-    std::unique_lock<std::mutex> lock(register_mutex_);
-    deployments_.erase(port_no);
+    std::cout << "Remove deployment: " << deployment_map_[port_no] << " on port: " << port_no << std::endl;
+    deployment_map_.erase(port_no);
 }
 
 std::string DeploymentRegister::GetDeploymentInfo() const{
-
     std::string out;
 
-    for(auto element : deployments_){
+    for(auto element : deployment_map_){
         out += " " + element.second;
     }
     return out;
@@ -48,97 +44,59 @@ std::string DeploymentRegister::GetDeploymentInfo(const std::string& name) const
 
 void DeploymentRegister::RegistrationLoop(){
 
-    zmq::socket_t rep(*context_, ZMQ_REP);
-    std::string endpoint("tcp://" + ip_addr_ + ":" + std::to_string(registration_port_));
-    rep.bind(endpoint);
+    zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
+    rep->bind(TCPify(ip_addr_, registration_port_));
     
     while(true){
-        //Wait for connection
-
         //Receive deployment information
-        zmq::message_t msg_type;
-        zmq::message_t msg_contents;
-        zmq::message_t reply;
+        zmq::message_t request_type_msg;
+        zmq::message_t request_contents_msg;
 
-        rep.recv(&msg_type);
-        rep.recv(&msg_contents);
+        rep->recv(&request_type_msg);
+        rep->recv(&request_contents_msg);
 
+        auto request_type = std::string(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
+        auto request_contents = std::string(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
-        auto msg_type_str = std::string(static_cast<const char*>(msg_type.data()), msg_type.size());
-        auto msg_contents_str = std::string(static_cast<const char*>(msg_contents.data()), msg_contents.size());
-
-        if(msg_type_str.compare("DEPLOYMENT") == 0){
+        if(request_type.compare("DEPLOYMENT") == 0){
             //Push work onto new thread with port number promise
-            std::promise<int> port_promise;
-            std::future<int> port_future = port_promise.get_future();
+            std::promise<std::string> port_promise;
+            std::future<std::string> port_future = port_promise.get_future();
+            std::string port;
 
             auto hb_thread = new std::thread(&DeploymentRegister::HeartbeatLoop, this, std::move(port_promise));
             hb_threads_.push_back(hb_thread);
 
-            int assigned_port;
-
             try{
-                //Wait for port assignment from heartbeat loop, get will throw if out of ports.
-                assigned_port = port_future.get();
+                //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
+                port = port_future.get();
             }
             catch(const std::exception& e){
                 std::cout << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
 
-                std::string error_type("ERROR");
-                zmq::message_t error_type_msg(error_type.begin(), error_type.end());
+                std::string error_msg("Exception thrown by deployment register: ");
+                error_msg += e.what();
 
-                std::string error("Exception thrown by deployment register: ");
-                error += e.what();
-                zmq::message_t error_msg(error.begin(), error.end());
-
-                try{
-                    rep.send(error_type_msg, ZMQ_SNDMORE);
-                    rep.send(error_msg);
-                }
-                catch(std::exception f){
-                    std::cout << f.what() << std::endl;
-                }
+                SendTwoPartReply(rep, ERROR, error_msg);
 
                 //Continue with no state change
                 continue;
             }
-            AddDeployment(assigned_port, msg_contents_str);
+            AddDeployment(port, request_contents);
 
             //Reply with enpoint to send heartbeats and status updates to
-            std::string reply_type("SUCCESS");
-            zmq::message_t reply_type_msg(reply_type.begin(), reply_type.end());
-            std::string reply("tcp://" + ip_addr_ + ":" +  std::to_string(assigned_port));
-            zmq::message_t reply_msg(reply.begin(), reply.end());
-
-            try{
-                rep.send(reply_type_msg, ZMQ_SNDMORE);
-                rep.send(reply_msg);
-            }catch(zmq::error_t ex){
-                std::cout << ex.what() << std::endl;
-            }
+            SendTwoPartReply(rep, SUCCESS, TCPify(ip_addr_, port));
         }
 
-        else if(msg_type_str.compare("QUERY") == 0){
-
+        else if(request_type.compare("QUERY") == 0){
             std::string info = GetDeploymentInfo();
-
-            std::string reply_type("SUCCESS");
-            zmq::message_t reply_type_msg(reply_type.begin(), reply_type.end());
-            zmq::message_t reply_msg(info.begin(), info.end());
-
-            try{
-                rep.send(reply_type_msg, ZMQ_SNDMORE);
-                rep.send(reply_msg);
-            }
-            catch(std::exception e){
-                std::cout << "Exception caught when sending query response: " << e.what() << std::endl;
-            }
+            SendTwoPartReply(rep, SUCCESS, info);
         }
 
         else{
-            std::cout << "Recieved unknown message type: " << msg_type_str << std::endl;
+            std::cout << "Recieved unknown request type: " << request_type << std::endl;
+            SendTwoPartReply(rep, ERROR, "Unknown request type");
         }
-
     }
 }
 
@@ -148,23 +106,23 @@ void DeploymentRegister::QueryLoop(){
     }
 }
 
-void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
+void DeploymentRegister::HeartbeatLoop(std::promise<std::string> port_promise){
     zmq::socket_t hb_soc(*context_, ZMQ_REP);
 
-    int assigned_port = 0;
+    std::string assigned_port;
     try{
         //Bind to random port on local ip address
-        hb_soc.bind(std::string("tcp://" + ip_addr_ + ":*"));
+        hb_soc.bind(TCPify(ip_addr_, "*"));
 
         //Retrieve bound port
         char sockopt[1024];
         size_t size = sizeof(sockopt);
-
         hb_soc.getsockopt(ZMQ_LAST_ENDPOINT, &sockopt, &size);
         std::string sockopt_str(sockopt);
-        assigned_port = std::stoi(sockopt_str.substr(sockopt_str.find_last_of(":") + 1));
 
-        //Set our promise to the value of our assigned port.
+        //Extract port number from endpoint string "tcp://###.###.###.###:####"
+        assigned_port = sockopt_str.substr(sockopt_str.find_last_of(":") + 1);
+
         port_promise.set_value(assigned_port);
 
     }catch(zmq::error_t ex){
@@ -174,17 +132,14 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
     }
     std::string ack_str("ACK");
 
-    std::vector<zmq::pollitem_t> sockets;
-    zmq::pollitem_t item;
-    item.socket = hb_soc;
-    item.events = ZMQ_POLLIN;
-
-    sockets.push_back(item);
+    //Initialise our poll item list
+    zmq::pollitem_t item = {hb_soc, 0, ZMQ_POLLIN, 0};
+    std::vector<zmq::pollitem_t> sockets = {item};
 
     //Wait for first heartbeat, allow more time for this one in case of server congestion
-    int initial_poll = zmq::poll(sockets, 4000);
+    int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
 
-    if(initial_poll >= 1){
+    if(initial_events >= 1){
         zmq::message_t initial_message;
         hb_soc.recv(&initial_message);
         zmq::message_t initial_ack(ack_str.begin(), ack_str.end());
@@ -200,10 +155,10 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
     while(true){
         zmq::message_t hb_message;
 
-        //Poll zmq socket for heartbeat message, time out after two (2) seconds
-        int result = zmq::poll(sockets, 2000);
+        //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
+        int events = zmq::poll(sockets, HEARTBEAT_TIMEOUT);
 
-        if(result < 1){
+        if(events < 1){
             break;
         }
 
@@ -213,5 +168,29 @@ void DeploymentRegister::HeartbeatLoop(std::promise<int> port_promise){
         hb_soc.send(ack);
     }
 
+    //Broken out of heartbeat loop at this point, remove deployment
     RemoveDeployment(assigned_port);
+}
+
+std::string DeploymentRegister::TCPify(const std::string& ip_address, const std::string& port) const{
+    return std::string("tcp://" + ip_address + ":" + port);
+
+}
+
+std::string DeploymentRegister::TCPify(const std::string& ip_address, int port) const{
+    return std::string("tcp://" + ip_address + ":" + std::to_string(port));
+}
+
+void DeploymentRegister::SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one,
+                                                                 const std::string& part_two){
+    zmq::message_t part_one_msg(part_one.begin(), part_one.end());
+    zmq::message_t part_two_msg(part_two.begin(), part_two.end());
+
+    try{
+        socket->send(part_one_msg, ZMQ_SNDMORE);
+        socket->send(part_two_msg);
+    }
+    catch(std::exception e){
+        std::cout << e.what() << std::endl;
+    }
 }
