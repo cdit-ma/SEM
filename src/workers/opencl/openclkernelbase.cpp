@@ -22,7 +22,7 @@ void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDR
 
     err = queue.enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
     if (err != CL_SUCCESS) {
-        throw OpenCLException(GET_FUNC ": Failed to enqueue kernel '"+name_+"' for execution", err);
+        throw OpenCLException(std::string(GET_FUNC)+": Failed to enqueue kernel '"+name_+"' for execution", err);
     }
 
     if (block) {
@@ -36,7 +36,7 @@ void OpenCLKernelBase::SetArg(unsigned int index, size_t size, const void* value
     // If we are passed something derived from GenericBuffer we know the backing reference will be properly handled
     err = kernel_->setArg(index, size, value);
     if (err != CL_SUCCESS) {
-        throw OpenCLException(GET_FUNC "Unable to set parameter "+std::to_string(index)+" of a kernel", err);
+        throw OpenCLException(std::string(GET_FUNC)+"Unable to set parameter "+std::to_string(index)+" of a kernel", err);
     }
 }
 
@@ -45,7 +45,7 @@ void OpenCLKernelBase::SetArg(unsigned int index, const cl::Memory& mem_obj) {
     
     err = kernel_->setArg(index, mem_obj);
     if (err != CL_SUCCESS) {
-        throw OpenCLException(GET_FUNC "Unable to set parameter "+std::to_string(index)+" of a kernel", err);
+        throw OpenCLException(std::string(GET_FUNC)+"Unable to set parameter "+std::to_string(index)+" of a kernel", err);
     }
 }
 
@@ -58,7 +58,7 @@ void OpenCLKernelBase::SetArg(unsigned int index, const cl::LocalSpaceArg& local
     
     err = kernel_->setArg(index, local_space);
     if (err != CL_SUCCESS) {
-        throw OpenCLException(GET_FUNC "Unable to set parameter "+std::to_string(index)+" of a kernel", err);
+        throw OpenCLException(std::string(GET_FUNC)+"Unable to set parameter "+std::to_string(index)+" of a kernel", err);
     }
 }
 
