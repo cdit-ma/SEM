@@ -54,7 +54,7 @@ class Component : public Activatable{
     private:
         bool AddCallback_(const std::string& event_port_name, std::function<void (::BaseMessage&)> function);
         std::mutex state_mutex_;
-        std::mutex mutex_;
+        std::mutex element_mutex_;
 
         std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;
         std::unordered_map<std::string, std::shared_ptr<EventPort> > eventports_;    
