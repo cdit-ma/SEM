@@ -33,7 +33,14 @@ zmq::message_t Broadcaster::GetZMQMessage(){
 
 void Broadcaster::BroadcastLoop(){
     zmq::socket_t publisher(*context_, ZMQ_PUB);
-    publisher.bind(endpoint_);
+
+    try{
+        publisher.bind(endpoint_);
+    }
+    catch(zmq::error_t& e){
+        //TODO: Handle this better.
+        throw new std::invalid_argument("Could not bind broadcast endpoint in Broadcast loop. Endpoint: " + endpoint_);
+    }
 
     while(!terminate_flag_){
         //TODO: add condition variable to break out of this

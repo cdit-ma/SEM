@@ -1,6 +1,7 @@
 #include "deploymentregister.h"
 #include <iostream>
 #include <chrono>
+#include <exception>
 
 const std::string DeploymentRegister::SUCCESS = "SUCCESS";
 const std::string DeploymentRegister::ERROR = "ERROR";
@@ -45,7 +46,14 @@ std::string DeploymentRegister::GetDeploymentInfo(const std::string& name) const
 void DeploymentRegister::RegistrationLoop(){
 
     zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
-    rep->bind(TCPify(ip_addr_, registration_port_));
+
+    try{
+        rep->bind(TCPify(ip_addr_, registration_port_));
+    }
+    catch(zmq::error_t& e){
+        throw new std::invalid_argument("Could not bind reply socket in registration loop. IP_ADDR: " + ip_addr_ +
+                                        " Port: " + registration_port_);
+    }
     
     while(true){
         //Receive deployment information

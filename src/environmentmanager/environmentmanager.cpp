@@ -7,11 +7,50 @@
 #include "deploymentregister.h"
 
 int main(int argc, char **argv){
+    static const std::string default_bcast_port = "22334";
+    static const std::string default_registration_port = "22335";
 
-    std::string ip_address("192.168.111.230");
-    std::string registration_port("22337");
+    std::string ip_address;
+    std::string registration_port;
+    std::string bcast_port;
 
-    std::string bcast_address("tcp://*:22334");
+    boost::program_options::options_description options("Environment Manager Options");
+    options.add_options()("ip_address,a", boost::program_options::value<std::string>(&ip_address),
+                            "Ip address of environment manager");
+    options.add_options()("broadcast_port,b", boost::program_options::value<std::string>(&bcast_port),
+                            "Port number for env manager address broadcast.");
+    options.add_options()("registration_port,r", boost::program_options::value<std::string>(&registration_port),
+                            "Port number for deployment registration.");
+    options.add_options()("help,h", "Display help");
+
+
+    boost::program_options::variables_map vm;
+
+    try{
+        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
+        boost::program_options::notify(vm);
+    }
+    catch(boost::program_options::error& e){
+        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+        std::cout << options << std::endl;
+        return 1;
+    }
+
+    if(vm.count("help")){
+        std::cout << options << std::endl;
+        return 0;
+    }
+    
+    //Set defaults if not set in args
+    if(bcast_port.empty()){
+        bcast_port = default_bcast_port;
+    }
+    if(registration_port.empty()){
+        registration_port = default_registration_port;
+    }
+
+
+    std::string bcast_address("tcp://*:" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
 
     Broadcaster* broadcaster = new Broadcaster(bcast_address, bcast_message);
