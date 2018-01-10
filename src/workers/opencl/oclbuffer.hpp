@@ -16,12 +16,12 @@ class OCLBuffer : public GenericBuffer {
             "Can't have non-primitive data types buffered in current implementation");
     static_assert(!std::is_same<T, bool>::value, "std::vector<bool> is not guaranteed to conform to STL container requirements");
 public:
-    OCLBuffer(OpenCLManager& manager, size_t num_elements, Worker* worker_reference=0);
-    OCLBuffer(OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking=true,  Worker* worker_reference=0);
+    OCLBuffer(const Worker& worker, OpenCLManager& manager, size_t num_elements);
+    OCLBuffer(const Worker& worker, OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking=true);
 
-    bool WriteData(const std::vector<T>& data, const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL);
+    bool WriteData(const Worker& worker, const std::vector<T>& data, const OpenCLDevice& device, bool blocking=true);
 
-    const std::vector<T> ReadData(const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL) const;
+    const std::vector<T> ReadData(const Worker& worker, const OpenCLDevice& device, bool blocking=true) const;
 
     size_t GetNumElements() const;
 
@@ -41,25 +41,25 @@ protected:
 
 
 template <typename T>
-OCLBuffer<T>::OCLBuffer(OpenCLManager& manager, size_t num_elements, Worker* worker_reference)
-    : GenericBuffer(manager, num_elements*sizeof(T), worker_reference) {
+OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, size_t num_elements)
+    : GenericBuffer(worker, manager, num_elements*sizeof(T)) {
 
 }
 
 template <typename T>
-OCLBuffer<T>::OCLBuffer(OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking, Worker* worker_reference)
-    : OCLBuffer(manager, data.size(), worker_reference) {
-    WriteData(data, device, blocking, worker_reference);
+OCLBuffer<T>::OCLBuffer(const Worker& worker, OpenCLManager& manager, const std::vector<T>& data, const OpenCLDevice& device, bool blocking)
+    : OCLBuffer(worker, manager, data.size()) {
+    WriteData(worker, data, device, blocking);
 }
 
 template <typename T>
-bool OCLBuffer<T>::WriteData(const std::vector<T>& data, const OpenCLDevice& device, bool blocking, Worker* worker_reference) {
+bool OCLBuffer<T>::WriteData(const Worker& worker, const std::vector<T>& data, const OpenCLDevice& device, bool blocking) {
 
 static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buffered in current implementation");
 
     // Warn if size mismatch, abort if overflow would occur
     if (data.size() !=  GetNumElements()) {
-        LogError(worker_reference,
+        LogError(worker,
             __func__,
             "Attempting to write vector data to a buffer of different length: "
                 +std::to_string(data.size())+" when expecting "+std::to_string(GetNumElements()));
@@ -68,16 +68,16 @@ static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buf
         }
     }
     
-    bool write_success = GenericBuffer::WriteData(data.data(), size_, device, blocking, worker_reference);
+    bool write_success = GenericBuffer::WriteData(worker, data.data(), size_, device, blocking);
     //bool write_success = GenericBuffer::WriteData(&(front_ref), size_, blocking, worker_reference);
     return write_success;
 }
 
 template <typename T>
-const std::vector<T> OCLBuffer<T>::ReadData(const OpenCLDevice& device, bool blocking, Worker* worker_reference) const {
+const std::vector<T> OCLBuffer<T>::ReadData(const Worker& worker, const OpenCLDevice& device, bool blocking) const {
     std::vector<T> data(GetNumElements());
 
-    bool read_success = GenericBuffer::ReadData(data.data(), size_, device, blocking, worker_reference);
+    bool read_success = GenericBuffer::ReadData(worker, data.data(), size_, device, blocking);
     //bool read_success = GenericBuffer::ReadData(&(front_ref), size_, blocking, worker_reference);
     if (!read_success) {
         data.clear();

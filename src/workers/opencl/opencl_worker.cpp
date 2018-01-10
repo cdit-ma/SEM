@@ -6,7 +6,7 @@
 
 #include <exception>
 
-OpenCLWorker::OpenCLWorker(Component* component, std::string inst_name)
+OpenCLWorker::OpenCLWorker(const Component& component, std::string inst_name)
     : Worker(component, __func__, inst_name) {
     
 }
@@ -18,7 +18,7 @@ OpenCLWorker::~OpenCLWorker() {
 bool OpenCLWorker::Configure(int platform_id, int device_id) {
     // TODO: Pull out platforms and devices using GetAttribute later
 
-    manager_ = OpenCLManager::GetReferenceByPlatform(platform_id, this);
+    manager_ = OpenCLManager::GetReferenceByPlatform(*this, platform_id);
     if (manager_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to obtain a reference to an OpenCLManager");
@@ -30,7 +30,7 @@ bool OpenCLWorker::Configure(int platform_id, int device_id) {
     std::vector<unsigned int> device_ids;
     device_ids.push_back(device_id);
     load_balancer_ = new OpenCLLoadBalancer(device_ids);
-    auto& device_list = manager_->GetDevices(this);
+    auto& device_list = manager_->GetDevices(*this);
     devices_.emplace_back(device_list.at(std::ref(device_id)));
 
     return true;
@@ -41,50 +41,46 @@ bool OpenCLWorker::IsValid() const {
 }
 
 bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
-    bool success;
+    bool success = false;
 
     auto device_id = load_balancer_->RequestDevice();
-    auto& device = manager_->GetDevices()[device_id];
+    auto& device = manager_->GetDevices(*this)[device_id];
 
     std::string filename = GetSourcePath("parallelthreads.cl");
-    auto& parallel_kernel = GetKernel(device, "runParallel", filename);
+    try {
+        auto& parallel_kernel = GetKernel(device, "runParallel", filename);
 
-    success = parallel_kernel.SetArgs(ops_per_thread);
-    if (!success) {
-        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to set args for RunParallel, skipping");
-        return false;
-    }
+        parallel_kernel.SetArgs(ops_per_thread);
 
-    success = parallel_kernel.Run(device, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
-    if (!success) {
+        parallel_kernel.Run(device, true, cl::NullRange, cl::NDRange(num_threads), cl::NullRange);
+        success = true;
+    } catch (const std::exception& e) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to execute RunParallel kernel");
-        return false;
+            "Failed to execute RunParallel kernel: \n"+std::string(e.what()));
     }
 
     load_balancer_->ReleaseDevice(device_id);
     
-    return true;
+    return success;
 }
 
 bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC) {
     auto device_id = load_balancer_->RequestDevice();
-    auto& device = manager_->GetDevices()[device_id];
+    auto& device = manager_->GetDevices(*this)[device_id];
 
-    auto bufferA = manager_->CreateBuffer<float>(matA, device, this);
-    auto bufferB = manager_->CreateBuffer<float>(matB, device, this);
+    auto bufferA = manager_->CreateBuffer<float>(*this, matA, device);
+    auto bufferB = manager_->CreateBuffer<float>(*this, matB, device);
     //auto result_buffer = manager_->CreateBuffer<float>(matC.size(), this);
-    auto result_buffer = manager_->CreateBuffer<float>(matC, device, this);
+    auto result_buffer = manager_->CreateBuffer<float>(*this, matC, device);
 
     bool success = MatrixMult(*bufferA, *bufferB, *result_buffer, device);
     //auto new_matA = bufferA->ReadData(true, this);
     //auto new_matB = bufferB->ReadData(true, this);
-    matC = result_buffer->ReadData(device, true, this);
+    matC = result_buffer->ReadData(*this, device, true);
 
-    manager_->ReleaseBuffer(bufferA, this);
-    manager_->ReleaseBuffer(bufferB, this);
-    manager_->ReleaseBuffer(result_buffer, this);
+    manager_->ReleaseBuffer(*this, bufferA);
+    manager_->ReleaseBuffer(*this, bufferB);
+    manager_->ReleaseBuffer(*this, result_buffer);
 
     load_balancer_->ReleaseDevice(device_id);
 
@@ -144,19 +140,20 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
 	while (global_height < max_mat_height) global_height += block_length;
 
     // TODO: Mutex this stuff
-    bool did_set_args = matrix_kernel.SetArgs(matA, matB, matC, M, K, N,
-        block_data_size, block_data_size);
-    if (!did_set_args) {
+    try {
+        matrix_kernel.SetArgs(matA, matB, matC, M, K, N, block_data_size, block_data_size);
+    } catch (const OpenCLException& ocle) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to set args for MatrixMult");
+            "Failed to set args for MatrixMult:\n"+std::string(ocle.what()));
             return false;
     }
-
-    bool did_kernel_complete = matrix_kernel.Run(device, true, cl::NullRange,
-        cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length));
-    if (!did_kernel_complete) {
+    
+    try {
+        matrix_kernel.Run(device, true, cl::NullRange,
+            cl::NDRange(global_width, global_height), cl::NDRange(block_length, block_length));
+    } catch (const OpenCLException& ocle) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to successfully run MatrixMult kernel");
+            "Failed to successfully run MatrixMult kernel"+std::string(ocle.what()));
             return false;
     }
 
@@ -180,10 +177,9 @@ bool OpenCLWorker::KmeansCluster(const std::vector<float>& points, std::vector<f
 }
 
 bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
-    bool success;
-
+    
     auto device_id = load_balancer_->RequestDevice();
-    auto& device = manager_->GetDevices()[device_id];
+    auto& device = manager_->GetDevices(*this)[device_id];
 
     std::string filename = GetSourcePath("kmeans.cl");
     auto& cluster_classify_kernel = GetKernel(device, "classifyPoints", filename);
@@ -200,10 +196,11 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
 
     // Calculate classification parameters
     cl::NDRange global_classify_threads(num_points);
-    success = cluster_classify_kernel.SetArgs(points, point_classifications, centroids, num_centroids);
-    if (!success) {
+    try {
+        cluster_classify_kernel.SetArgs(points, point_classifications, centroids, num_centroids);
+    } catch (const OpenCLException& ocle) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to set args for cluster classify kernel, skipping");
+            "Failed to set args for cluster classify kernel, skipping:\n"+std::string(ocle.what()));
         return false;
     }
     
@@ -222,37 +219,40 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     cl::LocalSpaceArg local_center_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_float4));
     cl::LocalSpaceArg local_count_buffer = cl::Local(adjust_local_size*num_centroids*sizeof(cl_uint));
 
-    OCLBuffer<float>* work_group_center_buffer = manager_->CreateBuffer<float>(num_centroids*num_compute_units*4, this);
-    OCLBuffer<cl_uint>* work_group_count_buffer = manager_->CreateBuffer<cl_uint>(num_centroids*num_compute_units, this);
+    OCLBuffer<float>* work_group_center_buffer = manager_->CreateBuffer<float>(*this, num_centroids*num_compute_units*4);
+    OCLBuffer<cl_uint>* work_group_count_buffer = manager_->CreateBuffer<cl_uint>(*this, num_centroids*num_compute_units);
 
-    success = cluster_adjust_kernel.SetArgs(points, point_classifications, num_points, centroids, num_centroids,
-        local_center_buffer, local_count_buffer, *work_group_center_buffer, *work_group_count_buffer);
-    if (!success) {
+    try {
+        cluster_adjust_kernel.SetArgs(points, point_classifications, num_points, centroids, num_centroids,
+            local_center_buffer, local_count_buffer, *work_group_center_buffer, *work_group_count_buffer);
+    } catch (const OpenCLException& ocle) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-            "Failed to set args for cluster adjust kernel, skipping");
+            "Failed to set args for cluster adjust kernel, skipping:\n"+std::string(ocle.what()));
         return false;
     }
     
     for (int iter=0; iter < iterations; iter++) {
         // Identify the nearest centroid for each point
-        success = cluster_classify_kernel.Run(device, true, cl::NullRange, global_classify_threads, cl::NullRange);
-        if (!success) {
+        try {
+            cluster_classify_kernel.Run(device, true, cl::NullRange, global_classify_threads, cl::NullRange);
+        } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to execute K-means classification kernel");
+                "Failed to execute K-means classification kernel:\n"+std::string(ocle.what()));
             return false;
         }
 
         // Find the averaged position of all the points associated with each given centroid
-        success = cluster_adjust_kernel.Run(device, true, cl::NullRange, adjust_global_range, adjust_local_range);
-        if (!success) {
+        try {
+            cluster_adjust_kernel.Run(device, true, cl::NullRange, adjust_global_range, adjust_local_range);
+        } catch (const OpenCLException& ocle) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "Failed to execute K-means center adjustment kernel");
+                "Failed to execute K-means center adjustment kernel:\n"+std::string(ocle.what()));
             return false;
         }
 
         //Read back the per-work-group result from the adjust kernel
-        auto wg_center_vec = work_group_center_buffer->ReadData(device, true, this);
-        auto wg_count_vec = work_group_count_buffer->ReadData(device, true, this);
+        auto wg_center_vec = work_group_center_buffer->ReadData(*this, device, true);
+        auto wg_count_vec = work_group_count_buffer->ReadData(*this, device, true);
         if (wg_center_vec.size() != wg_count_vec.size()*4) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Error reading back adjusted centroids aggregated per workgroup; center and count vector size mismatch");
@@ -294,7 +294,7 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
         }
 
         // Update the centers to match
-        centroids.WriteData(new_centroids, device, true);
+        centroids.WriteData(*this, new_centroids, device, true);
     }
 
     load_balancer_->ReleaseDevice(device_id);
@@ -311,7 +311,7 @@ OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kerne
     std::vector<std::string> filenames;
     filenames.push_back(source_file);
 
-    auto kernel_vec = manager_->CreateKernels(filenames, this);
+    auto kernel_vec = manager_->CreateKernels(*this, filenames);
     if (kernel_vec.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
         "Unable to find any kernels in "+source_file);
@@ -341,7 +341,7 @@ OpenCLKernel& OpenCLWorker::GetKernel(OpenCLDevice& device, const std::string& k
 
     std::vector<std::string> filenames;
     filenames.push_back(source_file);
-    device.LoadKernelsFromSource(filenames, *this);
+    device.LoadKernelsFromSource(*this, filenames);
 
     auto kernel_vec = device.GetKernels();
     if (kernel_vec.size() == 0) {

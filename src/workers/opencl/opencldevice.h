@@ -20,20 +20,20 @@ namespace cl {
 
 class OpenCLDevice {
 public:
-    OpenCLDevice(OpenCLManager& manager, cl::Device& device, const Worker& worker);
+    OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device);
 
     const cl::Device& GetRef() const;
     std::string GetName() const;
     const cl::CommandQueue& GetQueue() const;
 
-    bool LoadKernelsFromSource(const std::vector<std::string>& filenames, Worker& worker);
-    bool LoadKernelsFromBinary(const std::string& filename, Worker& worker);
+    bool LoadKernelsFromSource(const Worker& worker, const std::vector<std::string>& filenames);
+    bool LoadKernelsFromBinary(const Worker& worker, const std::string& filename);
     const std::vector<std::reference_wrapper<OpenCLKernel> > GetKernels();
     //OpenCLKernel& GetKernel(const std::string& kernel_name) const;
 
 private:
-    virtual void LogError(const Worker& worker_ref, std::string function_name, std::string error_message, int cl_error_code);
-    virtual void LogError(const Worker& worker_ref, std::string function_name, std::string error_message);
+    virtual void LogError(const Worker& worker, std::string function_name, std::string error_message, int cl_error_code);
+    virtual void LogError(const Worker& worker, std::string function_name, std::string error_message);
 
     std::unique_ptr<cl::Device> dev_;
     OpenCLManager& manager_;

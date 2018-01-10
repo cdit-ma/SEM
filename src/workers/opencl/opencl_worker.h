@@ -9,7 +9,7 @@
 
 class OpenCLWorker : public Worker {
 public:
-    OpenCLWorker(Component* component, std::string inst_name);
+    OpenCLWorker(const Component& component, std::string inst_name);
     ~OpenCLWorker();
 
     bool Configure(int platform_id=0, int device_id=0);
@@ -55,7 +55,7 @@ private:
 
 template <typename T>
 OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
-    OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(data.size(), this);
+    OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(*this, data.size());
     /*for (const auto& dev_wrapper : devices_) {
         new_buffer->WriteData(data, dev_wrapper.get(), blocking, this);
     }*/
@@ -65,7 +65,7 @@ OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
 
 template <typename T>
 void OpenCLWorker::ReleaseBuffer(OCLBuffer<T>* buffer) {
-    return manager_->ReleaseBuffer(buffer);
+    return manager_->ReleaseBuffer(*this, buffer);
 }
 
 template <typename T>
@@ -83,7 +83,7 @@ bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data,
 
     bool did_all_succeed = true;
     for (const auto& dev_wrapper : devices_) {
-        bool success = buffer.WriteData(data, dev_wrapper.get(), blocking, this);
+        bool success = buffer.WriteData(*this, data, dev_wrapper.get(), blocking);
         if (!success) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
                 "Failed to write to OpenCLBuffer for device "+dev_wrapper.get().GetName());
@@ -107,7 +107,7 @@ std::vector<T> OpenCLWorker::ReadBuffer(const OCLBuffer<T>& buffer, bool blockin
         return std::vector<T>();
     }
 
-    return buffer.ReadData(devices_.at(0), blocking, this);
+    return buffer.ReadData(*this, devices_.at(0), blocking);
 }
 
 #endif

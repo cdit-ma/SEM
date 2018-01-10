@@ -79,6 +79,10 @@ std::string clErrorNames[] = {
 	"CL_INVALID_PROPERTY"
 };
 
+std::string OpenCLErrorName(int opencl_error_code) {
+	return clErrorNames[-opencl_error_code];
+}
+
 std::string GetSourcePath(std::string filename) {
 	std::string source_file_path(__FILE__);
 	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
@@ -88,17 +92,18 @@ std::string GetSourcePath(std::string filename) {
 /**
  * Takes a list of filenames and returns a list of c-strings containg their contents
  **/
-cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames, Worker* worker_reference) {
+cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames) {
 	cl::Program::Sources source_list;
 
 	for (const auto& filename : filenames) {
 		std::ifstream source_file;
 		source_file.open(filename);
 		if (!source_file.is_open()) {
-			LogOpenCLError(worker_reference,
+			/*LogOpenCLError(worker,
 				__func__,
 				"Failed to open file when reading source files: " + filename);
-			break;
+			break;*/
+			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading source files: " + filename);
 		}
 
 		std::stringstream source_stream;
@@ -123,18 +128,21 @@ cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filena
 /**
  * Takes a list of filenames and returns a list of binary vectors containg their contents
  **/
-cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenames, Worker* worker_reference) {
+cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenames) {
 	cl::Program::Binaries binary_list;
 
+	bool success = true;
+	std::string error_message;
 
 	for (const auto& filename : filenames) {
 		std::ifstream binary_file;
 		binary_file.open(filename, std::ios::binary);
 		if (!binary_file.is_open()) {
-			LogOpenCLError(worker_reference,
+			/*LogOpenCLError(worker,
 				__func__,
 				"Failed to open file when reading binary files: " + filename);
-			break;
+			break;*/
+			throw std::runtime_error(std::string(__func__) + ": Failed to open file when reading binary files: " + filename);
 		}
 
 		binary_file.unsetf(std::ios::skipws);
@@ -167,45 +175,35 @@ cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenam
 	return binary_list;
 }
 
-void LogOpenCLError(const Worker* worker_reference,
+void LogOpenCLError(const Worker& worker,
 	std::string function_signature,
 	std::string error_message,
 	cl_int cl_error_code)
 {
 	std::string message = error_message + " (" + clErrorNames[-cl_error_code] + ")";
-
-	if (worker_reference != NULL) {
-		ModelLogger::get_model_logger()->LogWorkerEvent(const_cast<Worker*>(worker_reference),
-			function_signature,
-			ModelLogger::WorkloadEvent::MESSAGE,
-			-1,		// Need to expose something like get_current_work_id() 
-			message);
 			
 #ifdef OPENCL_DEBUG_TO_STDERR
-		std::cerr << function_signature << ": " << error_message << std::endl;
+	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
-	}
-	else {
-		std::cerr << function_signature << ": " << error_message << std::endl;
-	}
+
+	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+		function_signature,
+		ModelLogger::WorkloadEvent::MESSAGE,
+		-1,		// Need to expose something like get_current_work_id() 
+		message);
 }
 
-void LogOpenCLError(const Worker* worker_reference,
+void LogOpenCLError(const Worker& worker,
 	std::string function_signature,
 	std::string error_message)
-{
-	if (worker_reference != NULL) {
-		ModelLogger::get_model_logger()->LogWorkerEvent(const_cast<Worker*>(worker_reference),
-			function_signature,
-			ModelLogger::WorkloadEvent::MESSAGE,
-			-1,		// Need to expose something like get_current_work_id() 
-			error_message);
-		
+{		
 #ifdef OPENCL_DEBUG_TO_STDERR
-		std::cerr << function_signature << ": " << error_message << std::endl;
+	std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
-	}
-	else {
-		std::cerr << function_signature << ": " << error_message << std::endl;
-	}
+
+	ModelLogger::get_model_logger()->LogWorkerEvent(worker,
+		function_signature,
+		ModelLogger::WorkloadEvent::MESSAGE,
+		-1,		// Need to expose something like get_current_work_id() 
+		error_message);
 }

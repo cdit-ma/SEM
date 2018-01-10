@@ -22,20 +22,20 @@
 
 extern std::string clErrorNames[];
 
+extern std::string OpenCLErrorName(int opencl_error_code);
+
 extern std::string GetSourcePath(std::string filename);
 
-extern cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames,
-	Worker* worker_reference=NULL);
+extern cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames);
 	
-extern cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenames,
-	Worker* worker_reference=NULL);
+extern cl::Program::Binaries ReadOpenCLBinaries(const std::vector<std::string>& filenames);
 
-extern void LogOpenCLError(const Worker* worker_reference,
+extern void LogOpenCLError(const Worker& worker,
 	std::string function_signature,
 	std::string error_message,
 	cl_int cl_error_code);
 
-extern void LogOpenCLError(const Worker* worker_reference,
+extern void LogOpenCLError(const Worker& worker,
 	std::string function_signature,
 	std::string error_message);
 

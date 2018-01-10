@@ -14,7 +14,14 @@ void precompile(cl::Device& device, std::string platform_name) {
 
     std::vector<std::string> source_files;
     source_files.push_back(GetSourcePath("precompiled.cl"));
-    cl::Program::Sources source_list = ReadOpenCLSourceCode(source_files);
+    cl::Program::Sources source_list;
+    try {
+        source_list = ReadOpenCLSourceCode(source_files);
+    } catch (const std::runtime_error& re) {
+        std::cerr << re.what() << std::endl;
+        std::cerr << "Error: Unable to read OpenCL source code, skipping compilation..." << std::endl;
+        return;
+    }
 
     cl::Program program(context, source_list);
 

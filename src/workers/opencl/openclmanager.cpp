@@ -29,12 +29,12 @@ std::vector<cl::Platform> OpenCLManager::platform_list_;
 /************************************************************************/
 
 
-OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* workerReference) {
+OpenCLManager* OpenCLManager::GetReferenceByPlatform(const Worker& worker, int platformID) {
 	// If we haven't initialized the length of the reference list yet do so now
 	if (reference_list_.empty()) {
 		cl_int errCode = cl::Platform::get(&platform_list_);
 		if (errCode != CL_SUCCESS) {
-			LogError(workerReference,
+			LogError(worker,
 					std::string(__func__),
 					"Failed to retrieve the list of OpenCL platforms",
 					errCode);
@@ -46,7 +46,7 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* wor
 
 	// Check that the specified platform index isn't out of bounds
 	if (platformID >= reference_list_.size()) {
-		LogError(workerReference,
+		LogError(worker,
 				std::string(__func__),
 				"PlatformID is out of bounds (" + std::to_string(platformID) + ")");
 		return NULL;
@@ -54,10 +54,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* wor
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
 	if (reference_list_[platformID] == NULL) {
-		OpenCLManager* newManager = new OpenCLManager(platform_list_[platformID]);
+		OpenCLManager* newManager = new OpenCLManager(worker, platform_list_[platformID]);
 
 		if (!newManager->IsValid()) {
-			LogError(workerReference,
+			LogError(worker,
 					std::string(__func__),
 					"Unable to create OpenCLManager for platform " + std::to_string(platformID));
 			delete newManager;
@@ -72,10 +72,10 @@ OpenCLManager* OpenCLManager::GetReferenceByPlatform(int platformID, Worker* wor
 
 }
 
-const std::vector<cl::Platform> OpenCLManager::GetPlatforms(Worker* worker_reference) {
+const std::vector<cl::Platform> OpenCLManager::GetPlatforms(const Worker& worker) {
 	cl_int err_code = cl::Platform::get(&platform_list_);
 	if (err_code != CL_SUCCESS) {
-		LogError(worker_reference,
+		LogError(worker,
 			std::string(__func__),
 			"Failed to retrieve the list of OpenCL platforms",
 			err_code);
@@ -90,7 +90,7 @@ const std::vector<cl::Platform> OpenCLManager::GetPlatforms(Worker* worker_refer
 /************************************************************************/
 
 
-OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) : platform_(platform_) {
+OpenCLManager::OpenCLManager(const Worker& worker, cl::Platform& platform_) : platform_(platform_) {
 	cl_int err;
 
 	// Manager shouldn't be marked as valid until creation has completed successfully
@@ -98,7 +98,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 
 	platform_name_ = platform_.getInfo<CL_PLATFORM_NAME>(&err);
 	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
+		LogError(worker,
 			std::string(__func__),
 			"Unable to retrieve platform name",
 			err);
@@ -109,7 +109,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	std::vector<cl::Device> devices;
 	err = platform_.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
+		LogError(worker,
 			std::string(__func__),
 			"Failed to retrieve the list of devices for platform " + platform_name_,
 			err);
@@ -117,7 +117,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 
 	if (devices.size() == 0)
 	{
-		LogError(worker_reference,
+		LogError(worker,
 			std::string(__func__),
 			"Unable to find any devices for the given OpenCL platform (" + platform_name_ + ")");
 		return;
@@ -126,7 +126,7 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 	// Create a context from the collected devices
 	context_ = new cl::Context(devices, NULL, NULL, NULL, &err);
 	if (err != CL_SUCCESS) {
-		LogError(worker_reference,
+		LogError(worker,
 			std::string(__func__),
 			"Unable to create an OpenCL context (" + platform_name_ + ")",
 			err);
@@ -135,11 +135,11 @@ OpenCLManager::OpenCLManager(cl::Platform& platform_, Worker* worker_reference) 
 
 	// Create a representation for each of the devices
 	for(auto& d : devices) {
-		device_list_.emplace_back(*this, d, *worker_reference);
+		device_list_.emplace_back(worker, *this, d);
 		//device_list_.push_back(std::move(OpenCLDevice(*context_, d, *worker_reference)));
 	}
 
-	LoadAllBinaries(worker_reference);
+	LoadAllBinaries(worker);
 
 	// Mark the manager as having been properly initialized
 	valid_ = true;
@@ -153,7 +153,7 @@ std::string OpenCLManager::GetPlatformName() const {
 	return platform_name_;
 }
 
-std::vector<OpenCLDevice>& OpenCLManager::GetDevices(Worker* worker_reference) {
+std::vector<OpenCLDevice>& OpenCLManager::GetDevices(const Worker& worker) {
 	return device_list_;
 }
 
@@ -161,14 +161,15 @@ const std::vector<std::shared_ptr<cl::CommandQueue> > OpenCLManager::GetQueues()
 	return queues_;
 }
 
-const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(const std::vector<std::string>& filenames, Worker* worker_reference) {
+// May throw
+const std::vector<OpenCLKernel> OpenCLManager::CreateKernels(const Worker& worker, const std::vector<std::string>& filenames) {
 	std::vector<OpenCLKernel> kernels;
 
 	// Read, compile and link the Program from OpenCL code
-	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames, worker_reference);
+	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
 	for (auto& device : device_list_) {
-		device.LoadKernelsFromSource(filenames, *worker_reference);
+		device.LoadKernelsFromSource(worker, filenames);
 	}
 
 	return kernels;
@@ -183,9 +184,10 @@ bool OpenCLManager::IsValid() const {
 /* Private Functions                                                    */
 /************************************************************************/
 
-int OpenCLManager::TrackBuffer(GenericBuffer* buffer){
+
+int OpenCLManager::TrackBuffer(const Worker& worker, GenericBuffer* buffer){
 	auto success = false;
-	auto worker = buffer->GetInitialWorker();
+	//auto worker = buffer->GetInitialWorker();
 	
 	//try to retrieve a new buffer ID
 	auto buffer_id  = buffer_id_count_++;
@@ -201,12 +203,6 @@ int OpenCLManager::TrackBuffer(GenericBuffer* buffer){
 		LogError(worker, __func__, "Got Duplicate Buffer ID: " + std::to_string(buffer_id));
 		buffer_id = invalid_buffer_id_;
 	}
-
-	/*if (!success) {
-		//If we have an error, teardown the buffer if it's in memory
-		delete buffer;
-		buffer = 0;
-	}*/
 	return buffer_id;
 }
 
@@ -214,7 +210,7 @@ void OpenCLManager::UntrackBuffer(int buffer_id) {
 	buffer_store_.erase(buffer_id);
 }
 
-bool OpenCLManager::LoadAllBinaries(Worker* worker_ref) {
+bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
 
     /*if (load_balancer_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
@@ -228,9 +224,16 @@ bool OpenCLManager::LoadAllBinaries(Worker* worker_ref) {
     for (auto& device : device_list_) {
         std::string dev_name = device.GetName();
         std::string binary_path = GetSourcePath("binaries/"+platform_name_+"-"+dev_name+".clbin");
-        bool success = device.LoadKernelsFromBinary(binary_path, *worker_ref);
+        bool success = false;
+		try {
+			success = device.LoadKernelsFromBinary(worker, binary_path);
+		} catch (const std::exception& e) {
+			LogError(worker, __func__,
+                "Failed to load binary for device "+dev_name+":\n"+e.what());
+            did_all_succeed = false;
+		}
         if (!success) {
-            LogError(worker_ref, __func__,
+            LogError(worker, __func__,
                 "Failed to load binary for device "+dev_name);
             did_all_succeed = false;
         } else {
@@ -243,23 +246,23 @@ bool OpenCLManager::LoadAllBinaries(Worker* worker_ref) {
     return did_all_succeed;
 }
 
-void OpenCLManager::LogError(Worker* worker_reference,
+void OpenCLManager::LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message,
 							int cl_error_code)
 {
 	
-	LogOpenCLError(worker_reference,
+	LogOpenCLError(worker,
 		"OpenCLManager::" + function_name,
 		error_message,
 		cl_error_code);
 }
 
-void OpenCLManager::LogError(Worker* worker_reference,
+void OpenCLManager::LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message)
 {
-	LogOpenCLError(worker_reference,
+	LogOpenCLError(worker,
 		"OpenCLManager::" + function_name,
 		error_message);
 }

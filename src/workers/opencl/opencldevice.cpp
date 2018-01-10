@@ -16,7 +16,7 @@ cl::Device& storeDevice(cl::Device& dev) {
 }*/
 
 
-OpenCLDevice::OpenCLDevice(OpenCLManager& manager, cl::Device& device, const Worker& worker) :
+OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device) :
     dev_(new cl::Device(device)),
     manager_(manager),
     queue_(new cl::CommandQueue(manager_.GetContext(), *dev_, CL_QUEUE_PROFILING_ENABLE, &err_)),
@@ -46,13 +46,14 @@ const cl::CommandQueue& OpenCLDevice::GetQueue() const {
     return *queue_;
 }
 
-bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenames, Worker& worker) {
+// May throw
+bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector<std::string>& filenames) {
     cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
 
 	// Read, compile and link the Program from OpenCL code
-	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames, &worker);
+	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
 	programs_.emplace_back(manager_.GetContext(), sources, &err);
 	if (err != CL_SUCCESS) {
@@ -87,20 +88,21 @@ bool OpenCLDevice::LoadKernelsFromSource(const std::vector<std::string>& filenam
 	}
 
 	for (auto& kernel : new_kernels) {
-		kernels_.emplace_back(manager_, kernel, &worker);
+		kernels_.emplace_back(worker, manager_, kernel);
 	}
 
 	return true;
 }
 
-bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& worker) {
+// May throw
+bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string& filename) {
 	cl_int err;
 
 	std::vector<OpenCLKernel> kernels;
 
 	std::vector<std::string> filenames;
 	filenames.push_back(filename);
-	cl::Program::Binaries binaries = ReadOpenCLBinaries(filenames, &worker);
+	cl::Program::Binaries binaries = ReadOpenCLBinaries(filenames);
 
     std::vector<cl::Device> device_vec;
     device_vec.push_back(*dev_);
@@ -161,7 +163,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const std::string& filename, Worker& wo
 				err);
 			continue;
 		}
-		kernels_.emplace_back(manager_, kernel, &worker);
+		kernels_.emplace_back(worker, manager_, kernel);
 		//std::cout << name << std::endl;
 	}
 
@@ -184,15 +186,15 @@ const std::vector<std::reference_wrapper<OpenCLKernel> > OpenCLDevice::GetKernel
 	}
 }*/
 
-void OpenCLDevice::LogError(const Worker& worker_ref, std::string function_name, std::string error_message, cl_int cl_error_code) {
-    LogOpenCLError(&worker_ref,
+void OpenCLDevice::LogError(const Worker& worker, std::string function_name, std::string error_message, cl_int cl_error_code) {
+    LogOpenCLError(worker,
         "OpenCLKernelBase::" + function_name,
         error_message,
         cl_error_code);
 }
 
-void OpenCLDevice::LogError(const Worker& worker_ref, std::string function_name, std::string error_message) {
-    LogOpenCLError(&worker_ref,
+void OpenCLDevice::LogError(const Worker& worker, std::string function_name, std::string error_message) {
+    LogOpenCLError(worker,
         "OpenCLKernelBase::" + function_name,
         error_message);
 }

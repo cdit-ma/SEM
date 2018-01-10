@@ -15,7 +15,7 @@ class OpenCLDevice;
 
 class GenericBuffer {
 public:
-    GenericBuffer(OpenCLManager& manager, size_t size, Worker* worker_ref);
+    GenericBuffer(const Worker& worker, OpenCLManager& manager, size_t size);
     virtual ~GenericBuffer();
     GenericBuffer(const GenericBuffer&) = default;
     GenericBuffer(GenericBuffer&&) = default;
@@ -25,17 +25,17 @@ public:
     bool is_valid() const;
     size_t GetSize() const;
     int GetID() const;
-    Worker* GetInitialWorker() const;
+    const Worker& GetInitialWorker() const;
     
     const cl::Buffer& GetBackingRef() const;
 
 protected:
 
-    bool ReadData(void* dest, size_t length, const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL) const;
-    bool WriteData(const void* source, size_t size, const OpenCLDevice& device, bool blocking=true, Worker* worker_reference=NULL);
+    bool ReadData(const Worker& worker, void* dest, size_t length, const OpenCLDevice& device, bool blocking=true) const;
+    bool WriteData(const Worker& worker, const void* source, size_t size, const OpenCLDevice& device, bool blocking=true);
     
-    virtual void LogError(Worker* worker_reference, std::string function_name, std::string error_message, int cl_error_code) const;
-    virtual void LogError(Worker* worker_reference, std::string function_name, std::string error_message) const;
+    virtual void LogError(const Worker& worker, std::string function_name, std::string error_message, int cl_error_code) const;
+    virtual void LogError(const Worker& worker, std::string function_name, std::string error_message) const;
 
     int id_ = -1;
     bool valid_ = false;
@@ -43,7 +43,7 @@ protected:
     std::shared_ptr<cl::Buffer> buffer_;
     size_t size_;
 
-    Worker* worker_reference_;
+    const Worker& worker_reference_;
 };
 
 #endif
