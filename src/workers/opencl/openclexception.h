@@ -12,7 +12,7 @@ public:
         std::runtime_error(message),
         error_code(opencl_error_code) {};
 
-    const char* what() const {
+    const char* what() const noexcept {
         std::string message = "[";
         message += OpenCLErrorName(ErrorCode());
         message += "] ";
