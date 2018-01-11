@@ -14,6 +14,7 @@ class Broadcaster{
         void EndBroadcast();
 
     private:
+
         void BroadcastLoop();
         zmq::message_t GetZMQMessage();
 

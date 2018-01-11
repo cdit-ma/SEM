@@ -28,55 +28,93 @@ int main(int argc, char **argv){
 
     std::cout << "Connected to endpoint" << std::endl;
 
-    std::string type("DEPLOYMENT");
-    zmq::message_t type_msg(type.begin(), type.end());
+    bool flag = argc == 2;
 
-    std::cout << "created message" << std::endl;
+    if(flag){
+        std::string type("DEPLOYMENT");
+        zmq::message_t type_msg(type.begin(), type.end());
 
-    std::string deployment(argv[1]);
-    zmq::message_t deployment_msg(deployment.begin(), deployment.end());
+        std::cout << "created message" << std::endl;
 
-    std::cout << "created deployment message" << std::endl;
+        std::string deployment(argv[1]);
+        zmq::message_t deployment_msg(deployment.begin(), deployment.end());
 
-
-    req.send(type_msg, ZMQ_SNDMORE);
-    std::cout << "sent type message" << std::endl;    
-    req.send(deployment_msg);
-    std::cout << "sent deployment message" << std::endl;
-    
-
-    zmq::message_t inbound_type;
-    req.recv(&inbound_type);
-    zmq::message_t inbound;
-    req.recv(&inbound);
-
-    std::cout << "recieved inbound message" << std::endl;
-
-    auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
-
-    std::cout << "Inbound message type: " << type_str << std::endl;
-
-    auto hb_endpoint = std::string(static_cast<const char*>(inbound.data()), inbound.size());
+        std::cout << "created deployment message" << std::endl;
 
 
+        req.send(type_msg, ZMQ_SNDMORE);
+        std::cout << "sent type message" << std::endl;    
+        req.send(deployment_msg);
+        std::cout << "sent deployment message" << std::endl;
+        
 
-    std::cout << "Got heartbeat endpoint: " << hb_endpoint << std::endl;
+        zmq::message_t inbound_type;
+        req.recv(&inbound_type);
+        zmq::message_t inbound;
+        req.recv(&inbound);
 
-    zmq::socket_t hb_soc(context, ZMQ_REQ);
-    hb_soc.connect(hb_endpoint);
+        std::cout << "recieved inbound message" << std::endl;
 
-    std::cout << "connected to heartbeat endpoint" << std::endl;
+        auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
 
-    while(true){
+        std::cout << "Inbound message type: " << type_str << std::endl;
 
-        std::string hb_str("HB");
-        zmq::message_t hb_message(hb_str.begin(), hb_str.end());
-        hb_soc.send(hb_message);
+        auto hb_endpoint = std::string(static_cast<const char*>(inbound.data()), inbound.size());
 
-        zmq::message_t ack;
-        hb_soc.recv(&ack);
+        std::cout << "Got heartbeat endpoint: " << hb_endpoint << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cout << "beat" << std::endl;
+        zmq::socket_t hb_soc(context, ZMQ_REQ);
+        hb_soc.connect(hb_endpoint);
+
+        std::cout << "connected to heartbeat endpoint" << std::endl;
+
+        while(true){
+
+            std::string hb_str("HB");
+            zmq::message_t hb_message(hb_str.begin(), hb_str.end());
+            hb_soc.send(hb_message);
+
+            zmq::message_t ack;
+            hb_soc.recv(&ack);
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::cout << "beat" << std::endl;
+        }
+
+    }
+
+    else{
+        std::string type("QUERY");
+        zmq::message_t type_msg(type.begin(), type.end());
+
+        std::cout << "created message type" << std::endl;
+
+        std::string query("this is a test query");
+        zmq::message_t query_msg(query.begin(), query.end());
+
+        std::cout << "created query_msg message" << std::endl;
+
+
+        req.send(type_msg, ZMQ_SNDMORE);
+        std::cout << "sent type message" << std::endl;    
+        req.send(query_msg);
+        std::cout << "sent query_msg" << std::endl;
+        
+
+        zmq::message_t inbound_type;
+        req.recv(&inbound_type);
+        zmq::message_t inbound;
+        req.recv(&inbound);
+
+        std::cout << "recieved inbound message" << std::endl;
+
+        auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
+
+        std::cout << "Inbound message type: " << type_str << std::endl;
+
+        auto query_response = std::string(static_cast<const char*>(inbound.data()), inbound.size());
+
+        std::cout << query_response << std::endl;
+
     }
 }
