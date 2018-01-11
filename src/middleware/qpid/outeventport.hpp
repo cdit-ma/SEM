@@ -112,7 +112,7 @@ bool qpid::OutEventPort<T, S>::setup_tx(){
             return true;
         }
     }catch(const std::exception& ex){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID Sender") + ex.what());
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID Sender") + ex.what());
     }
     return false;
 };

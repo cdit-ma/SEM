@@ -143,7 +143,7 @@ int Cpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned i
 					                    const float* dataA, const float* dataB, float* dataC) {
 
     // Magic maths to determine dimensions of output matrix
-    unsigned long Ksquared = ((unsigned long)lenA*(unsigned long)lenB)/lenC;
+    unsigned long long Ksquared = ((unsigned long long)lenA*(unsigned long long)lenB)/lenC;
 	unsigned int k = (unsigned int)sqrt((double)Ksquared);
 	unsigned int m = lenA/k;
 	unsigned int n = lenB/k;

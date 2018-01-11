@@ -121,8 +121,8 @@ void qpid::InEventPort<T, S>::recv_loop(){
         auto session = connection_.createSession();
         receiver_ = session.createReceiver( "amq.topic/"  + topic_name_->String());
     }catch(const std::exception& ex){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
-        state = ThreadState::ERROR;
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
+        state = ThreadState::ERROR_;
     }
 
     //Change the state to be Configured
@@ -150,7 +150,7 @@ void qpid::InEventPort<T, S>::recv_loop(){
                 this->EnqueueMessage(m);
             }
             catch(const std::exception& ex){
-                //Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to fetch QPID Messages") + ex.what());
+                //Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to fetch QPID Messages") + ex.what());
                 run = false;
             }
         }
