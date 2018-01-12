@@ -16,7 +16,8 @@ zmq::Registrar::Registrar(ExecutionManager* manager, const std::string& publishe
 
     //Construct a new thread for each slave
     for(const auto& s : execution_manager_->GetSlaveAddresses()){
-        registration_results_.emplace_back(std::async(&zmq::Registrar::RegistrationLoop, this, s));
+        //Adding std::launch::async forces the async process to start instantaneously. 
+        registration_results_.emplace_back(std::async(std::launch::async, &zmq::Registrar::RegistrationLoop, this, s));
     }
 }
 

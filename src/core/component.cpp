@@ -96,14 +96,14 @@ bool Component::HandleTerminate(){
             auto& a = p.second;
             if(a){
                 //Construct a thread to run the terminate function, which is blocking
-                results.push_back(std::async(&Activatable::Terminate, a));
+                results.push_back(std::async(std::launch::async, &Activatable::Terminate, a));
             }
         }
         for(const auto& p : eventports_){
             auto& a = p.second;
             if(a){
                 //Construct a thread to run the terminate function, which is blocking
-                results.push_back(std::async(&Activatable::Terminate, a));
+                results.push_back(std::async(std::launch::async, &Activatable::Terminate, a));
             }
         }
     }
