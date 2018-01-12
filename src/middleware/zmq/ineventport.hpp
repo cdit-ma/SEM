@@ -60,6 +60,7 @@ bool zmq::InEventPort<T, S>::HandleConfigure(){
             std::unique_lock<std::mutex> lock(thread_state_mutex_);
             thread_state_ = ThreadState::WAITING;
             recv_thread_ = new std::thread(&zmq::InEventPort<T, S>::recv_loop, this);
+            std::cout << recv_thread_<< std::endl;
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
             return thread_state_ == ThreadState::STARTED;
         }
@@ -101,6 +102,7 @@ bool zmq::InEventPort<T, S>::HandlePassivate(){
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::recv_loop(){
+    std::cout << "ZMQ Recv thread: "<<std::hex << std::this_thread::get_id() << std::endl;
     terminate_mutex_.lock();
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_subscriber_socket();
