@@ -9,30 +9,62 @@
 OpenCLWorker::OpenCLWorker(const Component& component, std::string inst_name)
     : Worker(component, __func__, inst_name) {
     
+    platform_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "platform_id").lock();
+    if (platform_id_ != NULL) {
+        platform_id_->set_Integer(-1);
+    }
+
+    device_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "device_id").lock();
+    if (device_id_ != NULL) {
+        device_id_->set_Integer(-1);
+    }
 }
 
 OpenCLWorker::~OpenCLWorker() {
     
 }
 
-bool OpenCLWorker::Configure(int platform_id, int device_id) {
-    // TODO: Pull out platforms and devices using GetAttribute later
+bool OpenCLWorker::Configure() {
+    int platform_id;
+    int device_id;
+    auto platform_attr = GetAttribute("platform_id").lock();
+    if (platform_attr != NULL) {
+        platform_id = platform_attr->get_Integer();
+    }
+    auto device_attr = GetAttribute("device_id").lock();
+    if (device_attr != NULL) {
+        device_id = device_attr->get_Integer();
+    }
 
-    manager_ = OpenCLManager::GetReferenceByPlatform(*this, platform_id);
+    manager_ = OpenCLManager::GetReferenceByPlatformID(*this, platform_id);
     if (manager_ == NULL) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
             "Unable to obtain a reference to an OpenCLManager");
         return false;
-    } else {
-        is_valid_ = true;
     }
 
-    std::vector<unsigned int> device_ids;
-    device_ids.push_back(device_id);
-    load_balancer_ = new OpenCLLoadBalancer(device_ids);
     auto& device_list = manager_->GetDevices(*this);
-    devices_.emplace_back(device_list.at(std::ref(device_id)));
+    std::vector<unsigned int> device_ids;
 
+    if (device_id < -1 || device_id >= device_list.size()) {
+        Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(),
+            "'device_id' provided by attribute is out of bounds: " + std::to_string(device_id));
+        return false;
+    }
+
+    if (device_id == -1) {
+        for (int i=0; i<device_list.size(); i++) {
+            devices_.emplace_back(device_list.at(i));
+            device_ids.push_back(i);
+        }
+    } else {
+        devices_.emplace_back(device_list.at(std::ref(device_id)));
+        device_ids.push_back(device_id);
+    }
+
+    load_balancer_ = new OpenCLLoadBalancer(device_ids);
+
+    is_valid_ = true;
     return true;
 }
 
@@ -120,7 +152,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     auto& matrix_kernel = GetKernel(device, "matrixMultFull", filename);
 
     // Specifies the width and height of the blocks used to increase cache performance, will be hardware dependant
-    unsigned int block_length = 4;
+    unsigned int block_length;
    // cl::Device dev = manager_->GetContext().getInfo<CL_CONTEXT_DEVICES>()[0];
     cl::size_type kernel_workgroup_size = matrix_kernel.GetBackingRef().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device.GetRef());
     cl::size_type device_workgroup_size = device.GetRef().getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();

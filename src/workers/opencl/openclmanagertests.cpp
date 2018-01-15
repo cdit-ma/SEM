@@ -145,17 +145,20 @@ int main(int argc, char** argv) {
 
 	OpenCLManager* manager;
 	try{
-	
-	manager = OpenCLManager::GetReferenceByPlatform(test_worker, 0);
+		manager = OpenCLManager::GetReferenceByPlatformID(test_worker, 0);
+		res = PASS;
 	} catch (const std::exception& e) {
-		std::cerr << "exception town: " << e.what() << std::endl;
+		std::cerr << "Exception when obtaining manager reference: " << e.what() << std::endl;
+		res = FAIL;
 	}
+	recordTest(res, "Retrieved first available OpenCLManager without an exception being thrown");
+
 	if (manager != NULL) {
 		res = PASS;
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Attempt to retreive reference to first available OpenCLPlatform did not return null");
+	recordTest(res, "Attempt to retreive reference to first available OpenCLManager did not return null");
 	if (manager->IsValid()) {
 		res = PASS;
 	}
@@ -472,14 +475,34 @@ OpenCLWorker* testWorkerConstruction(Component& component, int device_id) {
 	printInfo("Creating an OpenCLWorker...");
 
 	OpenCLWorker* worker = new OpenCLWorker(component, "OpenCLWorker_ConstructionTest");
-	worker->Configure(0, device_id);
+
+	auto platform_attr = worker->GetAttribute("platform_id").lock();
+	if (platform_attr == NULL) {
+		res = FAIL;
+	} else {
+		res = PASS;
+	}
+	recordTest(res, "Successfully retrieved 'platform_id' attribute for OpenCLWorker");
+
+	auto device_attr = worker->GetAttribute("device_id").lock();
+	if (device_attr == NULL) {
+		res = FAIL;
+	} else {
+		res = PASS;
+	}
+	recordTest(res, "Successfully retrieved 'device_id' attribute for OpenCLWorker");
+
+	platform_attr->set_Integer(0);
+	device_attr->set_Integer(device_id);
+
+	worker->Configure();
 
 	if (worker->IsValid()) {
 		res = PASS;
 	} else {
 		res = FAIL;
 	}
-	recordTest(res, "Construct a valid OpenCLWorker");
+	recordTest(res, "OpenCLWorker reports itself to be valid after configuration");
 
 	if (res == FAIL) {
 		delete worker;

@@ -32,7 +32,7 @@ class OpenCLManager {
 		* @param workerReference a reference to the worker making the call (for logging)
 		* @return The OpenCLMaanager for the provided platform, or NULL if one can't be created
 		**/
-		static OpenCLManager* GetReferenceByPlatform(const Worker& worker, int platform_id);
+		static OpenCLManager* GetReferenceByPlatformID(const Worker& worker, int platform_id);
 
 
 		static const std::vector<cl::Platform> GetPlatforms(const Worker& worker);

@@ -29,46 +29,46 @@ std::vector<cl::Platform> OpenCLManager::platform_list_;
 /************************************************************************/
 
 
-OpenCLManager* OpenCLManager::GetReferenceByPlatform(const Worker& worker, int platformID) {
+OpenCLManager* OpenCLManager::GetReferenceByPlatformID(const Worker& worker, int platform_id) {
 	// If we haven't initialized the length of the reference list yet do so now
 	if (reference_list_.empty()) {
-		cl_int errCode = cl::Platform::get(&platform_list_);
+		/*cl_int errCode = cl::Platform::get(&platform_list_);
 		if (errCode != CL_SUCCESS) {
 			LogError(worker,
 					std::string(__func__),
 					"Failed to retrieve the list of OpenCL platforms",
 					errCode);
 			return NULL;
-		}
-
+		}*/
+		GetPlatforms(worker);
 		reference_list_.resize(platform_list_.size(), NULL);
 	}
 
 	// Check that the specified platform index isn't out of bounds
-	if (platformID >= reference_list_.size()) {
+	if (platform_id >= reference_list_.size() || platform_id < 0) {
 		LogError(worker,
-				std::string(__func__),
-				"PlatformID is out of bounds (" + std::to_string(platformID) + ")");
+			std::string(__func__),
+			"platform_id is out of bounds (" + std::to_string(platform_id) + ")");
 		return NULL;
 	}
 	
 	// If we haven't created an OpenCLManager for the specified platform do so now
-	if (reference_list_[platformID] == NULL) {
-		OpenCLManager* newManager = new OpenCLManager(worker, platform_list_[platformID]);
+	if (reference_list_[platform_id] == NULL) {
+		OpenCLManager* new_manager = new OpenCLManager(worker, platform_list_[platform_id]);
 
-		if (!newManager->IsValid()) {
+		if (!new_manager->IsValid()) {
 			LogError(worker,
 					std::string(__func__),
-					"Unable to create OpenCLManager for platform " + std::to_string(platformID));
-			delete newManager;
+					"Unable to create OpenCLManager for platform " + std::to_string(platform_id));
+			delete new_manager;
 			return NULL;
 		}
 
-		reference_list_[platformID] = newManager;
+		reference_list_[platform_id] = new_manager;
 	}
 
 	// Return the relevant reference
-	return reference_list_[platformID];
+	return reference_list_[platform_id];
 
 }
 

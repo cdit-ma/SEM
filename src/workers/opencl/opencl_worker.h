@@ -12,7 +12,7 @@ public:
     OpenCLWorker(const Component& component, std::string inst_name);
     ~OpenCLWorker();
 
-    bool Configure(int platform_id=0, int device_id=0);
+    bool Configure();
     bool IsValid() const;
 
     // Base/Utility functions
@@ -49,6 +49,9 @@ private:
     OpenCLLoadBalancer* load_balancer_ = NULL;
 
     std::vector<std::reference_wrapper<OpenCLDevice> > devices_;
+
+    std::shared_ptr<Attribute> platform_id_;
+    std::shared_ptr<Attribute> device_id_;
 
 };
 
