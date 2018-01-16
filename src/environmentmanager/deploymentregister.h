@@ -27,7 +27,11 @@ class DeploymentRegister{
         static const std::string ERROR;
 
         static const int INITIAL_TIMEOUT = 4000;
-        static const int HEARTBEAT_TIMEOUT = 2000;
+        static const int HEARTBEAT_INTERVAL = 1000;
+
+        static const int HEARTBEAT_LIVENESS = 3;
+        static const int INITIAL_INTERVAL = 1000;
+        static const int MAX_INTERVAL = 8000;
 
         void SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one, const std::string& part_two);
 

@@ -99,7 +99,6 @@ int main(int argc, char **argv){
         std::cout << "sent type message" << std::endl;    
         req.send(query_msg);
         std::cout << "sent query_msg" << std::endl;
-        
 
         zmq::message_t inbound_type;
         req.recv(&inbound_type);

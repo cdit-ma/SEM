@@ -38,7 +38,7 @@ void Broadcaster::BroadcastLoop(){
         publisher.bind(endpoint_);
     }
     catch(zmq::error_t& e){
-        //TODO: Handle this better.
+        //TODO: Handle this better. Shouldn't throw exception from thread, will result in termination
         throw new std::invalid_argument("Could not bind broadcast endpoint in Broadcast loop. Endpoint: " + endpoint_);
     }
 

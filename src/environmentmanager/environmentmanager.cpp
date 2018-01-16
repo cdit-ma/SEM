@@ -50,7 +50,7 @@ int main(int argc, char **argv){
     }
 
 
-    std::string bcast_address("tcp://*:" + bcast_port);
+    std::string bcast_address("tcp://" + ip_address + ":" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
 
     Broadcaster* broadcaster = new Broadcaster(bcast_address, bcast_message);

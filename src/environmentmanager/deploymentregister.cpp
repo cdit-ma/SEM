@@ -141,8 +141,7 @@ void DeploymentRegister::HeartbeatLoop(std::promise<std::string> port_promise){
     std::string ack_str("ACK");
 
     //Initialise our poll item list
-    zmq::pollitem_t item = {hb_soc, 0, ZMQ_POLLIN, 0};
-    std::vector<zmq::pollitem_t> sockets = {item};
+    std::vector<zmq::pollitem_t> sockets = {{hb_soc, 0, ZMQ_POLLIN, 0}};
 
     //Wait for first heartbeat, allow more time for this one in case of server congestion
     int initial_events = zmq::poll(sockets, INITIAL_TIMEOUT);
@@ -159,21 +158,37 @@ void DeploymentRegister::HeartbeatLoop(std::promise<std::string> port_promise){
         return;
     }
 
+    int interval = INITIAL_INTERVAL;
+    int liveness = HEARTBEAT_LIVENESS;
+
     //Wait for heartbeats
     while(true){
+
         zmq::message_t hb_message;
 
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
-        int events = zmq::poll(sockets, HEARTBEAT_TIMEOUT);
+        int events = zmq::poll(sockets, HEARTBEAT_INTERVAL);
 
-        if(events < 1){
-            break;
+        if(events >= 1){
+            //Reset
+            liveness = HEARTBEAT_LIVENESS;
+            interval = INITIAL_INTERVAL;
+            hb_soc.recv(&hb_message);
+
+            zmq::message_t ack(ack_str.begin(), ack_str.end());
+            hb_soc.send(ack);
         }
 
-        hb_soc.recv(&hb_message);
-
-        zmq::message_t ack(ack_str.begin(), ack_str.end());
-        hb_soc.send(ack);
+        else if(--liveness == 0){
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+            if(interval < MAX_INTERVAL){
+                interval *= 2;
+            }
+            else{
+                break;
+            }
+            liveness = HEARTBEAT_LIVENESS;
+        }
     }
 
     //Broken out of heartbeat loop at this point, remove deployment
