@@ -222,8 +222,12 @@ bool OpenCLManager::LoadAllBinaries(const Worker& worker) {
 
     bool did_all_succeed = true;
     for (auto& device : device_list_) {
-        std::string dev_name = device.GetName();
-        std::string binary_path = GetSourcePath("binaries/"+platform_name_+"-"+dev_name+".clbin");
+        std::string dev_name = SanitisePathString(device.GetName()).substr(0, 15);
+		std::string plat_name = SanitisePathString(platform_name_).substr(0, 15);
+
+		std::string filename = plat_name+"-"+dev_name+".clbin";
+
+        std::string binary_path = GetSourcePath("binaries/"+filename);
         bool success = false;
 		try {
 			success = device.LoadKernelsFromBinary(worker, binary_path);

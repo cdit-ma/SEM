@@ -24,6 +24,8 @@ extern std::string clErrorNames[];
 
 extern std::string OpenCLErrorName(int opencl_error_code);
 
+extern std::string SanitisePathString(const std::string& str);
+
 extern std::string GetSourcePath(std::string filename);
 
 extern cl::Program::Sources ReadOpenCLSourceCode(const std::vector<std::string>& filenames);

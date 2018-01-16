@@ -147,7 +147,6 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		return false;
 	}
 
-	std::cout << "about to loop through "<<new_kernels.size()<<" opencl kernels constructed from binary:" << std::endl;
 	for (auto& kernel : new_kernels) {
 		std::string name = kernel.getInfo<CL_KERNEL_FUNCTION_NAME>();
 		bool name_already_exists = false;

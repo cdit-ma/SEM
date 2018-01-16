@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 /*void LogOpenCLError(std::string message, cl_int errorCode) {
 	std::cerr << "OpenCL error (" << errorCode << "): " << message << std::endl;
@@ -81,6 +82,37 @@ std::string clErrorNames[] = {
 
 std::string OpenCLErrorName(int opencl_error_code) {
 	return clErrorNames[-opencl_error_code];
+}
+
+
+bool isValidChar(char c) {
+	switch (c) {
+		case '\\':
+		case '/':
+		case ':':
+		case '*':
+		case '?':
+		case '"':
+		case '<':
+		case '>':
+		case '|':
+		case ' ':
+		case '@':
+			return false;
+		default:
+			return true;
+	}
+}
+
+std::string SanitisePathString(const std::string& str) {
+	std::string result;
+	result.reserve(str.length());
+
+	std::remove_copy_if(str.begin(), str.end(),
+						std::back_inserter(result),
+						std::not1(std::ptr_fun(isValidChar)) );
+
+	return result;
 }
 
 std::string GetSourcePath(std::string filename) {

@@ -63,10 +63,15 @@ void precompile(cl::Device& device, std::string platform_name) {
         }
     }
 
+    std::string dev_name = SanitisePathString(device_name).substr(0, 15);
+    std::string plat_name = SanitisePathString(platform_name).substr(0, 15);
+
+    std::string filename = plat_name+"-"+dev_name+".clbin";
+
 //#ifdef _WIN32
 //    std::string binary_filepath = GetSourcePath("binaries\\"+platform_name+"-"+device_name+".clbin");
 //#else
-    std::string binary_filepath = GetSourcePath("binaries/"+platform_name+"-"+device_name+".clbin");
+    std::string binary_filepath = GetSourcePath("binaries/"+filename);
 //#endif
     std::ofstream binary_stream(binary_filepath, std::ios::out | std::ios::binary);
 
