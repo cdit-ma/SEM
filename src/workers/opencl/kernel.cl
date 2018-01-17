@@ -1,4 +1,4 @@
-
+/*
 __kernel void emptyTestKernel() {
  //blank
 }
@@ -8,7 +8,7 @@ __kernel void signatureTestKernel(
     __local float4* float4TestBuffer,
     __global double2* double2TestBuffer) {
     //blank
-}
+}*/
 
 __kernel void dataPassthroughTest(
     __global float* inBuffer,
