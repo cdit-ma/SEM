@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <exception>
+#include <src/nodemanager/controlmessage/controlmessage.pb.h>
 
 const std::string DeploymentRegister::SUCCESS = "SUCCESS";
 const std::string DeploymentRegister::ERROR = "ERROR";
@@ -43,10 +44,28 @@ std::string DeploymentRegister::GetDeploymentInfo(const std::string& name) const
     return "";
 }
 
+//Handle request for deployment information at specific location or of specific component name
+std::string DeploymentRegister::HandleQuery(const std::string& request){
+    std::string response("");
+    std::unique_lock<std::mutex> lock(register_mutex_);
+
+    //TODO: Handle requests without hardcoding
+    if(size_t pos = request.find("PORT:") != std::string::npos){
+        std::string port_no = request.substr(pos+4);
+
+        if(deployment_map_.count(port_no)){
+            response = deployment_map_.at(port_no);
+        }
+        else{
+            response = "Error: Port not found";
+        }
+    }
+    return response;
+}
+
 void DeploymentRegister::RegistrationLoop(){
 
     zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
-
     try{
         rep->bind(TCPify(ip_addr_, registration_port_));
     }
@@ -97,8 +116,8 @@ void DeploymentRegister::RegistrationLoop(){
         }
 
         else if(request_type.compare("QUERY") == 0){
-            std::string info = GetDeploymentInfo();
-            SendTwoPartReply(rep, SUCCESS, info);
+            std::string response = HandleQuery(request_contents);
+            SendTwoPartReply(rep, SUCCESS, response);
         }
 
         else{
@@ -163,7 +182,6 @@ void DeploymentRegister::HeartbeatLoop(std::promise<std::string> port_promise){
 
     //Wait for heartbeats
     while(true){
-
         zmq::message_t hb_message;
 
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
@@ -178,7 +196,6 @@ void DeploymentRegister::HeartbeatLoop(std::promise<std::string> port_promise){
             zmq::message_t ack(ack_str.begin(), ack_str.end());
             hb_soc.send(ack);
         }
-
         else if(--liveness == 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){

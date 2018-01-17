@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 
+#include <src/nodemanager/controlmessage/controlmessage.pb.h>
+
+
 int main(int argc, char **argv){
 
     std::cout << "Started" << std::endl;
@@ -11,7 +14,7 @@ int main(int argc, char **argv){
     zmq::context_t context(1);
     zmq::socket_t sub(context, ZMQ_SUB);
 
-    sub.connect("tcp://localhost:22334");
+    sub.connect("tcp://192.168.111.230:22334");
     sub.setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
     std::cout << "Subscribed" << std::endl;
@@ -36,8 +39,13 @@ int main(int argc, char **argv){
 
         std::cout << "created message" << std::endl;
 
-        std::string deployment(argv[1]);
-        zmq::message_t deployment_msg(deployment.begin(), deployment.end());
+        std::string deployment_name(argv[1]);
+        NodeManager::ControlMessage* deployment = new NodeManager::ControlMessage();
+        deployment->set_host_name(deployment_name);
+
+        std::string out = deployment->SerializeAsString();
+
+        zmq::message_t deployment_msg(out.begin(), out.end());
 
         std::cout << "created deployment message" << std::endl;
 
@@ -46,7 +54,7 @@ int main(int argc, char **argv){
         std::cout << "sent type message" << std::endl;    
         req.send(deployment_msg);
         std::cout << "sent deployment message" << std::endl;
-        
+
 
         zmq::message_t inbound_type;
         req.recv(&inbound_type);
@@ -89,14 +97,15 @@ int main(int argc, char **argv){
 
         std::cout << "created message type" << std::endl;
 
-        std::string query("this is a test query");
+        std::string query("PORT:");
+        query += argv[2];
         zmq::message_t query_msg(query.begin(), query.end());
 
         std::cout << "created query_msg message" << std::endl;
 
 
         req.send(type_msg, ZMQ_SNDMORE);
-        std::cout << "sent type message" << std::endl;    
+        std::cout << "sent type message" << std::endl;
         req.send(query_msg);
         std::cout << "sent query_msg" << std::endl;
 

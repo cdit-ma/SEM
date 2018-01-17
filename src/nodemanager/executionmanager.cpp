@@ -219,8 +219,6 @@ bool ExecutionManager::ConstructControlMessages(){
             auto node_pb = cm->add_nodes();
             cm->set_host_name(node->name);
 
-
-
             // Set the node name of the protobuf message
             node_pb->mutable_info()->set_name(node->name);
             node_pb->mutable_info()->set_id(node->id);

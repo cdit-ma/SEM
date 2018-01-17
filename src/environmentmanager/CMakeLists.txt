@@ -16,6 +16,8 @@ project(${PROJ_NAME})
 
 #Find ZeroMQ
 find_package(ZMQ REQUIRED)
+#Find Protobuf
+find_package(Protobuf REQUIRED)
 
 #Link against boost dynamically
 add_definitions(-DBOOST_ALL_DYN_LINK)
@@ -43,6 +45,8 @@ add_executable(reg_tester ${TEST_SRC})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+
 
 if (MSVC)
     #Windows requires protobuf in DLLs
@@ -59,5 +63,10 @@ endif(MSVC)
 #Link executable against all libraries required
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ZMQ_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${ENVIRONMENT_MANAGER} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${ENVIRONMENT_MANAGER} re_proto_control)
+
 
 target_link_libraries(reg_tester ${ZMQ_LIBRARIES})
+target_link_libraries(reg_tester ${PROTOBUF_LIBRARIES})
+target_link_libraries(reg_tester re_proto_control)

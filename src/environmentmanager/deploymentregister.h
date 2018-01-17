@@ -19,6 +19,7 @@ class DeploymentRegister{
         void AddDeployment(const std::string& port_no, const std::string& hb_endpoint);
         void RemoveDeployment(const std::string& port_no);
 
+        std::string HandleQuery(const std::string& query);
         std::string GetDeploymentInfo() const;
         std::string GetDeploymentInfo(const std::string& name) const;
 
