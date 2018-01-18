@@ -61,6 +61,10 @@ for(n in re_nodes){
                 }
                 //Clean up the directory after
                 deleteDir()
+
+                if(test_error_count > 0){
+                    error("Some Tests Failed")
+                }
             }
         }
     }

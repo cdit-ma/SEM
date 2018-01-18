@@ -63,9 +63,11 @@ TEST_P(MatrixMultFixture, ZeroMatrix)
 
     ASSERT_EQ(worker_.MatrixMult(matrix_a, matrix_b, matrix_c), GetParam().expect_success);
     
-    //Calculate the expected result
-    auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-    ASSERT_EQ(matrix_c, expected_result);
+    if(GetParam().expect_success){
+        //Calculate the expected result
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
+        ASSERT_EQ(matrix_c, expected_result);
+    }
 }
 
 TEST_P(MatrixMultFixture, IncrementalMatrix)
@@ -82,9 +84,11 @@ TEST_P(MatrixMultFixture, IncrementalMatrix)
 
     ASSERT_EQ(worker_.MatrixMult(matrix_a, matrix_b, matrix_c), GetParam().expect_success);
     
-    //Calculate the expected result
-    auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-    ASSERT_EQ(matrix_c, expected_result);
+    if(GetParam().expect_success){
+        //Calculate the expected result
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
+        ASSERT_EQ(matrix_c, expected_result);
+    }
 }
 
 TEST_P(MatrixMultFixture, RandomTest)
@@ -105,9 +109,11 @@ TEST_P(MatrixMultFixture, RandomTest)
     
     ASSERT_EQ(worker_.MatrixMult(matrix_a, matrix_b, matrix_c), GetParam().expect_success);
     
-    //Calculate the expected result
-    auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-    ASSERT_EQ(matrix_c, expected_result);
+    if(GetParam().expect_success){
+        //Calculate the expected result
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
+        ASSERT_EQ(matrix_c, expected_result);
+    }
 }
 
 std::vector<MatrixMultParam> getMatrixTests(std::vector<DeviceParam> devices, std::vector< std::vector<int> > dimensions, bool expect_success = true){
@@ -172,6 +178,7 @@ std::vector<MatrixMultParam> getRectTests(){
 
     //Invalid Tests
     invalid_tests.emplace_back((std::initializer_list<int>){1,2,3,4});
+
 
     auto valid_params = getMatrixTests(devices, valid_tests, true);
     auto invalid_params = getMatrixTests(devices, invalid_tests, false);
