@@ -11,9 +11,6 @@ namespace Base{
 			int int_val;
 			std::string str_val;
 			std::string guid_val;
-			~Basic(){
-				std::cout << int_val << std::endl;
-			}
 	};
 };
 

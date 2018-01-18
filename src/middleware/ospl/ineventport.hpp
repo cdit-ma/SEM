@@ -119,8 +119,6 @@ void ospl::InEventPort<T, S>::notify(){
 
 template <class T, class S>
 void ospl::InEventPort<T, S>::receive_loop(){
-    std::cout << "ospl Recv thread: "<<std::hex << std::this_thread::get_id() << std::endl;
-
     dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
     ospl::DataReaderListener<T, S> listener(this);
 

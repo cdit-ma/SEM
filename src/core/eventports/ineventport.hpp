@@ -157,8 +157,6 @@ bool InEventPort<T>::rx(T* t, bool process_message){
 
 template <class T>
 void InEventPort<T>::receive_loop(){
-        std::cout << "base Recv thread: "<<std::hex << std::this_thread::get_id() << std::endl;
-
     {
         std::unique_lock<std::mutex> queue_lock(thread_finished_mutex_);
         running_thread_count_ ++;
