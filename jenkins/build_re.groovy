@@ -54,7 +54,8 @@ for(n in re_nodes){
                         def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
 
                         if(test_error_code != 0){
-                            test_error_count ++
+                            print("Test: " + file_path + " Failed!")
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                     stash includes: "*.xml", name: node_name + "_test_cases"

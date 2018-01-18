@@ -189,6 +189,7 @@ void rti::InEventPort<T, S>::recv_loop(){
 
         EventPort::LogPassivation();
     }
+    reader_.close();
 };
 
 #endif //RTI_INEVENTPORT_H
