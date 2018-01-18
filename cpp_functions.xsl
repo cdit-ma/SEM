@@ -32,6 +32,18 @@
     </xsl:function>
 
     <!--
+        Places the text in an inline comment block, useful for returning errors into code
+    -->
+    <xsl:function name="cpp:warning">
+        <xsl:param name="text" as="xs:string*" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <!--<xsl:variable name="warning_suppress">-->
+        <xsl:value-of select="o:warning($text)" />
+        <xsl:value-of select="concat(o:t($tab), cpp:comment_inline(('RE_GEN Warning:', $text)))" />
+    </xsl:function>
+
+    <!--
         Adds a -> symbol
     -->
     <xsl:function name="cpp:arrow">

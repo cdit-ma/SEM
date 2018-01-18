@@ -430,7 +430,7 @@
         <xsl:choose>
             <!-- Handle Vector Operations -->
             <xsl:when test="$worker = 'Vector_Operations'">
-                <!-- TODO HANDLE VECTORS "cdit:generate_VectorProcess($root, $tab)" -->
+                <xsl:value-of select="cdit:generate_vector_operation($node, $tab)" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="worker_name" select="cdit:get_variable_name($node)" />
@@ -449,6 +449,96 @@
                 </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_vector_operation">
+        <xsl:param name="node" as="element()"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <!-- Get the list of InputParameters-->
+        <xsl:variable name="input_parameters" select="graphml:get_child_nodes_of_kind($node, 'InputParameter')" />
+        <!-- Get the list of ReturnParameters-->
+        <xsl:variable name="return_parameters" select="graphml:get_child_nodes_of_kind($node, 'ReturnParameter')" />
+
+        <xsl:variable name="operation" select="graphml:get_data_value($node, 'operation')" />
+
+        <!-- The Vector is always the first Parameter-->
+        <xsl:variable name="vector" select="$input_parameters[1]" />
+
+        <xsl:variable name="return_variable_name" select="cdit:get_variable_name($return_parameters[1])" />
+
+        
+
+        
+        <xsl:variable name="vector_var" select="cdit:get_resolved_getter_function($vector, true(), false())" />
+        
+        <xsl:variable name="vector_operation">
+                <xsl:choose>
+                    <xsl:when test="$operation = 'Set'">
+                        <xsl:variable name="index_var" select="cdit:get_resolved_getter_function($input_parameters[2], false(), false())" />
+                        <xsl:variable name="value_var" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+
+                        <xsl:variable name="at_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'at', $index_var, 0)" />
+                        <xsl:value-of select="concat($at_fn, ' = ', $value_var)" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Get'">
+                        <xsl:variable name="index_var" select="cdit:get_resolved_getter_function($input_parameters[2], false(), false())" />
+                        <xsl:variable name="value_var" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+
+                        <xsl:variable name="at_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'at', $index_var, 0)" />
+                        <xsl:value-of select="$at_fn" />
+                    </xsl:when>
+                    
+                    <xsl:when test="$operation = 'Resize'">
+                        <xsl:variable name="size_var" select="cdit:get_resolved_getter_function($input_parameters[2], false(), false())" />
+                        <xsl:variable name="default_value_var" select="cdit:get_resolved_getter_function($input_parameters[3], false(), true())" />
+
+                        <xsl:variable name="set_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'resize', cpp:join_args(($size_var, $default_value_var)), 0)" />
+                        <xsl:value-of select="$set_fn" />
+                    </xsl:when>
+                    
+                    <xsl:when test="$operation = 'Insert'">
+                        <xsl:variable name="index_var" select="cdit:get_resolved_getter_function($input_parameters[2], false(), false())" />
+                        <xsl:variable name="value_var" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+
+                        <xsl:variable name="begin_fn" select="o:join_list((cpp:invoke_function($vector_var, cpp:dot(), 'begin', '', 0), '+', $index_var), ' ')" />
+                        <xsl:variable name="insert_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'insert', cpp:join_args(($begin_fn, $value_var)), 0)" />
+                        <xsl:value-of select="$insert_fn" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Remove'">
+                        <xsl:variable name="index_var" select="cdit:get_resolved_getter_function($input_parameters[2], false(), false())" />
+                        <xsl:variable name="value_var" select="cdit:get_resolved_getter_function($input_parameters[3], false(), false())" />
+
+                        <xsl:variable name="at_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'at', $index_var, 0)" />
+                        <xsl:variable name="begin_fn" select="o:join_list((cpp:invoke_function($vector_var, cpp:dot(), 'begin', '', 0), '+', $index_var), ' ')" />
+
+                        <xsl:variable name="erase_fn" select="cpp:invoke_function($vector_var, cpp:dot(), 'erase', $begin_fn, 0)" />
+                        <xsl:value-of select="concat($at_fn, cpp:nl(), o:t($tab), $erase_fn)" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Clear'">
+                        <xsl:value-of select="cpp:invoke_function($vector_var, cpp:dot(), 'clear', '', 0)" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Length'">
+                        <xsl:value-of select="cpp:invoke_function($vector_var, cpp:dot(), 'size', '', 0)" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Swap'">
+                        <xsl:variable name="vector2_var" select="cdit:get_resolved_getter_function($input_parameters[2], true(), false())" />
+                        <xsl:value-of select="cpp:invoke_function($vector_var, cpp:dot(), 'swap', $vector2_var, 0)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="cpp:warning(('cdit:generate_vector_operation()', 'Operation:', o:wrap_quote($operation), 'Not Implemented'), 0)" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            
+            <xsl:choose>
+                <xsl:when test="$return_variable_name = ''">
+                    <xsl:value-of select="concat(o:t($tab), $vector_operation, cpp:nl())"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="cpp:define_variable(cpp:auto(), $return_variable_name, $vector_operation, cpp:nl(), $tab)"/>
+                </xsl:otherwise>
+            </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cdit:generate_branch_code">
@@ -598,7 +688,7 @@
         
         <xsl:for-each select="graphml:get_child_nodes($node)">
             <xsl:variable name="setter_function" select="cdit:get_set_function(.)" />
-            <xsl:variable name="value" select="cdit:get_resolved_getter_function(., false(), true())" />
+            <xsl:variable name="value" select="cdit:get_resolved_getter_function(., true(), true())" />
             <xsl:if test="$value != ''">
                 <xsl:value-of select="cpp:invoke_static_function('', $setter_function, $value, cpp:nl(), $tab)" />
             </xsl:if>
@@ -655,8 +745,7 @@
                 <xsl:value-of select="''" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="o:warning(('cdit:get_resolved_getter_function()', graphml:get_id($node),  'No Value/DataEdge Set'))" />
-                <xsl:value-of select="cpp:comment_inline(('ID:', graphml:get_id($node), 'No Value Set'))" />
+                <xsl:value-of select="cpp:warning(('ID:', graphml:get_id($node), 'No Value Set'), 0)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -711,6 +800,9 @@
                     <xsl:value-of select="cdit:get_resolved_enum_member_type($node)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'MemberInstance'">
+                    <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
+                </xsl:when>
+                <xsl:when test="$kind = 'VectorInstance'">
                     <xsl:value-of select="cdit:get_inplace_getter($node, $mutable)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'ReturnParameter'">
@@ -774,14 +866,13 @@
                     <!-- Handle Vector Operations -->
                     <xsl:when test="$kind = 'InputParameter' or $kind = 'VariadicParameter'">
                         <xsl:variable name="value" select="graphml:get_data_value(., 'value')" />
-                        <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., false(), false())" />
+                        <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., true(), false())" />
 
                         <xsl:variable name="suffix">
                             <xsl:if test="$kind = 'VariadicParameter' and $value = 'String'">
                                 <xsl:value-of select="'.c_str()'" />
                             </xsl:if>
                         </xsl:variable>
-
                         <xsl:sequence select="o:join_list(($getter, $suffix), '')"/>
                     </xsl:when>
                 </xsl:choose>
@@ -828,6 +919,7 @@
             <xsl:when test="$kind = 'ForCondition'" />
             <xsl:when test="$kind = 'Termination'" />
             <xsl:when test="$kind = 'MemberInstance'" />
+            <xsl:when test="$kind = 'VectorInstance'" />
             <xsl:when test="$kind = 'EnumInstance'" />
             <xsl:when test="$kind = 'WorkerProcess'">
                 <xsl:value-of select="cdit:generate_worker_process_code($node, $tab)" />

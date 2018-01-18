@@ -643,7 +643,15 @@
         <xsl:variable name="workers" select="graphml:get_child_nodes_of_kind($component_impl, 'WorkerProcess')" />
 
         <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'workerID')">
-            <xsl:sequence select="." />
+            <xsl:variable name="worker" select="graphml:get_data_value(., 'worker')" />
+
+            <xsl:choose>
+                <!-- Ignore Vector Operations -->
+                <xsl:when test="$worker = 'Vector_Operations'" />
+                <xsl:otherwise>
+                    <xsl:sequence select="." />
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:for-each-group>
     </xsl:function>
 
@@ -657,8 +665,18 @@
 
     <xsl:function name="cdit:get_worker_header" as="xs:string">
         <xsl:param name="worker" as="element()"  />
-        <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($worker, 'file'))" />
-        <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_file, '.h')))" />
+
+        <xsl:variable name="worker_name" select="graphml:get_data_value($worker, 'worker')" />
+
+        <xsl:choose>
+            <xsl:when test="$worker_name = 'Vector_Operations'">
+                <xsl:value-of select="''" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="worker_file" select="lower-case(graphml:get_data_value($worker, 'file'))" />
+                <xsl:value-of select="o:join_paths((cdit:get_worker_path($worker), concat($worker_file, '.h')))" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cdit:get_resolved_enum_member_type" as="xs:string">
