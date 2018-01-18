@@ -76,7 +76,7 @@ bool zmq::OutEventPort<T, S>::setup_tx(){
             //Bind the addresses provided
             this->socket_->bind(e.c_str());
         }catch(zmq::error_t ex){
-            Log(Severity::ERROR).Context(this).Func(GET_FUNC).Msg("Cannot bind endpoint: '" + e + "' " + ex.what());
+            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg("Cannot bind endpoint: '" + e + "' " + ex.what());
         }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

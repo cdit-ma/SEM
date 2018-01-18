@@ -7,7 +7,7 @@
 //Forward declare
 class Component;
 
-enum class ThreadState{WAITING, STARTED, ERROR, TERMINATE};
+enum class ThreadState{WAITING, STARTED, ERROR_, TERMINATE};
 
 //Interface for a standard EventPort
 class EventPort : public Activatable

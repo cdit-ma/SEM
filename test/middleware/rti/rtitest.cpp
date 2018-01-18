@@ -8,6 +8,13 @@
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
 
+#include <algorithm>
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+
 void empty_callback(Base::Basic& b){};
 
 bool setup_port(EventPort& port, int domain, std::string topic_name){
@@ -59,35 +66,40 @@ protected:
 
 TEST(rti_EventportPair, Stable100){
     auto test_name = get_long_test_name();
-    auto rx_callback_count = 0;
+    int send_count = 100;
 
-    
+    //Set up guid matching structures
+    boost::uuids::random_generator uuid_generator_;
+    std::set<std::string> guids;
+    for(int i = 0; i < send_count; i++){
+        guids.insert(boost::uuids::to_string(uuid_generator_()));
+    }
+    std::set<std::string> expected_guids = guids;
+
     auto c = std::make_shared<Component>("Test");
     rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
-            rx_callback_count ++;
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+        expected_guids.erase(message.guid_val);
     });
 
     EXPECT_TRUE(setup_port(out_port, 0, test_name));
     EXPECT_TRUE(setup_port(in_port, 0, test_name));
-    
 
     EXPECT_TRUE(in_port.Configure());
     EXPECT_TRUE(out_port.Configure());
     EXPECT_TRUE(in_port.Activate());
     EXPECT_TRUE(out_port.Activate());
 
-    int send_count = 100;
-
+    int counter = 0;
     //Send as fast as possible
-    for(int i = 0; i < send_count; i++){
-       Base::Basic b;
-        b.int_val = i;
-        b.str_val = std::to_string(i);
+    for(auto &guid : guids){
+        Base::Basic b;
+        b.int_val = counter++;
+        b.str_val = std::to_string(b.int_val);
+        b.guid_val = guid;
         out_port.tx(b);
         sleep_ms(1);
     }
-
 
     EXPECT_TRUE(in_port.Passivate());
     EXPECT_TRUE(out_port.Passivate());
@@ -102,41 +114,51 @@ TEST(rti_EventportPair, Stable100){
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
-    EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, send_count);
-    EXPECT_EQ(rx_callback_count, send_count);
+    EXPECT_EQ(expected_guids.size(), 0);
+    EXPECT_GE(total_rxd, send_count);
+    EXPECT_GE(proc_rxd, send_count);
 }
 
 //Run a blocking callback which runs for 1 second,
 //During that one second, send maximum num
 TEST(rti_EventportPair, Busy100){
     auto test_name = get_long_test_name();
-    auto rx_callback_count = 0;
+    int send_count = 100;
+
+    //Set up guid matching structures
+    boost::uuids::random_generator uuid_generator_;
+    std::set<std::string> guids;
+    for(int i = 0; i < send_count; i++){
+        guids.insert(boost::uuids::to_string(uuid_generator_()));
+    }
+    std::set<std::string> expected_guids = guids;
 
     auto c = std::make_shared<Component>("Test");
     rti::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
-            rx_callback_count ++;
-            sleep_ms(1000);
+    rti::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&expected_guids](Base::Basic& message){
+        //Only sleep on messages we're meant to receive
+        if(expected_guids.erase(message.guid_val)){
+            sleep_ms(2000);
+        }
     });
     
     EXPECT_TRUE(setup_port(out_port, 0, test_name));
     EXPECT_TRUE(setup_port(in_port, 0, test_name));
-
 
     EXPECT_TRUE(in_port.Configure());
     EXPECT_TRUE(out_port.Configure());
     EXPECT_TRUE(in_port.Activate());
     EXPECT_TRUE(out_port.Activate());
 
-    int send_count = 100;
-
+    int counter = 0;
     //Send as fast as possible
-    for(int i = 0; i < send_count; i++){
+    for(auto &guid : guids){
         Base::Basic b;
-        b.int_val = i;
-        b.str_val = std::to_string(i);
+        b.int_val = counter++;
+        b.str_val = std::to_string(b.int_val);
+        b.guid_val = guid;
         out_port.tx(b);
+        sleep_ms(1);
     }
 
     //Sleep for a reasonable time (Bigger than the callback work)
@@ -156,9 +178,9 @@ TEST(rti_EventportPair, Busy100){
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
-    EXPECT_EQ(total_rxd, send_count);
-    EXPECT_EQ(proc_rxd, 1);
-    EXPECT_EQ(rx_callback_count, 1);
+    EXPECT_EQ(expected_guids.size(), guids.size() - 1);
+    EXPECT_GE(total_rxd, send_count);
+    EXPECT_GE(proc_rxd, 1);
 }
 
 int main(int ac, char* av[])

@@ -15,6 +15,7 @@ namespace ospl{
 		auto dst_ = new Basic();
 		dst_->str_val(src.str_val);
 		dst_->int_val(src.int_val);
+		dst_->guid_val(src.guid_val);
 		return dst_;
 	};
 
@@ -22,6 +23,7 @@ namespace ospl{
 		auto dst_ = new Base::Basic();
 		dst_->str_val = src.str_val();
 		dst_->int_val = src.int_val();
+		dst_->guid_val = src.guid_val();
 		return dst_;
 	};
 };

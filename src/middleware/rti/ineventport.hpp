@@ -135,8 +135,8 @@ void rti::InEventPort<T, S>::recv_loop(){
        //Attach listener to only respond to data_available()
        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
-        Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to startup OSPL DDS Reciever") + ex.what());
-        state = ThreadState::ERROR;
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup OSPL DDS Reciever") + ex.what());
+        state = ThreadState::ERROR_;
     }
 
     //Change the state to be Configured
@@ -182,13 +182,14 @@ void rti::InEventPort<T, S>::recv_loop(){
                     }
                 }
             }catch(const std::exception& ex){
-                Log(Severity::ERROR).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
+                Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
                 break;
             }
         }
 
         EventPort::LogPassivation();
     }
+    reader_.close();
 };
 
 #endif //RTI_INEVENTPORT_H
