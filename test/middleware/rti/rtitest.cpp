@@ -178,8 +178,8 @@ TEST(rti_EventportPair, Busy100){
 
     EXPECT_EQ(total_txd, send_count);
     EXPECT_EQ(total_sent, send_count);
-    EXPECT_EQ(total_rxd, send_count);
     EXPECT_EQ(expected_guids.size(), guids.size() - 1);
+    EXPECT_GE(total_rxd, send_count);
     EXPECT_GE(proc_rxd, 1);
 }
 
