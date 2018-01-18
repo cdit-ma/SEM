@@ -1,45 +1,23 @@
 cmake_minimum_required (VERSION 2.6)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-#Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
 
 set(PROJ_NAME precompile_opencl)
 
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
-#set(CLFFT_ROOT $ENV{CLFFT_ROOT})
-#set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
+
 project(${PROJ_NAME})
 
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
-#find_library(RE_OPENCL_LIB opencl_worker ${RE_PATH}/lib)
-#find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
-
-#link_directories(${CLFFT_ROOT}/lib64)
 
 if(NOT OPENCL_LIB)
-    message(STATUS "Not Found OpenCL - Not building GPU device enumerator")
+    message(STATUS "Not Found OpenCL - Not building precompile_opencl")
     return()
 endif()
 
-#if (NOT RE_OPENCL_LIB)
-#    message("Couldn't find OpenCL worker library, skipping pre-compilation of binaries for OpenCL worker")
-#    return()
-#endif()
-
-#if(NOT CLFFT_LIB)
-#    message(STATUS "Not Found CLFFT - Not building GPU device enumerator")
-#    return()
-#endif(NOT CLFFT_LIB)
-
-#Link against boost dynamically
-add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS filesystem REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/precompiler.cpp
@@ -50,30 +28,18 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/../openclutilities.h
     )
 
-#Add RE_PATH to include directories
-include_directories("${RE_PATH}/src")
-#include_directories("${CLFFT_ROOT}/include")
-include_directories("${OPENCL_ROOT}/include")
-
-#Use this in production
-#add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
-
-#Use this for enable_testing
-#add_library(${PROJ_NAME}_lib ${SOURCE} ${HEADERS})
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
-# if (MSVC)
-# 	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-# 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-# elseif(UNIX)
-# 	target_link_libraries(${PROJ_NAME} pthread)
-# endif(MSVC)
+#Include OpenCL Includes
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_ROOT}/include)
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
+if (UNIX)
+    target_link_libraries(${PROJ_NAME} pthread)
+endif(UNIX)
 
-target_link_libraries(${PROJ_NAME} re_core)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
+
 target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
-#target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
-
-#target_link_libraries(${PROJ_NAME}_lib ${OPENCL_LIB})
-#target_link_libraries(${PROJ_NAME} ${PROJ_NAME}_lib)
-
+target_link_libraries(${PROJ_NAME} re_core)

@@ -2,6 +2,9 @@
 set(PROJ_NAME test_openclworker)
 project(${PROJ_NAME})
 
+set(OPENCL_ROOT $ENV{OPENCL_ROOT})
+set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
+
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanagertest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworkertest.cpp
@@ -11,6 +14,8 @@ SET(SOURCE
 
 add_executable(${PROJ_NAME} ${SOURCE})
 
+#Include OpenCL Includes
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_ROOT}/include)
 target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 
