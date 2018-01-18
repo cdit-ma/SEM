@@ -190,6 +190,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
 
         EventPort::LogPassivation();
     }
+    reader_.close();
 };
 
 #endif //OSPL_INEVENTPORT_H
