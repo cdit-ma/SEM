@@ -39,10 +39,6 @@ std::ostream& operator<<(std::ostream& os, const MatrixMultParam& m) {
     return os << m.device << " - Matrix A: " << m.matrix_a << " x Matrix B: " << m.matrix_b;
 };
 
-
-
-
-
 class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, public OpenCLWorkerConstructor{
     public:
         MatrixMultFixture() : OpenCLWorkerConstructor(GetParam().device){
@@ -51,6 +47,7 @@ class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, publi
             }
         }
 };
+
 
 TEST_P(MatrixMultFixture, ZeroMatrix)
 {
@@ -177,8 +174,8 @@ std::vector<MatrixMultParam> getRectTests(){
     valid_tests.emplace_back((std::initializer_list<int>){1021,1022,1022,1023});
 
     //Invalid Tests
+    //TODO: Add more invalid tests
     invalid_tests.emplace_back((std::initializer_list<int>){1,2,3,4});
-
 
     auto valid_params = getMatrixTests(devices, valid_tests, true);
     auto invalid_params = getMatrixTests(devices, invalid_tests, false);
