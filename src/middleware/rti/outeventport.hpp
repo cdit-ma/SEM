@@ -67,6 +67,7 @@ bool rti::OutEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::OutEventPort<T>::HandlePassivate()){
         if(writer_ != dds::core::null){
+            writer_.close();
             writer_ = dds::pub::DataWriter<S>(dds::core::null);
         }
         return true;

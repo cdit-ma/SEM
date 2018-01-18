@@ -14,6 +14,7 @@ namespace rti{
 	Basic* translate(const Base::Basic& src){
 		auto dst_ = new Basic();
 		dst_->str_val(src.str_val);
+		dst_->guid_val(src.guid_val);
 		dst_->int_val(src.int_val);
 		return dst_;
 	};
@@ -21,6 +22,7 @@ namespace rti{
 	Base::Basic* translate(const Basic& src){
 		auto dst_ = new Base::Basic();
 		dst_->str_val = src.str_val();
+		dst_->guid_val = src.guid_val();
 		dst_->int_val = src.int_val();
 		return dst_;
 	};

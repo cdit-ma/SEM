@@ -9,6 +9,7 @@ namespace Base{
 		public:
 			int int_val;
 			std::string str_val;
+			std::string guid_val;
 	};
 };
 
