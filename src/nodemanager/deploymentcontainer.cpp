@@ -177,7 +177,7 @@ bool DeploymentContainer::HandleTerminate(){
     std::list<std::future<bool> > results;
 
     for(const auto& c : components_){
-        results.push_back(std::async(&Activatable::Terminate, c.second));
+        results.push_back(std::async(std::launch::async, &Activatable::Terminate, c.second));
     }
     components_.clear();
 
@@ -193,7 +193,7 @@ bool DeploymentContainer::HandleConfigure(){
     std::list<std::future<bool> > results;
 
     for(const auto& c : components_){
-        results.push_back(std::async(&Activatable::Configure, c.second));
+        results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
     }
     for(auto& result : results){
         success &= result.get();
