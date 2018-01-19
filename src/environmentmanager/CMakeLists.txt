@@ -46,6 +46,13 @@ target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../nodemanager/controlmessage)
+
+target_include_directories(reg_tester PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(reg_tester PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(reg_tester PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(reg_tester PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(reg_tester PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../nodemanager/controlmessage)
 
 
 if (MSVC)

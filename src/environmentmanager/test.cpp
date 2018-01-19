@@ -4,8 +4,7 @@
 #include <thread>
 #include <chrono>
 
-#include <src/nodemanager/controlmessage/controlmessage.pb.h>
-
+#include "../nodemanager/controlmessage/controlmessage.pb.h"
 
 int main(int argc, char **argv){
 

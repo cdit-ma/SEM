@@ -7,50 +7,24 @@
 #include <zmq.hpp>
 #include <mutex>
 #include <future>
+#include "environment.h"
 
 class DeploymentRegister{
     public:
         DeploymentRegister(const std::string& ip_addr, const std::string& registration_port);
 
         void Start();
-        void RegistrationLoop();
 
     private:
         //Constants
         static const std::string SUCCESS;
         static const std::string ERROR;
 
-        static const int PORT_RANGE_MIN = 30000;
-        static const int PORT_RANGE_MAX = 50000;
 
-        static const int INITIAL_TIMEOUT = 4000;
-        static const int HEARTBEAT_INTERVAL = 1000;
-
-        static const int HEARTBEAT_LIVENESS = 3;
-        static const int INITIAL_INTERVAL = 1000;
-        static const int MAX_INTERVAL = 8000;
 
         //Threads and thread wrappers
+        void RegistrationLoop();
         void HandleDeployment(std::promise<std::string> assigned_port, const std::string& request_info);
-        void DeploymentHandler(std::promise<std::string> assigned_port, const std::string& request_info);
-        void HeartbeatLoop(zmq::socket_t* hb_socket);
-
-        void AddDeployment(const std::string& port_no, const std::string& hb_endpoint);
-        void RemoveDeployment(const std::string& port_no);
-
-        std::string HandleQuery(const std::string& query);
-        std::string GetDeploymentInfo() const;
-        std::string GetDeploymentInfo(const std::string& name) const;
-
-        
-        //Deployment Management
-        int GetPort();
-        std::string AssignPort(const std::string& component_id);
-        void UnassignPort(const std::string& component_id);
-
-        std::mutex port_mutex_;
-        std::set<int> available_ports_;
-
 
         //Helpers
         std::string TCPify(const std::string& ip_address, const std::string& port) const;
@@ -61,18 +35,15 @@ class DeploymentRegister{
         //Members
         zmq::context_t* context_;
 
+        Environment* environment_;
+
         std::string ip_addr_;
         std::string registration_port_;
 
         std::thread* registration_loop_;
+        std::vector<DeploymentHandler*> deployments_;
         std::vector<std::thread*> handler_threads_;
 
-        std::mutex register_mutex_;
-        std::unordered_map<std::string, std::string> deployment_map_;
-        std::unordered_map<std::string, std::string> component_port_map_;
-
-
 };
-
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER
