@@ -240,10 +240,9 @@ bool zmq::CachedProtoWriter::WriteDelimitedTo(const std::string& topic, const go
     //Construct a coded output stream from the raw_output
     google::protobuf::io::CodedOutputStream out(raw_output);
 
-    std::string type_name = message.GetTypeName();
-    const int type_size = type_name.size();
-
-    const int topic_size = topic.size();
+    auto& type_name = message.GetTypeName();
+    const uint32_t type_size = static_cast<uint32_t>(type_name.size());
+    const uint32_t topic_size = static_cast<uint32_t>(topic.size());
 
     out.WriteVarint32(topic_size);
     out.WriteString(topic);
@@ -254,7 +253,7 @@ bool zmq::CachedProtoWriter::WriteDelimitedTo(const std::string& topic, const go
     out.WriteString(type_name);
 
     // Write the serialized size.
-    const int size = message.ByteSize();
+    const uint32_t size = message.ByteSize();
     out.WriteVarint32(size);
 
     uint8_t* buffer = out.GetDirectBufferForNBytesAndAdvance(size);
