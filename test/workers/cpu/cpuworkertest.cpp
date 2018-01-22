@@ -1,23 +1,27 @@
 
-#include "../../../src/workers/cpu/cpu_worker.h"
+#include <core/component.h>
+#include <workers/cpu/cpu_worker.h>
+
 #include "gtest/gtest.h"
 #include <limits>
 #include <chrono>
+#include <memory>
 
 std::vector<float> GetIdentityMatrix(int dimension){
     auto size = dimension * dimension;
     std::vector<float> mat(size);
 
-    for (unsigned int i = 0; i < size; i++){
+    for (auto i = 0; i < size; i++){
         auto r = i / dimension;
         auto c = i % dimension;
-        mat[i] = r == c ? 1 : 0;
+        mat[i] = r == c ? 1.0f : 0.0f;
     }
     return mat;
 }
 
 TEST(MatrixMult, Trivial) {
-    Cpu_Worker worker(0, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
 
     std::vector<float> mat_a(2 * 2);
     std::vector<float> mat_b(2 * 2);
@@ -25,9 +29,9 @@ TEST(MatrixMult, Trivial) {
 
     std::vector<float> expected {2, 3, 6, 11};
 
-    for (unsigned int index=0; index<4; index++) mat_a[index] = index;
-    for (unsigned int index=0; index<4; index++) mat_b[index] = index;
-    for (unsigned int index=0; index<4; index++) mat_c[index] = index;
+    for (auto index=0; index<4; index++) mat_a[index] = static_cast<float>(index);
+    for (auto index=0; index<4; index++) mat_b[index] = static_cast<float>(index);
+    for (auto index=0; index<4; index++) mat_c[index] = static_cast<float>(index);
 
     auto result = worker.MatrixMult(mat_a, mat_b, mat_c);
 
@@ -36,14 +40,14 @@ TEST(MatrixMult, Trivial) {
 }
 
 TEST(MatrixMult, IdentityTest) {
-    Cpu_Worker worker(0, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
 
     std::vector<float> mat_a(2 * 2);
-    std::vector<float> mat_c(2 * 2);
+    std::vector<float> mat_c(2 * 2, 0);
     auto mat_i = GetIdentityMatrix(2);
 
-    for (unsigned int index=0; index<4; index++) mat_a[index] = index;
-    for (unsigned int index=0; index<4; index++) mat_c[index] = 0;
+    for (auto index=0; index<4; index++) mat_a[index] = static_cast<float>(index);
 
     auto result = worker.MatrixMult(mat_a, mat_i, mat_c);
 
@@ -53,16 +57,16 @@ TEST(MatrixMult, IdentityTest) {
 
 
 TEST(MatrixMult, Big1024) {
-    
-    Cpu_Worker worker(0, "test");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
 
     std::vector<float> mat_a(1024 * 1024);
     std::vector<float> mat_b(1024 * 1024);
     std::vector<float> mat_c(1024 * 1024);
 
-    for (unsigned int index=0; index<4; index++) mat_a[index] = (float)index;
-    for (unsigned int index=0; index<4; index++) mat_b[index] = (float)index;
-    for (unsigned int index=0; index<4; index++) mat_c[index] = std::numeric_limits<float>::signaling_NaN();
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_a[index] = (float)index;
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_b[index] = (float)index;
+    for (unsigned int index=0; index<1024 * 1024; index++) mat_c[index] = std::numeric_limits<float>::signaling_NaN();
 
     auto start = std::chrono::steady_clock::now();
     auto result = worker.MatrixMult(mat_a, mat_b, mat_c);
@@ -85,7 +89,8 @@ TEST(MatrixMult, Big1024) {
 }
 
 TEST(IntOp, Big) {
-    Cpu_Worker worker(0, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
 
     auto start = std::chrono::steady_clock::now();
@@ -98,7 +103,8 @@ TEST(IntOp, Big) {
 }
 
 TEST(FloatOp, Big) {
-    Cpu_Worker worker(0, "");
+    auto c = std::make_shared<Component>("Test");
+    Cpu_Worker worker(*c, "worker");
     double run_count = 1000000000;
 
     auto start = std::chrono::steady_clock::now();

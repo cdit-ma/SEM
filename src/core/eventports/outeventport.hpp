@@ -1,57 +1,35 @@
 #ifndef OUTEVENTPORT_HPP
 #define OUTEVENTPORT_HPP
 
+#include "eventport.h"
 #include "../modellogger.h"
 #include "../component.h"
-#include "../eventport.h"
 
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(Component* component, std::string name, std::string middleware);
-        virtual bool Activate();
-        virtual bool Passivate();
-        virtual bool Teardown();
-        
-        virtual void tx(T* t);
+        OutEventPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware);
+        virtual bool tx(const T& t);
 };
 
 template <class T>
-OutEventPort<T>::OutEventPort(Component* component, std::string name, std::string middleware)
-:EventPort(component, name, EventPort::Kind::TX, middleware){
+OutEventPort<T>::OutEventPort(std::weak_ptr<Component> component, const std::string& port_name, const std::string& middleware)
+:EventPort(component, port_name, EventPort::Kind::TX, middleware){
 };
 
-
 template <class T>
-void OutEventPort<T>::tx(T* t){
-    if(is_active() && logger()){
-        logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::SENT);
+bool OutEventPort<T>::tx(const T& message){
+    //Log the recieving
+    EventRecieved(message);
+
+    bool sent_message = is_running();
+    
+    if(sent_message){
+        logger()->LogComponentEvent(*this, message, ModelLogger::ComponentEvent::SENT);
     }
+    
+    EventProcessed(message, sent_message);
+    return sent_message;
 };
-
-template <class T>
-bool OutEventPort<T>::Activate(){
-    auto success = EventPort::Activate();
-    if(success){
-        EventPort::LogActivation();
-    }
-    return success;
-};
-
-template <class T>
-bool OutEventPort<T>::Passivate(){
-    auto success = EventPort::Passivate();
-    if(success){
-        EventPort::LogPassivation();
-    }
-    return success;
-};
-
-
-template <class T>
-bool OutEventPort<T>::Teardown(){
-    return EventPort::Teardown();
-};
-
 
 #endif //OUTEVENTPORT_HPP

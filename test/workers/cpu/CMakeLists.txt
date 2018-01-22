@@ -11,12 +11,14 @@ SET(SOURCE
     ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
 
-
-#Add RE_PATH to include directories
-include_directories("${RE_PATH}/src")
-include_directories(${GOOGLE_TEST_DIR}/include)
-
 add_executable(${PROJ_NAME} ${SOURCE})
-target_link_libraries(${PROJ_NAME} pthread)
+
+target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+
+if(UNIX)
+    target_link_libraries(${PROJ_NAME} pthread)
+endif(UNIX)
+
 target_link_libraries(${PROJ_NAME} cpu_worker)
 target_link_libraries(${PROJ_NAME} gtest)

@@ -3,17 +3,17 @@
 #include <iostream>
 #include <stdarg.h>
 
-Worker::Worker(Component* component, std::string worker_name, std::string inst_name){
+Worker::Worker(const Component& component, const std::string& worker_name, const std::string& inst_name):
+component_(component)
+{
     set_name(inst_name);
-    component_ = component;
     worker_name_ = worker_name;
 };
 
 Worker::~Worker(){
-
 };
 
-std::string Worker::get_worker_name(){
+std::string Worker::get_worker_name() const{
     return worker_name_;
 };
 
@@ -22,7 +22,7 @@ int Worker::get_new_work_id(){
     return work_id_ ++;
 };
 
-Component* Worker::get_component(){
+const Component& Worker::get_component() const{
     return component_;
 };
 
@@ -56,6 +56,24 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
 
 void Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
     if(logger()){
-        logger()->LogWorkerEvent(this, function_name, event, work_id, args);
+        logger()->LogWorkerEvent(*this, function_name, event, work_id, args);
     }
 }
+
+
+bool Worker::HandleActivate(){
+    return true;
+};
+
+bool Worker::HandleConfigure(){
+    return true;
+};
+
+
+bool Worker::HandlePassivate(){
+    return true;
+};
+
+bool Worker::HandleTerminate(){
+    return true;
+};

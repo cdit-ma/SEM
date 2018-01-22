@@ -13,7 +13,7 @@
  * implementation.
  */
 
-Gpu_Worker::Gpu_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Gpu_Worker::Gpu_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Gpu_Worker_Impl();
 	Initialise(false);
 }
@@ -28,7 +28,7 @@ void Gpu_Worker::Release(){
 
 void Gpu_Worker::Initialise(bool forceGPU){
 	auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("forceGPU = %d", forceGPU);
 
     //Log Before
@@ -77,7 +77,7 @@ bool Gpu_Worker::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsign
 
 void Gpu_Worker::RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum){
 	auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("numThreads = %d, opsPerThread = %d, on gpu = %d", numThreads, opsPerThread, gpuNum);
 
     //Log Before
@@ -88,7 +88,7 @@ void Gpu_Worker::RunParallel(double numThreads, double opsPerThread, unsigned in
 
 void Gpu_Worker::FFT(std::vector<float> &data, unsigned int gpuNum){
 	auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("FFT size = %d on gpu = %d", data.size(), gpuNum);
 
     //Log Before
@@ -99,7 +99,7 @@ void Gpu_Worker::FFT(std::vector<float> &data, unsigned int gpuNum){
 
 void Gpu_Worker::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
 	auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("matrix dimensions = %d on gpu = %d", n, gpuNum);
 
     //Log Before
@@ -112,7 +112,7 @@ bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector
 						std::vector<float> &matrixC, unsigned int gpuNum){
 
 	auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("matAsize = %d, matBsize = %d, matCsize = %d, on gpu = %d",
 										 matrixA.size(), matrixB.size(), matrixC.size(), gpuNum);
 

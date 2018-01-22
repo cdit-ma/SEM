@@ -1,7 +1,7 @@
 #include "memory_worker.h"
 #include "memory_worker_impl.h"
 
-Memory_Worker::Memory_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Memory_Worker::Memory_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Memory_Worker_Impl();
 }
 
@@ -12,9 +12,9 @@ Memory_Worker::~Memory_Worker(){
     }
 }
 
-void Memory_Worker::Allocate(double kilobytes){
+void Memory_Worker::Allocate(size_t kilobytes){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before
@@ -31,9 +31,9 @@ void Memory_Worker::Allocate(double kilobytes){
     
 }
 
-void Memory_Worker::Deallocate(double kilobytes){
+void Memory_Worker::Deallocate(size_t kilobytes){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("kilobytes = %lf", kilobytes);
 
     //Log Before
@@ -49,6 +49,6 @@ void Memory_Worker::Deallocate(double kilobytes){
     Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id, args);
 }
 
-long Memory_Worker::GetAllocatedCount() const{
+size_t Memory_Worker::GetAllocatedCount() const{
     return impl_->GetAllocatedCount();
 }

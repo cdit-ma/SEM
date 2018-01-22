@@ -51,7 +51,7 @@ public:
 		if(!bSilent)
 		{    
 			printf("\nIntop num   xG   xM   xK   x  ");
-			printf("\n%lld %d %d %d %d\n",num,xG,xM,xK,numLoops);
+			printf("\n%lld %ld %ld %ld %lld\n",num,xG,xM,xK,numLoops);
 		}// end bSilent
 
 	}
@@ -93,7 +93,7 @@ public:
 		if(!bSilent)
 		{
 			printf("\nFloatOp  x100  loops  result    ");
-			printf("\n%d %d %9.3f\n",x100,xtra,e1[3]);
+			printf("\n%ld %ld %9.3f\n",x100,xtra,e1[3]);
 		}
 		return;
 	}

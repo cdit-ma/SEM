@@ -11,7 +11,8 @@ using namespace std;
 using namespace test;
 
 MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
-	worker = new Gpu_Worker(0, "");
+	auto c = std::make_shared<Component>("Test");
+	worker = new Gpu_Worker(*c, "worker");
 	worker->Initialise(false);
 	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
 

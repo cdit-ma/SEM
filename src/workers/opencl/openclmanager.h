@@ -10,12 +10,12 @@
 #include <core/worker.h>
 
 #include "oclbuffer.hpp"
+#include "opencldevice.h"
 
 class OpenCLKernel;
 
 namespace cl {
 	class Platform;
-	class Device;
 	class Context;
 	class CommandQueue;
 	class Program;
@@ -32,33 +32,29 @@ class OpenCLManager {
 		* @param workerReference a reference to the worker making the call (for logging)
 		* @return The OpenCLMaanager for the provided platform, or NULL if one can't be created
 		**/
-		static OpenCLManager* GetReferenceByPlatform(int platform_id, Worker* worker_reference=NULL);
+		static OpenCLManager* GetReferenceByPlatformID(const Worker& worker, int platform_id);
 
 
-		static const std::vector<cl::Platform> GetPlatforms(Worker* worker_reference=NULL);
+		static const std::vector<cl::Platform> GetPlatforms(const Worker& worker);
 
 
 		const cl::Context& GetContext() const;
 
-		const std::vector<std::shared_ptr<cl::Device> > GetDevices(Worker* worker_reference=NULL) const;
+		std::string GetPlatformName() const;
+
+		std::vector<OpenCLDevice>& GetDevices(const Worker& worker);
 
 		const std::vector<std::shared_ptr<cl::CommandQueue> > GetQueues() const;
 
-		const std::vector<OpenCLKernel> CreateKernels(std::vector<std::string> filenames, Worker* worker_reference = NULL);
-
-		/*template <typename KernelArg_t>
-		void SetKernelArg(cl::Kernel& kernel, cl_int index, KernelArg_t value);
-
-		template <typename KernelArg_t>
-		void SetKernelArg(cl::Kernel& kernel, cl_int index, OCLBuffer<KernelArg_t> value);*/
+		const std::vector<OpenCLKernel> CreateKernels(const Worker& worker, const std::vector<std::string>& filenames);
 		
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(size_t buffer_size, Worker* worker_reference=NULL);
+		OCLBuffer<T>* CreateBuffer(const Worker& worker, size_t buffer_size);
 		template <typename T>
-		OCLBuffer<T>* CreateBuffer(const std::vector<T>& data, bool blocking=true, Worker* worker_reference=NULL);
+		OCLBuffer<T>* CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking=true);
 
 		template <typename T>
-		void ReleaseBuffer(OCLBuffer<T>* buffer, Worker* worker_reference=NULL);
+		void ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer);
 		
 		bool IsValid() const;
 
@@ -66,8 +62,8 @@ class OpenCLManager {
 			BufferAttorney() = delete;
 		private:
 			friend class GenericBuffer;
-			static int GetNewBufferID(OpenCLManager& manager, GenericBuffer& buffer) {
-				return manager.TrackBuffer(&buffer);
+			static int GetNewBufferID(const Worker& worker, OpenCLManager& manager, GenericBuffer& buffer) {
+				return manager.TrackBuffer(worker, &buffer);
 			}
 			static void ReleaseBufferID(OpenCLManager& manager, GenericBuffer& buffer) {
 				manager.UntrackBuffer(buffer.GetID());
@@ -80,23 +76,20 @@ class OpenCLManager {
 		int GetNewBufferID();*/
 
 	private:
-		OpenCLManager(cl::Platform &platform, Worker* worker_reference=NULL);
+		OpenCLManager(const Worker& worker, cl::Platform &platform);
 		~OpenCLManager() {};
 
-		int TrackBuffer(GenericBuffer* buffer);
+		int TrackBuffer(const Worker& worker, GenericBuffer* buffer);
 		void UntrackBuffer(int buffer_id);
 		void Initialise();
-		
-		
-		/*template <typename T>
-		friend OCLBuffer<T>::~OCLBuffer();*/
-		
 
-		static void LogError(Worker* worker_reference,
+    	bool LoadAllBinaries(const Worker& worker);
+
+		static void LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message,
 							int cl_error_code);
-		static void LogError(Worker* worker_reference,
+		static void LogError(const Worker& worker,
 							std::string function_name,
 							std::string error_message);
 
@@ -107,8 +100,9 @@ class OpenCLManager {
 		// Variables
 		bool valid_ = false;
 		cl::Platform& platform_;
+		std::string platform_name_;
 		cl::Context* context_;
-		std::vector<std::shared_ptr<cl::Device> > device_list_;
+		std::vector<OpenCLDevice> device_list_;
 		std::vector<std::shared_ptr<cl::CommandQueue> > queues_;
 		cl::Program* program_;
 		std::vector< std::vector<cl::Kernel>* >  kernel_vector_store_;
@@ -119,28 +113,23 @@ class OpenCLManager {
 
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(size_t buffer_size, Worker* worker_reference){
+OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, size_t buffer_size){
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(*this, /*buffer_id_count_++,*/ buffer_size, worker_reference);
+	auto buffer = new OCLBuffer<T>(worker, *this, /*buffer_id_count_++,*/ buffer_size);
 	return buffer;//TrackBuffer<T>(buffer);
 }
 
 template <typename T>
-OCLBuffer<T>* OpenCLManager::CreateBuffer(const std::vector<T>& data, bool blocking, Worker* worker_reference) {
+OCLBuffer<T>* OpenCLManager::CreateBuffer(const Worker& worker, const std::vector<T>& data, OpenCLDevice& device, bool blocking) {
 	//TODO: See Dan for how to mutex good bruh
-	auto buffer = new OCLBuffer<T>(*this, data, blocking, worker_reference);
+	auto buffer = new OCLBuffer<T>(worker, *this, data, device, blocking);
 	return buffer;
 }
 
 
 template <typename T>
-void OpenCLManager::ReleaseBuffer(OCLBuffer<T>* buffer,
-		Worker* worker_reference) {
-
+void OpenCLManager::ReleaseBuffer(const Worker& worker, OCLBuffer<T>* buffer) {
 	delete buffer;
-	/*if (buffer->is_valid()) {
-		buffer_store_.erase(buffer->GetID());
-	}*/
 }
 
 #endif // OPENCL_MANAGER_H

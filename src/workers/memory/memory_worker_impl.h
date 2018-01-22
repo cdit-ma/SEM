@@ -7,13 +7,13 @@
 class Memory_Worker_Impl{
     public:
         ~Memory_Worker_Impl();
-        bool Allocate(double kilobytes);
-        bool Deallocate(double kilobytes);
-        double GetAllocatedCount();
+        bool Allocate(size_t kilobytes);
+        bool Deallocate(size_t kilobytes);
+        size_t GetAllocatedCount();
 
     private:
-        bool Allocate_(unsigned long long kilobytes);
-        bool Deallocate_(unsigned long long kilobytes);
+        bool Allocate_(size_t kilobytes);
+        bool Deallocate_(size_t kilobytes);
          /// Type definition for the container of allocations.
         typedef std::list <char *> Memory_Allocations;
 

@@ -4,7 +4,7 @@
 #include <core/component.h>
 #include <core/modellogger.h>
 
-Cpu_Worker::Cpu_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+Cpu_Worker::Cpu_Worker(const Component& component, const std::string& inst_name) : Worker(component, GET_FUNC, inst_name){
     impl_ = new Cpu_Worker_Impl();
 }
 
@@ -17,7 +17,7 @@ Cpu_Worker::~Cpu_Worker(){
 
 int Cpu_Worker::IntOp(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
@@ -31,7 +31,7 @@ int Cpu_Worker::IntOp(double loop){
 
 int Cpu_Worker::FloatOp(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
@@ -45,7 +45,7 @@ int Cpu_Worker::FloatOp(double loop){
 
 int Cpu_Worker::Whetstone(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
@@ -59,7 +59,7 @@ int Cpu_Worker::Whetstone(double loop){
 
 int Cpu_Worker::Dhrystone(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
@@ -73,7 +73,7 @@ int Cpu_Worker::Dhrystone(double loop){
 
 int Cpu_Worker::MWIP(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
@@ -86,7 +86,7 @@ int Cpu_Worker::MWIP(double loop){
 
 int Cpu_Worker::DMIP(double loop){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
@@ -101,7 +101,7 @@ int Cpu_Worker::DMIP(double loop){
 int Cpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
                         std::vector<float> &matrixC){
     auto work_id = get_new_work_id();
-    auto fun = std::string(__func__);
+    auto fun = std::string(GET_FUNC);
     auto args = get_arg_string_variadic("matrixA size = %lf; matrixB size = %lf; matrixC size = %lf", 
                                         matrixA.size(), matrixB.size(), matrixC.size());
 
