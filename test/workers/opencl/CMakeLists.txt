@@ -7,7 +7,7 @@ set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanagertest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclworkertest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_matrixmult.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common.cpp
     ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
