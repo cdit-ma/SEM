@@ -268,8 +268,8 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
             </xsl:if>
-            <xsl:variable name="required_proto_file" select="lower-case(o:join_list((graphml:get_label(.), 'idl'), '.'))" />
-            <xsl:value-of select="idl:include($required_proto_file)" />
+            <xsl:variable name="required_idl_file" select="lower-case(o:join_list((graphml:get_label(.), 'idl'), '.'))" />
+            <xsl:value-of select="idl:include($required_idl_file)" />
             
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -490,6 +490,13 @@
             <xsl:variable name="required_path" select="o:join_paths(($source_dir_var, $relative_path))" />
             <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_path, 0)" />
             
+             <!-- Set RTI specific settings -->
+            <xsl:if test="$middleware = 'rti'">
+                <xsl:value-of select="cmake:comment('Set RTI Definitions', 0)" />
+                <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', '-DRTI_UNIX -DRTI_64BIT', 0)" />
+                <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', '-DRTI_UNIX -DRTI_64BIT', 0)" />
+            </xsl:if>
+
 
             <!-- Use Windows specific settings -->
             <xsl:if test="$middleware = 'proto'">
@@ -552,6 +559,9 @@
             <xsl:variable name="required_source_dir" select="o:join_paths(($source_dir_var, $relative_path))" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_source_dir, 0)" />
             <xsl:value-of select="cmake:target_include_middleware_directories('PROJ_NAME', $middleware, 0)" />
+
+            <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
+            <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $binary_dir_var, 0)" />
 
             
 
@@ -671,6 +681,14 @@
         <xsl:value-of select="cpp:comment(('Include the convert function'), 0)" />
         <xsl:value-of select="cpp:include_local_header(o:join_paths(($convert_header_path, 'convert.h')))" />
         <xsl:value-of select="o:nl(1)" />
+
+        <xsl:if test="cdit:build_shared_library($middleware)">
+            <!-- Include the middleware specific header -->
+            <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
+            <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
+            <xsl:value-of select="o:nl(1)" />
+        </xsl:if>
+
 
         <xsl:value-of select="cpp:comment(('Include the', $middleware, 'specific templated classes'), 0)" />
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'ineventport.hpp')))" />

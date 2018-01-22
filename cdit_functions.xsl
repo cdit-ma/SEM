@@ -237,15 +237,14 @@
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:choose>
+        <!--<xsl:choose>
             <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
-                <!-- DDS implementations use set via accessors -->
                 <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, '', 0), ' = ', $value)" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
             </xsl:otherwise>
-        </xsl:choose>
+        </xsl:choose>-->
+        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
     </xsl:function>
 
     <xsl:function name="cpp:get_qualified_type" as="xs:string">

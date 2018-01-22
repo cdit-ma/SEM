@@ -121,7 +121,10 @@
             <xsl:when test="$cpp_type = 'char'">
                 <xsl:value-of select="'char'" />
             </xsl:when>
-            <xsl:when test="$cpp_type = 'double' or $cpp_type = 'float' or $cpp_type = 'bool'">
+            <xsl:when test="$cpp_type = 'bool'">
+                <xsl:value-of select="'boolean'" />
+            </xsl:when>
+            <xsl:when test="$cpp_type = 'double' or $cpp_type = 'float'">
                 <xsl:value-of select="$cpp_type" />
             </xsl:when>
             <xsl:otherwise>
