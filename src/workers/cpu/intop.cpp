@@ -51,7 +51,7 @@ public:
 		if(!bSilent)
 		{    
 			printf("\nIntop num   xG   xM   xK   x  ");
-			printf("\n%lld %d %d %d %d\n",num,xG,xM,xK,numLoops);
+			printf("\n%lld %d %d %d %i\n",num,xG,xM,xK,numLoops);
 		}// end bSilent
 
 	}

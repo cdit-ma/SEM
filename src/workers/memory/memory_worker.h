@@ -10,9 +10,9 @@ class Memory_Worker : public Worker{
         Memory_Worker(const Component& component, const std::string& inst_name);
         ~Memory_Worker();
         
-        void Allocate(double kilobytes);
-        void Deallocate(double kilobytes);
-        long GetAllocatedCount() const;
+        void Allocate(size_t kilobytes);
+        void Deallocate(size_t kilobytes);
+        size_t GetAllocatedCount() const;
 
     private:
         Memory_Worker_Impl* impl_ = 0;
