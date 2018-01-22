@@ -22,6 +22,7 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)

@@ -24,14 +24,38 @@
 #include <iostream>
 #include <fstream>
 
-#include <fcntl.h>
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif
+#include <fcntl.h>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <boost/filesystem.hpp>
+
+int getWriteFileDesc(const char* filename) {
+    int filedesc;
+#ifdef _WIN32
+    _sopen_s(&filedesc, filename, _O_APPEND | _O_CREAT | _O_WRONLY, _SH_DENYNO, _S_IWRITE | _S_IREAD);
+#else
+    filedesc = open(filename, O_APPEND | O_CREAT | O_WRONLY, S_IWRITE | S_IREAD);
+#endif
+    return filedesc; 
+}
+
+int getReadFileDesc(const char* filename) {
+    int filedesc;
+#ifdef _WIN32
+    _sopen_s(&filedesc, filename, _O_RDONLY, _SH_DENYNO, _S_IWRITE | _S_IREAD);
+#else
+    filedesc = open(filename, O_RDONLY, S_IWRITE | S_IREAD);
+#endif
+    return filedesc; 
+}
 
 zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     cache_count_ = cache_count;
@@ -140,7 +164,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
         }
         
         if(replace_queue.size()){
-            int filedesc = open(temp_file_path_.c_str(), O_APPEND | O_CREAT | O_WRONLY, S_IWRITE | S_IREAD);
+            int filedesc = getWriteFileDesc(temp_file_path_.c_str());
             if(filedesc < 0){
                 std::cerr << "Failed to open temp file '" << temp_file_path_ << "' to write." << std::endl;
                 break;
@@ -184,7 +208,7 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
     
 
 
-    int filedesc = open(file_path.c_str(), O_RDONLY, S_IWRITE | S_IREAD);
+    int filedesc = getReadFileDesc(file_path.c_str());
 
     if(filedesc < 0){
         std::cerr << "Failed to open file '" << file_path << "' to read." << std::endl;
