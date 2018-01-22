@@ -594,6 +594,17 @@
     </xsl:function>
 
     <!--
+        cast a value as a type
+        ie. (type)(value)
+    -->
+    <xsl:function name="cpp:cast" as="xs:string">
+        <xsl:param name="type" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+
+        <xsl:value-of select="concat(o:wrap_bracket($type), o:wrap_bracket($value))" />
+    </xsl:function>
+
+    <!--
         Declares a class, handles optional inheritted classes
         ie class ${class_name} : ${sub_classes}
     -->

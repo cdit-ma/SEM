@@ -435,10 +435,22 @@
             <xsl:otherwise>
                 <xsl:variable name="worker_name" select="cdit:get_variable_name($node)" />
                 <xsl:variable name="operation" select="graphml:get_data_value($node, 'operation')" />
+
+                <xsl:variable name="arguments" as="xs:string*">
+                    <xsl:choose>
+                        <xsl:when test="$worker = 'Utility_Worker' and $operation = 'EvaluateComplexity'">
+                            <xsl:sequence select="cdit:get_function_parameters($node, 'double')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:sequence select="cdit:get_function_parameters($node, '')" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
                 <xsl:variable name="variable_name" select="cdit:get_variable_name(graphml:get_child_nodes_of_kind($node, 'ReturnParameter'))" />
 
-                <xsl:variable name="function" select="cpp:invoke_function($worker_name, cpp:arrow(), $operation, cdit:get_parameters_as_args($node), 0)" />
-                
+                <xsl:variable name="function" select="cpp:invoke_function($worker_name, cpp:arrow(), $operation, $arguments , 0)" />
+
                 <xsl:choose>
                     <xsl:when test="$variable_name = ''">
                         <xsl:value-of select="concat(o:t($tab), $function, cpp:nl())"/>
@@ -856,10 +868,11 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:get_parameters_as_args" as="xs:string*">
+    <xsl:function name="cdit:get_function_parameters" as="xs:string*">
         <xsl:param name="node" as="element()"/>
+        <xsl:param name="cast_type" as="xs:string"/>
 
-        <xsl:variable name="args" as="xs:string*">
+        <xsl:variable name="resolved_args" as="xs:string*">
             <xsl:for-each select="graphml:get_child_nodes($node)">
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:choose>
@@ -873,14 +886,26 @@
                                 <xsl:value-of select="'.c_str()'" />
                             </xsl:if>
                         </xsl:variable>
-                        <xsl:sequence select="o:join_list(($getter, $suffix), '')"/>
+
+                        <xsl:variable name="resolved_getter" select="o:join_list(($getter, $suffix), '')" />
+
+                        <xsl:choose>
+                            <!-- Handle Vector Operations -->
+                            <xsl:when test="$kind = 'VariadicParameter' and $cast_type != ''">
+                                <xsl:sequence select="cpp:cast($cast_type, $resolved_getter)"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:sequence select="$resolved_getter"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:when>
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:join_args($args)" />
+        <xsl:sequence select="cpp:join_args($resolved_args)" />
     </xsl:function>
+
     
     <xsl:function name="cdit:uses_branch" as="xs:boolean">
         <xsl:param name="node" as="element()"/>
