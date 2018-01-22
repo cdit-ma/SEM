@@ -83,7 +83,7 @@
         <xsl:choose>
             <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
                 <!-- DDS uses exact case -->
-                <xsl:value-of select="$label" />
+                <xsl:value-of select="lower-case($label)" />
             </xsl:when>
             <xsl:when test="$middleware = 'base'">
                 <!-- Base uses exact case -->

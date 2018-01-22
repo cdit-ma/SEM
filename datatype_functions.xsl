@@ -550,7 +550,20 @@
                 </xsl:if>
             </xsl:for-each>
 
+            <!-- Include the generated code folders for all required_aggregates -->
+            <xsl:for-each select="$required_aggregates">
+                <xsl:if test="position() = 1">
+                    <xsl:value-of select="cmake:comment(('Include binary directory of each required aggregate so it can be used by the middleware compilers'), 0)" />
+                </xsl:if>
+                <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
+                <xsl:variable name="aggregate_path" select="cdit:get_aggregates_path(.)" />
+                <xsl:variable name="required_path" select="o:join_paths(($binary_dir_var, $relative_path, $aggregate_path))" />
+                <xsl:value-of select="cmake:target_include_directories('SHARED_LIBRARY_NAME', $required_path, 0)" />
 
+                <xsl:if test="position() = last()">
+                    <xsl:value-of select="o:nl(1)" />
+                </xsl:if>
+            </xsl:for-each>
         </xsl:if>
         <xsl:if test="$build_module_library">
             <!-- Include re_path -->
@@ -562,6 +575,21 @@
 
             <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $binary_dir_var, 0)" />
+
+            <!-- Include the generated code folders for all required_aggregates -->
+            <xsl:for-each select="$required_aggregates">
+                <xsl:if test="position() = 1">
+                    <xsl:value-of select="cmake:comment(('Include binary directory of each required aggregate so it can be used by the middleware compilers'), 0)" />
+                </xsl:if>
+                <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
+                <xsl:variable name="aggregate_path" select="cdit:get_aggregates_path(.)" />
+                <xsl:variable name="required_path" select="o:join_paths(($binary_dir_var, $relative_path, $aggregate_path))" />
+                <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
+
+                <xsl:if test="position() = last()">
+                    <xsl:value-of select="o:nl(1)" />
+                </xsl:if>
+            </xsl:for-each>
 
             
 
