@@ -240,7 +240,7 @@ bool zmq::CachedProtoWriter::WriteDelimitedTo(const std::string& topic, const go
     //Construct a coded output stream from the raw_output
     google::protobuf::io::CodedOutputStream out(raw_output);
 
-    auto& type_name = message.GetTypeName();
+    auto&& type_name = message.GetTypeName();
     const uint32_t type_size = static_cast<uint32_t>(type_name.size());
     const uint32_t topic_size = static_cast<uint32_t>(topic.size());
 
