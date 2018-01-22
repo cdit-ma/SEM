@@ -154,28 +154,28 @@ std::vector<MatrixMultParam> getRectTests(){
     std::vector<std::vector<int> > invalid_tests;
 
     //Valid Tests
-    valid_tests.emplace_back((std::initializer_list<int>){1,2,2,1});
-    valid_tests.emplace_back((std::initializer_list<int>){2,1,1,2});
-    valid_tests.emplace_back((std::initializer_list<int>){2,3,3,2});
-    valid_tests.emplace_back((std::initializer_list<int>){4,3,3,2});
+    valid_tests.emplace_back(std::vector<int>({1,2,2,1}));
+    valid_tests.emplace_back(std::vector<int>({2,1,1,2}));
+    valid_tests.emplace_back(std::vector<int>({2,3,3,2}));
+    valid_tests.emplace_back(std::vector<int>({4,3,3,2}));
 
     // Following tests intended to target <= 32x32 tile boundaries, but also 64x64 to some degree
-    valid_tests.emplace_back((std::initializer_list<int>){13,15,15,17});
-    valid_tests.emplace_back((std::initializer_list<int>){15,17,17,19});
+    valid_tests.emplace_back(std::vector<int>({13,15,15,17}));
+    valid_tests.emplace_back(std::vector<int>({15,17,17,19}));
 
-    valid_tests.emplace_back((std::initializer_list<int>){15,5,5,11});
+    valid_tests.emplace_back(std::vector<int>({15,5,5,11}));
 
-    valid_tests.emplace_back((std::initializer_list<int>){29,31,31,33});
-    valid_tests.emplace_back((std::initializer_list<int>){31,33,33,35});
+    valid_tests.emplace_back(std::vector<int>({29,31,31,33}));
+    valid_tests.emplace_back(std::vector<int>({31,33,33,35}));
 
-    valid_tests.emplace_back((std::initializer_list<int>){153,56,56,87});
-    valid_tests.emplace_back((std::initializer_list<int>){74,49,49,169});
+    valid_tests.emplace_back(std::vector<int>({153,56,56,87}));
+    valid_tests.emplace_back(std::vector<int>({74,49,49,169}));
 
-    valid_tests.emplace_back((std::initializer_list<int>){1021,1022,1022,1023});
+    valid_tests.emplace_back(std::vector<int>({1021,1022,1022,1023}));
 
     //Invalid Tests
     //TODO: Add more invalid tests
-    invalid_tests.emplace_back((std::initializer_list<int>){1,2,3,4});
+    invalid_tests.emplace_back(std::vector<int>({1,2,3,4}));
 
     auto valid_params = getMatrixTests(devices, valid_tests, true);
     auto invalid_params = getMatrixTests(devices, invalid_tests, false);
