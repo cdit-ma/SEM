@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     auto endpoint = std::string(static_cast<const char*>(message.data()), message.size());
     req.connect(endpoint);
 
-    std::cout << "Connected to endpoint" << std::endl;
+    std::cout << "Connected to endpoint: " << endpoint << std::endl;
 
     bool flag = argc == 2;
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv){
 
 
         req.send(type_msg, ZMQ_SNDMORE);
-        std::cout << "sent type message" << std::endl;    
+        std::cout << "sent type message" << std::endl;
         req.send(deployment_msg);
         std::cout << "sent deployment message" << std::endl;
 
@@ -74,6 +74,45 @@ int main(int argc, char **argv){
         hb_soc.connect(hb_endpoint);
 
         std::cout << "connected to heartbeat endpoint" << std::endl;
+
+
+        for(int i =0; i<10; i++){
+
+            std::string m1("ASSIGNMENT_REQUEST");
+            zmq::message_t m1m(m1.begin(), m1.end());
+
+            std::string m2;
+            m2 += deployment_name;
+            m2 += ":Component";
+            m2 += std::to_string(i);
+            zmq::message_t m2m(m2.begin(), m2.end());
+
+            hb_soc.send(m1m, ZMQ_SNDMORE);
+            hb_soc.send(m2m);
+
+            zmq::message_t asdf;
+            zmq::message_t asdf2;
+            hb_soc.recv(&asdf);
+            hb_soc.recv(&asdf2);
+            auto reply = std::string(static_cast<const char*>(asdf.data()), asdf.size());
+            auto reply2 = std::string(static_cast<const char*>(asdf2.data()), asdf2.size());
+            std::cout << reply << std::endl;
+            std::cout << reply2 << std::endl;
+        }
+
+        std::string endmessage("END_ASSIGNMENT");
+        zmq::message_t endm(endmessage.begin(), endmessage.end());
+
+        hb_soc.send(endm, ZMQ_SNDMORE);
+        hb_soc.send(endm);
+
+        std::cout << "sent assignment end" << std::endl;
+
+        zmq::message_t endm2;
+        hb_soc.recv(&endm2);
+        hb_soc.recv(&endm2);
+        
+        std::cout << "got end ack" << std::endl;
 
         while(true){
 

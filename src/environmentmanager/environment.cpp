@@ -1,9 +1,8 @@
 #include "environment.h"
+#include <iostream>
 
-#include "deploymenthandler.h"
 
-Environment::Environment(zmq::context_t* context){
-    context_ = context;
+Environment::Environment(){
     auto hint_iterator = available_ports_.begin();
     for(int i = PORT_RANGE_MIN; i < PORT_RANGE_MAX; i++){
         available_ports_.insert(hint_iterator, i);
@@ -11,20 +10,7 @@ Environment::Environment(zmq::context_t* context){
     }
 }
 
-void Environment::AddDeployment(std::promise<std::string> port_promise, const std::string& deployment_id){
-    auto deployment = new DeploymentHandler(this, context_, port_promise, deployment_id);
-    deployment_map_.insert({deployment_id, deployment});
-}
-
-void Environment::RemoveDeployment(const std::string& deployment_id){
-
-}
-
-std::string Environment::GetDeployment(const std::string& component_id){
-    return component_id;
-}
-
-std::string Environment::AddPort(const std::string& component_id){
+std::string Environment::AddPort(const std::string& reference_port, const std::string& component_id){
     std::unique_lock<std::mutex> lock(port_mutex_);
 
     //Get first available port, store then erase it
@@ -36,8 +22,10 @@ std::string Environment::AddPort(const std::string& component_id){
     return std::to_string(port);
 }
 
-void Environment::RemovePort(){
+void Environment::RemovePort(const std::string& component_id){
     std::unique_lock<std::mutex> lock(port_mutex_);
+
+    std::cout << component_port_map_[component_id] << std::endl;
 
     int port = std::stoi(component_port_map_[component_id]);
     component_port_map_.erase(component_id);

@@ -12,19 +12,12 @@ DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::st
     registration_port_ = registration_port;
 
     context_ = new zmq::context_t(1);
-    environment_ = new Environment(context_);
+    environment_ = new Environment();
 
 }
 
 void DeploymentRegister::Start(){
     registration_loop_ = new std::thread(&DeploymentRegister::RegistrationLoop, this);
-}
-
-//Handle request for deployment information at specific location or of specific component name
-std::string DeploymentRegister::HandleQuery(const std::string& request){
-    std::string response("");
-
-    return response;
 }
 
 //Main registration loop, passes request workload off to other threads
@@ -53,11 +46,14 @@ void DeploymentRegister::RegistrationLoop(){
         //Handle new deployment manager contact
         if(request_type.compare("DEPLOYMENT") == 0){
             //Push work onto new thread with port number promise
-            std::promise<std::string> port_promise;
-            std::future<std::string> port_future = port_promise.get_future();
+            std::promise<std::string>* port_promise = new std::promise<std::string>();
+            std::future<std::string> port_future = port_promise->get_future();
             std::string port;
 
-            environment_.AddDeployment(std::move(port_promise), request_contents);
+
+            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, request_contents);
+            deployment_handler->Start();
+            deployments_.push_back(deployment_handler);
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
                 port = port_future.get();
@@ -79,7 +75,7 @@ void DeploymentRegister::RegistrationLoop(){
         }
 
         else if(request_type.compare("QUERY") == 0){
-            std::string response = HandleQuery(request_contents);
+            std::string response = "";
             SendTwoPartReply(rep, SUCCESS, response);
         }
 

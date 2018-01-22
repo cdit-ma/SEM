@@ -26,12 +26,16 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
 	)
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
     )
     
 add_executable(${ENVIRONMENT_MANAGER} ${SOURCE} ${HEADERS})

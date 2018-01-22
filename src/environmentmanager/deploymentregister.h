@@ -8,6 +8,7 @@
 #include <mutex>
 #include <future>
 #include "environment.h"
+#include "deploymenthandler.h"
 
 class DeploymentRegister{
     public:
