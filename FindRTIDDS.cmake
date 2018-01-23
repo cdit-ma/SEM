@@ -38,21 +38,27 @@ function(RTI_GENERATE_CPP SRCS HDRS)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
         list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cxx")
-        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx")
-        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx")
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Plugin.cxx")
         list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.hpp")
-        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h")
-        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Plugin.hpp")
+        
+        #The below are needed if we don't use -stl
+        #list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx")
+        #list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx")
+        #list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h")
+        #list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h")
 
         add_custom_command(
         OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cxx"
-                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx"
-                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx"
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.hpp"
-                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h"
-                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Plugin.cxx"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Plugin.hpp"
+                #"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx"
+                #"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx"
+                #"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h"
+                #"${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h"
         COMMAND  ${RTIDDS_GEN_EXECUTABLE}
-        ARGS -language C++11 -unboundedSupport -namespace -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
+        ARGS -language C++11 -unboundedSupport -namespace -stl -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
         DEPENDS ${ABS_FIL} ${RTIDDS_GEN_EXECUTABLE} 
         COMMENT "Running C++ rtiddsgen on ${FIL}"
         VERBATIM )
@@ -69,7 +75,7 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
 
 if(NOT DDS_HOST)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(DDS_HOST "x64Darwin15clang7.0")
+        set(DDS_HOST "x64Darwin16clang8.0")
     elseif(UNIX)
         set(DDS_HOST "x64Linux3gcc4.8.2")
     endif()
