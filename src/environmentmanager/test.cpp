@@ -22,7 +22,7 @@ int main(int argc, char **argv){
     sub.recv(&message);
     sub.close();
 
-    std::cout << "Recieved and closed sub" << std::endl;    
+    std::cout << "Recieved and closed sub" << std::endl;
 
     zmq::socket_t req(context, ZMQ_REQ);
     auto endpoint = std::string(static_cast<const char*>(message.data()), message.size());
@@ -47,13 +47,13 @@ int main(int argc, char **argv){
         zmq::message_t deployment_msg(out.begin(), out.end());
 
         std::cout << "created deployment message" << std::endl;
+        std::cout << out << std::endl;
 
 
         req.send(type_msg, ZMQ_SNDMORE);
         std::cout << "sent type message" << std::endl;
         req.send(deployment_msg);
         std::cout << "sent deployment message" << std::endl;
-
 
         zmq::message_t inbound_type;
         req.recv(&inbound_type);

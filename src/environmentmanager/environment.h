@@ -12,8 +12,11 @@ class Environment{
     public:
         Environment();
 
-        std::string AddPort(const std::string& component_id);
-        void RemovePort(const std::string& component_id);
+        std::string AddDeployment(const std::string& deployment_id);
+        void RemoveDeployment(const std::string& deployment_id);
+
+        std::string AddComponent(const std::string& component_id);
+        void RemoveComponent(const std::string& component_id);
     private:
         //Port range
         //TODO: Make this user configurable to avoid conflicts and allow multiple environments on the same network?
@@ -24,6 +27,7 @@ class Environment{
         std::mutex port_mutex_;
         std::set<int> available_ports_;
         std::unordered_map<std::string, std::string> component_port_map_;
+        std::unordered_map<std::string, std::string> deployment_port_map_;
 
 };
 

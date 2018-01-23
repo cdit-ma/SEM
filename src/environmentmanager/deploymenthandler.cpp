@@ -17,7 +17,7 @@ void DeploymentHandler::Start(){
 void DeploymentHandler::Init(){
     handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
 
-    std::string assigned_port = environment_->AddPort(deployment_id_);
+    std::string assigned_port = environment_->AddDeployment(deployment_id_);
     try{
         //Bind to random port on local ip address
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
@@ -53,7 +53,7 @@ void DeploymentHandler::Init(){
             std::string component_id = request_contents;
 
             std::string header("ASSIGNMENT_REPLY");
-            std::string port_string = environment_->AddPort(component_id);
+            std::string port_string = environment_->AddComponent(component_id);
             port_map_[component_id] = port_string;
             std::cout << component_id << std::endl;
             std::cout << port_map_[component_id] << std::endl;
@@ -144,11 +144,10 @@ void DeploymentHandler::RemoveDeployment(){
     std::cout << "removing" << std::endl;
     for(auto element : port_map_){
         std::cout << element.first << std::endl;
-        environment_->RemovePort(element.first);
+        environment_->RemoveComponent(element.first);
     }
 
-
-    //TODO: Somehow remove deployment from registry of deployments
+    environment_->RemoveDeployment(deployment_id_);
 }
 
 std::string DeploymentHandler::TCPify(const std::string& ip_address, const std::string& port) const{
