@@ -73,6 +73,18 @@
     </xsl:function>
 
     <!--
+        Gets the data value from all entities, by its keyname
+    -->
+    <xsl:function name="graphml:get_data_values" as="xs:string*">
+        <xsl:param name="entities" as="element()*" />
+        <xsl:param name="key_name" as="xs:string"/>
+
+        <xsl:for-each select="$entities">
+            <xsl:sequence select="graphml:get_data_value(., $key_name)" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <!--
         Gets the 'kind' data value from the entity
     -->
     <xsl:function name="graphml:get_kind" as="xs:string?">
@@ -129,6 +141,18 @@
     </xsl:function>
 
     <!--
+        Gets the children of the entity, which are key's converts it to a boolean
+    -->
+    <xsl:function name="graphml:get_keys" as="element(gml:node)*">
+        <xsl:param name="aggregate" as="element(gml:node)?" />
+        <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+            <xsl:if test="graphml:is_key(.)">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+    <!--
         Gets the data value from the entity, by it's key name, and compares it against a string boolean
     -->
     <xsl:function name="graphml:evaluate_data_value_as_boolean" as="xs:boolean?">
@@ -182,7 +206,16 @@
     </xsl:function>
 
     <!--
-        Gets descendant nodes of the node of the node provided, of a particular 'kind'(s)
+        Gets descendant nodes of the node provided
+    -->
+    <xsl:function name="graphml:get_descendant_nodes" as="element(gml:node)*">
+        <xsl:param name="node" as="element(gml:node)*" />
+        <xsl:sequence select="$node//gml:node" />
+    </xsl:function>
+
+
+    <!--
+        Gets descendant nodes of the node provided, of a particular 'kind'(s)
     -->
     <xsl:function name="graphml:get_descendant_nodes_of_kind" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -191,6 +224,18 @@
         <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
         <xsl:sequence select="$node//gml:node/gml:data[@key=$kind_id and text() = $kinds]/.." />
     </xsl:function>
+
+    <!--
+        Gets ancestors nodes of the node provided, of a particular 'kind'(s)
+    -->
+    <xsl:function name="graphml:get_ancestor_nodes_of_kind" as="element(gml:node)*">
+        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="kinds" as="xs:string+" />
+        
+        <xsl:variable name="kind_id" select="graphml:get_key_id($node, 'kind')" />
+        <xsl:sequence select="$node/ancestor::gml:node/gml:data[@key=$kind_id and text() = $kinds]/.." />
+    </xsl:function>
+
 
     <!--
         Gets any edge that terminate at the node provided, of a particular 'kind'(s)
@@ -221,6 +266,22 @@
             <xsl:sequence select="graphml:get_node_by_id(., @target)" />
         </xsl:for-each>
     </xsl:function>
+
+    <!--
+        Gets all targets that start at the node provided, of a particualr 'kind'(s)
+        Recurses to each target and find's their matching targets
+    -->
+
+    <xsl:function name="graphml:get_targets_recurse">
+        <xsl:param name="node" as="element(gml:node)?" />
+        <xsl:param name="edge_kinds" as="xs:string+" />
+        
+        <xsl:for-each select="graphml:get_targets($node, $edge_kinds)">
+            <xsl:sequence select="." />
+            <xsl:sequence select="graphml:get_targets_recurse(., $edge_kinds)" />
+        </xsl:for-each>
+   </xsl:function>
+
 
     <!--
         Gets the definition of the node provided, will recurse to the first definition
