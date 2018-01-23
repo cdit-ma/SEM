@@ -52,7 +52,6 @@ void DeploymentRegister::RegistrationLoop(){
 
 
             auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, request_contents);
-            deployment_handler->Start();
             deployments_.push_back(deployment_handler);
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.

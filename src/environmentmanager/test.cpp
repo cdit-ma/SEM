@@ -20,12 +20,12 @@ int main(int argc, char **argv){
 
     zmq::message_t message;
     sub.recv(&message);
+    auto endpoint = std::string(static_cast<const char*>(message.data()), message.size());
     sub.close();
 
-    std::cout << "Recieved and closed sub" << std::endl;
+    std::cout << "sub1 < " << endpoint << std::endl;
 
     zmq::socket_t req(context, ZMQ_REQ);
-    auto endpoint = std::string(static_cast<const char*>(message.data()), message.size());
     req.connect(endpoint);
 
     std::cout << "Connected to endpoint: " << endpoint << std::endl;
@@ -36,8 +36,6 @@ int main(int argc, char **argv){
         std::string type("DEPLOYMENT");
         zmq::message_t type_msg(type.begin(), type.end());
 
-        std::cout << "created message" << std::endl;
-
         std::string deployment_name(argv[1]);
         NodeManager::ControlMessage* deployment = new NodeManager::ControlMessage();
         deployment->set_host_name(deployment_name);
@@ -46,37 +44,26 @@ int main(int argc, char **argv){
 
         zmq::message_t deployment_msg(out.begin(), out.end());
 
-        std::cout << "created deployment message" << std::endl;
-        std::cout << out << std::endl;
-
-
         req.send(type_msg, ZMQ_SNDMORE);
-        std::cout << "sent type message" << std::endl;
         req.send(deployment_msg);
-        std::cout << "sent deployment message" << std::endl;
+        std::cout << "1> " << type << ": " << out << std::endl;
 
         zmq::message_t inbound_type;
         req.recv(&inbound_type);
         zmq::message_t inbound;
         req.recv(&inbound);
 
-        std::cout << "recieved inbound message" << std::endl;
-
         auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
-
-        std::cout << "Inbound message type: " << type_str << std::endl;
-
         auto hb_endpoint = std::string(static_cast<const char*>(inbound.data()), inbound.size());
-
-        std::cout << "Got heartbeat endpoint: " << hb_endpoint << std::endl;
+        std::cout << "2< " << type_str << ": " << hb_endpoint << std::endl;
 
         zmq::socket_t hb_soc(context, ZMQ_REQ);
         hb_soc.connect(hb_endpoint);
 
-        std::cout << "connected to heartbeat endpoint" << std::endl;
+        std::cout << "Connected to heartbeat endpoint" << std::endl;
 
 
-        for(int i =0; i<10; i++){
+        for(int i =0; i<2; i++){
 
             std::string m1("ASSIGNMENT_REQUEST");
             zmq::message_t m1m(m1.begin(), m1.end());
@@ -89,6 +76,8 @@ int main(int argc, char **argv){
 
             hb_soc.send(m1m, ZMQ_SNDMORE);
             hb_soc.send(m2m);
+            std::cout << "3> " << m1 << ": " << m2 << std::endl;
+            
 
             zmq::message_t asdf;
             zmq::message_t asdf2;
@@ -96,37 +85,46 @@ int main(int argc, char **argv){
             hb_soc.recv(&asdf2);
             auto reply = std::string(static_cast<const char*>(asdf.data()), asdf.size());
             auto reply2 = std::string(static_cast<const char*>(asdf2.data()), asdf2.size());
-            std::cout << reply << std::endl;
-            std::cout << reply2 << std::endl;
+            std::cout << "4< " << reply << ": " << reply2 << std::endl;
         }
 
         std::string endmessage("END_ASSIGNMENT");
         zmq::message_t endm(endmessage.begin(), endmessage.end());
-
+        std::string endmessage2("");
+        zmq::message_t endm2(endmessage2.begin(), endmessage2.end());
         hb_soc.send(endm, ZMQ_SNDMORE);
-        hb_soc.send(endm);
+        hb_soc.send(endm2);
 
-        std::cout << "sent assignment end" << std::endl;
+        std::cout << "5> " << endmessage << ": " << endmessage2 << std::endl;
 
-        zmq::message_t endm2;
-        hb_soc.recv(&endm2);
-        hb_soc.recv(&endm2);
+
+        zmq::message_t end_ack;
+        zmq::message_t end_ack2;
+        hb_soc.recv(&end_ack);
+        hb_soc.recv(&end_ack2);
+        auto reply = std::string(static_cast<const char*>(end_ack.data()), end_ack.size());
+        auto reply2 = std::string(static_cast<const char*>(end_ack2.data()), end_ack2.size());
         
-        std::cout << "got end ack" << std::endl;
+        std::cout << "6< " << reply << ": " << reply2 << std::endl;
 
         while(true){
 
-            std::string hb_str("HB");
+            std::string hb_str("HEARTBEAT");
             zmq::message_t hb_message(hb_str.begin(), hb_str.end());
-            hb_soc.send(hb_message);
+            hb_soc.send(hb_message, ZMQ_SNDMORE);
+            std::cout << "> " << hb_str << std::endl;
+            std::string hb_str2("HEARTBEAT");
+            zmq::message_t hb_message2(hb_str2.begin(), hb_str2.end());
+            hb_soc.send(hb_message2);
 
             zmq::message_t ack;
+            zmq::message_t ack2;
             hb_soc.recv(&ack);
+            hb_soc.recv(&ack2);
 
+            std::cout << "< " << std::string(static_cast<const char*>(ack.data()), ack.size()) << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            std::cout << "beat" << std::endl;
         }
-
     }
 
     else{
