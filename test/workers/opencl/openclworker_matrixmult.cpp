@@ -1,6 +1,10 @@
 #include "common.h"
 #include <random>
 
+/****
+ * Matrix testing
+ ****/
+
 struct Matrix{
     Matrix(size_t rows, size_t columns){
         this->rows = rows;
@@ -43,11 +47,10 @@ class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, publi
     public:
         MatrixMultFixture() : OpenCLWorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
-                HasFatalFailure();
+                throw std::runtime_error("Failed to configure worker in MatrixMultFixture constructor");
             }
         }
 };
-
 
 TEST_P(MatrixMultFixture, ZeroMatrix)
 {
@@ -187,3 +190,14 @@ std::vector<MatrixMultParam> getRectTests(){
 
 INSTANTIATE_TEST_CASE_P(Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
 INSTANTIATE_TEST_CASE_P(Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
+
+
+/*
+class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCLWorkerConstructor{
+    public:
+        RunParallelFixture() : OpenCLWorkerConstructor(GetParam().device){
+            if(!worker_.Configure()){
+                HasFatalFailure();
+            }
+        }
+};*/

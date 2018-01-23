@@ -26,7 +26,7 @@ std::vector<DeviceParam> getDevices(){
 };
 
 std::ostream& operator<<(std::ostream& os, const DeviceParam& d){
-    return os << "Platform: '" << GetPlatformName(d.platform_id) << "' Device: '" << GetDeviceName(d.platform_id, d.device_id) << "'";
+    return os << "Platform: [" << GetPlatformName(d.platform_id) << "] Device: [" << GetDeviceName(d.platform_id, d.device_id) << "]";
 };
 
 std::string GetDeviceName(int platform_id, int device_id){
