@@ -22,7 +22,7 @@ class BufferFixture:
     public ::testing::TestWithParam<BufferParam<T> >,
     public OpenCLWorkerConstructor {
 public:
-    BufferFixture() : OpenCLWorkerConstructor(GetParam().device){
+    BufferFixture() : OpenCLWorkerConstructor(::testing::TestWithParam<BufferParam<T> >::GetParam().device){
         if(!worker_.Configure()) {
             throw std::runtime_error("Failed to configure worker in BufferFixture constructor");
         }
