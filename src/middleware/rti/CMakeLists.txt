@@ -17,6 +17,7 @@ if(NOT RTIDDS_FOUND)
     return()
 endif()
 
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
 	)
