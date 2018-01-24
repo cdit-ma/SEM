@@ -157,7 +157,8 @@
                     <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
                 <xsl:when test="($middleware = 'rti' or $middleware = 'ospl') and $vector_kind = 'AggregateInstance'">
-                    <xsl:value-of select="cpp:dereference_var($value)" />
+                    <xsl:variable name="vector_size" select="cpp:invoke_function(cpp:invoke_function($obj, $operator, $variable_syntax, '', 0), cpp:dot(), 'size', '', 0)" />
+                    <xsl:value-of select="cpp:join_args((concat($vector_size, ' + 1'), cpp:dereference_var($value)))" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="$value" />
@@ -168,7 +169,7 @@
             <xsl:choose>
                 <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
                     <!-- DDS implementations use set via accessors -->
-                    <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'emplace_back')" />
+                    <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'resize')" />
                 </xsl:when>
                 <xsl:when test="$middleware = 'base'">
                     <xsl:value-of select="concat(cpp:invoke_function('', '', $variable_syntax, '', 0), cpp:dot(), 'emplace_back')" />
