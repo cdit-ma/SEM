@@ -14,7 +14,7 @@
         <xsl:variable name="comment" select="concat('!-- ', $text, ' --')" />
 
         
-        <xsl:value-of select="concat(o:t($tab), o:angle_wrap($comment), o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), o:angle_wrap($comment), o:nl(1))" />
     </xsl:function>
 
 
