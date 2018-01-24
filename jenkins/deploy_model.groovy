@@ -183,7 +183,6 @@ withEnv(["model=''"]){
             compileCode[nodeName] = {
                 node(nodeName){
                     unstash 'codeGen'
-                    print("CMAKE_MODULES: " + "${RE_PATH}" + '/cmake_modules')
                     withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
                         dir(buildDir + "/build"){
                             if(utils.runScript('cmake ..') != 0){
