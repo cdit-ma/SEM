@@ -112,17 +112,14 @@ else(WIN32)
         set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
     endif(NOT APPLE)
     
-    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-        set(bits_flag -m64)
-    else(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-        set(bits_flag -m32)
-    endif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-    set(DDS_DEFINITIONS -DRTI_UNIX -m64)
+    set(DDS_DEFINITIONS -DRTI_UNIX -DRTI_64BIT)
 endif(WIN32)
 
 set(RTIDDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
 set(RTIDDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
     ${DDS_EXTRA_LIBRARIES} ${DDS_CPP2_LIBRARY})
+set(RTIDDS_DEFINITIONS ${DDS_DEFINITIONS})
+
 
 file(GLOB DDS_VERSION_FILE ${DDS_ROOT}/rev_target_rtidds.*
     $ENV{DDS_ROOT}/rev_target_rtidds.*
