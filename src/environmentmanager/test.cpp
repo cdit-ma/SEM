@@ -4,10 +4,66 @@
 #include <thread>
 #include <chrono>
 #include <climits>
+#include <tuple>
 
 #include "../nodemanager/controlmessage/controlmessage.pb.h"
 
+long clock_;
+
+long Tick(){
+    clock_++;
+    return clock_;
+}
+
+long SetClock(long incoming_time){
+    clock_ = std::max(incoming_time, clock_) + 1;
+    return clock_;
+}
+
+long GetClock(){
+    return clock_;
+}
+
+void Send(zmq::socket_t* socket, std::string part_one, std::string part_two){
+    zmq::message_t lamport_time_msg(Tick());
+    zmq::message_t part_one_msg(part_one.begin(), part_one.end());
+    zmq::message_t part_two_msg(part_two.begin(), part_two.end());
+
+    try{
+        socket->send(part_one_msg, ZMQ_SNDMORE);
+        socket->send(lamport_time_msg, ZMQ_SNDMORE);
+        socket->send(part_two_msg);
+    }
+    catch(std::exception e){
+        std::cout << e.what() << std::endl;
+    }
+}
+
+std::tuple<std::string, long, std::string> Receive(zmq::socket_t* socket){
+    zmq::message_t request_type_msg;
+    zmq::message_t lamport_time_msg;
+    zmq::message_t request_contents_msg;
+    try{
+        socket->recv(&request_type_msg);
+        socket->recv(&lamport_time_msg);
+        socket->recv(&request_contents_msg);
+    }
+    catch(zmq::error_t error){
+        //TODO: Throw this further up
+        std::cout << error.what() << std::endl;
+    }
+    std::string type(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
+    std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
+
+    //Update and get current lamport time
+    long lamport_time = SetClock((long)(lamport_time_msg.data()));
+
+    return std::make_tuple(type, lamport_time, contents);
+}
+
 int main(int argc, char **argv){
+
+    clock_ = 0;
 
     std::cout << "Started" << std::endl;
 
@@ -26,40 +82,32 @@ int main(int argc, char **argv){
 
     std::cout << "sub1 < " << endpoint << std::endl;
 
-    zmq::socket_t req(context, ZMQ_REQ);
-    req.connect(endpoint);
+    zmq::socket_t* req = new zmq::socket_t(context, ZMQ_REQ);
+    req->connect(endpoint);
 
     std::cout << "Connected to endpoint: " << endpoint << std::endl;
 
     bool flag = argc == 2;
 
     if(flag){
-        std::string type("DEPLOYMENT");
-        zmq::message_t type_msg(type.begin(), type.end());
 
         std::string deployment_name(argv[1]);
         NodeManager::ControlMessage* deployment = new NodeManager::ControlMessage();
         deployment->set_host_name(deployment_name);
 
         std::string out = deployment->SerializeAsString();
+        Send(req, "DEPLOYMENT", out);
 
-        zmq::message_t deployment_msg(out.begin(), out.end());
+        std::cout << "1> " << "DEPLOYMENT" << ": " << out << std::endl;
 
-        req.send(type_msg, ZMQ_SNDMORE);
-        req.send(deployment_msg);
-        std::cout << "1> " << type << ": " << out << std::endl;
+        auto rec1 = Receive(req);
 
-        zmq::message_t inbound_type;
-        req.recv(&inbound_type);
-        zmq::message_t inbound;
-        req.recv(&inbound);
-
-        auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
-        auto hb_endpoint = std::string(static_cast<const char*>(inbound.data()), inbound.size());
+        auto type_str = std::get<0>(rec1);
+        auto hb_endpoint = std::get<2>(rec1);
         std::cout << "2< " << type_str << ": " << hb_endpoint << std::endl;
 
-        zmq::socket_t hb_soc(context, ZMQ_REQ);
-        hb_soc.connect(hb_endpoint);
+        zmq::socket_t* hb_soc = new zmq::socket_t(context, ZMQ_REQ);
+        hb_soc->connect(hb_endpoint);
 
         std::cout << "Connected to heartbeat endpoint" << std::endl;
 
@@ -67,98 +115,79 @@ int main(int argc, char **argv){
         for(int i =0; i<2; i++){
 
             std::string m1("ASSIGNMENT_REQUEST");
-            zmq::message_t m1m(m1.begin(), m1.end());
 
             std::string m2;
             m2 += deployment_name;
             m2 += ":Component";
             m2 += std::to_string(i);
-            zmq::message_t m2m(m2.begin(), m2.end());
 
-            hb_soc.send(m1m, ZMQ_SNDMORE);
-            hb_soc.send(m2m);
+            Send(hb_soc, m1, m2);
             std::cout << "3> " << m1 << ": " << m2 << std::endl;
 
-            zmq::message_t asdf;
-            zmq::message_t asdf2;
-            hb_soc.recv(&asdf);
-            hb_soc.recv(&asdf2);
-            auto reply = std::string(static_cast<const char*>(asdf.data()), asdf.size());
-            auto reply2 = std::string(static_cast<const char*>(asdf2.data()), asdf2.size());
+            auto rep2 = Receive(hb_soc);
+            auto reply = std::get<0>(rep2);
+            auto reply2 = std::get<2>(rep2);
             std::cout << "4< " << reply << ": " << reply2 << std::endl;
         }
 
         std::string endmessage("END_ASSIGNMENT");
-        zmq::message_t endm(endmessage.begin(), endmessage.end());
         std::string endmessage2("");
-        zmq::message_t endm2(endmessage2.begin(), endmessage2.end());
-        hb_soc.send(endm, ZMQ_SNDMORE);
-        hb_soc.send(endm2);
+        Send(hb_soc, endmessage, endmessage2);
 
         std::cout << "5> " << endmessage << ": " << endmessage2 << std::endl;
 
 
-        zmq::message_t end_ack;
-        zmq::message_t end_ack2;
-        hb_soc.recv(&end_ack);
-        hb_soc.recv(&end_ack2);
-        auto reply = std::string(static_cast<const char*>(end_ack.data()), end_ack.size());
-        auto reply2 = std::string(static_cast<const char*>(end_ack2.data()), end_ack2.size());
+        auto rep3 = Receive(hb_soc);
+        auto reply = std::get<0>(rep3);
+        auto reply2 = std::get<0>(rep3);
         
         std::cout << "6< " << reply << ": " << reply2 << std::endl;
 
         while(true){
 
-            std::string hb_str("HEARTBEAT");
-            zmq::message_t hb_message(hb_str.begin(), hb_str.end());
-            hb_soc.send(hb_message, ZMQ_SNDMORE);
-            std::cout << "> " << hb_str << std::endl;
-            std::string hb_str2("HEARTBEAT");
-            zmq::message_t hb_message2(hb_str2.begin(), hb_str2.end());
-            hb_soc.send(hb_message2);
+            Send(hb_soc, "HEARTBEAT", "HEARTBEAT");
+            auto hb_rep = Receive(hb_soc);
 
-            zmq::message_t ack;
-            zmq::message_t ack2;
-            hb_soc.recv(&ack);
-            hb_soc.recv(&ack2);
+            auto hb_rep_string = std::get<0>(hb_rep);
 
-            std::cout << "< " << std::string(static_cast<const char*>(ack.data()), ack.size()) << std::endl;
+            std::cout << "< " << hb_rep_string << std::endl;
+            std::cout << "< " << std::get<1>(hb_rep) << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 
-    else{
-        std::string type("QUERY");
-        zmq::message_t type_msg(type.begin(), type.end());
+    // else{
+    //     std::string type("QUERY");
+    //     zmq::message_t type_msg(type.begin(), type.end());
 
-        std::cout << "created message type" << std::endl;
+    //     std::cout << "created message type" << std::endl;
 
-        std::string query("PORT:");
-        query += argv[2];
-        zmq::message_t query_msg(query.begin(), query.end());
+    //     std::string query("PORT:");
+    //     query += argv[2];
+    //     zmq::message_t query_msg(query.begin(), query.end());
 
-        std::cout << "created query_msg message" << std::endl;
+    //     std::cout << "created query_msg message" << std::endl;
 
 
-        req.send(type_msg, ZMQ_SNDMORE);
-        std::cout << "sent type message" << std::endl;
-        req.send(query_msg);
-        std::cout << "sent query_msg" << std::endl;
+    //     req.send(type_msg, ZMQ_SNDMORE);
+    //     std::cout << "sent type message" << std::endl;
+    //     req.send(query_msg);
+    //     std::cout << "sent query_msg" << std::endl;
 
-        zmq::message_t inbound_type;
-        req.recv(&inbound_type);
-        zmq::message_t inbound;
-        req.recv(&inbound);
+    //     zmq::message_t inbound_type;
+    //     req.recv(&inbound_type);
+    //     zmq::message_t inbound;
+    //     req.recv(&inbound);
 
-        std::cout << "recieved inbound message" << std::endl;
+    //     std::cout << "recieved inbound message" << std::endl;
 
-        auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
+    //     auto type_str = std::string(static_cast<const char*>(inbound_type.data()), inbound_type.size());
 
-        std::cout << "Inbound message type: " << type_str << std::endl;
+    //     std::cout << "Inbound message type: " << type_str << std::endl;
 
-        auto query_response = std::string(static_cast<const char*>(inbound.data()), inbound.size());
+    //     auto query_response = std::string(static_cast<const char*>(inbound.data()), inbound.size());
 
-        std::cout << query_response << std::endl;
+    //     std::cout << query_response << std::endl;
 
-    }
+    // }
 }
