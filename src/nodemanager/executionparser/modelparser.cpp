@@ -712,8 +712,7 @@ std::string Graphml::ModelParser::GetTCPAddress(const std::string ip, const unsi
     return addr;
 }
 
-<<<<<<< HEAD:src/core/nodemanager/executionparser/modelparser.cpp
-std::string Graphml::ModelParser::GetIiopAddress(const std::string ip, const unsigned int port_number){
+std::string Graphml::ModelParser::GetIiopAddress(const std::string& ip, const unsigned int port_number){
     std::string addr;
     if(!ip.empty()){
         addr += "iiop://" + ip + ":" + std::to_string(port_number);
@@ -721,7 +720,7 @@ std::string Graphml::ModelParser::GetIiopAddress(const std::string ip, const uns
     return addr;
 }
 
-std::string Graphml::ModelParser::GetNamedIiopAddress(const std::string ip, const unsigned int port_number, const std::string name){
+std::string Graphml::ModelParser::GetNamedIiopAddress(const std::string& ip, const unsigned int port_number, const std::string& name){
     std::string addr;
     if(!ip.empty()){
         addr += name + "=corbaloc:iiop:" + ip + ":" + std::to_string(port_number) + "/" + name;
@@ -729,12 +728,7 @@ std::string Graphml::ModelParser::GetNamedIiopAddress(const std::string ip, cons
     return addr;
 }
 
-void Graphml::ModelParser::RecurseEdge(std::string source_id, std::string current_id){
-    for(auto e_id: assembly_edge_ids_){
-        auto s_id = GetAttribute(e_id, "source");
-=======
 void Graphml::ModelParser::RecurseEdge(const std::string& source_id, std::string current_id){
->>>>>>> develop:src/nodemanager/executionparser/modelparser.cpp
 
 
     for(auto edge_id: entity_edge_ids_[current_id]){

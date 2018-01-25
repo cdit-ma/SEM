@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message Message{
+	string instname = 1;
+	int64 messageid = 2;
+	string content = 3;
+};

@@ -1,0 +1,10 @@
+#ifndef MESSAGE_IDL_H
+#define MESSAGE_IDL_H
+
+struct Message{
+	string instname;// @key
+	long messageid;
+	string content;
+};
+#pragma keylist Message instname
+#endif // MESSAGE_IDL_H
