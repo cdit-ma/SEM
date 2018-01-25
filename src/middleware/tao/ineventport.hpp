@@ -1,7 +1,7 @@
 #ifndef TAO_INEVENTPORT_H
 #define TAO_INEVENTPORT_H
 
-#include "../../core/eventports/ineventport.hpp"
+#include <core/eventports/ineventport.hpp>
 
 #include <string>
 #include <thread>
@@ -27,31 +27,37 @@ namespace tao{
 
      template <class T, class S, class R> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
-
-            void Startup(std::map<std::string, ::Attribute*> attributes);
-            bool Teardown();
-
-            bool Activate();
-            bool Passivate();
-        private:
-            void enqueue(const S* message);
-            void receive_loop();
-            std::queue<const S*> message_queue_;
-            
-            std::thread* rec_thread_ = 0;
-            Receiver<S, R>* receiver_ = 0;
-
-            std::mutex receive_mutex_;
-            std::mutex control_mutex_;
-            std::condition_variable receive_lock_condition_;
-
-            bool configured_ = false;
-            bool passivate_ = false;
+            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
+            ~InEventPort(){
+                Activatable::Terminate();
+            };
+            protected:
+                bool HandleConfigure();
+                bool HandlePassivate();
+                bool HandleTerminate();
+            private:
+                void enqueue(const S* message);
+                void recv_loop();
 
 
-            std::string object_key_;
-            std::string end_point_;
+            private:
+                std::queue<const S*> message_queue_;
+                std::thread* rec_thread_ = 0;
+                Receiver<S, R>* receiver_ = 0;
+
+                std::mutex receive_mutex_;
+                std::condition_variable receive_lock_condition_;
+
+                std::mutex thread_state_mutex_;
+                ThreadState thread_state_;
+                std::condition_variable thread_state_condition_;
+                
+                bool interupt_ = false;
+                std::mutex control_mutex_;
+                std::thread* recv_thread_ = 0;
+
+                std::shared_ptr<Attribute> publisher_name_;
+                std::shared_ptr<Attribute> publisher_address_;
     }; 
 };
 
@@ -74,6 +80,36 @@ void tao::Receiver<S, R>::send(const S& message){
 };
 
 template <class T, class S, class R>
+tao::InEventPort<T, S, R>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
+::InEventPort<T>(component, name, callback_function, "tao"){
+    publisher_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
+    publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
+};
+
+
+template <class T, class S, class R>
+bool tao::InEventPort<T, S, R>::HandleConfigure(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    
+    bool valid = publisher_name_->String().length() >= 0 && publisher_address_->String().length() >= 0;
+    if(valid && ::InEventPort<T>::HandleConfigure()){
+        if(!recv_thread_){
+            {
+                std::unique_lock<std::mutex> lock(receive_mutex_);
+                interupt_ = false;
+            }
+            std::unique_lock<std::mutex> lock(thread_state_mutex_);
+            thread_state_ = ThreadState::WAITING;
+            recv_thread_ = new std::thread(&tao::InEventPort<T, S, R>::recv_loop, this);
+            thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
+            std::cout << "YOYOOYOY" << std::endl;
+            return thread_state_ == ThreadState::STARTED;
+        }
+    }
+    return false;
+};
+
+template <class T, class S, class R>
 void tao::InEventPort<T, S, R>::enqueue(const S* message){
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(receive_mutex_);
@@ -81,77 +117,55 @@ void tao::InEventPort<T, S, R>::enqueue(const S* message){
     receive_lock_condition_.notify_all();
 }
 
+
+
 template <class T, class S, class R>
-void tao::InEventPort<T, S, R>::Startup(std::map<std::string, ::Attribute*> attributes){
+bool tao::InEventPort<T, S, R>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-
-    if(attributes.count("publisher_address")){
-        end_point_ = attributes["publisher_address"]->String();
+    if(::InEventPort<T>::HandlePassivate()){ 
+        //Set the terminate state in the passivation
+        std::lock_guard<std::mutex> lock(receive_mutex_);
+        interupt_ = true;
+        receive_lock_condition_.notify_all();
+        return true;
     }
-
-    if(attributes.count("publisher_name")){
-        object_key_ = attributes["publisher_name"]->String();
-    }
+    return false;
 };
 
+
 template <class T, class S, class R>
-bool tao::InEventPort<T, S, R>::Activate(){
-    //Gain the control mutex
+bool tao::InEventPort<T, S, R>::HandleTerminate(){
+    HandlePassivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
-    //Only run if we can activate
-    if(::InEventPort<T>::Activate()){
-        //Construct a thread to handle TAO
-        rec_thread_ = new std::thread(&tao::InEventPort<T, S, R>::receive_loop, this);
+    if(::InEventPort<T>::HandleTerminate()){
+        if(recv_thread_){
+            //Join our tect thread
+            recv_thread_->join();
+            delete recv_thread_;
+            recv_thread_ = 0;
+        }
         return true;
     }
     return false;
 };
 
 template <class T, class S, class R>
-bool tao::InEventPort<T, S, R>::Passivate(){
-    //Gain the control mutex so we can notify the lock condition
-    std::lock_guard<std::mutex> lock(control_mutex_);
+void tao::InEventPort<T, S, R>::recv_loop(){
+    auto state = ThreadState::STARTED;
     
-    if(::InEventPort<T>::Passivate()){
-        {
-            //Gain the receive mutex
-            std::unique_lock<std::mutex> lock(receive_mutex_);
-            receive_lock_condition_.notify_all();
-        }
-        if(rec_thread_){
-            //Join our recieve thread
-            rec_thread_->join();
-            delete rec_thread_;
-            rec_thread_ = 0;
-        }
-        return true;
-    }
-    return false;
-};
-
-template <class T, class S, class R>
-bool tao::InEventPort<T, S, R>::Teardown(){
-    Passivate();
-    return ::InEventPort<T>::Teardown();
-};
-
-template <class T, class S, class R>
-tao::InEventPort<T, S, R>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
-::InEventPort<T>(component, name, callback_function, "tao"){
-};
-
-template <class T, class S, class R>
-void tao::InEventPort<T, S, R>::receive_loop(){
     //Construct a unique ID
     std::stringstream ss;
     ss << "tao::InEventPort" << "_" << std::this_thread::get_id();
     auto unique_id = ss.str();
 
+
+    std::string publisher_address = publisher_address_->String();
+    auto publisher_address_cstr = publisher_address.c_str();
     //Construct the args for the TAO orb
     int orb_argc = 0;
     auto orb_argv = new char*[2];
     orb_argv[orb_argc++] = (char*) "-ORBEndpoint";
-    orb_argv[orb_argc++] = &(end_point_[0]);
+    orb_argv[orb_argc++] = &(publisher_address[0]);
     
     //Initialize the orb with our custom endpoints
     auto orb = CORBA::ORB_init(orb_argc, orb_argv, unique_id.c_str());
@@ -185,7 +199,7 @@ void tao::InEventPort<T, S, R>::receive_loop(){
     auto receiver = new Receiver<S, R>(orb, callback);
 
     //Convert the object key string into an object_id
-    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId(object_key_.c_str());
+    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId(publisher_name_->String().c_str());
     //Activate the receiver we instantiated with the obj_id
     child_poa->activate_object_with_id(obj_id, receiver);
     //Get the reference to the obj, using the obj_id
@@ -200,29 +214,48 @@ void tao::InEventPort<T, S, R>::receive_loop(){
 
 
     if(!ior_table){
-        std::cerr << "Failed to resolve IOR Table" << std::endl;
-        return;
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Failed to resolve IOR Table"));
+        state = ThreadState::ERROR_;
+    }else{
+        //Bind the IOR into the IOR table, so that others can look it up
+        ior_table->bind(publisher_name_->String().c_str(), ior);
+
+        //Activate the POA
+        poa_manager->activate();
     }
 
-    //Bind the IOR into the IOR table, so that others can look it up
-    ior_table->bind(object_key_.c_str(), ior);
-
-    //Activate the POA
-    poa_manager->activate();
+    std::cout << "HELLO" << std::endl;
+    
     
     //Define a queue to swap
     std::queue<const S*> queue;
 
-    bool running = true;
-    while(running){
+    //Change the state to be Configured
+    {
+        std::cout << "CIONFIGURE" << std::endl;
+        std::lock_guard<std::mutex> lock(thread_state_mutex_);
+        std::cout << "CIONFIGURE2" << std::endl;
+        thread_state_ = state;
+        thread_state_condition_.notify_all();
+    }
+
+
+    bool run = true;
+    while(run){
         {
-            //Gain Mutex
+            //Wait for next message
             std::unique_lock<std::mutex> lock(receive_mutex_);
-            running = this->is_active();
-            if(running){
-                //Only wait for the next notify if we are running
-                receive_lock_condition_.wait(lock);
+            //Check to see if we've been interupted before sleeping the first time
+            if(interupt_){
+                break;
             }
+            receive_lock_condition_.wait(lock);
+            
+            //Upon wake, read all messages, then die.
+            if(interupt_){
+                run = false;
+            }
+
             //Swap out the queue's and release the mutex (Even if we are in active)
             message_queue_.swap(queue);
         }
@@ -232,7 +265,7 @@ void tao::InEventPort<T, S, R>::receive_loop(){
             //Take first element
             auto tao_message = queue.front();
             //Translate between TAO and base middleware
-            auto base_message = translate(tao_message);
+            auto base_message = translate(*tao_message);
             //Enqueue the Base middleware message into the EventPort super class
             this->EnqueueMessage(base_message);
             //Pop the queue

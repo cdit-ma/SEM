@@ -78,13 +78,15 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
     auto unique_id = ss.str();
     
     auto endpoints_  = end_points_->StringList();
-    const auto references_  = publisher_names_->StringList();
+    auto references_  = publisher_names_->StringList();
     //Construct the args for the TAO orb
     int orb_argc = 0;
     auto orb_argv = new char*[endpoints_.size() * 2];
 
+
     for(auto &end_point : endpoints_){
         orb_argv[orb_argc++] = (char *) "-ORBInitRef";
+        std::cout << "CONFIGURE: " << end_point << std::endl;
         orb_argv[orb_argc++] = &(end_point[0]);
     }
 
@@ -94,9 +96,12 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
     //Get the reference to the RootPOA
     auto root_poa_ref = orb_->resolve_initial_references("RootPOA");
     auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
-  
-    while(true){
+
+    std::cout << "reference" << std::endl;
+
+    while(references_.size()){
         for(auto reference : references_){
+            std::cout << "TRYING TO : " << reference << std::endl;
             try{
                 //Get a reference
                 auto ref_obj = orb_->resolve_initial_references(reference.c_str());
@@ -107,16 +112,22 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
                         //Gain the mutex and push back onto the queue of writers
                         //std::lock_guard<std::mutex> lock(writers_mutex_);
                         writers_.push_back(writer_);
+                        std::cout << "GOT REFERENCE" << std::endl;
                         //Remove the 
+                        references_.erase(std::remove(references_.begin(), references_.end(), reference), references_.end());
+
                         //references_.remove(reference);
                         break;
                     }
                 }
             }
             catch(...){
+                std::cout << "HELLO FRIEND" << std::endl;
                 //Got an exception means we are probably trying to connect to a not yet existant end point.
             }
         }
+        
+        std::cout << "DED" << std::endl;
         //Sleep for a while
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
