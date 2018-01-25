@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <climits>
 
 #include "../nodemanager/controlmessage/controlmessage.pb.h"
 
@@ -77,7 +78,6 @@ int main(int argc, char **argv){
             hb_soc.send(m1m, ZMQ_SNDMORE);
             hb_soc.send(m2m);
             std::cout << "3> " << m1 << ": " << m2 << std::endl;
-            
 
             zmq::message_t asdf;
             zmq::message_t asdf2;

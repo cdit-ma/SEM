@@ -15,7 +15,7 @@ DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, 
 void DeploymentHandler::Init(){
     handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
 
-    std::string assigned_port = environment_->AddDeployment(deployment_id_);
+    std::string assigned_port = environment_->AddDeployment(deployment_id_, deployment_id_);
     try{
         //Bind to random port on local ip address
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
@@ -32,15 +32,16 @@ void DeploymentHandler::Init(){
     while(true){
 
         auto request = ReceiveTwoPartRequest(handler_socket_);
-        std::string request_type = request.first;
-        std::string request_contents = request.second;
+        std::string request_type = std::get<0>(request);
+        long lamport_time = std::get<1>(request);
+        std::string request_contents = std::get<2>(request);
 
         if(request_type.compare("ASSIGNMENT_REQUEST") == 0){
 
             std::string component_id = request_contents;
 
             std::string header("ASSIGNMENT_REPLY");
-            std::string port_string = environment_->AddComponent(component_id);
+            std::string port_string = environment_->AddComponent(deployment_id_, component_id, component_id);
             port_map_[component_id] = port_string;
             std::string response(port_string);
 
@@ -79,11 +80,7 @@ void DeploymentHandler::HeartbeatLoop(){
 
     if(initial_events >= 1){
         auto request = ReceiveTwoPartRequest(handler_socket_);
-
-        if(request.first.compare("HEARTBEAT") == 0){
-            SendTwoPartReply(handler_socket_, ack_str, "Initial Ack");
-        }
-
+        HandleRequest(request);
     }
     //Break out early if we never get our first heartbeat
     else{
@@ -107,18 +104,7 @@ void DeploymentHandler::HeartbeatLoop(){
             interval = INITIAL_INTERVAL;
             auto request = ReceiveTwoPartRequest(handler_socket_);
 
-            if(request.first.compare("HEARTBEAT") == 0){
-                SendTwoPartReply(handler_socket_, ack_str, "");
-            }
-
-            else if(request.first.compare("UPDATE") == 0){
-                SendTwoPartReply(handler_socket_, ack_str, "Got update");
-            }
-
-            else{
-                SendTwoPartReply(handler_socket_, "ERROR", "Unknown heartbeat message type.");
-            }
-
+            HandleRequest(request);
         }
         else if(--liveness == 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
@@ -155,11 +141,14 @@ std::string DeploymentHandler::TCPify(const std::string& ip_address, int port) c
 
 void DeploymentHandler::SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one,
                                                                  const std::string& part_two){
+    
     zmq::message_t part_one_msg(part_one.begin(), part_one.end());
+    zmq::message_t time_msg(environment_->Tick());
     zmq::message_t part_two_msg(part_two.begin(), part_two.end());
 
     try{
         socket->send(part_one_msg, ZMQ_SNDMORE);
+        socket->send(time_msg, ZMQ_SNDMORE);
         socket->send(part_two_msg);
     }
     catch(std::exception e){
@@ -167,11 +156,13 @@ void DeploymentHandler::SendTwoPartReply(zmq::socket_t* socket, const std::strin
     }
 }
 
-std::pair<std::string, std::string> DeploymentHandler::ReceiveTwoPartRequest(zmq::socket_t* socket){
+std::tuple<std::string, long, std::string> DeploymentHandler::ReceiveTwoPartRequest(zmq::socket_t* socket){
     zmq::message_t request_type_msg;
+    zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
     try{
         socket->recv(&request_type_msg);
+        socket->recv(&lamport_time_msg);
         socket->recv(&request_contents_msg);
     }
     catch(zmq::error_t error){
@@ -181,5 +172,31 @@ std::pair<std::string, std::string> DeploymentHandler::ReceiveTwoPartRequest(zmq
     std::string type(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
-    return std::make_pair(type, contents);
+    //Update and get current lamport time
+    long lamport_time = environment_->SetClock((long)(lamport_time_msg.data()));
+
+    return std::make_tuple(type, lamport_time, contents);
+}
+
+void DeploymentHandler::HandleRequest(std::tuple<std::string, long, std::string> request){
+
+    std::string ack_string("ACK");
+
+    if(std::get<0>(request).compare("HEARTBEAT") == 0){
+        SendTwoPartReply(handler_socket_, ack_string, "");
+    }
+
+    else if(std::get<0>(request).compare("UPDATE") == 0){
+        //TODO: Handle update
+        SendTwoPartReply(handler_socket_, ack_string, "Got update");
+    }
+
+    else if(std::get<0>(request).compare("END_DEPLOYMENT") == 0){
+        //TODO: Handle end of deployment.
+        SendTwoPartReply(handler_socket_, ack_string, "END_DEPLOYMENT");
+    }
+
+    else{
+        SendTwoPartReply(handler_socket_, "ERROR", "Unknown heartbeat message type.");
+    }
 }

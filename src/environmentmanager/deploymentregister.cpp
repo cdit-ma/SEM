@@ -34,14 +34,10 @@ void DeploymentRegister::RegistrationLoop(){
     
     while(true){
         //Receive deployment information
-        zmq::message_t request_type_msg;
-        zmq::message_t request_contents_msg;
+        auto reply = ReceiveTwoPartRequest(rep);
 
-        rep->recv(&request_type_msg);
-        rep->recv(&request_contents_msg);
-
-        auto request_type = std::string(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
-        auto request_contents = std::string(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
+        auto request_type = std::get<0>(reply);
+        auto request_contents = std::get<2>(reply);
 
         //Handle new deployment manager contact
         if(request_type.compare("DEPLOYMENT") == 0){
@@ -49,7 +45,6 @@ void DeploymentRegister::RegistrationLoop(){
             std::promise<std::string>* port_promise = new std::promise<std::string>();
             std::future<std::string> port_future = port_promise->get_future();
             std::string port;
-
 
             auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, request_contents);
             deployments_.push_back(deployment_handler);
@@ -96,14 +91,38 @@ std::string DeploymentRegister::TCPify(const std::string& ip_address, int port) 
 
 void DeploymentRegister::SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one,
                                                                  const std::string& part_two){
+    zmq::message_t lamport_time_msg(environment_->Tick());
     zmq::message_t part_one_msg(part_one.begin(), part_one.end());
     zmq::message_t part_two_msg(part_two.begin(), part_two.end());
 
     try{
         socket->send(part_one_msg, ZMQ_SNDMORE);
+        socket->send(lamport_time_msg, ZMQ_SNDMORE);
         socket->send(part_two_msg);
     }
     catch(std::exception e){
         std::cout << e.what() << std::endl;
     }
+}
+
+std::tuple<std::string, long, std::string> DeploymentRegister::ReceiveTwoPartRequest(zmq::socket_t* socket){
+    zmq::message_t request_type_msg;
+    zmq::message_t lamport_time_msg;
+    zmq::message_t request_contents_msg;
+    try{
+        socket->recv(&request_type_msg);
+        socket->recv(&lamport_time_msg);
+        socket->recv(&request_contents_msg);
+    }
+    catch(zmq::error_t error){
+        //TODO: Throw this further up
+        std::cout << error.what() << std::endl;
+    }
+    std::string type(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
+    std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
+
+    //Update and get current lamport time
+    long lamport_time = environment_->SetClock((long)(lamport_time_msg.data()));
+
+    return std::make_tuple(type, lamport_time, contents);
 }

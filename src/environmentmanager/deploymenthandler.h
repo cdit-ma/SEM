@@ -4,6 +4,7 @@
 #include <future>
 #include <string>
 #include <map>
+#include <tuple>
 
 #include "environment.h"
 
@@ -25,13 +26,14 @@ class DeploymentHandler{
         void HeartbeatLoop();
 
         //Helpers
+        void HandleRequest(std::tuple<std::string, long, std::string> request);
         void RemoveDeployment();
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
 
         void SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one, const std::string& part_two);
-        std::pair<std::string, std::string> ReceiveTwoPartRequest(zmq::socket_t* socket);
+        std::tuple<std::string, long, std::string> ReceiveTwoPartRequest(zmq::socket_t* socket);
 
         //Members
         std::string ip_addr_;
