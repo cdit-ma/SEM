@@ -539,7 +539,7 @@ bool Gpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned 
 			cout << "GPU Worker: warning: performing multiplication on empty matrices" << endl;
 			return true;
 		} else {
-			cerr << "Error during matrix multiplication; sizes of matrices don't match, skipping calculation" << endl;
+			cerr << "Error during matrix multiplication; sizes of matrices don't match (one had length of 0), skipping calculation" << endl;
 			return false;
 		}
 	}

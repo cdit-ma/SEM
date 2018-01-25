@@ -11,7 +11,6 @@ zmq::ZmqHelper* zmq::ZmqHelper::get_zmq_helper(){
 
     if(singleton_ == 0){
         singleton_ = new ZmqHelper();
-        std::cout << "Constructed ZMQ Helper: " << singleton_ << std::endl;
     }
     return singleton_;
 };

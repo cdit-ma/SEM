@@ -1,7 +1,12 @@
 #ifndef CL_ERROR_PRINTER_H
 #define CL_ERROR_PRINTER_H
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl.h>
+#else
 #include <CL/cl.h>
+#endif
+
 #include <string>
 #include <iostream>
 

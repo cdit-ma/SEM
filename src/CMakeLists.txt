@@ -1,4 +1,5 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nodemanager")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/workers")

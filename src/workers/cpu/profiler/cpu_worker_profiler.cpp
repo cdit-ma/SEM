@@ -1,6 +1,7 @@
 #include "../cpu_worker_impl.h"
 #include <chrono>
 #include <iostream>
+#include <string>
 
 #define RUN_COUNT 1000
 

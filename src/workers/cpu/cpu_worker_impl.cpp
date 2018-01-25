@@ -141,16 +141,21 @@ int Cpu_Worker_Impl::DMIP(double loops){
 
 int Cpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
 					                    const float* dataA, const float* dataB, float* dataC) {
-                                            
-    unsigned long Ksquared = ((unsigned long)lenA*(unsigned long)lenB)/lenC;
+
+    // Magic maths to determine dimensions of output matrix
+    unsigned long long Ksquared = ((unsigned long long)lenA*(unsigned long long)lenB)/lenC;
 	unsigned int k = (unsigned int)sqrt((double)Ksquared);
 	unsigned int m = lenA/k;
 	unsigned int n = lenB/k;
 	if ((unsigned long)k*k != Ksquared || (unsigned long)m*k != lenA || (unsigned long)n*k != lenB) {
 		std::cerr << "Error during matrix multiplication; sizes of matrices don't match, skipping calculation" << std::endl;
 		return -1;
-	}
+    }
 
+    // Zero output array. This is fast (gets unrolled with decent optimisation options).
+    std::fill(dataC, dataC + (n*m), 0.0f);
+
+    // Do matrix mult
     for (unsigned int col=0; col<n; col++) {
 		for (unsigned int row=0; row<m; row++) {
 			
@@ -159,6 +164,7 @@ int Cpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned i
 				dataC[col + row*n] += dataA[t + row*k]*dataB[col + t*n];
 			}
 		}
-	}
+    }
+
     return 0;
 }

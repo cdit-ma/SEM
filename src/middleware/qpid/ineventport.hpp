@@ -23,126 +23,138 @@
 namespace qpid{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
+            InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
+            ~InEventPort(){
+                Activatable::Terminate();
+            }
 
-            void Startup(std::map<std::string, ::Attribute*> attributes);
-            bool Teardown();
-
-            bool Activate();
-            bool Passivate();
-
+            protected:
+            bool HandleConfigure();
+            bool HandlePassivate();
+            bool HandleTerminate();
         private:
-            void qpid_loop();
-
-            qpid::messaging::Connection connection_;
-            qpid::messaging::Session session_;
-            qpid::messaging::Receiver receiver_;
+            void recv_loop();
+            std::mutex connection_mutex_;
+            qpid::messaging::Connection connection_ = 0;
+            qpid::messaging::Receiver receiver_ = 0;
 
             std::mutex control_mutex_;
-            std::mutex notify_mutex_;
-            std::thread* receive_thread_;
-            std::thread* qpid_thread_;
-            std::condition_variable notify_lock_condition_;
+            std::thread* recv_thread_ = 0;
 
-            std::queue<std::string> message_queue_;
+            std::mutex thread_state_mutex_;
+            ThreadState thread_state_;
+            std::condition_variable thread_state_condition_;
 
-            bool configured_ = false;
+            std::shared_ptr<Attribute> broker_;
+            std::shared_ptr<Attribute> topic_name_;
     };
 };
 
 template <class T, class S>
-qpid::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function)
-: ::InEventPort<T>(component, name, callback_function, "qpid"){
+qpid::InEventPort<T, S>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
+::InEventPort<T>(component, name, callback_function, "qpid"){
+    topic_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "topic_name").lock();
+    broker_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "broker").lock();
 };
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
+bool qpid::InEventPort<T, S>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-
-    std::string broker;
-    std::string topic_name;
-
-    if(attributes.count("broker")){
-        broker = attributes["broker"]->get_String();
-    }
-    if(attributes.count("topic_name")){
-        topic_name = attributes["topic_name"]->get_String();
-    }
-
-    std::cout << "qpid::InEventPort" << std::endl;
-    std::cout << "**broker: "<< broker << std::endl;
-    std::cout << "**topic_name: "<< topic_name << std::endl << std::endl;
-
-
-    if(broker.length() > 0 && topic_name.length() > 0){
-        connection_ = qpid::messaging::Connection(broker);
-        connection_.open();
-        session_ = connection_.createSession();
-        //TODO: fix this to use actual topic name
-        receiver_ = session_.createReceiver( "amq.topic/"  + topic_name);
-        
-        configured_ = true; 
-    }
-};
-
-template <class T, class S>
-bool qpid::InEventPort<T, S>::Teardown(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::Teardown()){
-        configured_ = false;
-        return true;
-    }
-    return false;
-};
-
-template <class T, class S>
-bool qpid::InEventPort<T, S>::Activate(){
-    std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::Activate()){
-        if(configured_){
-            qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
+    
+    bool valid = topic_name_->String().length() >= 0 && broker_->String().length() >= 0;
+    if(valid && ::InEventPort<T>::HandleConfigure()){
+        if(!recv_thread_){
+            std::unique_lock<std::mutex> lock(thread_state_mutex_);
+            thread_state_ = ThreadState::WAITING;
+            recv_thread_ = new std::thread(&qpid::InEventPort<T, S>::recv_loop, this);
+            thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
+            return thread_state_ == ThreadState::STARTED;
         }
-        return true;
     }
     return false;
 };
 
 template <class T, class S>
-bool qpid::InEventPort<T, S>::Passivate(){
+bool qpid::InEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(::InEventPort<T>::Passivate()){
-        if(qpid_thread_ && connection_.isOpen()){
+    if(::InEventPort<T>::HandlePassivate()){ 
+        //Set the terminate state in the passivation
+        std::lock_guard<std::mutex> lock(connection_mutex_);
+        if(connection_.isOpen()){
             //do passivation things here
             receiver_.close();
-            qpid_thread_->join();
-            delete qpid_thread_;
-            qpid_thread_ = 0;
-            connection_.close();
-            EventPort::LogPassivation();
         }
         return true;
     }
     return false;
 };
 
+template <class T, class S>
+bool qpid::InEventPort<T, S>::HandleTerminate(){
+    HandlePassivate();
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(::InEventPort<T>::HandleTerminate()){
+        if(recv_thread_){
+            //Join our rti_thread
+            recv_thread_->join();
+            delete recv_thread_;
+            recv_thread_ = 0;
+
+            connection_.close();
+            connection_ = 0;
+            receiver_ = 0;
+        }
+        return true;
+    }
+    return false;
+};
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::qpid_loop(){
-    while(true){
-        try{
+void qpid::InEventPort<T, S>::recv_loop(){
+    auto state = ThreadState::STARTED;
+    try{
+        std::lock_guard<std::mutex> lock(connection_mutex_);
+        //Construct a Qpid Connection
+        connection_ = qpid::messaging::Connection(broker_->String());
+        //Open the connection
+        connection_.open();
+        auto session = connection_.createSession();
+        receiver_ = session.createReceiver( "amq.topic/"  + topic_name_->String());
+    }catch(const std::exception& ex){
+        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to startup QPID AMQP Reciever") + ex.what());
+        state = ThreadState::ERROR_;
+    }
 
-            auto sample = receiver_.fetch();
-            if(receiver_.isClosed()){
-                break;
+    //Change the state to be Configured
+    {
+        std::lock_guard<std::mutex> lock(thread_state_mutex_);
+        thread_state_ = state;
+    }
+
+    //Sleep for 250 ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    thread_state_condition_.notify_all();
+
+    if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
+        //Log the port becoming online
+        EventPort::LogActivation();
+        bool run = true;
+        while(run){
+            try{
+                auto sample = receiver_.fetch();
+                if(receiver_.isClosed()){
+                    run = false;
+                }
+                std::string str = sample.getContent();
+                auto m = proto::decode<S>(str);
+                this->EnqueueMessage(m);
             }
-            std::string str = sample.getContent();
-            auto m = proto::decode<S>(str);
-            this->EnqueueMessage(m);
-        } catch (...){
-            if(receiver_.isClosed()){
-                break;
+            catch(const std::exception& ex){
+                //Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to fetch QPID Messages") + ex.what());
+                run = false;
             }
         }
+        EventPort::LogPassivation();
     }
 };
 

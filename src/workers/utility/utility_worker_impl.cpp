@@ -6,6 +6,10 @@
 #include <stdarg.h>
 #include <cstring>
 #include "exprtk.hpp"
+#include <thread>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 std::string Utility_Worker_Impl::TimeOfDayString(){
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -75,4 +79,41 @@ std::vector<char> Utility_Worker_Impl::ProcessVarList(const char* complexity){
     std::string temp(varlist);
     std::vector<char> vec(temp.begin(), temp.end());
     return vec;
+}
+
+void Utility_Worker_Impl::USleep(int microseconds){
+    std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+}
+void Utility_Worker_Impl::Sleep(int seconds){
+    std::this_thread::sleep_for(std::chrono::seconds(seconds));
+}
+
+
+int Utility_Worker_Impl::RandomUniformInt(int lower_bound, int upper_bound){
+    std::uniform_int_distribution<int> distribution(lower_bound, upper_bound);
+    return distribution(random_generator_);
+}
+
+double Utility_Worker_Impl::RandomUniformReal(double lower_bound, double upper_bound){
+    std::uniform_real_distribution<double> distribution(lower_bound, upper_bound);
+    return distribution(random_generator_);
+}
+
+double Utility_Worker_Impl::RandomNormalReal(double mean, double stddev){
+    std::normal_distribution<double> distribution(mean, stddev);
+    return distribution(random_generator_);
+}
+
+double Utility_Worker_Impl::RandomExponentialReal(double lambda){
+    std::exponential_distribution<double> distribution(lambda);
+    return distribution(random_generator_);
+}
+
+std::string Utility_Worker_Impl::GenerateUUID(){
+    return boost::uuids::to_string(uuid_generator_());
+}
+
+
+void Utility_Worker_Impl::SetRandomSeed(unsigned int seed){
+    random_generator_.seed(seed);
 }

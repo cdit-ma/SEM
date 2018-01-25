@@ -4,7 +4,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
 
 #Find rti library
 find_package(RTIDDS)
@@ -16,6 +16,7 @@ if(NOT RTIDDS_FOUND)
     message(STATUS "Not Found RTI - Not building RTI Middleware library")
     return()
 endif()
+
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp

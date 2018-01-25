@@ -26,14 +26,14 @@ template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainPartici
         //Try use the Middleware's find function to find the topic
         topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     }catch(dds::core::InvalidDowncastError	e){
-        std::cout << "rti::get_topic: Error: " << e.what() << std::endl;
+        std::cerr << "rti::get_topic: Error: " << e.what() << std::endl;
     }
 
     if(topic == nullptr){
         //If we can't find the topic, we should construct it
         topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
-        std::cout << "rti::get_topic: Constructed Topic: " << topic_name << std::endl;
+        //std::cerr << "rti::get_topic: Constructed Topic: " << topic_name << std::endl;
     }
     
     return topic;
@@ -50,7 +50,7 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
         dds::pub::qos::DataWriterQos qos;
         if(qos_uri != ""){
             std::string profile_name = qos_profile + "::" + qos_profile;
-            std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
+            //std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
             dds::core::QosProvider qos_provider(qos_uri, profile_name);
             qos = qos_provider.datawriter_qos();
         }
@@ -59,7 +59,7 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
         qos.policy<rti::core::policy::Property>().set({"dds.data_writer.history.memory_manager.fast_pool.pool_buffer_max_size", "32768"});
         writer = dds::pub::DataWriter<M>(publisher, topic, qos);
         writer.retain();
-        std::cout << "rti::get_data_writer: Constructed DataWriter QOS" << std::endl;
+        //std::cout << "rti::get_data_writer: Constructed DataWriter QOS" << std::endl;
     }
     return writer;
 };
@@ -76,7 +76,7 @@ template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscri
 
         if(qos_uri != ""){
             std::string profile_name = qos_profile + "::" + qos_profile;
-            std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
+            //std::cout << "Setting QOS Profile from: " << qos_uri << " " << profile_name << std::endl;
             dds::core::QosProvider qos_provider(qos_uri, profile_name);
             qos = qos_provider.datareader_qos();
         }
@@ -85,7 +85,7 @@ template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscri
 
         reader = dds::sub::DataReader<M>(subscriber, topic, qos);
         reader.retain();
-        std::cout << "rti::get_data_reader: Constructed DataReader QOS" << std::endl;
+        //std::cout << "rti::get_data_reader: Constructed DataReader QOS" << std::endl;
     }
     return reader;
 };
