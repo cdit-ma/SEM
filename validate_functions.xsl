@@ -141,26 +141,40 @@
 
     <xsl:function name="cdit:is_data_linked" as="xs:boolean">
         <xsl:param name="entity" as="element(gml:node)"/>
+        <xsl:param name="allow_value" as="xs:boolean"/>
 
-
-        <xsl:variable name="id" select="graphml:get_id($entity)" />
-        <xsl:variable name="label" select="graphml:get_label($entity)" />
-
-        <xsl:variable name="data_sources" select="graphml:get_sources($entity, 'Edge_data')" />
+        <xsl:variable name="data_sources" select="graphml:get_sources($entity, 'Edge_Data')" />
         <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
+        <xsl:variable name="value" select="graphml:get_value($entity)" />
 
         <xsl:choose>
             <xsl:when test="count($data_sources) > 0">
                 <xsl:value-of select="true()" />        
             </xsl:when>
+            <xsl:when test="$allow_value and $value != ''">
+                <xsl:value-of select="true()" />        
+            </xsl:when>
             <xsl:when test="$parent">
-                <xsl:value-of select="cdit:is_data_linked($parent)" />        
+                <xsl:value-of select="cdit:is_data_linked($parent, $allow_value)" />        
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="false()" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
+
+    <xsl:function name="cdit:get_non_data_linked_entities" as="element(gml:node)*">
+        <xsl:param name="entities" as="element(gml:node)*"/>
+        <xsl:param name="allow_value" as="xs:boolean"/>
+        
+        <xsl:for-each select="$entities">
+            <xsl:if test="cdit:is_data_linked(., $allow_value) = false()">
+                <xsl:sequence select="." />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+    
 
     <!-- Tests that all ComponentImpls have all their parameters set via either data-linking or value -->
     <xsl:function name="cdit:test_componentimpl_data">
@@ -172,29 +186,31 @@
                     
                 <xsl:variable name="parameters" select="graphml:get_descendant_nodes_of_kind(., ('InputParameter', 'VariadicParameter', 'VariableParameter'))" />
                 <xsl:variable name="out_members" select="graphml:get_descendant_nodes($outeventportimpls)" />
+
+
                 
-                <xsl:for-each select="$parameters, $out_members">
+                <!-- This should select all non data linked entities -->
+                <xsl:for-each select="cdit:get_non_data_linked_entities(($parameters, $out_members), false())">
                     <xsl:variable name="id" select="graphml:get_id(.)" />
                     <xsl:variable name="label" select="graphml:get_label(.)" />
                     <xsl:variable name="kind" select="graphml:get_kind(.)" />
                     <xsl:variable name="type" select="graphml:get_type(.)" />
                     <xsl:variable name="value" select="graphml:get_value(.)" />
 
+                    <xsl:variable name="children_linked" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
 
-                    <xsl:variable name="in_vector" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0" />
-
-                    <xsl:variable name="got_data_link" select="cdit:is_data_linked(.)" />
-                    <xsl:variable name="got_data" select="$got_data_link or $value != ''" />
-
+                    <xsl:variable name="is_valid_kind" select="($kind = 'AggregateInstance' or $kind = 'VectorInstance' or $kind = 'Vector') = false()"/>
+                    <xsl:variable name="in_vector" select="count(graphml:get_ancestor_nodes_of_kind(., ('Vector', 'VectorInstance'))) > 0"/>
+                    
                     <!-- Don't want to check inside vectors, as they do not need data -->
-                    <xsl:if test="not($in_vector)">
+                    <xsl:if test="$is_valid_kind and $in_vector = false()">
                         <!-- Check for all things which need data, to see whether they have a manual setting or data edge -->
-                        <xsl:value-of select="cdit:output_result($id, $got_data, o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), false(), 2)" />        
+                        <xsl:value-of select="cdit:output_result($id, $value != '', o:join_list(($kind, o:wrap_quote($label), 'requires either a value set or a data connection (Edge_Data)'), ' '), false(), 2)" />        
                         
-                        <xsl:if test="not($got_data_link) and $type = 'String' and $value != ''">
+                        <xsl:if test="$type = 'String' and $value != ''">
                             <!-- Check if string that is set is double-quote wrapped -->
                             <xsl:variable name="got_valid_string" select="starts-with($value, o:dblquote()) and ends-with($value , o:dblquote())" />
-                            <xsl:value-of select="cdit:output_result($id, $got_valid_string, o:join_list(($kind, o:wrap_quote($label), 'has a string value set which is not double quoted. Are you trying to reference a variable?'), ' '), true(), 2)" />        
+                            <xsl:value-of select="cdit:output_result($id, $got_valid_string = true(), o:join_list(($kind, o:wrap_quote($label), 'has a string value set which is not double quoted. Are you trying to reference a variable'), ' '), true(), 2)" />        
                         </xsl:if>
                     </xsl:if>
                 </xsl:for-each>
