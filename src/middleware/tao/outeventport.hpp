@@ -57,7 +57,9 @@ bool tao::OutEventPort<T, S, R>::HandlePassivate(){
     if(::OutEventPort<T>::HandlePassivate()){
         writers_.clear();
         //Destroying the orb will free the writers
-        orb_->destroy();
+        if(orb_){
+            orb_->destroy();
+        }
         return true;
     }
     return false;
@@ -74,38 +76,58 @@ template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::setup_tx(){
     //Construct a unique ID
     std::stringstream ss;
-    ss << "tao::OutEventPort" << "_" << std::this_thread::get_id();
+    ss << "tao::InEventPort:" << Activatable::get_id() << ":" << std::this_thread::get_id();
     auto unique_id = ss.str();
-    
+
+
+    //Construct a unique ID
     auto endpoints_  = end_points_->StringList();
     auto references_  = publisher_names_->StringList();
+
     //Construct the args for the TAO orb
     int orb_argc = 0;
-    auto orb_argv = new char*[endpoints_.size() * 2];
-
-
-    for(auto &end_point : endpoints_){
-        orb_argv[orb_argc++] = (char *) "-ORBInitRef";
-        std::cout << "CONFIGURE: " << end_point << std::endl;
-        orb_argv[orb_argc++] = &(end_point[0]);
+    auto orb_argv = new char*[endpoints_.size() * 2 + 2];
+    orb_argv[orb_argc++] = (char*) "./asd";
+    
+    for(auto e : endpoints_){
+        orb_argv[orb_argc++] = (char*) "-ORBInitRef";
+        orb_argv[orb_argc++] = strdup(e.c_str());
     }
 
+    orb_argv[orb_argc + 1] =  NULL;
+
+
+    std::cout << "ORB BEFORE OPTIONS: ";
+    for(int i = 0; i < orb_argc; i++){
+        std::cout << orb_argv[i] << " ";
+    }
+    std::cout << std::endl;
+  
+
     //Initialize the orb with our custom endpoints
-    orb_ = CORBA::ORB_init (orb_argc, orb_argv, unique_id.c_str());
+    orb_ = CORBA::ORB_init(orb_argc, orb_argv, unique_id.c_str());
 
+    std::cout << unique_id << ": ORB AFTER OPTIONS: ";
+    for(int i = 0; i < orb_argc; i++){
+        std::cout << orb_argv[i] << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << orb_argc << std::endl;
+    std::cout << orb_argv << std::endl;
     //Get the reference to the RootPOA
-    auto root_poa_ref = orb_->resolve_initial_references("RootPOA");
-    auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
-
-    std::cout << "reference" << std::endl;
+    //auto root_poa_ref = orb_->resolve_initial_references("RootPOA");
+    //auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
 
     while(references_.size()){
         for(auto reference : references_){
-            std::cout << "TRYING TO : " << reference << std::endl;
             try{
-                //Get a reference
+                std::string str(reference);
+                std::cout << "TAO: OEP: Finding: !" << reference << "!" << std::endl;
                 auto ref_obj = orb_->resolve_initial_references(reference.c_str());
+                std::cout << "GOT BOYI" << reference << "!" << std::endl;
                 if(ref_obj){
+                    std::cout << "GOT WRITER" << std::endl;
                     //Convert the ref_obj into a typed writer
                     auto writer_ = R::_narrow(ref_obj);
                     if(writer_){
@@ -119,6 +141,8 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
                         //references_.remove(reference);
                         break;
                     }
+                }else{
+                    std::cout << "DED RATT" << std::endl;
                 }
             }
             catch(...){

@@ -102,7 +102,6 @@ bool tao::InEventPort<T, S, R>::HandleConfigure(){
             thread_state_ = ThreadState::WAITING;
             recv_thread_ = new std::thread(&tao::InEventPort<T, S, R>::recv_loop, this);
             thread_state_condition_.wait(lock, [=]{return thread_state_ != ThreadState::WAITING;});
-            std::cout << "YOYOOYOY" << std::endl;
             return thread_state_ == ThreadState::STARTED;
         }
     }
@@ -151,11 +150,12 @@ bool tao::InEventPort<T, S, R>::HandleTerminate(){
 
 template <class T, class S, class R>
 void tao::InEventPort<T, S, R>::recv_loop(){
+    try{
     auto state = ThreadState::STARTED;
     
     //Construct a unique ID
     std::stringstream ss;
-    ss << "tao::InEventPort" << "_" << std::this_thread::get_id();
+    ss << "tao::InEventPort:" << Activatable::get_id() << ":" << std::this_thread::get_id();
     auto unique_id = ss.str();
 
 
@@ -163,12 +163,28 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     auto publisher_address_cstr = publisher_address.c_str();
     //Construct the args for the TAO orb
     int orb_argc = 0;
-    auto orb_argv = new char*[2];
+    auto orb_argv = new char*[4];
+    orb_argv[orb_argc++] = (char*) "./asd";
     orb_argv[orb_argc++] = (char*) "-ORBEndpoint";
-    orb_argv[orb_argc++] = &(publisher_address[0]);
+    orb_argv[orb_argc++] = strdup(publisher_address_cstr);
+    orb_argv[orb_argc + 1] = NULL;
+
+    std::cout << "orb_argv: " << orb_argv[0] << " " << orb_argv[1] << std::endl;
     
+    std::cout << "ORB BEFORE OPTIONS: ";
+    for(int i = 0; i < orb_argc; i++){
+        std::cout << orb_argv[i] << " ";
+    }
+    std::cout << std::endl;
+
     //Initialize the orb with our custom endpoints
     auto orb = CORBA::ORB_init(orb_argc, orb_argv, unique_id.c_str());
+
+    std::cout << unique_id << ": ORB AFTER OPTIONS: ";
+    for(int i = 0; i < orb_argc; i++){
+        std::cout << orb_argv[i] << " ";
+    }
+    std::cout << std::endl;
 
     //Get the reference to the RootPOA
     auto root_poa_ref = orb->resolve_initial_references("RootPOA");
@@ -186,7 +202,8 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager();
 
     //Create the child POA
-    auto child_poa = root_poa->create_POA(unique_id.c_str(), poa_manager, policies);
+
+    auto child_poa = root_poa->create_POA(publisher_name_->String().c_str(), poa_manager, policies);
 
     //Destroy the policy elements
     for (auto i = 0; i < policies.length (); i ++){
@@ -199,13 +216,16 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     auto receiver = new Receiver<S, R>(orb, callback);
 
     //Convert the object key string into an object_id
-    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId(publisher_name_->String().c_str());
+    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId("asd");
     //Activate the receiver we instantiated with the obj_id
     child_poa->activate_object_with_id(obj_id, receiver);
     //Get the reference to the obj, using the obj_id
     auto obj_ref = child_poa->id_to_reference(obj_id);
     //Get the IOR from the object
     auto ior = orb->object_to_string(obj_ref);
+
+    
+
 
     //Get the IORTable for the orb
     auto ior_ref = orb->resolve_initial_references("IORTable");
@@ -217,24 +237,23 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Failed to resolve IOR Table"));
         state = ThreadState::ERROR_;
     }else{
+        std::cout << "Binding: " << publisher_name_->String() << " : " << publisher_address << std::endl;
         //Bind the IOR into the IOR table, so that others can look it up
         ior_table->bind(publisher_name_->String().c_str(), ior);
 
         //Activate the POA
         poa_manager->activate();
+        //Run the ORB
+        //orb->run();
     }
 
-    std::cout << "HELLO" << std::endl;
-    
     
     //Define a queue to swap
     std::queue<const S*> queue;
 
     //Change the state to be Configured
     {
-        std::cout << "CIONFIGURE" << std::endl;
         std::lock_guard<std::mutex> lock(thread_state_mutex_);
-        std::cout << "CIONFIGURE2" << std::endl;
         thread_state_ = state;
         thread_state_condition_.notify_all();
     }
@@ -278,6 +297,9 @@ void tao::InEventPort<T, S, R>::recv_loop(){
     //Shutdown the ORB
     orb->destroy();
     delete receiver;
+    }catch(...){
+        std::cout << "EXCEPTION" << std::endl;
+    }
 };
 
 #endif //TAO_INEVENTPORT_H

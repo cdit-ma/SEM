@@ -34,7 +34,7 @@ int main(int argc, char ** argv){
     PortableServer::POAManager_var poa_manager = root_poa->the_POAManager();
 
     // Create the child POA for the test logger factory servants.
-    auto child_poa = root_poa->create_POA("LoggingServerPOA", root_poa->the_POAManager(), policies);
+    auto child_poa = root_poa->create_POA("LoggingServerPOA", poa_manager, policies);
 
      // Destroy the POA policies
     for (::CORBA::ULong i = 0; i < policies.length (); ++ i){
@@ -55,7 +55,7 @@ int main(int argc, char ** argv){
 
     //Activate WITH ID
     //Convert our string into an object_id
-    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId ("Stock_Factory");
+    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId ("LoggingServer2");
     //Activate the object with the obj_id
     child_poa->activate_object_with_id(obj_id, hello_impl);
     //Get the reference to the obj, using the obj_id

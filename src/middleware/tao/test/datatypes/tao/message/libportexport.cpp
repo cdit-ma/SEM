@@ -49,45 +49,48 @@ bool setup_out_port(EventPort& port, std::vector<std::string> publisher_names, s
 
 
 int main(int argc, char** argv){
-	auto fn2 = [](Base::Message& m) {std::cout << "tao::InEventPort<2>: " << m.instName() << std::endl;};
 	auto fn3 = [](Base::Message& m) {std::cout << "tao::InEventPort<3>: " << m.instName() << std::endl;};
+	auto fn2 = [](Base::Message& m) {std::cout << "tao::InEventPort<2>: " << m.instName() << std::endl;};
 
 	auto c = std::make_shared<Component>("Test");
 
-	auto p = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST");
-	auto p2 = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST2", fn2);
-	auto p3 = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST3", fn3);
-	auto p4 = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST4");
+	auto outport = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST1");
+	auto outport2 = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST4");
+	auto inport = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST2", fn2);
+	auto inport2 = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST3", fn3);
+
+	outport->set_id("1");
+	outport2->set_id("2");
+	inport->set_id("3");
+	inport2->set_id("4");
 
 	{
-		std::vector<std::string> publisher_names = {"TestServer"};
-		std::vector<std::string> publisher_address = {"TestServer=corbaloc:iiop:192.168.111.90:50002/TestServer"};
-		std::cout << "SETUP 1: " << (setup_out_port(*p, publisher_names, publisher_address) ? "true" : "false") << std::endl;
+		std::vector<std::string> publisher_names = {"S1"};
+		std::vector<std::string> publisher_address = {"S1=corbaloc:iiop:192.168.111.90:50001/TestServer1"};
+		setup_out_port(*outport, publisher_names, publisher_address);
 	}
 	{
-		std::vector<std::string> publisher_names = {"TestServer", "TestServer2"};
-		std::vector<std::string> publisher_address = {"TestServer=corbaloc:iiop:192.168.111.90:50002/TestServer", "TestServer2=corbaloc:iiop:192.168.111.90:50003/TestServer2"};
-		std::cout << "SETUP 4: " << (setup_out_port(*p4, publisher_names, publisher_address) ? "true" : "false") << std::endl;
+		std::vector<std::string> publisher_names = {"S1", "S2"};
+		std::vector<std::string> publisher_address = {"S1=corbaloc:iiop:192.168.111.90:50001/TestServer1", "S2=corbaloc:iiop:192.168.111.90:50002/TestServer2"};
+		setup_out_port(*outport2, publisher_names, publisher_address);
 	}
 
-	std::cout << "SETUP 2: " << (setup_in_port(*p2, "TestServer", "iiop://192.168.111.90:50002") ? "true" : "false") << std::endl;
-	std::cout << "SETUP 3: " << (setup_in_port(*p3, "TestServer2", "iiop://192.168.111.90:50003") ? "true" : "false") << std::endl;
-	//std::cout << "SETUP 3: " << (setup_in_port(*p3, "TestServer2", "iiop://192.168.111.90:50004") ? "true" : "false") << std::endl;
+	setup_in_port(*inport, "TestServer1", "iiop://192.168.111.90:50001");
+	setup_in_port(*inport2, "TestServer2", "iiop://192.168.111.90:50002");
 
+	inport->Configure();
+	inport2->Configure();
+	outport->Configure();
+	outport2->Configure();
+	std::cout << "Configured" << std::endl;
 
-	std::cout << "Configure2: " << (p2->Configure() ? "true" : "false") << std::endl;
-	std::cout << "Configure3: " << (p3->Configure() ? "true" : "false") << std::endl;
+	inport->Activate();
+	inport2->Activate();
+	outport->Activate();
+	outport2->Activate();
+	std::cout << "Activated" << std::endl;
 
-	std::cout << " " << std::endl;
-	std::cout << "Configure1: " << (p->Configure() ? "true" : "false") << std::endl;
-	std::cout << "Configure4: " << (p4->Configure() ? "true" : "false") << std::endl;
 	
-
-	
-	std::cout << "Activate1: " << (p->Activate() ? "true" : "false") << std::endl;
-	std::cout << "Activate4: " << (p4->Activate() ? "true" : "false") << std::endl;
-	std::cout << "Activate2: " << (p2->Activate() ? "true" : "false") << std::endl;
-	std::cout << "Activate3: " << (p3->Activate() ? "true" : "false") << std::endl;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
@@ -96,23 +99,39 @@ int main(int argc, char** argv){
 		
 		{
 			auto message = new Base::Message();
-			message->set_instName("tao::OutEventPort<1>");
-			p->tx(*message);
+			if(i % 2){
+				message->set_instName("tao::OutEventPort<2>");
+				outport2->tx(*message);
+			}else{
+				message->set_instName("tao::OutEventPort<1>");
+				outport->tx(*message);
+
+			}
 		}
-		{
-			auto message = new Base::Message();
-			message->set_instName("tao::OutEventPort<4>");
-			p4->tx(*message);
-		}
+		std::cout << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		//std::cout << std::endl;
 	}
 
 
-	p2->Passivate();
-	//p3->Passivate();
-	p->Passivate();
-	p4->Passivate();
+	inport->Passivate();
+	inport2->Passivate();
+	outport->Passivate();
+	outport2->Passivate();
+	std::cout << "Passivated" << std::endl;
+
+	inport->Terminate();
+	std::cout << "Terminated" << std::endl;
+	inport2->Terminate();
+	std::cout << "Terminated" << std::endl;
+	outport->Terminate();
+	std::cout << "Terminated" << std::endl;
+	outport2->Terminate();
+	std::cout << "Terminated" << std::endl;
+
+	delete inport;
+	delete inport2;
+	delete outport;
+	delete outport2;
 
 	return 0;
 };
