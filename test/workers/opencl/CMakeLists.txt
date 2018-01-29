@@ -10,6 +10,7 @@ SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_matrixmult.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_runparallel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_buffer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_kmeans.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common.cpp
     ${GOOGLE_TEST_DIR}/src/gtest_main.cc
 )
