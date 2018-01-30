@@ -178,7 +178,7 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="include_directory" select="upper-case(concat($middleware_package, '_LIBRARIES'))" />
+        <xsl:variable name="include_directory" select="concat($middleware_package, '_LIBRARIES')" />
 
         <xsl:if test="$middleware_package != ''">
             <xsl:value-of select="cmake:target_link_libraries($target, cmake:wrap_variable($include_directory), $tab)" />
