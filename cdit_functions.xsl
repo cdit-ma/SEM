@@ -81,7 +81,8 @@
         <xsl:variable name="label" select="graphml:get_label($node)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+    
+            <xsl:when test="$middleware = 'ospl' or $middleware = 'rti'">
                 <!-- DDS uses exact case -->
                 <xsl:value-of select="lower-case($label)" />
             </xsl:when>
@@ -115,10 +116,26 @@
         <xsl:param name="node" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
+    
+        <xsl:variable name="kind" select="graphml:get_kind($node)" />        
+
         <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($node, $middleware)" />
         <xsl:variable name="function_name">
             <xsl:choose>
-                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                <xsl:when test="$middleware = 'rti'">
+                    <xsl:choose>
+                        <xsl:when test="$kind = 'EnumInstance' or $kind = 'Enum'">
+                            <!-- RTI uses a SafeEnum which requires some magic -->
+                            <xsl:value-of select="concat($variable_syntax, '().underlying')" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- DDS uses exact case -->
+                            <xsl:value-of select="$variable_syntax" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+            
+                <xsl:when test="$middleware = 'ospl'">
                     <!-- DDS implementations use get/set via accessors -->
                     <xsl:value-of select="$variable_syntax" />
                 </xsl:when>
@@ -213,8 +230,16 @@
         <xsl:variable name="function_name">
             <xsl:choose>
                 <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
-                    <!-- DDS implementations use set via accessors -->
-                    <xsl:value-of select="$variable_syntax" />
+                    <xsl:choose>
+                        <xsl:when test="$middleware = 'rti' and ($node_kind = 'EnumInstance' or $node_kind = 'Enum')">
+                            <!-- RTI uses a SafeEnum which requires some magic 
+                            <xsl:value-of select="concat($variable_syntax, '().underlying')" />-->
+                            <xsl:value-of select="$variable_syntax" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$variable_syntax" />
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:when test="$middleware = 'base'">
                     <!-- Base uses both get/set functions both via accessors and functions -->
@@ -307,7 +332,14 @@
             </xsl:if>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $namespace, $label))" />
+        <xsl:variable name="suffix" as="xs:string*">
+            <xsl:if test="$middleware = 'rti'">
+                <!-- DDS implementations use set via accessors -->
+                <xsl:value-of select="'inner_enum'" />
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $namespace, $label, $suffix))" />
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
