@@ -58,6 +58,8 @@ target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
 target_include_directories(${PROJ_NAME} PRIVATE "${OPENCL_ROOT}/include")
 
 target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${TESTER_NAME} PRIVATE "${CLFFT_ROOT}/include")
+target_include_directories(${TESTER_NAME} PRIVATE "${OPENCL_ROOT}/include")
 
 #Use this in production
 #add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
