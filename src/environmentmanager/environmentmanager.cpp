@@ -14,6 +14,7 @@ int main(int argc, char **argv){
     std::string registration_port;
     std::string bcast_port;
 
+    //Parse Args
     boost::program_options::options_description options("Environment Manager Options");
     options.add_options()("ip_address,a", boost::program_options::value<std::string>(&ip_address),
                             "Ip address of environment manager");

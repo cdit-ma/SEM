@@ -15,7 +15,9 @@ DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, 
 void DeploymentHandler::Init(){
     handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
 
-    std::string assigned_port = environment_->AddDeployment(deployment_id_, deployment_id_);
+    time_added_ = environment_->GetClock();
+
+    std::string assigned_port = environment_->AddDeployment(deployment_id_, deployment_id_, time_added_);
     try{
         //Bind to random port on local ip address
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
@@ -127,8 +129,7 @@ void DeploymentHandler::RemoveDeployment(){
     for(auto element : port_map_){
         environment_->RemoveComponent(element.first);
     }
-
-    environment_->RemoveDeployment(deployment_id_);
+    environment_->RemoveDeployment(deployment_id_, time_added_);
 }
 
 std::string DeploymentHandler::TCPify(const std::string& ip_address, const std::string& port) const{
@@ -141,9 +142,9 @@ std::string DeploymentHandler::TCPify(const std::string& ip_address, int port) c
 
 void DeploymentHandler::SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one,
                                                                  const std::string& part_two){
-    
+    std::string lamport_string = std::to_string(environment_->Tick());
+    zmq::message_t time_msg(lamport_string.begin(), lamport_string.end());
     zmq::message_t part_one_msg(part_one.begin(), part_one.end());
-    zmq::message_t time_msg(environment_->Tick());
     zmq::message_t part_two_msg(part_two.begin(), part_two.end());
 
     try{
@@ -152,7 +153,7 @@ void DeploymentHandler::SendTwoPartReply(zmq::socket_t* socket, const std::strin
         socket->send(part_two_msg);
     }
     catch(std::exception e){
-        std::cout << e.what() << std::endl;
+        std::cout << e.what() << " in DeploymentHandler::SendTwoPartReply" << std::endl;
     }
 }
 
@@ -167,14 +168,15 @@ std::tuple<std::string, long, std::string> DeploymentHandler::ReceiveTwoPartRequ
     }
     catch(zmq::error_t error){
         //TODO: Throw this further up
-        std::cout << error.what() << std::endl;
+        std::cout << error.what()  << " in DeploymentHandler::ReceiveTwoPartRequest" << std::endl;
     }
     std::string type(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
     //Update and get current lamport time
-    long lamport_time = environment_->SetClock((long)(lamport_time_msg.data()));
+    std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
 
+    long lamport_time = environment_->SetClock(std::stol(incoming_time));
     return std::make_tuple(type, lamport_time, contents);
 }
 

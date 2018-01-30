@@ -1,4 +1,3 @@
-
 #include <zmq.hpp>
 #include <iostream>
 #include <thread>
@@ -8,7 +7,7 @@
 
 #include "../nodemanager/controlmessage/controlmessage.pb.h"
 
-long clock_;
+long clock_ = 0;
 
 long Tick(){
     clock_++;
@@ -25,7 +24,8 @@ long GetClock(){
 }
 
 void Send(zmq::socket_t* socket, std::string part_one, std::string part_two){
-    zmq::message_t lamport_time_msg(Tick());
+    std::string lamport_string = std::to_string(Tick());
+    zmq::message_t lamport_time_msg(lamport_string.begin(), lamport_string.end());
     zmq::message_t part_one_msg(part_one.begin(), part_one.end());
     zmq::message_t part_two_msg(part_two.begin(), part_two.end());
 
@@ -56,7 +56,8 @@ std::tuple<std::string, long, std::string> Receive(zmq::socket_t* socket){
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
     //Update and get current lamport time
-    long lamport_time = SetClock((long)(lamport_time_msg.data()));
+    std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
+    long lamport_time = SetClock(std::stol(incoming_time));
 
     return std::make_tuple(type, lamport_time, contents);
 }

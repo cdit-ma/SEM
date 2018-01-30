@@ -12,8 +12,8 @@ class Environment{
     public:
         Environment();
 
-        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info);
-        void RemoveDeployment(const std::string& deployment_id);
+        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_added);
+        void RemoveDeployment(const std::string& deployment_id, long time_added);
 
         std::string AddComponent(const std::string& deployment_id, const std::string& component_id, 
                                     const std::string& proto_info);
@@ -41,6 +41,7 @@ class Environment{
             std::string id;
             DeploymentState state;
             std::vector<std::string> component_ids;
+            long time_added;
             //TODO: Add endpoint information s.t. MEDEA can query
         };
 
@@ -49,7 +50,6 @@ class Environment{
         std::unordered_map<std::string, std::string> component_port_map_;
         std::unordered_map<std::string, std::string> deployment_port_map_;
         std::unordered_map<std::string, Deployment*> deployment_info_map_;
-
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT

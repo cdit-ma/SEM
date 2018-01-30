@@ -44,6 +44,7 @@ class DeploymentHandler{
 
         std::string deployment_id_;
         std::map<std::string, std::string> port_map_;
+        long time_added_;
 
         std::thread* handler_thread_;
 
