@@ -70,7 +70,9 @@ node(){
 withEnv(["model=''"]){
     node(masterNode){
         deleteDir()
-        unstash 'model'
+        unstashParam "model", file
+        stash includes: file, name: 'model'
+        archiveArtifacts file
         def workspacePath = pwd()
         def reGenPath = "${RE_GEN_PATH}"
         def saxonPath = reGenPath
@@ -116,7 +118,7 @@ withEnv(["model=''"]){
         
         //Generate C++ code
         dir(buildPath){
-            unstash 'model'
+            unstash "model"
             stage('C++ Generation'){
                 def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
                 if(utils.runScript(typeGenCommand) != 0){
