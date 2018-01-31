@@ -11,7 +11,7 @@ Environment::Environment(){
     clock_ = 0;
 }
 
-std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_added){
+std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()){
         return "";
@@ -20,7 +20,7 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
 
     if(deployment_info_map_.find(deployment_id) != deployment_info_map_.end()){
         //TODO: Update here
-        if(time_added < deployment_info_map_[deployment_id]->time_added){
+        if(time_called < deployment_info_map_[deployment_id]->time_added){
             return "";
         }
 
@@ -33,7 +33,7 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
             deployment_info_map_[deployment_id] = new Deployment();
             deployment_info_map_[deployment_id]->id = deployment_id;
             deployment_info_map_[deployment_id]->state = DeploymentState::ACTIVE;
-            deployment_info_map_[deployment_id]->time_added = time_added;
+            deployment_info_map_[deployment_id]->time_added = time_called;
 
             deployment_port_map_[deployment_id] = std::to_string(port);
         }
@@ -48,7 +48,7 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
         deployment_info_map_[deployment_id] = new Deployment();
         deployment_info_map_[deployment_id]->id = deployment_id;
         deployment_info_map_[deployment_id]->state = DeploymentState::ACTIVE;
-        deployment_info_map_[deployment_id]->time_added = time_added;
+        deployment_info_map_[deployment_id]->time_added = time_called;
 
         deployment_port_map_[deployment_id] = std::to_string(port);
 
@@ -56,22 +56,26 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
     return std::to_string(port);
 }
 
-void Environment::RemoveDeployment(const std::string& deployment_id, long time_added){
+void Environment::RemoveDeployment(const std::string& deployment_id, long time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
-    if(deployment_info_map_.find(deployment_id) != deployment_info_map_.end()){
-        if(time_added >= deployment_info_map_[deployment_id]->time_added){
-            int port = std::stoi(deployment_port_map_[deployment_id]);
+    //TODO: throw exception for all lookup checks rather than find (speeds up hotpath)
+    try{
+        if(time_called >= deployment_info_map_.at(deployment_id)->time_added){
+            int port = std::stoi(deployment_port_map_.at(deployment_id));
             deployment_port_map_.erase(deployment_id);
 
             //Return port to available port set
             available_ports_.insert(port);
         }
+
+    }
+    catch(std::out_of_range& ex){
     }
 }
 
 //TODO: Handle rewrite of same component id during heartbeat timeout. Always use most recent.
 std::string Environment::AddComponent(const std::string& deployment_id, const std::string& component_id, 
-                                        const std::string& proto_info){
+                                        const std::string& proto_info, long time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()){
         return "";
@@ -82,23 +86,28 @@ std::string Environment::AddComponent(const std::string& deployment_id, const st
     int port = *it;
     available_ports_.erase(it);
 
-    //Update our understanding of the deployment's components.
-    deployment_info_map_[deployment_id]->component_ids.push_back(component_id);
-
-    component_port_map_[component_id] = std::to_string(port);
+    try{
+        //Update our understanding of the deployment's components.
+        deployment_info_map_.at(deployment_id)->component_ids.push_back(component_id);
+        component_port_map_[component_id] = std::to_string(port);
+    }
+    catch(std::out_of_range& ex){
+        std::cout << "tried to add component to non listed deployment: " << deployment_id << std::endl;
+    }
     return std::to_string(port);
 }
 
-void Environment::RemoveComponent(const std::string& component_id){
+void Environment::RemoveComponent(const std::string& component_id, long time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
 
-    if(component_port_map_.find(component_id) != component_port_map_.end()){
-
-        int port = std::stoi(component_port_map_[component_id]);
+    try{
+        auto component_port = std::stoi(component_port_map_.at(component_id));
         component_port_map_.erase(component_id);
-
         //Return port to available port set
-        available_ports_.insert(port);
+        available_ports_.insert(component_port);
+    }
+    catch(std::out_of_range& ex){
+        std::cout << "tried to remove non listed component: " << component_id << std::endl;
     }
 }
 
@@ -118,4 +127,33 @@ long Environment::Tick(){
     std::unique_lock<std::mutex> lock(clock_mutex_);
     clock_++;
     return clock_;
+}
+
+void Environment::DeploymentLive(const std::string& deployment_id, long time_called){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+    try{
+        auto deployment_info = deployment_info_map_.at(deployment_id);
+        if(time_called >= deployment_info->time_added){
+            deployment_info->state = DeploymentState::ACTIVE;
+            std::cout << deployment_id << " entering ACTIVE status" << std::endl;
+        }
+    }
+    catch(std::out_of_range& ex){
+        std::cout << "Tried to live non existant deployment: " << deployment_id << std::endl;
+    }
+}
+
+void Environment::DeploymentTimeout(const std::string& deployment_id, long time_called){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+
+    try{
+        auto deployment_info = deployment_info_map_.at(deployment_id);
+        if(time_called >= deployment_info->time_added){
+            deployment_info->state = DeploymentState::TIMEOUT;
+            std::cout << deployment_id << " entering TIMEOUT status" << std::endl;
+        }
+    }
+    catch(std::out_of_range& ex){
+        std::cout << "Tried to timeout non existant deployment: " << deployment_id << std::endl;
+    }
 }

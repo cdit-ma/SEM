@@ -12,12 +12,14 @@ class Environment{
     public:
         Environment();
 
-        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_added);
-        void RemoveDeployment(const std::string& deployment_id, long time_added);
+        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_called);
+        void RemoveDeployment(const std::string& deployment_id, long time_called);
+        void DeploymentLive(const std::string& deployment_id, long time_called);
+        void DeploymentTimeout(const std::string& deployment_id, long time_called);
 
         std::string AddComponent(const std::string& deployment_id, const std::string& component_id, 
-                                    const std::string& proto_info);
-        void RemoveComponent(const std::string& component_id);
+                                    const std::string& proto_info, long time_called);
+        void RemoveComponent(const std::string& component_id, long time_called);
 
         long GetClock();
         long SetClock(long clock);

@@ -105,10 +105,11 @@ void DeploymentHandler::HeartbeatLoop(){
             liveness = HEARTBEAT_LIVENESS;
             interval = INITIAL_INTERVAL;
             auto request = ReceiveTwoPartRequest(handler_socket_);
-
             HandleRequest(request);
+            environment_->DeploymentLive(deployment_id_, time_added_);
         }
         else if(--liveness == 0){
+            environment_->DeploymentTimeout(deployment_id_, time_added_);
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;
@@ -193,9 +194,9 @@ void DeploymentHandler::HandleRequest(std::tuple<std::string, long, std::string>
         SendTwoPartReply(handler_socket_, ack_string, "Got update");
     }
 
-    else if(std::get<0>(request).compare("END_DEPLOYMENT") == 0){
+    else if(std::get<0>(request).compare("SHUTDOWN_DEPLOYMENT") == 0){
         //TODO: Handle end of deployment.
-        SendTwoPartReply(handler_socket_, ack_string, "END_DEPLOYMENT");
+        SendTwoPartReply(handler_socket_, ack_string, "SHUTDOWN_DEPLOYMENT");
     }
 
     else{
