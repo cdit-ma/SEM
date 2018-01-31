@@ -744,7 +744,7 @@
         <xsl:value-of select="cmake:set_library_output_directory($lib_dir)" />
         <xsl:value-of select="cmake:set_archive_output_directory($lib_dir)" />
         
-        <xsl:value-of select="cmake:add_subdirectories(('datatypes', 'components'))" />
+        <xsl:value-of select="cmake:add_subdirectories(('components', 'datatypes'))" />
     </xsl:function>
 
     <xsl:function name="cdit:middleware_requires_topic" as="xs:boolean">

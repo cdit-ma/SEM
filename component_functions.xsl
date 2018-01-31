@@ -208,8 +208,15 @@
     -->
     <xsl:function name="cdit:get_component_impl_h">
         <xsl:param name="component_impl" as="element()" />
-        
+
         <xsl:variable name="component_definition" select="graphml:get_definition($component_impl)" />
+
+        <!-- Get their required aggregates used to express Component -->
+        <xsl:variable name="impl_aggregates" select="cdit:get_required_aggregates($component_impl)" />
+        <xsl:variable name="int_aggregates" select="cdit:get_required_aggregates($component_definition)" />
+
+        
+        
         
         <xsl:variable name="namespaces" select="o:trim_list(graphml:get_namespace($component_definition))" />
         <xsl:variable name="component_impl_label" select="graphml:get_label($component_impl)" />
@@ -232,6 +239,21 @@
 
         <!-- Library Includes-->
         <xsl:value-of select="cpp:include_local_header(concat(lower-case($int_class_name), '.h'))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Import the headers of each aggregate which hasn't been defined in the interface -->
+        <xsl:for-each select="$impl_aggregates except $int_aggregates">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Include required base Aggregate header files', 0)" />
+            </xsl:if>
+            <xsl:variable name="required_file" select="cdit:get_base_aggregate_h_path(.)" />
+            <xsl:value-of select="cpp:include_local_header(o:join_paths($required_file))" />
+            
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
+        
 
          <!-- Include the headers once for each worker type -->
          <xsl:for-each-group select="$workers" group-by="graphml:get_data_value(., 'worker')">
@@ -239,8 +261,11 @@
                 <xsl:value-of select="cpp:comment('Include Worker Header Files', 0)" />
             </xsl:if>
             <xsl:value-of select="cpp:include_library_header(cdit:get_worker_header(.))" />
+
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
         </xsl:for-each-group>
-        <xsl:value-of select="o:nl(1)" />
 
         <!-- Define the namespaces -->
         <xsl:for-each select="$namespaces">
