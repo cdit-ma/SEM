@@ -46,12 +46,12 @@ class OpenCLManagerFixture : public ::testing::TestWithParam<DeviceParam>{
 
             auto platforms = OpenCLManager::GetPlatforms(worker_);
             if(platforms.size() == 0){
-                HasFatalFailure();
+                throw std::runtime_error("No OpenCL platforms detected during OpenCLManagerFixture construction");
             }
             
             manager_ = OpenCLManager::GetReferenceByPlatformID(worker_, device_.platform_id);
             if(!manager_){
-                HasFatalFailure();
+                throw std::runtime_error("Failed to obtain OpenCLManagerReference during OpenCLManagerFixture construction");
             }
         };
 
