@@ -907,8 +907,14 @@
                         <xsl:variable name="getter" select="cdit:get_resolved_getter_function(., true(), false())" />
 
                         <xsl:variable name="suffix">
-                            <xsl:if test="$kind = 'VariadicParameter' and $value = 'String'">
-                                <xsl:value-of select="'.c_str()'" />
+                            <xsl:variable name="data_source" select="graphml:get_sources(., 'Edge_Data')" />
+
+                            <!-- Use of Variadic Parameters, having string parameters should have a c_str casting -->
+                            <xsl:if test="$kind = 'VariadicParameter' and count($data_source) > 0">
+                                <xsl:variable name="type" select="graphml:get_type($data_source)" />
+                                <xsl:if test="$type = 'String'">
+                                    <xsl:value-of select="'.c_str()'" />
+                                </xsl:if>
                             </xsl:if>
                         </xsl:variable>
 

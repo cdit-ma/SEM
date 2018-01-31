@@ -220,7 +220,9 @@
         <xsl:value-of select="cdit:output_test('ComponentImpl Data-Linking tests', $results, 1)" />
     </xsl:function>
 
-    <xsl:function name="cdit:test_componentimpl_workflow">
+    
+
+    <xsl:function name="cdit:test_logfunction">
         <xsl:param name="component_impls" as="element(gml:node)*"/>
 
         <xsl:variable name="results">
@@ -244,6 +246,99 @@
         </xsl:variable>
 
         <xsl:value-of select="cdit:output_test('ComponentImpl workflow tests', $results, 1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:compare_type_to_printf" as="xs:boolean">
+        <xsl:param name="type" as="xs:string"/>
+        <xsl:param name="printf_arg" as="xs:string"/>
+
+        <xsl:variable name="regex">
+            <xsl:choose>
+                <xsl:when test="$type = 'String'">
+                    <xsl:value-of select="'^(-?[\d.]+)?[s]'" />
+                </xsl:when>
+                <xsl:when test="$type = 'Boolean'">
+                    <xsl:value-of select="'$^'" />
+                </xsl:when>
+                <xsl:when test="$type = 'Character'">
+                    <xsl:value-of select="'^(-?\+?[\d.]+)?[c]'" />
+                </xsl:when>
+                <xsl:when test="$type = 'Float'  or $type = 'Double'">
+                    <xsl:value-of select="'^(-?\+?[\d.]+)?[ef]'" />
+                </xsl:when>
+                <xsl:when test="$type = 'Integer'">
+                    <xsl:value-of select="'^(-?\+?[\d.]+)?z?[diux]'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="false()" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        
+        <!--<xsl:message><xsl:value-of select="concat('Looking For:', $regex, ' in ', $printf_arg, if($match = true()) then 'TRUE' else 'FALSE', o:nl(1))" /></xsl:message>-->
+        <xsl:value-of select="matches($printf_arg, $regex)" />
+    </xsl:function>
+
+    
+    <xsl:function name="cdit:compare_printf_arg" as="xs:boolean">
+        <xsl:param name="variadic_parameter" as="element(gml:node)"/>
+        <xsl:param name="printf_arg" as="xs:string"/>
+
+        <xsl:variable name="data_sources" select="graphml:get_sources($variadic_parameter, 'Edge_Data')" />
+        
+        <xsl:if test="count($data_sources) = 0">
+            <!-- Can't validate if we have no type to compare -->
+            <xsl:value-of select="true()" />
+        </xsl:if>
+
+        <xsl:if test="count($data_sources) > 0">
+            <xsl:variable name="data_source" select="$data_sources[1]" />
+            <xsl:variable name="type" select="graphml:get_type($data_source)" />
+
+            <!-- Validate the types -->
+            <xsl:value-of select="cdit:compare_type_to_printf($type, $printf_arg)" />
+        </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:test_componentimpl_workflow">
+        <xsl:param name="component_impls" as="element(gml:node)*"/>
+
+        <!--<xsl:variable name="results">-->
+            <xsl:for-each select="$component_impls">
+                <xsl:for-each select="graphml:get_descendant_nodes_of_kind(., 'WorkerProcess')">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    <xsl:variable name="label" select="graphml:get_label(.)" />
+                    <xsl:variable name="worker" select="graphml:get_data_value(., 'worker')" />
+                    <xsl:variable name="operation" select="graphml:get_data_value(., 'operation')" />
+                    
+
+                    <xsl:if test="$worker = 'Utility_Worker' and $operation = 'Log'">
+                        <xsl:variable name="input_parameters" select="graphml:get_descendant_nodes_of_kind(., 'InputParameter')" />
+                        <xsl:variable name="variadic_parameters" select="graphml:get_descendant_nodes_of_kind(., 'VariadicParameter')" />
+
+                        <xsl:variable name="print_format" select="graphml:get_data_value($input_parameters[1], 'value')" />
+                        <xsl:variable name="args" select="tokenize($print_format, '%')" />
+                        <xsl:variable name="number_args" select="count($args) - 1" />
+                        
+                        <xsl:if test="$number_args = count($variadic_parameters)">
+                            <xsl:for-each select="$variadic_parameters">
+                                <xsl:variable name="variadic_parameter" select="." />
+                                <xsl:variable name="pos" as="xs:integer" select="position() + 1"/>
+                                <xsl:variable name="arg" select="$args[$pos]" />
+                                
+                                <xsl:variable name="valid_compare" select="cdit:compare_printf_arg($variadic_parameter, $arg)" />
+                                <xsl:value-of select="cdit:output_result(graphml:get_id($variadic_parameter), $valid_compare,  o:join_list(('Variadic Parameter #', string(position()), 'does not appear to match types with the fprintf args', o:wrap_quote($arg)), ' '), true(), 2)" />
+                            </xsl:for-each>
+                        </xsl:if>
+
+                        <xsl:value-of select="cdit:output_result($id, $number_args = count($variadic_parameters), o:join_list(('Log Function', o:wrap_quote($label), ' appears to have differing numbers of % symbols in the print statemement compared to number of variadic parameters'), ' '), true(), 2)" />        
+                    
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:for-each>
+        <!--</xsl:variable>-->
+
+        <xsl:value-of select="cdit:output_test('Utility_Worker Log functions are defined correctly', '', 1)" />
     </xsl:function>
 
 
@@ -481,6 +576,7 @@
 
 
         <xsl:value-of select="cdit:test_componentimpl_data($component_impls)" />
+        <xsl:value-of select="cdit:test_logfunction($component_impls)" />
         <xsl:value-of select="cdit:test_componentimpl_workflow($component_impls)" />
         
     </xsl:function>
