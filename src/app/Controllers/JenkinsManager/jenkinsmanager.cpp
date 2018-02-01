@@ -172,29 +172,29 @@ void JenkinsManager::BuildJob(QString model_file)
                 //Ignore model
                 if(parameter.name == "model"){
                     got_model = true;
-                    continue;
                 }
                 auto type = GetSettingType(parameter.type);
                 dialog.addOption(parameter.name, type, parameter.defaultValue);
                 dialog.setOptionIcon(parameter.name, "Icons", "label");
+                dialog.setOptionEnabled(parameter.name, parameter.name != "model");
             }
 
             auto options = dialog.getOptions();
 
-            auto got_options = got_model ? options.size() + 1 == parameters.size() : options.size() == parameters.size();
+            auto got_options = options.size() == parameters.size();
             //
             if(got_options){
                 Jenkins_JobParameters build_parameters;
+
                 for(auto parameter_name : options.keys()){
                     Jenkins_Job_Parameter parameter;
                     parameter.name = parameter_name;
-                    parameter.value = options.value(parameter_name).toString();
-                    build_parameters += parameter;
-                }
-                if(got_model){
-                    Jenkins_Job_Parameter parameter;
-                    parameter.name = "model";
-                    parameter.value = FileHandler::readTextFile(model_file);
+
+                    if(parameter_name == "model"){
+                        parameter.value = model_file;
+                    }else{
+                        parameter.value = options.value(parameter_name).toString();
+                    }
                     build_parameters += parameter;
                 }
 

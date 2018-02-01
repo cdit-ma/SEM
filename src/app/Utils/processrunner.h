@@ -41,6 +41,7 @@ public:
     
     HTTPResult HTTPGet(QNetworkRequest request);
     HTTPResult HTTPPost(QNetworkRequest request, QByteArray post_data = QByteArray());
+    HTTPResult HTTPPostMulti(QNetworkRequest request, QHttpMultiPart* post_data);
 
     QString getEnvVar(QString key);
 signals:
@@ -49,9 +50,9 @@ signals:
     void GotProcessStdErrLine(QString line);
 private:
     ProcessResult RunProcess_(QString program, QStringList args, QString directory, QProcessEnvironment env , bool emit_stdout);
-
-    HTTPResult WaitForNetworkReply(QNetworkReply* reply);
     QNetworkAccessManager* GetNetworkAccessManager();
+    HTTPResult WaitForNetworkReply(QNetworkReply* reply);
+private:
     QNetworkAccessManager* network_access_manager_;
     QProcessEnvironment global_vars;
 };

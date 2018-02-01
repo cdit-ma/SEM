@@ -9,7 +9,8 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include <QMutexLocker>
-
+#include <QHttpMultiPart>
+#include <QFile>
 #define TIME_OUT_MS 100
 
 JenkinsRequest::JenkinsRequest(JenkinsManager *jenkins_manager, QObject *parent) : QObject()
@@ -279,20 +280,32 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
     auto notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
     if(BlockUntilValidatedSettings()){
 
-        QUrlQuery query;
-        //Add Parameters
-        foreach(auto parameter, parameters){
-            query.addQueryItem(parameter.name, QUrl::toPercentEncoding(parameter.value));
-        }
+        //QUrlQuery query;
+        QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
 
-        auto build_url = getURL() + "job/" + job_name + "/buildWithParameters";
+
+        QHttpPart textPart;
+        textPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"json\""));
+        textPart.setBody(QString("{\"parameter\": [{\"name\":\"model\", \"file\":\"file0\"}]}").toLatin1());
+
+        QString absoluteFilePath = "/Users/dan/Desktop/re_gen/test.graphml";
+        QHttpPart filePart;
+        filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+        filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file0\"; filename=\""+ absoluteFilePath + "\""));
+
+        multiPart->append(textPart);
+        multiPart->append(filePart);
+
+        auto build_url = getURL() + "job/" + job_name + "/build";
+
         auto build_request = getAuthenticatedRequest(build_url);
 
-        //Post parameters to buildWithParameters API
-        auto build_result = GetRunner()->HTTPPost(build_request, query.toString().toUtf8());
+        auto build_result = GetRunner()->HTTPPostMulti(build_request, multiPart);
 
         if(build_result.success){
             //Get the url of the stage job
+            qCritical() << build_result.standard_output;
+            qCritical() << build_result.location_header;
             auto stage_url = build_result.location_header + "api/json";
             auto stage_request = getAuthenticatedRequest(stage_url);
 
@@ -311,6 +324,8 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
                 }
                 QThread::msleep(TIME_OUT_MS);
             }
+        }else{
+            qCritical() << "DED RAT MATE" << build_result.standard_output;
         }
 
         if (build_number > 0) {
