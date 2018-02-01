@@ -157,6 +157,7 @@ public:
 
     RootAction* jenkins_importNodes;
     RootAction* jenkins_executeJob;
+    RootAction* jenkins_showBrowser;
 
 
     RootAction* toolbar_contextToolbar;

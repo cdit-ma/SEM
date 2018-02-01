@@ -17,10 +17,14 @@
 #include <QFutureWatcher>
 #include <QUrlQuery>
 
+
+
 JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_controller)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
+    qRegisterMetaType<Jenkins_Job_Statuses>("Jenkins_Job_Statuses");
+    
 
     view_controller_ = view_controller;
     //Set script directory
@@ -167,42 +171,34 @@ void JenkinsManager::BuildJob(QString model_file)
 
             VariableDialog dialog("Jenkins: " + job_name_ + " Parameters");
 
-            bool got_model = false;
             for(auto parameter : parameters){
-                //Ignore model
-                if(parameter.name == "model"){
-                    got_model = true;
+                auto default_value = parameter.defaultValue;
+                bool is_file_model = parameter.name == "model" and parameter.type == SETTING_TYPE::FILE;
+                
+                if(is_file_model){
+                    default_value = model_file;
                 }
-                auto type = GetSettingType(parameter.type);
-                dialog.addOption(parameter.name, type, parameter.defaultValue);
+
+                dialog.addOption(parameter.name, parameter.type, default_value);
                 dialog.setOptionIcon(parameter.name, "Icons", "label");
-                dialog.setOptionEnabled(parameter.name, parameter.name != "model");
+                //Disable model upload
+                dialog.setOptionEnabled(parameter.name, !is_file_model);
             }
 
             auto options = dialog.getOptions();
 
             auto got_options = options.size() == parameters.size();
-            //
+            
             if(got_options){
-                Jenkins_JobParameters build_parameters;
-
-                for(auto parameter_name : options.keys()){
-                    Jenkins_Job_Parameter parameter;
-                    parameter.name = parameter_name;
-
-                    if(parameter_name == "model"){
-                        parameter.value = model_file;
-                    }else{
-                        parameter.value = options.value(parameter_name).toString();
-                    }
-                    build_parameters += parameter;
+                for(auto& parameter : parameters){
+                    parameter.value = dialog.getOptionValue(parameter.name).toString();
                 }
 
                 auto jenkins_build = GetJenkinsRequest();
             
                 auto build_job = connect(this, &JenkinsManager::buildJob, jenkins_build, &JenkinsRequest::BuildJob);
                 
-                emit buildJob(job_name_, build_parameters);
+                emit buildJob(job_name_, parameters);
                 disconnect(build_job);
 
                 connect(jenkins_build, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
@@ -215,8 +211,31 @@ void JenkinsManager::BuildJob(QString model_file)
     }
 }
 
+void JenkinsManager::GetJobConsoleOutput(QString job_name, int job_number){
+    auto jenkins_request = GetJenkinsRequest();
+            
+    auto request_console_job = connect(this, &JenkinsManager::getJobConsole, jenkins_request, &JenkinsRequest::GetJobConsoleOutput);
+    emit getJobConsole(job_name, job_number, "");
+    disconnect(request_console_job);
 
-void JenkinsManager::gotoJob(QString job_name, int build_number){
+    connect(jenkins_request, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
+    connect(jenkins_request, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
+}
+
+void JenkinsManager::GetRecentJobs(QString job_name){
+    auto jenkins_request = GetJenkinsRequest();
+            
+    auto request_job = connect(this, &JenkinsManager::getRecentJobs, jenkins_request, &JenkinsRequest::GetRecentJobs);
+    emit getRecentJobs(job_name, 10);
+    disconnect(request_job);
+
+    connect(jenkins_request, &JenkinsRequest::gotRecentJobs, this, &JenkinsManager::gotRecentJobs);
+}
+
+
+
+
+void JenkinsManager::GotoJob(QString job_name, int build_number){
     auto url = GetUrl() + "job/" + job_name + "/" + QString::number(build_number);
     view_controller_->openURL(url);
 }
@@ -229,23 +248,11 @@ void JenkinsManager::AbortJob(QString job_name, int job_number){
 }
 
 void JenkinsManager::gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity job_state){
-    JenkinsMonitor* jenkins_monitor = 0;
     auto monitor = view_controller_->getExecutionMonitor();
-    if(monitor){
-        //First off
-        if(job_state == Notification::Severity::RUNNING){
-            view_controller_->showExecutionMonitor();
-            jenkins_monitor = monitor->constructJenkinsMonitor(job_name, job_build);
-            connect(jenkins_monitor, &JenkinsMonitor::Abort, [=](){AbortJob_(job_name, job_build);});
-            connect(jenkins_monitor, &JenkinsMonitor::GotoURL, [=](){gotoJob(job_name, job_build);});
-        }else{
-            jenkins_monitor = (JenkinsMonitor*)monitor->getJenkinsMonitor(job_name, job_build);
-        }
+    auto jenkins_monitor = monitor->getJenkinsMonitor(job_name, job_build);
 
-
-        if(jenkins_monitor){
-            jenkins_monitor->StateChanged(job_state);
-        }
+    if(jenkins_monitor){
+        jenkins_monitor->StateChanged(job_state);
     }
 }
 
@@ -452,7 +459,6 @@ QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url, bool auth)
     request.setUrl(QUrl(url));
 
     //Attach Headers
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.setHeader(QNetworkRequest::UserAgentHeader, "JenkinsManager-Request");
 
     if(auth){

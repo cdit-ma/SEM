@@ -11,6 +11,7 @@
 #include <QMutexLocker>
 #include <QHttpMultiPart>
 #include <QFile>
+#include <QFileInfo>
 #define TIME_OUT_MS 100
 
 JenkinsRequest::JenkinsRequest(JenkinsManager *jenkins_manager, QObject *parent) : QObject()
@@ -55,24 +56,6 @@ JenkinsRequest::~JenkinsRequest()
 bool JenkinsRequest::BlockUntilValidatedSettings()
 {
     return gotValidatedSettings();
-    /*
-    bool got_valid_settings = gotValidatedSettings();
-
-    if(!got_valid_settings){
-        QEventLoop waitLoop;
-
-        connect(this, &JenkinsRequest::Terminate_, &waitLoop, &QEventLoop::quit);
-        {
-            QMutexLocker(&this->mutex_);
-            if(jenkins_manager_){
-                //Validated settings should terminate the loop
-                connect(jenkins_manager_, &JenkinsManager::gotValidSettings, this, [&waitLoop](bool, QString){waitLoop.quit();});
-            }
-        }
-        waitLoop.exec();
-        got_valid_settings = gotValidatedSettings();
-    }
-    return got_valid_settings;*/
 }
 
 QJsonDocument JenkinsRequest::_getJobConfiguration(QString jobName, int buildNumber, QString activeConfiguration, bool refresh)
@@ -165,7 +148,9 @@ void JenkinsRequest::GetJobParameters(QString job_name)
                 //Fill the data in the Jenkins_Job_Parameter from the JSON object.
                 jobParameter.name = parameterData["name"].toString();
                 //The type is in format [type]ParameterDefinition, so trim this.
-                jobParameter.type = parameterData["type"].toString().replace("ParameterDefinition","");
+                auto type_str = parameterData["type"].toString().replace("ParameterDefinition","");
+                jobParameter.type = jenkins_manager_->GetSettingType(type_str);
+                //jobParameter.type = 
                 jobParameter.description = parameterData["description"].toString();
                 QJsonValue defaultValue = parameterData["defaultParameterValue"].toObject()["value"];
                 if(defaultValue.isBool()){
@@ -232,7 +217,7 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
         //While the job is either building or not yet existant.
         while(true){
             //Get the new_state of the job
-            auto new_state = _getJobState(job_name, build_number, configuration);
+            auto new_state = _getJobState(job_name, build_number, configuration, true).state;
             if(new_state != job_state){
                 //If it's changed send a signal
                 job_state = new_state;
@@ -271,96 +256,132 @@ void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QSt
     emit Finished();
 }
 
-void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters)
+void JenkinsRequest::GetRecentJobs(QString job_name, int max_request_count)
 {
-    int build_number = -1;
-    Notification::Severity job_state = Notification::Severity::ERROR;
+    auto notification = NotificationManager::manager()->AddNotification("Requesting recent jobs '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS, false);
     
-    
-    auto notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
+    HTTPResult api_results;
     if(BlockUntilValidatedSettings()){
-
-        //QUrlQuery query;
-        QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+        QString url = getURL() + "job/" + job_name + "/api/json";
 
 
-        QHttpPart textPart;
-        textPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"json\""));
-        textPart.setBody(QString("{\"parameter\": [{\"name\":\"model\", \"file\":\"file0\"}]}").toLatin1());
+        //Get an authenticated request
+        auto auth_request = getAuthenticatedRequest(url);
 
-        QString absoluteFilePath = "/Users/dan/Desktop/re_gen/test.graphml";
-        QHttpPart filePart;
-        filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
-        filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file0\"; filename=\""+ absoluteFilePath + "\""));
+        api_results = GetRunner()->HTTPGet(auth_request);
 
-        multiPart->append(textPart);
-        multiPart->append(filePart);
+        if(api_results.success){
+            //Check for the job
+            auto json = QJsonDocument::fromJson(api_results.standard_output.toUtf8()).object();
+            QList<int> recent_jobs;
 
-        auto build_url = getURL() + "job/" + job_name + "/build";
-
-        auto build_request = getAuthenticatedRequest(build_url);
-
-        auto build_result = GetRunner()->HTTPPostMulti(build_request, multiPart);
-
-        if(build_result.success){
-            //Get the url of the stage job
-            qCritical() << build_result.standard_output;
-            qCritical() << build_result.location_header;
-            auto stage_url = build_result.location_header + "api/json";
-            auto stage_request = getAuthenticatedRequest(stage_url);
-
-            //We need to wait until the job has been given an executor
-            while(true){
-                auto stage_result = GetRunner()->HTTPGet(stage_request);
-
-                if(stage_result.success){
-                    //Parse the Json
-                    auto json = QJsonDocument::fromJson(stage_result.standard_output.toUtf8()).object();
-                    auto json_build_number = json["executable"].toObject()["number"].toInt(-1);
-                    if(json_build_number != -1){
-                        build_number = json_build_number;
-                        break;
-                    }
+            //Append The name of the Active Configurations to the configurationList
+            foreach(QJsonValue j, json["builds"].toArray()){
+                auto job_number = j.toObject()["number"].toInt(-1);
+                if(job_number > 0 && recent_jobs.size() < max_request_count){
+                    recent_jobs.append(job_number);
+                }else{
+                    break;
                 }
-                QThread::msleep(TIME_OUT_MS);
             }
-        }else{
-            qCritical() << "DED RAT MATE" << build_result.standard_output;
-        }
 
-        if (build_number > 0) {
-            notification->setTitle("Started Jenkins job: '" + job_name + "' #" + QString::number(build_number));
-            
-            job_state = getJobConsoleOutput(job_name, build_number, "");
+            QList<Jenkins_Job_Status> states;
+
+            for(auto job_id : recent_jobs){
+                auto state = _getJobState(job_name, job_id, "", false);
+                states.push_back(state);
+            }
+
+            emit gotRecentJobs(states);
         }
     }
 
     if(notification){
-        if (build_number == -1) {
+        if (!api_results.success) {
+            notification->setTitle("Failed to request recent jobs '" + job_name + "'");
+            notification->setDescription("Error Code: " + QString::number(api_results.error_code) + ": " + api_results.standard_output);
+            notification->setSeverity(Notification::Severity::ERROR);
+        }else{
+            notification->setSeverity(Notification::Severity::SUCCESS);
+        }
+    }
+
+    //Call the SIGNAL to teardown the JenkinsRequest
+    emit Finished();
+}
+
+
+void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters)
+{
+    bool success = false;
+    
+    auto notification = NotificationManager::manager()->AddNotification("Waiting for Jenkins to handle build request '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
+    if(BlockUntilValidatedSettings()){
+
+        auto multi_part = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+        {
+            //Construct our parameter arrays
+            QJsonArray parameter_array_json;
+
+            for(auto parameter: parameters){
+                QJsonObject parameter_json;
+                parameter_json.insert("name", QJsonValue::fromVariant(parameter.name));
+
+                if(parameter.type == SETTING_TYPE::FILE){
+                    parameter_json.insert("file", QJsonValue::fromVariant(parameter.name));
+                }else{
+                    parameter_json.insert("value", QJsonValue::fromVariant(parameter.value));
+                }
+                parameter_array_json.push_back(parameter_json);
+            }
+
+            QJsonObject parameter_object;
+            parameter_object.insert("parameter", parameter_array_json);
+            
+            QJsonDocument doc(parameter_object);
+            QString json = doc.toJson(QJsonDocument::Compact);
+            qCritical() << json;
+
+            QHttpPart json_part;
+
+            json_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+            json_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"json\""));
+            json_part.setBody(json.toLatin1());
+            multi_part->append(json_part);
+        }
+
+        {
+            for(auto parameter: parameters){
+                if(parameter.type == SETTING_TYPE::FILE){
+                    QFileInfo fileInfo(parameter.value);
+
+                    QHttpPart file_part;
+                    file_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+                    file_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"" + parameter.name + "\"; filename=\""+ fileInfo.baseName() + "\""));
+
+                    QFile *file = new QFile(parameter.value);
+                    file->open(QIODevice::ReadOnly);
+                    file_part.setBodyDevice(file);
+                    file->setParent(multi_part);
+                    multi_part->append(file_part);
+                }
+            }
+        }
+
+        auto build_url = getURL() + "job/" + job_name + "/build";
+        auto build_request = getAuthenticatedRequest(build_url);
+        auto build_result = GetRunner()->HTTPPostMulti(build_request, multi_part);
+        success = build_result.success;
+    }
+
+    if(notification){
+        if (!success) {
             notification->setTitle("Failed to request Jenkins build '" + job_name + "'");
             notification->setSeverity(Notification::Severity::ERROR);
         }else{
-            auto severity = job_state;
-            auto description = "Jenkins job: '" + job_name + "' #" + QString::number(build_number);
-            auto icon_name = "sphereBlue";
-            switch(severity){
-                case Notification::Severity::ERROR:
-                    description += " failed";
-                    icon_name = "sphereRed";
-                    break;
-                case Notification::Severity::INFO:
-                    description += " was aborted";
-                    icon_name = "sphereGray";
-                    break;
-                default:
-                    severity = Notification::Severity::SUCCESS;
-                    description += " finished";
-                    break;
-            }
-            //Use Jenkins Icons!
-            notification->setIcon("Icons", icon_name);
-            notification->setSeverity(severity);
-            notification->setTitle(description);
+            notification->setSeverity(Notification::Severity::SUCCESS);
+            notification->setTitle("Started Jenkins Job: '" + job_name + "'");
         }
     }
     emit Finished();
@@ -527,29 +548,36 @@ void JenkinsRequest::ValidateSettings()
     emit Finished();
 }
 
-Notification::Severity JenkinsRequest::_getJobState(QString jobName, int buildNumber, QString activeConfiguration)
+Jenkins_Job_Status JenkinsRequest::_getJobState(QString jobName, int buildNumber, QString activeConfiguration, bool rerequest)
 {
     //Get the JSON data about this job.
-    QJsonDocument configuration  = _getJobConfiguration(jobName, buildNumber, activeConfiguration, true);
+    QJsonDocument configuration  = _getJobConfiguration(jobName, buildNumber, activeConfiguration, rerequest);
+
+    Jenkins_Job_Status job_state;
+    job_state.name = jobName;
+    job_state.number = buildNumber;
+    job_state.state = Notification::Severity::NONE;
 
     //If the jobJSON isn't null, check for activeConfigurations.
     if(!configuration.isNull()){
         QJsonObject configData = configuration.object();
+        
+        job_state.description  = configData["description"].toString();
 
         //Get the array which contains the result.
         bool building = configData["building"].toBool();
         if(building){
-            return Notification::Severity::RUNNING;
+            job_state.state  = Notification::Severity::RUNNING;
         }else{
             QString result = configData["result"].toString();
             if(result == "SUCCESS"){
-                return Notification::Severity::SUCCESS;
+                job_state.state  = Notification::Severity::SUCCESS;
             }else if(result == "ABORTED"){
-                return Notification::Severity::INFO;
+                job_state.state = Notification::Severity::INFO;
             }else{
-                return Notification::Severity::ERROR;
+                job_state.state = Notification::Severity::ERROR;
             }
         }
     }
-    return Notification::Severity::NONE;
+    return job_state;
 }

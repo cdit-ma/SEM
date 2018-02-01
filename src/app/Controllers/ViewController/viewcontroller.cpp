@@ -623,7 +623,7 @@ void ViewController::showCodeViewer(QString tabName, QString content)
 
 JobMonitor* ViewController::getExecutionMonitor(){
     if(!job_monitor){
-        job_monitor = new JobMonitor();
+        job_monitor = new JobMonitor(jenkins_manager);
         auto toolbar = job_monitor->getToolbar();
         toolbar->addAction(actionController->model_executeLocalJob);
         toolbar->addAction(actionController->jenkins_executeJob);
@@ -1579,7 +1579,7 @@ void ViewController::executeModelLocal()
             auto job_monitor = getExecutionMonitor();
             auto local_monitor = job_monitor->getConsoleMonitor("Local Deployment");
             if(!local_monitor){
-                local_monitor = job_monitor->constructConsoleMonitor("Local Deployment");
+                local_monitor = job_monitor->constructConsoleMonitor();
                 connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, local_monitor, &Monitor::AppendLine);
                 connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, local_monitor, &Monitor::AppendLine);
                 connect(execution_manager, &ExecutionManager::ModelExecutionStateChanged, local_monitor, &Monitor::StateChanged);

@@ -8,6 +8,7 @@ ConsoleMonitor::ConsoleMonitor(QWidget* parent):Monitor(parent){
     connect(Theme::theme(), &Theme::theme_Changed, this, &ConsoleMonitor::themeChanged);
     themeChanged();
     connect(this, &Monitor::StateChanged, this, &ConsoleMonitor::stateChanged);
+    StateChanged(Notification::Severity::RUNNING);
 }
 
 void ConsoleMonitor::stateChanged(Notification::Severity  state){

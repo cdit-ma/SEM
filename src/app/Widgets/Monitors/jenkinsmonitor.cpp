@@ -11,6 +11,7 @@ JenkinsMonitor::JenkinsMonitor(QString job_name, int build_number, QWidget * par
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &JenkinsMonitor::themeChanged);
     connect(this, &Monitor::StateChanged, this, &JenkinsMonitor::stateChanged);
+    StateChanged(Notification::Severity::NONE);
 }
 
 void JenkinsMonitor::themeChanged(){
@@ -23,6 +24,8 @@ void JenkinsMonitor::themeChanged(){
 
     abort_action->setIcon(theme->getIcon("Icons", "circleCrossDark"));
     clear_action->setIcon(theme->getIcon("Icons", "bin"));
+    close_action->setIcon(theme->getIcon("Icons", "cross"));
+    
     url_action->setIcon(theme->getIcon("Icons", "globe"));
 
     toolbar->setIconSize(theme->getIconSize());
@@ -31,6 +34,14 @@ void JenkinsMonitor::themeChanged(){
 void JenkinsMonitor::stateChanged(Notification::Severity state){
     //Abortable
     abort_action->setEnabled(state == Notification::Severity::RUNNING);
+}
+
+int JenkinsMonitor::getBuildNumber() const{
+    return this->build_number;
+}
+
+QString JenkinsMonitor::GetJobName() const{
+    return this->job_name;
 }
 
 
@@ -46,6 +57,8 @@ void JenkinsMonitor::setupLayout(){
     clear_action = toolbar->addAction("Clear");
     abort_action = toolbar->addAction("Abort Job");
     url_action = toolbar->addAction("Open Jenkins");
+    close_action = toolbar->addAction("Close Tab");
+    
 
     layout->addWidget(text_browser, 1);
     layout->addWidget(toolbar, 0, Qt::AlignRight);
@@ -55,5 +68,6 @@ void JenkinsMonitor::setupLayout(){
 
     connect(clear_action, &QAction::triggered, this, &Monitor::Clear);
     connect(abort_action, &QAction::triggered, this, &Monitor::Abort);
+    connect(close_action, &QAction::triggered, this, &Monitor::Close);
     connect(url_action, &QAction::triggered, this, &JenkinsMonitor::GotoURL);
 }

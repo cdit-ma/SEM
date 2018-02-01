@@ -40,6 +40,10 @@ bool OptionGroupBox::isAllChecked()
     return checkedKeys.count() == actions_lookup.count();
 }
 
+bool OptionGroupBox::isResetChecked(){
+    return reset_action && reset_action->isChecked();
+}
+
 
 
 /**
@@ -89,8 +93,10 @@ void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
 void OptionGroupBox::setOptionChecked(QVariant key, bool checked){
     auto option_button = actions_lookup.value(key, 0);
     if(option_button){
-        option_button->setChecked(!checked);
-        emit option_button->trigger();
+        if(option_button->isChecked() != checked){
+            option_button->setChecked(!checked);
+            emit option_button->trigger();
+        }
     }
 }
 
@@ -134,6 +140,10 @@ void OptionGroupBox::removeOption(QVariant key)
     updateTitleCount();
 }
 
+bool OptionGroupBox::gotOption(QVariant key){
+    return actions_lookup.value(key, 0) != 0;
+}
+
 
 /**
  * @brief OptionGroupBox::removeOptions
@@ -150,9 +160,11 @@ void OptionGroupBox::removeOptions()
 }
 
 
-void OptionGroupBox::reset(){
+void OptionGroupBox::reset(bool notify){
     resetOptions();
-    emit checkedOptionsChanged();
+    if(notify){
+        emit checkedOptionsChanged();
+    }
 }
 
 /**
@@ -265,14 +277,14 @@ void OptionGroupBox::setupResetAction()
  * @param icon_name
  * @return
  */
-bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, QString icon_name)
+bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, QString icon_name, bool put_on_top)
 {
     if (key.isNull() || actions_lookup.count(key)) {
         qWarning() << "OptionGroupBox::addOption - The key is null.";
         return false;
     }
 
-    auto option_action = getNewOptionAction();
+    auto option_action = getNewOptionAction(put_on_top);
     option_action->setText(label);
     Theme::StoreActionIcon(option_action, icon_path, icon_name);
     option_action->setProperty(OPTION_KEY, key);
@@ -282,11 +294,34 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
     return true;
 }
 
-QAction* OptionGroupBox::getNewOptionAction(){
+void OptionGroupBox::updateOptionIcon(QVariant key, QString icon_path, QString icon_name){
+    auto option_action = actions_lookup.value(key, 0);
+    if(option_action){
+        Theme::StoreActionIcon(option_action, icon_path, icon_name);
+        Theme::UpdateActionIcon(option_action);
+    }
+}
+
+void OptionGroupBox::updateOptionLabel(QVariant key, QString label){
+    auto option_action = actions_lookup.value(key, 0);
+    if(option_action){
+        option_action->setText(label);
+    }
+}
+
+
+QAction* OptionGroupBox::getNewOptionAction(bool top){
     auto button = new QToolButton(this);
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    auto action = addWidget(button);
+    QAction* action = 0;
+    if(top){
+        action = insertWidget(getTopAction(), button);
+    }else{
+        action = addWidget(button);
+    }
+
+    
     //Connect the button to it's action so we don't need to worry about QToolButton stuff
     button->setDefaultAction(action);
     action->setCheckable(true);

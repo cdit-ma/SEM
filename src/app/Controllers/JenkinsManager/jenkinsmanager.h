@@ -48,7 +48,11 @@ public:
     void GetNodes();
     void BuildJob(QString model_file);
     void AbortJob(QString job_name, int job_number);
+    void GetJobConsoleOutput(QString job_name, int job_number);
+    void GetRecentJobs(QString job_name);
+    void GotoJob(QString job_name, int build_number);
 signals:
+
     void Terminate();
     
     void GotJenkinsNodes(QString data);
@@ -56,6 +60,11 @@ signals:
 
     void getJobParameters(QString name);
     void buildJob(QString jobName, Jenkins_JobParameters parameters);
+    void getJobConsole(QString job_name, int job_number, QString config="");
+    void gotRecentJobs(Jenkins_Job_Statuses recent_jobs);
+
+
+    void getRecentJobs(QString job_name, int max_request_count);
 private slots:
     void settingsApplied();
     void SettingChanged(SETTINGS key, QVariant value);
@@ -63,8 +72,9 @@ private slots:
 
     void gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity jobState);
     void gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput);
+    
 
-    void gotoJob(QString job_name, int build_number);
+  
 private:
     JenkinsRequest* GetJenkinsRequest(QObject* parent = 0);
     SETTING_TYPE GetSettingType(QString type);

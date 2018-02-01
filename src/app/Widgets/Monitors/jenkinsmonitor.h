@@ -14,6 +14,7 @@ public:
     int getBuildNumber() const;
 signals:
     void GotoURL();
+    
 private:
     void stateChanged(Notification::Severity state);
     void themeChanged();
@@ -24,6 +25,7 @@ private:
 
     QAction* abort_action = 0;
     QAction* clear_action = 0;
+    QAction* close_action = 0;
     QAction* url_action = 0;
     QToolBar* toolbar = 0;
 

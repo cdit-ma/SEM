@@ -31,10 +31,14 @@ public:
 
     QList<QVariant> getCheckedKeys();
     bool isAllChecked();
+    bool isResetChecked();
 
+    bool gotOption(QVariant key);
     void setOptionChecked(QVariant key, bool checked);
-    bool addOption(QVariant key, QString label, QString icon_path, QString icon_name);
+    bool addOption(QVariant key, QString label, QString icon_path, QString icon_name, bool put_on_top=false);
     void setOptionVisible(QVariant key, bool is_visible);
+    void updateOptionLabel(QVariant key, QString label);
+    void updateOptionIcon(QVariant key, QString icon_path, QString icon_name);
     void removeOption(QVariant key);
     void removeOptions();
 
@@ -49,7 +53,7 @@ signals:
     void checkedOptionsChanged();
 
 public slots:
-    void reset();
+    void reset(bool notify=true);
 
     
     private slots:
@@ -59,7 +63,7 @@ public slots:
 private:
     void resetOptions();
 
-    QAction* getNewOptionAction();
+    QAction* getNewOptionAction(bool put_on_top = false);
 
     void uncheckOptions();
     void clearFilters();

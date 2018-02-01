@@ -7,6 +7,7 @@
 #include <QMutex>
 #include <QNetworkRequest>
 #include "../NotificationManager/notificationenumerations.h"
+#include "../SettingsController/settingscontroller.h"
 
 struct Jenkins_Job_Parameter{
     //Used to execute.
@@ -14,12 +15,21 @@ struct Jenkins_Job_Parameter{
     QString value;
 
     //Used for GUI
-    QString type;
+    SETTING_TYPE type;
     QString description;
     QString defaultValue;
 };
 
+struct Jenkins_Job_Status{
+    QString name;
+    int number;
+    Notification::Severity state;
+    QString description;
+};
+
+
 typedef QList<Jenkins_Job_Parameter> Jenkins_JobParameters;
+typedef QList<Jenkins_Job_Status> Jenkins_Job_Statuses;
 
 class ProcessRunner;
 class JenkinsManager;
@@ -52,6 +62,12 @@ signals:
     //Emitted, Once by the slot runGroovyScript
     void GotGroovyScriptOutput(bool success, QString output);
 
+    //Emitted, Once by the slot GetRecentJobs
+    void gotRecentJobs(Jenkins_Job_Statuses recent_jobs);
+
+    //Emitted Once;
+    void BuildingJob(QString job_name);
+
     //Emitted, Once by all slots when completed
     void Finished();
 
@@ -61,6 +77,8 @@ signals:
 public slots:
     void BuildJob(QString job_name, Jenkins_JobParameters jobParameters);
     void StopJob(QString job_name, int build_number, QString configuration="");
+
+    void GetRecentJobs(QString job_name, int max_request_count);
 
     void GetJobConsoleOutput(QString job_name, int build_number, QString configuration="");
     void GetJobParameters(QString job_name);
@@ -72,7 +90,7 @@ private slots:
     //Called if the JenkinsManager has been destroyed.
     void Teardown_();
 private:
-    Notification::Severity getJobConsoleOutput(QString job_name, int build_number, QString configuration);
+    Notification::Severity getJobConsoleOutput(QString job_name, int build_number, QString configuration="");
     QString getURL();
     QString getJobName();
     bool gotValidatedSettings();
@@ -83,7 +101,7 @@ private:
 
     bool BlockUntilValidatedSettings();
 
-    Notification::Severity _getJobState(QString jobName, int buildNumber, QString activeConfiguration="");
+    Jenkins_Job_Status _getJobState(QString jobName, int buildNumber, QString activeConfiguration="", bool re_request=false);
     QJsonDocument _getJobConfiguration(QString jobName, int buildNumber=-1, QString activeConfiguration="", bool reRequest=false);
 
 

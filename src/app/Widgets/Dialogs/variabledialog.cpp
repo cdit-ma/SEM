@@ -26,6 +26,24 @@ void VariableDialog::setOptionIcon(QString option, QString icon_path, QString ic
     }
 }
 
+SETTING_TYPE VariableDialog::getOptionType(QString option){
+    SETTING_TYPE type = SETTING_TYPE::NONE;
+    auto edit_widget = fields.value(option, 0);
+    if(edit_widget){
+        type = edit_widget->getType();
+    }
+    return type;
+}
+
+QVariant VariableDialog::getOptionValue(QString option){
+    auto edit_widget = fields.value(option, 0);
+    if(edit_widget){
+        return edit_widget->getValue();
+        
+    }
+    return QVariant();
+}
+
 void VariableDialog::setOptionEnabled(QString option, bool enabled){
     auto edit_widget = fields.value(option, 0);
     if(edit_widget){
