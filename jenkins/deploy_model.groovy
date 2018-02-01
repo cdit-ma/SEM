@@ -60,12 +60,6 @@ def failureList = []
 def jDeployment = "";
 
 def file = "model.graphml"
-node(){
-    writeFile file: file, text: "${model}"
-    stash includes: file, name: 'model'
-    archiveArtifacts file
-   
-}
 
 withEnv(["model=''"]){
     node(masterNode){
