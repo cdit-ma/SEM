@@ -152,8 +152,10 @@ withEnv(["model=''"]){
     def modelName = jDeployment["model"].name
     def modelDescription = jDeployment["model"].description
     currentBuild.description = modelName
-    currentBuild.description = currentBuild.description + " : " + modelDescription
-
+    if(modelDescription){
+        currentBuild.description = currentBuild.description + " : " + modelDescription
+    }
+    
     stage("Build deployment plan"){
     for(def i = 0; i < nodeKeys.size(); i++){
         def nodeName = nodeKeys[i];
