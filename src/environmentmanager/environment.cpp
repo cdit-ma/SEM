@@ -19,12 +19,17 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
     int port;
 
     if(deployment_info_map_.find(deployment_id) != deployment_info_map_.end()){
-        //TODO: Update here
+        //Already have deployment of this ID
+
+        //If this "add deployment" call is somehow older than the currently recorded deployment, ignore
         if(time_called < deployment_info_map_[deployment_id]->time_added){
             return "";
         }
 
-        else{
+        //Update to new understanding of deployment if old version is currently timing out
+        //TODO: Unsure how to handle this currently.
+        //Current implementation looses refs to componenets, not good
+        else if(deployment_info_map_[deployment_id]->state == DeploymentState::TIMEOUT){
             auto it = available_ports_.begin();
 
             port = *it;
@@ -135,7 +140,6 @@ void Environment::DeploymentLive(const std::string& deployment_id, long time_cal
         auto deployment_info = deployment_info_map_.at(deployment_id);
         if(time_called >= deployment_info->time_added){
             deployment_info->state = DeploymentState::ACTIVE;
-            std::cout << deployment_id << " entering ACTIVE status" << std::endl;
         }
     }
     catch(std::out_of_range& ex){
@@ -150,7 +154,6 @@ void Environment::DeploymentTimeout(const std::string& deployment_id, long time_
         auto deployment_info = deployment_info_map_.at(deployment_id);
         if(time_called >= deployment_info->time_added){
             deployment_info->state = DeploymentState::TIMEOUT;
-            std::cout << deployment_id << " entering TIMEOUT status" << std::endl;
         }
     }
     catch(std::out_of_range& ex){

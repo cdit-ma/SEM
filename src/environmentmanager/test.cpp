@@ -153,7 +153,7 @@ int main(int argc, char **argv){
 
             std::cout << "< " << hb_rep_string << std::endl;
             std::cout << "< " << std::get<1>(hb_rep) << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     }
 

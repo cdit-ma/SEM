@@ -43,7 +43,7 @@ void DeploymentHandler::Init(){
             std::string component_id = request_contents;
 
             std::string header("ASSIGNMENT_REPLY");
-            std::string port_string = environment_->AddComponent(deployment_id_, component_id, component_id);
+            std::string port_string = environment_->AddComponent(deployment_id_, component_id, component_id, time_added_);
             port_map_[component_id] = port_string;
             std::string response(port_string);
 
@@ -128,7 +128,7 @@ void DeploymentHandler::HeartbeatLoop(){
 
 void DeploymentHandler::RemoveDeployment(){
     for(auto element : port_map_){
-        environment_->RemoveComponent(element.first);
+        environment_->RemoveComponent(element.first, time_added_);
     }
     environment_->RemoveDeployment(deployment_id_, time_added_);
 }
@@ -187,6 +187,15 @@ void DeploymentHandler::HandleRequest(std::tuple<std::string, long, std::string>
 
     if(std::get<0>(request).compare("HEARTBEAT") == 0){
         SendTwoPartReply(handler_socket_, ack_string, "");
+    }
+
+    else if(std::get<0>(request).compare("ASSIGNMENT_REQUEST") == 0){
+        std::string component_id = std::get<2>(request);
+        std::string port_string = environment_->AddComponent(deployment_id_, component_id, component_id, time_added_);
+        port_map_[component_id] = port_string;
+        std::string response(port_string);
+
+        SendTwoPartReply(handler_socket_, "ASSIGNMENT_REPLY", response);
     }
 
     else if(std::get<0>(request).compare("UPDATE") == 0){
