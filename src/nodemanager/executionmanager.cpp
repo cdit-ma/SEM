@@ -533,7 +533,12 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
 
         {
             std::unique_lock<std::mutex> lock(execution_mutex_);
-            auto cancelled = execution_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+            if(duration_sec == -1){
+                //Wait indefinately
+                execution_lock_condition_.wait(lock, [this]{return this->terminate_flag_;});
+            }else{
+                execution_lock_condition_.wait_for(lock, execution_duration, [this]{return this->terminate_flag_;});
+            }
         }
 
         std::cout << "* Passivating Deployment" << std::endl;
