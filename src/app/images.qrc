@@ -282,5 +282,6 @@
         <file alias="circleStarDark">Resources/Icons/circleStarDark.png</file>
         <file alias="filterList">Resources/Icons/filterList.png</file>
         <file alias="running">Resources/Icons/running.png</file>
+        <file alias="package">Resources/Icons/package.png</file>
     </qresource>
 </RCC>

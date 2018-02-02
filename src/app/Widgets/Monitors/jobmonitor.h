@@ -52,6 +52,10 @@ private:
 
     void requestJobConsoleOutput(QString job_name, int job_id);
 private:
+    void gotJenkinsJobStateChange(QString job_name, int job_build, QString configuration, Notification::Severity jobState);
+    void gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString configuration, QString consoleOutput);
+    void gotJenkinsJobArtifacts(QString job_name, int job_build, QString configuration, QStringList artifacts);
+
     QPair<QString, int> splitJobKey(QString key);
     QString getJobKey(QString job_name, int job_number);
 
@@ -60,7 +64,6 @@ private:
     QStackedWidget* stacked_widget = 0;
 
     QToolBar* toolbar = 0;
-    QToolBar* refresh_toolbar = 0;
     
     QSplitter* splitter = 0;
 
@@ -69,8 +72,6 @@ private:
     QScrollArea* jobs_list_scroll = 0;
 
     OptionGroupBox* running_jobs_box = 0;
-
-    QAction* refresh_action = 0;
 };
 
 #endif // JOB_MONITOR_H

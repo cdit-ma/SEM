@@ -50,6 +50,8 @@ signals:
     //Emitted, multiple times, by the slot getJobConsoleOutput, and by extension buildJob
     void GotLiveJobConsoleOutput(QString job_name, int build_number, QString configuration, QString console_output_chunk);
 
+    void GotJobArtifacts(QString job_name, int build_number, QString configuration, QStringList artifact_urls);
+
     //Emitted once by the slot getJobConsoleOutput
     void GotJobConsoleOutput(QString job_name, int build_number, QString configuration, QString console_output);
 

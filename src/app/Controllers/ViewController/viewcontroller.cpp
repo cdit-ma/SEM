@@ -307,7 +307,6 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query, QList<
     rx.setPatternSyntax(QRegExp::WildcardUnix);
     rx.setCaseSensitivity(Qt::CaseInsensitive);
     if(view_items.isEmpty()){
-        qCritical() << "GOT EMPTY";
         view_items = getSearchableEntities();
     }
     for(auto item : view_items){
@@ -1599,6 +1598,7 @@ void ViewController::executeJenkinsJob()
         QString data = controller->getProjectAsGraphML();
         if(!data.isEmpty()){
             QString filePath = FileHandler::writeTempTextFile(data, ".graphml");
+            showExecutionMonitor();
             emit vc_executeJenkinsJob(filePath);
         }
     }

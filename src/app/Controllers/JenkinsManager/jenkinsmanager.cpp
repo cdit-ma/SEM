@@ -41,7 +41,6 @@ JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_c
     }
 
 
-    //connect(GetJobMonitorWidget(), &JenkinsJobMonitorWidget::gotoURL, view_controller, &ViewController::openURL);
     connect(this, &JenkinsManager::GotJenkinsNodes, view_controller, &ViewController::jenkinsManager_GotJenkinsNodesList);
     connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::GotJenkins);
 
@@ -203,6 +202,8 @@ void JenkinsManager::BuildJob(QString model_file)
 
                 connect(jenkins_build, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
                 connect(jenkins_build, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
+                connect(jenkins_build, &JenkinsRequest::BuildingJob, this, &JenkinsManager::BuildingJob);
+                
             }
         }, Qt::QueuedConnection);
         
@@ -220,6 +221,7 @@ void JenkinsManager::GetJobConsoleOutput(QString job_name, int job_number){
 
     connect(jenkins_request, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
     connect(jenkins_request, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
+    connect(jenkins_request, &JenkinsRequest::GotJobArtifacts, this, &JenkinsManager::gotJobArtifacts);
 }
 
 void JenkinsManager::GetRecentJobs(QString job_name){
@@ -244,25 +246,6 @@ void JenkinsManager::GotoJob(QString job_name, int build_number){
 void JenkinsManager::AbortJob(QString job_name, int job_number){
     if(GotValidSettings()){
         QtConcurrent::run(this, &JenkinsManager::AbortJob_, job_name, job_number);
-    }
-}
-
-void JenkinsManager::gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity job_state){
-    auto monitor = view_controller_->getExecutionMonitor();
-    auto jenkins_monitor = monitor->getJenkinsMonitor(job_name, job_build);
-
-    if(jenkins_monitor){
-        jenkins_monitor->StateChanged(job_state);
-    }
-}
-
-void JenkinsManager::gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput){
-    auto monitor = view_controller_->getExecutionMonitor();
-    if(monitor){
-        auto jenkins_monitor = monitor->getJenkinsMonitor(job_name, job_build);
-        if(jenkins_monitor){
-            jenkins_monitor->AppendLine(consoleOutput);
-        }
     }
 }
 

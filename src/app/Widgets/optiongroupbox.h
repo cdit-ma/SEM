@@ -51,6 +51,7 @@ public:
 
 signals:
     void checkedOptionsChanged();
+    void resetPressed();
 
 public slots:
     void reset(bool notify=true);

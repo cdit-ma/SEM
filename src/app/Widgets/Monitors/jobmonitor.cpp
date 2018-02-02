@@ -8,10 +8,28 @@ JobMonitor::JobMonitor(JenkinsManager* jenkins_manager,QWidget *parent){
     this->jenkins_manager = jenkins_manager;
     setupLayout();
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &JobMonitor::themeChanged);
+    auto theme = Theme::theme();
+    //Set some alias
+    theme->setIconAlias("Jenkins", Notification::getSeverityString(Notification::Severity::ERROR), "Icons", "sphereRed");
+    theme->setIconAlias("Jenkins", Notification::getSeverityString(Notification::Severity::INFO), "Icons", "sphereGray");
+    theme->setIconAlias("Jenkins", Notification::getSeverityString(Notification::Severity::SUCCESS), "Icons", "sphereBlue");
+    theme->setIconAlias("Jenkins", Notification::getSeverityString(Notification::Severity::RUNNING), "Icons", "running");
+    theme->setIconAlias("Jenkins", Notification::getSeverityString(Notification::Severity::NONE), "Icons", "sphereGray");
+
+
+
+    connect(theme, &Theme::theme_Changed, this, &JobMonitor::themeChanged);
     themeChanged();
 
     connect(jenkins_manager, &JenkinsManager::gotRecentJobs, this, &JobMonitor::gotRecentJobs);
+
+    connect(jenkins_manager, &JenkinsManager::gotJobArtifacts, this, &JobMonitor::gotJenkinsJobArtifacts);
+    connect(jenkins_manager, &JenkinsManager::gotJobStateChange, this, &JobMonitor::gotJenkinsJobStateChange);
+    connect(jenkins_manager, &JenkinsManager::gotJobConsoleOutput, this, &JobMonitor::gotJenkinsJobConsoleOutput);
+    connect(jenkins_manager, &JenkinsManager::BuildingJob, this, [=](QString job_name){
+        jenkins_manager->GetRecentJobs(job_name);
+    });
+
     refreshRecentJobs();
 }
 
@@ -39,7 +57,7 @@ ConsoleMonitor* JobMonitor::constructConsoleMonitor(){
 
     if(!monitors.contains(lookup_key)){
         if(!running_jobs_box->gotOption(lookup_key)){
-            running_jobs_box->addOption(lookup_key, name, "Icons", "circleQuestion", true);
+            running_jobs_box->addOption(lookup_key, name, "Icons", "circleQuestion", false);
         }
 
         auto monitor = new ConsoleMonitor(this);
@@ -92,32 +110,8 @@ void JobMonitor::updateMonitorIcon(Monitor* monitor, Theme* theme){
 }
 
 void JobMonitor::updateMonitorIcon(QString job_name, int job_number, Notification::Severity state){
-    QString icon_path = "Icons";
-    QString icon_name;
-    switch(state){
-        case Notification::Severity::ERROR:{
-            icon_name = "sphereRed";
-            break;
-        }
-        case Notification::Severity::INFO:{
-            icon_name = "sphereGray";
-            break;
-        }
-        case Notification::Severity::SUCCESS:{
-            icon_name = "sphereBlue";
-            break;
-        }
-        case Notification::Severity::RUNNING:{
-            icon_name = "running";
-            break;
-        }
-        default:
-            icon_name = "cross";
-            break;
-    }
-
     auto key = getJobKey(job_name, job_number);
-    running_jobs_box->updateOptionIcon(key, icon_path, icon_name);
+    running_jobs_box->updateOptionIcon(key, "Jenkins", Notification::getSeverityString(state));
 }
 
 void JobMonitor::MonitorStateChanged(Notification::Severity state){
@@ -126,13 +120,12 @@ void JobMonitor::MonitorStateChanged(Notification::Severity state){
 };
 
 void JobMonitor::MonitorClose(){
-
     auto monitor = qobject_cast<Monitor*>(sender());
     if(monitor){
         auto key = monitors.key(monitor);
         monitors.remove(key);
         stacked_widget->removeWidget(monitor);
-        delete monitor;
+        monitor->deleteLater();
     }
 };
 
@@ -140,12 +133,8 @@ void JobMonitor::stackedWidgetChanged(int index){
     auto widget = stacked_widget->widget(index);
     auto monitor = qobject_cast<Monitor*>(widget);
     if(monitor){
-        auto jenkins_monitor = qobject_cast<JenkinsMonitor*>(monitor);
-
-        if(jenkins_monitor){
-            auto job_no = jenkins_monitor->getBuildNumber();
-            running_jobs_box->setOptionChecked(job_no, true);
-        }
+        auto key = monitors.key(monitor);
+        running_jobs_box->setOptionChecked(key, true);
     }else{
         running_jobs_box->reset(false);
     }
@@ -214,21 +203,15 @@ void JobMonitor::setupLayout(){
     {
         running_jobs_box = new OptionGroupBox("Jobs", this);
         running_jobs_box->setExclusive(true);
-        running_jobs_box->setResetButtonVisible(false);
         running_jobs_box->setCheckable(false);
         
-        refresh_toolbar = new QToolBar(this);
-        refresh_toolbar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding));
-        refresh_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-        refresh_action = refresh_toolbar->addAction("Refresh Jenkins Jobs List");
-
-        jobs_list_layout->addWidget(refresh_toolbar,  0, Qt::AlignCenter);
+        running_jobs_box->setResetButtonIcon("Icons", "refresh");
+        running_jobs_box->setResetButtonText("Refresh Jenkins Jobs List");
         jobs_list_layout->addWidget(running_jobs_box);
 
         connect(running_jobs_box, &OptionGroupBox::checkedOptionsChanged, this, &JobMonitor::jobPressed);
-
-        connect(refresh_action, &QAction::triggered, this, &JobMonitor::refreshRecentJobs);
+        connect(running_jobs_box, &OptionGroupBox::resetPressed, this, &JobMonitor::refreshRecentJobs);
     }
 };
 
@@ -239,9 +222,6 @@ void JobMonitor::gotRecentJobs(QList<Jenkins_Job_Status> recent_jobs){
         auto key = getJobKey(job.name, job.number);
 
         auto title = job.name + " #" + QString::number(job.number);
-        if(!job.description.isEmpty()){
-            title += " - " + job.description;
-        }
 
         if(!running_jobs_box->gotOption(key)){
             running_jobs_box->addOption(key, title, "Icons", "circleQuestion", true);
@@ -328,16 +308,32 @@ void JobMonitor::themeChanged(){
                 );
 
     toolbar->setIconSize(theme->getIconSize());
-    refresh_toolbar->setIconSize(theme->getIconSize());
-
     jobs_list_widget->setStyleSheet("QWidget#BLANK_WIDGET{background: rgba(0,0,0,0);}");
 
-
-
-    refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
-    
     
     for(auto monitor : monitors.values()){
         updateMonitorIcon(monitor);
     }
 };
+
+
+void JobMonitor::gotJenkinsJobStateChange(QString job_name, int job_build, QString, Notification::Severity job_state){
+    auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
+    if(jenkins_monitor){
+        jenkins_monitor->StateChanged(job_state);
+    }
+}
+
+void JobMonitor::gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString, QString console_output){
+    auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
+    if(jenkins_monitor){
+        jenkins_monitor->AppendLine(console_output);
+    }
+}
+
+void JobMonitor::gotJenkinsJobArtifacts(QString job_name, int job_build, QString, QStringList artifacts){
+    auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
+    if(jenkins_monitor){
+        jenkins_monitor->gotJobArtifacts(artifacts);
+    }
+}

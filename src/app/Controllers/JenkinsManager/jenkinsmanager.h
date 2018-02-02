@@ -52,6 +52,7 @@ public:
     void GetRecentJobs(QString job_name);
     void GotoJob(QString job_name, int build_number);
 signals:
+    void BuildingJob(QString job_name);
 
     void Terminate();
     
@@ -65,13 +66,15 @@ signals:
 
 
     void getRecentJobs(QString job_name, int max_request_count);
+
+    void gotJobArtifacts(QString job_name, int job_build, QString configuration, QStringList artifacts);
+    void gotJobStateChange(QString job_name, int job_build, QString configuration, Notification::Severity jobState);
+    void gotJobConsoleOutput(QString job_name, int job_build, QString configuration, QString consoleOutput);
 private slots:
     void settingsApplied();
     void SettingChanged(SETTINGS key, QVariant value);
 
 
-    void gotJobStateChange(QString job_name, int job_build, QString activeConfiguration, Notification::Severity jobState);
-    void gotJobConsoleOutput(QString job_name, int job_build, QString activeConfiguration, QString consoleOutput);
     
 
   

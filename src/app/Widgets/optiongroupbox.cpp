@@ -265,6 +265,7 @@ void OptionGroupBox::setupResetAction()
         reset_action->setText("All");
         reset_action->setChecked(true);
         setResetButtonIcon("Icons", "list");
+        connect(reset_action, &QAction::triggered, this, &OptionGroupBox::resetPressed);
     }
 }
 
@@ -318,7 +319,7 @@ QAction* OptionGroupBox::getNewOptionAction(bool top){
     if(top){
         action = insertWidget(getTopAction(), button);
     }else{
-        action = addWidget(button);
+        action = insertWidget(reset_action, button);
     }
 
     

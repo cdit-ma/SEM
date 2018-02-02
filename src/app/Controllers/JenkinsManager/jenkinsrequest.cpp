@@ -203,6 +203,9 @@ void JenkinsRequest::RunGroovyScript(QString groovy_script)
 Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int build_number, QString configuration){
     Notification::Severity job_state = Notification::Severity::NONE;
 
+    auto notification = NotificationManager::manager()->AddNotification("Requesting Jenkins Job '" + job_name + "' # " + QString::number(build_number), "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
+    
+
     if(BlockUntilValidatedSettings()){
         //Get the cached url
         QString console_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/consoleText";
@@ -243,15 +246,48 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
             }
             QThread::msleep(TIME_OUT_MS);
         }
+        
+        QStringList artifacts;
+
+        //Pull down the configuration
+        QJsonDocument json_doc  = _getJobConfiguration(job_name, build_number, configuration, true);
+
+        if(!json_doc.isNull()){
+            QJsonObject configData = json_doc.object();
+
+            //For each parameter in the parameters Array, add it to the returnable list.
+            foreach(QJsonValue artifact, configData["artifacts"].toArray()){
+                
+                //Fill the data in the Jenkins_Job_Parameter from the JSON object.
+                auto relative_path = artifact.toObject()["relativePath"].toString();
+                auto path = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/artifact/" + relative_path;
+                artifacts += path;
+            }
+        }
 
         emit GotJobConsoleOutput(job_name, build_number, configuration, console_output);
+        if(artifacts.size()){
+            emit GotJobArtifacts(job_name, build_number, configuration, artifacts);
+        }
     }
+
+    if(notification){
+        if(job_state == Notification::Severity::NONE){
+            notification->setSeverity(Notification::Severity::ERROR);
+        }else{
+            notification->setSeverity(Notification::Severity::SUCCESS);
+            NotificationManager::manager()->deleteNotification(notification->getID());
+        }
+    }
+
     return job_state;
 }
 
 void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QString configuration)
 {
+    
     getJobConsoleOutput(job_name, build_number, configuration);
+
     //Call the SIGNAL to teardown the JenkinsRequest
     emit Finished();
 }
@@ -341,10 +377,8 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
             
             QJsonDocument doc(parameter_object);
             QString json = doc.toJson(QJsonDocument::Compact);
-            qCritical() << json;
-
+            
             QHttpPart json_part;
-
             json_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
             json_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"json\""));
             json_part.setBody(json.toLatin1());
@@ -369,7 +403,7 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
             }
         }
 
-        auto build_url = getURL() + "job/" + job_name + "/build";
+        auto build_url = getURL() + "job/" + job_name + "/build?delay=0sec";
         auto build_request = getAuthenticatedRequest(build_url);
         auto build_result = GetRunner()->HTTPPostMulti(build_request, multi_part);
         success = build_result.success;
@@ -383,6 +417,9 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
             notification->setSeverity(Notification::Severity::SUCCESS);
             notification->setTitle("Started Jenkins Job: '" + job_name + "'");
         }
+    }
+    if(success){
+        emit BuildingJob(job_name);
     }
     emit Finished();
 }
