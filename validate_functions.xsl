@@ -72,11 +72,9 @@
 
         <xsl:variable name="children" as="element(gml:node)*">  
             <xsl:for-each select="$entities">
-                <xsl:sequence select="graphml:get_child_nodes(.)" />
+                <xsl:value-of select="cdit:test_unique_labels(graphml:get_child_nodes(.))" />
             </xsl:for-each>
         </xsl:variable>  
-        <xsl:value-of select="cdit:test_unique_labels($children)" />
-        
     </xsl:function>
 
     <!-- Tests that all entities in list have unique member labels -->
