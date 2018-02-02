@@ -18,6 +18,10 @@
  * <http://www.gnu.org/licenses/>.
  */
  
+#ifdef _WIN32
+#define NOMINMAX
+#endif
+
 #include "logcontroller.h"
 
 #include <chrono>
@@ -115,7 +119,7 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
     }
     
     //Get the duration in milliseconds
-    auto tick_duration = std::chrono::milliseconds((int)(1000.0 / std::max(0.0, frequency)));
+    auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
 
     system_->ignore_processes();
     
