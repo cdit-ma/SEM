@@ -75,7 +75,7 @@
                 <xsl:sequence select="graphml:get_child_nodes(.)" />
             </xsl:for-each>
         </xsl:variable>  
-        <xsl:value-of select="cdit:test_unique_labels(graphml:get_child_nodes(.))" />
+        <xsl:value-of select="cdit:test_unique_labels($children)" />
         
     </xsl:function>
 
