@@ -13,6 +13,7 @@ set(PROJ_NAME modelprotohandler)
 project (${PROJ_NAME})
 
 find_package(Protobuf REQUIRED)
+find_package(ZMQ REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 set(SOURCE
@@ -32,6 +33,7 @@ endif()
 
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})

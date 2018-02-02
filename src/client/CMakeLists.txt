@@ -9,6 +9,8 @@ project (${PROJ_NAME})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 
+find_package(Protobuf REQUIRED)
+find_package(ZMQ REQUIRED)
 find_package(SIGAR REQUIRED)
 
 #Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
@@ -42,6 +44,8 @@ endif()
 #include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${SIGAR_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../)
