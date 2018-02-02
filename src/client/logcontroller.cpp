@@ -117,9 +117,6 @@ void LogController::LogThread(const std::string& publisher_endpoint, const doubl
         std::cerr << "Writer cannot bind publisher endpoint '" << publisher_endpoint << "'" << std::endl;
         return;
     }
-#ifdef max
-    static_assert(false, "max is defined :(");
-#endif
     
     //Get the duration in milliseconds
     auto tick_duration = std::chrono::milliseconds(static_cast<int>(1000.0 / std::max(0.0, frequency)));
