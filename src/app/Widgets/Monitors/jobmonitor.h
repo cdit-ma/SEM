@@ -15,7 +15,7 @@
 #include "../../Widgets/optiongroupbox.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
 
-class Jenkins_Job_Status;
+struct Jenkins_Job_Status;
 class JenkinsMonitor;
 class ConsoleMonitor;
 class Theme;

@@ -172,7 +172,7 @@ void JenkinsManager::BuildJob(QString model_file)
 
             for(auto parameter : parameters){
                 auto default_value = parameter.defaultValue;
-                bool is_file_model = parameter.name == "model" and parameter.type == SETTING_TYPE::FILE;
+                bool is_file_model = parameter.name == "model" && (parameter.type == SETTING_TYPE::FILE);
                 
                 if(is_file_model){
                     default_value = model_file;
