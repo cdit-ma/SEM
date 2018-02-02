@@ -2321,6 +2321,32 @@ bool ModelController::isKeyNameVisual(QString key_name){
     return visual_keynames.contains(key_name);
 }
 
+double ModelController::compare_medea_version(QString compare_version){
+    auto current_version = APP_VERSION();
+
+    auto compare_first =  compare_version.indexOf(".") + 1;
+    auto compare_second =  compare_version.indexOf(".", compare_first);
+
+    auto current_first =  current_version.indexOf(".") + 1;;
+    auto current_second =  current_version.indexOf(".", current_first);
+
+    bool current_okay = false;
+    bool compare_okay = false;
+    //Only compare Major.Minor
+    auto current_v = current_version.left(current_second).toDouble(&current_okay);
+    auto compare_v = compare_version.left(compare_second).toDouble(&compare_okay);
+
+    if(!current_v){
+        //Should never happen
+        qCritical() << "compare_medea_version(): Can't tokenize version number: " << current_version;
+    }
+    if(!compare_okay){
+        compare_v = 0;
+    }
+
+    return compare_v - current_v;
+}
+
 bool ModelController::importGraphML(QString document, Node *parent)
 {
     //Lookup for key's ID to Key* object
@@ -2409,11 +2435,19 @@ bool ModelController::importGraphML(QString document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
-                            if(value != APP_VERSION()){
-                                QString title = "Loading legacy model";
-                                QString description = "Model was created in MEDEA v" % value % ". Some functionality may have changed. Model version updated to: " % APP_VERSION();
+                            auto model_version = compare_medea_version(value);
+
+                            if(model_version > 0){
+                                QString title = "Loading model from future MEDEA";
+                                QString description = "Model was created in a new version of MEDEA (v" % value % "). Some functionality may not be supported.";
+                                emit Notification(MODEL_SEVERITY::WARNING, title, description);
+                            }else if(model_version < 0){
+                                QString title = "Loading model from legacy MEDEA";
+                                QString description = "Model was created in MEDEA (v" % value % "). Some functionality may have changed. Model version updated to: " % APP_VERSION();
                                 emit Notification(MODEL_SEVERITY::INFO, title, description);
                                 //Update
+                                value = APP_VERSION();
+                            }else{
                                 value = APP_VERSION();
                             }
                         }
