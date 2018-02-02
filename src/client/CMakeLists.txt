@@ -34,6 +34,10 @@ add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
 
 if (MSVC)
+	#Windows requires protobuf in DLLs
+	add_definitions(-DPROTOBUF_USE_DLLS)
+	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 else()
 	#Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread)
@@ -44,13 +48,14 @@ endif()
 #include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${SIGAR_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${Protobuf_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../)
 
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
+target_link_libraries(${PROJ_NAME} ${Protobuf_LIBRARIES})
 target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
 
 #Link against our required libraries
