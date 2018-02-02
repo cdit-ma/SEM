@@ -62,12 +62,12 @@
         <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
         
         <xsl:value-of select="o:nl(1)" />
-        <xsl:value-of select="cmake:find_package($package_name, '')" />
-        <xsl:value-of select="o:nl(1)" />
-
         <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 0)" />
-        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $package_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 1)" />
-        <xsl:value-of select="cmake:return(1)" />
+        <xsl:value-of select="cmake:find_package($package_name, '', 1)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 1)" />
+        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $package_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
+        <xsl:value-of select="cmake:return(2)" />
+        <xsl:value-of select="cmake:if_end('', 1)" />
         <xsl:value-of select="cmake:if_end('', 0)" />
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
@@ -165,7 +165,7 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="include_directory" select="upper-case(concat($middleware_package, '_INCLUDE_DIRS'))" />
+        <xsl:variable name="include_directory" select="concat($middleware_package, '_INCLUDE_DIRS')" />
 
         <xsl:if test="$middleware_package != ''">
             <xsl:value-of select="cmake:target_include_directories($target, cmake:wrap_variable($include_directory), $tab)" />

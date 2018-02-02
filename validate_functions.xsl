@@ -73,9 +73,11 @@
         <xsl:variable name="children" as="element(gml:node)*">  
             <xsl:for-each select="$entities">
                 <xsl:sequence select="graphml:get_child_nodes(.)" />
+                <xsl:value-of select="cdit:test_unique_labels(graphml:get_child_nodes(.))" />
             </xsl:for-each>
         </xsl:variable>  
-        <xsl:value-of select="cdit:test_unique_labels($children)" />
+
+        
     </xsl:function>
 
     <!-- Tests that all entities in list have unique member labels -->
@@ -555,7 +557,6 @@
 
         <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />
         <xsl:value-of select="cdit:test_aggregate_unique_type($aggregates)" />
-        <xsl:value-of select="cdit:test_unique_child_labels($aggregates)" />
 
         <xsl:variable name="vectors" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('Vector', 'VectorInstance'))" />
         <xsl:value-of select="cdit:test_unique_child_labels($vectors)" />

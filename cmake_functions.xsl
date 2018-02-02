@@ -96,9 +96,10 @@
     <xsl:function name="cmake:find_package">
         <xsl:param name="package_name" as="xs:string" />
         <xsl:param name="args" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="cmake:comment(concat('Find package ', $package_name), 0)" />
-        <xsl:value-of select="concat('find_package', o:wrap_bracket(o:join_list(($package_name, $args), ' ')), o:nl(1))" />
+        <xsl:value-of select="cmake:comment(concat('Find package ', $package_name), $tab)" />
+        <xsl:value-of select="concat(o:t($tab), 'find_package', o:wrap_bracket(o:join_list(($package_name, $args), ' ')), o:nl(1))" />
     </xsl:function>
 
     <!--
