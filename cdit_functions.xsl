@@ -720,7 +720,7 @@
         <xsl:variable name="member_label" select="upper-case(graphml:get_label($enum_member))" />
         <xsl:variable name="enum" select="graphml:get_parent_node($enum_member)" />
         <xsl:variable name="enum_namespaces" select="o:trim_list(('Base', graphml:get_namespace($enum)))" />
-        <xsl:variable name="enum_label" select="graphml:get_label($enum)" />
+        <xsl:variable name="enum_label" select="o:title_case(graphml:get_label($enum))" />
 
         <xsl:value-of select="cpp:combine_namespaces(($enum_namespaces, $enum_label, $member_label))" />
     </xsl:function>

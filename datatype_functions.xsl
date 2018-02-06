@@ -859,7 +859,8 @@
         <xsl:param name="enum" as="element()" />
         
         <xsl:variable name="namespaces" select="o:trim_list(('Base', graphml:get_namespace($enum)))" />
-        <xsl:variable name="label" select="graphml:get_label($enum)" />
+        <!-- Title case the label -->
+        <xsl:variable name="label" select="o:title_case(graphml:get_label($enum))" />
         <xsl:variable name="tab" select="count($namespaces)" />
         <xsl:variable name="qualified_type" select="cpp:combine_namespaces(($namespaces, $label))" />
 
