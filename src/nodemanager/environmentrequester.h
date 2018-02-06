@@ -28,36 +28,46 @@ class EnvironmentRequester{
                                 const std::string& deployment_info);
         void Init();
         void Start();
-        void HeartbeatLoop();
         void End();
 
         int GetPort(const std::string& component_id, const std::string& component_info);
 
     private:
+        //Constants
+        const int heartbeat_period_ = 2;
+
+        //ZMQ endpoints
         std::string manager_address_;
         std::string manager_endpoint_;
         std::string manager_update_endpoint_;
+        
+        //Threads
+        void HeartbeatLoop();
+        std::thread* heartbeat_thread_;
+        bool end_flag_ = false;
+
+        //Request helpers
         std::future<std::string> QueueRequest(const std::string& request_type, const std::string& request);
         void SendRequest(Request request);
 
         std::string deployment_id_;
         std::string deployment_info_;
 
+        //Local clock
         std::mutex clock_mutex_;
         long clock_ = 0;
         long Tick();
         long SetClock(long incoming_time);
         long GetClock();
 
-        std::thread* environment_comms_thread_;
-        std::queue<Request> request_queue_;
+        //Request queue
         std::mutex request_queue_lock_;
         std::condition_variable request_queue_cv_;
-        int heartbeat_period_ = 2;
+        std::queue<Request> request_queue_;
 
+        //ZMQ sockets and helpers
         zmq::context_t* context_;
         zmq::socket_t* update_socket_;
-
         void ZMQSendTwoPartRequest(zmq::socket_t* socket, const std::string& request_type, const std::string& request);
         Reply ZMQReceiveTwoPartReply(zmq::socket_t* socket);
 };

@@ -25,7 +25,7 @@ void EnvironmentRequester::Init(){
 }
 
 void EnvironmentRequester::Start(){
-    environment_comms_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
+    heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
 }
 
 long EnvironmentRequester::Tick(){
@@ -48,10 +48,11 @@ void EnvironmentRequester::HeartbeatLoop(){
     zmq::socket_t* initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
     initial_request_socket->connect(manager_endpoint_);
 
+    //Register this deployment with the environment manager
     ZMQSendTwoPartRequest(initial_request_socket, "DEPLOYMENT", deployment_id_);
-
     auto reply = ZMQReceiveTwoPartReply(initial_request_socket);
 
+    //Get update socket address as reply
     if(reply.reply_type_.compare("SUCCESS") == 0){
         manager_update_endpoint_ = reply.reply_data_;
     }
@@ -60,6 +61,7 @@ void EnvironmentRequester::HeartbeatLoop(){
         std::cout << "HANDLE THIS ERROR! 1" << std::endl;
     }
 
+    //Connect to our update socket
     try{
         update_socket_ = new zmq::socket_t(*context_, ZMQ_REQ);
         update_socket_->connect(manager_update_endpoint_);
@@ -68,6 +70,8 @@ void EnvironmentRequester::HeartbeatLoop(){
         std::cout << ex.what() << " in EnvironmentRequester::Start" << std::endl;
     }
 
+    //TODO: remove this from both ends?
+    //End assignment loop
     ZMQSendTwoPartRequest(update_socket_, "END_ASSIGNMENT", deployment_id_);
     auto reply2 = ZMQReceiveTwoPartReply(update_socket_);
     if(reply2.reply_type_.compare("ASSIGNMENT_REPLY") == 0){
@@ -76,12 +80,16 @@ void EnvironmentRequester::HeartbeatLoop(){
         std::cout << "handle this or remove end deployment" << std::endl;
     }
 
-
+    //Start heartbeat loop
     while(true){
         //If our request queue is empty, wait till time for next heartbeat and send unless we get a wake up in that time
         if(request_queue_.empty()){
             std::unique_lock<std::mutex> lock(request_queue_lock_);
             auto trigger = request_queue_cv_.wait_for(lock, std::chrono::duration<int>(heartbeat_period_));
+
+            if(end_flag_){
+                break;
+            }
 
             if(trigger == std::cv_status::timeout){
                 ZMQSendTwoPartRequest(update_socket_, "HEARTBEAT", "");
@@ -105,7 +113,8 @@ void EnvironmentRequester::HeartbeatLoop(){
 }
 
 void EnvironmentRequester::End(){
-
+    end_flag_ = true;
+    heartbeat_thread_->join();
 }
 
 int EnvironmentRequester::GetPort(const std::string& component_id, const std::string& component_info){
