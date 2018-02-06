@@ -195,7 +195,7 @@ void DeploymentHandler::HandleRequest(std::tuple<std::string, long, std::string>
         port_map_[component_id] = port_string;
         std::string response(port_string);
 
-        SendTwoPartReply(handler_socket_, "ASSIGNMENT_REPLY", response);
+        SendTwoPartReply(handler_socket_, "SUCCESS", response);
     }
 
     else if(std::get<0>(request).compare("UPDATE") == 0){

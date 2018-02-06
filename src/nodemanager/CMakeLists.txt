@@ -16,6 +16,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY
 
 set(NODE_MANAGER re_node_manager)
 set(EXECUTION_TESTER re_execution_tester)
+set(REQUESTER_TESTER requester_tester)
     
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
@@ -34,8 +35,6 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
-
-
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
@@ -67,8 +66,15 @@ set(NODE_MANAGER_SOURCE
     ${SOURCE}
 	)
 
+set(ENVIRONMENT_REQUESTER_SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/requester_tester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
+)
+
 add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${HEADERS})
 add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${HEADERS})
+add_executable(${REQUESTER_TESTER} ${ENVIRONMENT_REQUESTER_SOURCE} ${HEADERS})
 
 target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
@@ -83,7 +89,9 @@ target_include_directories(${EXECUTION_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 
-
+target_include_directories(${REQUESTER_TESTER} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${REQUESTER_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${REQUESTER_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 
 if (MSVC)
@@ -115,7 +123,5 @@ target_link_libraries(${EXECUTION_TESTER} zmq_protoreceiver)
 target_link_libraries(${EXECUTION_TESTER} zmq_protowriter)
 target_link_libraries(${EXECUTION_TESTER} re_execution_parser_lib)
 
-
-
-
-
+target_link_libraries(${REQUESTER_TESTER} ${ZMQ_LIBRARIES})
+target_link_libraries(${REQUESTER_TESTER} ${PROTOBUF_LIBRARIES})

@@ -53,6 +53,7 @@ int main(int argc, char **argv){
 
     std::string bcast_address("tcp://" + ip_address + ":" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
+    std::cout << bcast_address << std::endl;
 
     Broadcaster* broadcaster = new Broadcaster(bcast_address, bcast_message);
     broadcaster->StartBroadcast();

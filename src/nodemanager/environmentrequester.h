@@ -37,7 +37,8 @@ class EnvironmentRequester{
         std::string manager_address_;
         std::string manager_endpoint_;
         std::string manager_update_endpoint_;
-        std::future<std::string> SendRequest(const std::string& request_type, const std::string& request);
+        std::future<std::string> QueueRequest(const std::string& request_type, const std::string& request);
+        void SendRequest(Request request);
 
         std::string deployment_id_;
         std::string deployment_info_;
@@ -55,6 +56,7 @@ class EnvironmentRequester{
         int heartbeat_period_ = 2;
 
         zmq::context_t* context_;
+        zmq::socket_t* update_socket_;
 
         void ZMQSendTwoPartRequest(zmq::socket_t* socket, const std::string& request_type, const std::string& request);
         Reply ZMQReceiveTwoPartReply(zmq::socket_t* socket);
