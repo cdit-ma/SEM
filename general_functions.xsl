@@ -215,4 +215,14 @@
         <xsl:param name="message" as="xs:string*"/>
         <xsl:message><xsl:value-of select="o:join_list($message, ' ')" /></xsl:message>
     </xsl:function>
+
+    <!--
+        Prints a message to standard out
+    -->
+    <xsl:function name="o:string_in_list_count" as="xs:integer">
+        <xsl:param name="str" as="xs:string"/>
+        <xsl:param name="string_list" as="xs:string*"/>
+
+        <xsl:value-of select="count($string_list[matches(., concat('^', $str, '$'))])" />
+    </xsl:function>
 </xsl:stylesheet>

@@ -48,6 +48,24 @@
         <xsl:value-of select="cdit:output_test('All Aggregate entities require a direct child to be set as key', $results, 1)" />
     </xsl:function>
 
+    <xsl:function name="cdit:test_aggregate_unique_child_names">
+        <xsl:param name="aggregates" as="element()*" />
+
+        <xsl:variable name="results">  
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="type" select="graphml:get_type(.)" />
+                <xsl:variable name="aggregate_keys" select="graphml:get_keys(.)" />
+                <xsl:variable name="got_key" select="count($aggregate_keys) > 0" />        
+                <xsl:value-of select="cdit:output_result($id, $got_key, o:join_list(('Aggregate', o:wrap_quote($type), 'has no child with data', o:wrap_quote('is_key'), 'set to true'), ' '), false(), 2)" />        
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('All Aggregate entities require a direct child to be set as key', $results, 1)" />
+    </xsl:function>
+
+    
+
     <!-- Tests all that the entity kinds provided contain at least 1 child -->
     <xsl:function name="cdit:test_requires_children">
         <xsl:param name="entities" as="element(gml:node)*"/>
@@ -70,11 +88,9 @@
     <xsl:function name="cdit:test_unique_child_labels">
         <xsl:param name="entities" as="element(gml:node)*"/>
 
-        <xsl:variable name="children" as="element(gml:node)*">  
-            <xsl:for-each select="$entities">
-                <xsl:value-of select="cdit:test_unique_labels(graphml:get_child_nodes(.))" />
-            </xsl:for-each>
-        </xsl:variable>  
+        <xsl:for-each select="$entities">
+            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)))" />
+        </xsl:for-each>
     </xsl:function>
 
     <!-- Tests that all entities in list have unique member labels -->
@@ -83,21 +99,20 @@
 
         <xsl:variable name="results">  
             <xsl:variable name="all_labels" select="graphml:get_data_values($entities, 'label')" />
+
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="graphml:get_id(.)" />
                 <xsl:variable name="kind" select="graphml:get_kind(.)" />
                 <xsl:variable name="label" select="graphml:get_label(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="count($all_labels[contains(., $label)])" />
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), 'has a non-unique label within its parent.'), ' '), false(), 2)" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
+                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), 'has a non-unique label within its scope.'), ' '), false(), 2)" />
             </xsl:for-each>
         </xsl:variable>
 
         <xsl:value-of select="cdit:output_test('Entities require an unique label.', $results, 1)" />
     </xsl:function>
-
-
 
     <!-- Tests that all aggregates have unique types-->
     <xsl:function name="cdit:test_aggregate_unique_type">
@@ -111,7 +126,7 @@
                 <xsl:variable name="type" select="graphml:get_type(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="count($all_types[contains(., $type)])" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($type, $all_types)" />
 
                 <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(('Aggregate', o:wrap_quote($type), ' does not have a unique type'), ' '), false(), 2)" />        
             </xsl:for-each>
@@ -130,7 +145,8 @@
                 <xsl:variable name="label" select="graphml:get_label(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="count($all_labels[contains(., $label)])" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
+                
                 <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(('Component', o:wrap_quote($label), ' does not have a unique label'), ' '), false(), 2)" />        
             </xsl:for-each>
         </xsl:variable>
@@ -552,7 +568,9 @@
         <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
 
-        <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />
+        <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->
+        
+        <xsl:value-of select="cdit:test_unique_child_labels($aggregates)" />
         <xsl:value-of select="cdit:test_aggregate_unique_type($aggregates)" />
 
         <xsl:variable name="vectors" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('Vector', 'VectorInstance'))" />
