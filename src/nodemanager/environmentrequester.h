@@ -55,10 +55,10 @@ class EnvironmentRequester{
 
         //Local clock
         std::mutex clock_mutex_;
-        long clock_ = 0;
-        long Tick();
-        long SetClock(long incoming_time);
-        long GetClock();
+        uint64_t clock_ = 0;
+        uint64_t Tick();
+        uint64_t SetClock(uint64_t incoming_time);
+        uint64_t GetClock();
 
         //Request queue
         std::mutex request_queue_lock_;

@@ -28,19 +28,19 @@ void EnvironmentRequester::Start(){
     heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
 }
 
-long EnvironmentRequester::Tick(){
+uint64_t EnvironmentRequester::Tick(){
     std::unique_lock<std::mutex>(clock_mutex_);
     clock_++;
     return clock_;
 }
 
-long EnvironmentRequester::SetClock(long incoming_clock){
+uint64_t EnvironmentRequester::SetClock(uint64_t incoming_clock){
     std::unique_lock<std::mutex>(clock_mutex_);
     clock_ = std::max(incoming_clock, clock_) + 1;
     return clock_;
 }
 
-long EnvironmentRequester::GetClock(){
+uint64_t EnvironmentRequester::GetClock(){
     return clock_;
 }
 
@@ -68,16 +68,6 @@ void EnvironmentRequester::HeartbeatLoop(){
     }
     catch(std::exception& ex){
         std::cout << ex.what() << " in EnvironmentRequester::Start" << std::endl;
-    }
-
-    //TODO: remove this from both ends?
-    //End assignment loop
-    ZMQSendTwoPartRequest(update_socket_, "END_ASSIGNMENT", deployment_id_);
-    auto reply2 = ZMQReceiveTwoPartReply(update_socket_);
-    if(reply2.reply_type_.compare("ASSIGNMENT_REPLY") == 0){
-    }
-    else{
-        std::cout << "handle this or remove end deployment" << std::endl;
     }
 
     //Start heartbeat loop
@@ -193,7 +183,7 @@ EnvironmentRequester::Reply EnvironmentRequester::ZMQReceiveTwoPartReply(zmq::so
 
     //Update and get current lamport time
     std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
-    long lamport_time = SetClock(std::stol(incoming_time));
+    long lamport_time = SetClock(std::stoull(incoming_time));
 
     return Reply{type, contents};
 }

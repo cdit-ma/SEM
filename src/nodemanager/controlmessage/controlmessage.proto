@@ -9,7 +9,7 @@ message ControlMessage{
         CONFIGURE = 3;
         ACTIVATE = 4;       //Start executing a Component, Requires Startup first
         PASSIVATE = 5;      //Stop executing a Component, Requires Startup and Passivate
-        TERMINATE = 6;      //Terminate Node Manager on Slaves, Death to the infidels
+        TERMINATE = 6;      //Terminate Node Manager on Slaves
         SET_ATTRIBUTE = 7;  //Set the Attribute of Components, requires Startup
     }
 

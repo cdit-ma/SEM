@@ -12,20 +12,20 @@ class Environment{
     public:
         Environment();
 
-        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_called);
-        void RemoveDeployment(const std::string& deployment_id, long time_called);
-        void DeploymentLive(const std::string& deployment_id, long time_called);
-        void DeploymentTimeout(const std::string& deployment_id, long time_called);
+        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called);
+        void RemoveDeployment(const std::string& deployment_id, uint64_t time_called);
+        void DeploymentLive(const std::string& deployment_id, uint64_t time_called);
+        void DeploymentTimeout(const std::string& deployment_id, uint64_t time_called);
 
         std::string AddComponent(const std::string& deployment_id, const std::string& component_id, 
-                                    const std::string& proto_info, long time_called);
-        void RemoveComponent(const std::string& component_id, long time_called);
+                                    const std::string& proto_info, uint64_t time_called);
+        void RemoveComponent(const std::string& component_id, uint64_t time_called);
 
-        long GetClock();
-        long SetClock(long clock);
-        long Tick();
+        uint64_t GetClock();
+        uint64_t SetClock(uint64_t clock);
+        uint64_t Tick();
     private:
-        long clock_;
+        uint64_t clock_;
         std::mutex clock_mutex_;
 
         //Port range
@@ -43,7 +43,8 @@ class Environment{
             std::string id;
             DeploymentState state;
             std::vector<std::string> component_ids;
-            long time_added;
+            std::vector<std::string> public_component_ids;
+            uint64_t time_added;
             //TODO: Add endpoint information s.t. MEDEA can query
         };
 

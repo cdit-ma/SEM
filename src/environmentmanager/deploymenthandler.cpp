@@ -30,41 +30,6 @@ void DeploymentHandler::Init(){
         return;
     }
 
-    //Infinitely loop while deployment requests ports
-    while(true){
-
-        auto request = ReceiveTwoPartRequest(handler_socket_);
-        std::string request_type = std::get<0>(request);
-        long lamport_time = std::get<1>(request);
-        std::string request_contents = std::get<2>(request);
-
-        if(request_type.compare("ASSIGNMENT_REQUEST") == 0){
-
-            std::string component_id = request_contents;
-
-            std::string header("ASSIGNMENT_REPLY");
-            std::string port_string = environment_->AddComponent(deployment_id_, component_id, component_id, time_added_);
-            port_map_[component_id] = port_string;
-            std::string response(port_string);
-
-            SendTwoPartReply(handler_socket_, header, response);
-        }
-
-        else if(request_type.compare("END_ASSIGNMENT") == 0){
-            std::string header("ASSIGNMENT_REPLY");
-            std::string response = "END";
-
-            SendTwoPartReply(handler_socket_, header, response);
-            break;
-        }
-
-        //Unrecognised message type
-        else{
-            std::cout << "ERROR: Unrecognised message type passed to DeploymentHandler" << std::endl;
-            SendTwoPartReply(handler_socket_, "ERROR", "Unrecognised message type passed to DeploymentHandler");
-        }
-    }
-
     //Start heartbeat to track liveness of deployment
     //Use heartbeat to receive any updates re. components addition/removal
     HeartbeatLoop();

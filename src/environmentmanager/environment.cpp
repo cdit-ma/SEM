@@ -11,7 +11,7 @@ Environment::Environment(){
     clock_ = 0;
 }
 
-std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, long time_called){
+std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()){
         return "";
@@ -61,7 +61,7 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
     return std::to_string(port);
 }
 
-void Environment::RemoveDeployment(const std::string& deployment_id, long time_called){
+void Environment::RemoveDeployment(const std::string& deployment_id, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     //TODO: throw exception for all lookup checks rather than find (speeds up hotpath)
     try{
@@ -80,7 +80,7 @@ void Environment::RemoveDeployment(const std::string& deployment_id, long time_c
 
 //TODO: Handle rewrite of same component id during heartbeat timeout. Always use most recent.
 std::string Environment::AddComponent(const std::string& deployment_id, const std::string& component_id, 
-                                        const std::string& proto_info, long time_called){
+                                        const std::string& proto_info, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()){
         return "";
@@ -102,7 +102,7 @@ std::string Environment::AddComponent(const std::string& deployment_id, const st
     return std::to_string(port);
 }
 
-void Environment::RemoveComponent(const std::string& component_id, long time_called){
+void Environment::RemoveComponent(const std::string& component_id, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
 
     try{
@@ -116,25 +116,24 @@ void Environment::RemoveComponent(const std::string& component_id, long time_cal
     }
 }
 
-long Environment::GetClock(){
+uint64_t Environment::GetClock(){
     std::unique_lock<std::mutex> lock(clock_mutex_);
     return clock_;
 }
 
-long Environment::SetClock(long incoming){
-    //mutex here
+uint64_t Environment::SetClock(uint64_t incoming){
     std::unique_lock<std::mutex> lock(clock_mutex_);
     clock_ = std::max(incoming, clock_) + 1;
     return clock_;
 }
 
-long Environment::Tick(){
+uint64_t Environment::Tick(){
     std::unique_lock<std::mutex> lock(clock_mutex_);
     clock_++;
     return clock_;
 }
 
-void Environment::DeploymentLive(const std::string& deployment_id, long time_called){
+void Environment::DeploymentLive(const std::string& deployment_id, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     try{
         auto deployment_info = deployment_info_map_.at(deployment_id);
@@ -147,7 +146,7 @@ void Environment::DeploymentLive(const std::string& deployment_id, long time_cal
     }
 }
 
-void Environment::DeploymentTimeout(const std::string& deployment_id, long time_called){
+void Environment::DeploymentTimeout(const std::string& deployment_id, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
 
     try{

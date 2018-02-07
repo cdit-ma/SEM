@@ -9,19 +9,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 #Include the parent directory
 include_directories("../")
 
-
-
 #Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 set(NODE_MANAGER re_node_manager)
 set(EXECUTION_TESTER re_execution_tester)
 set(REQUESTER_TESTER requester_tester)
-    
+
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
-    
-    
+
 #Find Protobuf
 find_package(Protobuf REQUIRED)
 
@@ -31,7 +28,6 @@ find_package(ZMQ REQUIRED)
 #Link against boost dynamically
 add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
@@ -88,11 +84,9 @@ target_include_directories(${EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
 
 if (MSVC)
     #Windows requires protobuf in DLLs

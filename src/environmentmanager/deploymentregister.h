@@ -21,8 +21,6 @@ class DeploymentRegister{
         static const std::string SUCCESS;
         static const std::string ERROR;
 
-
-
         //Threads and thread wrappers
         void RegistrationLoop();
         void HandleDeployment(std::promise<std::string> assigned_port, const std::string& request_info);

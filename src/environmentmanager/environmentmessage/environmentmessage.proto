@@ -1,0 +1,61 @@
+syntax="proto3";
+
+package EnvironmentManager;
+
+message Deployment{
+    string deployment_id = 1;
+
+    repeated Component components = 4;
+    repeated Endpoint endpoints = 5;
+}
+
+message Component{
+    string component_id = 1;
+
+    repeated Endpoint endpoints = 2;
+}
+
+message Endpoint{
+    enum Type{
+        NO_TYPE = 0;
+        MANAGEMENT = 1;
+        MODEL_LOGGER = 2;
+        PUBLIC = 3;
+        PRIVATE = 4;
+    }
+
+    enum Middleware{
+        NO_MIDDLEWARE = 0;
+        ZMQ = 1;
+        RTIDDS = 2;
+        OSPL = 3;
+        QPID = 4;
+        CORBA = 5; //Futureproofing
+    }
+
+    string endpoint_id = 1;
+    Type endpoint_type = 2;
+    string port = 3;
+
+    //TODO: represent datatype coming out of/going into endpoint here
+    string datatype = 4;
+}
+
+message EnvironmentMessage{
+    enum Type{
+        NO_TYPE = 0;
+        ADD_DEPLOYMENT = 1;
+        REMOVE_DEPLOYMENT = 2;
+        ADD_ENDPOINT = 3;
+        REMOVE_ENDPOINT = 4;
+        ADD_COMPONENT = 5;
+        REMOVE_COMPONENT = 6;
+    }
+
+    Type type = 2;
+    string update_endpoint = 3;
+
+    repeated Deployment deployments = 4;
+    repeated Component components = 5;
+    repeated Endpoint endpoints = 6;
+}

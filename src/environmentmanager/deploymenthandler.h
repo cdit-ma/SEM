@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include "environment.h"
+#include "environmentmessage/environmentmessage.pb.h"
 
 class DeploymentHandler{
     public:

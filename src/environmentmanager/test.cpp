@@ -5,7 +5,7 @@
 #include <climits>
 #include <tuple>
 
-#include "../nodemanager/controlmessage/controlmessage.pb.h"
+#include "environmentmessage/environmentmessage.pb.h"
 
 long clock_ = 0;
 
@@ -93,13 +93,10 @@ int main(int argc, char **argv){
     if(flag){
 
         std::string deployment_name(argv[1]);
-        NodeManager::ControlMessage* deployment = new NodeManager::ControlMessage();
-        deployment->set_host_name(deployment_name);
 
-        std::string out = deployment->SerializeAsString();
-        Send(req, "DEPLOYMENT", out);
+        Send(req, "DEPLOYMENT", "asdf");
 
-        std::cout << "1> " << "DEPLOYMENT" << ": " << out << std::endl;
+        std::cout << "1> " << "DEPLOYMENT" << ": " << "asdf" << std::endl;
 
         auto rec1 = Receive(req);
 

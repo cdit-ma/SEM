@@ -29,6 +29,10 @@ int main(){
 
     requester->End();
 
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    delete requester;
+
     std::cout << "test yo" << std::endl;
     return 0;
 }
