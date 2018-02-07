@@ -29,6 +29,7 @@
         <xsl:variable name="model" select="graphml:get_model(.)" />
         
         <!-- Parse the components parameter to produce a list of labels -->
+        <xsl:variable name="component_impls" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')" />
         <xsl:variable name="parsed_components" select="cdit:parse_components($components)" />
         <xsl:variable name="output_path" select="'components'" />
 
@@ -38,14 +39,14 @@
                 <xsl:variable name="component_instances" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
                 <xsl:variable name="component_definitions" select="graphml:get_definitions($component_instances)" />
 
-                <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')">
+                <xsl:for-each select="$component_impls">
                     <xsl:if test="graphml:get_definition(.) = $component_definitions">
                         <xsl:sequence select="." />
                     </xsl:if>
                 </xsl:for-each>
             </xsl:if>
             <xsl:if test="$sparse = false()">
-                <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')">
+                <xsl:for-each select="$component_impls">
                     <xsl:variable name="component_label" select="graphml:get_label(.)" />
                     <xsl:if test="count($parsed_components) = 0 or index-of($parsed_components, lower-case($component_label))">
                         <xsl:sequence select="." />
