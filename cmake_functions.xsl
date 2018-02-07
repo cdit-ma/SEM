@@ -11,14 +11,14 @@
     <!--
         Places the text (handles newlines) in a comment, can be tabbed
     -->
-    <xsl:function name="cmake:comment" as="xs:string">
+    <xsl:function name="cmake:comment">
         <xsl:param name="text" as="xs:string*" />
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:variable name="joined_text" select="o:join_list($text, ' ')" />
 
         <xsl:for-each select="tokenize($joined_text, '\n\r?')[.]">
-            <xsl:value-of select="concat(o:t($tab), '# ', ., o:nl(1))" />
+            <xsl:value-of select="concat(o:t($tab), '# ', normalize-space(.), o:nl(1))" />
         </xsl:for-each>
     </xsl:function>
 

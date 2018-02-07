@@ -28,6 +28,9 @@
         
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'convert'), '_'))" />
 
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_convert_h', 0)" />
+
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
 
@@ -84,6 +87,10 @@
         <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
         <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
         
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_convert_cpp', 0)" />
+
         <!-- Include the header -->
         <xsl:value-of select="cpp:include_local_header('convert.h')" />
         <xsl:value-of select="o:nl(1)" />
@@ -155,6 +162,10 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="proto_label" select="o:title_case($aggregate_label)" />
 
+
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_proto_file', 0)" />
 
         <!-- Using Protobuf 3 -->
         <xsl:value-of select="proto:syntax('proto3')" />
@@ -260,6 +271,9 @@
         <xsl:variable name="label" select="o:title_case($aggregate_label)" />
 
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'IDL'), '_'))" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_file', 0)" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
@@ -428,6 +442,10 @@
         <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
 
         <xsl:variable name="relative_path" select="cmake:get_relative_path(($middleware, $aggregate_namespace, $aggregate_label))" />
+
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_convert_cmake', 0)" />
 
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
@@ -638,6 +656,9 @@
         <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
         
 
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_aggregate_base_h', 0)" />
+
         <!-- Get all required aggregates -->
         <xsl:variable name="required_aggregates" select="cdit:get_required_aggregates($aggregate)" />
 
@@ -719,6 +740,9 @@
     <xsl:function name="cdit:get_port_export">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_port_export', 0)" />
         
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'libportexport.h')))" />
         <xsl:value-of select="o:nl(1)" />
@@ -777,6 +801,10 @@
         <xsl:variable name="class_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
         
         <xsl:variable name="header_file" select="cdit:get_base_aggregate_h_name($aggregate)" />
+        
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_aggregate_base_cpp', 0)" />
+
         <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
@@ -802,6 +830,10 @@
 
         <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
+
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_aggregate_base_cmake', 0)" />
 
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
@@ -869,11 +901,18 @@
             </xsl:for-each>
         </xsl:variable>
 
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_middleware_cmake', 0)" />
+
         <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
     </xsl:function>
 
     <xsl:function name="cdit:get_datatypes_cmake">
         <xsl:param name="middlewares" as="xs:string*" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_datatypes_cmake', 0)" />
+
         <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
     </xsl:function>
 
@@ -891,6 +930,9 @@
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('ENUMS', $namespaces, $label), '_'))" />
 
         <xsl:variable name="enum_members" select="graphml:get_child_nodes_of_kind($enum, 'EnumMember')" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_enum_h', 0)" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />

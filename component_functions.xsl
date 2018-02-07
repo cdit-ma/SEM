@@ -31,6 +31,9 @@
 
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(('COMPONENT', $namespaces, $label, 'int'), '_'))" />
 
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_int_h', 0)" />
+
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
 
@@ -139,6 +142,9 @@
         <xsl:variable name="qualified_class_name" select="cpp:combine_namespaces(($namespaces, $class_name))" />
         <xsl:variable name="tab" select="0" />
 
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_int_cpp', 0)" />
+
         <!-- Library Includes-->
         <xsl:value-of select="cpp:include_local_header(lower-case(concat($class_name, '.h')))" />
         <xsl:value-of select="o:nl(1)" />
@@ -233,6 +239,11 @@
         <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'InEventPortImpl')" />
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
         <xsl:variable name="workers" select="cdit:get_unique_workers($component_impl)" />
+
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_impl_h', 0)" />
+        
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
@@ -335,6 +346,7 @@
     -->
     <xsl:function name="cdit:get_component_impl_cpp">
         <xsl:param name="component_impl" as="element()" />
+
         
         <xsl:variable name="component_definition" select="graphml:get_definition($component_impl)" />
         
@@ -354,6 +366,9 @@
         <xsl:variable name="in_ports" select="graphml:get_child_nodes_of_kind($component_impl, 'InEventPortImpl')" />
         <xsl:variable name="variables" select="graphml:get_child_nodes_of_kind($component_impl, 'Variable')" />
         <xsl:variable name="workers" select="cdit:get_unique_workers($component_impl)" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_impl_cpp', 0)" />
 
         <!-- Library Includes-->
         <xsl:value-of select="cpp:include_local_header(lower-case(concat($impl_class_name, '.h')))" />
@@ -441,6 +456,9 @@
                 <xsl:value-of select="o:join_paths(($namespace, $label))" />
             </xsl:for-each>
         </xsl:variable>
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('component_functions.xsl', 'cdit:get_components_cmake', 0)" />
         
         <xsl:value-of select="cmake:add_subdirectories($sub_directories)" />
     </xsl:function>
@@ -1012,6 +1030,9 @@
 
     <xsl:function name="cdit:get_component_export">
         <xsl:param name="component_impl" as="element()" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('component_functions.xsl', 'cdit:get_component_export', 0)" />
         
         <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'libcomponentexport.h')))" />
         <xsl:value-of select="o:nl(1)" />
@@ -1048,6 +1069,9 @@
 
         <xsl:variable name="binary_dir_var" select=" cmake:current_binary_dir_var()" />
         <xsl:variable name="source_dir_var" select=" cmake:current_source_dir_var()" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cmake:print_regen_version('component_functions.xsl', 'cdit:get_component_cmake', 0)" />
 
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
