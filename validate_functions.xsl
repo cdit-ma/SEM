@@ -89,7 +89,7 @@
         <xsl:param name="entities" as="element(gml:node)*"/>
 
         <xsl:for-each select="$entities">
-            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)), 'has a non-unique label within its scope.')" />
+            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)), 'has a non-unique label within its scope.', false())" />
         </xsl:for-each>
     </xsl:function>
 
@@ -97,6 +97,7 @@
     <xsl:function name="cdit:test_unique_labels">
         <xsl:param name="entities" as="element(gml:node)*"/>
         <xsl:param name="error_str" as="xs:string"/>
+        <xsl:param name="warning" as="xs:boolean"/>
 
 
         <xsl:variable name="results">  
@@ -109,7 +110,7 @@
 
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), false(), 2)" />
+                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), $warning, 2)" />
             </xsl:for-each>
         </xsl:variable>
 
@@ -189,6 +190,90 @@
                 <xsl:sequence select="." />
             </xsl:if>
         </xsl:for-each>
+    </xsl:function>
+
+
+    <!-- Tests that all entities in list have unique member labels 
+    <xsl:function name="cdit:test_aggregate_namespace_collisions">
+        <xsl:param name="aggregates" as="element(gml:node)*"/>
+
+        <xsl:variable name="results">  
+            <xsl:variable name="aggregate_labels" select="graphml:get_data_values($aggregates, 'label')" />
+
+            <xsl:for-each select="$aggregates">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="namespace" select="graphml:get_namespace(.)" />
+
+                <xsl:variable name="match_count" select="o:string_in_list_count($label, $aggregate_labels)" />
+                <xsl:variable name="is_used_by_dds" select="true()" />
+
+                <xsl:if test="$match_count > 1 and $is_used_by_dds and $namespace = ''">
+                    <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($kind, o:wrap_quote($label), 'will collide with other Aggregates that have the same label, as it is defined in the global namespace (only idl driven middlewares). Consider adding a unique namespace.'), ' '), false(), 2)" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Aggregate Namespace Collisions.', $results, 1)" />
+    </xsl:function>-->
+
+    <!-- Tests that all entities in list have unique member labels -->
+    <xsl:function name="cdit:test_namespace_collisions">
+        <xsl:param name="aggregates" as="element(gml:node)*"/>
+
+        <xsl:variable name="aggregate_labels" select="graphml:get_data_values($aggregates, 'label')" />
+
+        <xsl:variable name="results">  
+            <xsl:for-each select="$aggregates">
+                
+                <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind(., 'AggregateInstance')" />
+                <xsl:variable name="enum_instances" select="graphml:get_descendant_nodes_of_kind(., 'EnumInstance')" />
+                <xsl:variable name="enum_definitions" select="graphml:get_definitions($enum_instances)" />
+
+                <xsl:variable name="enum_labels" select="graphml:get_data_values($enum_definitions, 'label')" />
+
+                <xsl:for-each select="$aggregate_instances">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    
+                    <xsl:variable name="aggregate_definition" select="graphml:get_definition(.)" />
+
+                    <xsl:variable name="inst_kind" select="graphml:get_kind(.)" />
+                    <xsl:variable name="inst_label" select="graphml:get_label(.)" />
+                    <xsl:variable name="def_label" select="graphml:get_label($aggregate_definition)" />
+                    <xsl:variable name="def_namespace" select="graphml:get_namespace($aggregate_definition)" />
+
+                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $aggregate_labels)" />
+                    <xsl:variable name="is_used_by_dds" select="true()" />
+
+                    <xsl:if test="$match_count > 1 and $is_used_by_dds and $def_namespace = ''">
+                        <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($inst_kind, o:wrap_quote($inst_label), 'collides with an ancestor Aggregate that has the same label (DDS compliancy issue). Consider moving the Aggregates definition into a namespace.'), ' '), false(), 2)" />
+                    </xsl:if>
+                </xsl:for-each>
+
+                <xsl:for-each select="$enum_instances">
+                    <xsl:variable name="id" select="graphml:get_id(.)" />
+                    
+                    <xsl:variable name="enum_definition" select="graphml:get_definition(.)" />
+
+                    <xsl:variable name="inst_kind" select="graphml:get_kind(.)" />
+                    <xsl:variable name="inst_label" select="graphml:get_label(.)" />
+                    <xsl:variable name="def_label" select="graphml:get_label($enum_definition)" />
+                    <xsl:variable name="def_namespace" select="graphml:get_namespace($enum_definition)" />
+
+                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $enum_labels)" />
+                    <xsl:variable name="is_used_by_dds" select="true()" />
+
+                    <xsl:if test="$match_count > 1 and $is_used_by_dds and $def_namespace = ''">
+                        <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($inst_kind, o:wrap_quote($inst_label), 'collides with sibling Enum that have the same label (DDS compliancy issue). Consider moving the Enums definition into a namespace.'), ' '), false(), 2)" />
+                    </xsl:if>
+                </xsl:for-each>
+
+
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="cdit:output_test('Aggregate Namespace Collisions.', $results, 1)" />
     </xsl:function>
 
     
@@ -568,7 +653,8 @@
             </xsl:for-each>
         </xsl:variable>
 
-        <xsl:value-of select="cdit:test_unique_labels($aggregates)" />
+        
+        <xsl:value-of select="cdit:test_namespace_collisions($aggregates)" />
         <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
 
@@ -587,7 +673,7 @@
         <xsl:variable name="components" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Component')" />
         <xsl:variable name="component_impls" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentImpl')" />
 
-        <xsl:value-of select="cdit:test_unique_labels($components)" />
+        <xsl:value-of select="cdit:test_unique_labels($components, 'require to have unique labels', false())" />
         <xsl:value-of select="cdit:test_invalid_label($components, 'Component valid names')" />
         <xsl:value-of select="cdit:test_invalid_label(graphml:get_descendant_nodes_of_kind($model, 'Variable'), 'Variable valid names')" />
         <xsl:value-of select="cdit:test_component_relations($components)" />
