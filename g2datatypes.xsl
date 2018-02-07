@@ -46,7 +46,8 @@
             <xsl:for-each select="$aggregates">
                 <xsl:variable name="aggregate" select="." />
                 <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-                <xsl:variable name="file_label" select="lower-case($aggregate_label)" />
+                <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+                
 
                 <xsl:variable name="aggregate_path" select="o:join_paths(($middleware_path, cdit:get_aggregates_path($aggregate)))" />
                 

@@ -36,23 +36,7 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cmake:get_middleware_extension" as="xs:string">
-        <xsl:param name="middleware" as="xs:string"/>
-
-        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
-        
-        <xsl:choose>
-            <xsl:when test="$middleware_lc = 'rti' or $middleware_lc = 'ospl'">
-                <xsl:value-of select="'idl'" />
-            </xsl:when>
-            <xsl:when test="$middleware_lc = 'proto'">
-                <xsl:value-of select="'proto'" />
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="concat('UNKNOWN_MIDDLEWARE_', $middleware)" />
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
+    
 
     
 
@@ -127,15 +111,7 @@
         <xsl:value-of select="o:join_paths($directory_spaces)" />
     </xsl:function>
 
-    <xsl:function name="cmake:get_aggregates_middleware_file_name" as="xs:string">
-        <xsl:param name="aggregate" as="element()" />
-        <xsl:param name="middleware" as="xs:string" />
-
-        <xsl:variable name="aggregate_label" select="lower-case(graphml:get_label($aggregate))" />
-        <xsl:variable name="middleware_extension" select="cmake:get_middleware_extension($middleware)" />
-
-        <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
-    </xsl:function>
+    
 
 
 
@@ -144,7 +120,7 @@
         <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="file_path" select="cdit:get_aggregates_path($aggregate)" />
-        <xsl:variable name="file_name" select="cmake:get_aggregates_middleware_file_name($aggregate, $middleware)" />
+        <xsl:variable name="file_name" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
         
         <xsl:value-of select="o:join_paths(($file_path, $file_name))" />
     </xsl:function>
@@ -189,7 +165,7 @@
         <xsl:param name="file" as="xs:string" />
         <xsl:param name="middleware" as="xs:string" />
 
-        <xsl:variable name="middleware_extension" select="cmake:get_middleware_extension($middleware)" />
+        <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
         <xsl:variable name="source" select="cmake:get_middleware_generated_source_var($middleware)" />
         <xsl:variable name="header" select="cmake:get_middleware_generated_header_var($middleware)" />

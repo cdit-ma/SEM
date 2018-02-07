@@ -48,7 +48,10 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="concat(lower-case(graphml:get_label($aggregate)), $middleware_extension)" />
+
+        <xsl:variable name="file_name" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+
+        <xsl:value-of select="concat($file_name, $middleware_extension)" />
     </xsl:function>
 
     <xsl:function name="cdit:middleware_requires_idl_file" as="xs:boolean">
@@ -103,6 +106,11 @@
     <xsl:function name="cdit:middleware_uses_protobuf" as="xs:boolean">
         <xsl:param name="middleware" as="xs:string" />
         <xsl:value-of select="$middleware='qpid' or $middleware='zmq' or $middleware='proto'" />
+    </xsl:function>
+
+    <xsl:function name="cdit:middleware_uses_dds" as="xs:boolean">
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:value-of select="$middleware='rti' or $middleware='ospl'" />
     </xsl:function>
 
     <xsl:function name="cdit:get_middleware_namespace" as="xs:string">
@@ -173,9 +181,17 @@
                 <xsl:when test="$middleware = 'base' and $vector_kind = 'AggregateInstance'">
                     <xsl:value-of select="cpp:dereference_var($value)" />
                 </xsl:when>
-                <xsl:when test="($middleware = 'rti' or $middleware = 'ospl') and $vector_kind = 'AggregateInstance'">
+                <xsl:when test="($middleware = 'rti' or $middleware = 'ospl')">
+                    <xsl:variable name="val">
+                        <xsl:if test="$vector_kind = 'AggregateInstance'">
+                            <xsl:value-of select="cpp:dereference_var($value)" />
+                        </xsl:if>
+                        <xsl:if test="$vector_kind != 'AggregateInstance'">
+                            <xsl:value-of select="$value" />
+                        </xsl:if>
+                    </xsl:variable>
                     <xsl:variable name="vector_size" select="cpp:invoke_function(cpp:invoke_function($obj, $operator, $variable_syntax, '', 0), cpp:dot(), 'size', '', 0)" />
-                    <xsl:value-of select="cpp:join_args((concat($vector_size, ' + 1'), cpp:dereference_var($value)))" />
+                    <xsl:value-of select="cpp:join_args((concat($vector_size, ' + 1'), $val))" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="$value" />
@@ -317,19 +333,128 @@
         <xsl:value-of select="cpp:get_primitive_type($type)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_enum_type" as="xs:string">
+        <xsl:param name="enum" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="enum_definition" select="graphml:get_definition($enum)" />
+        <xsl:variable name="enum_namespace" select="graphml:get_namespace($enum_definition)" />
+        <xsl:variable name="label" select="o:title_case(graphml:get_label($enum_definition))" />
+
+        <xsl:choose>
+            <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                <xsl:value-of select="o:join_list(($enum_namespace, $label), '_')" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$label" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_enum_member_type" as="xs:string">
+        <xsl:param name="enum_member" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="enum_member_label" select="graphml:get_label($enum_member)" />
+
+        <xsl:variable name="var_name">
+            <xsl:choose>
+                <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                    <xsl:variable name="enum" select="graphml:get_parent_node($enum_member)" />
+                    <xsl:variable name="enum_type" select="cdit:get_enum_type($enum, $middleware)" />
+                    <!-- Note that enum values use C++ scoping rules, meaning that enum values are siblings of their type, not children of it. -->
+                    <xsl:value-of select="o:join_list(($enum_type, $enum_member_label), '_')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$enum_member_label" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="upper-case($var_name)" />
+    </xsl:function>
+
+
+
+
+
+    <xsl:function name="cdit:get_aggregate_file_prefix" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+
+        <xsl:variable name="aggregate_definition" select="graphml:get_definition($aggregate)" />
+        <xsl:variable name="namespace" select="graphml:get_namespace($aggregate_definition)" />
+        <xsl:variable name="label" select="graphml:get_label($aggregate_definition)" />
+
+        <xsl:variable name="var_name">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'base'">
+                    <xsl:value-of select="$label" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="o:join_list(($namespace, $label), '_')" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="lower-case($var_name)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_aggregates_middleware_file_name" as="xs:string">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="aggregate_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+        <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
+
+        <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_middleware_extension" as="xs:string">
+        <xsl:param name="middleware" as="xs:string"/>
+
+        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+        
+        <xsl:choose>
+            <xsl:when test="$middleware_lc = 'rti' or $middleware_lc = 'ospl'">
+                <xsl:value-of select="'idl'" />
+            </xsl:when>
+            <xsl:when test="$middleware_lc = 'proto'">
+                <xsl:value-of select="'proto'" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat('UNKNOWN_MIDDLEWARE_', $middleware)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+
+
     <xsl:function name="cpp:get_enum_qualified_type" as="xs:string">
         <xsl:param name="enum" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="enum_definition" select="graphml:get_definition($enum)" />
-        <xsl:variable name="namespace" select="graphml:get_namespace($enum_definition)" />
-        <xsl:variable name="label" select="o:title_case(graphml:get_label($enum_definition))" />
 
-        <xsl:variable name="extra_namespace" as="xs:string*">
-            <xsl:if test="$middleware = 'base'">
-                <!-- DDS implementations use set via accessors -->
-                <xsl:value-of select="'Base'" />
-            </xsl:if>
+        <xsl:variable name="aggregate" select="graphml:get_parent_node($enum)" />
+        <xsl:variable name="aggregate_def" select="graphml:get_definition($aggregate)" />
+        <xsl:variable name="enum_namespace" select="graphml:get_namespace($enum_definition)" />
+        <xsl:variable name="label" select="cdit:get_enum_type($enum, $middleware)" />
+
+        <xsl:variable name="namespace" as="xs:string*">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'base'">
+                    <xsl:value-of select="cpp:combine_namespaces(('Base', $enum_namespace))" />
+                </xsl:when>
+                <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                    <!-- Protobuf Enums are defined within the Aggregates namespace -->
+                    <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate_def)" />
+                    <xsl:value-of select="$aggregate_namespace" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$enum_namespace" />
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
         <xsl:variable name="suffix" as="xs:string*">
@@ -339,7 +464,7 @@
             </xsl:if>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $namespace, $label, $suffix))" />
+        <xsl:value-of select="cpp:combine_namespaces(($namespace, $label, $suffix))" />
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
@@ -364,8 +489,21 @@
 
     <xsl:function name="cpp:get_aggregate_type_name" as="xs:string">
         <xsl:param name="aggregate_inst" as="element()" />
+        <!--
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'base'">
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="namespace" select="o:title_case(graphml:get_namespace($aggregate))" />
+                <xsl:value-of select="o:join_list($namespace, $label), '_')" />
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        -->
         <xsl:variable name="aggregate" select="graphml:get_definition($aggregate_inst)" />
-        <xsl:value-of select="o:title_case(graphml:get_label($aggregate))" />
+        <xsl:variable name="label" select="o:title_case(graphml:get_label($aggregate))" />
+        <xsl:value-of select="$label" />
     </xsl:function>
 
     <xsl:function name="cpp:get_aggregate_qualified_type" as="xs:string">
@@ -378,10 +516,14 @@
         <xsl:variable name="aggregate_label" select="cpp:get_aggregate_type_name($aggregate)" />
         
         <xsl:variable name="extra_namespace" as="xs:string*">
-            <xsl:if test="$middleware = 'base'">
-                <!-- DDS implementations use set via accessors -->
-                <xsl:value-of select="'Base'" />
-            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="$middleware = 'base'">
+                    <xsl:value-of select="'Base'" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="' '" />
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
         <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_label))" />
     </xsl:function>
@@ -424,14 +566,21 @@
 
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_label" select="o:title_case(graphml:get_label($aggregate))" />
-        
-        <xsl:value-of select="o:join_list(($aggregate_namespace, $aggregate_label), '.')" />
+
+        <xsl:choose>
+            <xsl:when test="$aggregate_namespace = ''">
+                <xsl:value-of select="concat('.', $aggregate_label)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:join_list(($aggregate_namespace, $aggregate_label), '.')" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="idl:get_aggregate_qualified_type" as="xs:string">
         <xsl:param name="aggregate" as="element()"/>
 
-        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_label" select="o:title_case(graphml:get_label($aggregate))" />
 
 

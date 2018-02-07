@@ -164,8 +164,9 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .proto files', 0)" />
             </xsl:if>
-            <xsl:variable name="required_proto_file" select="lower-case(o:join_list((graphml:get_label(.), 'proto'), '.'))" />
-            <xsl:value-of select="proto:import($required_proto_file)" />
+            
+            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., 'proto')" />
+            <xsl:value-of select="proto:import($required_file)" />
             
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -177,12 +178,13 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Declare enums', 0)" />
             </xsl:if>
-            <xsl:variable name="enum_label" select="o:title_case(graphml:get_label(.))" />
+
+            <xsl:variable name="enum_label" select="cdit:get_enum_type(., 'proto')" />
 
             <xsl:value-of select="proto:enum($enum_label)" />
 
             <xsl:for-each select="graphml:get_child_nodes_of_kind(., 'EnumMember')">
-                <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
+                <xsl:variable name="member_label" select="cdit:get_enum_member_type(., 'proto')" />
                 <xsl:value-of select="proto:enum_value($member_label, position() - 1)" />
             </xsl:for-each>
 
@@ -213,8 +215,7 @@
                     <xsl:value-of select="proto:member($proto_type, $label, $index)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
-                    <xsl:variable name="enum_definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="proto_type" select="o:title_case(graphml:get_label($enum_definition))" />
+                    <xsl:variable name="proto_type" select="cdit:get_enum_type(., 'proto')" />
                     <xsl:value-of select="proto:member($proto_type, $label, $index)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">
@@ -268,28 +269,52 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
             </xsl:if>
-            <xsl:variable name="required_idl_file" select="lower-case(o:join_list((graphml:get_label(.), 'idl'), '.'))" />
-            <xsl:value-of select="idl:include($required_idl_file)" />
+            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., 'rti')" />
+            <xsl:value-of select="idl:include($required_file)" />
             
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>
         </xsl:for-each>
 
-        <!-- Declare the enums used -->
+        <!-- Declare the enums used, need to define guard them for multiple includes -->
         <xsl:for-each select="$enums">
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Declare enums', 0)" />
             </xsl:if>
+           
+            <xsl:variable name="enum_namespace" select="graphml:get_namespace(.)" />
             <xsl:variable name="enum_label" select="o:title_case(graphml:get_label(.))" />
-            <xsl:value-of select="idl:enum($enum_label)" />
+            <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label), '_'))" />
+
+            <!-- Define Guard -->
+            <xsl:value-of select="cpp:define_guard_start($enum_guard_name)" />
+
+
+            <xsl:variable name="tab" select="if($enum_namespace = '') then 0 else 1" />
+
+
+             <xsl:if test="$enum_namespace != ''">
+                <xsl:value-of select="idl:module($enum_namespace)" />
+            </xsl:if>
+
+            <xsl:value-of select="idl:enum($enum_label, $tab)" />
+
+            
 
             <xsl:for-each select="graphml:get_child_nodes_of_kind(., 'EnumMember')">
                 <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
-                <xsl:value-of select="idl:enum_value($member_label, position() = last())" />
+                <xsl:value-of select="idl:enum_value($member_label, position() = last(), $tab + 1)" />
             </xsl:for-each>
 
-            <xsl:value-of select="cpp:scope_end(0)" />
+            <xsl:value-of select="cpp:scope_end($tab)" />
+
+            <xsl:if test="$enum_namespace != ''">
+                <xsl:value-of select="cpp:scope_end(0)" />
+            </xsl:if>
+
+            <!-- Define Guard -->
+            <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />
             
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -318,8 +343,7 @@
                     <xsl:value-of select="idl:member($idl_type, $label, $is_key, $tab + 1)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
-                    <xsl:variable name="enum_definition" select="graphml:get_definition(.)" />
-                    <xsl:variable name="idl_type" select="o:title_case(graphml:get_label($enum_definition))" />
+                    <xsl:variable name="idl_type" select="idl:get_aggregate_qualified_type(graphml:get_definition(.))" />
                     <xsl:value-of select="idl:member($idl_type, $label, $is_key, $tab + 1)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">
@@ -395,7 +419,7 @@
         <xsl:variable name="middleware_headers" select="cmake:get_middleware_generated_header_var($middleware)" />
         
         <xsl:variable name="middleware_helper_libraries" select="concat(upper-case($middleware), '_HELPER_LIBRARIES')" />
-        <xsl:variable name="middleware_extension" select="cmake:get_middleware_extension($middleware)" />
+        <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
 
         <xsl:variable name="build_module_library" select="cdit:build_module_library($middleware) " />
         <xsl:variable name="build_shared_library" select="cdit:build_shared_library($middleware)" />
@@ -424,7 +448,7 @@
             <xsl:value-of select="cmake:set_variable('SHARED_LIBRARY_NAME', $shared_lib_name, 0)" />
             <xsl:value-of select="cmake:comment(('Copy the', o:wrap_angle($middleware_extension), 'file into the binary directory so it can be used by the middleware compilers'), 0)" />
 
-            <xsl:variable name="middleware_file" select="cmake:get_aggregates_middleware_file_name($aggregate, $middleware)" />
+            <xsl:variable name="middleware_file" select="cdit:get_aggregates_middleware_file_name($aggregate, $middleware)" />
 
             <xsl:value-of select="cmake:configure_file($middleware_file, $binary_dir_var)" />
             <xsl:value-of select="o:nl(1)" />

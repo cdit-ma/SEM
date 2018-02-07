@@ -34,7 +34,8 @@
     -->
     <xsl:function name="idl:enum" as="xs:string">
         <xsl:param name="label" as="xs:string" />
-        <xsl:value-of select="concat('enum ', $label, cpp:scope_start(0))" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'enum ', $label, cpp:scope_start(0))" />
     </xsl:function>
 
     <!--
@@ -44,7 +45,8 @@
     <xsl:function name="idl:enum_value" as="xs:string">
         <xsl:param name="label" as="xs:string" />
         <xsl:param name="is_last" as="xs:boolean" />
-        <xsl:value-of select="concat(o:t(1), $label, if($is_last) then '' else ',', o:nl(1))" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), $label, if($is_last) then '' else ',', o:nl(1))" />
     </xsl:function>
 
     <!--

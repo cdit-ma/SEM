@@ -89,13 +89,15 @@
         <xsl:param name="entities" as="element(gml:node)*"/>
 
         <xsl:for-each select="$entities">
-            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)))" />
+            <xsl:value-of select="cdit:test_unique_labels((., graphml:get_child_nodes(.)), 'has a non-unique label within its scope.')" />
         </xsl:for-each>
     </xsl:function>
 
     <!-- Tests that all entities in list have unique member labels -->
     <xsl:function name="cdit:test_unique_labels">
         <xsl:param name="entities" as="element(gml:node)*"/>
+        <xsl:param name="error_str" as="xs:string"/>
+
 
         <xsl:variable name="results">  
             <xsl:variable name="all_labels" select="graphml:get_data_values($entities, 'label')" />
@@ -107,7 +109,7 @@
 
                 <!-- Check the number of times the type is in the list of all types-->
                 <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
-                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), 'has a non-unique label within its scope.'), ' '), false(), 2)" />
+                <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), false(), 2)" />
             </xsl:for-each>
         </xsl:variable>
 
@@ -566,6 +568,7 @@
             </xsl:for-each>
         </xsl:variable>
 
+        <xsl:value-of select="cdit:test_unique_labels($aggregates)" />
         <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
 
