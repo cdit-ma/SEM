@@ -25,33 +25,36 @@
     <xsl:import href="datatype_functions.xsl"/>
 
     <!-- Middleware Input Parameter-->
-    <xsl:param name="middlewares" as="xs:string" select="'Base'" />
+    <xsl:param name="sparse" as="xs:boolean" select="true()" />
 	 
     <xsl:template match="/*">
         <xsl:variable name="model" select="graphml:get_model(.)" />
-        <!-- Parse the middleware parameter to make sure we have all required middlewares-->
-        <xsl:variable name="parsed_middlewares" select="cdit:parse_middlewares($middlewares)" as="xs:string*" />
+
+        <xsl:variable name="parsed_middlewares" select="cdit:get_deployed_middlewares($model, $sparse)" as="xs:string*" />
 
         <xsl:variable name="aggregates" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
         
         <xsl:variable name="output_path" select="'datatypes'" />
 
-        
         <!-- Itterate through all middlewares-->
         <xsl:for-each select="$parsed_middlewares">
             <xsl:variable name="middleware" select="lower-case(.)" />
             <xsl:variable name="middleware_path" select="o:join_paths(($output_path, $middleware))" />
-            <xsl:value-of select="o:message(('Processing:', o:wrap_quote($middleware)))" />
+            <xsl:value-of select="o:message(('Generating Middleware:', o:wrap_quote($middleware)))" />
+
+            <xsl:variable name="required_middleware_aggregates" select="cdit:get_required_aggregates_for_middleware($model, $middleware)" />
             
-            <xsl:for-each select="$aggregates">
+            <xsl:for-each select="$required_middleware_aggregates">
                 <xsl:variable name="aggregate" select="." />
+
+                <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
                 <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
                 <xsl:variable name="file_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
                 
 
                 <xsl:variable name="aggregate_path" select="o:join_paths(($middleware_path, cdit:get_aggregates_path($aggregate)))" />
                 
-                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote($aggregate_label)))" />
+                <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote(cpp:combine_namespaces(($aggregate_namespace, $aggregate_label)))))" />
 
                 <!-- Generate the Shared Library convert/middleware classes -->
                 <xsl:if test="cdit:build_shared_library($middleware)">
@@ -113,12 +116,15 @@
             
             <!-- Generate the middleware CMakeFile -->
             <xsl:result-document href="{o:write_file(($middleware_path, cmake:cmake_file()))}">
-                <xsl:value-of select="cdit:get_middleware_cmake($aggregates)" />
+                <xsl:value-of select="cdit:get_middleware_cmake($required_middleware_aggregates)" />
             </xsl:result-document>
         </xsl:for-each>
 
+        <xsl:value-of select="o:message(('Generating Enums'))" />
+
         <!-- Generate the Enum headers -->
         <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, 'Enum')">
+
             <xsl:variable name="enum" select="." />
             <xsl:variable name="enum_path" select="o:join_paths(($output_path, 'base', 'enums', cdit:get_aggregates_path($enum)))" />
             <xsl:variable name="enum_h" select="lower-case(concat(graphml:get_label($enum), '.h'))" />

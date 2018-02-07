@@ -355,4 +355,6 @@
         <xsl:variable name="aggregate_instance" select="graphml:get_child_node($port_definition, 1)" />
         <xsl:sequence select="graphml:get_definition($aggregate_instance)" />
     </xsl:function>
+
+   
 </xsl:stylesheet>

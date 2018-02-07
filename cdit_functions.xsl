@@ -9,6 +9,7 @@
     xmlns:proto="http://github.com/cdit-ma/re_gen/proto"
     xmlns:idl="http://github.com/cdit-ma/re_gen/idl"
     xmlns:cmake="http://github.com/cdit-ma/re_gen/cmake"
+    xmlns:gml="http://graphml.graphdrawing.org/xmlns"
     >
 
     <!--
@@ -594,25 +595,107 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:parse_middlewares" as="xs:string*">
-        <xsl:param name="middlewares" as="xs:string*"/>
+    <xsl:function name="cdit:get_all_middlewares" as="xs:string*">
+        <xsl:sequence select="'zmq'" />
+        <xsl:sequence select="'rti'" />
+        <xsl:sequence select="'ospl'" />
+        <xsl:sequence select="'qpid'" />
+    </xsl:function>
 
-        <xsl:variable name="token_middlewares" select="tokenize(normalize-space(lower-case($middlewares)), ',')" /> 
+    <!--
+        Gets utilized middlewares
+    -->
+    <xsl:function name="cdit:get_deployed_middlewares" as="xs:string*">
+        <xsl:param name="entity" as="element(gml:node)" />
+        <xsl:param name="sparse" as="xs:boolean" />
+        
+        <xsl:variable name="port_instances" select="graphml:get_descendant_nodes_of_kind($entity, ('OutEventPortInstance', 'InEventPortInstance'))" />
+        <xsl:variable name="middlewares" select="graphml:get_data_values($port_instances, 'middleware')" />
 
-        <xsl:variable name="middlewares_list" as="xs:string*">
-            <xsl:sequence select="$token_middlewares" />
-            <xsl:if test="'zmq' = $token_middlewares">
-                <xsl:sequence select="'proto'" />
-            </xsl:if>
-            <xsl:if test="'qpid' = $token_middlewares">
-                <xsl:sequence select="'proto'" />
-            </xsl:if>
-            <xsl:if test="count($token_middlewares) > 0">
-                <xsl:sequence select="'base'" />
-            </xsl:if>
+        <xsl:variable name="required_middlewares">
+            <xsl:choose>
+                <xsl:when test="$sparse">
+                    <xsl:for-each-group select="$middlewares" group-by=".">
+                        <xsl:sequence select="lower-case(.)" />
+                    </xsl:for-each-group>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:for-each-group select="cdit:get_all_middlewares()" group-by=".">
+                        <xsl:sequence select="lower-case(.)" />
+                    </xsl:for-each-group>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
 
-        <xsl:sequence select="distinct-values($middlewares_list)"/>
+        <xsl:sequence select="cdit:parse_middlewares($required_middlewares)" />
+    </xsl:function>
+
+    <!--
+        Gets the required to generate aggregates for a particular middlewarew
+    -->
+    <xsl:function name="cdit:get_required_aggregates_for_middleware" as="element(gml:node)*">
+        <xsl:param name="model" as="element(gml:node)?" />
+        <xsl:param name="middleware" as="xs:string" />
+
+
+        <!-- Get all Port-instances -->
+        <xsl:variable name="port_instances" select="graphml:get_descendant_nodes_of_kind($model, ('OutEventPortInstance', 'InEventPortInstance'))" />
+        <xsl:variable name="variables" select="graphml:get_descendant_nodes_of_kind($model, ('Variable'))" />
+        
+        <xsl:variable name="required_aggregates" as="element(gml:node)*">
+            <xsl:for-each select="$port_instances">
+                <xsl:variable name="port_middleware" select="lower-case(graphml:get_data_value(., 'middleware'))" />
+                
+                <!-- If the middleware we are generating, matches the middleware of the port, we should generate -->
+                <xsl:if test="$middleware = $port_middleware or (cdit:middleware_uses_protobuf($port_middleware) and $middleware='proto') or $middleware = 'base'">
+                    <!-- Get all the Aggregate Instances for this particular Port -->
+                    <xsl:variable name="definition" select="graphml:get_definition(.)" />
+                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($definition, 'AggregateInstance')" />
+
+                    <!-- Get all the Definitions used by this aggregate instance -->
+                    <xsl:for-each select="graphml:get_definitions($aggregate_instances)">
+                        <xsl:sequence select="."/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+            <xsl:for-each select="$variables">
+                <!-- Variables only need to generated for base -->
+                <xsl:if test="$middleware = 'base'">
+                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind(., 'AggregateInstance')" />
+                    <!-- Get all the Definitions used by this aggregate instance -->
+                    <xsl:for-each select="graphml:get_definitions($aggregate_instances)">
+                        <xsl:sequence select="."/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:for-each-group select="$required_aggregates" group-by=".">
+            <xsl:sequence select="." />
+        </xsl:for-each-group>
+    </xsl:function>
+
+
+
+    <xsl:function name="cdit:parse_middlewares" as="xs:string*">
+        <xsl:param name="middlewares" as="xs:string*"/>
+        
+        
+        <xsl:variable name="sanitized_mw" select="normalize-space(lower-case($middlewares))" />
+
+        <xsl:variable name="token_middlewares" as="xs:string*">
+            <xsl:for-each select="tokenize($sanitized_mw, ' ')">
+                <xsl:sequence select="." />
+                <xsl:if test=". = 'zmq'">
+                    <xsl:sequence select="'proto'" />
+                </xsl:if>
+                <xsl:if test=". = 'qpid'">
+                    <xsl:sequence select="'proto'" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:sequence select="distinct-values(($token_middlewares, 'base'))"/>
     </xsl:function>
 
     <xsl:function name="cdit:parse_components" as="xs:string*">

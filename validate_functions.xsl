@@ -268,8 +268,6 @@
                         <xsl:value-of select="cdit:output_result($id, false(), o:join_list(($inst_kind, o:wrap_quote($inst_label), 'collides with sibling Enum that have the same label (DDS compliancy issue). Consider moving the Enums definition into a namespace.'), ' '), false(), 2)" />
                     </xsl:if>
                 </xsl:for-each>
-
-
             </xsl:for-each>
         </xsl:variable>
 
