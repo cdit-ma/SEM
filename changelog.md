@@ -4,7 +4,7 @@
 * Added a sparse mode boolean flag to only compile Aggregates/Components which are actually being deployed (defaults to true)
 * Fixed a vast list of bugs to do with duplicated named objects
 
-##Validation
+## Validation:
 * Added checks to handle enum issues and duplicate symbol warnings
 
 
@@ -43,7 +43,7 @@
 * Cleaned up CMakeLists.txt generation to use target_include_directories and target_compile_definitions
 
 
-##Validation
+## Validation:
 * Updated the rule which checks for unset parameters in ComponentImpl's. Rule now checks to see if all Parameters (Input, Variable, Variadic) have either a value set, or a data-linked edge
 * Added validation check for Utility Workers Log function to check for mix-match of parameter types to % arguments
 
