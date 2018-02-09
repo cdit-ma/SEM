@@ -109,7 +109,7 @@
                 <xsl:variable name="label" select="graphml:get_label(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels, true())" />
                 <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(($kind, o:wrap_quote($label), $error_str), ' '), $warning, 2)" />
             </xsl:for-each>
         </xsl:variable>
@@ -129,7 +129,7 @@
                 <xsl:variable name="type" select="graphml:get_type(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="o:string_in_list_count($type, $all_types)" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($type, $all_types, true())" />
 
                 <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(('Aggregate', o:wrap_quote($type), ' does not have a unique type'), ' '), false(), 2)" />        
             </xsl:for-each>
@@ -148,7 +148,7 @@
                 <xsl:variable name="label" select="graphml:get_label(.)" />
 
                 <!-- Check the number of times the type is in the list of all types-->
-                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels)" />
+                <xsl:variable name="match_count" select="o:string_in_list_count($label, $all_labels, true())" />
                 
                 <xsl:value-of select="cdit:output_result($id, $match_count = 1, o:join_list(('Component', o:wrap_quote($label), ' does not have a unique label'), ' '), false(), 2)" />        
             </xsl:for-each>
@@ -243,7 +243,7 @@
                     <xsl:variable name="def_label" select="graphml:get_label($aggregate_definition)" />
                     <xsl:variable name="def_namespace" select="graphml:get_namespace($aggregate_definition)" />
 
-                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $aggregate_labels)" />
+                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $aggregate_labels, true())" />
                     <xsl:variable name="is_used_by_dds" select="true()" />
 
                     <xsl:if test="$match_count > 1 and $is_used_by_dds and $def_namespace = ''">
@@ -261,7 +261,7 @@
                     <xsl:variable name="def_label" select="graphml:get_label($enum_definition)" />
                     <xsl:variable name="def_namespace" select="graphml:get_namespace($enum_definition)" />
 
-                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $enum_labels)" />
+                    <xsl:variable name="match_count" select="o:string_in_list_count($def_label, $enum_labels, true())" />
                     <xsl:variable name="is_used_by_dds" select="true()" />
 
                     <xsl:if test="$match_count > 1 and $is_used_by_dds and $def_namespace = ''">
