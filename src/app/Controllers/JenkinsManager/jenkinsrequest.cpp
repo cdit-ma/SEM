@@ -404,12 +404,12 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
             parameter_object.insert("parameter", parameter_array_json);
             
             QJsonDocument doc(parameter_object);
-            QString json = doc.toJson(QJsonDocument::Compact);
+            auto json = doc.toJson(QJsonDocument::Compact);
             
             QHttpPart json_part;
             json_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
             json_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"json\""));
-            json_part.setBody(json.toLatin1());
+            json_part.setBody(json);
             multi_part->append(json_part);
         }
 

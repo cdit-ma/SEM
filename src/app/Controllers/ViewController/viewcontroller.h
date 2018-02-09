@@ -15,6 +15,7 @@
 #include "../../../modelcontroller/kinds.h"
 #include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/edgekinds.h"
+#include "../JenkinsManager/jenkinsmanager.h"
 #include <QTimer>
 
 enum class MODEL_SEVERITY;
@@ -90,6 +91,10 @@ public:
 
     bool canUndo();
     bool canRedo();
+
+    void RequestJenkinsNodes();
+    void RequestJenkinsBuildJob();
+    void ShowJenkinsBuildDialog(QString job_name, Jenkins_JobParameters paramaters);
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 

@@ -40,6 +40,7 @@
 #include <QDesktopServices>
 #include <QTextBrowser>
 #include <QFile>
+#include <QFutureWatcher>
 #include <iostream>
 #include <sstream>
 
@@ -80,6 +81,11 @@ ViewController::ViewController() : QObject(){
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
+
+
+    connect(actionController->jenkins_importNodes, &QAction::triggered, this, &ViewController::RequestJenkinsNodes);
+    connect(actionController->jenkins_executeJob, &QAction::triggered, this, &ViewController::RequestJenkinsBuildJob);
+    
 
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
     connect(this, &ViewController::vc_showToolbar, menu, &ContextMenu::popup);
@@ -148,6 +154,66 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_deleteEntities, controller, &ModelController::remove);
    
     controller = c;
+}
+
+void ViewController::RequestJenkinsNodes(){
+    auto request = jenkins_manager->GetNodes();
+
+    if(request.first){
+        auto future_watcher = new QFutureWatcher<QJsonDocument>(this);
+        connect(future_watcher, &QFutureWatcher<QJsonDocument>::finished, [=](){
+            auto success = future_watcher->result().object()["result"].toBool();
+            if(success){
+                auto graphml = future_watcher->result().object()["graphml"].toString();
+                jenkinsManager_GotJenkinsNodesList(graphml);
+            }
+        });
+        future_watcher->setFuture(request.second);
+    }
+}
+
+void ViewController::ShowJenkinsBuildDialog(QString job_name, Jenkins_JobParameters parameters){
+    VariableDialog dialog("Jenkins: " + job_name + " Parameters");
+
+    for(auto parameter : parameters){
+        auto default_value = parameter.defaultValue;
+        bool is_file_model = parameter.name == "model" && (parameter.type == SETTING_TYPE::FILE);
+        
+        if(is_file_model){
+            default_value = getTempFileForModel();
+        }
+
+        dialog.addOption(parameter.name, parameter.type, default_value);
+        dialog.setOptionIcon(parameter.name, "Icons", "label");
+        //Disable model upload
+        dialog.setOptionEnabled(parameter.name, !is_file_model);
+    }
+
+    auto options = dialog.getOptions();
+    auto got_options = options.size() == parameters.size();
+
+    if(got_options){
+        //Update the parameters
+        for(auto& parameter : parameters){
+            parameter.value = dialog.getOptionValue(parameter.name).toString();
+        }
+        jenkins_manager->BuildJob(job_name, parameters);
+    }
+}
+
+void ViewController::RequestJenkinsBuildJob(){
+    auto job_name = jenkins_manager->GetJobName();
+    auto request = jenkins_manager->GetJobParameters(job_name);
+
+    //if(request.first){
+    auto future_watcher = new QFutureWatcher<Jenkins_JobParameters>(this);
+
+    connect(future_watcher, &QFutureWatcher<Jenkins_JobParameters>::finished, [=](){
+        auto parameters = future_watcher->result();
+        ShowJenkinsBuildDialog(job_name, parameters);
+    });
+    future_watcher->setFuture(request.second);
+    //}
 }
 
 ViewController::~ViewController()
