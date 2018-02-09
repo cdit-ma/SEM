@@ -10,6 +10,8 @@ class Monitor: public QFrame
 public:
     Monitor(QWidget* widget):QFrame(widget){
         connect(this, &Monitor::StateChanged, [=](Notification::Severity state){this->state = state;});
+        connect(this, &Monitor::StateChanged, &Monitor::Updated);
+        connect(this, &Monitor::AppendLine, &Monitor::Updated);
     };
     Notification::Severity getState() const{
         return state;
@@ -20,6 +22,7 @@ signals:
     void Close();
     void AppendLine(QString text);
     void StateChanged(Notification::Severity state);
+    void Updated();
 private:
     Notification::Severity state = Notification::Severity::RUNNING;
 };

@@ -162,6 +162,9 @@ void SettingsController::intializeSettings()
     //Jenkins - User
     createSetting(SETTINGS::JENKINS_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
     createSetting(SETTINGS::JENKINS_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
+    createSetting(SETTINGS::JENKINS_REQUEST_USER_JOBS, SETTING_TYPE::BOOL, "Jenkins", "User", "Request only jobs constructed by this user", "Icons", "filterList");
+
+    
 
     createSetting(SETTINGS::JENKINS_APPLY, SETTING_TYPE::BUTTON, "Jenkins", "User", "Test Settings", "Icons", "circleTickDark");
     

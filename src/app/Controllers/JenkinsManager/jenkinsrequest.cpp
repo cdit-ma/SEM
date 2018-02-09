@@ -12,6 +12,7 @@
 #include <QHttpMultiPart>
 #include <QFile>
 #include <QFileInfo>
+#include <QtConcurrent/QtConcurrentRun>
 #define TIME_OUT_MS 100
 
 JenkinsRequest::JenkinsRequest(JenkinsManager *jenkins_manager, QObject *parent) : QObject()
@@ -58,25 +59,35 @@ bool JenkinsRequest::BlockUntilValidatedSettings()
     return gotValidatedSettings();
 }
 
-QJsonDocument JenkinsRequest::_getJobConfiguration(QString jobName, int buildNumber, QString activeConfiguration, bool refresh)
+QJsonDocument JenkinsRequest::requestJobConfiguration(QString job_name, int build_number){
+    auto cached_name = jenkins_manager_->GetJobStatusKey(job_name, build_number);
+    auto config_url = jenkins_manager_->GetUrl() + "job/" + cached_name + "/api/json";
+    auto config_request = jenkins_manager_->getAuthenticatedRequest(config_url);
+    
+    ProcessRunner runner;
+
+    auto config_result = runner.HTTPGet(config_request);
+
+    QJsonDocument configuration;
+    if(config_result.success){
+        //Try and load the configuration
+        configuration = QJsonDocument::fromJson(config_result.standard_output.toUtf8());
+        if(!configuration.isNull()){
+            jenkins_manager_->storeJobConfiguration(cached_name, configuration);
+        }
+    }
+
+    return configuration;
+}
+
+
+QJsonDocument JenkinsRequest::_getJobConfiguration(QString jobName, int buildNumber, bool refresh)
 {
-    QString cached_name = jobName;
-
-    //If we have been provided a valid activeConfiguration, append this to the jobName
-    if(activeConfiguration != ""){
-        cached_name += "/" + activeConfiguration;
-    }
-
-    //If we have been provided a valid build number, append this to the jobName
-    if(buildNumber >= 0){
-        cached_name += "/" + QString::number(buildNumber);
-    }
+    auto cached_name = JenkinsManager::GetJobStatusKey(jobName, buildNumber);
 
     QJsonDocument configuration;
 
     {
-        //Get a cached copy
-        QMutexLocker(&this->mutex_);
         configuration = jenkins_manager_->getJobConfiguration(cached_name);
     }
 
@@ -200,7 +211,7 @@ void JenkinsRequest::RunGroovyScript(QString groovy_script)
 }
 
 
-Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int build_number, QString configuration){
+Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int build_number){
     Notification::Severity job_state = Notification::Severity::NONE;
 
     auto notification = NotificationManager::manager()->AddNotification("Requesting Jenkins Job '" + job_name + "' # " + QString::number(build_number), "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
@@ -208,7 +219,7 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
 
     if(BlockUntilValidatedSettings()){
         //Get the cached url
-        QString console_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/consoleText";
+        QString console_url = getURL() + "job/" + JenkinsManager::GetJobStatusKey(job_name, build_number) + "/consoleText";
 
         //Get an authenticated request
         auto console_request = getAuthenticatedRequest(console_url);
@@ -220,11 +231,11 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
         //While the job is either building or not yet existant.
         while(true){
             //Get the new_state of the job
-            auto new_state = _getJobState(job_name, build_number, configuration, true).state;
+            auto new_state = _getJobState(job_name, build_number, true).state;
             if(new_state != job_state){
                 //If it's changed send a signal
                 job_state = new_state;
-                emit GotJobStateChange(job_name, build_number, configuration, job_state);
+                emit GotJobStateChange(job_name, build_number, job_state);
             }
 
             //If we are building get the console_data
@@ -235,7 +246,7 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
                 if(new_data.size() > console_output.size()){
                     //Emit the live difference
                     QString delta_data = new_data.mid(console_output.size());
-                    emit GotLiveJobConsoleOutput(job_name, build_number, configuration, delta_data.trimmed());
+                    emit GotLiveJobConsoleOutput(job_name, build_number, delta_data.trimmed());
                     console_output = new_data;
                 }
             }
@@ -250,7 +261,7 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
         QStringList artifacts;
 
         //Pull down the configuration
-        QJsonDocument json_doc  = _getJobConfiguration(job_name, build_number, configuration, true);
+        QJsonDocument json_doc  = _getJobConfiguration(job_name, build_number, true);
 
         if(!json_doc.isNull()){
             QJsonObject configData = json_doc.object();
@@ -260,14 +271,14 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
                 
                 //Fill the data in the Jenkins_Job_Parameter from the JSON object.
                 auto relative_path = artifact.toObject()["relativePath"].toString();
-                auto path = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/artifact/" + relative_path;
+                auto path = getURL() + "job/" + JenkinsManager::GetJobStatusKey(job_name, build_number) + "/artifact/" + relative_path;
                 artifacts += path;
             }
         }
 
-        emit GotJobConsoleOutput(job_name, build_number, configuration, console_output);
+        emit GotJobConsoleOutput(job_name, build_number, console_output);
         if(artifacts.size()){
-            emit GotJobArtifacts(job_name, build_number, configuration, artifacts);
+            emit GotJobArtifacts(job_name, build_number, artifacts);
         }
     }
 
@@ -283,16 +294,15 @@ Notification::Severity JenkinsRequest::getJobConsoleOutput(QString job_name, int
     return job_state;
 }
 
-void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number, QString configuration)
+void JenkinsRequest::GetJobConsoleOutput(QString job_name, int build_number)
 {
-    
-    getJobConsoleOutput(job_name, build_number, configuration);
+    getJobConsoleOutput(job_name, build_number);
 
     //Call the SIGNAL to teardown the JenkinsRequest
     emit Finished();
 }
 
-void JenkinsRequest::GetRecentJobs(QString job_name, int max_request_count)
+void JenkinsRequest::GetRecentJobs(QString job_name, int max_request_count, bool filtered_by_user)
 {
     auto notification = NotificationManager::manager()->AddNotification("Requesting recent jobs '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS, false);
     
@@ -321,14 +331,32 @@ void JenkinsRequest::GetRecentJobs(QString job_name, int max_request_count)
                 }
             }
 
+            
+            QList<QFuture<void> > threads;
+
+            //Lelb
+            for(auto build_number : recent_jobs){
+                auto thread = QtConcurrent::run(this, &JenkinsRequest::requestJobConfiguration, job_name, build_number);
+                threads.push_back(thread);
+            }
+
+            for(auto future : threads){
+                future.waitForFinished();
+            }
+
             QList<Jenkins_Job_Status> states;
 
-            for(auto job_id : recent_jobs){
-                auto state = _getJobState(job_name, job_id, "", false);
-                states.push_back(state);
+            for(auto build_number : recent_jobs){
+                auto state = jenkins_manager_->GetJobStatus(job_name, build_number);
+
+                bool add_job = !filtered_by_user || (filtered_by_user && state.user_id == jenkins_manager_->GetUser());
+                if(add_job){
+                    states.push_back(state);
+                }
             }
 
             emit gotRecentJobs(states);
+
         }
     }
 
@@ -424,10 +452,10 @@ void JenkinsRequest::BuildJob(QString job_name, Jenkins_JobParameters parameters
     emit Finished();
 }
 
-void JenkinsRequest::StopJob(QString job_name, int build_number, QString configuration)
+void JenkinsRequest::StopJob(QString job_name, int build_number)
 {
     if(BlockUntilValidatedSettings()){
-        auto stop_url = getURL() + "job/" + combineJobURL(job_name, build_number, configuration) + "/stop";
+        auto stop_url = getURL() + "job/" + JenkinsManager::GetJobStatusKey(job_name, build_number) + "/stop";
         auto stop_request = getAuthenticatedRequest(stop_url);
 
         auto notification = NotificationManager::manager()->AddNotification("Requesting to stop Jenkins job '" + job_name + "' #" + QString::number(build_number), "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
@@ -505,13 +533,10 @@ ProcessRunner *JenkinsRequest::GetRunner()
     return runner_;
 }
 
-QString JenkinsRequest::combineJobURL(QString job_name, int build_number, QString configuration)
+QString JenkinsRequest::combineJobURL(QString job_name, int build_number)
 {
     QString result = job_name;
 
-    if(!configuration.isEmpty()){
-        result += "/" + configuration;
-    }
     if(build_number != 0){
         result += "/" + QString::number(build_number);
     }
@@ -585,36 +610,9 @@ void JenkinsRequest::ValidateSettings()
     emit Finished();
 }
 
-Jenkins_Job_Status JenkinsRequest::_getJobState(QString jobName, int buildNumber, QString activeConfiguration, bool rerequest)
+Jenkins_Job_Status JenkinsRequest::_getJobState(QString jobName, int buildNumber, bool rerequest)
 {
-    //Get the JSON data about this job.
-    QJsonDocument configuration  = _getJobConfiguration(jobName, buildNumber, activeConfiguration, rerequest);
-
-    Jenkins_Job_Status job_state;
-    job_state.name = jobName;
-    job_state.number = buildNumber;
-    job_state.state = Notification::Severity::NONE;
-
-    //If the jobJSON isn't null, check for activeConfigurations.
-    if(!configuration.isNull()){
-        QJsonObject configData = configuration.object();
-        
-        job_state.description  = configData["description"].toString();
-
-        //Get the array which contains the result.
-        bool building = configData["building"].toBool();
-        if(building){
-            job_state.state  = Notification::Severity::RUNNING;
-        }else{
-            QString result = configData["result"].toString();
-            if(result == "SUCCESS"){
-                job_state.state  = Notification::Severity::SUCCESS;
-            }else if(result == "ABORTED"){
-                job_state.state = Notification::Severity::INFO;
-            }else{
-                job_state.state = Notification::Severity::ERROR;
-            }
-        }
-    }
-    return job_state;
+    //Refresh
+    _getJobConfiguration(jobName, buildNumber, rerequest);
+    return jenkins_manager_->GetJobStatus(jobName, buildNumber);
 }

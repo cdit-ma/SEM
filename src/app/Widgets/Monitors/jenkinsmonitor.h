@@ -7,11 +7,12 @@
 #include <QToolBar>
 #include <QLabel>
 
+class JenkinsManager;
 class JenkinsMonitor : public Monitor
 {
     Q_OBJECT
 public:
-    JenkinsMonitor(QString job_name, int build_number, QWidget * parent = 0);
+    JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name, int build_number, QWidget * parent = 0);
     QString GetJobName() const;
     int getBuildNumber() const;
 signals:
@@ -24,12 +25,16 @@ private:
     void themeChanged();
     void setupLayout();
     void update_state_icon();
+    void update_info();
 
     QString job_name;
     int build_number;
 
+    JenkinsManager* jenkins_manager = 0;
     QLabel* icon_label = 0;
     QLabel* text_label = 0;
+    QLabel* duration_icon_label = 0;
+    QLabel* duration_label = 0;
     QAction* abort_action = 0;
     QAction* clear_action = 0;
     QAction* close_action = 0;

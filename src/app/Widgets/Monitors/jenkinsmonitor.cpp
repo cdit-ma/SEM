@@ -1,18 +1,22 @@
 #include "jenkinsmonitor.h"
 #include "../../theme.h"
+#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
+
 #include <QBoxLayout>
 #include <QDesktopServices>
 #include <QApplication>
 
-JenkinsMonitor::JenkinsMonitor(QString job_name, int build_number, QWidget * parent): Monitor(parent){
+JenkinsMonitor::JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name, int build_number, QWidget * parent): Monitor(parent){
     this->job_name = job_name;
     this->build_number = build_number;
+    this->jenkins_manager = jenkins_manager;
 
     setupLayout();
     themeChanged();
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &JenkinsMonitor::themeChanged);
     connect(this, &Monitor::StateChanged, this, &JenkinsMonitor::stateChanged);
+    connect(this, &Monitor::Updated, this, &JenkinsMonitor::update_info);
     StateChanged(Notification::Severity::NONE);
 }
 
@@ -31,7 +35,12 @@ void JenkinsMonitor::themeChanged(){
     
     url_action->setIcon(theme->getIcon("Icons", "globe"));
 
-    toolbar->setIconSize(theme->getIconSize());
+    {
+        auto pixmap = theme->getImage("Icons", "clock", icon_size, theme->getTextColor());
+        duration_icon_label->setFixedSize(icon_size);
+        duration_icon_label->setPixmap(pixmap);
+    }
+  
 
     update_state_icon();
 
@@ -56,7 +65,21 @@ void JenkinsMonitor::update_state_icon(){
     }
 }
 
-
+void JenkinsMonitor::update_info(){
+    auto current_state = jenkins_manager->GetJobStatus(job_name, build_number);
+    if(current_state.state != Notification::Severity::NONE){
+        //Get the duration in milliseconds
+        auto current_duration = current_state.current_duration;
+        if(current_duration > 0){
+            auto time_str = QDateTime::fromTime_t(current_duration/ 1000.0).toUTC().toString("hh:mm:ss");
+            duration_label->setText(time_str);
+            
+            //Hide and show based on duration
+            duration_label->show();
+            duration_icon_label->show();
+        }
+    }
+}
 
 void JenkinsMonitor::stateChanged(Notification::Severity state){
     //Abortable
@@ -80,11 +103,22 @@ void JenkinsMonitor::setupLayout(){
     
 
     text_label = new QLabel(this);
+    text_label->setText(job_name + " #" + QString::number(build_number));
+
     icon_label = new QLabel(this);
     icon_label->setScaledContents(true);
     icon_label->setAlignment(Qt::AlignCenter);
 
-    text_label->setText(job_name + " #" + QString::number(build_number));
+    duration_label = new QLabel(this);
+    duration_label->setText("");
+    
+    duration_icon_label = new QLabel(this);
+    duration_icon_label->setScaledContents(true);
+    duration_icon_label->setAlignment(Qt::AlignCenter);
+
+    duration_label->hide();
+    duration_icon_label->hide();
+
 
     
     text_browser = new QTextBrowser(this);
@@ -104,6 +138,9 @@ void JenkinsMonitor::setupLayout(){
 
         h_layout->addWidget(icon_label);
         h_layout->addWidget(text_label, 1);
+        h_layout->addWidget(duration_icon_label);
+        h_layout->addWidget(duration_label);
+
         layout->addLayout(h_layout, 0);
     }
 

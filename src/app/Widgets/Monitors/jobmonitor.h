@@ -51,10 +51,11 @@ private:
     void stackedWidgetRemoved(int index);
 
     void requestJobConsoleOutput(QString job_name, int job_id);
+
 private:
-    void gotJenkinsJobStateChange(QString job_name, int job_build, QString configuration, Notification::Severity jobState);
-    void gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString configuration, QString consoleOutput);
-    void gotJenkinsJobArtifacts(QString job_name, int job_build, QString configuration, QStringList artifacts);
+    void gotJenkinsJobStateChange(QString job_name, int job_build, Notification::Severity jobState);
+    void gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString consoleOutput);
+    void gotJenkinsJobArtifacts(QString job_name, int job_build, QStringList artifacts);
 
     QPair<QString, int> splitJobKey(QString key);
     QString getJobKey(QString job_name, int job_number);

@@ -26,6 +26,7 @@ JobMonitor::JobMonitor(JenkinsManager* jenkins_manager,QWidget *parent){
     connect(jenkins_manager, &JenkinsManager::gotJobArtifacts, this, &JobMonitor::gotJenkinsJobArtifacts);
     connect(jenkins_manager, &JenkinsManager::gotJobStateChange, this, &JobMonitor::gotJenkinsJobStateChange);
     connect(jenkins_manager, &JenkinsManager::gotJobConsoleOutput, this, &JobMonitor::gotJenkinsJobConsoleOutput);
+    
     connect(jenkins_manager, &JenkinsManager::BuildingJob, this, [=](QString job_name){
         jenkins_manager->GetRecentJobs(job_name);
     });
@@ -40,7 +41,7 @@ QToolBar* JobMonitor::getToolbar(){
 JenkinsMonitor* JobMonitor::constructJenkinsMonitor(QString job_name, int build_number){
     auto lookup_key = getJobKey(job_name, build_number);
     if(!monitors.contains(lookup_key)){
-        auto monitor = new JenkinsMonitor(job_name, build_number, this);
+        auto monitor = new JenkinsMonitor(jenkins_manager, job_name, build_number, this);
         stacked_widget->addWidget(monitor);
         monitors[lookup_key] = monitor;
         connect(monitor, &Monitor::StateChanged, this, &JobMonitor::MonitorStateChanged);
@@ -218,6 +219,7 @@ void JobMonitor::setupLayout(){
 void JobMonitor::gotRecentJobs(QList<Jenkins_Job_Status> recent_jobs){
 
     std::reverse(recent_jobs.begin(), recent_jobs.end());
+
     for(auto job : recent_jobs){
         auto key = getJobKey(job.name, job.number);
 
@@ -317,21 +319,21 @@ void JobMonitor::themeChanged(){
 };
 
 
-void JobMonitor::gotJenkinsJobStateChange(QString job_name, int job_build, QString, Notification::Severity job_state){
+void JobMonitor::gotJenkinsJobStateChange(QString job_name, int job_build, Notification::Severity job_state){
     auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
     if(jenkins_monitor){
         jenkins_monitor->StateChanged(job_state);
     }
 }
 
-void JobMonitor::gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString, QString console_output){
+void JobMonitor::gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString console_output){
     auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
     if(jenkins_monitor){
         jenkins_monitor->AppendLine(console_output);
     }
 }
 
-void JobMonitor::gotJenkinsJobArtifacts(QString job_name, int job_build, QString, QStringList artifacts){
+void JobMonitor::gotJenkinsJobArtifacts(QString job_name, int job_build, QStringList artifacts){
     auto jenkins_monitor = getJenkinsMonitor(job_name, job_build);
     if(jenkins_monitor){
         jenkins_monitor->gotJobArtifacts(artifacts);

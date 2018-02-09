@@ -25,6 +25,8 @@ struct Jenkins_Job_Status{
     int number;
     Notification::Severity state;
     QString description;
+    QString user_id;
+    int current_duration = -1;
 };
 
 
@@ -48,15 +50,15 @@ signals:
     void GotJobParameters(QString job_name, Jenkins_JobParameters parameters);
 
     //Emitted, multiple times, by the slot getJobConsoleOutput, and by extension buildJob
-    void GotLiveJobConsoleOutput(QString job_name, int build_number, QString configuration, QString console_output_chunk);
+    void GotLiveJobConsoleOutput(QString job_name, int build_number, QString console_output_chunk);
 
-    void GotJobArtifacts(QString job_name, int build_number, QString configuration, QStringList artifact_urls);
+    void GotJobArtifacts(QString job_name, int build_number, QStringList artifact_urls);
 
     //Emitted once by the slot getJobConsoleOutput
-    void GotJobConsoleOutput(QString job_name, int build_number, QString configuration, QString console_output);
+    void GotJobConsoleOutput(QString job_name, int build_number, QString console_output);
 
     //Emitted, one or more times, by the slot getJobState
-    void GotJobStateChange(QString job_name, int build_number, QString configuration, Notification::Severity job_state);
+    void GotJobStateChange(QString job_name, int build_number, Notification::Severity job_state);
 
     //Emitted, Once by the slot ValidateSettings
     void GotValidatedSettings(bool valid, QString error_message);
@@ -78,11 +80,11 @@ signals:
 
 public slots:
     void BuildJob(QString job_name, Jenkins_JobParameters jobParameters);
-    void StopJob(QString job_name, int build_number, QString configuration="");
+    void StopJob(QString job_name, int build_number);
 
-    void GetRecentJobs(QString job_name, int max_request_count);
+    void GetRecentJobs(QString job_name, int max_request_count, bool filtered_by_user);
 
-    void GetJobConsoleOutput(QString job_name, int build_number, QString configuration="");
+    void GetJobConsoleOutput(QString job_name, int build_number);
     void GetJobParameters(QString job_name);
 
     void RunGroovyScript(QString groovy_script);
@@ -92,19 +94,21 @@ private slots:
     //Called if the JenkinsManager has been destroyed.
     void Teardown_();
 private:
-    Notification::Severity getJobConsoleOutput(QString job_name, int build_number, QString configuration="");
+    Notification::Severity getJobConsoleOutput(QString job_name, int build_number);
     QString getURL();
     QString getJobName();
     bool gotValidatedSettings();
     QNetworkRequest getAuthenticatedRequest(QString url, bool auth=true);
 
     ProcessRunner* GetRunner();
-    QString combineJobURL(QString job_name, int build_number, QString configuration);
+    QString combineJobURL(QString job_name, int build_number);
 
     bool BlockUntilValidatedSettings();
 
-    Jenkins_Job_Status _getJobState(QString jobName, int buildNumber, QString activeConfiguration="", bool re_request=false);
-    QJsonDocument _getJobConfiguration(QString jobName, int buildNumber=-1, QString activeConfiguration="", bool reRequest=false);
+    Jenkins_Job_Status _getJobState(QString jobName, int buildNumber, bool re_request=false);
+    QJsonDocument _getJobConfiguration(QString jobName, int buildNumber=-1, bool re_request=false);
+
+    QJsonDocument requestJobConfiguration(QString job_name, int build_number);
 
 
     QMutex mutex_;

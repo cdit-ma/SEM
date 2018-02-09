@@ -51,6 +51,8 @@ public:
     void GetJobConsoleOutput(QString job_name, int job_number);
     void GetRecentJobs(QString job_name);
     void GotoJob(QString job_name, int build_number);
+
+    Jenkins_Job_Status GetJobStatus(QString job_name, int build_number);
 signals:
     void BuildingJob(QString job_name);
 
@@ -61,24 +63,27 @@ signals:
 
     void getJobParameters(QString name);
     void buildJob(QString jobName, Jenkins_JobParameters parameters);
-    void getJobConsole(QString job_name, int job_number, QString config="");
+    void getJobConsole(QString job_name, int job_number);
     void gotRecentJobs(Jenkins_Job_Statuses recent_jobs);
 
 
-    void getRecentJobs(QString job_name, int max_request_count);
+    void getRecentJobs(QString job_name, int max_request_count, bool only_by_user);
 
-    void gotJobArtifacts(QString job_name, int job_build, QString configuration, QStringList artifacts);
-    void gotJobStateChange(QString job_name, int job_build, QString configuration, Notification::Severity jobState);
-    void gotJobConsoleOutput(QString job_name, int job_build, QString configuration, QString consoleOutput);
+    void gotJobArtifacts(QString job_name, int job_build, QStringList artifacts);
+    void gotJobStateChange(QString job_name, int job_build, Notification::Severity jobState);
+    void gotJobConsoleOutput(QString job_name, int job_build, QString consoleOutput);
 private slots:
     void settingsApplied();
     void SettingChanged(SETTINGS key, QVariant value);
-
 
     
 
   
 private:
+    static QString GetJobStatusKey(const QString& jobName, int buildNumber);
+    QNetworkRequest getAuthenticatedRequest(QString url, bool auth=true);
+
+
     JenkinsRequest* GetJenkinsRequest(QObject* parent = 0);
     SETTING_TYPE GetSettingType(QString type);
     void AbortJob_(QString job_name, int build_number);
@@ -86,9 +91,9 @@ private:
     void ValidateSettings_();
     void jenkinsRequestFinished(JenkinsRequest* request);
     void storeJobConfiguration(QString job_name, QJsonDocument json);
-
+    
     QJsonDocument getJobConfiguration(QString job_name);
-    QNetworkRequest getAuthenticatedRequest(QString url, bool auth=true);
+    
 
     //Mutex used by all getters/setters
     QMutex mutex_;

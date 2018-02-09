@@ -216,7 +216,7 @@ void JenkinsManager::GetJobConsoleOutput(QString job_name, int job_number){
     auto jenkins_request = GetJenkinsRequest();
             
     auto request_console_job = connect(this, &JenkinsManager::getJobConsole, jenkins_request, &JenkinsRequest::GetJobConsoleOutput);
-    emit getJobConsole(job_name, job_number, "");
+    emit getJobConsole(job_name, job_number);
     disconnect(request_console_job);
 
     connect(jenkins_request, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
@@ -228,7 +228,10 @@ void JenkinsManager::GetRecentJobs(QString job_name){
     auto jenkins_request = GetJenkinsRequest();
             
     auto request_job = connect(this, &JenkinsManager::getRecentJobs, jenkins_request, &JenkinsRequest::GetRecentJobs);
-    emit getRecentJobs(job_name, 10);
+    auto filter_by_active_user = SettingsController::settings()->getSetting(SETTINGS::JENKINS_REQUEST_USER_JOBS).toBool();
+
+
+    emit getRecentJobs(job_name, 10, filter_by_active_user);
     disconnect(request_job);
 
     connect(jenkins_request, &JenkinsRequest::gotRecentJobs, this, &JenkinsManager::gotRecentJobs);
@@ -472,3 +475,60 @@ QString JenkinsManager::GetApiToken()
     return token_;
 }
 
+Jenkins_Job_Status JenkinsManager::GetJobStatus(QString job_name, int build_number){
+    auto cache_name = GetJobStatusKey(job_name, build_number);
+    auto current_configuration = getJobConfiguration(cache_name);
+
+    Jenkins_Job_Status job_state;
+    job_state.name = job_name;
+    job_state.number = build_number;
+    job_state.state = Notification::Severity::NONE;
+    
+    if(!current_configuration.isNull()){
+        auto config = current_configuration.object();
+        
+        job_state.description  = config["description"].toString();
+        
+
+        for(auto j : config["actions"].toArray()){
+            auto class_name = j.toObject()["_class"].toString();
+            if(class_name == "hudson.model.CauseAction"){
+                auto user_id = j.toObject()["causes"].toArray()[0].toObject()["userId"].toString();
+                job_state.user_id = user_id;
+                break;
+            }
+        }
+
+        
+        //Duration on complete is correct
+        job_state.current_duration = config["duration"].toInt();
+
+
+        //Get the array which contains the result.
+        bool building = config["building"].toBool();
+        if(building){
+            job_state.state  = Notification::Severity::RUNNING;
+        }else{
+            QString result = config["result"].toString();
+            if(result == "SUCCESS"){
+                job_state.state  = Notification::Severity::SUCCESS;
+            }else if(result == "ABORTED"){
+                job_state.state = Notification::Severity::INFO;
+            }else{
+                job_state.state = Notification::Severity::ERROR;
+            }
+        }
+    }
+    return job_state;
+}
+
+QString JenkinsManager::GetJobStatusKey(const QString& job_name, int build_number){
+    QString cached_name = job_name;
+
+    //If we have been provided a valid build number, append this to the jobName
+    if(build_number >= 0){
+        cached_name += "/" + QString::number(build_number);
+    }
+
+    return cached_name;
+}
