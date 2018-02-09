@@ -60,17 +60,13 @@ def failureList = []
 def jDeployment = "";
 
 def file = "model.graphml"
-node(){
-    writeFile file: file, text: "${model}"
-    stash includes: file, name: 'model'
-    archiveArtifacts file
-   
-}
 
 withEnv(["model=''"]){
     node(masterNode){
         deleteDir()
-        unstash 'model'
+        unstashParam "model", file
+        stash includes: file, name: 'model'
+        archiveArtifacts file
         def workspacePath = pwd()
         def reGenPath = "${RE_GEN_PATH}"
         def saxonPath = reGenPath
@@ -116,7 +112,7 @@ withEnv(["model=''"]){
         
         //Generate C++ code
         dir(buildPath){
-            unstash 'model'
+            unstash "model"
             stage('C++ Generation'){
                 def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
                 if(utils.runScript(typeGenCommand) != 0){
@@ -156,8 +152,10 @@ withEnv(["model=''"]){
     def modelName = jDeployment["model"].name
     def modelDescription = jDeployment["model"].description
     currentBuild.description = modelName
-    currentBuild.description = currentBuild.description + " : " + modelDescription
-
+    if(modelDescription){
+        currentBuild.description = currentBuild.description + " : " + modelDescription
+    }
+    
     stage("Build deployment plan"){
     for(def i = 0; i < nodeKeys.size(); i++){
         def nodeName = nodeKeys[i];
@@ -183,7 +181,6 @@ withEnv(["model=''"]){
             compileCode[nodeName] = {
                 node(nodeName){
                     unstash 'codeGen'
-                    print("CMAKE_MODULES: " + "${RE_PATH}" + '/cmake_modules')
                     withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
                         dir(buildDir + "/build"){
                             if(utils.runScript('cmake ..') != 0){

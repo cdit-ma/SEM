@@ -106,15 +106,19 @@ int main(int argc, char **argv){
 
     std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
     if(is_master){
-        std::cout << "* Master:" << std::endl;    
-        std::cout << "** Endpoint: " << master_endpoint << std::endl;    
-        std::cout << "** Deployment Graphml: " << graphml_path << std::endl;    
-        std::cout << "** Duration: " << execution_duration << std::endl;    
+        std::cout << "* Master:" << std::endl;
+        std::cout << "** Endpoint: " << master_endpoint << std::endl;
+        std::cout << "** Deployment Graphml: " << graphml_path << std::endl;
+        if(execution_duration == -1){
+            std::cout << "** Duration: " << "Indefinite" << std::endl;
+        }else{
+            std::cout << "** Duration: " << execution_duration << std::endl;
+        }
     }
     if(is_slave){
-        std::cout << "* Slave:" << std::endl;    
-        std::cout << "** Endpoint: " << slave_endpoint << std::endl;    
-        std::cout << "** Library Path: " << dll_path << std::endl;    
+        std::cout << "* Slave:" << std::endl;
+        std::cout << "** Endpoint: " << slave_endpoint << std::endl;
+        std::cout << "** Library Path: " << dll_path << std::endl;
     }
 
     zmq::Registrar* master = 0;

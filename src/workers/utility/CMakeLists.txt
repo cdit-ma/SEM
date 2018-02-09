@@ -3,11 +3,11 @@ cmake_minimum_required (VERSION 2.6)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(PROJ_NAME utility_worker)
 project(${PROJ_NAME})
-find_package(Boost 1.30.0 REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS system REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.cpp
@@ -27,4 +27,5 @@ elseif(UNIX)
 	target_link_libraries(${PROJ_NAME} pthread)
 endif(MSVC)
 
+target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${PROJ_NAME} re_core)
