@@ -224,6 +224,6 @@
         <xsl:param name="string_list" as="xs:string*"/>
         <xsl:param name="case_insensitive" as="xs:boolean"/>
 
-        <xsl:value-of select="count($string_list[matches(., concat('^', $str, '$', if ($case_insensitive) then '/i' else ''))])" />
+        <xsl:value-of select="count($string_list[matches(., concat('^', $str, '$'), if($case_insensitive) then 'i' else '')])" />
     </xsl:function>
 </xsl:stylesheet>
