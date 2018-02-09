@@ -27,14 +27,14 @@ class DeploymentHandler{
         void HeartbeatLoop();
 
         //Helpers
-        void HandleRequest(std::tuple<std::string, long, std::string> request);
+        void HandleRequest(std::pair<uint64_t, std::string> request);
         void RemoveDeployment();
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
 
-        void SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one, const std::string& part_two);
-        std::tuple<std::string, long, std::string> ReceiveTwoPartRequest(zmq::socket_t* socket);
+        void ZMQSendReply(zmq::socket_t* socket, const std::string& message);
+        std::pair<uint64_t, std::string> ZMQReceiveRequest(zmq::socket_t* socket);
 
         //Members
         std::string ip_addr_;

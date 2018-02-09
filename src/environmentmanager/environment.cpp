@@ -112,7 +112,7 @@ void Environment::RemoveComponent(const std::string& component_id, uint64_t time
         available_ports_.insert(component_port);
     }
     catch(std::out_of_range& ex){
-        std::cout << "tried to remove non listed component: " << component_id << std::endl;
+        std::cerr << "tried to remove non listed component: " << component_id << std::endl;
     }
 }
 
@@ -142,7 +142,7 @@ void Environment::DeploymentLive(const std::string& deployment_id, uint64_t time
         }
     }
     catch(std::out_of_range& ex){
-        std::cout << "Tried to live non existant deployment: " << deployment_id << std::endl;
+        std::cerr << "Tried to live non existant deployment: " << deployment_id << std::endl;
     }
 }
 
@@ -156,6 +156,6 @@ void Environment::DeploymentTimeout(const std::string& deployment_id, uint64_t t
         }
     }
     catch(std::out_of_range& ex){
-        std::cout << "Tried to timeout non existant deployment: " << deployment_id << std::endl;
+        std::cerr << "Tried to timeout non existant deployment: " << deployment_id << std::endl;
     }
 }

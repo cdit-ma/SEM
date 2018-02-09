@@ -29,8 +29,8 @@ class DeploymentRegister{
         std::string TCPify(const std::string& ip_address, const std::string& port) const;
         std::string TCPify(const std::string& ip_address, int port) const;
 
-        void SendTwoPartReply(zmq::socket_t* socket, const std::string& part_one, const std::string& part_two);
-        std::tuple<std::string, long, std::string> ReceiveTwoPartRequest(zmq::socket_t* socket);
+        void ZMQSendReply(zmq::socket_t* socket, const std::string& part_two);
+        std::pair<uint64_t, std::string> ZMQReceiveRequest(zmq::socket_t* socket);
 
         //Members
         zmq::context_t* context_;

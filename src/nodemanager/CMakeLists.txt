@@ -37,7 +37,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
 	)
@@ -47,7 +46,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
     )
@@ -70,7 +68,7 @@ set(ENVIRONMENT_REQUESTER_SOURCE
 
 add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${HEADERS})
 add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${HEADERS})
-add_executable(${REQUESTER_TESTER} ${ENVIRONMENT_REQUESTER_SOURCE} ${HEADERS})
+add_executable(${REQUESTER_TESTER} ${ENVIRONMENT_REQUESTER_SOURCE})
 
 target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
@@ -86,6 +84,7 @@ target_include_directories(${EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DI
 
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${REQUESTER_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${REQUESTER_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
@@ -98,6 +97,9 @@ elseif(UNIX)
 
     target_link_libraries(${EXECUTION_TESTER} pthread)
     target_link_libraries(${EXECUTION_TESTER} dl)
+
+    target_link_libraries(${REQUESTER_TESTER} pthread)
+    target_link_libraries(${REQUESTER_TESTER} dl)
 endif(MSVC)
 
 #Link executable against all libraries required
@@ -119,3 +121,6 @@ target_link_libraries(${EXECUTION_TESTER} re_execution_parser_lib)
 
 target_link_libraries(${REQUESTER_TESTER} ${ZMQ_LIBRARIES})
 target_link_libraries(${REQUESTER_TESTER} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${REQUESTER_TESTER} re_core)
+target_link_libraries(${REQUESTER_TESTER} environment_proto_message)
+

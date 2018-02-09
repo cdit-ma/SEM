@@ -1,4 +1,5 @@
 #include "environmentrequester.h"
+#include "../environmentmanager/environmentmessage/environmentmessage.pb.h"
 
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& deployment_id, 
@@ -20,7 +21,7 @@ void EnvironmentRequester::Init(){
         sub.close();
     }
     catch(std::exception& ex){
-        std::cout << ex.what() << " in EnvironmentRequester::Init" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::Init" << std::endl;
     }
 }
 
@@ -49,16 +50,24 @@ void EnvironmentRequester::HeartbeatLoop(){
     initial_request_socket->connect(manager_endpoint_);
 
     //Register this deployment with the environment manager
-    ZMQSendTwoPartRequest(initial_request_socket, "DEPLOYMENT", deployment_id_);
-    auto reply = ZMQReceiveTwoPartReply(initial_request_socket);
+    EnvironmentManager::EnvironmentMessage initial_message;
+    initial_message.set_type(EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT);
+    auto deployment = initial_message.add_deployments();
+    deployment->set_id(deployment_id_);
+    auto manager_endpoint = deployment->add_endpoints();
+    manager_endpoint->set_type(EnvironmentManager::Endpoint::MANAGEMENT);
+    ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
+    auto reply = ZMQReceiveReply(initial_request_socket);
 
     //Get update socket address as reply
-    if(reply.reply_type_.compare("SUCCESS") == 0){
-        manager_update_endpoint_ = reply.reply_data_;
+    if(!reply.empty()){
+        EnvironmentManager::EnvironmentMessage initial_reply;
+        initial_reply.ParseFromString(reply);
+        manager_update_endpoint_ = initial_reply.update_endpoint();
     }
     else{
         //TODO: Handle this error
-        std::cout << "HANDLE THIS ERROR! 1" << std::endl;
+        std::cerr << "HANDLE THIS ERROR! 1" << std::endl;
     }
 
     //Connect to our update socket
@@ -67,7 +76,7 @@ void EnvironmentRequester::HeartbeatLoop(){
         update_socket_->connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
-        std::cout << ex.what() << " in EnvironmentRequester::Start" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::Start" << std::endl;
     }
 
     //Start heartbeat loop
@@ -80,10 +89,13 @@ void EnvironmentRequester::HeartbeatLoop(){
             if(end_flag_){
                 break;
             }
-
+            EnvironmentManager::EnvironmentMessage message;
+            message.set_type(EnvironmentManager::EnvironmentMessage::HEARTBEAT);
             if(trigger == std::cv_status::timeout){
-                ZMQSendTwoPartRequest(update_socket_, "HEARTBEAT", "");
-                auto reply = ZMQReceiveTwoPartReply(update_socket_);
+                std::string output;
+                message.SerializeToString(&output);
+                ZMQSendRequest(update_socket_, output);
+                auto reply = ZMQReceiveReply(update_socket_);
             }
             else if(trigger == std::cv_status::no_timeout){
                 auto request = request_queue_.front();
@@ -107,24 +119,35 @@ void EnvironmentRequester::End(){
     heartbeat_thread_->join();
 }
 
-int EnvironmentRequester::GetPort(const std::string& component_id, const std::string& component_info){
+int EnvironmentRequester::GetComponentPort(const std::string& component_id, const std::string& component_info){
     int port = 0;
-    auto port_response = QueueRequest("ASSIGNMENT_REQUEST", component_id);
+
+    EnvironmentManager::EnvironmentMessage message;
+    message.set_type(EnvironmentManager::EnvironmentMessage::ADD_COMPONENT);
+    auto component = message.add_components();
+    component->set_id(component_id);
+    auto endpoint = component->add_endpoints();
+    endpoint->set_id("asdf");
+    endpoint->set_type(EnvironmentManager::Endpoint::PUBLIC);
+
+    auto response = QueueRequest(message.SerializeAsString());
 
     try{
-        port = std::stoi(port_response.get());
+        EnvironmentManager::EnvironmentMessage response_message;
+        response_message.ParseFromString(response.get());
+        port = std::stoi(response_message.components(0).endpoints(0).port());
     }
     catch(std::exception& ex){
-        std::cout << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
     }
     return port;
 }
 
-std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request_type, const std::string& request){
+std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){
 
     std::promise<std::string>* request_promise = new std::promise<std::string>();
     std::future<std::string> request_future = request_promise->get_future();
-    Request request_struct = {request_type, request, request_promise};
+    Request request_struct = {request, request_promise};
 
     std::unique_lock<std::mutex> lock(request_queue_lock_);
     request_queue_.push(request_struct);
@@ -134,56 +157,44 @@ std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& r
 }
 
 void EnvironmentRequester::SendRequest(EnvironmentRequester::Request request){
-    ZMQSendTwoPartRequest(update_socket_, request.request_type_, request.request_data_);
-    auto reply = ZMQReceiveTwoPartReply(update_socket_);
+    ZMQSendRequest(update_socket_, request.request_data_);
+    auto reply = ZMQReceiveReply(update_socket_);
 
     //Handle response
-    if(reply.reply_type_.compare("SUCCESS") == 0){
-        request.response_->set_value(reply.reply_data_);
-    }
-    else{
-        //TODO: Handle this failure/other response
-    }
+    request.response_->set_value(reply);
 }
 
-void EnvironmentRequester::ZMQSendTwoPartRequest(zmq::socket_t* socket, const std::string& request_type, 
-                                                                        const std::string& request){
+void EnvironmentRequester::ZMQSendRequest(zmq::socket_t* socket, const std::string& request){
     std::string lamport_string = std::to_string(Tick());
     zmq::message_t lamport_time_msg(lamport_string.begin(), lamport_string.end());
-    zmq::message_t request_type_msg(request_type.begin(), request_type.end());
     zmq::message_t request_msg(request.begin(), request.end());
 
-
     try{
-        socket->send(request_type_msg, ZMQ_SNDMORE);
         socket->send(lamport_time_msg, ZMQ_SNDMORE);
         socket->send(request_msg);
     }
     catch(std::exception error){
         //TODO: Handle this
-        std::cout << error.what() << "in EnvironmentRequester::ZMQSendTwoPartRequest" << std::endl;
+        std::cerr << error.what() << "in EnvironmentRequester::ZMQSendTwoPartRequest" << std::endl;
     }
 }
 
-EnvironmentRequester::Reply EnvironmentRequester::ZMQReceiveTwoPartReply(zmq::socket_t* socket){
-    zmq::message_t request_type_msg;
+std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t* socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
     try{
-        socket->recv(&request_type_msg);
         socket->recv(&lamport_time_msg);
         socket->recv(&request_contents_msg);
     }
     catch(zmq::error_t error){
         //TODO: Handle this
-        std::cout << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
+        std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
     }
-    std::string type(static_cast<const char*>(request_type_msg.data()), request_type_msg.size());
     std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
     //Update and get current lamport time
     std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
     long lamport_time = SetClock(std::stoull(incoming_time));
 
-    return Reply{type, contents};
+    return contents;
 }

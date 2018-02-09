@@ -8,18 +8,12 @@
 #include <future>
 #include <zmq.hpp>
 
+
 class EnvironmentRequester{
 
     struct Request{
-
-        std::string request_type_;
         std::string request_data_;
         std::promise<std::string>* response_;
-    };
-
-    struct Reply{
-        std::string reply_type_;
-        std::string reply_data_;
     };
 
     public:
@@ -30,7 +24,7 @@ class EnvironmentRequester{
         void Start();
         void End();
 
-        int GetPort(const std::string& component_id, const std::string& component_info);
+        int GetComponentPort(const std::string& component_id, const std::string& component_info);
 
     private:
         //Constants
@@ -47,7 +41,7 @@ class EnvironmentRequester{
         bool end_flag_ = false;
 
         //Request helpers
-        std::future<std::string> QueueRequest(const std::string& request_type, const std::string& request);
+        std::future<std::string> QueueRequest(const std::string& request);
         void SendRequest(Request request);
 
         std::string deployment_id_;
@@ -68,8 +62,8 @@ class EnvironmentRequester{
         //ZMQ sockets and helpers
         zmq::context_t* context_;
         zmq::socket_t* update_socket_;
-        void ZMQSendTwoPartRequest(zmq::socket_t* socket, const std::string& request_type, const std::string& request);
-        Reply ZMQReceiveTwoPartReply(zmq::socket_t* socket);
+        void ZMQSendRequest(zmq::socket_t* socket, const std::string& request);
+        std::string ZMQReceiveReply(zmq::socket_t* socket);
 };
 
 #endif //NODEMANAGER_ENVIRONMENTREQUESTER_H
