@@ -10,6 +10,8 @@ if(NOT OSPL_FOUND)
 	return()
 endif()
 
+find_package(Boost 1.30.0 COMPONENTS uuid REQUIRED)
+
 
 # Copy this <idl> file into the binary directory so the compilation of generated files can succeed
 configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
@@ -35,4 +37,5 @@ endif()
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} ${OSPL_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_UUID_LIBRARY})
 target_link_libraries(${PROJ_NAME} ospl_helper)

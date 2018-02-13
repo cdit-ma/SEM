@@ -13,6 +13,8 @@ if(NOT RTIDDS_FOUND)
 	return()
 endif()
 
+find_package(Boost 1.30.0 COMPONENTS uuid REQUIRED)
+
 
 # Copy this <idl> file into the binary directory so the compilation of generated files can succeed
 configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
@@ -28,6 +30,7 @@ add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RTIDDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} pthread)
@@ -41,4 +44,5 @@ target_compile_definitions(${PROJ_NAME} PRIVATE ${RTIDDS_DEFINITIONS})
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_UUID_LIBRARY})
 target_link_libraries(${PROJ_NAME} rti_helper)
