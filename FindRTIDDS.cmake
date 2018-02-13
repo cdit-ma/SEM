@@ -110,15 +110,12 @@ if(WIN32)
     set(RTIDDS_GEN_EXECUTABLE $ENV{NDDSHOME}/bin/rtiddsgen.bat)
     set(DDS_EXTRA_LIBRARIES netapi32 advapi32 user32 ws2_32)
     set(DDS_DEFINITIONS -DRTI_WIN32 -DNDDS_DLL_VARIABLE /MD)
-else(WIN32)
-    
-    #set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
-    if(NOT APPLE)
-        set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
-    endif(NOT APPLE)
-    
+elseif(LINUX)
+    set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
     set(DDS_DEFINITIONS -DRTI_UNIX -DRTI_64BIT)
-endif(WIN32)
+elseif(APPLE)
+    set(DDS_DEFINITIONS -DRTI_UNIX -DRTI_64BIT)
+endif(UNIX)
 
 set(RTIDDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
 set(RTIDDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
