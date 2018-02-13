@@ -5,6 +5,9 @@ package EnvironmentManager;
 message Deployment{
     string id = 1;
 
+    Endpoint management_endpoint = 2;
+    Endpoint model_logger_endpoint = 3;
+
     repeated Component components = 4;
     repeated Endpoint endpoints = 5;
 }
@@ -19,9 +22,10 @@ message Endpoint{
     enum Type{
         NO_TYPE = 0;
         MANAGEMENT = 1;
-        MODEL_LOGGER = 2;
-        PUBLIC = 3;
-        PRIVATE = 4;
+        DEPLOYMENT_MASTER = 2;
+        MODEL_LOGGER = 3;
+        PUBLIC = 4;
+        PRIVATE = 5;
     }
 
     enum Middleware{
@@ -46,12 +50,14 @@ message EnvironmentMessage{
         NO_TYPE = 0;
         ERROR_RESPONSE = 1;
         ADD_DEPLOYMENT = 2;
-        REMOVE_DEPLOYMENT = 3;
-        ADD_ENDPOINT = 4;
-        REMOVE_ENDPOINT = 5;
-        ADD_COMPONENT = 6;
-        REMOVE_COMPONENT = 7;
-        HEARTBEAT = 8;
+        GET_DEPLOYMENT_INFO = 3;
+        REMOVE_DEPLOYMENT = 4;
+        ADD_ENDPOINT = 5;
+        REMOVE_ENDPOINT = 6;
+        ADD_COMPONENT = 7;
+        REMOVE_COMPONENT = 8;
+        HEARTBEAT = 9;
+        HEARTBEAT_ACK = 10;
     }
 
     Type type = 2;

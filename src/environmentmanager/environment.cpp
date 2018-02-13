@@ -16,9 +16,11 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
     if(available_ports_.empty()){
         return "";
     }
-    int port;
+    int environment_manager_port;
 
     if(deployment_info_map_.find(deployment_id) != deployment_info_map_.end()){
+
+        std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
         //Already have deployment of this ID
 
         //If this "add deployment" call is somehow older than the currently recorded deployment, ignore
@@ -32,33 +34,36 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
         else if(deployment_info_map_[deployment_id]->state == DeploymentState::TIMEOUT){
             auto it = available_ports_.begin();
 
-            port = *it;
+            environment_manager_port = *it;
             available_ports_.erase(it);
 
             deployment_info_map_[deployment_id] = new Deployment();
             deployment_info_map_[deployment_id]->id = deployment_id;
             deployment_info_map_[deployment_id]->state = DeploymentState::ACTIVE;
             deployment_info_map_[deployment_id]->time_added = time_called;
-
-            deployment_port_map_[deployment_id] = std::to_string(port);
+            deployment_info_map_[deployment_id]->environment_manager_port = std::to_string(environment_manager_port);
         }
     }
     else{
         //Get first available port, store then erase it
-        auto it = available_ports_.begin();
+        environment_manager_port = *(available_ports_.begin());
+        available_ports_.erase(available_ports_.begin());
 
-        port = *it;
-        available_ports_.erase(it);
+        auto model_logger_port = *(available_ports_.begin());
+        available_ports_.erase(available_ports_.begin());
+        
+        auto master_port = *(available_ports_.begin());
+        available_ports_.erase(available_ports_.begin());
 
         deployment_info_map_[deployment_id] = new Deployment();
         deployment_info_map_[deployment_id]->id = deployment_id;
         deployment_info_map_[deployment_id]->state = DeploymentState::ACTIVE;
         deployment_info_map_[deployment_id]->time_added = time_called;
-
-        deployment_port_map_[deployment_id] = std::to_string(port);
-
+        deployment_info_map_[deployment_id]->environment_manager_port = std::to_string(environment_manager_port);
+        deployment_info_map_[deployment_id]->master_port = std::to_string(master_port);
+        deployment_info_map_[deployment_id]->model_logger_port = std::to_string(model_logger_port);
     }
-    return std::to_string(port);
+    return std::to_string(environment_manager_port);
 }
 
 void Environment::RemoveDeployment(const std::string& deployment_id, uint64_t time_called){
@@ -71,6 +76,7 @@ void Environment::RemoveDeployment(const std::string& deployment_id, uint64_t ti
 
             //Return port to available port set
             available_ports_.insert(port);
+            std::cout << "readded ports" << std::endl;
         }
 
     }
@@ -94,7 +100,7 @@ std::string Environment::AddComponent(const std::string& deployment_id, const st
     try{
         //Update our understanding of the deployment's components.
         deployment_info_map_.at(deployment_id)->component_ids.push_back(component_id);
-        component_port_map_[component_id] = std::to_string(port);
+//        deployment_info_map_.at(deployment_id)->ports.push_back(port);
     }
     catch(std::out_of_range& ex){
         std::cout << "tried to add component to non listed deployment: " << deployment_id << std::endl;
@@ -159,3 +165,44 @@ void Environment::DeploymentTimeout(const std::string& deployment_id, uint64_t t
         std::cerr << "Tried to timeout non existant deployment: " << deployment_id << std::endl;
     }
 }
+
+std::string Environment::AddMasterPort(const std::string& deployment_id, uint64_t time_called){
+
+}
+
+void Environment::RemoveMasterPort(const std::string& deployment_id, uint64_t time_called){
+
+}
+
+std::string Environment::AddModelLoggerPort(const std::string& deployment_id, uint64_t time_called){
+
+}
+
+void Environment::RemoveModelLoggerPort(const std::string& deployment_id, uint64_t time_called){
+
+}
+
+std::string Environment::GetModelLoggerPort(const std::string& deployment_id){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+    std::string out;
+    try{
+        out = deployment_info_map_[deployment_id]->model_logger_port;
+    }
+    catch(std::exception& ex){
+
+    }
+    return out;
+}
+
+std::string Environment::GetMasterPort(const std::string& deployment_id){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+    std::string out;
+    try{
+        out = deployment_info_map_[deployment_id]->master_port;
+    }
+    catch(std::exception& ex){
+
+    }
+    return out;
+}
+

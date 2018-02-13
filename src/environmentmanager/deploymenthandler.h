@@ -26,8 +26,23 @@ class DeploymentHandler{
         void Init();
         void HeartbeatLoop();
 
-        //Helpers
+        //Reply Helpers
         void HandleRequest(std::pair<uint64_t, std::string> request);
+
+        typedef EnvironmentManager::EnvironmentMessage EnvMessage;
+
+        EnvMessage HandleAddDeployment(uint64_t message_time, EnvMessage message);
+        EnvMessage HandleRemoveDeployment(uint64_t message_time, EnvMessage message);
+
+        EnvMessage HandleAddComponent(uint64_t message_time, EnvMessage message);
+        EnvMessage HandleRemoveComponent(uint64_t message_time, EnvMessage message);
+
+        EnvMessage HandleAddEndpoint(uint64_t message_time, EnvMessage message);
+        EnvMessage HandleRemoveEndpoint(uint64_t message_time, EnvMessage message);
+
+        EnvMessage HandleGetDeploymentInfo(uint64_t message_time, EnvMessage message);
+        
+        //Environment Helpers
         void RemoveDeployment();
 
         std::string TCPify(const std::string& ip, const std::string& port) const;

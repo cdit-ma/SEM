@@ -19,7 +19,6 @@ void DeploymentHandler::Init(){
 
     std::string assigned_port = environment_->AddDeployment(deployment_id_, deployment_id_, time_added_);
     try{
-        //Bind to random port on local ip address
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 
         port_promise_->set_value(assigned_port);
@@ -36,9 +35,6 @@ void DeploymentHandler::Init(){
 }
 
 void DeploymentHandler::HeartbeatLoop(){
-
-    std::string ack_str("ACK");
-
     //Initialise our poll item list
     std::vector<zmq::pollitem_t> sockets = {{*handler_socket_, 0, ZMQ_POLLIN, 0}};
 
@@ -92,9 +88,6 @@ void DeploymentHandler::HeartbeatLoop(){
 }
 
 void DeploymentHandler::RemoveDeployment(){
-    for(auto element : port_map_){
-        environment_->RemoveComponent(element.first, time_added_);
-    }
     environment_->RemoveDeployment(deployment_id_, time_added_);
 }
 
@@ -116,7 +109,7 @@ void DeploymentHandler::ZMQSendReply(zmq::socket_t* socket, const std::string& m
         socket->send(msg);
     }
     catch(std::exception e){
-        std::cerr << e.what() << " in DeploymentHandler::SendTwoPartReply" << std::endl;
+        std::cerr << e.what() << " in DeploymentHandler::ZMQSendReply" << std::endl;
     }
 }
 
@@ -141,27 +134,114 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
 }
 
 void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
-
-    EnvironmentManager::EnvironmentMessage message;
+    auto message_time = request.first;
+    EnvMessage message;
     message.ParseFromString(request.second);
 
     switch(message.type()){
-        case EnvironmentManager::EnvironmentMessage::HEARTBEAT:{
-            ZMQSendReply(handler_socket_, "ack_string");
+        case EnvMessage::HEARTBEAT:{
+            message.set_type(EnvMessage::HEARTBEAT_ACK);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
             break;
         }
-        case EnvironmentManager::EnvironmentMessage::ADD_COMPONENT:{
-            auto endpoint = message.mutable_components(0)->mutable_endpoints(0);
-            std::string port_string = environment_->AddComponent(deployment_id_, message.components(0).id(), "asdf", request.first);
-
-            endpoint->set_port(port_string);
+        case EnvMessage::ADD_DEPLOYMENT:{
+            auto reply = HandleAddDeployment(message_time, message);
+            ZMQSendReply(handler_socket_, reply.SerializeAsString());
+            break;
+        }
+        case EnvMessage::GET_DEPLOYMENT_INFO:{
+            auto reply = HandleGetDeploymentInfo(message_time, message);
+            ZMQSendReply(handler_socket_, reply.SerializeAsString());
+            break;
+        }
+        case EnvMessage::REMOVE_DEPLOYMENT:{
+            auto reply = HandleRemoveDeployment(message_time, message);
+            ZMQSendReply(handler_socket_, reply.SerializeAsString());
+            break;
+        }
+        case EnvMessage::ADD_COMPONENT:{
+            auto reply = HandleAddComponent(message_time, message);
+            ZMQSendReply(handler_socket_, reply.SerializeAsString());
+            break;
+        }
+        case EnvMessage::REMOVE_COMPONENT:{
+            auto reply = HandleRemoveComponent(message_time, message);
+            ZMQSendReply(handler_socket_, reply.SerializeAsString());
+            break;
+        }
+        case EnvMessage::ADD_ENDPOINT:{
+            message.set_type(EnvMessage::ERROR_RESPONSE);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
+            break;
+        }
+        case EnvMessage::REMOVE_ENDPOINT:{
+            message.set_type(EnvMessage::ERROR_RESPONSE);
             ZMQSendReply(handler_socket_, message.SerializeAsString());
             break;
         }
         default:{
-            ZMQSendReply(handler_socket_, "ERROR");
+            message.set_type(EnvMessage::ERROR_RESPONSE);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
             break;
         }
     }
+}
 
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddDeployment(uint64_t message_time,
+                                                            EnvMessage message){
+    auto deployment = message.mutable_deployments(0);
+    std::string deployment_id = deployment->id();
+
+}
+
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleRemoveDeployment(uint64_t message_time,
+                                                            EnvMessage message){
+    environment_->RemoveDeployment(deployment_id_, message_time);
+}
+
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddComponent(uint64_t message_time,
+                                                            EnvMessage message){
+    //Handle add component message
+
+    auto endpoint = message.mutable_components(0)->mutable_endpoints(0);
+    std::string port_string = environment_->AddComponent(deployment_id_, message.components(0).id(), "", message_time);
+    endpoint->set_port(port_string);
+    return message;
+}
+
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleRemoveComponent(uint64_t message_time,
+                                                            EnvMessage message){
+    //Handle remove component message
+    auto component_id = message.components(0).id();
+    environment_->RemoveComponent(component_id, message_time);
+    message.mutable_components(0)->Clear();
+    return message;
+}
+
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddEndpoint(uint64_t message_time,
+                                                            EnvMessage message){
+    auto endpoint = message.mutable_endpoints(0);
+
+    std::string deployment_id = message.deployments(0).id();
+
+    //std::string port_string = environment_->AddEndpoint(deployment_id, endpoint->id(), message_time);
+
+    std::string port_string;
+    endpoint->set_port(port_string);
+    return message;
+}
+
+EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleGetDeploymentInfo(uint64_t message_time, EnvMessage message){
+    auto deployment = message.mutable_deployments(0);
+    auto master_endpoint = deployment->add_endpoints();
+    auto model_logger_endpoint = deployment->add_endpoints();
+    std::cout << deployment->endpoints_size() << std::endl;
+
+    master_endpoint->set_type(EnvironmentManager::Endpoint::MODEL_LOGGER);
+    master_endpoint->set_port(environment_->GetMasterPort(deployment_id_));
+
+    model_logger_endpoint->set_type(EnvironmentManager::Endpoint::DEPLOYMENT_MASTER);
+    model_logger_endpoint->set_port(environment_->GetModelLoggerPort(deployment_id_));
+
+    return message;
 }

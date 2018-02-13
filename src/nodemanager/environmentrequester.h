@@ -25,6 +25,8 @@ class EnvironmentRequester{
         void End();
 
         int GetComponentPort(const std::string& component_id, const std::string& component_info);
+        int GetDeploymentMasterPort(const std::string& deployment_id);
+        int GetModelLoggerPort(const std::string& deployment_id);
 
     private:
         //Constants

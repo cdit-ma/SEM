@@ -7,6 +7,7 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
     manager_address_ = manager_address;
     deployment_id_ = deployment_id;
     deployment_info_ = deployment_info;
+
 }
 
 void EnvironmentRequester::Init(){
@@ -54,8 +55,7 @@ void EnvironmentRequester::HeartbeatLoop(){
     initial_message.set_type(EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT);
     auto deployment = initial_message.add_deployments();
     deployment->set_id(deployment_id_);
-    auto manager_endpoint = deployment->add_endpoints();
-    manager_endpoint->set_type(EnvironmentManager::Endpoint::MANAGEMENT);
+
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);
 
@@ -76,7 +76,7 @@ void EnvironmentRequester::HeartbeatLoop(){
         update_socket_->connect(manager_update_endpoint_);
     }
     catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::Start" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
     }
 
     //Start heartbeat loop
@@ -115,6 +115,7 @@ void EnvironmentRequester::HeartbeatLoop(){
 }
 
 void EnvironmentRequester::End(){
+    request_queue_cv_.notify_one();
     end_flag_ = true;
     heartbeat_thread_->join();
 }
@@ -140,6 +141,68 @@ int EnvironmentRequester::GetComponentPort(const std::string& component_id, cons
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
     }
+    return port;
+}
+
+int EnvironmentRequester::GetDeploymentMasterPort(const std::string& deployment_id){
+    int port = 0;
+
+    EnvironmentManager::EnvironmentMessage message;
+    message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
+    auto deployment = message.add_deployments();
+    deployment->set_id(deployment_id);
+
+    auto response = QueueRequest(message.SerializeAsString());
+
+    try{
+        EnvironmentManager::EnvironmentMessage response_msg;
+        response_msg.ParseFromString(response.get());
+        if(response_msg.type() == EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO){
+            for(int i = 0; i < response_msg.deployments(0).endpoints_size(); i++){
+                if(response_msg.deployments(0).endpoints(i).type() == EnvironmentManager::Endpoint::DEPLOYMENT_MASTER){
+                    port = std::stoi(response_msg.deployments(0).endpoints(i).port());
+                }
+            }
+        }
+        else{
+            std::cout << "Handle error in EnvironmentManager::GetDeploymentMasterPort if statement" << std::endl;
+        }
+    }
+    catch(std::exception& ex){
+        std::cout << ex.what() << " in evironmentManager::GetDeploymentMasterPort" << std::endl;
+    }
+
+    return port;
+}
+
+int EnvironmentRequester::GetModelLoggerPort(const std::string& deployment_id){
+    int port = 0;
+
+    EnvironmentManager::EnvironmentMessage message;
+    message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
+    auto deployment = message.add_deployments();
+    deployment->set_id(deployment_id);
+
+    auto response = QueueRequest(message.SerializeAsString());
+
+    try{
+        EnvironmentManager::EnvironmentMessage response_msg;
+        response_msg.ParseFromString(response.get());
+        if(response_msg.type() == EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO){
+            for(int i = 0; i < response_msg.deployments(0).endpoints_size(); i++){
+                if(response_msg.deployments(0).endpoints(i).type() == EnvironmentManager::Endpoint::MODEL_LOGGER){
+                    port = std::stoi(response_msg.deployments(0).endpoints(i).port());
+                }
+            }
+        }
+        else{
+            std::cout << "Handle error in EnvironmentManager::GetModelLoggerPort if statement" << std::endl;
+        }
+    }
+    catch(std::exception& ex){
+        std::cout << ex.what() << " in evironmentManager::GetModelLoggerPort" << std::endl;
+    }
+
     return port;
 }
 
