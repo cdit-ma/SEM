@@ -293,8 +293,3 @@ Log::~Log(){
         std::cerr << "[" << (int)severity_ << "] " << function_name_ << ": " << message_ << std::endl;
     }
 }
-
-Log& Log(const Severity& severity){
-    return Log(severity);
-}
-

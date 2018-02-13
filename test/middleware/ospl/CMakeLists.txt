@@ -10,6 +10,8 @@ if(NOT OSPL_FOUND)
 	return()
 endif()
 
+find_package(Boost 1.30.0 REQUIRED)
+
 
 # Copy this <idl> file into the binary directory so the compilation of generated files can succeed
 configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
