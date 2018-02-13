@@ -5,6 +5,13 @@ project(${PROJ_NAME})
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
 
+find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
+
+if(NOT OPENCL_LIB)
+    message(STATUS "Not Found OpenCL - Not building test_openclworker")
+    return()
+endif()
+
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanagertest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_matrixmult.cpp
