@@ -107,6 +107,7 @@ find_program(RTIDDS_GEN_EXECUTABLE
         $ENV{NDDSHOME}/bin)
 
 if(WIN32)
+    set(RTIDDS_GEN_EXECUTABLE $ENV{NDDSHOME}/bin/rtiddsgen.bat)
     set(DDS_EXTRA_LIBRARIES netapi32 advapi32 user32 ws2_32)
     set(DDS_DEFINITIONS -DRTI_WIN32 -DNDDS_DLL_VARIABLE /MD)
 else(WIN32)
