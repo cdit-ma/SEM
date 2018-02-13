@@ -81,7 +81,7 @@ if(NOT RTI_DDS_HOST)
 endif()
 
 if(NOT RTI_DDS_HOST)
-    message(SEND_ERROR "Error: RTI_DDS_HOST not set as an Environment Variable")
+    message(STATUS "Error: RTI_DDS_HOST not set as an Environment Variable")
     return()
 endif()
 
