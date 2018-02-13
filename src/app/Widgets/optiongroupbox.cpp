@@ -11,8 +11,9 @@
  * @param title
  * @param parent
  */
-OptionGroupBox::OptionGroupBox(QString title, QWidget* parent) : CustomGroupBox(title, parent)
+OptionGroupBox::OptionGroupBox(QString title, SortOrder sort_order, QWidget* parent) : CustomGroupBox(title, parent)
 {
+    this->sort_order = sort_order;
     setupResetAction();
     setTitle(title);
     
@@ -269,7 +270,9 @@ void OptionGroupBox::setupResetAction()
     }
 }
 
-
+int OptionGroupBox::getOptionCount(){
+    return actions_lookup.size();
+}
 /**
  * @brief OptionGroupBox::addOption
  * @param key
@@ -285,7 +288,30 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
         return false;
     }
 
-    auto option_action = getNewOptionAction(put_on_top);
+    QAction* put_below = 0;
+    if(sort_order == SortOrder::REVERSE_INSERTION){
+        sorted_keys.insert(0, key);
+    }else{
+        sorted_keys.append(key);
+    }
+
+    if(sort_order == SortOrder::DESCENDING || sort_order == SortOrder::ASCENDING){
+        std::sort(sorted_keys.begin(), sorted_keys.end());
+
+        if(sort_order == SortOrder::DESCENDING){
+            std::reverse(sorted_keys.begin(), sorted_keys.end());
+        }
+    }
+
+    auto index_of = sorted_keys.indexOf(key) + 1;
+
+    if(index_of < sorted_keys.size()){
+        auto before_key = sorted_keys.at(index_of);
+        put_below = actions_lookup[before_key];
+        
+    }
+
+    auto option_action = getNewOptionAction(put_below);
     option_action->setText(label);
     Theme::StoreActionIcon(option_action, icon_path, icon_name);
     option_action->setProperty(OPTION_KEY, key);
@@ -311,16 +337,11 @@ void OptionGroupBox::updateOptionLabel(QVariant key, QString label){
 }
 
 
-QAction* OptionGroupBox::getNewOptionAction(bool top){
+QAction* OptionGroupBox::getNewOptionAction(QAction* put_below){
     auto button = new QToolButton(this);
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    QAction* action = 0;
-    if(top){
-        action = insertWidget(getTopAction(), button);
-    }else{
-        action = insertWidget(reset_action, button);
-    }
+    auto action = insertWidget(put_below, button);
 
     
     //Connect the button to it's action so we don't need to worry about QToolButton stuff

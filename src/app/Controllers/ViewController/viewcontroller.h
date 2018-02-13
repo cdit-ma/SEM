@@ -94,7 +94,9 @@ public:
 
     void RequestJenkinsNodes();
     void RequestJenkinsBuildJob();
-    void ShowJenkinsBuildDialog(QString job_name, Jenkins_JobParameters paramaters);
+    void RequestJenkinsBuildJobName(QString job_name);
+    void ShowJenkinsBuildDialog(QString job_name, QList<Jenkins_Job_Parameter> paramaters);
+    void ShowJenkinsBuildDialog(QStringList jobs);
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
@@ -165,39 +167,6 @@ signals:
     void mc_undoRedoUpdated();
     //TO CONTROLLER SIGNALS
 
-/*
-    void vc_setupModel();
-    void vc_undo();
-    void vc_redo();
-    void vc_triggerAction(QString);
-    void vc_setData(int, QString, QVariant);
-    void vc_removeData(int, QString);
-    void vc_deleteEntities(QList<int> IDs);
-    void vc_cutEntities(QList<int> IDs);
-    void vc_copyEntities(QList<int> IDs);
-    void vc_paste(QList<int> IDs, QString data);
-    void vc_replicateEntities(QList<int> IDs);
-
-    
-
-    void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
-    void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
-    void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
-
-    void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
-    void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
-
-
-    void vc_importProjects(QStringList fileData);
-    void vc_openProject(QString fileName, QString filePath);
-
-    void vc_projectSaved(QString filePath);
-    void vc_projectPathChanged(QString);*/
-
-    //void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, Notification::Severity s, Notification::Type2 t, Notification::Category c);
-    //void vc_showNotification(Notification::Severity severity, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
-    //void vc_showNotification(Notification::Type type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
-    void vc_executeJenkinsJob(QString filePath);
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
@@ -233,6 +202,8 @@ public slots:
 
     JobMonitor* getExecutionMonitor();
     void showExecutionMonitor();
+    void RefreshExecutionMonitor(QString job_name);
+    void ListJenkinsJobs();
 
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
 
@@ -269,8 +240,6 @@ public slots:
 
     void generateWorkspace();
     void executeModelLocal();
-
-    void executeJenkinsJob();
 
     void fitView();
     void fitAllViews();

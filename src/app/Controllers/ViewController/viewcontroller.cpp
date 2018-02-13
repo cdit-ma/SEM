@@ -43,6 +43,7 @@
 #include <QFutureWatcher>
 #include <iostream>
 #include <sstream>
+#include <QJsonArray>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -83,8 +84,9 @@ ViewController::ViewController() : QObject(){
 
 
 
-    connect(actionController->jenkins_importNodes, &QAction::triggered, this, &ViewController::RequestJenkinsNodes);
-    connect(actionController->jenkins_executeJob, &QAction::triggered, this, &ViewController::RequestJenkinsBuildJob);
+    
+    connect(jenkins_manager, &JenkinsManager::JobQueued, this, &ViewController::RefreshExecutionMonitor);
+    
     
 
     connect(execution_manager, &ExecutionManager::GotCodeForComponent, this, &ViewController::showCodeViewer);
@@ -157,22 +159,53 @@ void ViewController::connectModelController(ModelController* c){
 }
 
 void ViewController::RequestJenkinsNodes(){
-    auto request = jenkins_manager->GetNodes();
+    auto request = jenkins_manager->getJenkinsNodes();
 
     if(request.first){
-        auto future_watcher = new QFutureWatcher<QJsonDocument>(this);
-        connect(future_watcher, &QFutureWatcher<QJsonDocument>::finished, [=](){
-            auto success = future_watcher->result().object()["result"].toBool();
-            if(success){
-                auto graphml = future_watcher->result().object()["graphml"].toString();
-                jenkinsManager_GotJenkinsNodesList(graphml);
-            }
+        auto future_watcher = new QFutureWatcher<QString>(this);
+        connect(future_watcher, &QFutureWatcher<QString>::finished, [=](){
+            auto graphml = future_watcher->result();
+            jenkinsManager_GotJenkinsNodesList(graphml);
         });
         future_watcher->setFuture(request.second);
     }
 }
 
-void ViewController::ShowJenkinsBuildDialog(QString job_name, Jenkins_JobParameters parameters){
+void ViewController::ListJenkinsJobs(){
+    auto request = jenkins_manager->GetJenkinsConfiguration();
+
+    auto list_jobs_future = new QFutureWatcher<QJsonDocument>(this);
+    connect(list_jobs_future, &QFutureWatcher<QJsonDocument>::finished, [=](){
+        auto json = list_jobs_future->result();
+        QList<QString> jobs;
+
+        if(!json.isNull()){
+            auto config = json.object();
+            
+            //Check through the list of jobs to 
+            for(auto job : config["jobs"].toArray()){
+                auto job_name = job.toObject()["name"].toString();
+                jobs += job_name;
+            }
+        }
+        ShowJenkinsBuildDialog(jobs);
+    });
+
+    list_jobs_future->setFuture(request.second);
+}
+
+void ViewController::ShowJenkinsBuildDialog(QStringList job_names){
+    VariableDialog dialog("Launch Jenkins Job");
+    dialog.addOption("Job", SETTING_TYPE::STRINGLIST, job_names);
+
+    auto options = dialog.getOptions();
+    if(options.size()){
+        auto job_name = dialog.getOptionValue("Job").toString();
+        RequestJenkinsBuildJobName(job_name);
+    }
+}
+
+void ViewController::ShowJenkinsBuildDialog(QString job_name, QList<Jenkins_Job_Parameter> parameters){
     VariableDialog dialog("Jenkins: " + job_name + " Parameters");
 
     for(auto parameter : parameters){
@@ -200,20 +233,20 @@ void ViewController::ShowJenkinsBuildDialog(QString job_name, Jenkins_JobParamet
         jenkins_manager->BuildJob(job_name, parameters);
     }
 }
-
 void ViewController::RequestJenkinsBuildJob(){
-    auto job_name = jenkins_manager->GetJobName();
+    RequestJenkinsBuildJobName(jenkins_manager->GetJobName());
+}
+
+
+void ViewController::RequestJenkinsBuildJobName(QString job_name){
     auto request = jenkins_manager->GetJobParameters(job_name);
 
-    //if(request.first){
-    auto future_watcher = new QFutureWatcher<Jenkins_JobParameters>(this);
-
-    connect(future_watcher, &QFutureWatcher<Jenkins_JobParameters>::finished, [=](){
+    auto future_watcher = new QFutureWatcher<QList<Jenkins_Job_Parameter> >(this);
+    connect(future_watcher, &QFutureWatcher<QList<Jenkins_Job_Parameter> >::finished, [=](){
         auto parameters = future_watcher->result();
         ShowJenkinsBuildDialog(job_name, parameters);
     });
     future_watcher->setFuture(request.second);
-    //}
 }
 
 ViewController::~ViewController()
@@ -696,6 +729,11 @@ JobMonitor* ViewController::getExecutionMonitor(){
     return job_monitor;
 }
 
+void ViewController::RefreshExecutionMonitor(QString job_name){
+    showExecutionMonitor();
+    job_monitor->refreshRecentBuildsByName(job_name);
+}
+
 void ViewController::showExecutionMonitor(){
     auto window_manager = WindowManager::manager();
 
@@ -704,9 +742,10 @@ void ViewController::showExecutionMonitor(){
         auto monitor = getExecutionMonitor();
         execution_monitor = constructDockWidget("Execution Monitor", "Icons", "bracketsAngled", monitor);
     }
-
     WindowManager::ShowDockWidget(execution_monitor);
 }
+
+
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
@@ -1652,20 +1691,6 @@ void ViewController::executeModelLocal()
             }
             local_monitor->Clear();
             showExecutionMonitor();
-        }
-    }
-}
-
-
-
-void ViewController::executeJenkinsJob()
-{
-    if(controller){
-        QString data = controller->getProjectAsGraphML();
-        if(!data.isEmpty()){
-            QString filePath = FileHandler::writeTempTextFile(data, ".graphml");
-            showExecutionMonitor();
-            emit vc_executeJenkinsJob(filePath);
         }
     }
 }

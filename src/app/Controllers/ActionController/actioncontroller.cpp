@@ -101,12 +101,11 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
 
 
-        connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
+
+        connect(jenkins_importNodes, &QAction::triggered, viewController, &ViewController::RequestJenkinsNodes);
+        connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::RequestJenkinsBuildJob);
         connect(jenkins_showBrowser, &QAction::triggered, viewController, &ViewController::showExecutionMonitor);
-
-        
-
-
+        connect(jenkins_listJobs, &QAction::triggered, viewController, &ViewController::ListJenkinsJobs);
 
 
 
@@ -387,6 +386,7 @@ void ActionController::updateJenkinsActions()
 
     jenkins_importNodes->setEnabled(controller_ready && got_valid_jenkins);
     jenkins_executeJob->setEnabled(controller_ready && got_valid_jenkins);
+    jenkins_listJobs->setEnabled(controller_ready && got_valid_jenkins);
     jenkins_showBrowser->setEnabled(controller_ready && got_valid_jenkins);
     
     model_generateModelWorkspace->setEnabled(controller_ready && got_java);
@@ -790,6 +790,9 @@ void ActionController::setupActions()
     model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
     model_executeLocalJob->setShortcutContext(Qt::ApplicationShortcut);
     model_executeLocalJob->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
+    
+
+
 
 
     jenkins_importNodes = createRootAction("Jenkins", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
@@ -802,6 +805,11 @@ void ActionController::setupActions()
     jenkins_executeJob->setToolTip("Executes the current project on the Jenkins Server.");
     jenkins_executeJob->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_executeJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
+
+    jenkins_listJobs = createRootAction("Jenkins", "Launch other Jenkins Job", "", "Icons", "jobBuild");
+    jenkins_listJobs->setToolTip("Builds a Jenkins Job.");
+    
+
 
     jenkins_showBrowser = createRootAction("Jenkins", "Show Jenkins Execution Monitor", "", "Icons", "bracketsAngled");
     jenkins_showBrowser->setToolTip("Shows Jenkins Execution Monitor.");
@@ -968,6 +976,8 @@ void ActionController::setupMainMenu()
     menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
     menu_jenkins->addAction(jenkins_showBrowser);
+    menu_jenkins->addAction(jenkins_listJobs);
+    
 
     // Options Menu
     menu_options->addAction(options_settings);

@@ -353,7 +353,7 @@ void SearchDialog::setupLayout()
  */
 void SearchDialog::setupFilters()
 {
-    aspect_filters = new OptionGroupBox("ASPECT", this);
+    aspect_filters = new OptionGroupBox("ASPECT", SortOrder::INSERTION, this);
     filters_layout->addWidget(aspect_filters);
 
     for(auto view_aspect : EntityFactory::getViewAspects()){
@@ -361,7 +361,7 @@ void SearchDialog::setupFilters()
         aspect_filters->addOption(QVariant::fromValue(view_aspect), getViewAspectName(view_aspect), "EntityIcons", EntityFactory::getNodeKindString(node_kind));
     }
 
-    data_filters = new OptionGroupBox("DATA", this);
+    data_filters = new OptionGroupBox("DATA", SortOrder::INSERTION, this);
     filters_layout->addWidget(data_filters);
 
     connect(aspect_filters, &OptionGroupBox::checkedOptionsChanged, this, &SearchDialog::filtersChanged);

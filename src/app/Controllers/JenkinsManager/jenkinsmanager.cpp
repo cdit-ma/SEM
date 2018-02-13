@@ -1,56 +1,40 @@
 #include "jenkinsmanager.h"
-#include "jenkinsrequest.h"
-
 #include "../ViewController/viewcontroller.h"
-#include "../ActionController/actioncontroller.h"
 #include "../NotificationManager/notificationmanager.h"
-
 #include "../../Utils/filehandler.h"
-#include "../../Widgets/Dialogs/variabledialog.h"
-#include "../../Widgets/Monitors/jenkinsmonitor.h"
-#include "../../Widgets/Monitors/jobmonitor.h"
 
-#include <QStringBuilder>
 #include <QApplication>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QFutureWatcher>
-#include <QUrlQuery>
 #include <QHttpMultiPart>
+#include <QUrlQuery>
 
-
-JenkinsManager::JenkinsManager(ViewController* view_controller) : QObject(view_controller)
+JenkinsManager::JenkinsManager(ViewController* view_controller):
+    QObject(view_controller),
+    var_mutex_(QMutex::Recursive)
 {
-    //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
-    qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
-    qRegisterMetaType<Jenkins_Job_Statuses>("Jenkins_Job_Statuses");
-    
-
     view_controller_ = view_controller;
-    //Set script directory
-    scipts_path_ = QApplication::applicationDirPath() % "/Resources/scripts/";
 
-    //Connect to settings changes
-    SettingsController* settings = SettingsController::settings();
+    //Set scripts
+    scripts_path_ = QApplication::applicationDirPath() + "/Resources/scripts/";
+
+    auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, this, &JenkinsManager::SettingChanged);
-    connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::settingsApplied);
+    connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::ValidateSettings);
+    connect(this, &JenkinsManager::SettingsValidated, view_controller, &ViewController::GotJenkins);
 
     //Sync settings to JenkinsManager
-    foreach(SETTINGS key, settings->getSettingsKeys("Jenkins")){
+    for(auto key : settings->getSettingsKeys("Jenkins")){
         SettingChanged(key, settings->getSetting(key));
     }
 
-
-    connect(this, &JenkinsManager::GotJenkinsNodes, view_controller, &ViewController::jenkinsManager_GotJenkinsNodesList);
-    connect(this, &JenkinsManager::JenkinsReady, view_controller, &ViewController::GotJenkins);
-
-    //connect(view_controller, &ViewController::vc_executeJenkinsJob, this, &JenkinsManager::BuildJob);
-
-    auto action_controller = view_controller->getActionController();
-    
-
-    //Validate
     ValidateSettings();
+}
+
+QString JenkinsManager::GetUrl()
+{
+    QMutexLocker lock(&var_mutex_);
+    return url_;
 }
 
 QString JenkinsManager::GetUser()
@@ -59,9 +43,30 @@ QString JenkinsManager::GetUser()
     return username_;
 }
 
+QString JenkinsManager::GetJobName()
+{
+    QMutexLocker lock(&var_mutex_);
+    return job_name_;
+}
+
+QString JenkinsManager::GetApiToken()
+{
+    QMutexLocker lock(&var_mutex_);
+    return token_;
+}
+
+QString JenkinsManager::GetScriptsPath(){
+    QMutexLocker lock(&var_mutex_);
+    return scripts_path_;
+}
+
+QString JenkinsManager::GetArtifactUrl(const QString& job_name, const int job_number, const QString& relative_path){
+    return GetUrl() + "job/" + GetJobStatusKey(job_name, job_number) + "/artifact/" + relative_path;
+}
+
 void JenkinsManager::SetUrl(QString url)
 {
-    //Enforce a trailing /
+    //Enforce a trailing forward-slash
     if(!url.endsWith("/")){
         url += "/";
     }
@@ -69,8 +74,7 @@ void JenkinsManager::SetUrl(QString url)
     QMutexLocker lock(&var_mutex_);
     if(url_ != url){
         url_ = url;
-        settings_changed = true;
-        settings_validated_ = false;
+        SetSettingsDirty();
     }
 }
 
@@ -79,8 +83,7 @@ void JenkinsManager::SetUser(QString user)
     QMutexLocker lock(&var_mutex_);
     if(username_ != user){
         username_ = user;
-        settings_changed = true;
-        settings_validated_ = false;
+        SetSettingsDirty();
     }
 }
 
@@ -89,8 +92,7 @@ void JenkinsManager::SetApiToken(QString api_token)
     QMutexLocker lock(&var_mutex_);
     if(token_ != api_token){
         token_ = api_token;
-        settings_changed = true;
-        settings_validated_ = false;
+        SetSettingsDirty();
     }
 }
 
@@ -99,9 +101,15 @@ void JenkinsManager::SetJobName(QString job_name)
     QMutexLocker lock(&var_mutex_);
     if(job_name_ != job_name){
         job_name_ = job_name;
-        settings_changed = true;
-        settings_validated_ = false;
+        SetSettingsDirty();
     }
+}
+
+void JenkinsManager::SetSettingsDirty()
+{
+    QMutexLocker lock(&var_mutex_);
+    settings_dirty_ = true;
+    settings_validated_ = false;
 }
 
 bool JenkinsManager::GotValidSettings()
@@ -116,48 +124,51 @@ bool JenkinsManager::WaitForSettingsValidation(){
     return GotValidSettings();
 }
 
-
-void JenkinsManager::settingsApplied(){
-    if(settings_changed){
-        ValidateSettings();
-    }
+QPair<bool, QFuture<QString> > JenkinsManager::getJenkinsNodes()
+{
+    auto groovy_script = FileHandler::readTextFile(GetScriptsPath() + "Jenkins_Construct_GraphMLNodesList.groovy");
+    return ExecuteGroovyScript("Get Jenkins Nodes", groovy_script);
 }
 
-
-JenkinsRequest *JenkinsManager::GetJenkinsRequest(QObject *parent)
-{
-    //Always start validation, if necessary
-    ValidateSettings();
-
-    //Construct a new JenkinsRequest, with the JenkinsManager passed as a parameter
-    //The request wil be placed onto another thread
-    JenkinsRequest* request = new JenkinsRequest(this, parent);
-
-    QMutexLocker lock(&var_mutex_);
-    requests.append(request);
-    return request;
-}
-
-QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetNodes()
-{
-    auto future_key = GetUrl() + "runscript/Get_Nodes";
+QPair<bool, QFuture<QString> > JenkinsManager::ExecuteGroovyScript(QString title, QString groovy_script){
+    auto future_key = GetUrl() + "Run_Groovy/" + title;
 
     QMutexLocker lock(&futures_mutex_);
     
     //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto &future = url_futures_[future_key];
+    auto &future = string_futures_[future_key];
     bool made_request = false;
 
-    if(!future.isRunning()){
-        auto script = FileHandler::readTextFile(scipts_path_ + "Jenkins_Construct_GraphMLNodesList.groovy");
-        future = QtConcurrent::run(this, &JenkinsManager::RequestGroovyScriptExecution, QString("Request Jenkins Nodes"), script);
+    if(GotValidSettings() && !future.isRunning()){
+        future = QtConcurrent::run(this, &JenkinsManager::RequestExecuteGroovyScript, title, groovy_script);
         made_request = true;
     }
 
     return {made_request, future};
 }
 
-SETTING_TYPE JenkinsManager::GetSettingType(QString &parameter_type){
+QString JenkinsManager::RequestExecuteGroovyScript(QString title, QString groovy_script){
+    QString output;
+
+    if(WaitForSettingsValidation()){
+        auto notification = NotificationManager::manager()->AddNotification(title, "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::JENKINS);
+        
+        ProcessRunner runner;
+        
+        QUrlQuery script;
+        //Encode the script
+        script.addQueryItem("script", QUrl::toPercentEncoding(groovy_script));
+        
+        auto script_bytes = script.toString().toUtf8();
+        auto api_request = getAuthenticatedRequest(GetUrl() + "scriptText");
+        auto api_result = runner.HTTPPost(api_request, script_bytes);
+        output = api_result.standard_output;
+        notification->setSeverity(api_result.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+    }
+    return output;
+}
+
+SETTING_TYPE JenkinsManager::GetSettingType(const QString &parameter_type){
     SETTING_TYPE type = SETTING_TYPE::STRING;
     
     if(parameter_type == "String"){
@@ -170,88 +181,30 @@ SETTING_TYPE JenkinsManager::GetSettingType(QString &parameter_type){
     return type;
 }
 
-void JenkinsManager::BuildJob(QString model_file)
-{
-    if(GotValidSettings()){
-        //Construct a new JenkinsRequest Object.
-        auto jenkins_request = GetJenkinsRequest(this);
+QPair<bool, QFuture<Jenkins_Job_Status> > JenkinsManager::GetJobStatus(QString job_name, int job_number){
+    auto hash_key = GetUrl() + GetJobStatusKey(job_name, job_number) + "/job_status";
+    QMutexLocker lock(&futures_mutex_);
     
-        //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-        auto r = connect(this, &JenkinsManager::getJobParameters, jenkins_request, &JenkinsRequest::GetJobParameters);
-        //Run some lambda
-        connect(jenkins_request, &JenkinsRequest::GotJobParameters, this, [=](QString job_name, Jenkins_JobParameters parameters){
+    //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
+    auto &future = status_futures_[hash_key];
+    bool made_request = false;
 
-            VariableDialog dialog("Jenkins: " + job_name_ + " Parameters");
-
-            for(auto parameter : parameters){
-                auto default_value = parameter.defaultValue;
-                bool is_file_model = parameter.name == "model" && (parameter.type == SETTING_TYPE::FILE);
-                
-                if(is_file_model){
-                    default_value = model_file;
-                }
-
-                dialog.addOption(parameter.name, parameter.type, default_value);
-                dialog.setOptionIcon(parameter.name, "Icons", "label");
-                //Disable model upload
-                dialog.setOptionEnabled(parameter.name, !is_file_model);
-            }
-
-            auto options = dialog.getOptions();
-
-            auto got_options = options.size() == parameters.size();
-            
-            if(got_options){
-                for(auto& parameter : parameters){
-                    parameter.value = dialog.getOptionValue(parameter.name).toString();
-                }
-
-                auto jenkins_build = GetJenkinsRequest();
-            
-                auto build_job = connect(this, &JenkinsManager::buildJob, jenkins_build, &JenkinsRequest::BuildJob);
-                
-                emit buildJob(job_name_, parameters);
-                disconnect(build_job);
-
-                connect(jenkins_build, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
-                connect(jenkins_build, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
-                connect(jenkins_build, &JenkinsRequest::BuildingJob, this, &JenkinsManager::BuildingJob);
-                
-            }
-        }, Qt::QueuedConnection);
-        
-        emit getJobParameters(job_name_);
-        disconnect(r);
+    //Don't allow requests once the the state is finished
+    if(!future.isRunning() && ShouldRequestJob(job_name, job_number)){
+        future = QtConcurrent::run(this, &JenkinsManager::RequestGetJobStatus, job_name, job_number);
+        made_request = true;
     }
+
+    return {made_request, future};
 }
 
-void JenkinsManager::GetJobConsoleOutput(QString job_name, int job_number){
-    auto jenkins_request = GetJenkinsRequest();
-            
-    auto request_console_job = connect(this, &JenkinsManager::getJobConsole, jenkins_request, &JenkinsRequest::GetJobConsoleOutput);
-    emit getJobConsole(job_name, job_number);
-    disconnect(request_console_job);
-
-    connect(jenkins_request, &JenkinsRequest::GotJobStateChange, this, &JenkinsManager::gotJobStateChange);
-    connect(jenkins_request, &JenkinsRequest::GotLiveJobConsoleOutput, this, &JenkinsManager::gotJobConsoleOutput);
-    connect(jenkins_request, &JenkinsRequest::GotJobArtifacts, this, &JenkinsManager::gotJobArtifacts);
+Jenkins_Job_Status JenkinsManager::RequestGetJobStatus(QString job_name, int job_number){
+    //Get the Job Configuration
+    auto configuration_future = GetJobConfiguration(job_name, job_number).second;
+    //Wait for it to finish
+    configuration_future.waitForFinished();
+    return GetCachedJobStatus(job_name, job_number);
 }
-
-void JenkinsManager::GetRecentJobs(QString job_name){
-    auto jenkins_request = GetJenkinsRequest();
-            
-    auto request_job = connect(this, &JenkinsManager::getRecentJobs, jenkins_request, &JenkinsRequest::GetRecentJobs);
-    auto filter_by_active_user = SettingsController::settings()->getSetting(SETTINGS::JENKINS_REQUEST_USER_JOBS).toBool();
-
-
-    emit getRecentJobs(job_name, 10, filter_by_active_user);
-    disconnect(request_job);
-
-    connect(jenkins_request, &JenkinsRequest::gotRecentJobs, this, &JenkinsManager::gotRecentJobs);
-}
-
-
-
 
 void JenkinsManager::GotoJob(QString job_name, int build_number){
     auto url = GetUrl() + "job/" + job_name + "/" + QString::number(build_number);
@@ -259,33 +212,28 @@ void JenkinsManager::GotoJob(QString job_name, int build_number){
 }
 
 
-void JenkinsManager::AbortJob2(QString job_name, int job_number){
-}
-
-
-
 void JenkinsManager::SettingChanged(SETTINGS key, QVariant value)
 {
-    QString strValue = value.toString();
+    auto str_value = value.toString();
 
     switch(key){
     case SETTINGS::JENKINS_API:{
-        SetApiToken(strValue);
+        SetApiToken(str_value);
         break;
     }
     case SETTINGS::JENKINS_JOBNAME:{
-        SetJobName(strValue);
+        SetJobName(str_value);
         break;
     }
     case SETTINGS::JENKINS_USER:{
-        SetUser(strValue);
+        SetUser(str_value);
         break;
     }
     case SETTINGS::JENKINS_URL:{
-        SetUrl(strValue);
+        SetUrl(str_value);
         break;
     }
-    case SETTINGS::JENKINS_APPLY:{
+    case SETTINGS::JENKINS_TEST:{
         ValidateSettings();
         break;
     }
@@ -295,14 +243,15 @@ void JenkinsManager::SettingChanged(SETTINGS key, QVariant value)
 }
 
 
-QPair<bool, QFuture<QJsonDocument> > JenkinsManager::ValidateSettings()
+QPair<bool, QFuture<bool> > JenkinsManager::ValidateSettings()
 {
-    auto api_url = GetUrl() + "/api/json";
+    auto hash_key = GetUrl() + "/api/json";
     QMutexLocker lock(&futures_mutex_);
     
-    //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto &future = url_futures_[api_url];
+    //Get the future used by the hash_key (If we don't have one it will construct a finished QFuture)
+    auto &future = bool_futures_[hash_key];
     bool made_request = false;
+
     if(!GotValidSettings() && !future.isRunning()){
         future = QtConcurrent::run(this, &JenkinsManager::RequestValidation);
         made_request = true;
@@ -311,21 +260,61 @@ QPair<bool, QFuture<QJsonDocument> > JenkinsManager::ValidateSettings()
     return {made_request, future};
 }
 
-QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJobConfiguration(QString job_name, int job_number, bool re_request)
-{
-    qCritical() << "JenkinsManager::GetJobConfiguration()" << job_name << ":" << job_number;
-
-    auto api_url = GetUrl() + GetJobStatusKey(job_name, job_number) + "/api/json";
+QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJenkinsConfiguration(){
+    auto hash_key = GetUrl() + "/api/json";
     QMutexLocker lock(&futures_mutex_);
     
-    //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto got_result = url_futures_.contains(api_url);
-    auto &future = url_futures_[api_url];
+    //Get the future used by the hash_key (If we don't have one it will construct a finished QFuture)
+    auto got_result = json_futures_.contains(hash_key);
+    auto &future = json_futures_[hash_key];
+    bool made_request = false;
+
+    if(!got_result && !future.isRunning()){
+        future = QtConcurrent::run(this, &JenkinsManager::RequestJenkinsConfiguration, true);
+        made_request = true;
+    }
+
+    return {made_request, future};
+}
+
+QJsonDocument JenkinsManager::RequestJenkinsConfiguration(bool auth){
+    QJsonDocument document;
+    auto api_url = GetUrl() + "/api/json";
+
+    ProcessRunner runner;
+    
+    auto api_request = getAuthenticatedRequest(api_url, auth);
+    auto api_result = runner.HTTPGet(api_request);
+
+
+    if(api_result.success){
+        //Get the JSON our request
+        document = QJsonDocument::fromJson(api_result.standard_output.toUtf8());
+        //Store the document
+        if(auth){
+            QMutexLocker lock(&cache_mutex_);
+            cached_json_[api_url] = document;
+        }
+    }else{
+        QJsonObject json_result;
+        json_result.insert("ErrorCode", QJsonValue::fromVariant(api_result.error_code));
+        document = QJsonDocument(json_result);
+    }
+    return document;
+}
+
+QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJobConfiguration(QString job_name, int job_number)
+{
+
+    auto hash_key = GetUrl() + GetJobStatusKey(job_name, job_number) + "/api/json";
+    QMutexLocker lock(&futures_mutex_);
+    
+    //Get the future used by the hash_key (If we don't have one it will construct a finished QFuture)
+    auto &future = json_futures_[hash_key];
     bool made_request = false;
 
     //Only request if we aren't already running one, and we actually need to
-    if(!future.isRunning() && (!got_result || re_request)){
-        
+    if(!future.isRunning() && ShouldRequestJob(job_name, job_number)){
         future = QtConcurrent::run(this, &JenkinsManager::RequestJobConfiguration, job_name, job_number);
         made_request = true;
     }
@@ -333,9 +322,64 @@ QPair<bool, QFuture<QJsonDocument> > JenkinsManager::GetJobConfiguration(QString
     return {made_request, future};
 }
 
-QJsonDocument JenkinsManager::RequestJobConfiguration(QString job_name, int job_number)
-{
-    qCritical() << "JenkinsManager::RequestJobConfiguration()" << job_name << ":" << job_number;
+bool JenkinsManager::ShouldRequestJob(const QString& job_name, const int job_number){
+    auto status = GetCachedJobStatus(job_name, job_number);
+    return GotValidSettings() && (status.state == Notification::Severity::NONE || status.state == Notification::Severity::RUNNING);
+}
+
+Jenkins_Job_Status JenkinsManager::GetCachedJobStatus(const QString& job_name, const int job_number){
+    auto hash_key = GetUrl() + "job/" + GetJobStatusKey(job_name, job_number) + "/api/json";
+
+    Jenkins_Job_Status job_state;
+    job_state.name = job_name;
+    job_state.number = job_number;
+    job_state.state = Notification::Severity::NONE;
+    
+    QMutexLocker lock(&cache_mutex_);
+    if(cached_json_.contains(hash_key)){
+        auto& json = cached_json_[hash_key];
+        auto config = json.object();
+        
+        job_state.description  = config["description"].toString();
+        
+        for(auto j : config["actions"].toArray()){
+            auto class_name = j.toObject()["_class"].toString();
+            if(class_name == "hudson.model.CauseAction"){
+                auto user_id = j.toObject()["causes"].toArray()[0].toObject()["userId"].toString();
+                job_state.user_id = user_id;
+                break;
+            }
+        }
+        
+        //Duration on complete is correct
+        job_state.current_duration = config["duration"].toInt();
+
+        //Get the array which contains the result.
+        if(config.contains("building")){
+            bool building = config["building"].toBool();
+            if(building){
+                job_state.state  = Notification::Severity::RUNNING;
+            }else{
+                QString result = config["result"].toString();
+                if(result == "SUCCESS"){
+                    job_state.state  = Notification::Severity::SUCCESS;
+                }else if(result == "ABORTED"){
+                    job_state.state = Notification::Severity::INFO;
+                }else{
+                    job_state.state = Notification::Severity::ERROR;
+                }
+            }
+        }
+        
+        //Set the State for a top level job
+        if(job_number == -1){
+            job_state.state  = Notification::Severity::RUNNING;
+        }
+    }
+    return job_state;
+}
+
+QJsonDocument JenkinsManager::RequestJobConfiguration(QString job_name, int job_number){
     QJsonDocument document;
     
     if(WaitForSettingsValidation()){
@@ -344,24 +388,24 @@ QJsonDocument JenkinsManager::RequestJobConfiguration(QString job_name, int job_
         auto api_request = getAuthenticatedRequest(api_url);
         auto api_result = runner.HTTPGet(api_request);
 
-        qCritical() << api_url;
-        
         if(api_result.success){
-            document = QJsonDocument::fromJson(api_result.standard_output.toUtf8());
+            auto output = api_result.standard_output.toUtf8();
+            document = QJsonDocument::fromJson(output);
+            //Insert the cached_document into the map
+            QMutexLocker lock(&cache_mutex_);
+            cached_json_[api_url] = document;
         }
     }
     return document;
 }
 
-QPair<bool, QFuture<Jenkins_JobParameters> > JenkinsManager::GetJobParameters(QString job_name){
-    qCritical() << "JenkinsManager::GetJobParameters()" << job_name;
-
-    auto api_url = GetUrl() + GetJobStatusKey(job_name) + "/get_job_parameters";
+QPair<bool, QFuture<QList<Jenkins_Job_Parameter> > > JenkinsManager::GetJobParameters(QString job_name){
+    auto hash_key = GetUrl() + GetJobStatusKey(job_name) + "/get_job_parameters";
     QMutexLocker lock(&futures_mutex_);
     
     //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto got_result = parameter_futures_.contains(api_url);
-    auto &future = parameter_futures_[api_url];
+    auto got_result = parameter_futures_.contains(hash_key);
+    auto &future = parameter_futures_[hash_key];
     bool made_request = false;
 
     //Only request if we aren't already running one, and we actually need to
@@ -374,13 +418,11 @@ QPair<bool, QFuture<Jenkins_JobParameters> > JenkinsManager::GetJobParameters(QS
 }
 
 
-Jenkins_JobParameters JenkinsManager::RequestJobParameters(QString job_name){
-    qCritical() << "RequestJobParameters" << job_name;
-    Jenkins_JobParameters job_parameters;
+QList<Jenkins_Job_Parameter> JenkinsManager::RequestJobParameters(QString job_name){
+    QList<Jenkins_Job_Parameter> job_parameters;
 
     //Request the job configuration
-    auto json_future = GetJobConfiguration(job_name, -1, false).second;
-    qCritical() << "Waiting On Results";
+    auto json_future = GetJobConfiguration(job_name, -1).second;
     auto json = json_future.result();
     
     if(!json.isNull()){
@@ -407,6 +449,8 @@ Jenkins_JobParameters JenkinsManager::RequestJobParameters(QString job_name){
                     break;
                 }
             }
+        }else if(job_type == "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"){
+            
         }else{
             qCritical() << "JenkinsManager::RequestJobParameters(" << job_name << "): Can't handle Job of Type: '" << job_type << "'";
         }
@@ -422,15 +466,19 @@ Jenkins_JobParameters JenkinsManager::RequestJobParameters(QString job_name){
             auto type_str = parameter_obj["type"].toString().replace("ParameterDefinition", "");
             job_parameter.type = GetSettingType(type_str);
             
-            auto default_value = parameter_obj["defaultParameterValue"].toObject()["value"];
-            if(default_value.isBool()){
-                if(default_value.toBool()){
-                    job_parameter.defaultValue = "true";
-                }else{
-                    job_parameter.defaultValue = "false";
+            auto default_param = parameter_obj["defaultParameterValue"];
+
+            if(default_param.isObject()){
+                auto default_value = default_param.toObject()["value"];
+                if(default_value.isBool()){
+                    if(default_value.toBool()){
+                        job_parameter.defaultValue = "true";
+                    }else{
+                        job_parameter.defaultValue = "false";
+                    }
+                }else if(default_value.isString()){
+                    job_parameter.defaultValue = default_value.toString("");
                 }
-            }else{
-                job_parameter.defaultValue = default_value.toString();
             }
             //Add it the jobParameter List
             job_parameters.append(job_parameter);
@@ -439,13 +487,12 @@ Jenkins_JobParameters JenkinsManager::RequestJobParameters(QString job_name){
     return job_parameters;
 }
 
-QPair<bool, QFuture<QJsonDocument> > JenkinsManager::BuildJob(QString job_name, Jenkins_JobParameters job_parameters){
-    qCritical() << "JenkinsManager::BuildJob()" << job_name;
-    auto api_url = GetUrl() + "/" + job_name + "/build";
+QPair<bool, QFuture<bool> > JenkinsManager::BuildJob(QString job_name, QList<Jenkins_Job_Parameter> job_parameters){
+    auto hash_key = GetUrl() + "/" + job_name + "/build";
     QMutexLocker lock(&futures_mutex_);
     
     //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto &future = url_futures_[api_url];
+    auto &future = bool_futures_[hash_key];
     bool made_request = false;
     if(!future.isRunning()){
         future = QtConcurrent::run(this, &JenkinsManager::RequestBuildJob, job_name, job_parameters);
@@ -454,11 +501,9 @@ QPair<bool, QFuture<QJsonDocument> > JenkinsManager::BuildJob(QString job_name, 
     return {made_request, future};
 }
 
-QJsonDocument JenkinsManager::RequestBuildJob(QString job_name, Jenkins_JobParameters job_parameters)
+bool JenkinsManager::RequestBuildJob(QString job_name, QList<Jenkins_Job_Parameter> job_parameters)
 {
-    qCritical() << "JenkinsManager::RequestBuildJob()" << job_name;
     bool result = false;
-    
     auto notification = NotificationManager::manager()->AddNotification("Build Job '" + job_name + "'", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::JENKINS);
     
     if(WaitForSettingsValidation()){
@@ -529,24 +574,52 @@ QJsonDocument JenkinsManager::RequestBuildJob(QString job_name, Jenkins_JobParam
         }
     }
 
-    QJsonObject json_result;
-    json_result.insert("result", QJsonValue::fromVariant(result));
-    return QJsonDocument(json_result);
+    emit JobQueued(job_name);
+    return result;
 }
 
 
-
-
-
-QPair<bool, QFuture<QJsonDocument> > JenkinsManager::AbortJob(QString job_name, int job_number){
-    auto api_url = GetUrl() + "job/" + job_name + "/" + QString::number(job_number) + "/stop";
+QPair<bool, QFuture<QString> > JenkinsManager::GetJobConsoleOutput(QString job_name, int job_number){
+    auto hash_key = GetUrl() + "job/" + job_name + "/" + QString::number(job_number) + "/consoleText";
     QMutexLocker lock(&futures_mutex_);
     
     //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
-    auto &future = url_futures_[api_url];
+    auto &future = string_futures_[hash_key];
     bool made_request = false;
 
-    if(!GotValidSettings() && !future.isRunning()){
+    if(GotValidSettings() && !future.isRunning()){
+        future = QtConcurrent::run(this, &JenkinsManager::RequestJobConsoleOutput, job_name, job_number);
+        made_request = true;
+    }
+
+    return {made_request, future};
+}
+
+QString JenkinsManager::RequestJobConsoleOutput(QString job_name, int job_number){
+    QString console_output;
+    if(WaitForSettingsValidation()){
+        ProcessRunner runner;
+        auto api_url = GetUrl() + "job/" + GetJobStatusKey(job_name, job_number) + "/consoleText";
+        auto api_request = getAuthenticatedRequest(api_url);
+        auto api_result = runner.HTTPGet(api_request);
+
+        if(api_result.success){
+            console_output = api_result.standard_output;
+        }
+    }
+    return console_output;
+}
+
+
+QPair<bool, QFuture<bool> > JenkinsManager::AbortJob(QString job_name, int job_number){
+    auto hash_key = GetUrl() + "job/" + job_name + "/" + QString::number(job_number) + "/stop";
+    QMutexLocker lock(&futures_mutex_);
+    
+    //Get the future used by the api_url (If we don't have one it will construct a finished QFuture)
+    auto &future = bool_futures_[hash_key];
+    bool made_request = false;
+
+    if(GotValidSettings() && !future.isRunning()){
         future = QtConcurrent::run(this, &JenkinsManager::RequestAbortJob, job_name, job_number);
         made_request = true;
     }
@@ -554,10 +627,8 @@ QPair<bool, QFuture<QJsonDocument> > JenkinsManager::AbortJob(QString job_name, 
     return {made_request, future};
 }
 
-
-QJsonDocument JenkinsManager::RequestAbortJob(QString job_name, int job_number){
+bool JenkinsManager::RequestAbortJob(QString job_name, int job_number){
     bool success = false;
-    QJsonObject json_result;
 
     if(WaitForSettingsValidation()){
         auto job_number_str = QString::number(job_number);
@@ -572,79 +643,32 @@ QJsonDocument JenkinsManager::RequestAbortJob(QString job_name, int job_number){
         notification->setTitle(api_result.success ? "Stopped Jenkins Job '" + job_name + "' #" + job_number_str : "Failed to stop Jenkins Job '" + job_name + "' #" + job_number_str);
         notification->setSeverity(api_result.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     }
-    json_result.insert("result", QJsonValue::fromVariant(success));
-    return QJsonDocument(json_result);
+    return success;
 }
 
-void JenkinsManager::GetNodes_(QString groovy_script){
-    if(GotValidSettings()){
-        auto notification = NotificationManager::manager()->AddNotification("Requesting Jenkins Nodes", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::JENKINS);
-        
-        ProcessRunner runner;
-        
-        QUrlQuery script;
-        //Encode the script
-        script.addQueryItem("script", QUrl::toPercentEncoding(groovy_script));
-        
-        auto script_bytes = script.toString().toUtf8();
-        auto api_request = getAuthenticatedRequest(GetUrl() + "scriptText");
-        auto api_result = runner.HTTPPost(api_request, script_bytes);
-        auto graphml = api_result.standard_output;
-    
-        auto success = api_result.success && graphml.size();
-        if(success){
-            emit GotJenkinsNodes(graphml);
-        }
-        notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        notification->setTitle(success ? "Successfully requested Jenkins nodes" : "Failed to request Jenkins nodes: ");
-    }
-}
-
-QJsonDocument JenkinsManager::RequestValidation(){
-
+bool JenkinsManager::RequestValidation(){
     //Construct a Notification for validating
     auto notification = NotificationManager::manager()->AddNotification("Validating Jenkins Settings", "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::JENKINS);
-    auto api_url = GetUrl() + "/api/json";
-    auto api_request = getAuthenticatedRequest(api_url, false);
-
-    //Construct a process runner
-    ProcessRunner runner;
     
+    //Test Location of server
+    auto unvalidated_json = RequestJenkinsConfiguration(false);
+
+    auto config = unvalidated_json.object();
+
     bool result = false;
     QString result_string;
-
-    //Run an un-authed api call first (To Check for server existance)
-    auto api_result = runner.HTTPGet(api_request);
-
-    //If we succeeded, re-run an authorized command
-    if(api_result.success){
-        auto api_auth_request = getAuthenticatedRequest(api_url, true);
-        api_result = runner.HTTPGet(api_auth_request);
+    
+    if(!config.contains("ErrorCode")){
+        //Request a Validated Jenkins Configuration
+        auto request_configuration = GetJenkinsConfiguration();
+        //Block for results
+        auto validated_json = request_configuration.second.result();
+        //Updated our config
+        config = validated_json.object();
     }
 
-    if(api_result.success){
-        //Get the JSON our request
-        auto json = QJsonDocument::fromJson(api_result.standard_output.toUtf8()).object();
-        auto required_job_name = GetJobName();
-
-        auto got_job = false;
-
-        //Check through the list of jobs to 
-        for(auto j : json["jobs"].toArray()){
-            auto job_name = j.toObject()["name"].toString();
-            if(job_name == required_job_name){
-                got_job = true;
-                break;
-            }
-        }
-        
-        if(got_job){
-            result = true;
-        }else{
-            result_string = "No Job Called '" + required_job_name + "'";
-        }
-    }else{
-        auto error = (QNetworkReply::NetworkError) api_result.error_code;
+    if(config.contains("ErrorCode")){
+        auto error = (QNetworkReply::NetworkError) config["ErrorCode"].toInt();
         switch(error){
             case QNetworkReply::HostNotFoundError:{
                 result_string = "Host Not Found";
@@ -667,79 +691,60 @@ QJsonDocument JenkinsManager::RequestValidation(){
                 break;
             }
         }
+    }else{
+        auto required_job_name = GetJobName();
+
+        auto got_job = false;
+
+        //Check through the list of jobs to 
+        for(auto job : config["jobs"].toArray()){
+            auto job_name = job.toObject()["name"].toString();
+            if(job_name == required_job_name){
+                got_job = true;
+                break;
+            }
+        }
+        
+        if(got_job){
+            result = true;
+        }else{
+            result_string = "Doesn't have Job named: '" + required_job_name + "'";
+        }
     }
 
     //Update the notification
     notification->setSeverity(result ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     notification->setTitle(result ? "Jenkins settings validated successfully": "Jenkins settings invalid");
     notification->setDescription(result_string);
-
     SetSettingsValidated(result);
-
-    QJsonObject json_result;
-    json_result.insert("result", QJsonValue::fromVariant(result));
-
-    return QJsonDocument(json_result);
-}
-
-QJsonDocument JenkinsManager::RequestGroovyScriptExecution(QString title, QString groovy_script){
-    QJsonObject json_result;
-    {
-        auto validate_future = ValidateSettings().second;
-        validate_future.waitForFinished();
-    }
-
-    if(GotValidSettings()){
-        auto notification = NotificationManager::manager()->AddNotification(title, "Icons", "jenkinsFlat", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::JENKINS);
-        
-        ProcessRunner runner;
-        
-        QUrlQuery script;
-        //Encode the script
-        script.addQueryItem("script", QUrl::toPercentEncoding(groovy_script));
-        
-        auto script_bytes = script.toString().toUtf8();
-        auto api_request = getAuthenticatedRequest(GetUrl() + "scriptText");
-        auto api_result = runner.HTTPPost(api_request, script_bytes);
-        auto success = api_result.success;
-
-        json_result.insert("result", QJsonValue::fromVariant(success));
-        json_result.insert("graphml", QJsonValue::fromVariant(api_result.standard_output));
-
-        notification->setSeverity(success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        //notification->setTitle(title);
-    }
-    return QJsonDocument(json_result);
+    return result;
 }
 
 void JenkinsManager::SetSettingsValidated(bool valid){
-    qCritical() << "VALIDATED SETTINGS";
-    QMutexLocker lock(&var_mutex_);
-    settings_validated_ = valid;
-    settings_changed = false;
-    jobsJSON.clear();
-    emit JenkinsReady(settings_validated_);
+    {
+        QMutexLocker future_lock(&futures_mutex_);
+        //Clear all futures
+        json_futures_.clear();
+        bool_futures_.clear();
+        string_futures_.clear();
+        parameter_futures_.clear();
+        status_futures_.clear();
+    }
+    {
+        QMutexLocker cache_lock(&cache_mutex_);
+        cached_json_.clear();
+    }
+    {
+        QMutexLocker var_lock(&var_mutex_);
+        settings_validated_ = valid;
+        settings_dirty_ = false;
+        emit SettingsValidated(settings_validated_);
+    }
 }
 
 
-void JenkinsManager::jenkinsRequestFinished(JenkinsRequest *request)
-{
-    requests.removeAll(request);
-}
 
-QString JenkinsManager::GetUrl()
-{
-    QMutexLocker lock(&var_mutex_);
-    return url_;
-}
-
-void JenkinsManager::storeJobConfiguration(QString jobName, QJsonDocument json)
-{
-    QMutexLocker lock(&var_mutex_);
-    jobsJSON[jobName] = json;
-}
-
-QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url, bool auth)
+QNetworkRequest JenkinsManager::getAuthenticatedRequest(const QString& url, bool auth)
 {
     QNetworkRequest request;
     request.setUrl(QUrl(url));
@@ -757,72 +762,7 @@ QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url, bool auth)
     return request;
 }
 
-QJsonDocument JenkinsManager::getJobConfiguration(QString job_name)
-{    
-    QMutexLocker lock(&var_mutex_);
-    return jobsJSON.value(job_name, QJsonDocument());
-}
-
-QString JenkinsManager::GetJobName()
-{
-    QMutexLocker lock(&var_mutex_);
-    return job_name_;
-}
-
-QString JenkinsManager::GetApiToken()
-{
-    QMutexLocker lock(&var_mutex_);
-    return token_;
-}
-
-Jenkins_Job_Status JenkinsManager::GetJobStatus(QString job_name, int build_number){
-    auto cache_name = GetJobStatusKey(job_name, build_number);
-    auto current_configuration = getJobConfiguration(cache_name);
-
-    Jenkins_Job_Status job_state;
-    job_state.name = job_name;
-    job_state.number = build_number;
-    job_state.state = Notification::Severity::NONE;
-    
-    if(!current_configuration.isNull()){
-        auto config = current_configuration.object();
-        
-        job_state.description  = config["description"].toString();
-        
-
-        for(auto j : config["actions"].toArray()){
-            auto class_name = j.toObject()["_class"].toString();
-            if(class_name == "hudson.model.CauseAction"){
-                auto user_id = j.toObject()["causes"].toArray()[0].toObject()["userId"].toString();
-                job_state.user_id = user_id;
-                break;
-            }
-        }
-
-        
-        //Duration on complete is correct
-        job_state.current_duration = config["duration"].toInt();
-
-
-        //Get the array which contains the result.
-        bool building = config["building"].toBool();
-        if(building){
-            job_state.state  = Notification::Severity::RUNNING;
-        }else{
-            QString result = config["result"].toString();
-            if(result == "SUCCESS"){
-                job_state.state  = Notification::Severity::SUCCESS;
-            }else if(result == "ABORTED"){
-                job_state.state = Notification::Severity::INFO;
-            }else{
-                job_state.state = Notification::Severity::ERROR;
-            }
-        }
-    }
-    return job_state;
-}
-
-QString JenkinsManager::GetJobStatusKey(const QString& job_name, int build_number){
+QString JenkinsManager::GetJobStatusKey(const QString& job_name, const int build_number){
     QString cached_name = job_name;
 
     //If we have been provided a valid build number, append this to the jobName

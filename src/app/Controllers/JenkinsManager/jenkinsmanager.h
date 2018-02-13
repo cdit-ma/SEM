@@ -2,32 +2,37 @@
 #define JENKINSMANAGER_H
 
 #include "../SettingsController/settingscontroller.h"
-
-#include "../../Controllers/JenkinsManager/jenkinsrequest.h"
-
+#include "../NotificationManager/notificationenumerations.h"
 
 #include <QObject>
 #include <QJsonDocument>
 #include <QString>
-#include <QVector>
-#include <QHash>
 #include <QNetworkReply>
+#include <QHash>
 #include <QMutex>
 #include <QFuture>
-#include <QFutureWatcher>
 
-//Forward Declare
-class JenkinsRequest;
-class ActionController;
 class ViewController;
 
-class NotificationObject;
+struct Jenkins_Job_Parameter{
+    QString name;
+    QString value;
+    SETTING_TYPE type;
+    QString description;
+    QString defaultValue;
+};
 
-class JenkinsManager: public QObject
+struct Jenkins_Job_Status{
+    QString name;
+    int number;
+    Notification::Severity state;
+    QString description;
+    QString user_id;
+    int current_duration = -1;
+};
+
+class JenkinsManager : public QObject
 {
-    //Define Jenkins Request as friend to enable use of private methods
-    friend class JenkinsRequest;
-
     Q_OBJECT
 public:
     JenkinsManager(ViewController *viewController);
@@ -38,117 +43,85 @@ public:
     void SetJobName(QString job_name);
     bool GotValidSettings();
     
-
     QString GetUrl();
     QString GetUser();
     QString GetJobName();
     QString GetApiToken();
+    QString GetScriptsPath();
 
-protected:
+    QString GetArtifactUrl(const QString& job_name, const int job_number, const QString& relative_path);
+
+    Jenkins_Job_Status GetCachedJobStatus(const QString& job_name, const int job_number);
+    void GotoJob(QString job_name, int job_number);
+
+    QPair<bool, QFuture<bool> > ValidateSettings();
+    QPair<bool, QFuture<QJsonDocument> > GetJenkinsConfiguration();
+
+    QPair<bool, QFuture<bool> > BuildJob(QString job_name, QList<Jenkins_Job_Parameter> job_parameters);
+    QPair<bool, QFuture<bool> > AbortJob(QString job_name, int job_number);
+    
+    QPair<bool, QFuture<QString> > getJenkinsNodes();
+    QPair<bool, QFuture<QString> > ExecuteGroovyScript(QString title, QString script);
+    QPair<bool, QFuture<QString> > GetJobConsoleOutput(QString job_name, int job_number);
+
+    QPair<bool, QFuture<QJsonDocument> > GetJobConfiguration(QString job_name, int job_number = -1);
+    QPair<bool, QFuture<QList<Jenkins_Job_Parameter> > > GetJobParameters(QString job_name);
+    QPair<bool, QFuture<Jenkins_Job_Status> > GetJobStatus(QString job_name, int job_number);
+signals:
+    void Terminate();
+    void SettingsValidated(bool ready);
+    void JobQueued(QString job_name);
+private:
+    //Request Functions are designed to be called by async threads
+    bool RequestValidation();
+    bool RequestBuildJob(QString job_name, QList<Jenkins_Job_Parameter> job_parameters);
+    bool RequestAbortJob(QString job_name, int job_number);
+    
+    QString RequestJobConsoleOutput(QString job_name, int job_number);
+    QString RequestExecuteGroovyScript(QString title, QString script);
+    
+    QJsonDocument RequestJenkinsConfiguration(bool auth = true);
+    QJsonDocument RequestJobConfiguration(QString job_name, int job_number = -1);
+    Jenkins_Job_Status RequestGetJobStatus(QString job_name, int job_number);
+    QList<Jenkins_Job_Parameter> RequestJobParameters(QString job_name);
+
+    void SetSettingsDirty();
     void SetSettingsValidated(bool valid);
     bool WaitForSettingsValidation();
-public:
-    //Global Functions Refactored
-    QPair<bool, QFuture<QJsonDocument> > ValidateSettings();
-    QPair<bool, QFuture<QJsonDocument> > GetNodes();
-    QPair<bool, QFuture<QJsonDocument> > AbortJob(QString job_name, int job_number);
-    QPair<bool, QFuture<QJsonDocument> > GetJobConfiguration(QString job_name, int job_number = -1, bool re_request = true);
-    QPair<bool, QFuture<QJsonDocument> > BuildJob(QString job_name, Jenkins_JobParameters job_parameters);
-    QPair<bool, QFuture<Jenkins_JobParameters> > GetJobParameters(QString job_name);
+    bool ShouldRequestJob(const QString& job_name, const int job_number);
 private:
-    QJsonDocument RequestValidation();
-    QJsonDocument RequestGroovyScriptExecution(QString title, QString script);
-    QJsonDocument RequestAbortJob(QString job_name, int job_number);
-    QJsonDocument RequestJobConfiguration(QString job_name, int job_number = -1);
-    QJsonDocument RequestBuildJob(QString job_name, Jenkins_JobParameters job_parameters);
-    Jenkins_JobParameters RequestJobParameters(QString job_name);
-public:
-
-    void BuildJob(QString model_file);
-    void AbortJob2(QString job_name, int job_number);
-    void GetJobConsoleOutput(QString job_name, int job_number);
-    void GetRecentJobs(QString job_name);
-    void GotoJob(QString job_name, int build_number);
-
-    Jenkins_Job_Status GetJobStatus(QString job_name, int build_number);
-signals:
-    void BuildingJob(QString job_name);
-
-    void Terminate();
-    
-    void GotJenkinsNodes(QString data);
-    void JenkinsReady(bool ready);
-
-    void getJobParameters(QString name);
-    void buildJob(QString jobName, Jenkins_JobParameters parameters);
-    void getJobConsole(QString job_name, int job_number);
-    void gotRecentJobs(Jenkins_Job_Statuses recent_jobs);
-
-
-    void getRecentJobs(QString job_name, int max_request_count, bool only_by_user);
-
-    void gotJobArtifacts(QString job_name, int job_build, QStringList artifacts);
-    void gotJobStateChange(QString job_name, int job_build, Notification::Severity jobState);
-    void gotJobConsoleOutput(QString job_name, int job_build, QString consoleOutput);
-private slots:
-    void settingsApplied();
     void SettingChanged(SETTINGS key, QVariant value);
 
-    
+    static QString GetJobStatusKey(const QString& job_name, const int job_number = -1);
+    static SETTING_TYPE GetSettingType(const QString& type);
+    QNetworkRequest getAuthenticatedRequest(const QString& url, bool auth=true);
 
-  
-private:
-    static QString GetJobStatusKey(const QString& jobName, int buildNumber = -1);
-    static SETTING_TYPE GetSettingType(QString &type);
-
-    QNetworkRequest getAuthenticatedRequest(QString url, bool auth=true);
-
-
-
-    JenkinsRequest* GetJenkinsRequest(QObject* parent = 0);
-    void AbortJob_(QString job_name, int build_number);
-    void GetNodes_(QString groovy_script);
-
-    
-    
-
-    void jenkinsRequestFinished(JenkinsRequest* request);
-    void storeJobConfiguration(QString job_name, QJsonDocument json);
-    
-    QJsonDocument getJobConfiguration(QString job_name);
-    
-
-    //Mutex used by all getters/setters
+    //Mutex used by all getters/setters (recursive)
     QMutex var_mutex_;
 
     //Instance Variables
     QString url_;
     QString username_;
     QString token_;
-    QString scipts_path_;
+    QString scripts_path_;
     QString job_name_;
-    bool settings_changed = false;
+
+    //Settings Validation Flags
+    bool settings_dirty_ = false;
     bool settings_validated_ = false;
-    //A Hash lookup of Jenkins Jobs JSON Documents
-    QHash<QString, QJsonDocument> jobsJSON;
-
-    QHash<QString, QFuture<QJsonDocument> > url_futures_;
-    QHash<QString, QFuture<Jenkins_JobParameters> > parameter_futures_;
-
-
-
 
     //Hash to store futures
     QMutex futures_mutex_;
-    QFuture<void> validation_future;
-    QFuture<void> get_nodes_thread;
-    //QHash<QString, QFuture<void> > url_futures_;
-
-
-    //Vector of all Active JenkinsRequest objects created from this.
-    QList<JenkinsRequest*> requests;
+    QHash<QString, QFuture<QJsonDocument> > json_futures_;
+    QHash<QString, QFuture<bool> > bool_futures_;
+    QHash<QString, QFuture<QString> > string_futures_;
+    QHash<QString, QFuture<QList<Jenkins_Job_Parameter> > > parameter_futures_;
+    QHash<QString, QFuture<Jenkins_Job_Status> > status_futures_;
+    
+    //Hash to cache json configurations scraped
+    QMutex cache_mutex_;
+    QHash<QString, QJsonDocument> cached_json_;
 
     ViewController* view_controller_ = 0;
 };
-
 #endif // JENKINSMANAGER_H

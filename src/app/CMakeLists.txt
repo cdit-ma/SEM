@@ -85,7 +85,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
@@ -176,7 +175,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filtergroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/processrunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.h

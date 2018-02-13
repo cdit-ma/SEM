@@ -82,7 +82,7 @@ void VariableDialog::setupLayout(){
     toolbar = new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     cancel_action = toolbar->addAction("Cancel");
-    okay_action = toolbar->addAction("Okay");
+    okay_action = toolbar->addAction("Launch");
 
     layout->addWidget(box, 1);
     layout->addWidget(toolbar, 0, Qt::AlignRight);

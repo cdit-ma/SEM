@@ -9,6 +9,7 @@
 #include <QSplitter>
 #include <QToolBar>
 #include <QLabel>
+#include <QJsonDocument>
 
 #include "monitor.h"
 
@@ -30,15 +31,19 @@ public:
     Monitor* getMonitor(QString job_name, int build_number);
     JenkinsMonitor* getJenkinsMonitor(QString name, int build_number);
     ConsoleMonitor* getConsoleMonitor(QString name);
+    void refreshRecentBuildsByName(QString job_name);
 private:
-    void gotRecentJobs(QList<Jenkins_Job_Status> recent_jobs);
-
+    void JobStatusChanged(Jenkins_Job_Status status);
     void MonitorStateChanged(Notification::Severity state);
+
     void themeChanged();
     void setupLayout();
+    
+    void refreshRecentBuilds();
+    
+    void gotJobConfig(QJsonDocument document);
 
-    void refreshRecentJobs();
-
+    
 
     void MonitorClose();
 
@@ -53,11 +58,8 @@ private:
     void requestJobConsoleOutput(QString job_name, int job_id);
 
 private:
-    void gotJenkinsJobStateChange(QString job_name, int job_build, Notification::Severity jobState);
-    void gotJenkinsJobConsoleOutput(QString job_name, int job_build, QString consoleOutput);
-    void gotJenkinsJobArtifacts(QString job_name, int job_build, QStringList artifacts);
-
     QPair<QString, int> splitJobKey(QString key);
+    
     QString getJobKey(QString job_name, int job_number);
 
     JenkinsManager* jenkins_manager = 0;
