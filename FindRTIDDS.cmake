@@ -74,15 +74,6 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
     HINTS ${DDS_ROOT}/include $ENV{DDS_ROOT}/include
     $ENV{NDDSHOME}/include)
 
-<<<<<<< Updated upstream
-if(NOT DDS_HOST)
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(DDS_HOST "x64Darwin16clang8.0")
-    elseif(UNIX)
-        set(DDS_HOST "x64Linux3gcc4.8.2")
-    endif()
-endif(NOT DDS_HOST)
-=======
 
 
 if(NOT RTI_DDS_HOST)
@@ -94,7 +85,6 @@ if(NOT RTI_DDS_HOST)
     return()
 endif()
 
->>>>>>> Stashed changes
 find_library(DDS_C_LIBRARY nddsc
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
     PATH_SUFFIXES ${RTI_DDS_HOST})
