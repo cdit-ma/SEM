@@ -13,7 +13,7 @@ if(NOT RTIDDS_FOUND)
 	return()
 endif()
 
-find_package(Boost 1.30.0 COMPONENTS uuid REQUIRED)
+find_package(Boost 1.30.0 REQUIRED)
 
 
 # Copy this <idl> file into the binary directory so the compilation of generated files can succeed
@@ -44,5 +44,4 @@ target_compile_definitions(${PROJ_NAME} PRIVATE ${RTIDDS_DEFINITIONS})
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${Boost_UUID_LIBRARY})
 target_link_libraries(${PROJ_NAME} rti_helper)
