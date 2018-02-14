@@ -1,6 +1,7 @@
 #ifndef ZMQ_INEVENTPORT_H
 #define ZMQ_INEVENTPORT_H
 
+#include <middleware/proto/translate.h>
 #include <core/eventports/ineventport.hpp>
 #include "zmqhelper.h"
 #include <re_common/zmq/zmqutils.hpp>
@@ -156,7 +157,7 @@ void zmq::InEventPort<T, S>::recv_loop(){
                     break;
                 }
                 
-                auto m = proto::decode<S>(msg_str);
+                auto m = proto::decode<T, S>(msg_str);
                 this->EnqueueMessage(m);
             }catch(zmq::error_t ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(ex.what());

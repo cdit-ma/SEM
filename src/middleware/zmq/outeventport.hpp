@@ -1,6 +1,7 @@
 #ifndef ZMQ_OUTEVENTPORT_H
 #define ZMQ_OUTEVENTPORT_H
 
+#include <middleware/proto/translate.h>
 #include <core/eventports/outeventport.hpp>
 #include "zmqhelper.h"
 #include <re_common/zmq/zmqutils.hpp>
@@ -90,7 +91,7 @@ bool zmq::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(socket_){
-            auto str = proto::encode(message);
+            auto str = proto::encode<T, S>(message);
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
             return true;

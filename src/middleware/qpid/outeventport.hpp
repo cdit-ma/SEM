@@ -1,7 +1,8 @@
 #ifndef QPID_OUTEVENTPORT_H
 #define QPID_OUTEVENTPORT_H
 
-#include "../../core/eventports/outeventport.hpp"
+#include <middleware/proto/translate.h>
+#include <core/eventports/ineventport.hpp>
 
 
 #include <vector>
