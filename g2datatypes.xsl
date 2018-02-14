@@ -56,14 +56,14 @@
                 
                 <xsl:value-of select="o:message(('Generating Datatype:', o:wrap_quote(cpp:combine_namespaces(($aggregate_namespace, $aggregate_label)))))" />
 
-                <!-- Generate the Shared Library convert/middleware classes -->
+                <!-- Generate the Shared Library translate/middleware classes -->
                 <xsl:if test="cdit:build_shared_library($middleware)">
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.h'))}">
-                        <xsl:value-of select="cdit:get_convert_h($aggregate, $middleware)" />
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translate.h'))}">
+                        <xsl:value-of select="cdit:get_translate_h($aggregate, $middleware)" />
                     </xsl:result-document>
                     
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'convert.cpp'))}">
-                        <xsl:value-of select="cdit:get_convert_cpp($aggregate, $middleware)" />
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translate.cpp'))}">
+                        <xsl:value-of select="cdit:get_translate_cpp($aggregate, $middleware)" />
                     </xsl:result-document>
 
                     <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
@@ -91,7 +91,7 @@
                 <!-- Generate the CMake file for this middleware's aggregate implementation -->
                 <xsl:if test="cdit:build_module_library($middleware) or cdit:build_shared_library($middleware)">
                     <xsl:result-document href="{o:write_file(($aggregate_path, cmake:cmake_file()))}">
-                        <xsl:value-of select="cdit:get_convert_cmake($aggregate, $middleware)" />
+                        <xsl:value-of select="cdit:get_translate_cmake($aggregate, $middleware)" />
                     </xsl:result-document>
                 </xsl:if>
 

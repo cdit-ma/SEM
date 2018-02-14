@@ -549,16 +549,23 @@
         <xsl:variable name="aggregate_label" select="cpp:get_aggregate_type_name($aggregate)" />
         
         <xsl:variable name="extra_namespace" as="xs:string*">
+            <xsl:if test="$middleware = 'base'">
+                <xsl:value-of select="'Base'" />
+            </xsl:if>
+        </xsl:variable>
+
+        <xsl:variable name="aggregate_type">
             <xsl:choose>
-                <xsl:when test="$middleware = 'base'">
-                    <xsl:value-of select="'Base'" />
+                <xsl:when test="$middleware != 'base' and $aggregate_namespace = ''">
+                    <xsl:value-of select="concat('::', $aggregate_label)" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="' '" />
+                    <xsl:value-of select="$aggregate_label" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_label))" />
+
+        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_type))" />
     </xsl:function>
     
     <!-- Converts from the Aggregate Types into primitive CPP types -->

@@ -165,7 +165,7 @@
         <xsl:param name="suffix" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="template_return_type" select="concat('template ', cpp:wrap_template(''), ' ', $return_type)" />
+        <xsl:variable name="template_return_type" select="concat('template ', cpp:wrap_template(''), o:nl(1), o:t($tab), $return_type)" />
         <xsl:variable name="template_function_name" select="concat($function_name, cpp:wrap_template($concrete_template_type))" />
 
         <xsl:value-of select="cpp:declare_function($template_return_type, $template_function_name, $parameters, $suffix, $tab)" />
