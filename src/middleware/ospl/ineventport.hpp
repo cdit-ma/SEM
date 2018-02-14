@@ -179,7 +179,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
                 for(auto sample : samples){
                     //Translate and callback into the component for each valid message we receive
                     if(sample->info().valid()){
-                        auto m = ospl::translate(sample->data());
+                        auto m = ospl::translate<T, S>(sample->data());
                         this->EnqueueMessage(m);
                     }
                 }

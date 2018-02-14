@@ -90,7 +90,7 @@ bool ospl::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(writer_ != dds::core::null){
-            auto m = ospl::translate(message);
+            auto m = ospl::translate<T, S>(message);
             //De-reference the message and send
             writer_.write(*m);
             delete m;
