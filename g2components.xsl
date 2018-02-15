@@ -111,7 +111,7 @@
             </xsl:result-document>
 
             <!-- Generate the top level cmake file -->
-            <xsl:result-document href="{o:write_file((cmake:cmake_file()))}">
+            <xsl:result-document href="{o:write_file(cmake:cmake_file())}">
                 <xsl:value-of select="cdit:get_top_cmake()" />
             </xsl:result-document>
         </xsl:if>
