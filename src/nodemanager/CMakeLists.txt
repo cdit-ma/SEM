@@ -43,7 +43,7 @@ add_executable(${RE_EXECUTION_TESTER} "${CMAKE_CURRENT_SOURCE_DIR}/executiontest
 
 # Remove the need for _lib extensions
 set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MANAGER})
-set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 
 # Tell boost to link dynamically
 #target_compile_definitions(${RE_NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
