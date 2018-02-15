@@ -28,7 +28,6 @@ find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
 #Link against boost dynamically
-add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 
@@ -67,6 +66,9 @@ set(NODE_MANAGER_SOURCE
 
 add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${HEADERS})
 add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${HEADERS})
+
+target_compile_definitions(${NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
+target_compile_definitions(${EXECUTION_TESTER} PRIVATE -DBOOST_ALL_DYN_LINK)
 
 target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})

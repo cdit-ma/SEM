@@ -38,7 +38,7 @@ std::weak_ptr<Attribute> SetAttributeFromPb(std::shared_ptr<Activatable> a, cons
             switch(type){
             case ATTRIBUTE_TYPE::INTEGER:
             {
-                attribute->set_Integer(attr.i());
+                attribute->set_Integer(static_cast<int32_t>(attr.i()));
                 break;
             }
             case ATTRIBUTE_TYPE::CHARACTER:
