@@ -12,12 +12,12 @@
 
 #include <core/modellogger.h>
 #include "deploymentcontainer.h"
-
 #include "controlmessage/controlmessage.pb.h"
 
+
+
 namespace zmq{class ProtoReceiver;};
-//namespace google{namespace protobuf{class MessageLite;}};
-//namespace NodeManager{class ControlMessage;};
+
 class Execution;
 
 class DeploymentManager{

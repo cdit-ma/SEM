@@ -9,6 +9,7 @@
 #include <re_common/zmq/protowriter/protowriter.h>
 #include "executionparser/modelparser.h"
 #include "executionparser/datatypes.h"
+#include "controlmessage/controlmessage.pb.h"
 
 #include "execution.hpp"
 

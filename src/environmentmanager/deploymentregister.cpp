@@ -3,15 +3,20 @@
 #include <chrono>
 #include <exception>
 
+#include "environmentmessage/environmentmessage.pb.h"
+
 const std::string DeploymentRegister::SUCCESS = "SUCCESS";
 const std::string DeploymentRegister::ERROR = "ERROR";
 
-DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port){
+DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 
+                                        int portrange_min, int portrange_max){
+
+    assert(portrange_min < portrange_max);
     ip_addr_ = ip_addr;
     registration_port_ = registration_port;
 
     context_ = new zmq::context_t(1);
-    environment_ = new Environment();
+    environment_ = new Environment(portrange_min, portrange_max);
 
 }
 

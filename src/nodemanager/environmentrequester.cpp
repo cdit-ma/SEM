@@ -26,6 +26,11 @@ void EnvironmentRequester::Init(){
     }
 }
 
+void EnvironmentRequester::Init(const std::string& manager_endpoint){
+    context_ = new zmq::context_t(1);
+    manager_endpoint_ = manager_endpoint;
+}
+
 void EnvironmentRequester::Start(){
     heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
 }
@@ -47,14 +52,30 @@ uint64_t EnvironmentRequester::GetClock(){
 }
 
 void EnvironmentRequester::HeartbeatLoop(){
-    zmq::socket_t* initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
-    initial_request_socket->connect(manager_endpoint_);
+    zmq::socket_t* initial_request_socket;
+    if(context_){
+        initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
+    }
+    else{
+        std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
+    }
+
+    try{
+        std::cerr << "adsf" << std::endl;
+        initial_request_socket->connect(manager_endpoint_);
+        std::cerr << "adsf" << std::endl;
+        
+    }
+    catch(std::exception& ex){
+        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
+    }
 
     //Register this deployment with the environment manager
     EnvironmentManager::EnvironmentMessage initial_message;
     initial_message.set_type(EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT);
     auto deployment = initial_message.add_deployments();
     deployment->set_id(deployment_id_);
+
 
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);
@@ -144,13 +165,13 @@ int EnvironmentRequester::GetComponentPort(const std::string& component_id, cons
     return port;
 }
 
-int EnvironmentRequester::GetDeploymentMasterPort(const std::string& deployment_id){
+int EnvironmentRequester::GetDeploymentMasterPort(){
     int port = 0;
 
     EnvironmentManager::EnvironmentMessage message;
     message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
     auto deployment = message.add_deployments();
-    deployment->set_id(deployment_id);
+    deployment->set_id(deployment_id_);
 
     auto response = QueueRequest(message.SerializeAsString());
 
@@ -175,13 +196,13 @@ int EnvironmentRequester::GetDeploymentMasterPort(const std::string& deployment_
     return port;
 }
 
-int EnvironmentRequester::GetModelLoggerPort(const std::string& deployment_id){
+int EnvironmentRequester::GetModelLoggerPort(){
     int port = 0;
 
     EnvironmentManager::EnvironmentMessage message;
     message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
     auto deployment = message.add_deployments();
-    deployment->set_id(deployment_id);
+    deployment->set_id(deployment_id_);
 
     auto response = QueueRequest(message.SerializeAsString());
 
@@ -204,6 +225,22 @@ int EnvironmentRequester::GetModelLoggerPort(const std::string& deployment_id){
     }
 
     return port;
+}
+
+void EnvironmentRequester::RemoveDeployment(){
+    EnvironmentManager::EnvironmentMessage message;
+    message.set_type(EnvironmentManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
+    auto deployment = message.add_deployments();
+    deployment->set_id(deployment_id_);
+
+    auto response = QueueRequest(message.SerializeAsString());
+
+    try{
+        auto response_msg = response.get();
+    }
+    catch(std::exception& ex){
+        std::cout << ex.what() << " in EnvironmentRequester::RemoveDeployment" << std::endl;
+    }
 }
 
 std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){

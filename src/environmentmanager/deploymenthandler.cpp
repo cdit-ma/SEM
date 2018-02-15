@@ -1,6 +1,8 @@
 #include "deploymenthandler.h"
 #include <iostream>
 
+#include "environmentmessage/environmentmessage.pb.h"
+
 DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
                                     std::promise<std::string>* port_promise, const std::string& deployment_id){
 
@@ -48,18 +50,21 @@ void DeploymentHandler::HeartbeatLoop(){
     //Break out early if we never get our first heartbeat
     else{
         delete handler_socket_;
-        RemoveDeployment();
+        RemoveDeployment(time_added_);
         return;
     }
 
     int interval = INITIAL_INTERVAL;
     int liveness = HEARTBEAT_LIVENESS;
 
-    while(true){
+    while(!removed_flag_){
         zmq::message_t hb_message;
 
         //Poll zmq socket for heartbeat message, time out after HEARTBEAT_TIMEOUT milliseconds
         int events = zmq::poll(sockets, HEARTBEAT_INTERVAL);
+        if(removed_flag_){
+            break;
+        }
 
         if(events >= 1){
             //Reset
@@ -67,6 +72,9 @@ void DeploymentHandler::HeartbeatLoop(){
             interval = INITIAL_INTERVAL;
             auto request = ZMQReceiveRequest(handler_socket_);
             HandleRequest(request);
+            if(removed_flag_){
+                break;
+            }
             environment_->DeploymentLive(deployment_id_, time_added_);
         }
         else if(--liveness == 0){
@@ -76,19 +84,19 @@ void DeploymentHandler::HeartbeatLoop(){
                 interval *= 2;
             }
             else{
+                RemoveDeployment(time_added_);
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
         }
     }
-
     //Broken out of heartbeat loop at this point, remove deployment
     delete handler_socket_;
-    RemoveDeployment();
 }
 
-void DeploymentHandler::RemoveDeployment(){
-    environment_->RemoveDeployment(deployment_id_, time_added_);
+void DeploymentHandler::RemoveDeployment(uint64_t call_time){
+    environment_->RemoveDeployment(deployment_id_, call_time);
+    removed_flag_ = true;
 }
 
 std::string DeploymentHandler::TCPify(const std::string& ip_address, const std::string& port) const{
@@ -196,13 +204,13 @@ EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddDeployment(ui
 
 EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleRemoveDeployment(uint64_t message_time,
                                                             EnvMessage message){
-    environment_->RemoveDeployment(deployment_id_, message_time);
+    RemoveDeployment(message_time);
+    return message;
 }
 
 EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddComponent(uint64_t message_time,
                                                             EnvMessage message){
     //Handle add component message
-
     auto endpoint = message.mutable_components(0)->mutable_endpoints(0);
     std::string port_string = environment_->AddComponent(deployment_id_, message.components(0).id(), "", message_time);
     endpoint->set_port(port_string);
@@ -235,7 +243,6 @@ EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleGetDeploymentInf
     auto deployment = message.mutable_deployments(0);
     auto master_endpoint = deployment->add_endpoints();
     auto model_logger_endpoint = deployment->add_endpoints();
-    std::cout << deployment->endpoints_size() << std::endl;
 
     master_endpoint->set_type(EnvironmentManager::Endpoint::MODEL_LOGGER);
     master_endpoint->set_port(environment_->GetMasterPort(deployment_id_));

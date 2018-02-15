@@ -11,24 +11,27 @@
 
 class EnvironmentRequester{
 
-    struct Request{
-        std::string request_data_;
-        std::promise<std::string>* response_;
-    };
 
     public:
         EnvironmentRequester(const std::string& manager_address,
                                 const std::string& deployment_id,
                                 const std::string& deployment_info);
         void Init();
+        void Init(const std::string& manager_endpoint);
         void Start();
         void End();
 
         int GetComponentPort(const std::string& component_id, const std::string& component_info);
-        int GetDeploymentMasterPort(const std::string& deployment_id);
-        int GetModelLoggerPort(const std::string& deployment_id);
+        int GetDeploymentMasterPort();
+        int GetModelLoggerPort();
+
+        void RemoveDeployment();
 
     private:
+        struct Request{
+            std::string request_data_;
+            std::promise<std::string>* response_;
+        };
         //Constants
         const int heartbeat_period_ = 2;
 

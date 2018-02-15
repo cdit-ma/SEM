@@ -13,8 +13,8 @@ include_directories("../")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
 
 set(NODE_MANAGER re_node_manager)
+set(NODE_MANAGER_LIB ${NODE_MANAGER}_lib)
 set(EXECUTION_TESTER re_execution_tester)
-set(REQUESTER_TESTER requester_tester)
 
 set(PROJ_NAME ${NODE_MANAGER})
 project(${PROJ_NAME})
@@ -26,7 +26,6 @@ find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
 #Link against boost dynamically
-add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
@@ -39,6 +38,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
 	)
 
 set(HEADERS
@@ -48,6 +48,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h    
     )
     
 set(EXECUTION_TESTER_SOURCE
@@ -60,67 +61,42 @@ set(NODE_MANAGER_SOURCE
     ${SOURCE}
 	)
 
-set(ENVIRONMENT_REQUESTER_SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/requester_tester.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
-)
+add_library(${NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
+add_executable(${NODE_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${EXECUTION_TESTER} ${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp)
 
-add_executable(${NODE_MANAGER} ${NODE_MANAGER_SOURCE} ${HEADERS})
-add_executable(${EXECUTION_TESTER} ${EXECUTION_TESTER_SOURCE} ${HEADERS})
-add_executable(${REQUESTER_TESTER} ${ENVIRONMENT_REQUESTER_SOURCE})
+target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-target_include_directories(${NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${NODE_MANAGER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
-target_include_directories(${EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${EXECUTION_TESTER} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${EXECUTION_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-target_include_directories(${REQUESTER_TESTER} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${REQUESTER_TESTER} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${REQUESTER_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${REQUESTER_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_definitions(${NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
 
 if (MSVC)
     #Windows requires protobuf in DLLs
-    target_compile_definitions(${NODE_MANAGER} PRIVATE -DPROTOBUF_USE_DLLS)
+    target_compile_definitions(${NODE_MANAGER_LIB} PRIVATE -DPROTOBUF_USE_DLLS)
     target_compile_definitions(${EXECUTION_TESTER} PRIVATE -DPROTOBUF_USE_DLLS)
 elseif(UNIX)
-	target_link_libraries(${NODE_MANAGER} pthread)
-    target_link_libraries(${NODE_MANAGER} dl)
-
-    target_link_libraries(${EXECUTION_TESTER} pthread)
-    target_link_libraries(${EXECUTION_TESTER} dl)
-
-    target_link_libraries(${REQUESTER_TESTER} pthread)
-    target_link_libraries(${REQUESTER_TESTER} dl)
+	target_link_libraries(${NODE_MANAGER_LIB} pthread)
+    target_link_libraries(${NODE_MANAGER_LIB} dl)
 endif(MSVC)
 
 #Link executable against all libraries required
-target_link_libraries(${NODE_MANAGER} ${ZMQ_LIBRARIES})
-target_link_libraries(${NODE_MANAGER} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${NODE_MANAGER} re_core)
-target_link_libraries(${NODE_MANAGER} zmq_protoreceiver)
-target_link_libraries(${NODE_MANAGER} zmq_protowriter)
-target_link_libraries(${NODE_MANAGER} re_execution_parser_lib)
+target_link_libraries(${NODE_MANAGER_LIB} ${ZMQ_LIBRARIES})
+target_link_libraries(${NODE_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${NODE_MANAGER_LIB} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${NODE_MANAGER_LIB} re_core)
+target_link_libraries(${NODE_MANAGER_LIB} zmq_protoreceiver)
+target_link_libraries(${NODE_MANAGER_LIB} zmq_protowriter)
+target_link_libraries(${NODE_MANAGER_LIB} re_execution_parser_lib)
+target_link_libraries(${NODE_MANAGER_LIB} environment_proto_message)
+target_link_libraries(${NODE_MANAGER_LIB} re_proto_control)
 
-target_link_libraries(${EXECUTION_TESTER} ${ZMQ_LIBRARIES})
-target_link_libraries(${EXECUTION_TESTER} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${EXECUTION_TESTER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${EXECUTION_TESTER} re_core)
-target_link_libraries(${EXECUTION_TESTER} zmq_protoreceiver)
-target_link_libraries(${EXECUTION_TESTER} zmq_protowriter)
-target_link_libraries(${EXECUTION_TESTER} re_execution_parser_lib)
+target_link_libraries(${EXECUTION_TESTER} re_proto_control)
 
-target_link_libraries(${REQUESTER_TESTER} ${ZMQ_LIBRARIES})
-target_link_libraries(${REQUESTER_TESTER} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${REQUESTER_TESTER} re_core)
-target_link_libraries(${REQUESTER_TESTER} environment_proto_message)
-
+target_link_libraries(${NODE_MANAGER} ${NODE_MANAGER_LIB})
+target_link_libraries(${EXECUTION_TESTER} ${NODE_MANAGER_LIB})

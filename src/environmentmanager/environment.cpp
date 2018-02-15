@@ -1,8 +1,12 @@
 #include "environment.h"
 #include <iostream>
+#include <cassert>
 
+Environment::Environment(int port_range_min, int port_range_max){
+    PORT_RANGE_MIN = port_range_min;
+    PORT_RANGE_MAX = port_range_max;
+    assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
 
-Environment::Environment(){
     auto hint_iterator = available_ports_.begin();
     for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
         available_ports_.insert(hint_iterator, i);
@@ -19,10 +23,7 @@ std::string Environment::AddDeployment(const std::string& deployment_id, const s
     int environment_manager_port;
 
     if(deployment_info_map_.find(deployment_id) != deployment_info_map_.end()){
-
-        std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
         //Already have deployment of this ID
-
         //If this "add deployment" call is somehow older than the currently recorded deployment, ignore
         if(time_called < deployment_info_map_[deployment_id]->time_added){
             return "";
@@ -71,14 +72,15 @@ void Environment::RemoveDeployment(const std::string& deployment_id, uint64_t ti
     //TODO: throw exception for all lookup checks rather than find (speeds up hotpath)
     try{
         if(time_called >= deployment_info_map_.at(deployment_id)->time_added){
-            int port = std::stoi(deployment_port_map_.at(deployment_id));
-            deployment_port_map_.erase(deployment_id);
-
+            int manager_port = std::stoi(deployment_info_map_.at(deployment_id)->environment_manager_port);
+            int master_port = std::stoi(deployment_info_map_.at(deployment_id)->master_port);
+            int model_logger_port = std::stoi(deployment_info_map_.at(deployment_id)->model_logger_port);
+            deployment_info_map_.erase(deployment_id);
             //Return port to available port set
-            available_ports_.insert(port);
-            std::cout << "readded ports" << std::endl;
+            available_ports_.insert(manager_port);
+            available_ports_.insert(master_port);
+            available_ports_.insert(model_logger_port);
         }
-
     }
     catch(std::out_of_range& ex){
     }
@@ -166,22 +168,6 @@ void Environment::DeploymentTimeout(const std::string& deployment_id, uint64_t t
     }
 }
 
-std::string Environment::AddMasterPort(const std::string& deployment_id, uint64_t time_called){
-
-}
-
-void Environment::RemoveMasterPort(const std::string& deployment_id, uint64_t time_called){
-
-}
-
-std::string Environment::AddModelLoggerPort(const std::string& deployment_id, uint64_t time_called){
-
-}
-
-void Environment::RemoveModelLoggerPort(const std::string& deployment_id, uint64_t time_called){
-
-}
-
 std::string Environment::GetModelLoggerPort(const std::string& deployment_id){
     std::unique_lock<std::mutex> lock(port_mutex_);
     std::string out;
@@ -205,4 +191,3 @@ std::string Environment::GetMasterPort(const std::string& deployment_id){
     }
     return out;
 }
-

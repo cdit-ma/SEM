@@ -10,16 +10,10 @@
 class Environment{
 
     public:
-        Environment();
+        Environment(int portrange_min = 30000, int portrange_max = 40000);
 
         std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called);
         void RemoveDeployment(const std::string& deployment_id, uint64_t time_called);
-
-        std::string AddMasterPort(const std::string& deployment_id, uint64_t time_called);
-        void RemoveMasterPort(const std::string& deployment_id, uint64_t time_called);
-
-        std::string AddModelLoggerPort(const std::string& deployment_id, uint64_t time_called);
-        void RemoveModelLoggerPort(const std::string& deployment_id, uint64_t time_called);
 
         void DeploymentLive(const std::string& deployment_id, uint64_t time_called);
         void DeploymentTimeout(const std::string& deployment_id, uint64_t time_called);
@@ -42,14 +36,30 @@ class Environment{
         std::mutex clock_mutex_;
 
         //Port range
-        //TODO: Make this user configurable to avoid conflicts and allow multiple environments on the same network?
-        static const int PORT_RANGE_MIN = 30000;
-        static const int PORT_RANGE_MAX = 40000;
+        int PORT_RANGE_MIN;
+        int PORT_RANGE_MAX;
 
         enum class DeploymentState{
             ACTIVE,
             TIMEOUT,
             SHUTDOWN
+        };
+        enum class Middleware{
+            NO_MIDDLEWARE = 0,
+            ZMQ = 1,
+            RTI_DDS = 2,
+            OSPL_DDS = 3,
+            QPID = 4,
+            CORBA = 5
+        };
+
+        enum class EndpointType{
+            NO_TYPE = 0,
+            MANAGEMENT = 1,
+            DEPLOYMENT_MASTER = 2,
+            MODEL_LOGGER = 3,
+            PUBLIC = 4,
+            PRIVATE = 5
         };
 
         struct Deployment{
@@ -63,6 +73,19 @@ class Environment{
             std::vector<std::string> public_component_ids;
             uint64_t time_added;
             //TODO: Add endpoint information s.t. MEDEA can query
+        };
+
+        struct Component{
+            std::string id;
+            std::string deployment_id;
+            
+        };
+
+        struct Endpoint{
+            std::string id;
+            EndpointType type;
+            Middleware middleware;
+
         };
 
         std::mutex port_mutex_;

@@ -12,11 +12,11 @@ int main(){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     //auto port = requester->GetComponentPort("component01", "info here yoo");
 
-    auto port = requester->GetDeploymentMasterPort("deployment01");
+    auto port = requester->GetDeploymentMasterPort();
     std::cout << port << std::endl;
-    auto logger_port = requester->GetModelLoggerPort("deployment01");
+    auto logger_port = requester->GetModelLoggerPort();
     std::cout << logger_port << std::endl;
-    int counter = 0;
+    // int counter = 0;
     // while(true){
     //     counter++;
     //     if(counter % 5 == 0){
@@ -30,11 +30,30 @@ int main(){
     //     }
     // }
 
+    // auto requester2 = new EnvironmentRequester("tcp://192.168.111.230:22334", "deployment02", "asdf");
+    // requester2->Init();
+    // requester2->Start();
+
+    // std::cout << requester2->GetDeploymentMasterPort() << std::endl;
+    // std::cout << requester2->GetModelLoggerPort() << std::endl;
+
+    // std::cout << requester->GetComponentPort("componentid", "adsfasdf") << std::endl;
+    // std::cout << requester2->GetComponentPort("componentid1", "adsfasdf") << std::endl;
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    requester->RemoveDeployment();
+    std::cout << "removed ya" << std::endl;
+
+
+
+
     requester->End();
+    //requester2->End();
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     delete requester;
+    //delete requester2;
 
     std::cout << "test yo" << std::endl;
     return 0;

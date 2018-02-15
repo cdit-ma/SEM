@@ -7,8 +7,11 @@
 #include <tuple>
 
 #include "environment.h"
-#include "environmentmessage/environmentmessage.pb.h"
 
+
+namespace EnvironmentManager{
+    class EnvironmentMessage;
+};
 class DeploymentHandler{
     public:
         DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
@@ -43,7 +46,7 @@ class DeploymentHandler{
         EnvMessage HandleGetDeploymentInfo(uint64_t message_time, EnvMessage message);
         
         //Environment Helpers
-        void RemoveDeployment();
+        void RemoveDeployment(uint64_t message_time);
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
@@ -65,6 +68,8 @@ class DeploymentHandler{
         std::thread* handler_thread_;
 
         std::promise<std::string>* port_promise_;
+
+        bool removed_flag_ = false;
 };
 
 #endif //ENVIRONMENT_MANAGER_DEPLOYMENTHANDLER

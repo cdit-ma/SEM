@@ -30,10 +30,12 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
     )
 
-include_directories(${PUGIXML_ROOT}/include)
 
-add_library(${LIB_NAME} ${SOURCE} ${HEADERS})
-add_executable(${PROJ_NAME} "main.cpp")
+
+add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS})
+add_executable(${PROJ_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+
+target_include_directories(${LIB_NAME} PRIVATE ${PUGIXML_ROOT}/include)
 
 target_link_libraries(${LIB_NAME} ${PUGIXML_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${LIB_NAME})

@@ -8,8 +8,10 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
+#include <google/protobuf/message_lite.h>
 
 #include "controlmessage/controlmessage.pb.h"
+
 
 namespace zmq{class ProtoWriter;};
 namespace Graphml{class ModelParser;};

@@ -12,7 +12,8 @@
 
 class DeploymentRegister{
     public:
-        DeploymentRegister(const std::string& ip_addr, const std::string& registration_port);
+        DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 
+                            int portrange_min = 30000, int portrange_max = 40000);
 
         void Start();
 

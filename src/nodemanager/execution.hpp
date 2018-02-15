@@ -3,8 +3,6 @@
 #include <functional>
 #include <vector>
 
-#include "executionmanager.h"
-#include "deploymentmanager.h"
 
 class Execution{
     private:
@@ -29,7 +27,7 @@ class Execution{
         void AddTerminateCallback(std::function<void()> callback_func){
             std::unique_lock<std::mutex> lock(mutex_);
             terminate_functions_.push_back(callback_func);
-        }
+        };
 
         void Interrupt(){
             std::unique_lock<std::mutex> lock(mutex_);
