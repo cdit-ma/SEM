@@ -34,13 +34,16 @@ set(HEADERS
 
 #Pass Version info into cmakevars.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
-    
+
 add_library(${RE_NODE_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})
+
+
 add_executable(${RE_NODE_MANAGER} "${CMAKE_CURRENT_SOURCE_DIR}/renodemanager.cpp")
 add_executable(${RE_EXECUTION_TESTER} "${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp")
 
 # Remove the need for _lib extensions
 set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MANAGER})
+set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Tell boost to link dynamically
 #target_compile_definitions(${RE_NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)

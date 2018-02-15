@@ -26,6 +26,7 @@ target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/inclu
 
 # Remove the need for _lib extensions
 set_target_properties(${EXECUTION_PARSER_LIB} PROPERTIES OUTPUT_NAME ${EXECUTION_PARSER})
+set_target_properties(${EXECUTION_PARSER_LIB} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(${EXECUTION_PARSER_LIB} ${PUGIXML_LIBRARIES})
 target_link_libraries(${EXECUTION_PARSER} ${EXECUTION_PARSER_LIB})
