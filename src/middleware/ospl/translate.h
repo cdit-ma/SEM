@@ -3,7 +3,7 @@
 
 #include <core/globalinterfaces.hpp>
 
-namespace rti{
+namespace ospl{
     template <class BaseType, class OsplType>
     OsplType* EXPORT_FUNC translate(const BaseType& value);
     
