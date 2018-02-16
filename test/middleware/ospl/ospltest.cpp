@@ -2,10 +2,9 @@
 
 // Include the convert functions for the port type
 #include "convert.hpp"
+
 #include <middleware/ospl/ineventport.hpp>
 #include <middleware/ospl/outeventport.hpp>
-#include <middleware/ospl/ddshelper.h>
-
 
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
