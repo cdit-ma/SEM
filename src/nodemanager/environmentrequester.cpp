@@ -7,7 +7,6 @@ EnvironmentRequester::EnvironmentRequester(const std::string& manager_address,
     manager_address_ = manager_address;
     deployment_id_ = deployment_id;
     deployment_info_ = deployment_info;
-
 }
 
 void EnvironmentRequester::Init(){
@@ -32,7 +31,12 @@ void EnvironmentRequester::Init(const std::string& manager_endpoint){
 }
 
 void EnvironmentRequester::Start(){
-    heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
+    try{
+        heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);
+    }
+    catch(std::exception& ex){
+        std::cout << ex.what() << " in EnvironmentRequester::Start" << std::endl;
+    }
 }
 
 uint64_t EnvironmentRequester::Tick(){
@@ -61,10 +65,7 @@ void EnvironmentRequester::HeartbeatLoop(){
     }
 
     try{
-        std::cerr << "adsf" << std::endl;
         initial_request_socket->connect(manager_endpoint_);
-        std::cerr << "adsf" << std::endl;
-        
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
@@ -75,7 +76,6 @@ void EnvironmentRequester::HeartbeatLoop(){
     initial_message.set_type(EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT);
     auto deployment = initial_message.add_deployments();
     deployment->set_id(deployment_id_);
-
 
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);
