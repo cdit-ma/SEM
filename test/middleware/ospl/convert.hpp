@@ -5,7 +5,7 @@
 #include <middleware/ospl/translate.h>
 
 #include "../base/basic.h"
-#include "basic.hpp"
+#include "basic_DCPS.hpp"
 
 // Translate from 'Base' -> 'ospl'
 template <>
