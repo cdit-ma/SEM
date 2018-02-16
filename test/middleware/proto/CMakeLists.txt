@@ -11,7 +11,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/basic.pr
 
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cxx
 )
 SET(HEADER
     #${CMAKE_CURRENT_SOURCE_DIR}/convert.h
