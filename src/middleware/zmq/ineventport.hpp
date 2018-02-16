@@ -9,6 +9,8 @@
 #include <thread>
 #include <mutex>
 
+
+
 namespace zmq{
      template <typename T, typename S> class InEventPort: public ::InEventPort<T>{
         public:
@@ -22,6 +24,8 @@ namespace zmq{
             bool HandleTerminate();
         private:
             void recv_loop();
+            
+
             
 
             std::thread* recv_thread_ = 0;
