@@ -6,16 +6,26 @@
 
 namespace proto{
     template <class BaseType, class ProtoType>
-    ProtoType* EXPORT_FUNC translate(const BaseType& value);
+    ProtoType* translate(const BaseType& value);
     
     template <class BaseType, class ProtoType>
-    BaseType* EXPORT_FUNC translate(const ProtoType& value);
+    BaseType* translate(const ProtoType& value);
     
     template <class BaseType, class ProtoType>
-    BaseType* EXPORT_FUNC decode(const std::string& value);
+    BaseType* decode(const std::string& value){
+        ProtoType proto_obj;
+		proto_obj.ParseFromString(value);
+		return proto::translate<BaseType, ProtoType>(proto_obj);
+    };
 
     template <class BaseType, class ProtoType>
-    std::string EXPORT_FUNC encode(const BaseType& value);
+    std::string encode(const BaseType& value){
+        std::string str_value;
+		auto proto_obj = proto::translate<BaseType, ProtoType>(value);
+		proto_obj->SerializeToString(&str_value);
+		delete proto_obj;
+		return str_value;
+    };
 };
 
 #endif // PROTO_MESSAGE_CONVERT_H

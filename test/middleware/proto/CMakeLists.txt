@@ -11,10 +11,10 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/basic.pr
 
 
 SET(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
 )
 SET(HEADER
-    #${CMAKE_CURRENT_SOURCE_DIR}/convert.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 
 add_library(${PROJ_NAME} SHARED ${HEADER} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
