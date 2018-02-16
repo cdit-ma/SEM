@@ -2,6 +2,7 @@
 
 // Include the convert functions for the port type
 #include "convert.hpp"
+
 #include <middleware/rti/ineventport.hpp>
 #include <middleware/rti/outeventport.hpp>
 
