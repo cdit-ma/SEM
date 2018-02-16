@@ -56,6 +56,7 @@ target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY
 
 # Include the RE_SRC
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${RE_NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
 
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
