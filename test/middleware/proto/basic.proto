@@ -3,4 +3,5 @@ syntax="proto3";
 message Basic{
     int32 int_val = 1;
     string str_val = 2;
+    string guid_val = 3;
 }

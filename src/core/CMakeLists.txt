@@ -6,7 +6,6 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 #Set our project names
 set(PROJ_NAME re_core)
-
 project(${PROJ_NAME})
 
 #Find protobuf

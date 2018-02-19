@@ -9,7 +9,7 @@ Memory_Worker_Impl::~Memory_Worker_Impl(){
     Deallocate_(size);
 }
 
-bool Memory_Worker_Impl::Allocate(double kilobytes) {
+bool Memory_Worker_Impl::Allocate(size_t kilobytes) {
     bool result = false;
     if(kilobytes > 0){
         std::lock_guard<std::mutex> guard(lock_);
@@ -19,7 +19,7 @@ bool Memory_Worker_Impl::Allocate(double kilobytes) {
     return result;
 }
 
-bool Memory_Worker_Impl::Allocate_(unsigned long long kilobytes){
+bool Memory_Worker_Impl::Allocate_(size_t kilobytes){
     bool result = false;
     try{
         // although the complexity function is evaluated to a double, only use integer for allocating memory
@@ -38,7 +38,7 @@ bool Memory_Worker_Impl::Allocate_(unsigned long long kilobytes){
     return result;
 }
 
-bool Memory_Worker_Impl::Deallocate(double kilobytes) {
+bool Memory_Worker_Impl::Deallocate(size_t kilobytes) {
     bool result = false;
     if(kilobytes > 0){
         std::lock_guard<std::mutex> guard(lock_);
@@ -47,7 +47,7 @@ bool Memory_Worker_Impl::Deallocate(double kilobytes) {
     return result;
 }
 
-bool Memory_Worker_Impl::Deallocate_(unsigned long long kilobytes){
+bool Memory_Worker_Impl::Deallocate_(size_t kilobytes){
     bool result = false;
     try{
         // Make sure we are not trying to deallocate more memory
@@ -72,7 +72,7 @@ bool Memory_Worker_Impl::Deallocate_(unsigned long long kilobytes){
     return result;
 }
 
-double Memory_Worker_Impl::GetAllocatedCount(){
+size_t Memory_Worker_Impl::GetAllocatedCount(){
     std::lock_guard<std::mutex> guard(lock_);
     return memory_.size();
 }

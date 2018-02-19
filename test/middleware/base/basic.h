@@ -1,10 +1,11 @@
-#ifndef OSPL_BASE_BASIC_H
-#define OSPL_BASE_BASIC_H
+#ifndef BASE_BASIC_H
+#define BASE_BASIC_H
 
 // Include Statements
 #include <core/basemessage.h>
 #include <string>
 #include <iostream>
+
 namespace Base{
 	class Basic : public ::BaseMessage{
 		public:
@@ -14,4 +15,4 @@ namespace Base{
 	};
 };
 
-#endif //OSPL_BASE_BASIC_H
+#endif //BASE_BASIC_H

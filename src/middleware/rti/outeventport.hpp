@@ -1,11 +1,13 @@
 #ifndef RTI_OUTEVENTPORT_H
 #define RTI_OUTEVENTPORT_H
 
+#include <middleware/rti/translate.h>
+#include <middleware/rti/helper.hpp>
 #include <core/eventports/outeventport.hpp>
+
 #include <string>
 #include <mutex>
 #include <exception>
-#include "helper.hpp"
 
 namespace rti{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
@@ -90,7 +92,7 @@ bool rti::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(writer_ != dds::core::null){
-            auto m = rti::translate(message);
+            auto m = rti::translate<T, S>(message);
             //De-reference the message and send
             writer_.write(*m);
             delete m;
