@@ -87,7 +87,8 @@ __kernel void matrixMultFull( __global float* in1,
         uint maxSteps = min(blockLength, K - blockLength*block);
         
         for (uint step=0; step<maxSteps; step++) {
-            eSum += localA[step + blockLength*lRow] * localB[lCol + blockLength*step];
+            eSum += localA[step + blockLength*lRow] * localB[lCol + blockLength*step]; 
+            //eSum = fma(localA[step + blockLength*lRow], localB[lCol + blockLength*step], eSum);  
         }
 
         barrier(CLK_LOCAL_MEM_FENCE);

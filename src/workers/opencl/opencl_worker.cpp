@@ -160,6 +160,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     //auto workgroup_size = kernel_workgroup_size;
     block_length = (unsigned int) sqrt(workgroup_size);
 
+	std::cout << "block length: " << block_length << std::endl;
 
     cl::LocalSpaceArg block_data_size = cl::Local(block_length*block_length*sizeof(cl_float));
 
