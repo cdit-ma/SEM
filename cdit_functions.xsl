@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v1.5.1'" />
+        <xsl:value-of select="'re_gen-v1.5.1B'" />
     </xsl:function>
 
     <!--
