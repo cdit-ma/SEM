@@ -869,7 +869,10 @@
                 <xsl:when test="$kind = 'MemberInstance' or $kind = 'Member' or $kind = 'Variable'">
                     <xsl:variable name="member_def" select="graphml:get_definition($aggregate)" />
                     <xsl:variable name="member_type" select="graphml:get_type($member_def)" />
-                    <xsl:value-of select="cdit:get_default_primitive_value($member_type)" />
+                    <xsl:variable name="child" select="graphml:get_child_node($member_def, 1)" />
+                    <xsl:if test="not($child)">
+                        <xsl:value-of select="cdit:get_default_primitive_value($member_type)" />
+                    </xsl:if>
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>        
