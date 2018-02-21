@@ -1,7 +1,8 @@
 #include <core/libportexport.h>
 
 // Include the convert function
-#include "proto/message/convert.h"
+#include "../../base/message/message.h"
+#include "../../proto/message/message.pb.h"
 
 // Include the zmq specific templated classes
 #include <middleware/zmq/ineventport.hpp>

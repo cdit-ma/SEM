@@ -19,7 +19,7 @@ add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
 # Include the runtime environment directory
 target_include_directories(${PROJ_NAME} PRIVATE "${RE_PATH}/src")
 # Link against runtime environment
-target_link_libraries(${PROJ_NAME} "${RE_CORE_LIBRARIES}")
+target_link_libraries(${PROJ_NAME} re_core)
 
 # Include required aggregates source dirs
 target_include_directories(${PROJ_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../datatypes/base")

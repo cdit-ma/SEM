@@ -9,9 +9,6 @@ if(NOT PROTOBUF_FOUND)
 	return()
 endif()
 
-# Find library re_core
-find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
-
 set(SHARED_LIBRARY_NAME "proto_message_lib")
 # Copy the <proto> file into the binary directory so it can be used by the middleware compilers
 configure_file(message.proto ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
@@ -45,7 +42,7 @@ endif(MSVC)
 message(${RE_CORE_LIBRARIES})
 message(${PROTOBUF_LIBRARIES})
 # Link against runtime environment
-target_link_libraries(${SHARED_LIBRARY_NAME} "${RE_CORE_LIBRARIES}")
+target_link_libraries(${SHARED_LIBRARY_NAME} re_core)
 # Link against the middleware libraries
 target_link_libraries(${SHARED_LIBRARY_NAME} "/usr/local/lib/libprotobuf.so")
 # Link against the base aggregate

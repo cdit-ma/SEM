@@ -12,10 +12,6 @@ FIND_LIBRARY(TAO_ATC_LIBS NAMES TAO_AnyTypeCode PATHS ${ACE_ROOT}/lib)
 FIND_LIBRARY(TAO_IORTable_LIBS NAMES TAO_IORTable PATHS ${ACE_ROOT}/lib)
 
 
-# Find library re_core
-find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
-
-
 set(SHARED_LIBRARY_NAME "tao_message_lib")
 # Copy the <idl> file into the binary directory so it can be used by the middleware compilers
 configure_file(message.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
@@ -55,7 +51,7 @@ target_include_directories(${SHARED_LIBRARY_NAME} PRIVATE "${CMAKE_CURRENT_BINAR
 target_include_directories(${SHARED_LIBRARY_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
 # Link against runtime environment
-target_link_libraries(${SHARED_LIBRARY_NAME} "${RE_CORE_LIBRARIES}")
+target_link_libraries(${SHARED_LIBRARY_NAME} re_core)
 # Link against the middleware libraries
 target_link_libraries(${SHARED_LIBRARY_NAME} "${RTIDDS_LIBRARIES}")
 # Link against the base aggregate
@@ -75,7 +71,7 @@ target_link_libraries(${PROJ_NAME} "${TAO_ATC_LIBS}")
 target_link_libraries(${PROJ_NAME} "${TAO_PS_LIBS}")
 target_link_libraries(${PROJ_NAME} "${TAO_IORTable_LIBS}")
 
-target_link_libraries(${PROJ_NAME} "${RE_CORE_LIBRARIES}")
+target_link_libraries(${PROJ_NAME} re_core)
 
 target_link_libraries(${PROJ_NAME} ${SHARED_LIB_NAME})
 target_link_libraries(${PROJ_NAME} "tao_message_lib")
