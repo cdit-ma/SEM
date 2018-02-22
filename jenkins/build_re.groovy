@@ -25,9 +25,13 @@ for(n in re_nodes){
         node(node_name){
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
-                deleteDir()
                 //Build the entire project 
                 def success = utils.buildProject("Ninja", "-DBUILD_TEST=ON")
+                if(!success){
+                    // If we failed, try clear out the folder and build again
+                    deleteDir()
+                    success = utils.buildProject("Ninja", "-DBUILD_TEST=ON")
+                }
                 if(!success){
                     error("Cannot Compile")
                 }
