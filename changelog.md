@@ -1,3 +1,26 @@
+# re v1.5.0
+
+## New Features:
+* Fixed bug in DDS implementations which caused messages to be occasionally missed
+* Added re_gen as a submodule
+* Updated Re to handle RTI DDS 5.3.0
+* Fixed interoperability issues between DDS implementations
+
+## Submodule Updates:
+* Updated re_gen to v1.5.2
+
+## JIRA Issues:
+|	Issue key	|	Summary	|
+|	--- | --- |
+|   [RE-164](https://cdit-ma.atlassian.net/browse/RE-164)   |   Not Interoperability between RTI->OSPL |
+|   [RE-163](https://cdit-ma.atlassian.net/browse/RE-163)   |   Un-Initialised EnumMembers sporadically stop RTIDDS messages from being sent/recieved |
+|   [RE-158](https://cdit-ma.atlassian.net/browse/RE-158)   |   Missing every 10 messages roughly with RTI, when on differing nodes 
+|   [RE-147](https://cdit-ma.atlassian.net/browse/RE-147)	|   Update re to use RTI DDS 5.3.0	|
+|   [RE-129](https://cdit-ma.atlassian.net/browse/RE-129)   |   Pure Virtual exception getting called in event port queue model |
+|   [RE-105](https://cdit-ma.atlassian.net/browse/RE-105)   |   Relative paths for lib in re_node_manager -l option |
+
+---
+
 # re v1.4.0
 
 ## New Features:
