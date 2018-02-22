@@ -1,16 +1,38 @@
+# re_gen v1.5.2
+
+## New Features:
+* Updated to match the latest changes in re v1.5.0
+
+## Validation:
+* Added check for use of C++ reserved words RE class names for Aggregates, Members, Components
+
+## Resolved JIRA Issues:
+| Issue key | Summary|
+| --- | --- |
+| [REGEN-44](https://cdit-ma.atlassian.net/browse/REGEN-37) | Catch Member names not being unique when compared to parent Aggregate |
+| [REGEN-43](https://cdit-ma.atlassian.net/browse/REGEN-43) | Check for case-insensitive Aggregate labels/namespaces being the same |
+| [REGEN-42](https://cdit-ma.atlassian.net/browse/REGEN-42) | Place a version number into generated code |
+
+---
+
 # re_gen v1.5.1
 
 ## New Features:
 * Added a sparse mode boolean flag to only compile Aggregates/Components which are actually being deployed (defaults to true)
 * Fixed a vast list of bugs to do with duplicated named objects
+* Added initialization to all primitives declarations
+
 
 ## Validation:
 * Added checks to handle enum issues and duplicate symbol warnings
+* Added check for invalid/reserved labels of Aggregates/Enumerations
+* Added check for Enum with no defined EnumMembers 
 
 
 ## Resolved JIRA Issues:
 | Issue key | Summary|
 | --- | --- |
+| [RE-163](https://cdit-ma.atlassian.net/browse/RE-163) |Un-Initialised EnumMembers sporadically stop RTIDDS messages from being sent/recieved |
 | [REGEN-37](https://cdit-ma.atlassian.net/browse/REGEN-37) | Catch Member names not being unique when compared to parent Aggregate |
 | [REGEN-38](https://cdit-ma.atlassian.net/browse/REGEN-38) | Enums defined expect capitals for the label |
 | [REGEN-39](https://cdit-ma.atlassian.net/browse/REGEN-39) | Make .proto and .idl files encapsulate namespace into the file name |
