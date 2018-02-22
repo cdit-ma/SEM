@@ -23,6 +23,14 @@ for(n in re_nodes){
 
     step_build_test[node_name] = {
         node(node_name){
+            dir(PROJECT_NAME + "/bin"){
+                // Prune old bin
+                deleteDir()
+            }
+            dir(PROJECT_NAME + "/lib"){
+                // Prune old lib
+                deleteDir()
+            }
             unstash "source_code"
             dir(PROJECT_NAME + "/build"){
                 //Build the entire project 
