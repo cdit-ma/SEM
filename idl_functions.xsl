@@ -65,7 +65,7 @@
     -->
     <xsl:function name="idl:key" as="xs:string">
         <xsl:param name="is_key" as="xs:boolean" />
-        <xsl:value-of select="if($is_key) then cpp:comment('@key', 0) else ''" />
+        <xsl:value-of select="if($is_key) then concat(' //@key', o:nl(1)) else ''" />
     </xsl:function>
 
     <!--

@@ -1115,10 +1115,15 @@
         <xsl:variable name="enum_cast_type" select="cpp:get_enum_qualified_type($enum_instance, $target_middleware)" />
 
         <xsl:variable name="cast_enum_value" select="o:join_list((o:wrap_bracket($enum_cast_type), cpp:static_cast('int', $get_func)), ' ')" />
-        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $cast_enum_value)" />
+        <xsl:variable name="temp_variable" select="lower-case(concat('enum_', graphml:get_label($enum_instance)))" />
+
+
+        
+        <xsl:variable name="set_func" select="cdit:invoke_middleware_set_function('out', cpp:arrow(), $enum_instance, $target_middleware, $temp_variable)" />
         
         <xsl:value-of select="cpp:scope_start($tab)" />
         <xsl:value-of select="cpp:comment('Cast the enums integer representation', $tab + 1)" />
+        <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_variable, $cast_enum_value, cpp:nl(), $tab + 1)" />
         <xsl:value-of select="concat(o:t($tab + 1), $set_func, cpp:nl())" />
         <xsl:value-of select="cpp:scope_end($tab)" />
     </xsl:function>

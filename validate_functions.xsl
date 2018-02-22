@@ -492,6 +492,38 @@
         <xsl:value-of select="cdit:output_test('EventportDelegates established correctly', $results, 1)" />
     </xsl:function>
 
+    <xsl:function name="cdit:test_eventport_instances">
+        <xsl:param name="model" as="element(gml:node)"/>
+
+        <xsl:variable name="instances" select="graphml:get_descendant_nodes_of_kind($model, ('InEventPortInstance', 'OutEventPortInstance'))" />
+
+        <xsl:variable name="results">
+            <xsl:for-each select="$instances">
+                <xsl:variable name="id" select="graphml:get_id(.)" />
+                <xsl:variable name="label" select="graphml:get_label(.)" />
+                <xsl:variable name="middleware" select="graphml:get_data_value(., 'middleware')" />
+
+                <xsl:if test="lower-case($middleware) = 'ospl'">
+                    <xsl:variable name="port_def" select="graphml:get_definition(.)" />
+                    <!-- Get all AggregateInstances used by the port definition -->
+                    <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($port_def, 'AggregateInstance')" />
+                    <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
+
+                    <xsl:for-each select="$aggregate_definitions">
+                        <xsl:variable name="aggregate_id" select="graphml:get_id(.)" />
+                        <xsl:variable name="aggregate_keys" select="graphml:get_keys(.)" />
+                        <xsl:variable name="got_key" select="count($aggregate_keys) > 0" />        
+                        <xsl:variable name="type" select="graphml:get_type(.)" />        
+                        <xsl:value-of select="cdit:output_result($aggregate_id, $got_key, o:join_list(('OpenSplice requires that Aggregate ', o:wrap_quote($type), 'has a child with data', o:wrap_quote('is_key'), 'set to true'), ' '), false(), 2)" />        
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:value-of select="cdit:output_test('EventPortInstances established correctly', $results, 1)" />
+    </xsl:function>
+
+    
+
     
     <xsl:function name="cdit:test_eventport_aggregates">
         <xsl:param name="components" as="element(gml:node)*"/>
@@ -637,7 +669,7 @@
                 
                 <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
                 <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
-                <xsl:variable name="invalid_count" select="count($invalid_labels[contains($label, .)])" />
+                <xsl:variable name="invalid_count" select="count($invalid_labels[$label = .])" />
 
                 <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label), 'has an invalid characters in label', o:wrap_quote($label_print), '(Replaced with *)'), ' '), false(), 2)"/> 
                 <xsl:value-of select="cdit:output_result($id, $invalid_count = 0, o:join_list(($kind, o:wrap_quote($label), 'has an invalid Class Type which is reserved or a symbol used by runtime environment.'), ' '), false(), 2)"/> 
@@ -706,8 +738,10 @@
         <xsl:param name="model" as="element(gml:node)*"/>
 
         <xsl:variable name="component_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'ComponentInstance')" />
+        <xsl:variable name="eventport_instances" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, ('OutEventPortInstance', 'InEventPortInstance'))" />
         
         <xsl:value-of select="cdit:test_assembly_connections($component_instances)" />
+        <xsl:value-of select="cdit:test_eventport_instances($model)" />
         <xsl:value-of select="cdit:test_eventport_delegates($model)" />
         <xsl:value-of select="cdit:test_deployment($component_instances)" />
     </xsl:function>
