@@ -24,6 +24,7 @@
         
         <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
         <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        
         <xsl:variable name="middleware_namespace" select="lower-case($middleware)" />
         
         <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'translate'), '_'))" />
@@ -630,13 +631,49 @@
             <xsl:value-of select="cmake:comment('Include the current binary directory to allow inclusion of generated files', 0)" />
             <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $binary_dir_var, 0)" />
 
+            
+
+            <xsl:variable name="aggregates_to_binary_include" as="element()*">
+                <xsl:if test="cdit:middleware_uses_protobuf($middleware)">
+                    <!-- ProtoBuf using middlewares need to include the protobuf binary directory 1-->
+                    <xsl:sequence select="$aggregate" />
+                </xsl:if>
+                <!-- use all required_aggregates -->
+                <xsl:sequence select="$required_aggregates" />
+            </xsl:variable>
+
             <!-- Include the generated code folders for all required_aggregates -->
-            <xsl:for-each select="$required_aggregates">
+            <xsl:for-each select="$aggregates_to_binary_include">
                 <xsl:if test="position() = 1">
                     <xsl:value-of select="cmake:comment(('Include binary directory of each required aggregate so it can be used by the middleware compilers'), 0)" />
                 </xsl:if>
-                <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
-                <xsl:variable name="aggregate_path" select="cdit:get_aggregates_path(.)" />
+
+                <xsl:variable name="relative_path">
+                    <xsl:choose>
+                        <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                            <!-- ProtoBuf using middlewares need to navigate back up to the top level datetype folder -->
+                            <xsl:value-of select="cmake:get_relative_path(('proto', $aggregate_namespace, $aggregate_label))" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- Other middlewares don't need to look outside their middleware folders -->
+                            <xsl:value-of select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+
+                <xsl:variable name="aggregate_path">
+                    <xsl:choose>
+                        <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                            <!-- ProtoBuf using middlewares need to navigate back up to the top level datetype folder -->
+                            <xsl:value-of select="o:join_paths(('proto', cdit:get_aggregates_path(.)))" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- Other middlewares don't need to look outside their middleware folders -->
+                            <xsl:value-of select="cdit:get_aggregates_path(.)" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
+                
                 <xsl:variable name="required_path" select="o:join_paths(($binary_dir_var, $relative_path, $aggregate_path))" />
                 <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', $required_path, 0)" />
 
@@ -772,19 +809,18 @@
         <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
+
         <xsl:choose>
             <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
-                <xsl:value-of select="cpp:comment(('Forward declare the middleware type'), 0)" />
-                <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, cpp:get_aggregate_type_name($aggregate), 0)" />
-                <xsl:value-of select="o:nl(1)" />
+                <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, 'proto'))" />
             </xsl:when>
             <xsl:otherwise>
                 <!-- Include the middleware specific header -->
-                <xsl:value-of select="cpp:comment(('Including', o:wrap_quote($middleware), 'generated header'), 0)" />
                 <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
-                <xsl:value-of select="o:nl(1)" />
             </xsl:otherwise>
         </xsl:choose>
+        <xsl:value-of select="o:nl(1)" />
 
         
 
@@ -1087,6 +1123,21 @@
         <xsl:value-of select="cpp:scope_end($tab)" />
     </xsl:function>
 
+
+    <xsl:function name="cdit:invoke_translate_function">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="get_func" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        
+        
+        <xsl:variable name="source_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+        <xsl:variable name="template_type" select="cpp:join_args(($source_type, $target_type))"/>
+        <xsl:variable name="middleware_namespace" select="cdit:get_middleware_namespace($middleware)" />
+        <xsl:value-of select="cpp:invoke_templated_static_function($template_type, cpp:combine_namespaces(($middleware_namespace, 'translate')), $get_func, '', $tab)" />
+    </xsl:function>
+
     <xsl:function name="cdit:translate_aggregate_instance">
         <xsl:param name="aggregate_instance" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
@@ -1099,7 +1150,7 @@
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $aggregate_instance, $source_middleware)" />
         <xsl:variable name="temp_variable" select="lower-case(concat('value_', graphml:get_label($aggregate_instance)))" />
-        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $get_func, 0)" />
+        <xsl:variable name="translate_func" select="cdit:invoke_translate_function($aggregate_instance,  $get_func, $middleware, 0)" />
 
         <xsl:variable name="value">
             <xsl:choose>
@@ -1144,8 +1195,7 @@
         <xsl:variable name="temp_size_variable" select="o:join_list(($temp_variable, 'size'), '_')" />
         <xsl:variable name="get_size" select="cpp:invoke_function($temp_variable, cpp:dot(), 'size', '', 0)" />
         <xsl:variable name="get_value" select="cpp:array_get($temp_variable, 'i')" />
-      
-        <xsl:variable name="translate_func" select="cpp:invoke_function('', '', cpp:combine_namespaces(($middleware_namespace, 'translate')), $temp_variable, 0)" />
+
         <xsl:variable name="set_func">
             <xsl:choose>
                 <xsl:when test="$vector_child_kind = 'AggregateInstance'">
@@ -1163,6 +1213,8 @@
         <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
        <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
+                <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $middleware, 0)" />
+
                 <!-- Vector aggregates require translation -->
                 <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 2)" />
                 <xsl:value-of select="cpp:define_variable(cpp:auto(), $temp_element_variable, $translate_func, cpp:nl(), $tab + 2)" />

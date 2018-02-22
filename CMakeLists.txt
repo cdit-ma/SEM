@@ -20,14 +20,5 @@ if(MSVC)
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
 endif(MSVC)
 
-set(REGEN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/..)
-find_package(REGEN REQUIRED)
-
-file(GLOB GRAPHML_FILES "*.graphml")
-
-# Run the regen compiler over the graphml files
-REGEN_GENERATE_CPP(GENERATED_DIRS ${GRAPHML_FILES})
-
-FOREACH(GENERATED_DIR ${GENERATED_DIRS})
-	add_subdirectory("${GENERATED_DIR}")
-ENDFOREACH(GENERATED_DIR)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
