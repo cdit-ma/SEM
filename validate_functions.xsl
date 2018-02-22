@@ -609,7 +609,13 @@
         <xsl:value-of select="cdit:output_test('Deployment Tests', $results, 1)" />
     </xsl:function>
 
-    
+    <xsl:function name="cdit:get_cpp_reserved_words" as="xs:string*">
+        <xsl:sequence select="('alignas', 'alignof', 'and', 'and_eq', 'asm', 'atomic_cancel', 'atomic_commit', 'atomic_noexcept', 'auto', 'bitand', 'bitor', 'bool', 'break', 'case', 'catch', 'char', 'char16_t', 'char32_t', 'class', 'compl', 'concept', 'const', 'constexpr', 'const_cast', 'continue', 'co_await', 'co_return', 'co_yield', 'decltype', 'default', 'delete', 'do', 'double', 'dynamic_cast', 'else', 'enum', 'explicit', 'export', 'extern', 'false', 'float', 'for', 'friend', 'goto', 'if', 'import ', 'inline', 'int', 'long', 'module ', 'mutable', 'namespace', 'new', 'noexcept', 'not', 'not_eq', 'nullptr', 'operator', 'or', 'or_eq', 'private', 'protected', 'public', 'register', 'reinterpret_cast', 'requires', 'return', 'short', 'signed', 'sizeof', 'static', 'static_assert', 'static_cast', 'struct', 'switch', 'synchronized', 'template', 'this', 'thread_local', 'throw', 'true', 'try', 'typedef', 'typeid', 'typename', 'union', 'unsigned', 'using', 'virtual', 'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_re_reserved_words" as="xs:string*">
+        <xsl:sequence select="('Aggregate', 'Component', 'BaseMessage', 'Activatable', 'Attribute', 'ModelLogger', 'Worker', 'InEventPort', 'OutEventPort')" />
+    </xsl:function>
     
     <xsl:function name="cdit:test_invalid_label">
         <xsl:param name="entities" as="element(gml:node)*"/>
@@ -621,7 +627,7 @@
              <xsl:for-each select="1 to string-length($invalid_characters)">*</xsl:for-each>
         </xsl:variable>
 
-        <xsl:variable name="invalid_labels" select="('Aggregate', 'Component')"  />
+        <xsl:variable name="invalid_labels" select="(cdit:get_re_reserved_words(), cdit:get_cpp_reserved_words())"  />
 
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
@@ -631,7 +637,7 @@
                 
                 <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
                 <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
-                <xsl:variable name="invalid_count" select="count($invalid_labels[contains(., $label)])" />
+                <xsl:variable name="invalid_count" select="count($invalid_labels[contains($label, .)])" />
 
                 <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label), 'has an invalid characters in label', o:wrap_quote($label_print), '(Replaced with *)'), ' '), false(), 2)"/> 
                 <xsl:value-of select="cdit:output_result($id, $invalid_count = 0, o:join_list(($kind, o:wrap_quote($label), 'has an invalid Class Type which is reserved or a symbol used by runtime environment.'), ' '), false(), 2)"/> 
@@ -650,6 +656,8 @@
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
         <xsl:variable name="enums" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Enum')" />
 
+        <xsl:variable name="members" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Member')" />
+
         <xsl:variable name="aggregate_descendants" as="element()*">
             <xsl:sequence select="$aggregates" />
             <xsl:for-each select="$aggregates">
@@ -662,6 +670,8 @@
         <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
         <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
+        <xsl:value-of select="cdit:test_invalid_label($enums, 'Enum valid names')" />
+        <xsl:value-of select="cdit:test_invalid_label($members, 'Member valid names')" />
 
         <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->
         
