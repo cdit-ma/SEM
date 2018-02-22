@@ -46,8 +46,7 @@ set_target_properties(${RE_NODE_MANAGER_LIB} PROPERTIES OUTPUT_NAME ${RE_NODE_MA
 
 
 # Tell boost to link dynamically
-#target_compile_definitions(${RE_NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
-#target_compile_definitions(${RE_EXECUTION_TESTER} PRIVATE -DBOOST_ALL_DYN_LINK)
+
 
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
@@ -69,6 +68,8 @@ target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${Boost_INCLUDE_DIRS})
 
 if (MSVC)
     # Windows requires protobuf in DLLs
+    target_compile_definitions(${RE_NODE_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
+    target_compile_definitions(${RE_EXECUTION_TESTER} PRIVATE -DBOOST_ALL_DYN_LINK)
     target_compile_definitions(${RE_NODE_MANAGER_LIB} PRIVATE -DPROTOBUF_USE_DLLS)
 elseif(UNIX)
 	target_link_libraries(${RE_NODE_MANAGER_LIB} pthread)
