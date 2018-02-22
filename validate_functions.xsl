@@ -621,6 +621,8 @@
              <xsl:for-each select="1 to string-length($invalid_characters)">*</xsl:for-each>
         </xsl:variable>
 
+        <xsl:variable name="invalid_labels" select="('Aggregate', 'Component')"  />
+
         <xsl:variable name="results">  
             <xsl:for-each select="$entities">
                 <xsl:variable name="id" select="graphml:get_id(.)" />
@@ -629,8 +631,11 @@
                 
                 <xsl:variable name="label_replaced" select="translate($label, $invalid_characters, '')" /> 
                 <xsl:variable name="label_print" select="translate($label, $invalid_characters, $replace_map)" />   
+                <xsl:variable name="invalid_count" select="count($invalid_labels[contains(., $label)])" />
 
                 <xsl:value-of select="cdit:output_result($id, $label = $label_replaced, o:join_list(($kind, o:wrap_quote($label), 'has an invalid characters in label', o:wrap_quote($label_print), '(Replaced with *)'), ' '), false(), 2)"/> 
+                <xsl:value-of select="cdit:output_result($id, $invalid_count = 0, o:join_list(($kind, o:wrap_quote($label), 'has an invalid Class Type which is reserved or a symbol used by runtime environment.'), ' '), false(), 2)"/> 
+
             </xsl:for-each>
         </xsl:variable>
 
@@ -643,6 +648,7 @@
         <xsl:param name="model" as="element(gml:node)*"/>
 
         <xsl:variable name="aggregates" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Aggregate')" />
+        <xsl:variable name="enums" as="element()*" select="graphml:get_descendant_nodes_of_kind($model, 'Enum')" />
 
         <xsl:variable name="aggregate_descendants" as="element()*">
             <xsl:sequence select="$aggregates" />
@@ -655,6 +661,7 @@
         <xsl:value-of select="cdit:test_namespace_collisions($aggregates)" />
         <xsl:value-of select="cdit:test_invalid_label($aggregate_descendants, 'Descendants of an Aggregate require valid labels')" />
         <xsl:value-of select="cdit:test_requires_children($aggregates, 'Aggregate entities require at least one child')" />
+        <xsl:value-of select="cdit:test_requires_children($enums, 'Enum entities require at least one child')" />
 
         <!-- <xsl:value-of select="cdit:test_aggregate_requires_key($aggregates)" />-->
         

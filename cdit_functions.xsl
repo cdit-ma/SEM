@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v1.5.1'" />
+        <xsl:value-of select="'re_gen-v1.5.1B'" />
     </xsl:function>
 
     <!--
@@ -832,6 +832,25 @@
         <xsl:value-of select="cpp:comment((o:wrap_square(graphml:get_kind($element)), graphml:get_label($element), o:wrap_angle(graphml:get_id($element))), $tab)" />
     </xsl:function>
 
+
+    <xsl:function name="cdit:get_default_primitive_value">
+        <xsl:param name="type" as="xs:string" />
+        <xsl:choose>
+            <xsl:when test="$type = 'String'">
+                <xsl:value-of select="o:wrap_dblquote('')"/>
+            </xsl:when>
+            <xsl:when test="$type = 'Boolean'">
+                <xsl:value-of select="'false'"/>
+            </xsl:when>
+            <xsl:when test="$type = 'Double' or $type = 'Float'">
+                <xsl:value-of select="'0.0'"/>
+            </xsl:when>
+            <xsl:when test="$type = 'Integer' or $type = 'Character'">
+                <xsl:value-of select="'0'"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="cdit:declare_datatype_functions">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="tab" as="xs:integer" />
@@ -840,8 +859,30 @@
         <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
         <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
         <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
-        <xsl:variable name="value" select="graphml:get_data_value($aggregate, 'value')" />
+        <xsl:variable name="set_value" select="graphml:get_data_value($aggregate, 'value')" />
 
+        <xsl:variable name="value">
+            <xsl:choose>
+                <xsl:when test="$set_value != ''">
+                    <xsl:value-of select="$set_value" />
+                </xsl:when>
+                <xsl:when test="$kind = 'EnumInstance'">
+                    <xsl:variable name="enum_def" select="graphml:get_definition($aggregate)" />
+                    <xsl:variable name="enum_member" select="graphml:get_child_node($enum_def, 1)" />
+                    <xsl:if test="$enum_member">
+                        <xsl:value-of select="cdit:get_resolved_enum_member_type($enum_member)" />
+                    </xsl:if>
+                </xsl:when>
+                <xsl:when test="$kind = 'MemberInstance' or $kind = 'Member' or $kind = 'Variable'">
+                    <xsl:variable name="member_def" select="graphml:get_definition($aggregate)" />
+                    <xsl:variable name="member_type" select="graphml:get_type($member_def)" />
+                    <xsl:variable name="child" select="graphml:get_child_node($member_def, 1)" />
+                    <xsl:if test="not($child)">
+                        <xsl:value-of select="cdit:get_default_primitive_value($member_type)" />
+                    </xsl:if>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>        
         
         <xsl:choose>
             <xsl:when test="$cpp_type != ''">
