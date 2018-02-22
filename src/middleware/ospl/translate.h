@@ -5,10 +5,10 @@
 
 namespace ospl{
     template <class BaseType, class OsplType>
-    OsplType* EXPORT_FUNC translate(const BaseType& value);
+    EXPORT_FUNC OsplType* translate(const BaseType& value);
     
     template <class BaseType, class OsplType>
-    BaseType* EXPORT_FUNC translate(const OsplType& value);
+    EXPORT_FUNC BaseType* translate(const OsplType& value);
 };
 
 #endif // OSPL_TRANSLATE_H
