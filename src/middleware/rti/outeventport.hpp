@@ -24,6 +24,7 @@ namespace rti{
             bool tx(const T& message);
         private:
             bool setup_tx();
+            int count = 0;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
