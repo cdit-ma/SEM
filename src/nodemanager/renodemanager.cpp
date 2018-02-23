@@ -4,8 +4,6 @@
 #include <signal.h>
 #include <boost/program_options.hpp>
 
-#include "controlmessage/controlmessage.pb.h"
-
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 

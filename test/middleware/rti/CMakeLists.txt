@@ -15,7 +15,6 @@ endif()
 
 find_package(Boost 1.30.0 REQUIRED)
 
-
 # Copy this <idl> file into the binary directory so the compilation of generated files can succeed
 configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
@@ -27,6 +26,9 @@ SET(SOURCE
 )
 add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})
 
+# Need this to make sure headers are using the correct function calls.
+target_compile_definitions(${PROJ_NAME} PRIVATE ${RTIDDS_DEFINITIONS})
+
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${RTIDDS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
@@ -37,8 +39,7 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
 
-# Need this to make sure headers are using the correct function calls.
-target_compile_definitions(${PROJ_NAME} PRIVATE ${RTIDDS_DEFINITIONS})
+
 
 
 target_link_libraries(${PROJ_NAME} re_core)

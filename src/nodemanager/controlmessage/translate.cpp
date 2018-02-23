@@ -2,7 +2,6 @@
 #include "controlmessage.pb.h"
 #include <iostream>
 
-
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(const NodeManager::Attribute& attr){
     switch(attr.kind()){
         case NodeManager::Attribute::INTEGER:

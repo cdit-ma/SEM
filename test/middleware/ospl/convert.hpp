@@ -1,31 +1,32 @@
-#ifndef OSPL_TEST_CONVERT_H
-#define OSPL_TEST_CONVERT_H
+#ifndef TEST_OSPL_CONVERT_H
+#define TEST_OSPL_CONVERT_H
 
-#include <iostream>
+// Include the 'ospl' translate header from re
+#include <middleware/ospl/translate.h>
 
-#include "base_basic.h"
+#include "../base/basic.h"
 #include "basic_DCPS.hpp"
 
-
-// Forward declare the concrete type
-class Aggregate;
 namespace ospl{
-	// Translate Functions
-	Basic* translate(const Base::Basic& src){
-		auto dst_ = new Basic();
-		dst_->str_val(src.str_val);
-		dst_->int_val(src.int_val);
-		dst_->guid_val(src.guid_val);
-		return dst_;
+	// Translate from 'Base' -> 'ospl'
+	template <>
+	::Basic* translate<Base::Basic, Basic>(const Base::Basic& value){
+		auto out = new Basic();
+		out->str_val(value.str_val);
+		out->guid_val(value.guid_val);
+		out->int_val(value.int_val);
+		return out;
 	};
 
-	Base::Basic* translate(const Basic& src){
-		auto dst_ = new Base::Basic();
-		dst_->str_val = src.str_val();
-		dst_->int_val = src.int_val();
-		dst_->guid_val = src.guid_val();
-		return dst_;
+	// Translate from 'ospl' -> 'Base'
+	template <>
+	Base::Basic* translate<Base::Basic, Basic>(const ::Basic& value){
+		auto out = new Base::Basic();
+		out->str_val = value.str_val();
+		out->guid_val = value.guid_val();
+		out->int_val = value.int_val();
+		return out;
 	};
 };
 
-#endif //OSPL_TEST_CONVERT_H
+#endif //TEST_OSPL_CONVERT_H

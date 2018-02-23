@@ -1,6 +1,10 @@
 #ifndef RTI_INEVENTPORT_H
 #define RTI_INEVENTPORT_H
 
+#include <middleware/rti/translate.h>
+#include <middleware/rti/helper.hpp>
+#include <middleware/rti/datareaderlistener.hpp>
+
 #include <core/eventports/ineventport.hpp>
 
 #include <string>
@@ -9,11 +13,9 @@
 #include <condition_variable>
 #include <exception>
 
-#include "helper.hpp"
-#include "datareaderlistener.hpp"
-
 namespace rti{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
+        friend class DataReaderListener<T,S>;
     public:
         InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
         ~InEventPort(){
@@ -38,8 +40,10 @@ namespace rti{
         std::mutex thread_state_mutex_;
         ThreadState thread_state_;
         std::condition_variable thread_state_condition_;
+
         
         bool interupt_ = false;
+        int data_available_count = 0;
         std::mutex control_mutex_;
         std::thread* recv_thread_ = 0;
         std::mutex notify_mutex_;
@@ -86,8 +90,10 @@ bool rti::InEventPort<T, S>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::InEventPort<T>::HandlePassivate()){ 
         //Set the terminate state in the passivation
-        std::lock_guard<std::mutex> lock(notify_mutex_);
-        interupt_ = true;
+        {
+            std::lock_guard<std::mutex> lock(notify_mutex_);
+            interupt_ = true;
+        }
         notify();
         return true;
     }
@@ -112,8 +118,7 @@ bool rti::InEventPort<T, S>::HandleTerminate(){
 
 template <class T, class S>
 void rti::InEventPort<T, S>::notify(){
-   //Called by the DataReaderListener to notify our InEventPort thread to get new data
-   notify_lock_condition_.notify_all();
+    notify_lock_condition_.notify_all();
 };
 
 template <class T, class S>
@@ -131,7 +136,7 @@ void rti::InEventPort<T, S>::recv_loop(){
 
        auto subscriber = helper->get_subscriber(participant, subscriber_name_->String());
        reader_ = get_data_reader<S>(subscriber, topic, qos_path_->String(), qos_name_->String());
-
+       
        //Attach listener to only respond to data_available()
        reader_.listener(&listener, dds::core::status::StatusMask::data_available());
     }catch(const std::exception& ex){
@@ -145,50 +150,29 @@ void rti::InEventPort<T, S>::recv_loop(){
         thread_state_ = state;
     }
 
-    //Sleep for 250 ms
+    //Sleep for 100 ms
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
     thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
         EventPort::LogActivation();
-
-        bool run = true;
-        while(run){ 
+        
+        while(true){ 
             {
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 //Check to see if we've been interupted before sleeping the first time
                 if(interupt_){
                     break;
+                }else{
+                    notify_lock_condition_.wait(lock);
                 }
-                notify_lock_condition_.wait(lock);
-                
-                //Upon wake, read all messages, then die.
-                if(interupt_){
-                    run = false;
-                }
-            }
-
-            ///Read all our samples
-            try{
-                auto samples = reader_.take();
-                for(auto sample : samples){
-                    //Translate and callback into the component for each valid message we receive
-                    if(sample->info().valid()){
-                        auto m = rti::translate(sample->data());
-                        this->EnqueueMessage(m);
-                    }
-                }
-            }catch(const std::exception& ex){
-                Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
-                break;
             }
         }
-
         EventPort::LogPassivation();
     }
+    //Blocks for the DataReaderListener to finish
     reader_.close();
 };
 
