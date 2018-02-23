@@ -54,10 +54,10 @@ for(n in re_nodes){
 
             withEnv(['path=' + path]){
                 dir(PROJECT_NAME + "/bin/test"){
-                    def globstr = "*"
+                    def globstr = "test_*"
                     if(!isUnix()){
                         //If windows search for exe only
-                        def globstr ="*.exe"
+                        globstr += ".exe"
                     }
 
                     //Find all executables
