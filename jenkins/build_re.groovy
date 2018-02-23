@@ -47,31 +47,38 @@ for(n in re_nodes){
 
     step_test[node_name] = {
         node(node_name){
-            dir(PROJECT_NAME + "/bin/test"){
-                def globstr = "*"
+            path = "${PATH}"
+            //Append bin and lib directories for this build of re into the path for windows to find dlls
+            abs_re_path = pwd() + "/" + PROJECT_NAME + "/"
+            path = abs_re_path + "bin;" + abs_re_path + "lib;" + path
 
-                //Find all executables
-                def test_list = findFiles glob: globstr
+            withEnv(['path=' + path]){
+                dir(PROJECT_NAME + "/bin/test"){
+                    def globstr = "*"
 
-                def test_count = 0;
-                def test_error_count = 0;
+                    //Find all executables
+                    def test_list = findFiles glob: globstr
 
-                dir("results"){
-                    for(def file : test_list){
-                        def file_path = file.name
-                        def file_name = utils.trimExtension(file_path)
-                        def test_output = file_name + "_" + node_name + ".xml"
-                        print("Running Test: " + file_path)
-                        def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+                    def test_count = 0;
+                    def test_error_count = 0;
 
-                        if(test_error_code != 0){
-                            print("Test: " + file_path + " Failed!")
-                            currentBuild.result = 'FAILURE'
+                    dir("results"){
+                        for(def file : test_list){
+                            def file_path = file.name
+                            def file_name = utils.trimExtension(file_path)
+                            def test_output = file_name + "_" + node_name + ".xml"
+                            print("Running Test: " + file_path)
+                            def test_error_code = utils.runScript("../" + file_path + " --gtest_output=xml:" + test_output)
+
+                            if(test_error_code != 0){
+                                print("Test: " + file_path + " Failed!")
+                                currentBuild.result = 'FAILURE'
+                            }
                         }
+                        stash includes: "*.xml", name: node_name + "_test_cases"
+                        //Clean up the directory after
+                        deleteDir()
                     }
-                    stash includes: "*.xml", name: node_name + "_test_cases"
-                    //Clean up the directory after
-                    deleteDir()
                 }
             }
         }
