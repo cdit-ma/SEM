@@ -7,3 +7,6 @@
 [submodule "test/googletest"]
 	path = test/googletest
 	url = https://github.com/google/googletest
+[submodule "re_gen"]
+	path = re_gen
+	url = https://github.com/cdit-ma/re_gen

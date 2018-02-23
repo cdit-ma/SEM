@@ -1,18 +1,7 @@
-cmake_minimum_required (VERSION 2.6)
+set(EXECUTION_PARSER "re_execution_parser")
+set(EXECUTION_PARSER_LIB ${EXECUTION_PARSER}_lib)
 
-#Use C++11
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#Set our module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
-
-set(PROJ_NAME "re_execution_parser")
-set(LIB_NAME "re_execution_parser_lib")
-project(${PROJ_NAME})
-
-set(PROJ_NAME re_execution_parser)
-
+set(PROJ_NAME ${EXECUTION_PARSER})
 project(${PROJ_NAME})
 
 #Find PUGIXML Library
@@ -30,10 +19,13 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
     )
 
-include_directories(${PUGIXML_ROOT}/include)
+add_library(${EXECUTION_PARSER_LIB} STATIC ${SOURCE} ${HEADERS})
+add_executable(${EXECUTION_PARSER} "${CMAKE_CURRENT_SOURCE_DIR}/executionparser.cpp")
 
-add_library(${LIB_NAME} ${SOURCE} ${HEADERS})
-add_executable(${PROJ_NAME} "main.cpp")
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
 
-target_link_libraries(${LIB_NAME} ${PUGIXML_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${LIB_NAME})
+# Remove the need for _lib extensions
+set_target_properties(${EXECUTION_PARSER_LIB} PROPERTIES OUTPUT_NAME ${EXECUTION_PARSER})
+
+target_link_libraries(${EXECUTION_PARSER_LIB} ${PUGIXML_LIBRARIES})
+target_link_libraries(${EXECUTION_PARSER} ${EXECUTION_PARSER_LIB})

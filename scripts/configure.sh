@@ -8,6 +8,9 @@ CMAKE_MODULE_PATH=$RE_PATH/cmake_modules/
 
 PUGIXML_ROOT="/opt/pugixml-1.8/"
 
+RTI_DDS_HOST="x64Darwin16clang8.0"
+export RTI_DDS_HOST
+
 CLFFT_ROOT=/opt/clfft/clFFT-2.10.2/src
 CLFFT_LIB_ROOT=$CLFFT_ROOT/library
 

@@ -1,12 +1,15 @@
 #ifndef ZMQ_INEVENTPORT_H
 #define ZMQ_INEVENTPORT_H
 
+#include <middleware/proto/translate.h>
 #include <core/eventports/ineventport.hpp>
 #include "zmqhelper.h"
 #include <re_common/zmq/zmqutils.hpp>
 
 #include <thread>
 #include <mutex>
+
+
 
 namespace zmq{
      template <typename T, typename S> class InEventPort: public ::InEventPort<T>{
@@ -21,6 +24,8 @@ namespace zmq{
             bool HandleTerminate();
         private:
             void recv_loop();
+            
+
             
 
             std::thread* recv_thread_ = 0;
@@ -156,7 +161,7 @@ void zmq::InEventPort<T, S>::recv_loop(){
                     break;
                 }
                 
-                auto m = proto::decode<S>(msg_str);
+                auto m = proto::decode<T, S>(msg_str);
                 this->EnqueueMessage(m);
             }catch(zmq::error_t ex){
                 Log(Severity::ERROR_).Context(this).Func(__func__).Msg(ex.what());

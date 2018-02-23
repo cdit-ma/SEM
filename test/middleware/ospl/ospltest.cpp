@@ -2,10 +2,9 @@
 
 // Include the convert functions for the port type
 #include "convert.hpp"
+
 #include <middleware/ospl/ineventport.hpp>
 #include <middleware/ospl/outeventport.hpp>
-#include <middleware/ospl/ddshelper.h>
-
 
 //Include the FSM Tester
 #include "../../core/activatablefsmtester.h"
@@ -101,8 +100,9 @@ TEST(OSPL_EventportPair, Stable100){
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
         out_port.tx(b);
-        sleep_ms(1);
     }
+
+    sleep_ms(100);
 
     EXPECT_TRUE(in_port.Passivate());
     EXPECT_TRUE(out_port.Passivate());
