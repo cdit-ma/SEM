@@ -14,6 +14,8 @@ public:
 
     const char* what() const noexcept {
         std::string message = "[";
+	message += ErrorCode();
+	message += ": ";
         message += OpenCLErrorName(ErrorCode());
         message += "] ";
         message += std::runtime_error::what();

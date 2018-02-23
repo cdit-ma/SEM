@@ -23,6 +23,7 @@ endif()
 #    message(STATUS "Not Found CLFFT - Not building GPU worker")
 #    return()
 #endif(NOT CLFFT_LIB)
+#add_definitions(-DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
@@ -52,6 +53,10 @@ set(HEADERS
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 add_executable(${TESTER_NAME} openclmanagertests.cpp)
+
+get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
+message(${KERNEL_FILEPATH})
+target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})

@@ -21,7 +21,7 @@ find_package(Boost 1.30.0 COMPONENTS filesystem REQUIRED)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/precompiler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../openclutilities.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/../openclutilities.cpp
     )
 
 set(HEADERS
@@ -41,5 +41,6 @@ endif(UNIX)
 
 target_compile_definitions(${PROJ_NAME} PRIVATE -DBOOST_ALL_DYN_LINK)
 
+target_link_libraries(${PROJ_NAME} opencl_worker)
 target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
 target_link_libraries(${PROJ_NAME} re_core)

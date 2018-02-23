@@ -8,7 +8,7 @@
 #include <math.h>
 #include <limits>
 #include <random>
-
+#include <iomanip>
 #include <chrono>
 
 #include "openclmanager.h"
@@ -19,8 +19,16 @@
 
 #define RANDSEED 13520
 
-#define EPS 1e-7
-#define CHECK_FLOAT(x, y, eps) (fabs(x-y)<eps)
+#define EPS 1e-5
+#define CHECK_FLOAT(x, y, eps) (fabs(1-x/y)<eps)
+
+bool compare_float(float x, float y, float epsilon) {
+	if (x == y) return true;
+	
+	if (y == 0) return false;
+
+	return fabs(1-x/y) < epsilon;
+};
 
 enum Result {
 	UNKNOWN,
@@ -212,8 +220,14 @@ int main(int argc, char** argv) {
 	for (auto& device : manager->GetDevices(test_worker)) {
 		testBufferReadWrite(*manager, device);
 	}
-
+	
+	bool firstTime = true;
 	for (auto& device : manager->GetDevices(test_worker)) {
+		if (firstTime) {
+			firstTime = false;
+		} else {
+			continue;
+		}
 		testKernelPassthrough(*manager, device);
 	}
 
@@ -829,7 +843,7 @@ void testWorkerRectMult(OpenCLWorker& worker, unsigned int rowsA, unsigned int c
 
 Result checkMultiplication(float* matA, float* matB, float* matC, unsigned int m, unsigned int k, unsigned int n) {
 	Result res = UNKNOWN;
-	
+	std::cout << std::setprecision(10);	
 	for (unsigned int col=0; col<n; col++) {
 		for (unsigned int row=0; row<m; row++) {
 			
@@ -838,7 +852,7 @@ Result checkMultiplication(float* matA, float* matB, float* matC, unsigned int m
 				accum += matA[t + row*k]*matB[col + t*n];
 			}
 
-			if (!CHECK_FLOAT(accum, matC[col + row*n], EPS)) {
+			if (!compare_float(accum, matC[col + row*n], EPS)) {
 				if (m*n*k > 100) return FAIL;
 				//if (verbose) {
 					std::cout << "At pos [" << row << ',' << col << "] expected: " << accum << ", result: " << matC[col + row*n] << std::endl;
