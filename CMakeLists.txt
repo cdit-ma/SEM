@@ -8,14 +8,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Required for dynamic linking magic
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#Set the projects RPATH to look in the executable directory
-#if(APPLE)
-#	set(CMAKE_MACOSX_RPATH 1)
-#	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-#	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
-#endif(APPLE)
-
-SET(RE_VERSION "1.4.1")
+SET(RE_VERSION "1.5.0")
 
 option(BUILD_TEST "Build testing" OFF)
 
