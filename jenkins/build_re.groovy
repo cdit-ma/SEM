@@ -72,9 +72,9 @@ for(n in re_nodes){
                         }
                     }
                     stash includes: "*.xml", name: node_name + "_test_cases"
+                    //Clean up the directory after
+                    deleteDir()
                 }
-                //Clean up the directory after
-                deleteDir()
             }
         }
     }
