@@ -21,7 +21,8 @@ option(BUILD_TEST "Build testing" OFF)
 
 
 #Get the RE_PATH
-#set(RE_PATH "$ENV{RE_PATH}")
+set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+
 set(RE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 #Use the local submoduled cmake_modules if we don't have a global one set
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
