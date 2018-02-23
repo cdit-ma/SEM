@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QThread>
+#include <QHttpMultiPart>
 
 
 ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
@@ -232,6 +233,25 @@ HTTPResult ProcessRunner::HTTPPost(QNetworkRequest request, QByteArray post_data
     }
     return result;
 }
+
+HTTPResult ProcessRunner::HTTPPostMulti(QNetworkRequest request, QHttpMultiPart* post_data)
+{
+    HTTPResult result;
+
+    QNetworkAccessManager* network_access_manager = GetNetworkAccessManager();
+
+    if(network_access_manager && request.url().isValid()){
+        //Post to the URL from the networkManager.
+        QNetworkReply* reply =  network_access_manager->post(request, post_data);
+        result = WaitForNetworkReply(reply);
+        //Free up the memory of the Network Reply
+        delete reply;
+        delete post_data;
+    }
+    return result;
+}
+
+
 HTTPResult ProcessRunner::WaitForNetworkReply(QNetworkReply *reply)
 {
     HTTPResult result;

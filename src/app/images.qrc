@@ -285,5 +285,6 @@
         <file alias="amd">Resources/Icons/amd.png</file>
         <file alias="intel">Resources/Icons/intel.png</file>
         <file alias="nvidia">Resources/Icons/nvidia.png</file>
+        <file alias="package">Resources/Icons/package.png</file>
     </qresource>
 </RCC>

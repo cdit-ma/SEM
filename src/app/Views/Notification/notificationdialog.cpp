@@ -498,7 +498,7 @@ void NotificationDialog::showSeverity(Notification::Severity severity){
  */
 void NotificationDialog::setupFilters()
 {
-    context_filters = new OptionGroupBox("CONTEXT", this);
+    context_filters = new OptionGroupBox("CONTEXT", SortOrder::INSERTION, this);
 
     auto contexts = Notification::getContexts().toList();
     qSort(contexts.begin(), contexts.end());
@@ -512,7 +512,7 @@ void NotificationDialog::setupFilters()
     filters_layout->addWidget(context_filters);
 
 
-    severity_filters = new OptionGroupBox("STATUS", this);
+    severity_filters = new OptionGroupBox("STATUS", SortOrder::INSERTION, this);
     
     auto severities = Notification::getSeverities().toList();
     qSort(severities.begin(), severities.end());
@@ -524,7 +524,7 @@ void NotificationDialog::setupFilters()
     
     filters_layout->addWidget(severity_filters);
 
-    category_filters = new OptionGroupBox("CATEGORY", this);
+    category_filters = new OptionGroupBox("CATEGORY", SortOrder::INSERTION, this);
     auto categories = Notification::getCategories().toList();
     qSort(categories.begin(), categories.end());
     for (auto category : categories) {
@@ -534,7 +534,7 @@ void NotificationDialog::setupFilters()
     category_filters->setOptionVisible(QVariant::fromValue(Notification::Category::NONE), false);
     filters_layout->addWidget(category_filters);
 
-    source_filters = new OptionGroupBox("SOURCE", this);
+    source_filters = new OptionGroupBox("SOURCE", SortOrder::INSERTION, this);
     auto types = Notification::getTypes().toList();
     qSort(types.begin(), types.end());
     for (auto type : types) {

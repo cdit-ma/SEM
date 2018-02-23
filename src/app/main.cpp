@@ -6,9 +6,6 @@
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 
-// taskkill
-// /F /fi "IMAGENAME eq medea.exe"
-
 int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);

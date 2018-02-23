@@ -233,6 +233,14 @@ void DataEditWidget::editFinished()
         themeChanged();
         break;
     }
+    case SETTING_TYPE::STRINGLIST:{
+        auto combo_box = qobject_cast<QComboBox*>(editWidget_1);
+        if(combo_box){
+            //Call data Changed first
+            dataChanged(combo_box->currentText());
+        }
+        break;
+    }
     case SETTING_TYPE::STRING:
     case SETTING_TYPE::FILE:
     case SETTING_TYPE::PATH:{
@@ -337,6 +345,15 @@ void DataEditWidget::setupLayout()
             toolbar->addWidget(line_edit);
         break;
     }
+    case SETTING_TYPE::STRINGLIST:{
+            auto combo_box = new QComboBox(this);
+            combo_box->addItems(currentData.toStringList());
+            connect(combo_box, &QComboBox::currentTextChanged, this, &DataEditWidget::editFinished);
+            
+            editWidget_1 = combo_box;
+            toolbar->addWidget(combo_box);
+        break;
+    }
     case SETTING_TYPE::BOOL:{
         needs_label = false;
         auto check_box = new QCheckBox(name, this);
@@ -389,9 +406,6 @@ void DataEditWidget::setupLayout()
         connect(button_action, &QAction::triggered, this, &DataEditWidget::pickColor);
         connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
         connect(line_edit, &QLineEdit::textChanged, this, &DataEditWidget::editFinished);
-        
-        //connect(line_edit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
-        //connect(line_edit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
 
         break;
     }

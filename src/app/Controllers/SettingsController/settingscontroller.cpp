@@ -150,11 +150,7 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::TOOLBAR_VALIDATE, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Validate Model", "Icons", "shieldTick");
     createSetting(SETTINGS::TOOLBAR_CONTRACT, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Expand Selection", "Icons", "triangleSouthEast");
     createSetting(SETTINGS::TOOLBAR_EXPAND, SETTING_TYPE::BOOL, "Toolbar", "Visible Buttons", "Contract Selection", "Icons", "triangleNorthWest");
-
-
-
-
-
+     
      //Jenkins - Server
     createSetting(SETTINGS::JENKINS_URL, SETTING_TYPE::STRING, "Jenkins", "Server", "URL", "Icons", "globe");
     createSetting(SETTINGS::JENKINS_JOBNAME, SETTING_TYPE::STRING, "Jenkins", "Server", "Jobname", "Icons", "tag");
@@ -162,8 +158,8 @@ void SettingsController::intializeSettings()
     //Jenkins - User
     createSetting(SETTINGS::JENKINS_USER, SETTING_TYPE::STRING, "Jenkins", "User", "Username", "Icons", "personCircle");
     createSetting(SETTINGS::JENKINS_API, SETTING_TYPE::STRING, "Jenkins", "User", "API Token", "Icons", "star");
-
-    createSetting(SETTINGS::JENKINS_APPLY, SETTING_TYPE::BUTTON, "Jenkins", "User", "Test Settings", "Icons", "circleTickDark");
+    createSetting(SETTINGS::JENKINS_REQUEST_USER_JOBS, SETTING_TYPE::BOOL, "Jenkins", "User", "Request only jobs constructed by this user", "Icons", "filterList");
+    createSetting(SETTINGS::JENKINS_TEST, SETTING_TYPE::BUTTON, "Jenkins", "User", "Test Settings", "Icons", "circleTickDark");
     
 
     createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");

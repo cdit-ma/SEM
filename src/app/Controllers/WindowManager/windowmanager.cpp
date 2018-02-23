@@ -94,6 +94,8 @@ BaseWindow *WindowManager::constructMainWindow(ViewController* vc)
 {
     if(!mainWindow){
         mainWindow = new MainWindow(vc);
+
+        addWindow(mainWindow);
     }
     return mainWindow;
 }
@@ -327,6 +329,7 @@ void WindowManager::addWindow(BaseWindow *window)
 {
     if(window){
         auto id = window->getID();
+
         if(!windows.contains(id)){
             windows[id] = window;
             emit windowConstructed(window);

@@ -25,6 +25,7 @@ namespace Notification{
     extern QString getSeverityString(Notification::Severity severity);
 
 
+
     inline uint qHash(Notification::Context key, uint seed){
         return ::qHash(static_cast<uint>(key), seed);
     };

@@ -17,6 +17,7 @@ public:
 signals:
     void Clear();
     void Abort();
+    void Close();
     void AppendLine(QString text);
     void StateChanged(Notification::Severity state);
 private:
