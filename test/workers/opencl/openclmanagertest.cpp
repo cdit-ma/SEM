@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <random>
 #include <workers/opencl/openclutilities.h>
 #include <workers/opencl/openclmanager.h>
 #include <workers/opencl/opencl_worker.h>
@@ -77,6 +78,31 @@ TEST_P(OpenCLManagerFixture, BufferReadWrite_Float4)
     for (int i = 0; i < in_data.size(); i++) {
         in_data[i] = (float) i + 10;
     }
+    in_data[0] = (2.0f/3.0f);
+
+    ASSERT_TRUE(buffer->WriteData(worker_, in_data, device));
+    auto out_data = buffer->ReadData(worker_, device);
+    EXPECT_EQ(in_data, out_data);
+    
+    delete buffer;
+}
+
+TEST_P(OpenCLManagerFixture, BufferReadWrite_FloatRandom1024)
+{ 
+    std::default_random_engine random_generator;
+    std::default_random_engine generator(testing::UnitTest::GetInstance()->random_seed());
+    std::uniform_real_distribution<float> distribution(-1, 1);
+
+    auto buffer = manager_->CreateBuffer<float>(worker_, 1024);
+
+    auto &device = GetDevice();
+
+    ASSERT_TRUE(buffer->is_valid());
+
+    auto in_data = std::vector<float>(1024);
+    for (int i = 0; i < in_data.size(); i++) {
+        in_data[i] = distribution(generator);
+    }
 
     ASSERT_TRUE(buffer->WriteData(worker_, in_data, device));
     auto out_data = buffer->ReadData(worker_, device);
@@ -90,7 +116,7 @@ TEST_P(OpenCLManagerFixture, BufferKernelPassthrough_Float4)
     auto &device = GetDevice();
     size_t size = 4;
     
-    auto in_data = std::vector<float>(size, 0.3f);
+    auto in_data = std::vector<float>(size, 2.0f/3.0f);
     auto in_buffer = manager_->CreateBuffer<float>(worker_, in_data, device);
     auto out_buffer = manager_->CreateBuffer<float>(worker_, size);
     ASSERT_TRUE(in_buffer->is_valid());

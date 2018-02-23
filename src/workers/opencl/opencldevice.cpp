@@ -66,7 +66,12 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
     cl::Program& new_program = programs_.back();
 
     std::vector<cl::Device> device_vec;
-    device_vec.emplace_back(*dev_);
+    //device_vec.emplace_back(*dev_);
+	for (auto& other_dev : manager_.GetDevices(worker)) {
+		if (other_dev.GetName() == name_) {
+			device_vec.emplace_back(other_dev.GetRef());
+		}
+	}
 	err = new_program.build(device_vec);
 	if (err != CL_SUCCESS) {
 		LogError(worker,
@@ -84,8 +89,38 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 			std::string(__func__),
 			"An error occurred during the creation of OpenCL kernels from a built program",
 			err);
-		return false;
-	}
+
+		std::vector<std::string> kernel_names;
+		//std::vector<OpenCLDevice> all_devices = manager_.GetDevices(worker);
+		for (auto& other_dev : manager_.GetDevices(worker)) {
+			if (other_dev.GetName() == name_) {
+				for (const auto& kernel : other_dev.GetKernels()) {
+					kernel_names.push_back(kernel.get().GetName());
+				}
+			}
+		}
+		for (const auto& kernel_name : kernel_names) {
+			new_kernels.emplace_back(new_program, kernel_name.c_str(), &err);
+			if (err != CL_SUCCESS) {LogError(worker,
+				std::string(__func__),
+				"An error occurred during the fallback operation where kernels are created individually",
+				err);
+				return false;
+			}
+		}
+	}/*
+	if (err != CL_SUCCESS) {
+		std::cerr << "kernel creation error code:" << err << std::endl;
+		LogError(worker,
+			std::string(__func__),
+			"An error occurred during the creation of OpenCL kernels from a built program",
+			err);
+
+		std::vector 
+		if (err != CL_SUCCESS) {
+			return false;
+		}
+	}*/
 
 	for (auto& kernel : new_kernels) {
 		kernels_.emplace_back(worker, manager_, kernel);
