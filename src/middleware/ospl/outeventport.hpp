@@ -111,6 +111,7 @@ bool ospl::OutEventPort<T, S>::setup_tx(){
         auto topic = get_topic<S>(participant, topic_name_->String());
         auto publisher = helper->get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         return true;
     }
     return false;

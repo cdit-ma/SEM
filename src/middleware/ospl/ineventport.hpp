@@ -148,8 +148,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
         thread_state_ = state;
     }
 
-    //Sleep for 250 ms
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     thread_state_condition_.notify_all();
 
