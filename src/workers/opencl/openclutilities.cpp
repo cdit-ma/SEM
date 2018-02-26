@@ -115,8 +115,13 @@ std::string SanitisePathString(const std::string& str) {
 	return result;
 }
 
+#ifndef KERNEL_FILEPATH
+static_assert(false, "No Kernel filepath defined!");
+#endif
+
 std::string GetSourcePath(std::string filename) {
-	std::string source_file_path(__FILE__);
+	//std::string source_file_path(__FILE__);
+	std::string source_file_path(KERNEL_FILEPATH);
 	auto source_dir = source_file_path.substr(0, source_file_path.find_last_of("/\\")+1);
 	return source_dir + filename;
 }

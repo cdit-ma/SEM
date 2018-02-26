@@ -28,7 +28,7 @@ void precompile(cl::Device& device, std::string platform_name) {
     std::string source_path = "-I"+GetSourcePath("");
     err = program.build(source_path.c_str());
     if (err != CL_SUCCESS) {
-        std::cerr << "An error occurred while building precompiled kernel: " << clErrorNames[-err] << std::endl;
+        std::cerr << "An error occurred while building precompiled kernel: " << OpenCLErrorName(err) << std::endl;
         if (err == CL_BUILD_PROGRAM_FAILURE) {
             std::string build_output = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
             std::cerr << build_output << std::endl;
@@ -38,7 +38,7 @@ void precompile(cl::Device& device, std::string platform_name) {
 
     cl::Program::Binaries binaries = program.getInfo<CL_PROGRAM_BINARIES>(&err);
     if (err != CL_SUCCESS) {
-        std::cerr << "An error occurred while retrieving compiled binary data: " << clErrorNames[-err] << std::endl;
+        std::cerr << "An error occurred while retrieving compiled binary data: " << OpenCLErrorName(err) << std::endl;
         return; 
     }
 

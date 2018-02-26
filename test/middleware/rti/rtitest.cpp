@@ -99,8 +99,9 @@ TEST(rti_EventportPair, Stable100){
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
         out_port.tx(b);
-        sleep_ms(1);
     }
+
+    sleep_ms(500);
 
     EXPECT_TRUE(in_port.Passivate());
     EXPECT_TRUE(out_port.Passivate());
@@ -159,7 +160,6 @@ TEST(rti_EventportPair, Busy100){
         b.str_val = std::to_string(b.int_val);
         b.guid_val = guid;
         out_port.tx(b);
-        sleep_ms(1);
     }
 
     //Sleep for a reasonable time (Bigger than the callback work)

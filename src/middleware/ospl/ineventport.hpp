@@ -15,6 +15,7 @@
 
 namespace ospl{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
+        friend class DataReaderListener<T,S>;
     public:
         InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
         ~InEventPort(){
@@ -147,50 +148,29 @@ void ospl::InEventPort<T, S>::receive_loop(){
         thread_state_ = state;
     }
 
-    //Sleep for 250 ms
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     thread_state_condition_.notify_all();
 
     if(state == ThreadState::STARTED && Activatable::BlockUntilStateChanged(Activatable::State::RUNNING)){
         //Log the port becoming online
         EventPort::LogActivation();
-
-        bool run = true;
-        while(run){ 
+        
+        while(true){ 
             {
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(notify_mutex_);
                 //Check to see if we've been interupted before sleeping the first time
                 if(interupt_){
                     break;
+                }else{
+                    notify_lock_condition_.wait(lock);
                 }
-                notify_lock_condition_.wait(lock);
-                
-                //Upon wake, read all messages, then die.
-                if(interupt_){
-                    run = false;
-                }
-            }
-
-            ///Read all our samples
-            try{
-                auto samples = reader_.take();
-                for(auto sample : samples){
-                    //Translate and callback into the component for each valid message we receive
-                    if(sample->info().valid()){
-                        auto m = ospl::translate<T, S>(sample->data());
-                        this->EnqueueMessage(m);
-                    }
-                }
-            }catch(const std::exception& ex){
-                Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
-                break;
             }
         }
-
         EventPort::LogPassivation();
     }
+    //Blocks for the DataReaderListener to finish
     reader_.close();
 };
 

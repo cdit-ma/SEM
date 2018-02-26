@@ -5,10 +5,10 @@
 
 namespace rti{
     template <class BaseType, class RtiType>
-    RtiType* EXPORT_FUNC translate(const BaseType& value);
+    EXPORT_FUNC RtiType* translate(const BaseType& value);
     
     template <class BaseType, class RtiType>
-    BaseType* EXPORT_FUNC translate(const RtiType& value);
+    EXPORT_FUNC BaseType* translate(const RtiType& value);
 };
 
 #endif // RTI_TRANSLATE_H

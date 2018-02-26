@@ -9,8 +9,19 @@
 #include <workers/opencl/openclmanager.h>
 #include <workers/opencl/opencl_worker.h>
 
-#define EPS 1e-7
+#define EPS 1.2e-1
 #define CHECK_FLOAT(x, y, eps) (fabs(x-y)<eps)
+
+#define EXPECT_FLOATS_NEARLY_EQ(expected, actual, thresh) \
+        EXPECT_EQ(expected.size(), actual.size()) << "Array sizes differ.";\
+        for (size_t idx = 0; idx < std::min(expected.size(), actual.size()); ++idx) \
+        { \
+	    if (actual[idx] == 0) { \
+                EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx;\
+	    } else { \
+	        EXPECT_NEAR(fabs(expected[idx]/actual[idx]), 1, thresh);\
+	    } \
+        }
 
 struct DeviceParam{
     DeviceParam(){};

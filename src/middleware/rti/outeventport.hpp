@@ -24,6 +24,7 @@ namespace rti{
             bool tx(const T& message);
         private:
             bool setup_tx();
+            int count = 0;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
@@ -113,6 +114,7 @@ bool rti::OutEventPort<T, S>::setup_tx(){
         auto topic = get_topic<S>(participant, topic_name_->String());
         auto publisher = helper->get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         return true;
     }
     return false;
