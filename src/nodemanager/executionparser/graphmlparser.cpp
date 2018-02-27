@@ -24,7 +24,6 @@ GraphmlParser::GraphmlParser(const std::string& filename){
 
 bool GraphmlParser::IsValid(){
     return legal_parse;
-    
 }
 
 std::vector<std::string> GraphmlParser::FindNodes(const std::string& kind, const std::string& parent_id){

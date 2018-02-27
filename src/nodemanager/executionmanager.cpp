@@ -81,12 +81,9 @@ std::vector<std::string> ExecutionManager::GetSlaveAddresses(){
     return slave_addresses;
 }
 
-
-
 bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
-
 
 std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessage(){
     std::vector<NodeManager::ControlMessage*> messages;
@@ -420,6 +417,8 @@ bool ExecutionManager::ConstructControlMessages(){
                             auto broker_info_pb = broker_pb->mutable_info();
                             broker_info_pb->set_name("broker");
                             broker_pb->set_kind(NodeManager::Attribute::STRING);
+
+                            //XXX: This is bad!
                             set_attr_string(broker_pb, "localhost:5672"); 
                         }
 

@@ -149,6 +149,8 @@ int EnvironmentRequester::GetComponentPort(const std::string& component_id, cons
     auto component = message.add_components();
     component->set_id(component_id);
     auto endpoint = component->add_endpoints();
+
+    //TODO: set this
     endpoint->set_id("asdf");
     endpoint->set_type(EnvironmentManager::Endpoint::PUBLIC);
 
@@ -157,7 +159,12 @@ int EnvironmentRequester::GetComponentPort(const std::string& component_id, cons
     try{
         EnvironmentManager::EnvironmentMessage response_message;
         response_message.ParseFromString(response.get());
-        port = std::stoi(response_message.components(0).endpoints(0).port());
+        if(message.type() != EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE){
+            port = std::stoi(response_message.components(0).endpoints(0).port());
+        }
+        else{
+            //TODO: Handle this
+        }
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;

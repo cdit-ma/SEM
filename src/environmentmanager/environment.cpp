@@ -102,7 +102,6 @@ std::string Environment::AddComponent(const std::string& deployment_id, const st
     try{
         //Update our understanding of the deployment's components.
         deployment_info_map_.at(deployment_id)->component_ids.push_back(component_id);
-//        deployment_info_map_.at(deployment_id)->ports.push_back(port);
     }
     catch(std::out_of_range& ex){
         std::cout << "tried to add component to non listed deployment: " << deployment_id << std::endl;

@@ -213,6 +213,9 @@ EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddComponent(uin
     //Handle add component message
     auto endpoint = message.mutable_components(0)->mutable_endpoints(0);
     std::string port_string = environment_->AddComponent(deployment_id_, message.components(0).id(), "", message_time);
+    if(port_string.empty()){
+        message.set_type(EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE);
+    }
     endpoint->set_port(port_string);
     return message;
 }

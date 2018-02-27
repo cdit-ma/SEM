@@ -18,11 +18,14 @@ TEST(Deployment, Registration1){
     requester->Start();
 
     auto port = requester->GetDeploymentMasterPort();
-    
+
     auto logger_port = requester->GetModelLoggerPort();
+
+    auto comp_port = requester->GetComponentPort("test_Component01", "test_Component01");
 
     EXPECT_EQ(port, 40001);
     EXPECT_EQ(logger_port, 40002);
+    EXPECT_EQ(comp_port, 40003);
 
     requester->RemoveDeployment();
 
@@ -33,5 +36,25 @@ TEST(Deployment, Registration1){
 }
 
 TEST(Deployment, Registration2){
+
+}
+
+TEST(Deployment, OutOfPorts){
+    DeploymentRegister* deployment_register = new DeploymentRegister("192.168.111.230", "22338", 40000, 40002);
+    deployment_register->Start();
+
+    EnvironmentRequester* requester = new EnvironmentRequester("", "test_deployment_id03", "");
+    requester->Init("tcp://192.168.111.230:22338");
+    requester->Start();
+
+    auto port = requester->GetDeploymentMasterPort();
+
+    auto logger_port = requester->GetModelLoggerPort();
+
+    EXPECT_EQ(port, 40001);
+    EXPECT_EQ(logger_port, 40002);
     
+    auto comp_port = requester->GetComponentPort("test_Component01", "test_Component01");
+    EXPECT_EQ(comp_port, 0);
+
 }

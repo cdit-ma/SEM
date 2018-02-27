@@ -18,7 +18,6 @@ bool string_list_contains(const std::vector<std::string> list, const std::string
     return std::find(list.begin(), list.end(), val) != list.end();
 }
 
-
 Graphml::ModelParser::ModelParser(const std::string filename){
     //Setup the parser
     graphml_parser_ = new GraphmlParser(filename);
@@ -62,7 +61,7 @@ bool Graphml::ModelParser::Process(){
     for(const auto& c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
         RecurseEdge(c_id, c_id);
     }
-            
+
     //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
     for(const auto& e_id: deployment_edge_ids_){
         auto source_id = GetAttribute(e_id, "source");
@@ -110,7 +109,6 @@ bool Graphml::ModelParser::Process(){
         }
     }
 
-    
     //Parse LoggingServers
     for(const auto& l_id : graphml_parser_->FindNodes("LoggingServer")){
         if(!GetLoggingServer(l_id)){
@@ -127,7 +125,6 @@ bool Graphml::ModelParser::Process(){
         }
     }
 
-    
     //Parse LoggingProfiles
     for(const auto& l_id : graphml_parser_->FindNodes("LoggingProfile")){
         if(!GetLoggingProfile(l_id)){
@@ -141,7 +138,7 @@ bool Graphml::ModelParser::Process(){
             profile->processes = processes;
 
             LoggingServer* loggingServer = 0;
-            
+
             //Find the Server this profile is connected to
             for(const auto& e_id : assembly_edge_ids_){
                 auto src_id = graphml_parser_->GetAttribute(e_id, "source");
@@ -155,7 +152,7 @@ bool Graphml::ModelParser::Process(){
                     }
                 }
             }
-            
+
             //Find the profile attached to this node
             for(const auto& e_id : deployment_edge_ids_){
                 auto src_id = graphml_parser_->GetAttribute(e_id, "source");
@@ -171,12 +168,9 @@ bool Graphml::ModelParser::Process(){
                     }
                 }
             }
-
             logging_profiles_[l_id] = profile;
         }
     }
-
-        
 
     //Parse ComponentAssembly
     for(const auto& c_id : graphml_parser_->FindNodes("ComponentAssembly")){
@@ -197,7 +191,7 @@ bool Graphml::ModelParser::Process(){
         }
     }
 
-        //Parse Component
+    //Parse Component
     for(const auto& c_id : graphml_parser_->FindNodes("Component")){
         if(!GetComponentDefinition(c_id)){
             auto component = new Component();
@@ -206,7 +200,7 @@ bool Graphml::ModelParser::Process(){
             components_[c_id] = component;
         }
     }
-    
+
     //Parse ComponentImpl
     for(const auto& c_id : graphml_parser_->FindNodes("ComponentImpl")){
         auto def_id = GetDefinitionId(c_id);
@@ -218,25 +212,23 @@ bool Graphml::ModelParser::Process(){
         }
     }
 
-        
     //Parse ComponentInstances
     for(const auto& c_id : graphml_parser_->FindNodes("ComponentInstance")){
         //Default replication count of 1
         int replication_count = 1;
-        
+
         auto parent_id = graphml_parser_->GetParentNode(c_id);
         auto c_parent_id = parent_id;
 
         auto def_id = GetDefinitionId(c_id);
         auto component = GetComponentDefinition(def_id);
         auto impl_id = component->implementation_id;
-        
 
         //Get the deployed ID of this component, if it's been deployed
         std::string hardware_id = GetDeployedID(c_id);
 
         std::string definition_id = GetDefinitionId(c_id);
-        
+
         while(true){
             auto component_assembly = GetComponentAssembly(c_parent_id);
             if(component_assembly){
@@ -262,7 +254,7 @@ bool Graphml::ModelParser::Process(){
         auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", c_id);
         {
             auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", c_id);
-            //Combine into one list to reduce code duplication            
+            //Combine into one list to reduce code duplication
             port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
         }
 
@@ -279,7 +271,7 @@ bool Graphml::ModelParser::Process(){
         //Construct the number of nodes
         for(int i = 0; i < replication_count; i++){
             HardwareNode* deployed_node = 0;
-            
+
             //Get the deployed node
             if(node){
                 deployed_node = node;
@@ -299,7 +291,7 @@ bool Graphml::ModelParser::Process(){
             }
 
             auto c_uid = c_id + unique_id;
-            
+
             if(!GetComponentInstance(c_uid)){
                 //Construct a Component
                 auto component_inst = new ComponentInstance();
@@ -309,8 +301,6 @@ bool Graphml::ModelParser::Process(){
                 component_inst->replicate_id = i;
                 //Append uniquity to label
                 component_inst->name = GetDataValue(c_id, "label") + unique_id;
-
-                
 
                 //Attach our definitions
                 if(component){
@@ -330,7 +320,7 @@ bool Graphml::ModelParser::Process(){
                         attribute->type = GetDataValue(a_id, "type");
                         attribute->value = GetDataValue(a_id, "value");
                         attributes_[a_uid] = attribute;
-                        
+
                         //Add the Attribute to the Component
                         component_inst->attribute_ids.push_back(a_uid);
                     }else{
@@ -364,13 +354,11 @@ bool Graphml::ModelParser::Process(){
                         if (std::find(model_->middlewares.begin(), model_->middlewares.end(), port->middleware) == model_->middlewares.end()){
                             model_->middlewares.push_back(port->middleware);
                         }
-                        
 
                         auto aggregate_id = GetAggregateID(GetDefinitionId(p_id));
 
                         port->message_type = GetDataValue(aggregate_id, "label");
                         port->namespace_name = GetDataValue(aggregate_id, "namespace");
-                        
 
                         //Register Only OutEventPortInstances
                         if(port->kind == "OutEventPortInstance" && deployed_node && port->middleware == "ZMQ"){
@@ -387,7 +375,6 @@ bool Graphml::ModelParser::Process(){
                         std::cerr << "Parsing Error: Got Duplicate EventPort ID: " << p_uid << " In ComponentInstance " << c_uid << std::endl;
                     }
                 }
-
 
                 //Parse Periodic_Events
                 for(const auto& p_id : periodic_event_ids){
@@ -409,7 +396,6 @@ bool Graphml::ModelParser::Process(){
                         std::cerr << "Parsing Error: Got Duplicate PeriodicEventPort ID: " << p_uid << " In ComponentInstance " << c_uid << std::endl;
                     }
                 }
-
 
                 if(deployed_node){
                     deployed_node->component_ids.push_back(c_uid);
@@ -455,7 +441,6 @@ bool Graphml::ModelParser::Process(){
                     auto s_uid = ac->source_id + s_unique;
                     auto source_port_inst = GetEventPort(s_uid);
 
-                    
                     //If we are an inter_assembly edge, we need to connect every outeventport instance to every ineventport instance
                     if(ac->inter_assembly){
                         //Connect to all!
@@ -464,7 +449,6 @@ bool Graphml::ModelParser::Process(){
                             auto t_unique = GetUniquePrefix(t_component->replicate_id);
                             auto t_uid = ac->target_id + t_unique;
                             auto target_port_inst = GetEventPort(t_uid);
-
 
                             //Append the connection to our list
                             if(source_port_inst && target_port_inst){
@@ -476,8 +460,6 @@ bool Graphml::ModelParser::Process(){
                         //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
                         auto t_uid = ac->target_id + s_unique;
                         auto target_port_inst = GetEventPort(t_uid);
-                        
-
 
                         if(source_port_inst && target_port_inst){
                             source_port_inst->connected_port_ids.push_back(t_uid);
@@ -632,7 +614,7 @@ std::string Graphml::ModelParser::GetDefinitionId(const std::string& id){
     for(auto e_id : definition_edge_ids_){
         auto target = GetAttribute(e_id, "target");
         auto source = GetAttribute(e_id, "source");
-        
+
         if(source == id){
             def_id = target;
             break;
@@ -671,10 +653,10 @@ std::string Graphml::ModelParser::GetAggregateID(const std::string& id){
 
 std::string Graphml::ModelParser::GetImplId(const std::string& id){
     std::string impl_id;
-    
+
     //Check for a definition first.
     std::string def_id = GetDefinitionId(id);
-    
+
     if(def_id.empty()){
         def_id = id;
     }
@@ -706,13 +688,11 @@ std::string Graphml::ModelParser::GetTCPAddress(const std::string ip, const unsi
 }
 
 void Graphml::ModelParser::RecurseEdge(const std::string& source_id, std::string current_id){
-
-
     for(auto edge_id: entity_edge_ids_[current_id]){
         auto edge_source = GetAttribute(edge_id, "source");
         auto edge_target = GetAttribute(edge_id, "target");
         auto edge_kind = GetDataValue(edge_id, "kind");
-        
+
         //Only step forward
         if(edge_kind == "Edge_Assembly" && edge_source == current_id){
             auto target_kind = GetDataValue(edge_target, "kind");

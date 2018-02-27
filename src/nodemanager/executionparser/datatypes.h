@@ -145,7 +145,7 @@ namespace Graphml{
 
     class Attribute{
         public:
-             std::string component_id;
+            std::string component_id;
             std::string id;
             std::string type;
             std::string value;

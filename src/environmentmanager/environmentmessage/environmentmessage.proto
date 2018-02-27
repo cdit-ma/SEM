@@ -2,6 +2,8 @@ syntax="proto3";
 
 package EnvironmentManager;
 
+import "controlmessage.proto";
+
 message Deployment{
     string id = 1;
 
@@ -28,21 +30,13 @@ message Endpoint{
         PRIVATE = 5;
     }
 
-    enum Middleware{
-        NO_MIDDLEWARE = 0;
-        ZMQ = 1;
-        RTIDDS = 2;
-        OSPL = 3;
-        QPID = 4;
-        CORBA = 5; //Futureproofing
-    }
 
     string id = 1;
     Type type = 2;
     string port = 3;
 
     //TODO: represent datatype coming out of/going into endpoint here
-    string datatype = 4;
+    string datatype = 5;
 }
 
 message EnvironmentMessage{

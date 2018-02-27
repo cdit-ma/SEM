@@ -9,6 +9,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS true)
 set(PROJ_NAME environment_proto_message)
 
 #Find protobuf
+set(PROTOBUF_IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../nodemanager/controlmessage/)
 find_package(Protobuf REQUIRED)
 
 #Generate out protobuf for control
@@ -18,6 +19,7 @@ add_library(${PROJ_NAME} STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../../nodemanager/controlmessage/)
 
 if (MSVC)
 	#Windows requires protobuf in DLLs
@@ -28,4 +30,4 @@ endif()
 
 #Link against protobuf
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-
+target_link_libraries(${PROJ_NAME} re_proto_control)
