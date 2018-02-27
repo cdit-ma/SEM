@@ -77,4 +77,5 @@ target_link_libraries(${PROJ_NAME} ${SHARED_LIB_NAME})
 target_link_libraries(${PROJ_NAME} "tao_message_lib")
 target_link_libraries(${PROJ_NAME} "base_message_lib")
 target_link_libraries(${PROJ_NAME} pthread)
+target_link_libraries(${PROJ_NAME} tao_helper)
 

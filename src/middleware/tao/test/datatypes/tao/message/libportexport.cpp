@@ -21,12 +21,15 @@ EventPort* ConstructOutEventPort(const std::string& port_name, std::weak_ptr<Com
 	return 0;
 };
 
-bool setup_in_port(EventPort& port, std::string publisher_name, std::string publisher_address){
-	auto pa = port.GetAttribute("publisher_address").lock();
+
+std::string orb_addr("iiop://192.168.111.90:50003");
+
+bool setup_in_port(EventPort& port, std::string publisher_name){
 	auto pn = port.GetAttribute("publisher_name").lock();
-	if(pa && pn){
-		pa->set_String(publisher_address);
+	auto oa = port.GetAttribute("orb_endpoint").lock();
+	if(pn && oa){
 		pn->set_String(publisher_name);
+		oa->set_String(orb_addr);
 		return true;
 	}
 	return false;
@@ -35,7 +38,9 @@ bool setup_in_port(EventPort& port, std::string publisher_name, std::string publ
 bool setup_out_port(EventPort& port, std::vector<std::string> publisher_names, std::vector<std::string> publisher_addresses){
 	auto pa = port.GetAttribute("publisher_address").lock();
 	auto pn = port.GetAttribute("publisher_names").lock();
-	if(pa && pn){
+	auto oa = port.GetAttribute("orb_endpoint").lock();
+	if(pa && pn && oa){
+		oa->set_String(orb_addr);
 		for(const auto& publisher_name : publisher_names){
 			pn->StringList().push_back(publisher_name);
 		}
@@ -49,8 +54,8 @@ bool setup_out_port(EventPort& port, std::vector<std::string> publisher_names, s
 
 
 int main(int argc, char** argv){
-	auto fn3 = [](Base::Message& m) {std::cout << "tao::InEventPort<3>: " << m.instName() << std::endl;};
-	auto fn2 = [](Base::Message& m) {std::cout << "tao::InEventPort<2>: " << m.instName() << std::endl;};
+	auto fn2 = [](Base::Message& m) {std::cout << "In Port 1: " << m.instName() << std::endl;};
+	auto fn3 = [](Base::Message& m) {std::cout << "In Port 2: " << m.instName() << std::endl;};
 
 	auto c = std::make_shared<Component>("Test");
 
@@ -64,19 +69,21 @@ int main(int argc, char** argv){
 	inport->set_id("3");
 	inport2->set_id("4");
 
+	std::string server_addr("corbaloc:iiop:192.168.111.90:50003");
+
 	{
-		std::vector<std::string> publisher_names = {"S1"};
-		std::vector<std::string> publisher_address = {"S1=corbaloc:iiop:192.168.111.90:50001/TestServer1"};
+		std::vector<std::string> publisher_names = {"S1", "Sender1"};
+		std::vector<std::string> publisher_address = {server_addr + "/S1", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
 		setup_out_port(*outport, publisher_names, publisher_address);
 	}
 	{
-		std::vector<std::string> publisher_names = {"S1", "S2"};
-		std::vector<std::string> publisher_address = {"S1=corbaloc:iiop:192.168.111.90:50001/TestServer1", "S2=corbaloc:iiop:192.168.111.90:50002/TestServer2"};
+		std::vector<std::string> publisher_names = {"S1", "S2", "Sender1"};
+		std::vector<std::string> publisher_address = {server_addr + "/S1", server_addr + "/S2", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
 		setup_out_port(*outport2, publisher_names, publisher_address);
 	}
 
-	setup_in_port(*inport, "TestServer1", "iiop://192.168.111.90:50001");
-	setup_in_port(*inport2, "TestServer2", "iiop://192.168.111.90:50002");
+	setup_in_port(*inport, "S1");
+	setup_in_port(*inport2, "S2");
 
 	inport->Configure();
 	inport2->Configure();
@@ -94,27 +101,31 @@ int main(int argc, char** argv){
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-	int i = 10;
+	int i = 100;
+
+	Base::Message message;
+	message.messageID() = 0;
+
 	while(i-- > 0){
 		
 		{
-			auto message = new Base::Message();
+			message.messageID()++;
 			if(i % 2){
-				message->set_instName("tao::OutEventPort<2>");
-				outport2->tx(*message);
+				std::cout << ">>>>| Sent From: Outport 2 |<<<<" << std::endl;
+				message.set_instName("Outport 2");
+				outport2->tx(message);
 			}else{
-				message->set_instName("tao::OutEventPort<1>");
-				outport->tx(*message);
-
+				std::cout << ">>>>| Sent From: Outport 1 |<<<<" << std::endl;
+				message.set_instName("Outport 1");
+				outport->tx(message);
 			}
 		}
-		std::cout << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
-
 	inport->Passivate();
 	inport2->Passivate();
+
 	outport->Passivate();
 	outport2->Passivate();
 	std::cout << "Passivated" << std::endl;

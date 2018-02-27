@@ -8,8 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <sstream>
-
-#include "tao/IORTable/IORTable.h"
+#include <middleware/tao/helper.h>
 
 //Inspired by
 //https://www.codeproject.com/Articles/24863/A-Simple-C-Client-Server-in-CORBA
@@ -52,12 +51,14 @@ namespace tao{
                 ThreadState thread_state_;
                 std::condition_variable thread_state_condition_;
                 
+                CORBA::ORB_var orb_ = 0;
+
                 bool interupt_ = false;
                 std::mutex control_mutex_;
                 std::thread* recv_thread_ = 0;
 
                 std::shared_ptr<Attribute> publisher_name_;
-                std::shared_ptr<Attribute> publisher_address_;
+                std::shared_ptr<Attribute> orb_endpoint_;
     }; 
 };
 
@@ -82,7 +83,7 @@ void tao::Receiver<S, R>::send(const S& message){
 template <class T, class S, class R>
 tao::InEventPort<T, S, R>::InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function):
 ::InEventPort<T>(component, name, callback_function, "tao"){
-    publisher_address_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_address").lock();
+    orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
     publisher_name_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "publisher_name").lock();
 };
 
@@ -91,7 +92,7 @@ template <class T, class S, class R>
 bool tao::InEventPort<T, S, R>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     
-    bool valid = publisher_name_->String().length() >= 0 && publisher_address_->String().length() >= 0;
+    bool valid = orb_endpoint_->String().length() >= 0 && publisher_name_->String().length() >= 0;
     if(valid && ::InEventPort<T>::HandleConfigure()){
         if(!recv_thread_){
             {
@@ -151,154 +152,88 @@ bool tao::InEventPort<T, S, R>::HandleTerminate(){
 template <class T, class S, class R>
 void tao::InEventPort<T, S, R>::recv_loop(){
     try{
-    auto state = ThreadState::STARTED;
-    
-    //Construct a unique ID
-    std::stringstream ss;
-    ss << "tao::InEventPort:" << Activatable::get_id() << ":" << std::this_thread::get_id();
-    auto unique_id = ss.str();
+        auto state = ThreadState::STARTED;
+        
+        
+        auto orb_endpoint  = orb_endpoint_->String();
+        auto helper = tao::TaoHelper::get_tao_helper();
+        std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+        orb_ = helper->get_orb(orb_endpoint);
 
+        std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
 
-    std::string publisher_address = publisher_address_->String();
-    auto publisher_address_cstr = publisher_address.c_str();
-    //Construct the args for the TAO orb
-    int orb_argc = 0;
-    auto orb_argv = new char*[4];
-    orb_argv[orb_argc++] = (char*) "./asd";
-    orb_argv[orb_argc++] = (char*) "-ORBEndpoint";
-    orb_argv[orb_argc++] = strdup(publisher_address_cstr);
-    orb_argv[orb_argc + 1] = NULL;
+        R* reader_impl = 0;
+        if(!orb_){
+            state = ThreadState::TERMINATE;
+        }else{
+            auto publisher_name  = publisher_name_->String();
 
-    std::cout << "orb_argv: " << orb_argv[0] << " " << orb_argv[1] << std::endl;
-    
-    std::cout << "ORB BEFORE OPTIONS: ";
-    for(int i = 0; i < orb_argc; i++){
-        std::cout << orb_argv[i] << " ";
-    }
-    std::cout << std::endl;
+            std::cout << "Publisher: " << publisher_name << std::endl;
+            //Construct a callback function (Lambda) to call enqueue message
+            //Construct a Receiver which implements the TAO interface
+            reader_impl = new Receiver<S, R>(orb_, [=](const S * s){enqueue(s);});
 
-    //Initialize the orb with our custom endpoints
-    auto orb = CORBA::ORB_init(orb_argc, orb_argv, unique_id.c_str());
-
-    std::cout << unique_id << ": ORB AFTER OPTIONS: ";
-    for(int i = 0; i < orb_argc; i++){
-        std::cout << orb_argv[i] << " ";
-    }
-    std::cout << std::endl;
-
-    //Get the reference to the RootPOA
-    auto root_poa_ref = orb->resolve_initial_references("RootPOA");
-    auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
-
-    //Construct a list for the policies
-    CORBA::PolicyList policies(2);
-    policies.length(2);
-    //We are specifying a known ID
-    policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
-    //We also want the IOR to remain persistant
-    policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
-
-    //Get the POAManager of the RootPOA.
-    PortableServer::POAManager_var poa_manager = root_poa->the_POAManager();
-
-    //Create the child POA
-
-    auto child_poa = root_poa->create_POA(publisher_name_->String().c_str(), poa_manager, policies);
-
-    //Destroy the policy elements
-    for (auto i = 0; i < policies.length (); i ++){
-        policies[i]->destroy();
-    }
-
-    //Construct a callback function (Lambda) to call enqueue message
-    auto callback = [=](const S * s){enqueue(s);};
-    //Construct a Receiver which implements the TAO interface
-    auto receiver = new Receiver<S, R>(orb, callback);
-
-    //Convert the object key string into an object_id
-    CORBA::OctetSeq_var obj_id = PortableServer::string_to_ObjectId("asd");
-    //Activate the receiver we instantiated with the obj_id
-    child_poa->activate_object_with_id(obj_id, receiver);
-    //Get the reference to the obj, using the obj_id
-    auto obj_ref = child_poa->id_to_reference(obj_id);
-    //Get the IOR from the object
-    auto ior = orb->object_to_string(obj_ref);
-
-    
-
-
-    //Get the IORTable for the orb
-    auto ior_ref = orb->resolve_initial_references("IORTable");
-    //Cast into concrete IORTable class
-    auto ior_table = IORTable::Table::_narrow(ior_ref);
-
-
-    if(!ior_table){
-        Log(Severity::ERROR_).Context(this).Func(__func__).Msg(std::string("Failed to resolve IOR Table"));
-        state = ThreadState::ERROR_;
-    }else{
-        std::cout << "Binding: " << publisher_name_->String() << " : " << publisher_address << std::endl;
-        //Bind the IOR into the IOR table, so that others can look it up
-        ior_table->bind(publisher_name_->String().c_str(), ior);
-
-        //Activate the POA
-        poa_manager->activate();
-        //Run the ORB
-        //orb->run();
-    }
-
-    
-    //Define a queue to swap
-    std::queue<const S*> queue;
-
-    //Change the state to be Configured
-    {
-        std::lock_guard<std::mutex> lock(thread_state_mutex_);
-        thread_state_ = state;
-        thread_state_condition_.notify_all();
-    }
-
-
-    bool run = true;
-    while(run){
-        {
-            //Wait for next message
-            std::unique_lock<std::mutex> lock(receive_mutex_);
-            //Check to see if we've been interupted before sleeping the first time
-            if(interupt_){
-                break;
-            }
-            receive_lock_condition_.wait(lock);
+            // Create the child POA for the test logger factory servants.
+            auto poa = helper->get_poa(orb_, publisher_name);
             
-            //Upon wake, read all messages, then die.
-            if(interupt_){
-                run = false;
+            //Activate WITH ID
+            //Convert our string into an object_id
+            helper->register_servant(orb_, poa, reader_impl, publisher_name);
+        
+            poa->the_POAManager()->activate();
+        }
+
+        //Change the state to be Configured
+        {
+            std::lock_guard<std::mutex> lock(thread_state_mutex_);
+            thread_state_ = state;
+            thread_state_condition_.notify_all();
+        }
+
+        //Define a queue to swap
+        std::queue<const S*> queue;
+        
+        bool run = true;
+        while(run){
+            {
+                //Wait for next message
+                std::unique_lock<std::mutex> lock(receive_mutex_);
+                //Check to see if we've been interupted before sleeping the first time
+                if(interupt_){
+                    break;
+                }
+                receive_lock_condition_.wait(lock);
+                
+                //Upon wake, read all messages, then die.
+                if(interupt_){
+                    run = false;
+                }
+
+                //Swap out the queue's and release the mutex (Even if we are in active)
+                message_queue_.swap(queue);
             }
 
-            //Swap out the queue's and release the mutex (Even if we are in active)
-            message_queue_.swap(queue);
+            //Process the queue
+            while(!queue.empty()){
+                //Take first element
+                auto tao_message = queue.front();
+                //Translate between TAO and base middleware
+                auto base_message = translate(*tao_message);
+                //Enqueue the Base middleware message into the EventPort super class
+                this->EnqueueMessage(base_message);
+                //Pop the queue
+                queue.pop();
+                //Free the TAO message
+                delete tao_message;
+            }
         }
 
-        //Process the queue
-        while(!queue.empty()){
-            //Take first element
-            auto tao_message = queue.front();
-            //Translate between TAO and base middleware
-            auto base_message = translate(*tao_message);
-            //Enqueue the Base middleware message into the EventPort super class
-            this->EnqueueMessage(base_message);
-            //Pop the queue
-            queue.pop();
-            //Free the TAO message
-            delete tao_message;
-        }
-    }
-    
-    //Shutdown the ORB
-    orb->destroy();
-    delete receiver;
+        PortableServer::POA_var poa = reader_impl->_default_POA ();
+        PortableServer::ObjectId_var id = poa->servant_to_id (reader_impl);
+        poa->deactivate_object (id.in ());
+        poa->destroy (true, true);
     }catch(...){
-        std::cout << "EXCEPTION" << std::endl;
+        std::cerr << "exceptiopn" << std::endl;
     }
 };
 

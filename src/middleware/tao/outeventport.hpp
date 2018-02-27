@@ -3,11 +3,11 @@
 
 #include <core/eventports/outeventport.hpp>
 #include <string>
-#include <sstream>
 #include <mutex>
 #include <iostream>
-#include <list>
-#include <thread>
+#include <unordered_map>
+#include <middleware/tao/helper.h>
+#include <set>
 
 namespace tao{
      template <class T, class S, class R> class OutEventPort: public ::OutEventPort<T>{
@@ -23,14 +23,20 @@ namespace tao{
         public:
             bool tx(const T& message);
         private:
+            R* get_writer(const std::string& endpoint);
             bool setup_tx();
             std::mutex control_mutex_;
             
-            CORBA::ORB_var orb_;
+            CORBA::ORB_var orb_ = 0;
             std::shared_ptr<Attribute> end_points_;
             std::shared_ptr<Attribute> publisher_names_;
+            std::shared_ptr<Attribute> orb_endpoint_;
 
-            std::list<R*> writers_;
+            
+            std::set<std::string> registered_references_;
+
+            std::unordered_map<std::string, CORBA::Object_ptr> object_ptrs_;
+            std::unordered_map<std::string, R*> writers_;
     }; 
 };
 
@@ -38,12 +44,13 @@ template <class T, class S, class R>
 tao::OutEventPort<T, S, R>::OutEventPort(std::weak_ptr<Component> component, std::string name): ::OutEventPort<T>(component, name, "tao"){
     end_points_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_address").lock();
     publisher_names_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRINGLIST, "publisher_names").lock();
+    orb_endpoint_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::STRING, "orb_endpoint").lock();
 };
 
 template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    bool valid = end_points_->StringList().size() > 0 && publisher_names_->StringList().size() > 0;
+    bool valid = orb_endpoint_->String().size() > 0 && end_points_->StringList().size() > 0 && publisher_names_->StringList().size() > 0;
 
     if(valid && ::OutEventPort<T>::HandleConfigure()){
         return setup_tx();
@@ -55,11 +62,8 @@ template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::HandlePassivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(::OutEventPort<T>::HandlePassivate()){
+        registered_references_.clear();
         writers_.clear();
-        //Destroying the orb will free the writers
-        if(orb_){
-            orb_->destroy();
-        }
         return true;
     }
     return false;
@@ -73,90 +77,49 @@ bool tao::OutEventPort<T, S, R>::HandleTerminate(){
 };
 
 template <class T, class S, class R>
-bool tao::OutEventPort<T, S, R>::setup_tx(){
-    //Construct a unique ID
-    std::stringstream ss;
-    ss << "tao::InEventPort:" << Activatable::get_id() << ":" << std::this_thread::get_id();
-    auto unique_id = ss.str();
+R* tao::OutEventPort<T, S, R>::get_writer(const std::string& name){
+    auto helper = tao::TaoHelper::get_tao_helper();
+    R* writer = 0;
 
+    if(registered_references_.count(name)){
+        writer = writers_[name];
+    }else{
 
-    //Construct a unique ID
-    auto endpoints_  = end_points_->StringList();
-    auto references_  = publisher_names_->StringList();
-
-    //Construct the args for the TAO orb
-    int orb_argc = 0;
-    auto orb_argv = new char*[endpoints_.size() * 2 + 2];
-    orb_argv[orb_argc++] = (char*) "./asd";
-    
-    for(auto e : endpoints_){
-        orb_argv[orb_argc++] = (char*) "-ORBInitRef";
-        orb_argv[orb_argc++] = strdup(e.c_str());
-    }
-
-    orb_argv[orb_argc + 1] =  NULL;
-
-
-    std::cout << "ORB BEFORE OPTIONS: ";
-    for(int i = 0; i < orb_argc; i++){
-        std::cout << orb_argv[i] << " ";
-    }
-    std::cout << std::endl;
-  
-
-    //Initialize the orb with our custom endpoints
-    orb_ = CORBA::ORB_init(orb_argc, orb_argv, unique_id.c_str());
-
-    std::cout << unique_id << ": ORB AFTER OPTIONS: ";
-    for(int i = 0; i < orb_argc; i++){
-        std::cout << orb_argv[i] << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << orb_argc << std::endl;
-    std::cout << orb_argv << std::endl;
-    //Get the reference to the RootPOA
-    //auto root_poa_ref = orb_->resolve_initial_references("RootPOA");
-    //auto root_poa = ::PortableServer::POA::_narrow(root_poa_ref);
-
-    while(references_.size()){
-        for(auto reference : references_){
-            try{
-                std::string str(reference);
-                std::cout << "TAO: OEP: Finding: !" << reference << "!" << std::endl;
-                auto ref_obj = orb_->resolve_initial_references(reference.c_str());
-                std::cout << "GOT BOYI" << reference << "!" << std::endl;
-                if(ref_obj){
-                    std::cout << "GOT WRITER" << std::endl;
-                    //Convert the ref_obj into a typed writer
-                    auto writer_ = R::_narrow(ref_obj);
-                    if(writer_){
-                        //Gain the mutex and push back onto the queue of writers
-                        //std::lock_guard<std::mutex> lock(writers_mutex_);
-                        writers_.push_back(writer_);
-                        std::cout << "GOT REFERENCE" << std::endl;
-                        //Remove the 
-                        references_.erase(std::remove(references_.begin(), references_.end(), reference), references_.end());
-
-                        //references_.remove(reference);
-                        break;
-                    }
-                }else{
-                    std::cout << "DED RATT" << std::endl;
-                }
+        try{
+            auto ptr = helper->resolve_initial_references(orb_, name);
+            if(ptr){
+                object_ptrs_[name] = ptr;
+                writer = R::_narrow(ptr);;
+                writers_[name] = writer;
+                registered_references_.insert(name);
+                std::cout << "Registered: " << name << std::endl;
             }
-            catch(...){
-                std::cout << "HELLO FRIEND" << std::endl;
-                //Got an exception means we are probably trying to connect to a not yet existant end point.
-            }
+        }catch(...){
         }
-        
-        std::cout << "DED" << std::endl;
-        //Sleep for a while
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    return writer;
+}
+
+template <class T, class S, class R>
+bool tao::OutEventPort<T, S, R>::setup_tx(){
+    auto orb_endpoint  = orb_endpoint_->String();
+    auto helper = tao::TaoHelper::get_tao_helper();
+    std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+    orb_ = helper->get_orb(orb_endpoint);
+    std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+
+    auto endpoints = end_points_->StringList();
+    auto names = publisher_names_->StringList();
+
+    for(int i = 0 ; i < endpoints.size(); i ++){
+        auto endpoint = endpoints[i];
+        auto name = names[i];
+        std::cerr << "Registering: " << name << " to addr " << endpoint << std::endl;
+        helper->register_initial_reference(orb_, name, endpoint);
+        std::cerr << "Registered: " << name << " to addr " << endpoint << std::endl;
     }
 
-    return true;
+    return orb_;
 };
 
 template <class T, class S, class R>
@@ -165,16 +128,22 @@ bool tao::OutEventPort<T, S, R>::tx(const T& message){
     bool should_send = ::OutEventPort<T>::tx(message);
 
     if(should_send){
-        for(auto writer : writers_){
+        //Send the mesasge 
+        auto tao_message = translate(message);
+        
+        for(auto name : publisher_names_->StringList()){
             try{
-                //Send the mesasge 
-                auto tao_message = translate(message);
-                writer->send(*tao_message);
-                delete tao_message;
+                auto writer = get_writer(name);
+                if(writer){
+                    writer->send(*tao_message);
+                }else{
+                    std::cerr << "Just waiting for a mate: " << name << std::endl;
+                }
             }catch(...){
-                //Probably a non-connected writer
+                registered_references_.erase(name);
             }
         }
+        delete tao_message;
     }
     return false;
 };

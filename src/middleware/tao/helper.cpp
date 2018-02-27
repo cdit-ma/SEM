@@ -1,6 +1,5 @@
 #include "helper.h"
 #include <iostream>
-
 #include <tao/IORTable/IORTable.h>
 
 tao::TaoHelper* tao::TaoHelper::singleton_ = 0;
@@ -16,17 +15,50 @@ tao::TaoHelper* tao::TaoHelper::get_tao_helper(){
     return singleton_;
 };
 
+
 CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint){
     if(orb_lookup_.count(orb_endpoint)){
         std::cout << "Got Orb: " << orb_endpoint << std::endl;
         return orb_lookup_[orb_endpoint];
     }else{
         std::cout << "Constructing Orb: " << orb_endpoint << std::endl;
-        int argc = 3;
-        auto endpoint = strdup(orb_endpoint.c_str());
-        char* argv[3] = {"", "-ORBEndpoint", endpoint};
-        auto orb = CORBA::ORB_init(argc, argv);
-        orb_lookup_[orb_endpoint] = orb;
+        
+        CORBA::ORB_ptr orb = 0;
+        
+        std::mutex mutex_;
+        std::unique_lock<std::mutex> lock(mutex_);
+        std::condition_variable lock_condition;
+
+        auto orb_future = std::async(std::launch::async, [&orb, &orb_endpoint, &lock_condition](){
+            bool setup = false;
+            try{
+                int argc = 3;
+                auto endpoint = strdup(orb_endpoint.c_str());
+                char* argv[3] = {"TEST", "-ORBEndpoint", endpoint};
+                
+                orb = CORBA::ORB_init(argc, argv);
+                if(orb){
+                    ACE_Time_Value tv(0, 100);
+                    orb->run(tv);
+                    lock_condition.notify_all();
+
+                    orb->run();
+                    std::cout << "Dead Orb" << std::endl;
+                }
+            }catch(...){
+                std::cerr << "TaoHelper: ERROR: " << std::endl;
+                if(!setup){
+                    lock_condition.notify_all();
+                }
+            }
+        });
+
+        lock_condition.wait(lock);
+
+        if(orb){
+            orb_lookup_[orb_endpoint] = orb;
+            orb_run_futures_[orb_endpoint] = std::move(orb_future);
+        }
         return orb;
     }
 }
@@ -93,5 +125,19 @@ bool tao::TaoHelper::register_servant(CORBA::ORB_ptr orb, PortableServer::POA_pt
 }
 
 void tao::TaoHelper::register_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id, const std::string& corba_str){
+    if(orb){
+        try{
+            auto object = orb->string_to_object(corba_str.c_str());
+            orb->register_initial_reference(obj_id.c_str(), object);
+        }catch(...){
 
+        }
+    }
+}
+
+CORBA::Object_ptr tao::TaoHelper::resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id){
+    if(orb){
+        return orb->resolve_initial_references(obj_id.c_str());
+    }
+    return 0;
 }

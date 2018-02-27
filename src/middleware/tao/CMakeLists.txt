@@ -1,5 +1,4 @@
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/basic")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+
 
 set(PROJ_NAME tao_helper)
 project (${PROJ_NAME})
@@ -32,3 +31,6 @@ target_link_libraries(${PROJ_NAME} ${ACE_LIBS})
 target_link_libraries(${PROJ_NAME} ${TAO_ATC_LIBS})
 target_link_libraries(${PROJ_NAME} ${TAO_PS_LIBS})
 target_link_libraries(${PROJ_NAME} ${TAO_IORTable_LIBS})
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/basic")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")

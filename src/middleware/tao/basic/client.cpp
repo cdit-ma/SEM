@@ -1,53 +1,94 @@
 #include <iostream>
-#include "messageS.h"
 #include <future>
+#include <unordered_map>
+#include <set>
+
+#include <middleware/tao/helper.h>
+
+#include "messageS.h"
+
 
 int main(int argc, char** argv){
 
-    std::cout << "ORB BEFORE OPTIONS: ";
-    for(int i = 0; i < argc; i++){
-        std::cout << argv[i] << " ";
-    }
-    std::cout << std::endl;
+    auto helper = tao::TaoHelper::get_tao_helper();
+    auto orb = helper->get_orb("iiop://192.168.111.90:50003");
+    
+    //Run the orb
+    auto orb_future = std::async(std::launch::async, [orb](){
+        if(orb){
+            std::cout << "Starting the Orb" << std::endl;
+            orb->run();
+            std::cout << "Stopping the Orb" << std::endl;
+            orb->destroy();
+        }
+    });
 
-    //Get a pointer to the orb
-    auto orb = CORBA::ORB_init (argc, argv);
+    std::string server_addr("corbaloc:iiop:192.168.111.90:50002");
 
-    std::cout << "ORB AFTER OPTIONS: ";
-    for(int i = 0; i < argc; i++){
-        std::cout << argv[i] << " ";
-    }
-    std::cout << std::endl;
+    std::string sender_1_name("Sender1");
+    std::string sender_2_name("Sender2");
 
+    std::string sender_1_addr(server_addr + "/" + sender_1_name);
+    std::string sender_2_addr(server_addr + "/" + sender_2_name);
 
-    //Get the reference to the RootPOA
-    //auto obj = orb->resolve_initial_references("RootPOA");
-    //auto root_poa = ::PortableServer::POA::_narrow(obj);
-    //std::string test("corbaloc:iiop:192.168.111.90:50001/Sender2");
-    //auto object = orb->string_to_object(test.c_str());
-//    orb->register_initial_reference("Sender2", object);
+    helper->register_initial_reference(orb, sender_1_name, sender_1_addr);
+    helper->register_initial_reference(orb, sender_2_name, sender_2_addr);
 
-    std::string reference_str = "Sender";
-    auto ref_obj = orb->resolve_initial_references(reference_str.c_str());
+    std::set<std::string> unregistered_references;
+    std::set<std::string> registered_references;
 
-    if(!ref_obj){
-        std::cerr << "Failed to resolve Reference '" << reference_str << "'" << std::endl;
-    }
+    unregistered_references.insert(sender_1_name);
+    unregistered_references.insert(sender_2_name);
+
+    std::unordered_map<std::string, CORBA::Object_ptr> object_ptrs;
+    std::unordered_map<std::string, Test::Hello_ptr> senders;
+
 
     Test::Message message;
     message.inst_name = "=D";
     message.time = argc;
 
-    //auto sender = Test::Hello::_narrow(ref_obj);
     while(true){
-        message.time++;
-        std::cout << message.time << std::endl;
-        auto sender = Test::Hello::_narrow(ref_obj);
-        sender->send(message);
-        CORBA::release(sender);
-    }
-    //CORBA::release(sender);
+        std::cout << "LOOPP" << std::endl;
+        
+        for (auto itt = unregistered_references.begin(); itt != unregistered_references.end();) {
+            auto reference_str = *itt;
+            try{
+                std::cout << "Registering: " << reference_str << std::endl;
+                auto ptr = helper->resolve_initial_references(orb, reference_str);
+                if(ptr){
+                    object_ptrs[reference_str] = ptr;
+                    senders[reference_str] = Test::Hello::_narrow(ptr);
+                    registered_references.insert(reference_str);
+	                itt = unregistered_references.erase(itt);
+                    std::cout << "Registered: " << reference_str << std::endl;
+                }
+            }catch(...){
+                ++itt;
+            }
+        }
 
-    orb->destroy();
+        for (auto itt = registered_references.begin(); itt != registered_references.end();) {
+            auto reference_str = *itt;
+            try{
+                message.time++;
+                //std::cout << "Sending: " << registered_reference << std::endl;
+                auto sender = senders[reference_str];
+                if(sender){
+                    sender->send(message);
+                }
+                ++itt;
+
+            }catch(...){
+                std::cout << "Ref Ded: " << reference_str << std::endl;
+                //delete object_ptrs[reference_str];
+                itt = registered_references.erase(itt);
+                unregistered_references.insert(reference_str);
+            }
+        }
+    }
+
+    orb->shutdown(true);
+
     return 0;
 }
