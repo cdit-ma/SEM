@@ -15,7 +15,7 @@ namespace tao{
     public:
         static TaoHelper* get_tao_helper();
     public:
-        CORBA::ORB_ptr get_orb(const std::string& orb_endpoint);
+        CORBA::ORB_ptr get_orb(const std::string& orb_endpoint, bool debug_mode = false);
         PortableServer::POA_ptr get_poa(CORBA::ORB_ptr orb, const std::string& poa_name);
         void register_initial_reference(CORBA::ORB_ptr orb, const std::string& obj_id, const std::string& corba_str);
         CORBA::Object_ptr resolve_initial_references(CORBA::ORB_ptr orb, const std::string& obj_id);

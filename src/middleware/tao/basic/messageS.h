@@ -112,10 +112,10 @@ namespace POA_Test
     // TAO_IDL - Generated from
     // be/be_visitor_operation/operation_sh.cpp:45
     
-    virtual void send (
+    virtual void sendLelbs (
         const ::Test::Message & message) = 0;
     
-    static void send_skel (
+    static void sendLelbs_skel (
         TAO_ServerRequest & server_request,
         void * servant_upcall,
         void * servant

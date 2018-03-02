@@ -175,7 +175,7 @@ TAO::Collocation_Proxy_Broker *
 // TAO_IDL - Generated from
 // be/be_visitor_operation/operation_cs.cpp:78
 
-void Test::Hello::send (
+void Test::Hello::sendLelbs (
     const ::Test::Message & message)
 {
   if (!this->is_evaluated ())
@@ -201,9 +201,10 @@ void Test::Hello::send (
       this,
       _the_tao_operation_signature,
       2,
-      "send",
-      4,
-      this->the_TAO_Hello_Proxy_Broker_
+      "sendLelbs",
+      9,
+      this->the_TAO_Hello_Proxy_Broker_,
+      TAO::TAO_ONEWAY_INVOCATION
     );
   
   _tao_call.invoke (0, 0);

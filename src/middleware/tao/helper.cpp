@@ -16,7 +16,7 @@ tao::TaoHelper* tao::TaoHelper::get_tao_helper(){
 };
 
 
-CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint){
+CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool debug_mode){
     if(orb_lookup_.count(orb_endpoint)){
         std::cout << "Got Orb: " << orb_endpoint << std::endl;
         return orb_lookup_[orb_endpoint];
@@ -29,19 +29,27 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint){
         std::unique_lock<std::mutex> lock(mutex_);
         std::condition_variable lock_condition;
 
-        auto orb_future = std::async(std::launch::async, [&orb, &orb_endpoint, &lock_condition](){
+        auto orb_future = std::async(std::launch::async, [&orb, &orb_endpoint, &lock_condition, &debug_mode](){ 
             bool setup = false;
             try{
-                int argc = 3;
+                // "-ORBSvcConfDirective", "static Server_Strategy_Factory '-ORBConcurrency thread-per-connection'"
                 auto endpoint = strdup(orb_endpoint.c_str());
-                char* argv[3] = {"TEST", "-ORBEndpoint", endpoint};
-                
+                auto debug_str =  strdup(debug_mode ? "10" : "0");
+                int argc = 4;
+
+                char* argv[4] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str};
                 orb = CORBA::ORB_init(argc, argv);
+
+                //Free my vars
+                delete[] endpoint;
+                delete[] debug_str;
+                
                 if(orb){
+                    //Run for a short period of time to check if things can be run
                     ACE_Time_Value tv(0, 100);
                     orb->run(tv);
+                    
                     lock_condition.notify_all();
-
                     orb->run();
                     std::cout << "Dead Orb" << std::endl;
                 }
@@ -72,6 +80,7 @@ PortableServer::POA_ptr tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
 
         try{
             poa = root_poa->find_POA(poa_name.c_str(), true);
+            std::cout << "FOUND POA" << std::endl;
         }catch(const PortableServer::POA::AdapterNonExistent& e){
             poa = 0;
         }
@@ -81,13 +90,18 @@ PortableServer::POA_ptr tao::TaoHelper::get_poa(CORBA::ORB_ptr orb, const std::s
         }else{
             std::cout << "Constructing POA: " << poa_name << std::endl;
             // Construct the policy list for the LoggingServerPOA.
-            CORBA::PolicyList policies (2);
-            policies.length (2);
+            CORBA::PolicyList policies (3);
+            policies.length (3);
             policies[0] = root_poa->create_id_assignment_policy (PortableServer::USER_ID);
             policies[1] = root_poa->create_lifespan_policy (PortableServer::PERSISTENT);
+            policies[2] = root_poa->create_thread_policy (PortableServer::ORB_CTRL_MODEL);
+
+            // Get the POA manager object
+            PortableServer::POAManager_var manager = root_poa->the_POAManager();
+            
             
             // Create the child POA for the test logger factory servants.
-            poa = root_poa->create_POA(poa_name.c_str(), nullptr, policies);
+            poa = root_poa->create_POA(poa_name.c_str(), manager, policies);
             //poa->the_POAManager()->activate();
 
             // Destroy the POA policies

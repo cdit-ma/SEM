@@ -9,6 +9,6 @@ struct Message{
 /// A very simple interface
 interface Hello
 {
-	void send(in Test::Message message);
+	oneway void sendLelbs(in Test::Message message);
 };
 };

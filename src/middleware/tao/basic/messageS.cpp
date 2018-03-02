@@ -205,21 +205,21 @@ TAO_Test_Hello_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
   enum
     {
       TOTAL_KEYWORDS = 6,
-      MIN_WORD_LENGTH = 4,
+      MIN_WORD_LENGTH = 5,
       MAX_WORD_LENGTH = 14,
-      MIN_HASH_VALUE = 4,
+      MIN_HASH_VALUE = 5,
       MAX_HASH_VALUE = 15,
-      HASH_VALUE_RANGE = 12,
+      HASH_VALUE_RANGE = 11,
       DUPLICATES = 0,
-      WORDLIST_SIZE = 10
+      WORDLIST_SIZE = 11
     };
 
   static const TAO_operation_db_entry  wordlist[] =
     {
-      {"",0,0},{"",0,0},{"",0,0},{"",0,0},
-      {"send", &POA_Test::Hello::send_skel, 0},
+      {"",0,0},{"",0,0},{"",0,0},{"",0,0},{"",0,0},
       {"_is_a", &POA_Test::Hello::_is_a_skel, 0},
-      {"",0,0},{"",0,0},{"",0,0},{"",0,0},
+      {"",0,0},{"",0,0},{"",0,0},
+      {"sendLelbs", &POA_Test::Hello::sendLelbs_skel, 0},
       {"_component", &POA_Test::Hello::_component_skel, 0},
       {"",0,0},{"",0,0},
       {"_non_existent", &POA_Test::Hello::_non_existent_skel, 0},
@@ -293,11 +293,11 @@ namespace POA_Test
   // TAO_IDL - Generated from
   // be/be_visitor_operation/upcall_command_ss.cpp:136
   
-  class send_Hello
+  class sendLelbs_Hello
     : public TAO::Upcall_Command
   {
   public:
-    inline send_Hello (
+    inline sendLelbs_Hello (
       POA_Test::Hello * servant,
       TAO_Operation_Details const * operation_details,
       TAO::Argument * const args[])
@@ -315,7 +315,7 @@ namespace POA_Test
           this->args_,
           1);
         
-      this->servant_->send (
+      this->servant_->sendLelbs (
         arg_1);
     }
   
@@ -330,7 +330,7 @@ namespace POA_Test
 // TAO_IDL - Generated from 
 // be/be_visitor_operation/operation_ss.cpp:190
 
-void POA_Test::Hello::send_skel (
+void POA_Test::Hello::sendLelbs_skel (
     TAO_ServerRequest & server_request,
     void * TAO_INTERCEPTOR (servant_upcall),
     void * servant)
@@ -354,7 +354,7 @@ void POA_Test::Hello::send_skel (
   POA_Test::Hello * const impl =
     static_cast<POA_Test::Hello *> (servant);
 
-  send_Hello command (
+  sendLelbs_Hello command (
     impl,
     server_request.operation_details (),
     args);

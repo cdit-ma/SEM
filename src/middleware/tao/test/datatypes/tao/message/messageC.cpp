@@ -203,7 +203,8 @@ void Test::Hello::send (
       2,
       "send",
       4,
-      this->the_TAO_Hello_Proxy_Broker_
+      this->the_TAO_Hello_Proxy_Broker_,
+      TAO::TAO_ONEWAY_INVOCATION
     );
   
   _tao_call.invoke (0, 0);

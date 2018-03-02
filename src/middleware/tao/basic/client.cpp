@@ -75,7 +75,7 @@ int main(int argc, char** argv){
                 //std::cout << "Sending: " << registered_reference << std::endl;
                 auto sender = senders[reference_str];
                 if(sender){
-                    sender->send(message);
+                    sender->sendLelbs(message);
                 }
                 ++itt;
 

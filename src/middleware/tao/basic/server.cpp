@@ -22,11 +22,13 @@ void signal_handler(int sig)
 }
 
 
-void Hello::send(const Test::Message& message){
+void Hello::sendLelbs(const Test::Message& message){
     std::cout << "\tID: " << id << std::endl;
     std::cout << "\ttime: " << message.time << std::endl;
     std::cout << "\tinst_name: " << message.inst_name << std::endl;
-    //std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::cout << "\tBlocking" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::cout << "\tDone" << std::endl;
 }
 
 int main(int argc, char ** argv){

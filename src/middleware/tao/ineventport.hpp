@@ -14,35 +14,34 @@
 //https://www.codeproject.com/Articles/24863/A-Simple-C-Client-Server-in-CORBA
 
 namespace tao{
-    template <class S, class R> class Receiver: public R{
+    template <class S> class Enqueuer{
         public:
-            Receiver(CORBA::ORB_ptr orb, std::function<void (const S*) > callback);
-            void send(const S& message);
-        private:
-            std::function<void (const S*) > callback_function_;
-            //Use an ORB reference to shutdown the application.
-            CORBA::ORB_var orb_;
+            virtual void enqueue(const S& message) = 0;
     };
 
-     template <class T, class S, class R> class InEventPort: public ::InEventPort<T>{
+     template <class T, class S, class R> class InEventPort: public ::InEventPort<T>, public Enqueuer<S>{
         public:
             InEventPort(std::weak_ptr<Component> component, std::string name, std::function<void (T&) > callback_function);
             ~InEventPort(){
                 Activatable::Terminate();
             };
+
+            void enqueue(const S& message);
+
             protected:
                 bool HandleConfigure();
                 bool HandlePassivate();
                 bool HandleTerminate();
             private:
-                void enqueue(const S* message);
                 void recv_loop();
 
 
             private:
+                ::Base::Translater<T, S> translater;
+
+                R* recv = 0;
                 std::queue<const S*> message_queue_;
                 std::thread* rec_thread_ = 0;
-                Receiver<S, R>* receiver_ = 0;
 
                 std::mutex receive_mutex_;
                 std::condition_variable receive_lock_condition_;
@@ -59,25 +58,7 @@ namespace tao{
 
                 std::shared_ptr<Attribute> publisher_name_;
                 std::shared_ptr<Attribute> orb_endpoint_;
-    }; 
-};
-
-template <class S, class R>
-tao::Receiver<S, R>::Receiver(CORBA::ORB_ptr orb, std::function<void (const S*) > callback):
-    orb_(CORBA::ORB::_duplicate (orb)){
-        callback_function_ = callback;
-};
-
-template <class S, class R>
-void tao::Receiver<S, R>::send(const S& message){
-    //Callback into the InEventPort
-    if(callback_function_){
-        //We need to make a copy of the message
-        //The ORB destroys the message when it falls out of scope
-        //The tao::InEventPort is responsible to free memory
-        auto tao_message = new S(message);
-        callback_function_(tao_message);
-    }
+    };
 };
 
 template <class T, class S, class R>
@@ -110,10 +91,10 @@ bool tao::InEventPort<T, S, R>::HandleConfigure(){
 };
 
 template <class T, class S, class R>
-void tao::InEventPort<T, S, R>::enqueue(const S* message){
+void tao::InEventPort<T, S, R>::enqueue(const S& message){
     //Gain mutex lock and append message to queue
     std::unique_lock<std::mutex> lock(receive_mutex_);
-    message_queue_.push(message);
+    message_queue_.push(new S(message));
     receive_lock_condition_.notify_all();
 }
 
@@ -162,7 +143,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
 
         std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
 
-        R* reader_impl = 0;
+        //R* reader_impl = 0;
         if(!orb_){
             state = ThreadState::TERMINATE;
         }else{
@@ -170,15 +151,16 @@ void tao::InEventPort<T, S, R>::recv_loop(){
 
             std::cout << "Publisher: " << publisher_name << std::endl;
             //Construct a callback function (Lambda) to call enqueue message
-            //Construct a Receiver which implements the TAO interface
-            reader_impl = new Receiver<S, R>(orb_, [=](const S * s){enqueue(s);});
 
             // Create the child POA for the test logger factory servants.
             auto poa = helper->get_poa(orb_, publisher_name);
+
+
+            recv = new R(*this);
             
             //Activate WITH ID
             //Convert our string into an object_id
-            helper->register_servant(orb_, poa, reader_impl, publisher_name);
+            helper->register_servant(orb_, poa, recv, publisher_name);
         
             poa->the_POAManager()->activate();
         }
@@ -218,7 +200,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
                 //Take first element
                 auto tao_message = queue.front();
                 //Translate between TAO and base middleware
-                auto base_message = translate(*tao_message);
+                auto base_message = translater.MiddlewareToBase(*tao_message);
                 //Enqueue the Base middleware message into the EventPort super class
                 this->EnqueueMessage(base_message);
                 //Pop the queue
@@ -228,8 +210,8 @@ void tao::InEventPort<T, S, R>::recv_loop(){
             }
         }
 
-        PortableServer::POA_var poa = reader_impl->_default_POA ();
-        PortableServer::ObjectId_var id = poa->servant_to_id (reader_impl);
+        PortableServer::POA_var poa = recv->_default_POA ();
+        PortableServer::ObjectId_var id = poa->servant_to_id (recv);
         poa->deactivate_object (id.in ());
         poa->destroy (true, true);
     }catch(...){

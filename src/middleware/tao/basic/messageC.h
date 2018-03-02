@@ -166,7 +166,7 @@ namespace Test
     // TAO_IDL - Generated from
     // be/be_visitor_operation/operation_ch.cpp:46
     
-    virtual void send (
+    virtual void sendLelbs (
         const ::Test::Message & message);
     
     // TAO_IDL - Generated from

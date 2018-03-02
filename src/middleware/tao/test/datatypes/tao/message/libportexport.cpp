@@ -1,24 +1,18 @@
 #include <core/libportexport.h>
 
-// Include the convert function
-#include "convert.h"
-
-#include "messageC.h"
-#include "messageS.h"
+//Include the implementation and base message
+#include "helloimpl.h"
+#include "base/message/message.h"
 
 #include <middleware/tao/outeventport.hpp>
 #include <middleware/tao/ineventport.hpp>
 
-
 EventPort* ConstructInEventPort(const std::string& port_name, std::weak_ptr<Component> component){
-	//return ConstructInEventPort<rti::InEventPort<Base::Message, Message> >(port_name, component);
-	//return new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(component, port_name);
-	return 0;
+	return ConstructInEventPort<tao::InEventPort<Base::Message, Test::Message, Test::HelloImpl> >(port_name, component);
 };
 
 EventPort* ConstructOutEventPort(const std::string& port_name, std::weak_ptr<Component> component){
-	//return ConstructOutEventPort<rti::OutEventPort<Base::Message, Message> >(port_name, component);
-	return 0;
+	return ConstructOutEventPort<tao::OutEventPort<Base::Message, Test::Message, Test::Hello> >(port_name, component);
 };
 
 
@@ -54,15 +48,14 @@ bool setup_out_port(EventPort& port, std::vector<std::string> publisher_names, s
 
 
 int main(int argc, char** argv){
-	auto fn2 = [](Base::Message& m) {std::cout << "In Port 1: " << m.instName() << std::endl;};
-	auto fn3 = [](Base::Message& m) {std::cout << "In Port 2: " << m.instName() << std::endl;};
-
 	auto c = std::make_shared<Component>("Test");
+	c->AddCallback<Base::Message>("InEventPort1", [](Base::Message& m) {std::cout << "In Port 1: " << m.instName() << std::endl;});
+	c->AddCallback<Base::Message>("InEventPort2", [](Base::Message& m) {std::cout << "In Port 2: " << m.instName() << std::endl;});
 
 	auto outport = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST1");
 	auto outport2 = new tao::OutEventPort<Base::Message, Test::Message, Test::Hello>(c, "TEST4");
-	auto inport = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST2", fn2);
-	auto inport2 = new tao::InEventPort<Base::Message, Test::Message, POA_Test::Hello>(c, "TEST3", fn3);
+	auto inport = new tao::InEventPort<Base::Message, Test::Message, Test::HelloImpl>(c, "InEventPort1", c->GetCallback("InEventPort1"));
+	auto inport2 = new tao::InEventPort<Base::Message, Test::Message, Test::HelloImpl>(c, "InEventPort2", c->GetCallback("InEventPort2"));
 
 	outport->set_id("1");
 	outport2->set_id("2");
@@ -72,13 +65,23 @@ int main(int argc, char** argv){
 	std::string server_addr("corbaloc:iiop:192.168.111.90:50003");
 
 	{
-		std::vector<std::string> publisher_names = {"S1", "Sender1"};
-		std::vector<std::string> publisher_address = {server_addr + "/S1", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
+		//std::vector<std::string> publisher_names = {"S1", "Sender1"};
+		//std::vector<std::string> publisher_address = {server_addr + "/S1", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
+		//std::vector<std::string> publisher_names = {"Sender1"};
+		//std::vector<std::string> publisher_address = {"corbaloc:iiop:192.168.111.90:50005/Sender1"};
+
+		std::vector<std::string> publisher_names = {"S2"};
+		std::vector<std::string> publisher_address = {server_addr + "/S2"};
 		setup_out_port(*outport, publisher_names, publisher_address);
 	}
 	{
-		std::vector<std::string> publisher_names = {"S1", "S2", "Sender1"};
-		std::vector<std::string> publisher_address = {server_addr + "/S1", server_addr + "/S2", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
+		// std::vector<std::string> publisher_names = {"S1", "S2", "Sender1"};
+		// std::vector<std::string> publisher_address = {server_addr + "/S1", server_addr + "/S2", "corbaloc:iiop:192.168.111.90:50005/Sender1"};
+
+		std::vector<std::string> publisher_names = {"S1"};
+		std::vector<std::string> publisher_address = {server_addr + "/S1"};
+		//std::vector<std::string> publisher_names = {"Sender1"};
+		//std::vector<std::string> publisher_address = {"corbaloc:iiop:192.168.111.90:50005/Sender1"};
 		setup_out_port(*outport2, publisher_names, publisher_address);
 	}
 
@@ -87,19 +90,22 @@ int main(int argc, char** argv){
 
 	inport->Configure();
 	inport2->Configure();
+
 	outport->Configure();
 	outport2->Configure();
 	std::cout << "Configured" << std::endl;
 
 	inport->Activate();
 	inport2->Activate();
+
 	outport->Activate();
-	outport2->Activate();
+	//outport2->Activate();
 	std::cout << "Activated" << std::endl;
 
 	
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+	std::cout << "SLEEPY" << std::endl;
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	std::cout << "AWAKE" << std::endl;
 
 	int i = 100;
 
@@ -110,34 +116,34 @@ int main(int argc, char** argv){
 		
 		{
 			message.messageID()++;
-			if(i % 2){
+			/*if(i % 2){
 				std::cout << ">>>>| Sent From: Outport 2 |<<<<" << std::endl;
 				message.set_instName("Outport 2");
 				outport2->tx(message);
-			}else{
-				std::cout << ">>>>| Sent From: Outport 1 |<<<<" << std::endl;
+				std::cout << ">>>>| Sent |<<<<" << std::endl;
+			}else{*/
+				std::cout << ">>>>| Sending From: Outport 1 |<<<<" << std::endl;
 				message.set_instName("Outport 1");
 				outport->tx(message);
-			}
+				std::cout << ">>>>| Sent |<<<<" << std::endl;
+			//}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(100000));
+
 	inport->Passivate();
-	inport2->Passivate();
+	//inport2->Passivate();
 
 	outport->Passivate();
 	outport2->Passivate();
 	std::cout << "Passivated" << std::endl;
 
 	inport->Terminate();
-	std::cout << "Terminated" << std::endl;
-	inport2->Terminate();
-	std::cout << "Terminated" << std::endl;
+	//inport2->Terminate();
 	outport->Terminate();
-	std::cout << "Terminated" << std::endl;
 	outport2->Terminate();
-	std::cout << "Terminated" << std::endl;
 
 	delete inport;
 	delete inport2;

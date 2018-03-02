@@ -8,6 +8,7 @@
 #include <functional>
 #include <iostream>
 
+#include "translater.h"
 #include "eventport.h"
 #include "../modellogger.h"
 #include "../component.h"

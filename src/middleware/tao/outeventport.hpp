@@ -26,6 +26,8 @@ namespace tao{
             R* get_writer(const std::string& endpoint);
             bool setup_tx();
             std::mutex control_mutex_;
+
+            ::Base::Translater<T, S> translater;
             
             CORBA::ORB_var orb_ = 0;
             std::shared_ptr<Attribute> end_points_;
@@ -129,13 +131,15 @@ bool tao::OutEventPort<T, S, R>::tx(const T& message){
 
     if(should_send){
         //Send the mesasge 
-        auto tao_message = translate(message);
+        auto tao_message = translater.BaseToMiddleware(message);
         
         for(auto name : publisher_names_->StringList()){
             try{
                 auto writer = get_writer(name);
                 if(writer){
+                    std::cout << "SENDING" << std::endl;
                     writer->send(*tao_message);
+                    std::cout << "SENT" << std::endl;
                 }else{
                     std::cerr << "Just waiting for a mate: " << name << std::endl;
                 }
