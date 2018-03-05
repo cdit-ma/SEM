@@ -11,6 +11,9 @@ set(PROJ_NAME "re_execution_parser")
 set(LIB_NAME "re_execution_parser_lib")
 project(${PROJ_NAME})
 
+#Find Protobuf
+find_package(Protobuf REQUIRED)
+
 set(PROJ_NAME re_execution_parser)
 
 project(${PROJ_NAME})
@@ -22,11 +25,13 @@ find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/lib)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.cpp
 	)
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
     )
 
@@ -37,5 +42,9 @@ add_executable(${PROJ_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 
 target_include_directories(${LIB_NAME} PRIVATE ${PUGIXML_ROOT}/include)
 
+target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../controlmessage/)
+
+target_link_libraries(${LIB_NAME} re_proto_control)
 target_link_libraries(${LIB_NAME} ${PUGIXML_LIBRARIES})
+target_link_libraries(${LIB_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${LIB_NAME})

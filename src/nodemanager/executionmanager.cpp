@@ -337,7 +337,7 @@ bool ExecutionManager::ConstructControlMessages(){
                     } else{
                         std::cerr << "INVALID PORT KIND: " << event_port->kind << std::endl;
                     }
-                    
+
                     port_pb->set_kind(k);
                     //Get the Middleware for the ports
                     if(k != NodeManager::EventPort::PERIODIC_PORT){

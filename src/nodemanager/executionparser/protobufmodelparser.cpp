@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
 
+
 ProtobufModelParser::ProtobufModelParser(const std::string& filename){
     graphml_parser_ = new GraphmlParser(filename);
     success_ = graphml_parser_->IsValid() && PreProcess() && Process();
@@ -14,9 +15,10 @@ ProtobufModelParser::ProtobufModelParser(const std::string& filename){
 std::string ProtobufModelParser::GetDeploymentJSON(){
 
     std::string output;
+    google::protobuf::util::JsonPrintOptions options;
+    options.add_whitespace = true;
 
-    MessageToJsonString(control_message_, &output, JsonPrintOptions(){true, true});
-
+    google::protobuf::util::MessageToJsonString(*control_message_, &output, options);
     return output;
 }
 
@@ -53,6 +55,16 @@ bool ProtobufModelParser::PreProcess(){
     if(!graphml_parser_){
         return false;
     }
+
+    //Get all ids
+    hardware_node_ids_ = graphml_parser_->FindNodes("HardwareNode");
+    hardware_cluster_ids_ = graphml_parser_->FindNodes("HardwareCluster");
+    component_ids_ = graphml_parser_->FindNodes("Component");
+    component_instance_ids_ = graphml_parser_->FindNodes("ComponentInstance");
+    component_impl_ids_ = graphml_parser_->FindNodes("ComponentImpl");
+    component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
+    model_id_ = graphml_parser_->FindNodes("Model")[0];
+
     //Get the ID's of the edges
     deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
     assembly_edge_ids_ = graphml_parser_->FindEdges("Edge_Assembly");
@@ -74,6 +86,38 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
+    for(const auto& component_instance_id: component_instance_ids_){
+        int replication = 1;
+        std::string assembly_list = "";
+        auto parent_id = graphml_parser_->GetParentNode(component_instance_id);
+        if(deployed_entities_map_.count(component_instance_id)){
+            full_assembly_name_map_[component_instance_id] = assembly_list;
+            continue;
+        }
+        else{
+            while(true){
+                if(parent_id.empty()){
+                    break;
+                }
+                if(deployed_entities_map_.count(parent_id)){
+                    replication *= std::stoi(graphml_parser_->GetDataValue(parent_id, "replicate_count"));
+                    assembly_list.insert(0, graphml_parser_->GetDataValue(parent_id, "label"));
+                    full_assembly_name_map_[component_instance_id] = assembly_list;
+                    deployed_entities_map_[component_instance_id] = deployed_entities_map_[parent_id];
+                    break;
+                }
+                else{
+                    if(graphml_parser_->GetDataValue(parent_id, "kind") == "ComponentAssembly"){
+                        replication *= std::stoi(graphml_parser_->GetDataValue(parent_id, "replicate_count"));
+                        assembly_list.insert(0, "." + graphml_parser_->GetDataValue(parent_id, "label"));
+                    }
+                    parent_id = graphml_parser_->GetParentNode(parent_id);
+                }
+            }
+        }
+        replication_map_[component_instance_id] = replication;
+    }
+
     //Construct a Deployment Map which points EventPort - > QOSProfile
     for(const auto& e_id: qos_edge_ids_){
         auto source_id = graphml_parser_->GetAttribute(e_id, "source");
@@ -84,15 +128,6 @@ bool ProtobufModelParser::PreProcess(){
     for(const auto& c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
         RecurseEdge(c_id, c_id);
     }
-
-    hardware_node_ids_ = graphml_parser_->FindNodes("HardwareNode");
-    hardware_cluster_ids_ = graphml_parser_->FindNodes("HardwareCluster");
-    component_ids_ = graphml_parser_->FindNodes("Component");
-    component_instance_ids_ = graphml_parser_->FindNodes("ComponentInstance");
-    component_impl_ids_ = graphml_parser_->FindNodes("ComponentImpl");
-    component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
-
-
 }
 
 bool ProtobufModelParser::Process(){
@@ -107,23 +142,18 @@ bool ProtobufModelParser::Process(){
     for(const auto& h_id : hardware_node_ids_){
         auto node = control_message_->add_nodes();
         node->mutable_info()->set_id(h_id);
-        node->mutable_info()->set_name(graphml_parser_->GetAttribute(h_id, "name"));
+        node->mutable_info()->set_name(graphml_parser_->GetDataValue(h_id, "label"));
         node_message_map_[h_id] = node;
     }
 
-
-    //TODO:replication
-    //TODO:replication
-    //TODO:replication
-    //TODO:replication
-    //TODO:replication
-    //TODO:replication
-    //TODO:replication
+    std::string model_name = graphml_parser_->GetDataValue(model_id_, "label");
 
     //Construct and fill component instances
     for(const auto& component_id : component_instance_ids_){
         //Get id of deployed node
+        auto parent_id = graphml_parser_->GetParentNode(component_id);
         auto hardware_id = deployed_entities_map_[component_id];
+
 
         //Get hardware node pb message that this component is deployed to
         NodeManager::Node* node_pb = 0;
@@ -131,17 +161,17 @@ bool ProtobufModelParser::Process(){
             node_pb = node_message_map_.at(hardware_id);
         }
 
-        //Continue if we're missing anything
+        //Move to next component_instance if we're missing anything
         if(hardware_id.empty() || component_id.empty() || !node_pb){
             continue;
         }
 
         //Set component info
         auto component_pb = node_pb->add_components();
+        component_pb->set_replication(replication_map_[component_id]);
         auto component_info_pb = component_pb->mutable_info();
-        //TODO: deal with this re. replication
-        component_info_pb->set_id(graphml_parser_->GetDataValue(component_id, "id"));
-        std::string component_name = graphml_parser_->GetDataValue(component_id, "label"));
+        component_info_pb->set_id(graphml_parser_->GetAttribute(component_id, "id"));
+        std::string component_name = graphml_parser_->GetDataValue(component_id, "label");
         component_info_pb->set_name(component_name);
         component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
 
@@ -151,7 +181,7 @@ bool ProtobufModelParser::Process(){
             auto attr_pb = component_pb->add_attributes();
             auto attr_info_pb = attr_pb->mutable_info();
 
-            //TODO: deal with this re. replication
+            //TODO: deal with setting unique ids re. replication
             attr_info_pb->set_id(attribute_id);
             attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
 
@@ -163,7 +193,9 @@ bool ProtobufModelParser::Process(){
         //Find all ports in/out of component instance
         auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", component_id);
         auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
+        auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", component_id);
         port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
+        port_ids.insert(port_ids.end(), periodic_ids.begin(), periodic_ids.end());
 
         //Set port info
         for(const auto& port_id : port_ids){
@@ -177,12 +209,33 @@ bool ProtobufModelParser::Process(){
             port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
             port_pb->set_namespace_name(graphml_parser_->GetDataValue(aggregate_id, "namespace"));
 
+            //construct port guid. Takes form "project_name.assembly_name.component_name.port_name"
+            std::string port_guid;
+
+            if(full_assembly_name_map_.count(component_id)){
+                port_guid = std::string(model_name + "." +full_assembly_name_map_[component_id] + "." + component_name + "." + port_name);
+            }else{
+                port_guid = std::string(model_name + "." + component_name + "." + port_name);
+            }
+            port_pb->set_port_guid(port_guid);
+
+
             NodeManager::EventPort::Kind kind;
             std::string kind_str = graphml_parser_->GetDataValue(port_id, "kind");
             port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(port_id, "kind")));
 
             //Middleware ports
             if(port_pb->kind() != NodeManager::EventPort::PERIODIC_PORT){
+
+                //Fill connected port mapping
+                if(assembly_map_.count(port_id)){
+                    for(const auto& assembly_connection : assembly_map_[port_id]){
+                        std::string connected_id = assembly_connection.target_id;
+                        std::string connected_guid = std::string(graphml_parser_->GetDataValue(connected_id, "label"));
+                        port_pb->add_connected_ports(connected_guid);
+                    }
+                }
+
                 //Set Middleware
                 std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
                 NodeManager::EventPort::Middleware mw;
@@ -201,97 +254,17 @@ bool ProtobufModelParser::Process(){
                 bool is_inport = port_pb->kind() == NodeManager::EventPort::IN_PORT;
 
 
-                if(is_rti || is_ospl || is_qpid){
-                    //Set the topic_name
+                //Set the topic_name
+                std::string topic_name;
+                topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
+
+                if(!topic_name.empty()){
                     auto topic_pb = port_pb->add_attributes();
                     auto topic_info_pb = topic_pb->mutable_info();
                     topic_info_pb->set_name("topic_name");
                     topic_pb->set_kind(NodeManager::Attribute::STRING);
-                    std::string topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
                     //Only set if we actually have a topic name
-                    if(!topic_name.empty()){
-                        topic_pb->add_s(); 
-                    }
-                }
-                if(is_rti || is_ospl){
-                    //Set the domain_id
-                    auto domain_pb = port_pb->add_attributes();
-                    auto domain_info_pb = domain_pb->mutable_info();
-                    domain_info_pb->set_name("domain_id");
-                    domain_pb->set_kind(NodeManager::Attribute::INTEGER);
-                    domain_pb->set_i(0);
-                    
-                    //QOS Profile + profile Path
-                    auto qos_name_pb = port_pb->add_attributes();
-                    auto qos_name_info_pb = qos_name_pb->mutable_info();
-                    
-                    auto qos_path_pb = port_pb->add_attributes();
-                    auto qos_path_info_pb = qos_path_pb->mutable_info();
-
-                    qos_name_info_pb->set_name("qos_profile_name");
-                    qos_name_pb->set_kind(NodeManager::Attribute::STRING);
-
-                    qos_path_info_pb->set_name("qos_profile_path");
-                    qos_path_pb->set_kind(NodeManager::Attribute::STRING);
-
-                    if(entity_qos_map_.count(port_id)){
-                        auto qos_id = entity_qos_map_[port_id];
-                        std::string qos_profile_name_str = graphml_parser_->GetDataValue(qos_id, "label");
-                        qos_name_pb->add_s(qos_profile_name_str);
-                        qos_path_pb->add_s("file://qos/" + to_lower(mw_string) + "/" + to_lower(qos_profile_name_str) + ".xml");
-                    }
-
-                    if(is_outport){
-                        //Set publisher name
-                        auto pub_name_pb = port_pb->add_attributes();
-                        auto pub_name_info_pb = pub_name_pb->mutable_info();
-                        pub_name_info_pb->set_name("publisher_name");
-                        pub_name_pb->set_kind(NodeManager::Attribute::STRING);
-                        pub_name_pb->add_s(component_name + port_name);
-                    }
-                    if(is_inport){
-                        //Set subscriber name
-                        //TODO: Allow modelling of this
-                        auto sub_name_pb = port_pb->add_attributes();
-                        auto sub_name_info_pb = sub_name_pb->mutable_info();
-                        sub_name_info_pb->set_name("subscriber_name");
-                        sub_name_pb->set_kind(NodeManager::Attribute::STRING);
-                        sub_name_pb->add_s(component_name + port_name);
-                    }
-                }
-                if(is_qpid){
-                    auto broker_pb = port_pb->add_attributes();
-                    auto broker_info_pb = broker_pb->mutable_info();
-                    broker_info_pb->set_name("broker");
-                    broker_pb->set_kind(NodeManager::Attribute::STRING);
-                }
-
-                if(is_zmq){
-                    if(is_outport){
-                        auto pub_addr_pb = port_pb->add_attributes();
-                        auto pub_addr_info_pb = pub_addr_pb->mutable_info();
-                        pub_addr_info_pb->set_name("publisher_address");
-
-                        bool endpoint_set_flag;
-                        //TODO: Check for manually set endpoint
-                        if(endpoint_set_flag){
-                            //set endpoint
-                        }
-                        pub_addr_pb->add_s();
-                    }
-                    if(is_inport){
-                        //Construct a publisher_address list
-                        auto pub_addr_pb = port_pb->add_attributes();
-                        auto pub_addr_info_pb = pub_addr_pb->mutable_info();
-                        pub_addr_info_pb->set_name("publisher_address");
-
-                        bool endpoint_set_flag;
-                        //TODO: check for manually set endpoint
-                        if(endpoint_set_flag){
-
-                        }
-
-                    }
+                    topic_pb->add_s(topic_name);
                 }
             }
             //Periodic ports
@@ -489,7 +462,7 @@ std::string ProtobufModelParser::to_lower(const std::string& s){
 }
 
 //Convert unweildy strings to bool
-bool ProtobufModelParser::str2bool(const std::string& str) {
+bool ProtobufModelParser::str2bool(std::string str) {
     try{
         return std::stoi(str);
     }catch(std::invalid_argument){
