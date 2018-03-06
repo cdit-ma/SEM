@@ -28,6 +28,8 @@ class ProtobufModelParser{
         std::string GetAggregateId(const std::string& id);
         std::string GetImplId(const std::string& id);
 
+        std::string BuildPortGuid(const std::string& port_id);
+
         NodeManager::EventPort::Kind GetPortKind(const std::string& kind);
 
         std::string to_lower(const std::string& s);
@@ -36,6 +38,7 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* control_message_;
 
         std::string model_id_;
+        std::string model_name_;
 
         std::vector<std::string> deployment_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;
@@ -60,6 +63,8 @@ class ProtobufModelParser{
         std::vector<std::string> component_ids_;
         std::vector<std::string> component_impl_ids_;
         std::vector<std::string> component_instance_ids_;
+
+        std::unordered_map<std::string, std::string> port_guid_map_;
 
 
         std::unordered_map<std::string, NodeManager::Node *> node_message_map_;

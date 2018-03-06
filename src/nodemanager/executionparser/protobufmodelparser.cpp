@@ -64,6 +64,7 @@ bool ProtobufModelParser::PreProcess(){
     component_impl_ids_ = graphml_parser_->FindNodes("ComponentImpl");
     component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
     model_id_ = graphml_parser_->FindNodes("Model")[0];
+    model_name_ = graphml_parser_->GetDataValue(model_id_, "label");
 
     //Get the ID's of the edges
     deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
@@ -86,33 +87,33 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
+
+    //Calculate replication and build component unique identifier
     for(const auto& component_instance_id: component_instance_ids_){
         int replication = 1;
-        std::string assembly_list = "";
         auto parent_id = graphml_parser_->GetParentNode(component_instance_id);
-        if(deployed_entities_map_.count(component_instance_id)){
-            full_assembly_name_map_[component_instance_id] = assembly_list;
-            continue;
-        }
-        else{
-            while(true){
-                if(parent_id.empty()){
-                    break;
-                }
-                if(deployed_entities_map_.count(parent_id)){
+
+        bool deployed = false;
+        while(true){
+            if(parent_id.empty()){
+                break;
+            }
+            if(deployed_entities_map_.count(parent_id)){
+                if(!deployed){
                     replication *= std::stoi(graphml_parser_->GetDataValue(parent_id, "replicate_count"));
-                    assembly_list.insert(0, graphml_parser_->GetDataValue(parent_id, "label"));
-                    full_assembly_name_map_[component_instance_id] = assembly_list;
                     deployed_entities_map_[component_instance_id] = deployed_entities_map_[parent_id];
-                    break;
                 }
-                else{
-                    if(graphml_parser_->GetDataValue(parent_id, "kind") == "ComponentAssembly"){
+                //set deployed flag s.t. we stop calculating replication and updating deployment location
+                deployed = true;
+                parent_id = graphml_parser_->GetParentNode(parent_id);
+            }
+            else{
+                if(graphml_parser_->GetDataValue(parent_id, "kind") == "ComponentAssembly"){
+                    if(!deployed){
                         replication *= std::stoi(graphml_parser_->GetDataValue(parent_id, "replicate_count"));
-                        assembly_list.insert(0, "." + graphml_parser_->GetDataValue(parent_id, "label"));
                     }
-                    parent_id = graphml_parser_->GetParentNode(parent_id);
                 }
+                parent_id = graphml_parser_->GetParentNode(parent_id);
             }
         }
         replication_map_[component_instance_id] = replication;
@@ -128,6 +129,19 @@ bool ProtobufModelParser::PreProcess(){
     for(const auto& c_id : graphml_parser_->FindNodes("OutEventPortInstance")){
         RecurseEdge(c_id, c_id);
     }
+
+    auto out_event_port_ids = graphml_parser_->FindNodes("OutEventPortInstance", "");
+    auto in_event_port_ids = graphml_parser_->FindNodes("InEventPortInstance", "");
+
+    for(const auto& port_id : out_event_port_ids){
+        port_guid_map_[port_id] = BuildPortGuid(port_id);
+    }
+
+    for(const auto& port_id : in_event_port_ids){
+        port_guid_map_[port_id] = BuildPortGuid(port_id);
+    }
+
+    return true;
 }
 
 bool ProtobufModelParser::Process(){
@@ -212,12 +226,7 @@ bool ProtobufModelParser::Process(){
             //construct port guid. Takes form "project_name.assembly_name.component_name.port_name"
             std::string port_guid;
 
-            if(full_assembly_name_map_.count(component_id)){
-                port_guid = std::string(model_name + "." +full_assembly_name_map_[component_id] + "." + component_name + "." + port_name);
-            }else{
-                port_guid = std::string(model_name + "." + component_name + "." + port_name);
-            }
-            port_pb->set_port_guid(port_guid);
+            port_pb->set_port_guid(port_guid_map_[port_id]);
 
 
             NodeManager::EventPort::Kind kind;
@@ -231,7 +240,8 @@ bool ProtobufModelParser::Process(){
                 if(assembly_map_.count(port_id)){
                     for(const auto& assembly_connection : assembly_map_[port_id]){
                         std::string connected_id = assembly_connection.target_id;
-                        std::string connected_guid = std::string(graphml_parser_->GetDataValue(connected_id, "label"));
+
+                        std::string connected_guid = port_guid_map_[connected_id];
                         port_pb->add_connected_ports(connected_guid);
                     }
                 }
@@ -475,4 +485,31 @@ bool ProtobufModelParser::str2bool(std::string str) {
     is >> std::boolalpha >> b;
     int int_val = 0;
     return b;
+}
+
+//build port guid based on fully qualified path to port "model_name.(assembly_names)xN.component_name.port_name"
+std::string ProtobufModelParser::BuildPortGuid(const std::string& port_id){
+    std::string out = "." + graphml_parser_->GetDataValue(port_id, "label");
+
+    std::string parent_id = graphml_parser_->GetParentNode(port_id);
+
+    while(true){
+        if(parent_id.empty()){
+            break;
+        }
+        if(deployed_entities_map_.count(parent_id)){
+            out.insert(0, "." + graphml_parser_->GetDataValue(parent_id, "label"));
+            parent_id = graphml_parser_->GetParentNode(parent_id);
+        }
+        else{
+            if(graphml_parser_->GetDataValue(parent_id, "kind") == "ComponentAssembly"){
+                out.insert(0, "." + graphml_parser_->GetDataValue(parent_id, "label"));
+            }
+            parent_id = graphml_parser_->GetParentNode(parent_id);
+        }
+    }
+
+    out.insert(0, model_name_);
+
+    return out;
 }
