@@ -60,6 +60,29 @@
     </xsl:function>
 
     <!--
+        Produces a interface definition
+        ie. interface ${label} {
+    -->
+    <xsl:function name="idl:interface" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'interface ', $label, cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
+        Produces a interface definition
+        ie. interface ${label} {
+    -->
+    <xsl:function name="idl:function" as="xs:string">
+        <xsl:param name="function_name" as="xs:string" />
+        <xsl:param name="return_type" as="xs:string" />
+        <xsl:param name="input_parameters" as="xs:string" />
+        <xsl:param name="one_way" as="xs:boolean" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), if($one_way) then 'oneway' else '', $return_type, ' ', $function_name, o:wrap_bracket($input_parameters), cpp:nl())" />
+    </xsl:function>
+
+    <!--
         Produces key pragma for RTI
         ie. // @key
     -->

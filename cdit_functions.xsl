@@ -76,6 +76,9 @@
                 <xsl:when test="$middleware = 'proto'">
                     <xsl:value-of select="'.pb.h'" />
                 </xsl:when>
+                <xsl:when test="$middleware = 'tao'">
+                    <xsl:value-of select="'C.h'" />
+                </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="o:warning(concat('Middleware ', $middleware, ' not implemented'))" />
                 </xsl:otherwise>
@@ -90,7 +93,7 @@
     <xsl:function name="cdit:middleware_requires_idl_file" as="xs:boolean">
         <xsl:param name="middleware" as="xs:string"/>
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
-        <xsl:value-of select="$middleware_lc = 'rti' or $middleware_lc = 'ospl'" />
+        <xsl:value-of select="$middleware_lc = 'rti' or $middleware_lc = 'ospl' or $middleware_lc = 'tao'" />
     </xsl:function>
 
     <xsl:function name="cdit:middleware_requires_proto_file" as="xs:boolean">
@@ -119,6 +122,10 @@
         <xsl:choose>
     
             <xsl:when test="$middleware = 'ospl' or $middleware = 'rti'">
+                <!-- DDS uses exact case -->
+                <xsl:value-of select="lower-case($label)" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'tao'">
                 <!-- DDS uses exact case -->
                 <xsl:value-of select="lower-case($label)" />
             </xsl:when>
@@ -180,6 +187,10 @@
                     <!-- DDS implementations use get/set via accessors -->
                     <xsl:value-of select="$variable_syntax" />
                 </xsl:when>
+                <xsl:when test="$middleware = 'tao'">
+                    <!-- DDS implementations use get/set via accessors -->
+                    <xsl:value-of select="$variable_syntax" />
+                </xsl:when>
                 <xsl:when test="$middleware = 'base'">
                     <!-- Base uses both get/set functions both via accessors and functions -->
                     <xsl:value-of select="concat('get_', $variable_syntax)" />
@@ -193,7 +204,15 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '', 0)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'tao'">
+                <xsl:value-of select="concat($obj, $operator, $function_name)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '', 0)" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cdit:invoke_middleware_add_vector_function" as="xs:string">
@@ -278,19 +297,10 @@
 
         <xsl:variable name="function_name">
             <xsl:choose>
-                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
-                    <xsl:choose>
-                        <xsl:when test="$middleware = 'rti' and ($node_kind = 'EnumInstance' or $node_kind = 'Enum')">
-                            <!-- RTI uses a SafeEnum which requires some magic 
-                            <xsl:value-of select="concat($variable_syntax, '().underlying')" />-->
-                            <xsl:value-of select="$variable_syntax" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="$variable_syntax" />
-                        </xsl:otherwise>
-                    </xsl:choose>
+                <xsl:when test="$middleware = 'rti' or $middleware = 'ospl' or $middleware = 'tao'">
+                    <xsl:value-of select="$variable_syntax" />
                 </xsl:when>
-                <xsl:when test="$middleware = 'base'">
+                 <xsl:when test="$middleware = 'base'">
                     <!-- Base uses both get/set functions both via accessors and functions -->
                     <xsl:value-of select="concat('set_', $variable_syntax)" />
                 </xsl:when>
@@ -322,7 +332,15 @@
             <xsl:otherwise>
             </xsl:otherwise>
         </xsl:choose>-->
-        <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'tao'">
+                <xsl:value-of select="concat($obj, $operator, $function_name, ' = ', $value)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cpp:get_qualified_type" as="xs:string">
@@ -554,18 +572,7 @@
             </xsl:if>
         </xsl:variable>
 
-        <xsl:variable name="aggregate_type">
-            <xsl:choose>
-                <xsl:when test="$middleware != 'base' and $aggregate_namespace = ''">
-                    <xsl:value-of select="concat('::', $aggregate_label)" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="$aggregate_label" />
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-
-        <xsl:value-of select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_type))" />
+        <xsl:value-of select="concat('::', cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_label)))" />
     </xsl:function>
     
     <!-- Converts from the Aggregate Types into primitive CPP types -->
@@ -609,7 +616,7 @@
 
         <xsl:choose>
             <xsl:when test="$aggregate_namespace = ''">
-                <xsl:value-of select="concat('.', $aggregate_label)" />
+                <xsl:value-of select="$aggregate_label" />
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="o:join_list(($aggregate_namespace, $aggregate_label), '.')" />
@@ -639,6 +646,7 @@
         <xsl:sequence select="'rti'" />
         <xsl:sequence select="'ospl'" />
         <xsl:sequence select="'qpid'" />
+        <xsl:sequence select="'tao'" />
     </xsl:function>
 
     <!--

@@ -83,7 +83,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'ospl'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'rti' or $middleware = 'ospl' or $middleware_lc = 'tao'">
                 <xsl:value-of select="true()" />
             </xsl:when>
             <xsl:otherwise>

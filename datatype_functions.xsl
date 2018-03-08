@@ -13,93 +13,28 @@
     >
 
     <!--
-        Gets the translate_h file
+        Gets the translate_cpp file
     -->
-    <xsl:function name="cdit:get_translate_h">
-        <xsl:param name="aggregate"/>
+    <xsl:function name="cdit:get_translator_cpp">
+        <xsl:param name="aggregate" />
         <xsl:param name="middleware" as="xs:string" />
 
-        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
+        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
+
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        
-        <xsl:variable name="middleware_namespace" select="lower-case($middleware)" />
-        
-        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($middleware, $aggregate_namespace, $aggregate_label, 'translate'), '_'))" />
-
         <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translate_h', 0)" />
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_translator_cpp', 0)" />
 
-        <!-- Define Guard -->
-        <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
-
-        <xsl:value-of select="cpp:comment(('Include the', o:wrap_quote($middleware), 'translate header from re'), 0)" />
-        <xsl:value-of select="cpp:include_library_header(o:join_paths(('middleware', $middleware, 'translate.h')))" />
+        <!-- Include the translater header -->
+        <xsl:value-of select="cpp:include_library_header(o:join_paths(('core', 'eventports', 'translator.h')))" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the base message type -->
         <xsl:value-of select="cpp:comment(('Include the', o:wrap_quote('Base'), 'type'), 0)" />
         <xsl:variable name="header_file" select="cdit:get_datatype_path('Base', $aggregate, concat(lower-case($aggregate_label), '.h'))"/>
-
         <xsl:value-of select="cpp:include_local_header($header_file)" />
-        <xsl:value-of select="o:nl(1)" />
-        <xsl:value-of select="cpp:comment(('Forward declare the', o:wrap_quote($middleware), 'type'), 0)" />
-        <xsl:value-of select="cpp:forward_declare_class($aggregate_namespace, cpp:get_aggregate_type_name($aggregate), 0)" />
-        <xsl:value-of select="o:nl(1)" />
-        
-        <!-- Define the namespace -->
-        <xsl:value-of select="cpp:namespace_start($middleware_namespace, 0)" />
-        <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
-
-        <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('Base'), '->', o:wrap_quote($middleware)), 1)" />
-        <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'translate', cpp:const_ref_var_def($base_type, 'value'), ';', 1)" />
-        <xsl:value-of select="o:nl(1)" />
-        <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote($middleware), '->', o:wrap_quote('Base')), 1)" />
-        <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'translate', cpp:const_ref_var_def($middleware_type, 'value'), ';', 1)" />
-        
-        <!-- Define the special string decode/encode functions only for protobuf -->
-        <xsl:if test="lower-case($middleware) = 'proto'">
-            <xsl:value-of select="o:nl(1)" />
-            <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('std::string'), '->', o:wrap_quote('Base')), 1)" />
-            <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'decode', cpp:const_ref_var_def('std::string', 'value'), ';', 1)" />
-            <xsl:value-of select="o:nl(1)" />
-            <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('Base'), '->', o:wrap_quote('std::string')), 1)" />
-            <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, 'std::string', 'encode', cpp:const_ref_var_def($base_type, 'value'), ';', 1)" />
-        </xsl:if>
-
-        <!-- End the namespace -->
-        <xsl:value-of select="cpp:namespace_end($middleware_namespace, 0)" />
-        <xsl:value-of select="o:nl(1)" />
-
-        <!-- End Define Guard -->
-        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
-    </xsl:function>
-
-    <!--
-        Gets the translate_cpp file
-    -->
-    <xsl:function name="cdit:get_translate_cpp">
-        <xsl:param name="aggregate" />
-        <xsl:param name="middleware" as="xs:string" />
-
-        <xsl:variable name="aggregate_namespace" select="graphml:get_data_value($aggregate, 'namespace')" />
-        <xsl:variable name="middleware_namespace" select="cdit:get_middleware_namespace($middleware)" />
-
-        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-
-        <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
-        
-
-        <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:translate_cpp', 0)" />
-
-        <!-- Include the header -->
-        <xsl:value-of select="cpp:include_local_header('translate.h')" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the middleware specific header -->
@@ -107,58 +42,19 @@
         <xsl:value-of select="cpp:include_local_header(cdit:get_middleware_generated_header_name($aggregate, $middleware))" />
         <xsl:value-of select="o:nl(1)" />
 
-        <!-- Include the middleware convert functions -->
-        <xsl:for-each select="$aggregate_definitions">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Including required middleware convert functions', 0)" />
-            </xsl:if>
-
-            <xsl:variable name="header_file" select="cdit:get_datatype_path($middleware, ., 'translate.h')" />
-            <xsl:value-of select="cpp:include_local_header($header_file)" />
-
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
 
         <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
-        <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('Base'), '->', o:wrap_quote($middleware)), 0)" />
-        <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), cpp:combine_namespaces(($middleware_namespace, 'translate')), cpp:const_ref_var_def($base_type, 'value'), '{', 0)" />
+        <xsl:value-of select="cpp:namespace_start('Base', 0)" />
+        
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($middleware_type, ''), 'Translator', 'BaseToMiddleware', cpp:const_ref_var_def($base_type, 'value'), '{', 1)" />
         <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, 'base', $middleware)" />
-        <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="cpp:scope_end(1)" />
         <xsl:value-of select="o:nl(1)" />
         
-
-        <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote($middleware), '->', o:wrap_quote('Base')), 0)" />
-        <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), cpp:combine_namespaces(($middleware_namespace, 'translate')), cpp:const_ref_var_def($middleware_type, 'value'), '{', 0)" />
+        <xsl:value-of select="cpp:declare_templated_class_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), 'Translator', 'MiddlewareToBase', cpp:const_ref_var_def($middleware_type, 'value'), '{', 1)" />
         <xsl:value-of select="cdit:get_translate_function_cpp($aggregate, $middleware, $middleware, 'base')" />
-        <xsl:value-of select="cpp:scope_end(0)" />
-        <xsl:value-of select="o:nl(1)" />
-        
-        <!-- Define the special string decode/encode functions only for protobuf -->
-        <xsl:if test="lower-case($middleware) = 'proto'">
-            <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('std::string'), '->', o:wrap_quote('Base')), 0)" />
-            <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, cpp:pointer_var_def($base_type, ''), cpp:combine_namespaces(($middleware_namespace, 'decode')), cpp:const_ref_var_def('std::string', 'value'), '{', 0)" />
-            <xsl:value-of select="cpp:declare_variable($middleware_type, 'out', cpp:nl(), 1)" />
-            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('out', cpp:dot(), 'ParseFromString', 'value', 0), cpp:nl())" />
-            <xsl:variable name="translate_func" select="cpp:invoke_templated_static_function($template_type, cpp:combine_namespaces(($middleware_namespace, 'translate')), 'out', '', 0)" />
-            <xsl:value-of select="cpp:return($translate_func, 1)" />
-            <xsl:value-of select="cpp:scope_end(0)" />
-            <xsl:value-of select="o:nl(1)" />
-
-            <xsl:value-of select="cpp:comment(('Translate from', o:wrap_quote('Base'), '->', o:wrap_quote('std::string')), 0)" />
-            <xsl:value-of select="cpp:declare_templated_function_specialisation($template_type, 'std::string', cpp:combine_namespaces(($middleware_namespace, 'encode')), cpp:const_ref_var_def($base_type, 'value'), '{', 0)" />
-            <xsl:value-of select="cpp:declare_variable('std::string', 'out', cpp:nl(), 1)" />
-            
-            <xsl:variable name="translate_func" select="cpp:invoke_templated_static_function($template_type, cpp:combine_namespaces(($middleware_namespace, 'translate')), 'value', '', 0)" />
-
-            <xsl:value-of select="cpp:define_variable('auto', 'pb', $translate_func, cpp:nl(), 1)" />
-            <xsl:value-of select="concat(o:t(1), cpp:invoke_function('pb', cpp:arrow(), 'SerializeToString', cpp:ref_var('out'), 0), cpp:nl())" />
-            <xsl:value-of select="cpp:delete('pb', 1)" />
-            <xsl:value-of select="cpp:return('out', 1)" />
-            <xsl:value-of select="cpp:scope_end(0)" />
-            <xsl:value-of select="o:nl(1)" />
-        </xsl:if>
+        <xsl:value-of select="cpp:scope_end(1)" />
+        <xsl:value-of select="cpp:namespace_end('Base', 0)" />
     </xsl:function>
 
     <xsl:function name="cdit:get_proto_file">
@@ -271,6 +167,7 @@
 
     <xsl:function name="cdit:get_idl_file">
         <xsl:param name="aggregate" />
+        <xsl:param name="middleware" />
 
         <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
         <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
@@ -400,6 +297,8 @@
         
         <xsl:value-of select="cpp:scope_end($tab)" />
 
+
+
         <!-- Set the pragma of the keys -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
             <xsl:variable name="is_key" select="graphml:is_key(.)" />
@@ -408,6 +307,15 @@
                 <xsl:value-of select="idl:key_pragma($label, $child_label, $tab)" />
             </xsl:if>
         </xsl:for-each>
+
+        <xsl:if test="$middleware = 'tao'">
+            <xsl:value-of select="o:nl(1)" />
+            <xsl:value-of select="idl:interface($label, $tab)" />
+            <xsl:variable name="args" select="o:join_list(('in', cpp:combine_namespaces(($aggregate_namespace, $aggregate_label)), 'message'), ' ')" />
+            <xsl:variable name="func_name" select="concat('send', o:wrap_bracket($args))" />
+            <xsl:value-of select="concat(o:t($tab + 1 ), o:join_list(('oneway', 'void', $func_name), ' '), cpp:nl())" />
+            <xsl:value-of select="cpp:scope_end($tab)" />
+        </xsl:if>
 
         <xsl:if test="$aggregate_namespace != ''">
             <xsl:value-of select="cpp:scope_end(0)" />
@@ -508,13 +416,7 @@
 
             <!-- Set Source files -->
             <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
-            <xsl:value-of select="concat(o:t(1), $source_dir_var, '/translate.cpp', o:nl(1))" />
-            <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
-            <xsl:value-of select="o:nl(1)" />
-
-            <!-- Set Header files -->
-            <xsl:value-of select="concat('set(HEADERS', o:nl(1))" />
-            <xsl:value-of select="concat(o:t(1), $source_dir_var, '/translate.h', o:nl(1))" />
+            <xsl:value-of select="concat(o:t(1), $source_dir_var, '/translator.cpp', o:nl(1))" />
             <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
             <xsl:value-of select="o:nl(1)" />
         </xsl:if>
@@ -1132,15 +1034,20 @@
     <xsl:function name="cdit:invoke_translate_function">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="get_func" as="xs:string" />
-        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="src_middleware" as="xs:string" />
+        <xsl:param name="target_middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
         
         
-        <xsl:variable name="source_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
-        <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $middleware)" />
-        <xsl:variable name="template_type" select="cpp:join_args(($source_type, $target_type))"/>
-        <xsl:variable name="middleware_namespace" select="cdit:get_middleware_namespace($middleware)" />
-        <xsl:value-of select="cpp:invoke_templated_static_function($template_type, cpp:combine_namespaces(($middleware_namespace, 'translate')), $get_func, '', $tab)" />
+        <xsl:variable name="other_middleware" select="if($src_middleware = 'base') then $target_middleware else $src_middleware" />
+        <xsl:variable name="base_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="middleware_type" select="cpp:get_aggregate_qualified_type($aggregate, $other_middleware)" />
+        
+        <xsl:variable name="translate_func" select="if($src_middleware = 'base') then 'BaseToMiddleware' else 'MiddlewareToBase'" />
+
+        <xsl:variable name="template_type" select="cpp:join_args(($base_type, $middleware_type))"/>
+
+        <xsl:value-of select="cpp:invoke_templated_class_static_function($template_type, cpp:combine_namespaces(('Base', 'Translator')),  $translate_func, $get_func, '', $tab)" />
     </xsl:function>
 
     <xsl:function name="cdit:translate_aggregate_instance">
@@ -1155,7 +1062,7 @@
 
         <xsl:variable name="get_func" select="cdit:invoke_middleware_get_function('value', cpp:dot(), $aggregate_instance, $source_middleware)" />
         <xsl:variable name="temp_variable" select="lower-case(concat('value_', graphml:get_label($aggregate_instance)))" />
-        <xsl:variable name="translate_func" select="cdit:invoke_translate_function($aggregate_instance,  $get_func, $middleware, 0)" />
+        <xsl:variable name="translate_func" select="cdit:invoke_translate_function($aggregate_instance,  $get_func, $source_middleware, $target_middleware, 0)" />
 
         <xsl:variable name="value">
             <xsl:choose>
@@ -1218,7 +1125,7 @@
         <xsl:value-of select="cpp:for_each(cpp:declare_variable(cpp:const_ref_auto(), $temp_variable, '', 0), $get_func, cpp:scope_start(0), $tab + 1)" />
        <xsl:choose>
             <xsl:when test="$vector_child_kind = 'AggregateInstance'">
-                <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $middleware, 0)" />
+                <xsl:variable name="translate_func" select="cdit:invoke_translate_function($vector_child, $temp_variable, $source_middleware, $target_middleware, 0)" />
 
                 <!-- Vector aggregates require translation -->
                 <xsl:value-of select="cpp:comment('Set and cleanup translated Aggregate', $tab + 2)" />
@@ -1242,9 +1149,11 @@
         <xsl:param name="source_middleware" as="xs:string" />
         <xsl:param name="target_middleware" as="xs:string" />
 
+        <xsl:variable name="tab" select="2" />
         <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $target_middleware)" />
 
-        <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), 1)" />
+        <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
+
 
         <!-- Handle the children of the aggregate -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
@@ -1252,23 +1161,23 @@
 
             <xsl:choose>    
                 <xsl:when test="$kind = 'Member'">
-                    <xsl:value-of select="cdit:translate_member(., $middleware, $source_middleware, $target_middleware, 1)" />
+                    <xsl:value-of select="cdit:translate_member(., $middleware, $source_middleware, $target_middleware, $tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
-                    <xsl:value-of select="cdit:translate_enum_instance(., $middleware, $source_middleware, $target_middleware, 1)" />
+                    <xsl:value-of select="cdit:translate_enum_instance(., $middleware, $source_middleware, $target_middleware, $tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">
-                    <xsl:value-of select="cdit:translate_aggregate_instance(., $middleware, $source_middleware, $target_middleware, 1)" />
+                    <xsl:value-of select="cdit:translate_aggregate_instance(., $middleware, $source_middleware, $target_middleware, $tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Vector'">
-                    <xsl:value-of select="cdit:translate_vector(., $middleware, $source_middleware, $target_middleware, 1)" />
+                    <xsl:value-of select="cdit:translate_vector(., $middleware, $source_middleware, $target_middleware, $tab)" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="cpp:comment(('Kind ', o:wrap_quote($kind), 'Not implemented!'), 1)" />
+                    <xsl:value-of select="cpp:comment(('Kind ', o:wrap_quote($kind), 'Not implemented!'), $tab)" />
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
 
-        <xsl:value-of select="cpp:return('out', 1)" />
+        <xsl:value-of select="cpp:return('out', $tab)" />
     </xsl:function>
 </xsl:stylesheet>

@@ -58,12 +58,8 @@
 
                 <!-- Generate the Shared Library translate/middleware classes -->
                 <xsl:if test="cdit:build_shared_library($middleware)">
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translate.h'))}">
-                        <xsl:value-of select="cdit:get_translate_h($aggregate, $middleware)" />
-                    </xsl:result-document>
-                    
-                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translate.cpp'))}">
-                        <xsl:value-of select="cdit:get_translate_cpp($aggregate, $middleware)" />
+                    <xsl:result-document href="{o:write_file(($aggregate_path, 'translator.cpp'))}">
+                        <xsl:value-of select="cdit:get_translator_cpp($aggregate, $middleware)" />
                     </xsl:result-document>
 
                     <xsl:if test="cdit:middleware_requires_proto_file($middleware)">
@@ -76,7 +72,7 @@
                     <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
                         <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
                         <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
-                            <xsl:value-of select="cdit:get_idl_file($aggregate)" />
+                            <xsl:value-of select="cdit:get_idl_file($aggregate, $middleware)" />
                         </xsl:result-document>
                     </xsl:if>
                 </xsl:if>
