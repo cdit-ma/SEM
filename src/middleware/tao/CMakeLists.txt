@@ -24,10 +24,6 @@ endif()
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
-#target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
 
 target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/basic")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
