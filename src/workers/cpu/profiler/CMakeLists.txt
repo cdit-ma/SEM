@@ -24,4 +24,3 @@ endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} cpu_worker)
-

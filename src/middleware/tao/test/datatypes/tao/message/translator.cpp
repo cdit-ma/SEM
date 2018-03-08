@@ -5,7 +5,7 @@
 
 namespace Base {
 	template<>
-	::Test::Message* Translater<::Base::Message, ::Test::Message>::BaseToMiddleware(const ::Base::Message& value){
+	::Test::Message* Translator<::Base::Message, ::Test::Message>::BaseToMiddleware(const ::Base::Message& value){
 		auto out = new ::Test::Message();
 		out->inst_name = value.get_instName().c_str();
 		out->time = value.get_messageID();
@@ -13,7 +13,7 @@ namespace Base {
 	};
 
 	template<>
-	::Base::Message* Translater<::Base::Message, ::Test::Message>::MiddlewareToBase(const ::Test::Message& value){
+	::Base::Message* Translator<::Base::Message, ::Test::Message>::MiddlewareToBase(const ::Test::Message& value){
 		auto out = new ::Base::Message();
 		out->set_instName(std::string(value.inst_name));
 		out->set_messageID(value.time);
