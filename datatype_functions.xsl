@@ -449,9 +449,13 @@
             
              <!-- Set RTI specific settings -->
             <xsl:if test="$middleware = 'rti'">
+
                 <xsl:value-of select="cmake:comment('Set RTI Definitions', 0)" />
-                <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', cmake:wrap_variable('RTIDDS_DEFINITIONS'), 0)" />
-                <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', cmake:wrap_variable('RTIDDS_DEFINITIONS'), 0)" />
+                <xsl:variable name="rti_definitions" select="cmake:wrap_variable(concat(cmake:get_middleware_package($middleware), '_DEFINITIONS'))" />
+
+
+                <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', $rti_definitions, 0)" />
+                <xsl:value-of select="cmake:target_compile_definitions('SHARED_LIBRARY_NAME', $rti_definitions, 0)" />
             </xsl:if>
 
 

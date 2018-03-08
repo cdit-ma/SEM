@@ -15,16 +15,19 @@
         
         <xsl:choose>
             <xsl:when test="$middleware_lc = 'rti'">
-                <xsl:value-of select="'RTIDDS'" />
+                <xsl:value-of select="'RTI_DDS'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'ospl'">
-                <xsl:value-of select="'OSPL'" />
+                <xsl:value-of select="'OSPL_DDS'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'qpid'">
                 <xsl:value-of select="'QPID'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'zmq'">
                 <xsl:value-of select="'ZMQ'" />
+            </xsl:when>
+            <xsl:when test="$middleware_lc = 'tao'">
+                <xsl:value-of select="'TAO'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'proto'">
                 <xsl:value-of select="'Protobuf'" />
@@ -165,27 +168,15 @@
         <xsl:param name="file" as="xs:string" />
         <xsl:param name="middleware" as="xs:string" />
 
+        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
-        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+        
         <xsl:variable name="source" select="cmake:get_middleware_generated_source_var($middleware)" />
         <xsl:variable name="header" select="cmake:get_middleware_generated_header_var($middleware)" />
 
-        <xsl:variable name="middleware_compiler">
-            <xsl:choose>
-                <xsl:when test="$middleware_lc = 'rti'">
-                    <xsl:value-of select="'RTI_GENERATE_CPP'" />
-                </xsl:when>
-                <xsl:when test="$middleware_lc = 'ospl'">
-                    <xsl:value-of select="'OSPL_GENERATE_CPP'" />
-                </xsl:when>
-                <xsl:when test="$middleware_lc = 'proto'">
-                    <xsl:value-of select="'protobuf_generate_cpp'" />
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="cmake:comment(('UNKNOWN MIDDLEWARE', $middleware_lc), 0)" />
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
+
+        <xsl:variable name="middleware_compiler" select="upper-case(concat($middleware_package, '_generate_cpp'))" />
+
         
         <xsl:value-of select="cmake:comment(('Run the', $middleware, 'Compiler over the', o:wrap_angle($middleware_extension), 'files'), 0)" />
         <xsl:variable name="compiler_args" select="o:join_list(($source, $header, $file), ' ')" />
