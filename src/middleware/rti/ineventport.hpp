@@ -1,11 +1,8 @@
 #ifndef RTI_INEVENTPORT_H
 #define RTI_INEVENTPORT_H
 
-#include <middleware/rti/translate.h>
 #include <middleware/rti/helper.hpp>
 #include <middleware/rti/datareaderlistener.hpp>
-
-
 #include <core/eventports/ineventport.hpp>
 
 #include <string>
@@ -29,6 +26,8 @@ namespace rti{
         bool HandleTerminate();
     private:
         void recv_loop();
+
+        ::Base::Translator<T,S> translator;
 
         //Define the Attributes this port uses
         std::shared_ptr<Attribute> subscriber_name_;

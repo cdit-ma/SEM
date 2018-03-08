@@ -20,6 +20,7 @@ configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 OSPL_GENERATE_CPP(OSPL_SRCS OSPL_HDRS ${CMAKE_CURRENT_BINARY_DIR}/basic.idl)
 
 SET(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltest.cpp
 )
 add_executable(${PROJ_NAME} ${SOURCE} ${OSPL_SRCS} ${OSPL_HDRS})

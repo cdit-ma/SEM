@@ -1,7 +1,6 @@
 #ifndef RTI_OUTEVENTPORT_H
 #define RTI_OUTEVENTPORT_H
 
-#include <middleware/rti/translate.h>
 #include <middleware/rti/helper.hpp>
 #include <core/eventports/outeventport.hpp>
 
@@ -25,6 +24,8 @@ namespace rti{
         private:
             bool setup_tx();
             int count = 0;
+
+            ::Base::Translator<T,S> translator;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
@@ -93,11 +94,13 @@ bool rti::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(writer_ != dds::core::null){
-            auto m = rti::translate<T, S>(message);
-            //De-reference the message and send
-            writer_.write(*m);
-            delete m;
-            return true;
+            auto m = translator.BaseToMiddleware(message);
+            if(m){
+                //De-reference the message and send
+                writer_.write(*m);
+                delete m;
+                return true;
+            }
         }else{
             Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Writer unexpectedly null");
         }

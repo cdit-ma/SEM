@@ -37,7 +37,7 @@ namespace tao{
 
 
             private:
-                ::Base::Translater<T, S> translater;
+                ::Base::Translator<T, S> translater;
 
                 R* recv = 0;
                 std::queue<const S*> message_queue_;

@@ -27,7 +27,7 @@ set(TAO_SOURCES
 )
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
 )
 
 set(HEADERS

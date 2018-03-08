@@ -27,7 +27,7 @@ namespace tao{
             bool setup_tx();
             std::mutex control_mutex_;
 
-            ::Base::Translater<T, S> translater;
+            ::Base::Translator<T, S> translater;
             
             CORBA::ORB_var orb_ = 0;
             std::shared_ptr<Attribute> end_points_;

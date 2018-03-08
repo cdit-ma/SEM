@@ -22,6 +22,7 @@ configure_file(basic.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 RTI_GENERATE_CPP(RTI_SRCS RTI_HDRS ${CMAKE_CURRENT_BINARY_DIR}/basic.idl)
 
 SET(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rtitest.cpp
 )
 add_executable(${PROJ_NAME} ${SOURCE} ${RTI_SRCS} ${RTI_HDRS})

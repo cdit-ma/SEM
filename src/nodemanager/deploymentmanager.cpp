@@ -170,6 +170,7 @@ void DeploymentManager::ProcessControlQueue(){
             queue_.pop();
 
             auto start = std::chrono::steady_clock::now();
+            std::cout << "* " << NodeManager::ControlMessage_Type_Name(control_message.type()) << " Deployment" << std::endl;
 
             switch(control_message.type()){
                 case NodeManager::ControlMessage::STARTUP:
