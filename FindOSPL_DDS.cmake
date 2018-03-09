@@ -76,7 +76,7 @@ endif()
 
 
 find_path(OSPL_DDS_INCLUDE_DIR NAMES dcps/C++/isocpp/dds/dds.hpp HINTS ${OSPL_DDS_ROOT}/include)
-find_library(OSPL_DDS_CPP_LIBRARY NAMES ddskernel dcpsisocpp HINTS ${OSPL_DDS_ROOT}/lib)
+find_library(OSPL_DDS_CPP_LIBRARY NAMES dcpsisocpp HINTS ${OSPL_DDS_ROOT}/lib)
 find_library(OSPL_DDS_CORE_LIBRARY NAMES ddskernel HINTS ${OSPL_DDS_ROOT}/lib)
 
 find_program(OSPL_DDS_GEN_EXECUTABLE

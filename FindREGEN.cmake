@@ -23,16 +23,16 @@ function(REGEN_GENERATE_CPP REGEN_GENERATED_FOLDERS)
         execute_process(
             COMMAND ${Java_JAVA_EXECUTABLE} -jar ${REGEN_PATH}/saxon.jar -xsl:${REGEN_PATH}/${DATATYPES_XSL} -s:${GRAPHML_FILE}
             WORKING_DIRECTORY "${WORKING_DIR}/"
-            OUTPUT_QUIET
-            ERROR_QUIET
+            #OUTPUT_QUIET
+            #ERROR_QUIET
         )
 
-        message("XSL Generating C++ Components: ${GRAPHML_PATH}")
+        message("XSL Generating C++ Components: ${GRAPHML_PATH} in ${WORKING_DIR}")
         execute_process(
             COMMAND ${Java_JAVA_EXECUTABLE} -jar ${REGEN_PATH}/saxon.jar -xsl:${REGEN_PATH}/${COMPONENTS_XSL} -s:${GRAPHML_FILE}
             WORKING_DIRECTORY "${WORKING_DIR}/"
-            OUTPUT_QUIET
-            ERROR_QUIET
+            #OUTPUT_QUIET
+            #ERROR_QUIET
         )
     endforeach()
     list(APPEND ${REGEN_GENERATED_FOLDERS} "${WORKING_DIR}/datatypes")
