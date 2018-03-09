@@ -19,21 +19,41 @@ function(REGEN_GENERATE_CPP REGEN_GENERATED_FOLDERS)
         
         set(GRAPHML_FILE ${CMAKE_CURRENT_BINARY_DIR}/${GRAPHML_PATH})
         
-        message("XSL Generating C++ Datatypes: ${GRAPHML_PATH} in ${WORKING_DIR}")
         execute_process(
             COMMAND ${Java_JAVA_EXECUTABLE} -jar ${REGEN_PATH}/saxon.jar -xsl:${REGEN_PATH}/${DATATYPES_XSL} -s:${GRAPHML_FILE}
             WORKING_DIRECTORY "${WORKING_DIR}/"
-            #OUTPUT_QUIET
-            #ERROR_QUIET
+            OUTPUT_QUIET
+            ERROR_VARIABLE DATATYPE_ERROR
+            RESULT_VARIABLE DATATYPE_SUCCESS
+            ERROR_STRIP_TRAILING_WHITESPACE
         )
 
-        message("XSL Generating C++ Components: ${GRAPHML_PATH} in ${WORKING_DIR}")
+        if(${DATATYPE_SUCCESS} STREQUAL "0")
+            message(STATUS "RE_GEN: Generated datatype C++ for model: ${GRAPHML_PATH} in: ${WORKING_DIR}")
+        else()
+            message(SEND_ERROR "RE_GEN: Failed generating datatype C++ for model: ${GRAPHML_PATH} in: ${WORKING_DIR}")
+            message("--->  ${DATATYPES_XSL} Error Output [START] <---")
+            message(${DATATYPE_ERROR})
+            message("--->  ${DATATYPES_XSL} Error Output  [END]  <---")
+        endif()
+
         execute_process(
             COMMAND ${Java_JAVA_EXECUTABLE} -jar ${REGEN_PATH}/saxon.jar -xsl:${REGEN_PATH}/${COMPONENTS_XSL} -s:${GRAPHML_FILE}
             WORKING_DIRECTORY "${WORKING_DIR}/"
-            #OUTPUT_QUIET
-            #ERROR_QUIET
+            OUTPUT_QUIET
+            ERROR_VARIABLE COMPONENTS_ERROR
+            RESULT_VARIABLE COMPONENTS_SUCCESS
+            ERROR_STRIP_TRAILING_WHITESPACE
         )
+
+        if(${COMPONENTS_SUCCESS} STREQUAL "0")
+            message(STATUS "RE_GEN: Generated component C++ for model: ${GRAPHML_PATH} in: ${WORKING_DIR}")
+        else()
+            message(SEND_ERROR "RE_GEN: Failed generating component C++ for model: ${GRAPHML_PATH} in: ${WORKING_DIR}")
+            message("--->  ${COMPONENTS_XSL} Error Output [START] <---")
+            message(${COMPONENTS_ERROR})
+            message("--->  ${COMPONENTS_XSL} Error Output  [END]  <---")
+        endif()
     endforeach()
     list(APPEND ${REGEN_GENERATED_FOLDERS} "${WORKING_DIR}/datatypes")
     list(APPEND ${REGEN_GENERATED_FOLDERS} "${WORKING_DIR}/components")
