@@ -353,7 +353,9 @@
         <xsl:variable name="middleware_sources" select="cmake:get_middleware_generated_source_var($middleware)" />
         <xsl:variable name="middleware_headers" select="cmake:get_middleware_generated_header_var($middleware)" />
         
-        <xsl:variable name="middleware_helper_libraries" select="concat(upper-case($middleware), '_HELPER_LIBRARIES')" />
+        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
+        <xsl:variable name="middleware_helper_library" select="concat($middleware_package, '_HELPER_LIBRARIES')" />
+
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
 
         <xsl:variable name="build_module_library" select="cdit:build_module_library($middleware) " />
@@ -378,8 +380,7 @@
 
         <!-- Find the middleware helper -->
         <xsl:if test="$build_module_library">
-            <xsl:value-of select="cmake:find_library(concat($middleware, '_helper'), $middleware_helper_libraries , cmake:get_re_path('lib'))" />
-            <xsl:value-of select="o:nl(1)" />
+            <xsl:value-of select="cmake:find_middleware_helper($middleware)" />
         </xsl:if>
 
         <!-- Do the things to generate required files for the middleware shared library-->
@@ -592,7 +593,7 @@
 
             <xsl:value-of select="cmake:target_link_middleware_libraries('PROJ_NAME', $middleware, 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($middleware_helper_libraries), 0)" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($middleware_helper_library), 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', $shared_lib_name, 0)" />
     
             

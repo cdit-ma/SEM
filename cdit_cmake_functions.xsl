@@ -59,10 +59,36 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
+    <xsl:function name="cmake:find_middleware_helper">
+        <xsl:param name="middleware" />
+
+        <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
+        <xsl:variable name="helper_lib" select="lower-case(concat($package_name, '_helper'))" />
+        <xsl:variable name="helper_var" select="concat(upper-case($helper_lib), '_LIBRARIES')" />
+
+        <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_path('lib'))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:find_library_safe">
+        <xsl:param name="lib_var" as="xs:string" />
+        <xsl:param name="lib_name" as="xs:string" />
+        <xsl:param name="lib_path" as="xs:string" />
+        
+        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 0)" />
+        <xsl:value-of select="cmake:find_library($lib_var, $lib_name , $lib_path , 1)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 1)" />
+        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $lib_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
+        <xsl:value-of select="cmake:return(2)" />
+        <xsl:value-of select="cmake:if_end('', 1)" />
+        <xsl:value-of select="cmake:if_end('', 0)" />
+        <xsl:value-of select="o:nl(1)" /> 
+    </xsl:function>
+
+
     <xsl:function name="cmake:find_re_core_library">
         <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_library('re_core', 'RE_CORE_LIBRARIES', cmake:get_re_path('lib'))" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:value-of select="cmake:find_library_safe('RE_CORE_LIBRARIES', 're_core', cmake:get_re_path('lib'))" />
     </xsl:function>
 
     <xsl:function name="cdit:build_module_library" as="xs:boolean">

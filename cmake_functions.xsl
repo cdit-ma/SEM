@@ -82,9 +82,10 @@
         <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="libary_variable" as="xs:string" />
         <xsl:param name="library_path" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:value-of select="cmake:comment(concat('Find library ', $library_name), 0)" />
-        <xsl:value-of select="concat('find_library(', $libary_variable, ' ', $library_name, ' ', o:wrap_dblquote($library_path), ')', o:nl(1))" />
+        <xsl:value-of select="cmake:comment(concat('Find library ', $library_name), $tab)" />
+        <xsl:value-of select="concat(o:t($tab), 'find_library(', $libary_variable, ' ', $library_name, ' ', o:wrap_dblquote($library_path), ')', o:nl(1))" />
     </xsl:function>
 
     <!--
