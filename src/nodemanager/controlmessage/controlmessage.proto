@@ -17,6 +17,7 @@ message ControlMessage{
     double time_stamp = 2;
     string host_name = 3;
     repeated Node nodes = 4;
+    repeated HardwareItem hardware_items = 5;
 }
 
 message Info{
@@ -29,6 +30,25 @@ message Node{
     Info info = 1;
     repeated Component components = 2;
     repeated Attribute attributes = 3;
+}
+
+message HardwareItem{
+    enum HardwareType{
+        NO_HARDWARE_TYPE = 0;
+        HARDWARE_NODE = 1;
+        HARDWARE_CLUSTER = 2;
+        DOCKER_CLUSTER = 3;
+        DOCKER_NODE = 4;
+        OPEN_CL = 5;
+        OPENSTACK = 6;
+    }
+
+    Info info = 1;
+    HardwareType type = 2;
+    repeated HardwareItem hardware_items = 3;
+
+    repeated Component components = 4;
+    repeated Attribute attributes = 5;
 }
 
 message Component{
@@ -55,6 +75,12 @@ message EventPort{
         TAO = 5;
     }
 
+    enum Visibility{
+        UNSET_VISIBILITY = 0;
+        PUBLIC = 1;
+        PRIVATE = 2;
+    }
+
     Info info = 1;
     Kind kind = 2;
     Middleware middleware = 3;
@@ -62,6 +88,7 @@ message EventPort{
     string namespace_name = 5;
     string port_guid = 6;
     repeated string connected_ports = 7;
+    Visibility visibility = 8;
 }
 
 message Worker{
