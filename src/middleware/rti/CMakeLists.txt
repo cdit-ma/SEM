@@ -5,13 +5,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #Find rti library
 find_package(RTI_DDS)
 
-set(PROJ_NAME rti_helper)
+set(PROJ_NAME rti_dds_helper)
 project (${PROJ_NAME})
+set(RTI_DDS_HELPER_LIBRARIES ${PROJ_NAME})
 
 if(NOT RTI_DDS_FOUND)
-    message(STATUS "Not Found RTI - Not building RTI Middleware library")
-    return()
+message(STATUS "Not Found RTI - Not building RTI Middleware library")
+return()
 endif()
+
 
 
 set(SOURCE
@@ -34,3 +36,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RTI_DDS_INCLUDE_DIRS})
 
 target_link_libraries(${PROJ_NAME} ${RTI_DDS_LIBRARIES})
 
+
+SET(RTI_HELPER_LIBRARIES ${RTI_DDS_LIBRARIES})
+
+message("RTI: ${RTI_HELPER_LIBRARIES}")

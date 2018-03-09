@@ -5,7 +5,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 #Find ospl library
 find_package(OSPL_DDS)
 
-set(PROJ_NAME ospl_helper)
+set(PROJ_NAME ospl_dds_helper)
 project (${PROJ_NAME})
 
 if(NOT OSPL_DDS_FOUND)

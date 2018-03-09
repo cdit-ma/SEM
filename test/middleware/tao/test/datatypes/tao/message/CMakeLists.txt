@@ -11,12 +11,12 @@ if(NOT TAO_FOUND)
 endif()
 
 set(SHARED_LIBRARY_NAME "tao_message_lib")
-# Copy the <idl> file into the binary directory so it can be used by the middleware compilers
-configure_file(message.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
+# Copy the <idl> file into the binary directory so it can be used by the middleware compilers
+#configure_file(message.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 # Run the tao Compiler over the <idl> files
-TAO_GENERATE_CPP(TAO_SOURCES TAO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/message.idl)
+TAO_GENERATE_CPP(TAO_SOURCES TAO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/message.idl)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
@@ -47,7 +47,7 @@ endif()
 target_link_libraries(${SHARED_LIBRARY_NAME} re_core)
 target_link_libraries(${SHARED_LIBRARY_NAME} ${TAO_LIBRARIES})
 target_link_libraries(${SHARED_LIBRARY_NAME} tao_helper)
-target_link_libraries(${SHARED_LIBRARY_NAME} "base_message_lib")
+target_link_libraries(${SHARED_LIBRARY_NAME} "tao_base_message_lib")
 
 target_link_libraries(${PROJ_NAME} ${TAO_LIBRARIES})
 

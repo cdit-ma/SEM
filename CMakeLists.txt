@@ -15,6 +15,8 @@ option(BUILD_TEST "Build testing" OFF)
 
 #Get the RE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+#Set the RE_GEN_PATH
+set(REGEN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
 
 set(RE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 #Use the local submoduled cmake_modules if we don't have a global one set

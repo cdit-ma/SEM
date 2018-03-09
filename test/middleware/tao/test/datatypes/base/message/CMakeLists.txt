@@ -1,4 +1,4 @@
-set(PROJ_NAME "base_message_lib")
+set(PROJ_NAME "tao_base_message_lib")
 project(${PROJ_NAME})
 
 set(SOURCE

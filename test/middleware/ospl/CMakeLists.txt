@@ -2,12 +2,13 @@
 set(PROJ_NAME test_ospl)
 project(${PROJ_NAME})
 
-# Find package OSPL_DDS
-find_package(OSPL_DDS)
-
 if(NOT OSPL_DDS_FOUND)
-	message(STATUS "Cannot find OSPL_DDS cannot build project ${PROJ_NAME}")
-	return()
+	# Find package OSPL_DDS
+	find_package(OSPL_DDS)
+	if(NOT OSPL_DDS_FOUND)
+		message(STATUS "Cannot find OSPL_DDS cannot build ${PROJ_NAME}")
+		return()
+	endif()
 endif()
 
 find_package(Boost 1.30.0 REQUIRED)
@@ -23,6 +24,7 @@ SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/translator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltest.cpp
 )
+
 add_executable(${PROJ_NAME} ${SOURCE} ${OSPL_SRCS} ${OSPL_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
@@ -35,7 +37,9 @@ if(UNIX)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
 
+message(STATUS "OSPL_DDS_LIBRARIES: ${OSPL_DDS_LIBRARIES}")
+
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
+target_link_libraries(${PROJ_NAME} ospl_dds_helper)
 target_link_libraries(${PROJ_NAME} ${OSPL_DDS_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ospl_helper)

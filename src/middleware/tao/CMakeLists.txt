@@ -1,8 +1,10 @@
 set(PROJ_NAME tao_helper)
 project (${PROJ_NAME})
+set(TAO_HELPER_LIBRARIES ${PROJ_NAME})
 
 # Find package TAO
 find_package(TAO)
+
 
 if(NOT TAO_FOUND)
 	message(STATUS "Cannot find TAO cannot build project ${PROJ_NAME}")
