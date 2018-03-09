@@ -67,7 +67,7 @@ const Worker& GenericBuffer::GetInitialWorker() const {
     return worker_reference_;
 }
 
-const cl::Buffer& GenericBuffer::GetBackingRef() const {
+cl::Buffer& GenericBuffer::GetBackingRef() const {
     return *(buffer_.get());
 }
 

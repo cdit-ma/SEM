@@ -42,7 +42,7 @@ std::string OpenCLDevice::GetName() const {
     return name_;
 }
 
-const cl::CommandQueue& OpenCLDevice::GetQueue() const {
+cl::CommandQueue& OpenCLDevice::GetQueue() const {
     return *queue_;
 }
 

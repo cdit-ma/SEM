@@ -112,7 +112,7 @@ TEST_P(MatrixMultFixture, DISABLED_RandomTest)
     if(GetParam().expect_success){
         //Calculate the expected result
         auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, EPS);
+        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, 1.2e-1);
     }
 }
 

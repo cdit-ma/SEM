@@ -99,7 +99,7 @@ std::vector<BufferParam<T> > getBufferTestsLists(){
     }
 
     //Test large Vector
-    valid_tests.emplace_back(32000000, 1);
+    valid_tests.emplace_back(32000000, (T)1);
 
     //Test Empty 
     invalid_tests.emplace_back(std::vector<T>());

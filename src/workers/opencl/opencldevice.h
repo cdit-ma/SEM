@@ -24,7 +24,7 @@ public:
 
     const cl::Device& GetRef() const;
     std::string GetName() const;
-    const cl::CommandQueue& GetQueue() const;
+    cl::CommandQueue& GetQueue() const;
 
     bool LoadKernelsFromSource(const Worker& worker, const std::vector<std::string>& filenames);
     bool LoadKernelsFromBinary(const Worker& worker, const std::string& filename);
