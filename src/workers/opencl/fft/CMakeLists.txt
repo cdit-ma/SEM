@@ -49,8 +49,8 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
-get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
+#get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
+#target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
 #Add RE_PATH to include directories
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
