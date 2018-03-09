@@ -1,5 +1,5 @@
 #Set our project names
-set(PROJ_NAME test_basic_proto)
+set(PROJ_NAME lib_test_basic_proto)
 project(${PROJ_NAME})
 
 #Find protobuf

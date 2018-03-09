@@ -2,9 +2,6 @@
 set(PROJ_NAME test_cpuworker)
 project(${PROJ_NAME})
 
-#Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
-
 
 SET(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpuworkertest.cpp
