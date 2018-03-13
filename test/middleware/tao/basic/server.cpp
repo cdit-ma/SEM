@@ -8,11 +8,6 @@
 
 #include "server.h"
 
-Hello::Hello (CORBA::ORB_ptr orb, std::string id)
-: orb_ (CORBA::ORB::_duplicate (orb))
-{
-    this->id = id;
-}
 
 Execution* exe = 0;
 
@@ -21,9 +16,7 @@ void signal_handler(int sig)
     exe->Interrupt();
 }
 
-
-void Hello::sendLelbs(const Test::Message& message){
-    std::cout << "\tID: " << id << std::endl;
+void print_message(const Test::Message& message){
     std::cout << "\ttime: " << message.time << std::endl;
     std::cout << "\tinst_name: " << message.inst_name << std::endl;
     std::cout << "\tBlocking" << std::endl;
@@ -31,12 +24,23 @@ void Hello::sendLelbs(const Test::Message& message){
     std::cout << "\tDone" << std::endl;
 }
 
+
+void Hello::send(const Test::Message& message){
+    std::cout << "GOT send: " << std::endl;
+    print_message(message);
+}
+
+void Hello::send22(const Test::Message& message){
+    std::cout << "GOT send22: " << std::endl;
+    print_message(message);
+}
+
 int main(int argc, char ** argv){
     signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
     exe = new Execution();
     auto helper = tao::TaoHelper::get_tao_helper();
-    auto orb = helper->get_orb("iiop://192.168.111.90:50005");
+    auto orb = helper->get_orb("iiop://192.168.111.90:50007");
 
     if(!orb){
         std::cerr << "DED RAT" << std::endl;
@@ -49,8 +53,8 @@ int main(int argc, char ** argv){
     auto sender2_poa = helper->get_poa(orb, "Sender2");
     
     //Construct a sender
-    auto sender1_impl = new Hello(orb, "Sender1");
-    auto sender2_impl = new Hello(orb, "Sender2");
+    auto sender1_impl = new Hello();
+    auto sender2_impl = new Hello();
 
     //Activate WITH ID
     //Convert our string into an object_id

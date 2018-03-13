@@ -17,21 +17,25 @@ if(NOT TAO_FOUND)
 	return()
 endif()
 
+# Run the tao Compiler over the <idl> files
+TAO_GENERATE_CPP(TAO_SOURCES TAO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/message.idl)
+
+TAO_GENERATE_CPP(TAO2_SOURCES TAO2_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/message2.idl)
+
 #Link our Logger against all the Cpps
 set(SEND_SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/messageC.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/client.cpp
 )
 
 set(RECV_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/server.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageC.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageS.cpp
 )
 
+add_executable(${SEND_NAME} ${SEND_SOURCE} ${TAO2_SOURCES})
+add_executable(${RECV_NAME} ${RECV_SOURCE} ${TAO_SOURCES})
 
-add_executable(${SEND_NAME} ${SEND_SOURCE} ${HEADERS})
-add_executable(${RECV_NAME} ${RECV_SOURCE} ${HEADERS})
+target_include_directories(${SEND_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${RECV_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(${SEND_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
 target_include_directories(${RECV_NAME} PRIVATE ${TAO_INCLUDE_DIRS})
@@ -48,5 +52,3 @@ target_link_libraries(${RECV_NAME} ${TAO_LIBRARIES})
 
 target_link_libraries(${SEND_NAME} tao_helper)
 target_link_libraries(${RECV_NAME} tao_helper)
-
-

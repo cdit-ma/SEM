@@ -1,15 +1,14 @@
 /// Put the interfaces in a module, to avoid global namespace pollution
 module Test
 {
-struct Message{
-	long time;
-	string inst_name;
+struct Message2{
+	long time2;
+	string inst_name2;
 };
 
 /// A very simple interface
 interface Hello
 {
-	void send(in Test::Message message);
-	void send22(in Test::Message message);
+	oneway void send22(in Test::Message2 message);
 };
 };
