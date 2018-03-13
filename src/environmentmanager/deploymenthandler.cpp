@@ -147,46 +147,7 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     message.ParseFromString(request.second);
 
     switch(message.type()){
-        // case NodeManager::EnvironmentMessage::HEARTBEAT:{
-        //     message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
-        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::ADD_DEPLOYMENT:{
-        //     auto reply = HandleAddDeployment(message_time, message);
-        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
-        //     auto reply = HandleGetDeploymentInfo(message_time, message);
-        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
-        //     auto reply = HandleRemoveDeployment(message_time, message);
-        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::ADD_COMPONENT:{
-        //     auto reply = HandleAddComponent(message_time, message);
-        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::REMOVE_COMPONENT:{
-        //     auto reply = HandleRemoveComponent(message_time, message);
-        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::ADD_ENDPOINT:{
-        //     message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
-        //     break;
-        // }
-        // case NodeManager::EnvironmentMessage::REMOVE_ENDPOINT:{
-        //     message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
-        //     break;
-        // }
+        
         default:{
             message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
             ZMQSendReply(handler_socket_, message.SerializeAsString());

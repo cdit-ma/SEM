@@ -28,6 +28,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/middleware_rules/zmq/zmqrule.cpp
     )
 
 set(HEADERS
