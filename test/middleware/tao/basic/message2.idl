@@ -9,6 +9,13 @@ struct Message2{
 /// A very simple interface
 interface Hello
 {
-	oneway void send22(in Test::Message2 message);
+	exception TestException{
+		string message;
+	};
+
+	//void send(in Test::Message message);
+	void send22(in Test::Message2 message) raises(TestException);
 };
 };
+
+ 

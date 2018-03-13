@@ -80,12 +80,24 @@ int main(int argc, char** argv){
                 }
                 ++itt;
 
-            }catch(...){
+            }catch(Test::Hello::TestException& e){
+                std::cout << e.message << std::endl;
+            }catch(CORBA::Exception& e) {
+                std::cout << e._rep_id() << std::endl;
+                std::cout << e._name() << std::endl;
                 std::cout << "Ref Ded: " << reference_str << std::endl;
                 //delete object_ptrs[reference_str];
                 itt = registered_references.erase(itt);
                 unregistered_references.insert(reference_str);
             }
+
+            //Need to handle
+            //SERVER DYING
+            //IDL:omg.org/CORBA/TRANSIENT:1.0 | //TRANSIENT
+            //IDL:omg.org/CORBA/COMM_FAILURE:1.0 | COMM_FAILUTRE
+            
+            //PORT INUSE
+            //IDL:omg.org/CORBA/BAD_PARAM:1.0 | //BAD_PARAM
         }
     }
 

@@ -6,10 +6,16 @@ struct Message{
 	string inst_name;
 };
 
+
+
 /// A very simple interface
 interface Hello
 {
+	exception TestException{
+		string message;
+	};
+
 	void send(in Test::Message message);
-	void send22(in Test::Message message);
+	void send22(in Test::Message message) raises(TestException);
 };
 };

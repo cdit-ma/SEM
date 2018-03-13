@@ -33,6 +33,12 @@ void Hello::send(const Test::Message& message){
 void Hello::send22(const Test::Message& message){
     std::cout << "GOT send22: " << std::endl;
     print_message(message);
+    if(message.time % 2){
+        std::cout << "THROWING EXCEPTION?!" << std::endl;
+        //ACE_TRY_THROW(Test::Hello::TestException("TEST EXCEPTION"));
+        auto exception = Test::Hello::TestException("Got Test Exception");
+        throw exception;
+    }
 }
 
 int main(int argc, char ** argv){
