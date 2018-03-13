@@ -9,7 +9,9 @@
 
 ProtobufModelParser::ProtobufModelParser(const std::string& filename){
     graphml_parser_ = new GraphmlParser(filename);
-    success_ = graphml_parser_->IsValid() && PreProcess() && Process();
+    is_valid_ = graphml_parser_->IsValid();
+    pre_process_success_ = PreProcess();
+    process_success_ = Process();
 }
 
 std::string ProtobufModelParser::GetDeploymentJSON(){
@@ -19,12 +21,12 @@ std::string ProtobufModelParser::GetDeploymentJSON(){
     options.add_whitespace = true;
     options.always_print_primitive_fields = false;
 
-    google::protobuf::util::MessageToJsonString(*control_message_, &output, options);
+    google::protobuf::util::MessageToJsonString(*environment_message_, &output, options);
     return output;
 }
 
-NodeManager::ControlMessage* ProtobufModelParser::GetControlMessage(){
-    return control_message_;
+NodeManager::EnvironmentMessage* ProtobufModelParser::EnvironmentMessage(){
+    return environment_message_;
 }
 
 void ProtobufModelParser::RecurseEdge(const std::string& source_id, const std::string& current_id){
@@ -144,10 +146,10 @@ bool ProtobufModelParser::PreProcess(){
     return true;
 }
 
-bool ProtobufModelParser::ParseHardwareItems(NodeManager::ControlMessage* control_message){
+bool ProtobufModelParser::ParseHardwareItems(NodeManager::EnvironmentMessage* environment_message){
 
     for(const auto& cluster_id : hardware_cluster_ids_){
-        auto cluster = control_message->add_hardware_items();
+        auto cluster = environment_message->add_hardware_items();
         cluster->set_type(GetHardwareItemKind(graphml_parser_->GetDataValue(cluster_id, "kind")));
         cluster->mutable_info()->set_id(cluster_id);
         cluster->mutable_info()->set_name(graphml_parser_->GetDataValue(cluster_id, "label"));
@@ -165,7 +167,7 @@ bool ProtobufModelParser::ParseHardwareItems(NodeManager::ControlMessage* contro
             node = node_message_map_[parent_id]->add_hardware_items();
         }
         else{
-            node = control_message->add_hardware_items();
+            node = environment_message->add_hardware_items();
         }
         node->set_type(GetHardwareItemKind(graphml_parser_->GetDataValue(hardware_id, "kind")));
         node->mutable_info()->set_id(hardware_id);
@@ -186,10 +188,10 @@ bool ProtobufModelParser::Process(){
         return false;
     }
 
+    environment_message_ = new NodeManager::EnvironmentMessage();
 
-    control_message_ = new NodeManager::ControlMessage();    
-
-    ParseHardwareItems(control_message_);
+    //populate environment message's hardware fields. Fills local node_message_map_
+    ParseHardwareItems(environment_message_);
 
     std::string model_name = graphml_parser_->GetDataValue(model_id_, "label");
 

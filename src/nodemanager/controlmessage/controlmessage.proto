@@ -20,6 +20,27 @@ message ControlMessage{
     repeated HardwareItem hardware_items = 5;
 }
 
+message EnvironmentMessage{
+    enum Type{
+        NO_TYPE = 0;
+        ERROR_RESPONSE = 1;
+        ADD_DEPLOYMENT = 2;
+        GET_DEPLOYMENT_INFO = 3;
+        REMOVE_DEPLOYMENT = 4;
+        ADD_ENDPOINT = 5;
+        REMOVE_ENDPOINT = 6;
+        ADD_COMPONENT = 7;
+        REMOVE_COMPONENT = 8;
+        HEARTBEAT = 9;
+        HEARTBEAT_ACK = 10;
+    }
+
+    Type type = 1;
+    string update_endpoint = 2;
+
+    repeated HardwareItem hardware_items = 3;
+}
+
 message Info{
     string name = 1;
     string id = 2;

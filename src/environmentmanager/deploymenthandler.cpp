@@ -1,7 +1,7 @@
 #include "deploymenthandler.h"
 #include <iostream>
 
-#include "environmentmessage/environmentmessage.pb.h"
+#include "controlmessage.pb.h"
 
 DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
                                     std::promise<std::string>* port_promise, const std::string& deployment_id){
@@ -143,115 +143,54 @@ std::pair<uint64_t, std::string> DeploymentHandler::ZMQReceiveRequest(zmq::socke
 
 void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     auto message_time = request.first;
-    EnvMessage message;
+    NodeManager::EnvironmentMessage message;
     message.ParseFromString(request.second);
 
     switch(message.type()){
-        case EnvMessage::HEARTBEAT:{
-            message.set_type(EnvMessage::HEARTBEAT_ACK);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
-        case EnvMessage::ADD_DEPLOYMENT:{
-            auto reply = HandleAddDeployment(message_time, message);
-            ZMQSendReply(handler_socket_, reply.SerializeAsString());
-            break;
-        }
-        case EnvMessage::GET_DEPLOYMENT_INFO:{
-            auto reply = HandleGetDeploymentInfo(message_time, message);
-            ZMQSendReply(handler_socket_, reply.SerializeAsString());
-            break;
-        }
-        case EnvMessage::REMOVE_DEPLOYMENT:{
-            auto reply = HandleRemoveDeployment(message_time, message);
-            ZMQSendReply(handler_socket_, reply.SerializeAsString());
-            break;
-        }
-        case EnvMessage::ADD_COMPONENT:{
-            auto reply = HandleAddComponent(message_time, message);
-            ZMQSendReply(handler_socket_, reply.SerializeAsString());
-            break;
-        }
-        case EnvMessage::REMOVE_COMPONENT:{
-            auto reply = HandleRemoveComponent(message_time, message);
-            ZMQSendReply(handler_socket_, reply.SerializeAsString());
-            break;
-        }
-        case EnvMessage::ADD_ENDPOINT:{
-            message.set_type(EnvMessage::ERROR_RESPONSE);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
-        case EnvMessage::REMOVE_ENDPOINT:{
-            message.set_type(EnvMessage::ERROR_RESPONSE);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
+        // case NodeManager::EnvironmentMessage::HEARTBEAT:{
+        //     message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::ADD_DEPLOYMENT:{
+        //     auto reply = HandleAddDeployment(message_time, message);
+        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
+        //     auto reply = HandleGetDeploymentInfo(message_time, message);
+        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
+        //     auto reply = HandleRemoveDeployment(message_time, message);
+        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::ADD_COMPONENT:{
+        //     auto reply = HandleAddComponent(message_time, message);
+        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::REMOVE_COMPONENT:{
+        //     auto reply = HandleRemoveComponent(message_time, message);
+        //     ZMQSendReply(handler_socket_, reply.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::ADD_ENDPOINT:{
+        //     message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
+        //     break;
+        // }
+        // case NodeManager::EnvironmentMessage::REMOVE_ENDPOINT:{
+        //     message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        //     ZMQSendReply(handler_socket_, message.SerializeAsString());
+        //     break;
+        // }
         default:{
-            message.set_type(EnvMessage::ERROR_RESPONSE);
+            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
             ZMQSendReply(handler_socket_, message.SerializeAsString());
             break;
         }
     }
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddDeployment(uint64_t message_time,
-                                                            EnvMessage message){
-    auto deployment = message.mutable_deployments(0);
-    std::string deployment_id = deployment->id();
-
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleRemoveDeployment(uint64_t message_time,
-                                                            EnvMessage message){
-    RemoveDeployment(message_time);
-    return message;
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddComponent(uint64_t message_time,
-                                                            EnvMessage message){
-    //Handle add component message
-    auto endpoint = message.mutable_components(0)->mutable_endpoints(0);
-    std::string port_string = environment_->AddComponent(deployment_id_, message.components(0).id(), "", message_time);
-    if(port_string.empty()){
-        message.set_type(EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE);
-    }
-    endpoint->set_port(port_string);
-    return message;
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleRemoveComponent(uint64_t message_time,
-                                                            EnvMessage message){
-    //Handle remove component message
-    auto component_id = message.components(0).id();
-    environment_->RemoveComponent(component_id, message_time);
-    message.mutable_components(0)->Clear();
-    return message;
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleAddEndpoint(uint64_t message_time,
-                                                            EnvMessage message){
-    auto endpoint = message.mutable_endpoints(0);
-
-    std::string deployment_id = message.deployments(0).id();
-
-    //std::string port_string = environment_->AddEndpoint(deployment_id, endpoint->id(), message_time);
-
-    std::string port_string;
-    endpoint->set_port(port_string);
-    return message;
-}
-
-EnvironmentManager::EnvironmentMessage DeploymentHandler::HandleGetDeploymentInfo(uint64_t message_time, EnvMessage message){
-    auto deployment = message.mutable_deployments(0);
-    auto master_endpoint = deployment->add_endpoints();
-    auto model_logger_endpoint = deployment->add_endpoints();
-
-    master_endpoint->set_type(EnvironmentManager::Endpoint::MODEL_LOGGER);
-    master_endpoint->set_port(environment_->GetMasterPort(deployment_id_));
-
-    model_logger_endpoint->set_type(EnvironmentManager::Endpoint::DEPLOYMENT_MASTER);
-    model_logger_endpoint->set_port(environment_->GetModelLoggerPort(deployment_id_));
-
-    return message;
 }

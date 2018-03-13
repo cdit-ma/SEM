@@ -3,7 +3,7 @@
 #include <chrono>
 #include <exception>
 
-#include "environmentmessage/environmentmessage.pb.h"
+#include "controlmessage.pb.h"
 
 const std::string DeploymentRegister::SUCCESS = "SUCCESS";
 const std::string DeploymentRegister::ERROR = "ERROR";
@@ -40,11 +40,11 @@ void DeploymentRegister::RegistrationLoop(){
         //Receive deployment information
         auto reply = ZMQReceiveRequest(rep);
 
-        EnvironmentManager::EnvironmentMessage message;
+        NodeManager::EnvironmentMessage message;
         message.ParseFromString(reply.second);
 
         //Handle new deployment manager contact
-        if(message.type() == EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT){
+        if(message.type() == NodeManager::EnvironmentMessage::ADD_DEPLOYMENT){
             //Push work onto new thread with port number promise
             std::promise<std::string>* port_promise = new std::promise<std::string>();
             std::future<std::string> port_future = port_promise->get_future();
@@ -63,7 +63,7 @@ void DeploymentRegister::RegistrationLoop(){
                 std::string error_msg("Exception thrown by deployment register: ");
                 error_msg += e.what();
 
-                message.set_type(EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE);
+                message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 ZMQSendReply(rep, message.SerializeAsString());
 
                 //Continue with no state change
@@ -76,7 +76,7 @@ void DeploymentRegister::RegistrationLoop(){
 
         else{
             std::cerr << "Recieved unknown request type: " << message.type() << std::endl;
-            message.set_type(EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE);
+            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
             ZMQSendReply(rep, message.SerializeAsString());
         }
     }

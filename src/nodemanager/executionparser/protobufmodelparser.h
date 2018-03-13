@@ -12,13 +12,15 @@ class ProtobufModelParser{
         bool IsValid();
 
         std::string GetDeploymentJSON();
-        NodeManager::ControlMessage* GetControlMessage();
+        NodeManager::EnvironmentMessage* EnvironmentMessage();
 
     private:
         GraphmlParser* graphml_parser_;
-        bool success_;
+        bool is_valid_;
+        bool pre_process_success_;
+        bool process_success_;
         bool PreProcess();
-        bool ParseHardwareItems(NodeManager::ControlMessage* control_message);
+        bool ParseHardwareItems(NodeManager::EnvironmentMessage* environment_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
 
@@ -37,7 +39,7 @@ class ProtobufModelParser{
         std::string to_lower(const std::string& s);
         bool str2bool(std::string str);
 
-        NodeManager::ControlMessage* control_message_;
+        NodeManager::EnvironmentMessage* environment_message_;
 
         std::string model_id_;
         std::string model_name_;

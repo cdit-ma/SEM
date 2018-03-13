@@ -38,7 +38,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
 	)
 
 set(HEADERS
@@ -48,7 +48,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h    
+    #${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
     )
     
 set(EXECUTION_TESTER_SOURCE
@@ -93,7 +93,6 @@ target_link_libraries(${NODE_MANAGER_LIB} re_core)
 target_link_libraries(${NODE_MANAGER_LIB} zmq_protoreceiver)
 target_link_libraries(${NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${NODE_MANAGER_LIB} re_execution_parser_lib)
-target_link_libraries(${NODE_MANAGER_LIB} environment_proto_message)
 target_link_libraries(${NODE_MANAGER_LIB} re_proto_control)
 
 target_link_libraries(${EXECUTION_TESTER} re_proto_control)

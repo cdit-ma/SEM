@@ -8,7 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
 #Include the parent directory
 include_directories("../")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/environmentmessage")
 
 set(ENVIRONMENT_MANAGER environment_manager)
 set(ENVIRONMENT_MANAGER_LIB "${ENVIRONMENT_MANAGER}_lib")
@@ -47,6 +46,7 @@ target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${ENVIRONMENT_MANAGER_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../nodemanager/controlmessage/)
 
 target_compile_definitions(${ENVIRONMENT_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
 
@@ -62,6 +62,6 @@ endif(MSVC)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${ZMQ_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${ENVIRONMENT_MANAGER_LIB} environment_proto_message)
+target_link_libraries(${ENVIRONMENT_MANAGER_LIB} re_proto_control)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ENVIRONMENT_MANAGER_LIB})
 
