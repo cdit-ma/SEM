@@ -37,7 +37,7 @@ message EnvironmentMessage{
 
     Type type = 1;
     string update_endpoint = 2;
-
+    
     repeated HardwareItem hardware_items = 3;
 }
 
@@ -48,14 +48,8 @@ message Info{
 }
 
 message Node{
-    Info info = 1;
-    repeated Component components = 2;
-    repeated Attribute attributes = 3;
-}
-
-message HardwareItem{
-    enum HardwareType{
-        NO_HARDWARE_TYPE = 0;
+    enum NodeType{
+        NO_NODE_TYPE = 0;
         HARDWARE_NODE = 1;
         HARDWARE_CLUSTER = 2;
         DOCKER_CLUSTER = 3;
@@ -63,13 +57,12 @@ message HardwareItem{
         OPEN_CL = 5;
         OPENSTACK = 6;
     }
-
     Info info = 1;
-    HardwareType type = 2;
-    repeated HardwareItem hardware_items = 3;
-
+    NodeType type = 2;
+    Node nodes = 3;
     repeated Component components = 4;
     repeated Attribute attributes = 5;
+
 }
 
 message Component{

@@ -6,10 +6,13 @@
 namespace Zmq{
     class DeploymentRule : public ::DeploymentRule{
         public:
-            DeploymentRule();
+            DeploymentRule(Environment& environment);
 
-            void ConfigureEventPort(const NodeManager::EnvironmentMessage& message, NodeManager::EventPort& event_port);
-            void TerminateEventPort(const NodeManager::EnvironmentMessage& message, NodeManager::EventPort& event_port);
+            void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
+            void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
+
+        private:
+            Environment& environment_;
     };
 }
 
