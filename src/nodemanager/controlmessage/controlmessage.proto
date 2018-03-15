@@ -17,9 +17,11 @@ message ControlMessage{
     double time_stamp = 2;
     string host_name = 3;
     repeated Node nodes = 4;
-    repeated HardwareItem hardware_items = 5;
+    string model_name = 5;
 }
 
+
+//XXX: REMOVE THIS
 message EnvironmentMessage{
     enum Type{
         NO_TYPE = 0;
@@ -38,7 +40,6 @@ message EnvironmentMessage{
     Type type = 1;
     string update_endpoint = 2;
     
-    repeated HardwareItem hardware_items = 3;
 }
 
 message Info{
@@ -59,7 +60,7 @@ message Node{
     }
     Info info = 1;
     NodeType type = 2;
-    Node nodes = 3;
+    repeated Node nodes = 3;
     repeated Component components = 4;
     repeated Attribute attributes = 5;
 

@@ -7,10 +7,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include "controlmessage.pb.h"
+
 class Environment{
 
     public:
         Environment(int portrange_min = 30000, int portrange_max = 40000);
+
+        void AddExperiment(const std::string& model_name);
+        void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
 
         std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called);
         void RemoveDeployment(const std::string& deployment_id, uint64_t time_called);
@@ -38,6 +43,15 @@ class Environment{
         //Port range
         int PORT_RANGE_MIN;
         int PORT_RANGE_MAX;
+
+        struct Experiment{
+            Experiment(std::string name){model_name_ = name;};
+            std::string model_name_;
+            std::unordered_map<std::string, NodeManager::Node*> node_map_;
+        };
+
+        std::unordered_map<std::string, Experiment*> experiment_map_;
+
 
         enum class DeploymentState{
             ACTIVE,

@@ -21,12 +21,12 @@ std::string ProtobufModelParser::GetDeploymentJSON(){
     options.add_whitespace = true;
     options.always_print_primitive_fields = false;
 
-    google::protobuf::util::MessageToJsonString(*environment_message_, &output, options);
+    google::protobuf::util::MessageToJsonString(*control_message_, &output, options);
     return output;
 }
 
-NodeManager::EnvironmentMessage* ProtobufModelParser::EnvironmentMessage(){
-    return environment_message_;
+NodeManager::ControlMessage* ProtobufModelParser::ControlMessage(){
+    return control_message_;
 }
 
 void ProtobufModelParser::RecurseEdge(const std::string& source_id, const std::string& current_id){
@@ -88,17 +88,29 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
+    for(auto& a : deployed_entities_map_){
+        std::cout << a.first << "->" << a.second << std::endl;
+    }
+
     //Calculate replication
     for(const auto& component_instance_id: component_instance_ids_){
+
+        std::cout << component_instance_id << std::endl;
         int replication = 1;
         auto parent_id = graphml_parser_->GetParentNode(component_instance_id);
 
         bool deployed = false;
+        int count = 0;
         while(true){
+            std::cout << count << std::endl;
+            count++;
             if(parent_id.empty()){
                 break;
             }
-            if(deployed_entities_map_.count(parent_id)){
+            if(deployed_entities_map_.count(component_instance_id)){
+                break;
+            }
+            else if(deployed_entities_map_.count(parent_id)){
                 if(!deployed){
                     replication *= std::stoi(graphml_parser_->GetDataValue(parent_id, "replicate_count"));
                     deployed_entities_map_[component_instance_id] = deployed_entities_map_[parent_id];
@@ -146,10 +158,10 @@ bool ProtobufModelParser::PreProcess(){
     return true;
 }
 
-bool ProtobufModelParser::ParseHardwareItems(NodeManager::EnvironmentMessage* environment_message){
+bool ProtobufModelParser::ParseHardwareItems(NodeManager::ControlMessage* control_message){
 
     for(const auto& cluster_id : hardware_cluster_ids_){
-        auto cluster = environment_message->add_hardware_items();
+        auto cluster = control_message->add_nodes();
         cluster->set_type(GetHardwareItemKind(graphml_parser_->GetDataValue(cluster_id, "kind")));
         cluster->mutable_info()->set_id(cluster_id);
         cluster->mutable_info()->set_name(graphml_parser_->GetDataValue(cluster_id, "label"));
@@ -161,13 +173,13 @@ bool ProtobufModelParser::ParseHardwareItems(NodeManager::EnvironmentMessage* en
 
         auto parent_id = graphml_parser_->GetParentNode(hardware_id);
 
-        NodeManager::HardwareItem* node = 0;
+        NodeManager::Node* node = 0;
 
         if(node_message_map_.count(parent_id)){
-            node = node_message_map_[parent_id]->add_hardware_items();
+            node = node_message_map_[parent_id]->add_nodes();
         }
         else{
-            node = environment_message->add_hardware_items();
+            node = control_message->add_nodes();
         }
         node->set_type(GetHardwareItemKind(graphml_parser_->GetDataValue(hardware_id, "kind")));
         node->mutable_info()->set_id(hardware_id);
@@ -188,10 +200,11 @@ bool ProtobufModelParser::Process(){
         return false;
     }
 
-    environment_message_ = new NodeManager::EnvironmentMessage();
+    control_message_ = new NodeManager::ControlMessage();
+    control_message_->set_model_name(model_name_);
 
     //populate environment message's hardware fields. Fills local node_message_map_
-    ParseHardwareItems(environment_message_);
+    ParseHardwareItems(control_message_);
 
     std::string model_name = graphml_parser_->GetDataValue(model_id_, "label");
 
@@ -202,7 +215,7 @@ bool ProtobufModelParser::Process(){
         auto hardware_id = deployed_entities_map_[component_id];
 
         //Get hardware node pb message that this component is deployed to
-        NodeManager::HardwareItem* node_pb = 0;
+        NodeManager::Node* node_pb = 0;
         if(node_message_map_.count(hardware_id)){
             node_pb = node_message_map_.at(hardware_id);
         }
@@ -552,14 +565,14 @@ std::string ProtobufModelParser::BuildPortGuid(const std::string& port_id){
     return out;
 }
 
-NodeManager::HardwareItem::HardwareType ProtobufModelParser::GetHardwareItemKind(const std::string& kind){
+NodeManager::Node::NodeType ProtobufModelParser::GetHardwareItemKind(const std::string& kind){
     if(kind == "HardwareNode"){
-        return NodeManager::HardwareItem::HARDWARE_NODE;
+        return NodeManager::Node::HARDWARE_NODE;
     } else if(kind == "HardwareCluster"){
-        return NodeManager::HardwareItem::HARDWARE_CLUSTER;
+        return NodeManager::Node::HARDWARE_CLUSTER;
     } else{
         std::cerr << "INVALID PORT KIND: " << kind << std::endl;
         //TODO: Throw exception??
-        return NodeManager::HardwareItem::HARDWARE_NODE;
+        return NodeManager::Node::HARDWARE_NODE;
     }
 }

@@ -15,6 +15,19 @@ Environment::Environment(int port_range_min, int port_range_max){
     clock_ = 0;
 }
 
+void Environment::AddExperiment(const std::string& model_name){
+    if(experiment_map_.count(model_name)){
+        throw std::invalid_argument("");
+    }
+    experiment_map_[model_name] = new Environment::Experiment(model_name);
+}
+
+void Environment::AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node){
+
+    experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
+
+}
+
 std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()){

@@ -12,7 +12,7 @@ class ProtobufModelParser{
         bool IsValid();
 
         std::string GetDeploymentJSON();
-        NodeManager::EnvironmentMessage* EnvironmentMessage();
+        NodeManager::ControlMessage* ControlMessage();
 
     private:
         GraphmlParser* graphml_parser_;
@@ -20,7 +20,7 @@ class ProtobufModelParser{
         bool pre_process_success_;
         bool process_success_;
         bool PreProcess();
-        bool ParseHardwareItems(NodeManager::EnvironmentMessage* environment_message);
+        bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
 
@@ -34,12 +34,12 @@ class ProtobufModelParser{
         std::string BuildPortGuid(const std::string& port_id);
 
         NodeManager::EventPort::Kind GetPortKind(const std::string& kind);
-        NodeManager::HardwareItem::HardwareType GetHardwareItemKind(const std::string& kind);
+        NodeManager::Node::NodeType GetHardwareItemKind(const std::string& kind);
 
         std::string to_lower(const std::string& s);
         bool str2bool(std::string str);
 
-        NodeManager::EnvironmentMessage* environment_message_;
+        NodeManager::ControlMessage* control_message_;
 
         std::string model_id_;
         std::string model_name_;
@@ -70,8 +70,7 @@ class ProtobufModelParser{
 
         std::unordered_map<std::string, std::string> port_guid_map_;
 
-
-        std::unordered_map<std::string, NodeManager::HardwareItem *> node_message_map_;
+        std::unordered_map<std::string, NodeManager::Node *> node_message_map_;
 
         class AssemblyConnection{
             public:

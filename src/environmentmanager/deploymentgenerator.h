@@ -1,23 +1,30 @@
 #include "controlmessage.pb.h"
 #include "deploymentrule.h"
-#include "deploymentrules/zmq/zmqrule.h"
+#include "environment.h"
+
+#include <map>
+#include <functional>
+#include <list>
 
 class DeploymentGenerator{
     public:
         DeploymentGenerator(Environment& environment);
-        void PopulateDeployment(NodeManager::ControlMessage message);
-        void TerminateDeployment(NodeManager::ControlMessage message);
+        void PopulateDeployment(NodeManager::ControlMessage& message);
+        void TerminateDeployment(NodeManager::ControlMessage& message);
+
+        void AddDeploymentRule(std::unique_ptr<DeploymentRule> rule);
+
 
     private:
 
+        DeploymentRule& GetDeploymentRule(DeploymentRule::MiddlewareType type);
+
+        void AddExperiment(const NodeManager::ControlMessage& control_message);
+        void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
+        void PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node);
+        DeploymentRule::MiddlewareType MapMiddleware(NodeManager::EventPort::Middleware middleware);
+
         Environment& environment_;
+        std::list<std::unique_ptr<DeploymentRule> > rules_;
 
-        typedef std::function<void(const NodeManager::EnvironmentMessage& message, NodeManager::EventPort& event_port)> middleware_rule_function;
-        //middleware_rule_function typedef'd above
-        std::unordered_map<DeploymentRule::MiddlewareType, middleware_rule_function> configure_rule_map_;
-        std::unordered_map<DeploymentRule::MiddlewareType, middleware_rule_function> terminate_rule_map_;
-
-        Zmq::DeploymentRule* zmq_deployment_rule_;
-
-        std::unordered_map<DeploymentRule::MiddlewareType, NodeManager::EventPort::Middleware> middleware_enum_map_;
 };

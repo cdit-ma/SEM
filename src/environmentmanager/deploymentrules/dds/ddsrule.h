@@ -1,9 +1,9 @@
-#ifndef ZMQ_DEPLOYMENTRULE_H
-#define ZMQ_DEPLOYMENTRULE_H
+#ifndef DDS_DEPLOYMENTRULE_H
+#define DDS_DEPLOYMENTRULE_H
 
 #include "../../deploymentrule.h"
 
-namespace Zmq{
+namespace Dds{
     class DeploymentRule : public ::DeploymentRule{
         public:
             DeploymentRule(Environment& environment);
@@ -13,4 +13,4 @@ namespace Zmq{
     };
 }
 
-#endif //DEPLOYMENTRULE_H
+#endif //DDS_DEPLOYMENTRULE_H

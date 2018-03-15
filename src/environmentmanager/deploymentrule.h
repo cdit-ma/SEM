@@ -2,17 +2,18 @@
 #define DEPLOYMENTRULE_H
 
 #include "controlmessage.pb.h"
+#include "environment.h"
 
 class DeploymentRule{
     public:
         enum class MiddlewareType{
-            NONE,
-            ZMQ,
-            DDS,
-            AMQP,
-            CORBA
+            NONE = 0,
+            ZMQ = 1,
+            DDS = 2,
+            AMQP = 3,
+            CORBA = 4
         };
-        DeploymentRule(MiddlewareType type){
+        DeploymentRule(MiddlewareType type, Environment& environment) : environment_(environment){
             this->type = type;
         };
 
@@ -22,6 +23,8 @@ class DeploymentRule{
         MiddlewareType GetMiddlewareType() const { return type; };
     private:
         MiddlewareType type = MiddlewareType::NONE;
+    protected:
+            Environment& environment_;
 };
 
 #endif //DEPLOYMENTRULE_H

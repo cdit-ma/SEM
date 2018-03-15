@@ -1,24 +1,18 @@
 #include "zmqrule.h"
 
-Zmq::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::ZMQ){
-    environment_ = environment;
+Zmq::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule(::DeploymentRule::MiddlewareType::ZMQ, environment){
 }
 
-void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort* event_port){
+void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
 
-    //set port number
-    auto port_number_attr = event_port->add_attributes();
-    port_number_attr->set_name("port_number");
-    port_number_attr->set_kind(NodeManager::Attribute::STRING);
-    port_number_attr->set_s("1234");
+    //set publisher_address
+    auto publisher_address_attr = event_port.add_attributes();
+    auto publisher_address_attr_info = publisher_address_attr->mutable_info();
+    publisher_address_attr_info->set_name("publisher_address");
+    publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
-    //set addr
-    auto addr_attr = event_port->add_attributes();
-    addr_attr->set_name("address");
-    addr_attr->set_kind(NodeManager::Attribute::STRING);
-    addr_attr->set_s("192.168.111.230");
-
-
+    //Get hardware addr and 
+    publisher_address_attr->add_s("");
 }
 void Zmq::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
 

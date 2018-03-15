@@ -28,7 +28,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/middleware_rules/zmq/zmqrule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.cpp
     )
 
 set(HEADERS
@@ -36,18 +38,20 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
     ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.h
     )
 
-    
 add_library(${ENVIRONMENT_MANAGER_LIB} ${SOURCE} ${HEADERS})
 
 add_executable(${ENVIRONMENT_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp)
+add_executable(rule_tester ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp)
 
 target_include_directories(${ENVIRONMENT_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${ENVIRONMENT_MANAGER_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../nodemanager/controlmessage/)
+target_include_directories(${ENVIRONMENT_MANAGER_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../nodemanager/executionparser/)
 
 target_compile_definitions(${ENVIRONMENT_MANAGER} PRIVATE -DBOOST_ALL_DYN_LINK)
 
@@ -66,3 +70,5 @@ target_link_libraries(${ENVIRONMENT_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${ENVIRONMENT_MANAGER_LIB} re_proto_control)
 target_link_libraries(${ENVIRONMENT_MANAGER} ${ENVIRONMENT_MANAGER_LIB})
 
+target_link_libraries(rule_tester ${ENVIRONMENT_MANAGER_LIB})
+target_link_libraries(rule_tester re_execution_parser_lib)
