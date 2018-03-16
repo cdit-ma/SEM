@@ -20,7 +20,6 @@ message ControlMessage{
     string model_name = 5;
 }
 
-
 //XXX: REMOVE THIS
 message EnvironmentMessage{
     enum Type{

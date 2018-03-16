@@ -7,6 +7,7 @@ DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment
 
 void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
     //Add experiment to environment
+    AddExperiment(control_message);
 
 
     for(int i = 0; i < control_message.nodes_size(); i++){

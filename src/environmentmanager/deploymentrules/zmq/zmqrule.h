@@ -10,7 +10,12 @@ namespace Zmq{
 
             void ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
             void TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port);
+
+        private:
+            std::string GetDeploymentLocation(const NodeManager::ControlMessage& message, 
+                                                            const std::string& port_id);
+            std::string CheckNode(const NodeManager::Node& node, const std::string& port_id);
     };
 }
 
-#endif //DEPLOYMENTRULE_H
+#endif //ZMQ_DEPLOYMENTRULE_H

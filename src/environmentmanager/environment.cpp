@@ -23,9 +23,41 @@ void Environment::AddExperiment(const std::string& model_name){
 }
 
 void Environment::AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node){
-
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
+    for(int i = 0; i < node.attributes_size(); i++){
+        auto attribute = node.attributes(i);
+        if(attribute.info().name() == "ip_address"){
+            experiment_map_[model_name]->node_address_map_[node.info().id()] = attribute.s(0);
+        }
+    }
+    for(int i = 0; i < node.components_size(); i++){
+        auto component = node.components(i);
+        for(int j = 0; j < component.ports_size(); j++){
+            auto port = component.ports(j);
+            experiment_map_[model_name]->port_node_map_[port.info().id()] = node.info().id();
 
+            for(int k = 0; k < port.connected_ports_size(); k++){
+                auto id = port.connected_ports(k);
+                experiment_map_[model_name]->connection_map_[id].push_back(port.info().id());
+            }
+        }
+    }
+}
+
+std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const std::string& port_id){
+    std::vector<std::string> publisher_addresses;
+    if(experiment_map_[model_name]->connection_map_.count(port_id)){
+        auto publisher_port_ids = experiment_map_[model_name]->connection_map_[port_id];
+
+        for(auto id : publisher_port_ids){
+            auto node_id = experiment_map_[model_name]->port_node_map_[id];
+            publisher_addresses.push_back(experiment_map_[model_name]->node_address_map_[node_id]);
+        }
+    }else{
+        auto node_id = experiment_map_[model_name]->port_node_map_[port_id];
+        publisher_addresses.push_back(experiment_map_[model_name]->node_address_map_[node_id]);
+    }
+    return publisher_addresses;
 }
 
 std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called){

@@ -88,21 +88,15 @@ bool ProtobufModelParser::PreProcess(){
         deployed_entities_map_[source_id] = target_id;
     }
 
-    for(auto& a : deployed_entities_map_){
-        std::cout << a.first << "->" << a.second << std::endl;
-    }
-
     //Calculate replication
     for(const auto& component_instance_id: component_instance_ids_){
 
-        std::cout << component_instance_id << std::endl;
         int replication = 1;
         auto parent_id = graphml_parser_->GetParentNode(component_instance_id);
 
         bool deployed = false;
         int count = 0;
         while(true){
-            std::cout << count << std::endl;
             count++;
             if(parent_id.empty()){
                 break;
@@ -301,19 +295,9 @@ bool ProtobufModelParser::Process(){
                 std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
                 NodeManager::EventPort::Middleware mw;
                 if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
-                    std::cout << "Cannot parse middleware: " << mw_string << std::endl;
+                    std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
                 }
                 port_pb->set_middleware(mw);
-
-                //Set middleware attributes
-                bool is_rti = mw == NodeManager::EventPort::RTI;
-                bool is_ospl = mw == NodeManager::EventPort::OSPL;
-                bool is_qpid = mw == NodeManager::EventPort::QPID;
-                bool is_zmq = mw == NodeManager::EventPort::ZMQ;
-
-                bool is_outport = port_pb->kind() == NodeManager::EventPort::OUT_PORT;
-                bool is_inport = port_pb->kind() == NodeManager::EventPort::IN_PORT;
-
 
                 //Set the topic_name
                 std::string topic_name;
@@ -340,7 +324,7 @@ bool ProtobufModelParser::Process(){
                     freq_pb->set_d(freq);
                 }
                 catch(std::exception& ex){
-                    std::cout << "Could not parse periodic event port frequency " << ex.what() << std::endl;
+                    std::cerr << "Could not parse periodic event port frequency " << ex.what() << std::endl;
                 }
             }
         }

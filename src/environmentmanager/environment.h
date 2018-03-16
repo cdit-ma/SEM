@@ -17,6 +17,10 @@ class Environment{
         void AddExperiment(const std::string& model_name);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
 
+        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const std::string& port_id);
+
+        NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
+
         std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called);
         void RemoveDeployment(const std::string& deployment_id, uint64_t time_called);
 
@@ -48,6 +52,11 @@ class Environment{
             Experiment(std::string name){model_name_ = name;};
             std::string model_name_;
             std::unordered_map<std::string, NodeManager::Node*> node_map_;
+            std::unordered_map<std::string, std::string> node_address_map_;
+            std::unordered_map<std::string, std::string> port_node_map_;
+
+            std::unordered_map<std::string, std::string> endpoint_map_;
+            std::unordered_map<std::string, std::vector<std::string> > connection_map_;
         };
 
         std::unordered_map<std::string, Experiment*> experiment_map_;
