@@ -26,6 +26,11 @@ class Execution{
             }
         };
 
+        bool IsTerminated(){
+            std::unique_lock<std::mutex> lock(mutex_);
+            return terminated;
+        }
+
         void AddTerminateCallback(std::function<void()> callback_func){
             std::unique_lock<std::mutex> lock(mutex_);
             terminate_functions_.push_back(callback_func);

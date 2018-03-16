@@ -1,21 +1,21 @@
 /// Put the interfaces in a module, to avoid global namespace pollution
 module Test
 {
-struct Message{
-	long time;
-	string inst_name;
-};
-
-
-
-/// A very simple interface
-interface Hello
-{
-	exception TestException{
-		string message;
+	struct Message{
+		long time;
+		string inst_name;
 	};
 
-	void send(in Test::Message message);
-	void send22(in Test::Message message) raises(TestException);
-};
+
+
+	/// A very simple interface
+	interface Hello
+	{
+		exception TestException{
+			string message;
+		};
+
+		void send(in Test::Message message);
+		void send22(in Test::Message message) raises(TestException);
+	};
 };

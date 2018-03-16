@@ -14,7 +14,7 @@ interface Hello
 	};
 
 	//void send(in Test::Message message);
-	void send22(in Test::Message2 message) raises(TestException);
+	void send22(in Test::Message2 message);// raises(TestException);
 };
 };
 

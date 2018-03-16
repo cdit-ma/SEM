@@ -5,25 +5,31 @@
 
 #include <middleware/tao/helper.h>
 
+#include "global.h"
 #include "message2S.h"
 
 
+bool interupt = false;
+
+void signal_handler(int sig)
+{
+    interupt = true;
+}
+
 int main(int argc, char** argv){
+    signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
-    auto helper = tao::TaoHelper::get_tao_helper();
-    auto orb = helper->get_orb("iiop://192.168.111.90:50007");
+    auto& helper = tao::TaoHelper::get_tao_helper();
+    auto orb = helper.get_orb("iiop://192.168.111.90:50000");
     
-    //Run the orb
-    auto orb_future = std::async(std::launch::async, [orb](){
-        if(orb){
-            std::cout << "Starting the Orb" << std::endl;
-            orb->run();
-            std::cout << "Stopping the Orb" << std::endl;
-            orb->destroy();
-        }
-    });
+    if(!orb){
+        std::cerr << "No Valid Orb" << std::endl;
+        return -1;
+    }
 
-    std::string server_addr("corbaloc:iiop:192.168.111.90:50007");
+    
+    std::string server_addr("corbaloc:iiop:" + sender_orb_endpoint);
 
     std::string sender_1_name("Sender1");
     std::string sender_2_name("Sender2");
@@ -31,8 +37,8 @@ int main(int argc, char** argv){
     std::string sender_1_addr(server_addr + "/" + sender_1_name);
     std::string sender_2_addr(server_addr + "/" + sender_2_name);
 
-    helper->register_initial_reference(orb, sender_1_name, sender_1_addr);
-    helper->register_initial_reference(orb, sender_2_name, sender_2_addr);
+    helper.register_initial_reference(orb, sender_1_name, sender_1_addr);
+    helper.register_initial_reference(orb, sender_2_name, sender_2_addr);
 
     std::set<std::string> unregistered_references;
     std::set<std::string> registered_references;
@@ -49,12 +55,11 @@ int main(int argc, char** argv){
     message.time2 = argc;
     
 
-    while(true){
+    while(!interupt){
         for (auto itt = unregistered_references.begin(); itt != unregistered_references.end();) {
             auto reference_str = *itt;
             try{
-                //std::cout << "Registering: " << reference_str << std::endl;
-                auto ptr = helper->resolve_initial_references(orb, reference_str);
+                auto ptr = helper.resolve_initial_references(orb, reference_str);
                 if(ptr){
                     object_ptrs[reference_str] = ptr;
                     senders[reference_str] = Test::Hello::_narrow(ptr);
@@ -70,9 +75,11 @@ int main(int argc, char** argv){
 
         for (auto itt = registered_references.begin(); itt != registered_references.end();) {
             auto reference_str = *itt;
+            bool deregister = false;
             try{
                 std::cout << "SENDING A HECK" << std::endl;
                 message.time2++;
+
                 //std::cout << "Sending: " << registered_reference << std::endl;
                 auto sender = senders[reference_str];
                 if(sender){
@@ -80,13 +87,22 @@ int main(int argc, char** argv){
                 }
                 ++itt;
 
-            }catch(Test::Hello::TestException& e){
-                std::cout << e.message << std::endl;
-            }catch(CORBA::Exception& e) {
+            }catch(const CORBA::TRANSIENT& e){
+                deregister = true;
+            }catch(const CORBA::COMM_FAILURE& e){
+                deregister = true;
+            }catch(const CORBA::OBJECT_NOT_EXIST& e){
+                deregister = true;
+            }catch(const CORBA::Exception& e) {
                 std::cout << e._rep_id() << std::endl;
                 std::cout << e._name() << std::endl;
+            }
+
+            if(deregister){
                 std::cout << "Ref Ded: " << reference_str << std::endl;
-                //delete object_ptrs[reference_str];
+                object_ptrs[reference_str]->_remove_ref();
+                CORBA::release(object_ptrs[reference_str]);
+                //CrypImpl->_remove_ref();
                 itt = registered_references.erase(itt);
                 unregistered_references.insert(reference_str);
             }
@@ -100,8 +116,5 @@ int main(int argc, char** argv){
             //IDL:omg.org/CORBA/BAD_PARAM:1.0 | //BAD_PARAM
         }
     }
-
-    orb->shutdown(true);
-
     return 0;
 }
