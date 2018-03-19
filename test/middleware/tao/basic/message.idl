@@ -6,8 +6,6 @@ module Test
 		string inst_name;
 	};
 
-
-
 	/// A very simple interface
 	interface Hello
 	{

@@ -1,0 +1,29 @@
+{
+        unsigned int max_uint =  std::numeric_limits<int>::max();
+        
+        auto max_int_uint2short = IsValidConversion<unsigned int, short>(max_int);
+        auto max_int_uint2ushort = IsValidConversion<unsigned int, unsigned short>(max_int);
+        auto max_int_uint2uint = IsValidConversion<unsigned int, unsigned int>(max_int);
+        auto max_int_uint2int = IsValidConversion<unsigned int, int>(max_int);
+        auto max_int_uint2long = IsValidConversion<unsigned int, long>(max_int);
+        auto max_int_uint2longlong = IsValidConversion<unsigned int, long long>(max_int);
+        auto max_int_uint2char = IsValidConversion<unsigned int, char>(max_int);
+        auto max_int_uint2uchar = IsValidConversion<unsigned int, unsigned char>(max_int);
+        auto max_int_uint2float = IsValidConversion<unsigned int, float>(max_int);
+        auto max_int_uint2double = IsValidConversion<unsigned int, double>(max_int);
+        auto max_int_uint2ldouble = IsValidConversion<unsigned int, long double>(max_int);
+        auto max_int_uint2wchar = IsValidConversion<unsigned int, wchar_t>(max_int);
+
+        EXPECT_TRUE(max_int_uint2short);
+        EXPECT_TRUE(max_int_uint2ushort);
+        EXPECT_TRUE(max_int_uint2uint);
+        EXPECT_TRUE(max_int_uint2int);
+        EXPECT_TRUE(max_int_uint2long);
+        EXPECT_TRUE(max_int_uint2longlong);
+        EXPECT_TRUE(max_int_uint2char);
+        EXPECT_TRUE(max_int_uint2uchar);
+        EXPECT_TRUE(max_int_uint2float);
+        EXPECT_TRUE(max_int_uint2double);
+        EXPECT_TRUE(max_int_uint2ldouble);
+        EXPECT_TRUE(max_int_uint2wchar);
+    }
