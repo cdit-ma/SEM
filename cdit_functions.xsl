@@ -890,8 +890,8 @@
                     </xsl:if>
                 </xsl:when>
             </xsl:choose>
-        </xsl:variable>        
-        
+        </xsl:variable>
+
         <xsl:choose>
             <xsl:when test="$cpp_type != ''">
                 <!-- Public Declarations -->
@@ -916,6 +916,67 @@
                 <xsl:value-of select="cpp:comment('Cannot find valid CPP type for this element', $tab)" />
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_union_descrimantor_type">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
+        <xsl:value-of select="concat(o:title_case($label), 'Descriminator')" />
+    </xsl:function>
+
+    <xsl:function name="cdit:declare_union_functions">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="tab" as="xs:integer" />
+
+
+        <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($aggregate)" />
+        <xsl:variable name="descriminator_type" select="$descriminator_enum_type" />
+        <xsl:variable name="descriminator_var" select="'descriminator_'" />
+        <xsl:variable name="unset_enum" select="'UNSET'" />
+
+
+        <!-- Public Declarations -->
+        <xsl:value-of select="cpp:public($tab)" />
+        <xsl:value-of select="cpp:comment('Union Descriminator', $tab + 1)" />
+
+        <!-- Define the Enum -->
+        <xsl:value-of select="cpp:enum($descriminator_enum_type, $tab + 1)" />
+        
+        <xsl:value-of select="cpp:enum_value($unset_enum, 0, false(), $tab + 2)" />
+        <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+            <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
+            <xsl:value-of select="cpp:enum_value($member_label, position(), position() = last(), $tab + 2)" />
+        </xsl:for-each>
+        <xsl:value-of select="cpp:scope_end($tab + 1)" />
+        
+        <xsl:value-of select="cpp:declare_function($descriminator_type, 'get_descriminator', '', ';', $tab + 1)" />
+        <!-- Protected Declarations -->
+        <xsl:value-of select="cpp:protected($tab)" />
+        <xsl:value-of select="cpp:declare_function('void', 'set_descriminator', cpp:define_variable($descriminator_type, 'descriminator', '', '', 0), ';', $tab + 1)" />
+        <!-- Private Declarations -->
+        <xsl:value-of select="cpp:private($tab)" />
+        <xsl:value-of select="cpp:define_variable($descriminator_type, $descriminator_var, cpp:combine_namespaces(($descriminator_type, $unset_enum)), cpp:nl(), $tab + 1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:define_union_functions">
+        <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="class_name" as="xs:string" />
+        
+
+        <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($aggregate)" />
+        <xsl:variable name="descriminator_type" select="$descriminator_enum_type" />
+        <xsl:variable name="descriminator_var" select="'descriminator_'" />
+
+        <!-- Getter -->
+        <xsl:value-of select="cpp:define_function($descriminator_type, $class_name, 'get_descriminator', '', cpp:scope_start(0))" />
+        <xsl:value-of select="cpp:return($descriminator_var, 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Setter -->
+        <xsl:value-of select="cpp:define_function('void', $class_name, 'set_descriminator', o:join_list(($descriminator_type, 'descriminator'), ' '), cpp:scope_start(0))" />
+        <xsl:value-of select="cpp:define_variable('', $descriminator_var, 'descriminator', cpp:nl(), 1)" />
+        <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
 
     <xsl:function name="cdit:define_datatype_functions">

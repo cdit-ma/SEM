@@ -609,6 +609,10 @@
         <xsl:variable name="class_name" select="o:title_case($aggregate_label)" />
         <xsl:variable name="tab" select="if($aggregate_namespace = '') then 0 else 1" />
 
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
+        
+        
+
         <xsl:variable name="relative_path" select="cmake:get_relative_path(($aggregate_namespace, $aggregate_label))" />
         
 
@@ -671,12 +675,17 @@
         
         <xsl:value-of select="cpp:declare_class($class_name, 'public ::BaseMessage', $tab + 1)" />
 
-        
+        <!-- Define Union functions -->
+        <xsl:if test="$is_union">
+            <xsl:value-of select="cdit:declare_union_functions($aggregate, $tab + 1)" />
+        </xsl:if>
         
         <!-- Define functions -->
         <xsl:for-each select="$children">
             <xsl:value-of select="cdit:declare_datatype_functions(., $tab + 1)" />
         </xsl:for-each>
+
+        
 
         
         
@@ -767,6 +776,7 @@
 
         <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
         <xsl:variable name="class_type" select="cpp:get_aggregate_qualified_type($aggregate, 'base')" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
         
         <xsl:variable name="header_file" select="cdit:get_base_aggregate_h_name($aggregate)" />
         
@@ -776,10 +786,16 @@
         <xsl:value-of select="cpp:include_local_header($header_file)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <xsl:if test="$is_union">
+            <xsl:value-of select="cdit:define_union_functions($aggregate, $class_type)" />
+        </xsl:if>
+
         <!-- Define functions -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
             <xsl:value-of select="cdit:define_datatype_functions(., $class_type)" />
         </xsl:for-each>
+
+
     </xsl:function>
 
     <xsl:function name="cdit:get_aggregate_base_cmake">
