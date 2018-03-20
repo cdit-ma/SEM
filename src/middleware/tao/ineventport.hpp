@@ -137,9 +137,9 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         
         
         auto orb_endpoint  = orb_endpoint_->String();
-        auto helper = tao::TaoHelper::get_tao_helper();
+        auto& helper = tao::TaoHelper::get_tao_helper();
         std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
-        orb_ = helper->get_orb(orb_endpoint);
+        orb_ = helper.get_orb(orb_endpoint);
 
         std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
 
@@ -153,14 +153,14 @@ void tao::InEventPort<T, S, R>::recv_loop(){
             //Construct a callback function (Lambda) to call enqueue message
 
             // Create the child POA for the test logger factory servants.
-            auto poa = helper->get_poa(orb_, publisher_name);
+            auto poa = helper.get_poa(orb_, publisher_name);
 
 
             recv = new R(*this);
             
             //Activate WITH ID
             //Convert our string into an object_id
-            helper->register_servant(orb_, poa, recv, publisher_name);
+            helper.register_servant(orb_, poa, recv, publisher_name);
         
             poa->the_POAManager()->activate();
         }

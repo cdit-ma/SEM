@@ -6,7 +6,7 @@
 #include <middleware/tao/helper.h>
 
 #include "global.h"
-#include "message2S.h"
+#include "message_clientS.h"
 
 
 bool interupt = false;
@@ -53,6 +53,8 @@ int main(int argc, char** argv){
     Test::Message2 message;
     message.inst_name2 = "=D";
     message.time2 = argc;
+
+   
     
 
     while(!interupt){
@@ -80,6 +82,23 @@ int main(int argc, char** argv){
                 std::cout << "SENDING A HECK" << std::endl;
                 message.time2++;
 
+                auto fill_size = sizeof(message.long_bois) / sizeof(std::remove_extent<decltype(message.long_bois)>::type);
+
+                //message.long_bois.length(message.time2 > sizeof(message.long_bois.maximum()) ? sizeof(message.long_bois.maximum()) : message.time2);
+                std::cout << fill_size << std::endl;
+
+                for(int i = 0; i < fill_size; i++){
+                    message.long_bois[i] = i;
+                }
+
+                if(message.time2 % 3){
+                    message.test.enum_short(10);
+                }else if(message.time2 % 2){
+                    message.test.enum_string("test string");
+                }else{
+                    message.test.enum_long(20);
+                }
+
                 //std::cout << "Sending: " << registered_reference << std::endl;
                 auto sender = senders[reference_str];
                 if(sender){
@@ -93,6 +112,8 @@ int main(int argc, char** argv){
                 deregister = true;
             }catch(const CORBA::OBJECT_NOT_EXIST& e){
                 deregister = true;
+            }catch(const CORBA::MARSHAL& e) {
+                std::cerr << "GOT INVALID DATA" << std::endl;
             }catch(const CORBA::Exception& e) {
                 std::cout << e._rep_id() << std::endl;
                 std::cout << e._name() << std::endl;
@@ -115,6 +136,7 @@ int main(int argc, char** argv){
             //PORT INUSE
             //IDL:omg.org/CORBA/BAD_PARAM:1.0 | //BAD_PARAM
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     return 0;
 }

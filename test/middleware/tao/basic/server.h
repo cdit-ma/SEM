@@ -1,5 +1,5 @@
 #include <iostream>
-#include "messageS.h"
+#include "message_serverS.h"
 
 
 /// Implement the Test::Hello interface

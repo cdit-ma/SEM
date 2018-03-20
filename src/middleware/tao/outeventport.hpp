@@ -80,7 +80,7 @@ bool tao::OutEventPort<T, S, R>::HandleTerminate(){
 
 template <class T, class S, class R>
 R* tao::OutEventPort<T, S, R>::get_writer(const std::string& name){
-    auto helper = tao::TaoHelper::get_tao_helper();
+    auto& helper = tao::TaoHelper::get_tao_helper();
     R* writer = 0;
 
     if(registered_references_.count(name)){
@@ -88,7 +88,7 @@ R* tao::OutEventPort<T, S, R>::get_writer(const std::string& name){
     }else{
 
         try{
-            auto ptr = helper->resolve_initial_references(orb_, name);
+            auto ptr = helper.resolve_initial_references(orb_, name);
             if(ptr){
                 object_ptrs_[name] = ptr;
                 writer = R::_narrow(ptr);;
@@ -105,9 +105,9 @@ R* tao::OutEventPort<T, S, R>::get_writer(const std::string& name){
 template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::setup_tx(){
     auto orb_endpoint  = orb_endpoint_->String();
-    auto helper = tao::TaoHelper::get_tao_helper();
+    auto& helper = tao::TaoHelper::get_tao_helper();
     std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
-    orb_ = helper->get_orb(orb_endpoint);
+    orb_ = helper.get_orb(orb_endpoint);
     std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
 
     auto endpoints = end_points_->StringList();
@@ -117,7 +117,7 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
         auto endpoint = endpoints[i];
         auto name = names[i];
         std::cerr << "Registering: " << name << " to addr " << endpoint << std::endl;
-        helper->register_initial_reference(orb_, name, endpoint);
+        helper.register_initial_reference(orb_, name, endpoint);
         std::cerr << "Registered: " << name << " to addr " << endpoint << std::endl;
     }
 
