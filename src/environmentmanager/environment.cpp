@@ -1,6 +1,7 @@
 #include "environment.h"
 #include <iostream>
 #include <cassert>
+#include <queue>
 
 Environment::Environment(int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
@@ -15,50 +16,157 @@ Environment::Environment(int port_range_min, int port_range_max){
     clock_ = 0;
 }
 
-void Environment::AddExperiment(const std::string& model_name){
+void Environment::AddExperiment(const NodeManager::ControlMessage& message){
+    std::string model_name(message.model_name());
     if(experiment_map_.count(model_name)){
         throw std::invalid_argument("");
     }
     experiment_map_[model_name] = new Environment::Experiment(model_name);
 }
 
+void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
+    for(int i = 0; i < message.nodes_size(); i++){
+        auto node = message.mutable_nodes(i);
+
+        DeclusterNode(*node);
+    }
+}
+
+void Environment::DeclusterNode(NodeManager::Node& node){
+    
+    if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
+        std::queue<NodeManager::Component> component_queue;
+        for(int i = 0; i < node.components_size(); i++){
+            component_queue.push(NodeManager::Component(node.components(i)));
+        }
+        node.clear_components();
+
+        int child_node_count = node.nodes_size();
+        int counter = 0;
+
+        while(!component_queue.empty()){
+            auto component = component_queue.front();
+            component_queue.pop();
+
+            auto new_component = node.mutable_nodes(counter % child_node_count)->add_components();
+            *new_component = component;
+            counter++;
+        }
+    }
+    for(int i = 0; i < node.nodes_size(); i++){
+        DeclusterNode(*(node.mutable_nodes(i)));
+    }
+}
+
 void Environment::AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node){
+
+    AddNodeToEnvironment(node);
+
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
+
+    //TODO:Check that experiment exists.
+    auto experiment = experiment_map_[model_name];
+
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
-            experiment_map_[model_name]->node_address_map_[node.info().id()] = attribute.s(0);
+            experiment->node_address_map_[node.info().id()] = attribute.s(0);
+            break;
         }
     }
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
         for(int j = 0; j < component.ports_size(); j++){
             auto port = component.ports(j);
-            experiment_map_[model_name]->port_node_map_[port.info().id()] = node.info().id();
+            
+            EventPort event_port;
+            event_port.id = port.info().id();
+            event_port.guid = port.port_guid();
+            event_port.port_number = GetPort(node.info().name());
+            event_port.node_id = node.info().id();
+
+            for(int a = 0; a < port.attributes_size(); a++){
+                auto attribute = port.attributes(a);
+                if(attribute.info().name() == "topic"){
+                    event_port.topic = attribute.s(0);
+                    break;
+                }
+            }
 
             for(int k = 0; k < port.connected_ports_size(); k++){
                 auto id = port.connected_ports(k);
-                experiment_map_[model_name]->connection_map_[id].push_back(port.info().id());
+                experiment->connection_map_[id].push_back(event_port.id);
             }
+            experiment->port_map_[event_port.id] = event_port;
         }
     }
 }
 
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const std::string& port_id){
     std::vector<std::string> publisher_addresses;
-    if(experiment_map_[model_name]->connection_map_.count(port_id)){
-        auto publisher_port_ids = experiment_map_[model_name]->connection_map_[port_id];
 
+    //TODO:Check that experiment exists.
+    auto experiment = experiment_map_[model_name];
+
+    //check to see if port exists in connection map. In case it does, return list of publishers
+    if(experiment->connection_map_.count(port_id)){
+
+        auto publisher_port_ids = experiment->connection_map_[port_id];
+        //Get list of connected ports
+
+        //Get those ports addresses
         for(auto id : publisher_port_ids){
-            auto node_id = experiment_map_[model_name]->port_node_map_[id];
-            publisher_addresses.push_back(experiment_map_[model_name]->node_address_map_[node_id]);
+            auto node_id = experiment->port_map_[id].node_id;
+            auto port_assigned_port = experiment->port_map_[id].port_number;
+            publisher_addresses.push_back(experiment->node_address_map_[node_id] + ":" + port_assigned_port);
         }
-    }else{
-        auto node_id = experiment_map_[model_name]->port_node_map_[port_id];
-        publisher_addresses.push_back(experiment_map_[model_name]->node_address_map_[node_id]);
+    }
+
+    //In case port id does not exist in connection list, we must be a publisher. Therefore return port's deployment address.
+    else{
+        auto node_id = experiment->port_map_[port_id].node_id;
+        auto port_assigned_port = experiment->port_map_[port_id].port_number;
+        publisher_addresses.push_back(experiment->node_address_map_[node_id] + ":" + port_assigned_port);
     }
     return publisher_addresses;
 }
+
+std::string Environment::GetTopic(const std::string& model_name, const std::string& port_id){
+    auto port = experiment_map_[model_name]->port_map_[port_id];
+
+    
+}
+
+void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
+    auto new_node = new Node(node.info().name(), available_ports_);
+
+    for(int i = 0; i < node.attributes_size(); i++){
+        auto attribute = node.attributes(i);
+        if(attribute.info().name() == "ip_address"){
+            new_node->ip = attribute.s(0);
+            break;
+        }
+    }
+    node_map_[new_node->name] = new_node;
+
+}
+
+std::string Environment::GetPort(const std::string& node_name){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+
+    if(available_ports_.empty()){
+        return "";
+    }
+    //Get first available port, store then erase it
+    auto node = node_map_[node_name];
+    auto it = node->available_ports.begin();
+    int port = *it;
+    node->available_ports.erase(it);
+
+    return std::to_string(port);
+}
+
+
 
 std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);

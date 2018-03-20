@@ -7,8 +7,10 @@ DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment
 
 void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
     //Add experiment to environment
-    AddExperiment(control_message);
 
+    environment_.DeclusterExperiment(control_message);
+
+    AddExperiment(control_message);
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         NodeManager::Node* node = control_message.mutable_nodes(i);
@@ -64,7 +66,7 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
     std::string model_name(control_message.model_name());
-    environment_.AddExperiment(model_name);
+    environment_.AddExperiment(control_message);
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         AddNodeToExperiment(model_name, control_message.nodes(i));

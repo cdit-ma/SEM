@@ -12,12 +12,18 @@
 class Environment{
 
     public:
-        Environment(int portrange_min = 30000, int portrange_max = 40000);
+        Environment(int portrange_min = 30000, int portrange_max = 50000);
 
-        void AddExperiment(const std::string& model_name);
+        void AddExperiment(const NodeManager::ControlMessage& message);
+        void DeclusterExperiment(NodeManager::ControlMessage& message);
+        void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
+        void AddNodeToEnvironment(const NodeManager::Node& node);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const std::string& port_id);
+        std::string GetTopic(const std::string& model_name, const std::string& port_id);
+        
+        std::string GetPort(const std::string& node_ip);
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
 
@@ -48,19 +54,45 @@ class Environment{
         int PORT_RANGE_MIN;
         int PORT_RANGE_MAX;
 
+        struct Node{
+            Node(const std::string& name, std::set<int> port_set){
+                this->name = name;
+                available_ports = port_set;
+            }
+            std::string name;
+            std::string ip;
+            std::set<int> available_ports;
+
+            //type
+        };
+
+        struct EventPort{
+            std::string id;
+            std::string node_id;
+            std::string port_number;
+            std::string guid;
+            std::string topic;
+
+            std::vector<std::string> connected_ports;
+        };
+
         struct Experiment{
             Experiment(std::string name){model_name_ = name;};
+            NodeManager::ControlMessage deployment_message_;
             std::string model_name_;
+            std::string master_port_;
+            std::string manager_port_;
             std::unordered_map<std::string, NodeManager::Node*> node_map_;
             std::unordered_map<std::string, std::string> node_address_map_;
-            std::unordered_map<std::string, std::string> port_node_map_;
 
-            std::unordered_map<std::string, std::string> endpoint_map_;
+            std::unordered_map<std::string, EventPort> port_map_;
+
             std::unordered_map<std::string, std::vector<std::string> > connection_map_;
+
         };
 
         std::unordered_map<std::string, Experiment*> experiment_map_;
-
+        std::unordered_map<std::string, Node*> node_map_;
 
         enum class DeploymentState{
             ACTIVE,
@@ -108,8 +140,8 @@ class Environment{
             std::string id;
             EndpointType type;
             Middleware middleware;
-
         };
+
 
         std::mutex port_mutex_;
         std::set<int> available_ports_;

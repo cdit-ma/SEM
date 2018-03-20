@@ -221,7 +221,7 @@ bool ProtobufModelParser::Process(){
 
         //Set component info
         auto component_pb = node_pb->add_components();
-        component_pb->set_replication(replication_map_[component_id]);
+        //component_pb->set_replication(replication_map_[component_id]);
         auto component_info_pb = component_pb->mutable_info();
         component_info_pb->set_id(graphml_parser_->GetAttribute(component_id, "id"));
         std::string component_name = graphml_parser_->GetDataValue(component_id, "label");
