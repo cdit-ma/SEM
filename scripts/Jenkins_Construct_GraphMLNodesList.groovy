@@ -116,78 +116,78 @@ sort_order = 0
 //Deal with the nodes
 for(slave in jenkins.slaves){
     hudson.model.Computer c = slave.getComputer();
+    if(!c.isOffline()){
 
-    online = c.isOffline() ? "false" : "true";
-    hostname = slave.getNodeName();
-    IP = getHost(hostname);
+        online = c.isOffline() ? "false" : "true";
+        hostname = slave.getNodeName();
+        IP = getHost(hostname);
 
-    OUTPUT <<= t(5) << '<node id="' << getID() << '">' << nl();
-    OUTPUT <<= t(6) << '<data key="k1">HardwareNode</data>' << nl();  
-    OUTPUT <<= t(6) << '<data key="k22">true</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k3">' << slave.getNodeName() << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k4">' << slave.getLabelString() << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k6">' << IP << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k5">' << SERVER_URL << c.getUrl() << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k23">' << SERVER_URL << c.getUrl() << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k15">' << online << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k11">true</data>' << nl();
+        OUTPUT <<= t(5) << '<node id="' << getID() << '">' << nl();
+        OUTPUT <<= t(6) << '<data key="k1">HardwareNode</data>' << nl();  
+        OUTPUT <<= t(6) << '<data key="k22">true</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k3">' << slave.getNodeName() << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k4">' << slave.getLabelString() << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k6">' << IP << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k5">' << SERVER_URL << c.getUrl() << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k23">' << SERVER_URL << c.getUrl() << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k15">' << online << '</data>' << nl();
+        OUTPUT <<= t(6) << '<data key="k11">true</data>' << nl();
+    
+        def RE_PATH = c.getEnvironment().get("RE_PATH", "");
 
-	if(!c.isOffline()){
+	    if(!c.isOffline()){
 			//Can only get whilst online
 			OUTPUT <<= t(6) << '<data key="k7">' << c.getSystemProperties().get("os.name", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k8">' << c.getSystemProperties().get("os.arch", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k9">' << c.getSystemProperties().get("os.version", "") << '</data>' << nl();
 			OUTPUT <<= t(6) << '<data key="k13">' << slave.getRootPath() << '</data>' << nl();
-            
-	}
-    def RE_PATH = c.getEnvironment().get("RE_PATH", "");
-
-    if(RE_PATH != ""){
-        (recode, output) = Run(hostname, RE_PATH + "/bin/list_opencl_devices");
-
-        def flat_output = output.replace("\n", "").replace("\r", "");
-        def m = flat_output =~ '(\\{.*\\})'                                           
-        assert m instanceof Matcher                                       
-            if (!m) {                                                         
-                throw new RuntimeException("Oops, text not found!")
-        }else{
-            def slurper = new JsonSlurper()
-            def result = slurper.parseText(m[0][0])
-
-            OUTPUT <<= t(6) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
-
-            for(platform in result.platforms){
-                OUTPUT <<= t(7) << '<node id="' << getID() << '">' << nl();
-                OUTPUT <<= t(8) << '<data key="k1">OpenCLPlatform</data>' << nl();  
-                OUTPUT <<= t(8) << '<data key="k3">' << trimWS(platform.name) << '</data>' << nl();  
-                OUTPUT <<= t(8) << '<data key="version">' << platform.version << '</data>' << nl();
-                OUTPUT <<= t(8) << '<data key="vendor">' << platform.vendor << '</data>' << nl();
-
-                OUTPUT <<= t(8) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
-                for(device in platform.devices){
-                    OUTPUT <<= t(9) << '<node id="' << getID() << '">' << nl();
-                    OUTPUT <<= t(10) << '<data key="k1">OpenCLDevice</data>' << nl();  
-                    OUTPUT <<= t(10) << '<data key="k3">' << trimWS(device.name) << '</data>' << nl();  
-                    OUTPUT <<= t(10) << '<data key="is_available">' << device.available << '</data>' << nl();
-                    OUTPUT <<= t(10) << '<data key="memory_size">' << device.mem_size << '</data>' << nl();
-                    OUTPUT <<= t(10) << '<data key="clock_freq">' << device.max_clock_frequency << '</data>' << nl();
-                    OUTPUT <<= t(10) << '<data key="k2">' << device.type << '</data>' << nl();
-                    OUTPUT <<= t(10) << '<data key="version">' << device.driver_version << '</data>' << nl();
-                    OUTPUT <<= t(9) << '</node>' << nl();
-                }
-                OUTPUT <<= t(9) << '</graph>' << nl();
-                OUTPUT <<= t(8) << '</node>' << nl();
+      
+            if(RE_PATH != ""){
+              (recode, output) = Run(hostname, RE_PATH + "/bin/list_opencl_devices");
+      
+              def flat_output = output.replace("\n", "").replace("\r", "");
+              def m = flat_output =~ '(\\{.*\\})'                                           
+              assert m instanceof Matcher                                       
+                  if (!m) {                                                         
+                      throw new RuntimeException("Oops, text not found!")
+              }else{
+                  def slurper = new JsonSlurper()
+                  def result = slurper.parseText(m[0][0])
+      
+                  OUTPUT <<= t(6) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
+      
+                  for(platform in result.platforms){
+                      OUTPUT <<= t(7) << '<node id="' << getID() << '">' << nl();
+                      OUTPUT <<= t(8) << '<data key="k1">OpenCLPlatform</data>' << nl();  
+                      OUTPUT <<= t(8) << '<data key="k3">' << trimWS(platform.name) << '</data>' << nl();  
+                      OUTPUT <<= t(8) << '<data key="version">' << platform.version << '</data>' << nl();
+                      OUTPUT <<= t(8) << '<data key="vendor">' << platform.vendor << '</data>' << nl();
+      
+                      OUTPUT <<= t(8) << '<graph edgedefault="directed" id="' << getID() << '">' << nl();
+                      for(device in platform.devices){
+                          OUTPUT <<= t(9) << '<node id="' << getID() << '">' << nl();
+                          OUTPUT <<= t(10) << '<data key="k1">OpenCLDevice</data>' << nl();  
+                          OUTPUT <<= t(10) << '<data key="k3">' << trimWS(device.name) << '</data>' << nl();  
+                          OUTPUT <<= t(10) << '<data key="is_available">' << device.available << '</data>' << nl();
+                          OUTPUT <<= t(10) << '<data key="memory_size">' << device.mem_size << '</data>' << nl();
+                          OUTPUT <<= t(10) << '<data key="clock_freq">' << device.max_clock_frequency << '</data>' << nl();
+                          OUTPUT <<= t(10) << '<data key="k2">' << device.type << '</data>' << nl();
+                          OUTPUT <<= t(10) << '<data key="version">' << device.driver_version << '</data>' << nl();
+                          OUTPUT <<= t(9) << '</node>' << nl();
+                      }
+                      OUTPUT <<= t(9) << '</graph>' << nl();
+                      OUTPUT <<= t(8) << '</node>' << nl();
+                  }
+                  OUTPUT <<= t(7) << '</graph>' << nl();
+              }
             }
-            OUTPUT <<= t(7) << '</graph>' << nl();
+            OUTPUT <<= t(6) << '<data key="k12">' << sort_order++ << '</data>' << nl();
+            OUTPUT <<= t(6) << '<data key="k14">' << LOAD_TIME << '</data>' << nl();
+            OUTPUT <<= t(5) << '</node>' << nl();
         }
     }
 
-
     
-
-    OUTPUT <<= t(6) << '<data key="k12">' << sort_order++ << '</data>' << nl();
-    OUTPUT <<= t(6) << '<data key="k14">' << LOAD_TIME << '</data>' << nl();
-    OUTPUT <<= t(5) << '</node>' << nl();
 }
 
 //Finish off document
