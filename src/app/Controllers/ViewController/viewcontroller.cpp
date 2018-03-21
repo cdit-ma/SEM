@@ -577,7 +577,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     image = "amd";
                 }else if(type == "intel"){
                     image = "intel";
-                }else if(type == "nvidia"){
+                }else if(type == "NVIDIA Corporation"){
                     image = "nvidia";
                 }
                 
