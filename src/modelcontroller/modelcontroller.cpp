@@ -201,7 +201,13 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
             xml += entity->toGraphML(2, functional_export);
         }
         
-        for(auto edge : edges){
+        //Sort the edges to be lowest to highest IDS for determinism
+        auto edge_list = edges.toList();
+        std::sort(edge_list.begin(), edge_list.end(), [](const Edge* e1, const Edge* e2){
+            return e1->getID() > e2->getID();
+        });
+
+        for(auto edge : edge_list){
             auto src = edge->getSource();
             auto dst = edge->getDestination();
             //Only export the edge if we contain both sides, unless we should export all
@@ -2402,12 +2408,12 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     auto key_name = getXMLAttribute(xml, "attr.name");
                     auto key_type = Key::getTypeFromGraphML(getXMLAttribute(xml, "attr.type"));
 
+                  
                     auto key = entity_factory->GetKey(key_name, key_type);
 
                     if(key){
 
                         if(!key_hash.contains(key_id)){
-
                             //First time we've seen it
                             key_hash.insert(key_id, key);
                         }else{
@@ -2809,7 +2815,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
                         auto value = entity->getDataValue(key_name);
                         setData_(edge, key_name, value, true);
                     }
-
                     //Set Actual ID
                     entity->setID(edge->getID());
                 }
