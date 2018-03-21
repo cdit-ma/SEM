@@ -1289,9 +1289,11 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
         }
 
         if(isUserAction()){
-            for(auto dependant : parentNode->getDependants()){
-                //Setup dependant relationship only for user functions
-                constructDependantRelative(dependant, node);
+            if(node->isNodeOfType(NODE_TYPE::DEFINITION)){
+                for(auto dependant : parentNode->getDependants()){
+                    //Setup dependant relationship only for user functions
+                    constructDependantRelative(dependant, node);
+                }
             }
         }
         return true;
@@ -1362,34 +1364,37 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
-    //For each child in parent, check to see if any Nodes match Label/Type
-    for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
-        if(!child->getDefinition()){
-            auto labels_match = child->compareData(definition, "label");
-            auto types_match = child->compareData(definition, "type");
+    if(dependant_kind != NODE_KIND::NONE)[
+        //For each child in parent, check to see if any Nodes match Label/Type
+        for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
+            if(!child->getDefinition()){
+                auto labels_match = child->compareData(definition, "label");
+                auto types_match = child->compareData(definition, "type");
 
-            //If the labels and types match, we can construct an edge between them
-            if(types_match){
-                if(definition->isInstance() && !labels_match){
-                    continue;
+                //If the labels and types match, we can construct an edge between them
+                if(types_match){
+                    if(definition->isInstance() && !labels_match){
+                        continue;
+                    }
+                    construct_edge(EDGE_KIND::DEFINITION, child, definition);
                 }
-                construct_edge(EDGE_KIND::DEFINITION, child, definition);
+            }
+            if(child->getDefinition() == definition){
+                nodes_matched ++;
+                break;
             }
         }
-        if(child->getDefinition() == definition){
-            nodes_matched ++;
-            break;
-        }
-    }
 
-    if(!nodes_matched){
-        //qCritical() << definition << " Construct node!";
-        //If we didn't find a match, we must create an Instance.
-        auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
-        if(node){
-            nodes_matched ++;
+        if(!nodes_matched){
+            //qCritical() << definition << " Construct node!";
+            //If we didn't find a match, we must create an Instance.
+            auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
+            if(node){
+                nodes_matched ++;
+            }
         }
-    }
+    ]
+    
     return nodes_matched;
 }
 
@@ -2631,6 +2636,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
+        qCritical() << kind << entity->gete
 
         Node* node = 0;
 
