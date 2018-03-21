@@ -15,15 +15,19 @@ void Dds::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
     //set and add topics to environment
     //look up connected ports and fill in topic if we dont have one
 
+    
+    bool has_topic = false;
     for(int i = 0; i < event_port.attributes_size(); i++){
         auto attribute = event_port.attributes(i);
-        if(attribute.info().name() == "topic_name"){
-            
+        if(attribute.info().name() == "topic_name" && !attribute.s(0).empty()){
+            has_topic = true;
+            break;
         }
     }
 
-    //std::string topic = environment_.GetTopic(model_name, event_port.info().id());
-
+    if(!has_topic){
+        throw std::invalid_argument(event_port.port_guid() + " has no topic.");
+    }
 }
 void Dds::DeploymentRule::TerminateEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
 

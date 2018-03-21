@@ -6,6 +6,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 
 #include "controlmessage.pb.h"
 
@@ -19,6 +20,7 @@ class Environment{
         void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
+        void ConfigureNode(NodeManager::Node& node);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const std::string& port_id);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
@@ -54,14 +56,37 @@ class Environment{
         int PORT_RANGE_MIN;
         int PORT_RANGE_MAX;
 
-        struct Node{
-            Node(const std::string& name, std::set<int> port_set){
-                this->name = name;
-                available_ports = port_set;
-            }
-            std::string name;
-            std::string ip;
-            std::set<int> available_ports;
+        class Node{
+            public:
+                Node(const std::string& name, std::set<int> port_set){
+                    this->name = name;
+                    available_ports = port_set;
+                }
+                std::string GetPort(){
+                    std::unique_lock<std::mutex> lock(port_mutex);
+                    if(available_ports.empty()){
+                        return "";
+                    }
+                    auto it = available_ports.begin();
+                    auto port = *it;
+                    available_ports.erase(it);
+                    std::cout << name << std::endl;
+                    std::cout << available_ports.size() << std::endl;
+                    return std::to_string(port);
+                };
+
+                void FreePort(const std::string& port){
+                    std::unique_lock<std::mutex> lock(port_mutex);
+                    int port_number = std::stoi(port);
+                    available_ports.insert(port_number);
+                }
+                std::string name;
+                std::string ip;
+                int component_count = 0;
+            private:
+                std::mutex port_mutex;
+                std::set<int> available_ports;
+
 
             //type
         };

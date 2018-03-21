@@ -20,7 +20,6 @@ message ControlMessage{
     string model_name = 5;
 }
 
-//XXX: REMOVE THIS
 message EnvironmentMessage{
     enum Type{
         NO_TYPE = 0;
@@ -38,6 +37,8 @@ message EnvironmentMessage{
 
     Type type = 1;
     string update_endpoint = 2;
+
+    ControlMessage control_message = 3;
     
 }
 

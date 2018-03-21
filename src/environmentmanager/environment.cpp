@@ -27,7 +27,6 @@ void Environment::AddExperiment(const NodeManager::ControlMessage& message){
 void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
     for(int i = 0; i < message.nodes_size(); i++){
         auto node = message.mutable_nodes(i);
-
         DeclusterNode(*node);
     }
 }
@@ -102,6 +101,29 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
     }
 }
 
+void Environment::ConfigureNode(NodeManager::Node& node){
+
+    std::string node_name = node.info().name();
+    if(node.components_size() > 0){
+        //set modellogger port
+        auto logger_port = GetPort(node_name);
+        auto logger_attribute = node.add_attributes();
+        auto logger_attribute_info = logger_attribute->mutable_info();
+        logger_attribute->set_kind(NodeManager::Attribute::STRING);
+        logger_attribute_info->set_name("modellogger_port");
+        logger_attribute->add_s(logger_port);
+
+        //set master/slave port
+        auto management_port = GetPort(node_name);
+        auto management_endpoint_attribute = node.add_attributes();
+        auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
+        management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
+        management_endpoint_attribute_info->set_name("management_port");
+        management_endpoint_attribute->add_s(management_port);
+    }
+
+}
+
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const std::string& port_id){
     std::vector<std::string> publisher_addresses;
 
@@ -133,8 +155,6 @@ std::vector<std::string> Environment::GetPublisherAddress(const std::string& mod
 
 std::string Environment::GetTopic(const std::string& model_name, const std::string& port_id){
     auto port = experiment_map_[model_name]->port_map_[port_id];
-
-    
 }
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
@@ -152,21 +172,11 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
 }
 
 std::string Environment::GetPort(const std::string& node_name){
-    std::unique_lock<std::mutex> lock(port_mutex_);
-
-    if(available_ports_.empty()){
-        return "";
-    }
     //Get first available port, store then erase it
     auto node = node_map_[node_name];
-    auto it = node->available_ports.begin();
-    int port = *it;
-    node->available_ports.erase(it);
-
-    return std::to_string(port);
+    return node->GetPort();
+    
 }
-
-
 
 std::string Environment::AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called){
     std::unique_lock<std::mutex> lock(port_mutex_);

@@ -6,14 +6,12 @@ Zmq::DeploymentRule::DeploymentRule(Environment& environment) : ::DeploymentRule
 void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& message, NodeManager::EventPort& event_port){
 
     //set publisher_address
-
     auto publisher_address_attr = event_port.add_attributes();
     auto publisher_address_attr_info = publisher_address_attr->mutable_info();
     publisher_address_attr_info->set_name("publisher_address");
     publisher_address_attr->set_kind(NodeManager::Attribute::STRINGLIST);
 
     //find deployed hardware node
-
     if(event_port.kind() == NodeManager::EventPort::OUT_PORT){
         auto publisher_address = environment_.GetPublisherAddress(message.model_name(), event_port.info().id());
         publisher_address_attr->add_s(publisher_address.at(0));
@@ -23,7 +21,6 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
     else if(event_port.kind() == NodeManager::EventPort::IN_PORT){
         auto connected_addresses = environment_.GetPublisherAddress(message.model_name(), event_port.info().id());
         for(auto id : connected_addresses){
-            std::cout << id << std::endl;
             publisher_address_attr->add_s(id);
         }
     }

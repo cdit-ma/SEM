@@ -1,7 +1,7 @@
 #include "deploymentgenerator.h"
 #include "deploymentrule.h"
 #include "deploymentrules/zmq/zmqrule.h"
-
+#include <iostream>
 DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment_(environment){
 }
 
@@ -28,10 +28,19 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
     }
 
     //Hit bottom level sub node, or finished populating all subnodes. Fill this current node
+
+    //Populate management ports
+    environment_.ConfigureNode(node);
+
     for(auto& component : *node.mutable_components()){
         for(auto& port : *component.mutable_ports()){
             auto& rule = GetDeploymentRule(MapMiddleware(port.middleware()));
-            rule.ConfigureEventPort(control_message, port);
+            try{
+                rule.ConfigureEventPort(control_message, port);
+            }
+            catch(std::exception& ex){
+                std::cerr << ex.what() << std::endl;
+            }
         }
     }
 }
