@@ -75,7 +75,6 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
     std::string model_name(control_message.model_name());
-    environment_.AddExperiment(control_message);
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         AddNodeToExperiment(model_name, control_message.nodes(i));

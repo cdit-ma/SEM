@@ -50,7 +50,7 @@ void DeploymentRegister::RegistrationLoop(){
             std::future<std::string> port_future = port_promise->get_future();
             std::string port;
 
-            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, reply.second);
+            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.model_name());
             deployments_.push_back(deployment_handler);
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.

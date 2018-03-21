@@ -38,7 +38,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
 	)
 
 set(HEADERS
@@ -48,7 +48,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
-    #${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
     )
     
 set(EXECUTION_TESTER_SOURCE
@@ -64,6 +64,8 @@ set(NODE_MANAGER_SOURCE
 add_library(${NODE_MANAGER_LIB} SHARED ${SOURCE} ${HEADERS})
 add_executable(${NODE_MANAGER} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 add_executable(${EXECUTION_TESTER} ${CMAKE_CURRENT_SOURCE_DIR}/executiontester.cpp)
+
+add_executable(requester_tester ${CMAKE_CURRENT_SOURCE_DIR}/requester_tester.cpp)
 
 target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${NODE_MANAGER_LIB} PRIVATE ${Boost_INCLUDE_DIRS})
@@ -99,3 +101,4 @@ target_link_libraries(${EXECUTION_TESTER} re_proto_control)
 
 target_link_libraries(${NODE_MANAGER} ${NODE_MANAGER_LIB})
 target_link_libraries(${EXECUTION_TESTER} ${NODE_MANAGER_LIB})
+target_link_libraries(requester_tester ${NODE_MANAGER_LIB})

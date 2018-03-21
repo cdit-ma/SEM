@@ -8,23 +8,20 @@
 #include <future>
 #include <zmq.hpp>
 
+#include "controlmessage.pb.h"
+
 
 class EnvironmentRequester{
 
 
     public:
         EnvironmentRequester(const std::string& manager_address,
-                                const std::string& deployment_id,
-                                const std::string& deployment_info);
+                                const std::string& deployment_id);
         void Init();
         void Init(const std::string& manager_endpoint);
         void Start();
         void End();
-
-        int GetComponentPort(const std::string& component_id, const std::string& component_info);
-        int GetDeploymentMasterPort();
-        int GetModelLoggerPort();
-
+        NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
         void RemoveDeployment();
 
     private:
@@ -49,8 +46,7 @@ class EnvironmentRequester{
         std::future<std::string> QueueRequest(const std::string& request);
         void SendRequest(Request request);
 
-        std::string deployment_id_;
-        std::string deployment_info_;
+        std::string model_name_;
 
         //Local clock
         std::mutex clock_mutex_;

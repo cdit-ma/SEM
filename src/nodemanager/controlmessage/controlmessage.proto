@@ -33,12 +33,14 @@ message EnvironmentMessage{
         REMOVE_COMPONENT = 8;
         HEARTBEAT = 9;
         HEARTBEAT_ACK = 10;
+        SUCCESS = 11;
     }
 
     Type type = 1;
     string update_endpoint = 2;
 
-    ControlMessage control_message = 3;
+    string model_name = 3;
+    ControlMessage control_message = 4;
     
 }
 

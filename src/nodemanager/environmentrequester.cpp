@@ -1,12 +1,10 @@
 #include "environmentrequester.h"
-#include "../environmentmanager/environmentmessage/environmentmessage.pb.h"
+#include "controlmessage.pb.h"
 
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
-                                            const std::string& deployment_id, 
-                                            const std::string& deployment_info){
+                                            const std::string& model_name){
     manager_address_ = manager_address;
-    deployment_id_ = deployment_id;
-    deployment_info_ = deployment_info;
+    model_name_ = model_name;
 }
 
 void EnvironmentRequester::Init(){
@@ -72,17 +70,16 @@ void EnvironmentRequester::HeartbeatLoop(){
     }
 
     //Register this deployment with the environment manager
-    EnvironmentManager::EnvironmentMessage initial_message;
-    initial_message.set_type(EnvironmentManager::EnvironmentMessage::ADD_DEPLOYMENT);
-    auto deployment = initial_message.add_deployments();
-    deployment->set_id(deployment_id_);
+    NodeManager::EnvironmentMessage initial_message;
+    initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
+    initial_message.set_model_name(model_name_);
 
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);
 
     //Get update socket address as reply
     if(!reply.empty()){
-        EnvironmentManager::EnvironmentMessage initial_reply;
+        NodeManager::EnvironmentMessage initial_reply;
         initial_reply.ParseFromString(reply);
         manager_update_endpoint_ = initial_reply.update_endpoint();
     }
@@ -110,8 +107,8 @@ void EnvironmentRequester::HeartbeatLoop(){
             if(end_flag_){
                 break;
             }
-            EnvironmentManager::EnvironmentMessage message;
-            message.set_type(EnvironmentManager::EnvironmentMessage::HEARTBEAT);
+            NodeManager::EnvironmentMessage message;
+            message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
             if(trigger == std::cv_status::timeout){
                 std::string output;
                 message.SerializeToString(&output);
@@ -141,104 +138,33 @@ void EnvironmentRequester::End(){
     heartbeat_thread_->join();
 }
 
-int EnvironmentRequester::GetComponentPort(const std::string& component_id, const std::string& component_info){
-    int port = 0;
+NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::ControlMessage& control_message){
+    NodeManager::EnvironmentMessage env_message;
+    auto current_control_message = env_message.mutable_control_message();
 
-    EnvironmentManager::EnvironmentMessage message;
-    message.set_type(EnvironmentManager::EnvironmentMessage::ADD_COMPONENT);
-    auto component = message.add_components();
-    component->set_id(component_id);
-    auto endpoint = component->add_endpoints();
+    *current_control_message = control_message;
 
-    //TODO: set this
-    endpoint->set_id("asdf");
-    endpoint->set_type(EnvironmentManager::Endpoint::PUBLIC);
+    env_message.set_type(NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
 
-    auto response = QueueRequest(message.SerializeAsString());
+    auto response = QueueRequest(env_message.SerializeAsString());
+    NodeManager::EnvironmentMessage message;
 
     try{
-        EnvironmentManager::EnvironmentMessage response_message;
-        response_message.ParseFromString(response.get());
-        if(message.type() != EnvironmentManager::EnvironmentMessage::ERROR_RESPONSE){
-            port = std::stoi(response_message.components(0).endpoints(0).port());
-        }
-        else{
-            //TODO: Handle this
-        }
+        auto response_msg = response.get();
+        message.ParseFromString(response_msg);
     }
     catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
-    }
-    return port;
-}
-
-int EnvironmentRequester::GetDeploymentMasterPort(){
-    int port = 0;
-
-    EnvironmentManager::EnvironmentMessage message;
-    message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
-    auto deployment = message.add_deployments();
-    deployment->set_id(deployment_id_);
-
-    auto response = QueueRequest(message.SerializeAsString());
-
-    try{
-        EnvironmentManager::EnvironmentMessage response_msg;
-        response_msg.ParseFromString(response.get());
-        if(response_msg.type() == EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO){
-            for(int i = 0; i < response_msg.deployments(0).endpoints_size(); i++){
-                if(response_msg.deployments(0).endpoints(i).type() == EnvironmentManager::Endpoint::DEPLOYMENT_MASTER){
-                    port = std::stoi(response_msg.deployments(0).endpoints(i).port());
-                }
-            }
-        }
-        else{
-            std::cout << "Handle error in EnvironmentManager::GetDeploymentMasterPort if statement" << std::endl;
-        }
-    }
-    catch(std::exception& ex){
-        std::cout << ex.what() << " in evironmentManager::GetDeploymentMasterPort" << std::endl;
+        std::cout << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
     }
 
-    return port;
-}
 
-int EnvironmentRequester::GetModelLoggerPort(){
-    int port = 0;
 
-    EnvironmentManager::EnvironmentMessage message;
-    message.set_type(EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
-    auto deployment = message.add_deployments();
-    deployment->set_id(deployment_id_);
-
-    auto response = QueueRequest(message.SerializeAsString());
-
-    try{
-        EnvironmentManager::EnvironmentMessage response_msg;
-        response_msg.ParseFromString(response.get());
-        if(response_msg.type() == EnvironmentManager::EnvironmentMessage::GET_DEPLOYMENT_INFO){
-            for(int i = 0; i < response_msg.deployments(0).endpoints_size(); i++){
-                if(response_msg.deployments(0).endpoints(i).type() == EnvironmentManager::Endpoint::MODEL_LOGGER){
-                    port = std::stoi(response_msg.deployments(0).endpoints(i).port());
-                }
-            }
-        }
-        else{
-            std::cout << "Handle error in EnvironmentManager::GetModelLoggerPort if statement" << std::endl;
-        }
-    }
-    catch(std::exception& ex){
-        std::cout << ex.what() << " in evironmentManager::GetModelLoggerPort" << std::endl;
-    }
-
-    return port;
+    return message.control_message();
 }
 
 void EnvironmentRequester::RemoveDeployment(){
-    EnvironmentManager::EnvironmentMessage message;
-    message.set_type(EnvironmentManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
-    auto deployment = message.add_deployments();
-    deployment->set_id(deployment_id_);
+    NodeManager::EnvironmentMessage message;
+    message.set_type(NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT);
 
     auto response = QueueRequest(message.SerializeAsString());
 

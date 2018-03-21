@@ -15,7 +15,7 @@ namespace NodeManager{
 class DeploymentHandler{
     public:
         DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                            std::promise<std::string>* port_promise, const std::string& info);
+                            std::promise<std::string>* port_promise, const std::string& model_name);
 
     private:
         //Heartbeat constants (ms)
@@ -34,7 +34,7 @@ class DeploymentHandler{
 
         
         //Environment Helpers
-        void RemoveDeployment(uint64_t message_time);
+        void RemoveExperiment(uint64_t message_time);
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
@@ -49,7 +49,7 @@ class DeploymentHandler{
 
         Environment* environment_;
 
-        std::string deployment_id_;
+        std::string model_name_;
         std::map<std::string, std::string> port_map_;
         long time_added_;
 

@@ -1,25 +1,30 @@
 #include "deploymenthandler.h"
 #include <iostream>
 
+#include "deploymentgenerator.h"
+#include "deploymentrules/zmq/zmqrule.h"
+#include "deploymentrules/dds/ddsrule.h"
+
 #include "controlmessage.pb.h"
 
 DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                                    std::promise<std::string>* port_promise, const std::string& deployment_id){
+                                    std::promise<std::string>* port_promise, const std::string& model_name){
 
     environment_ = env;
     context_ = context;
     ip_addr_ = ip_addr;
-    deployment_id_ = deployment_id;
+    model_name_ = model_name;
     port_promise_ = port_promise;
     handler_thread_ = new std::thread(&DeploymentHandler::Init, this);
 }
 
 void DeploymentHandler::Init(){
+    
     handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
 
     time_added_ = environment_->GetClock();
 
-    std::string assigned_port = environment_->AddDeployment(deployment_id_, deployment_id_, time_added_);
+    std::string assigned_port = environment_->AddExperiment(model_name_);
     try{
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 
@@ -33,6 +38,7 @@ void DeploymentHandler::Init(){
 
     //Start heartbeat to track liveness of deployment
     //Use heartbeat to receive any updates re. components addition/removal
+    
     HeartbeatLoop();
 }
 
@@ -50,7 +56,7 @@ void DeploymentHandler::HeartbeatLoop(){
     //Break out early if we never get our first heartbeat
     else{
         delete handler_socket_;
-        RemoveDeployment(time_added_);
+        RemoveExperiment(time_added_);
         return;
     }
 
@@ -75,16 +81,16 @@ void DeploymentHandler::HeartbeatLoop(){
             if(removed_flag_){
                 break;
             }
-            environment_->DeploymentLive(deployment_id_, time_added_);
+            environment_->ExperimentLive(model_name_, time_added_);
         }
         else if(--liveness == 0){
-            environment_->DeploymentTimeout(deployment_id_, time_added_);
+            environment_->ExperimentTimeout(model_name_, time_added_);
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;
             }
             else{
-                RemoveDeployment(time_added_);
+                RemoveExperiment(time_added_);
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
@@ -94,8 +100,8 @@ void DeploymentHandler::HeartbeatLoop(){
     delete handler_socket_;
 }
 
-void DeploymentHandler::RemoveDeployment(uint64_t call_time){
-    environment_->RemoveDeployment(deployment_id_, call_time);
+void DeploymentHandler::RemoveExperiment(uint64_t call_time){
+    environment_->RemoveExperiment(model_name_, call_time);
     removed_flag_ = true;
 }
 
@@ -147,7 +153,24 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     message.ParseFromString(request.second);
 
     switch(message.type()){
+
+        case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
+            DeploymentGenerator generator(*environment_);
+            generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
+            generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
+            generator.PopulateDeployment(*(message.mutable_control_message()));
+            
+            message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
+            break;
+        }
         
+        case NodeManager::EnvironmentMessage::HEARTBEAT:{
+            message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
+            break;
+        }
+
         default:{
             message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
             ZMQSendReply(handler_socket_, message.SerializeAsString());

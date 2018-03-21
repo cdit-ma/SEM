@@ -15,7 +15,9 @@ class Environment{
     public:
         Environment(int portrange_min = 30000, int portrange_max = 50000);
 
-        void AddExperiment(const NodeManager::ControlMessage& message);
+        std::string AddExperiment(const std::string& model_name);
+        void RemoveExperiment(const std::string& model_name, uint64_t time);
+        
         void DeclusterExperiment(NodeManager::ControlMessage& message);
         void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
@@ -26,24 +28,10 @@ class Environment{
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
         
         std::string GetPort(const std::string& node_ip);
+        void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
+        void ExperimentTimeout(const std::string& deployment_id, uint64_t time_called);
 
         NodeManager::Node GetDeploymentLocation(const std::string& model_name, const std::string& port_id);
-
-        std::string AddDeployment(const std::string& deployment_id, const std::string& proto_info, uint64_t time_called);
-        void RemoveDeployment(const std::string& deployment_id, uint64_t time_called);
-
-        void DeploymentLive(const std::string& deployment_id, uint64_t time_called);
-        void DeploymentTimeout(const std::string& deployment_id, uint64_t time_called);
-
-        std::string AddComponent(const std::string& deployment_id, const std::string& component_id, 
-                                    const std::string& proto_info, uint64_t time_called);
-        void RemoveComponent(const std::string& component_id, uint64_t time_called);
-
-        std::string AddEndpoint();
-        void RemoveEndpoint();
-
-        std::string GetMasterPort(const std::string& deployment_id);
-        std::string GetModelLoggerPort(const std::string& deployment_id);
 
         uint64_t GetClock();
         uint64_t SetClock(uint64_t clock);
@@ -101,6 +89,12 @@ class Environment{
             std::vector<std::string> connected_ports;
         };
 
+        enum class ExperimentState{
+            ACTIVE,
+            TIMEOUT,
+            SHUTDOWN
+        };
+
         struct Experiment{
             Experiment(std::string name){model_name_ = name;};
             NodeManager::ControlMessage deployment_message_;
@@ -114,65 +108,19 @@ class Environment{
 
             std::unordered_map<std::string, std::vector<std::string> > connection_map_;
 
+            uint64_t time_added;
+            ExperimentState state;
+
         };
 
         std::unordered_map<std::string, Experiment*> experiment_map_;
         std::unordered_map<std::string, Node*> node_map_;
 
-        enum class DeploymentState{
-            ACTIVE,
-            TIMEOUT,
-            SHUTDOWN
-        };
-        enum class Middleware{
-            NO_MIDDLEWARE = 0,
-            ZMQ = 1,
-            RTI_DDS = 2,
-            OSPL_DDS = 3,
-            QPID = 4,
-            CORBA = 5
-        };
-
-        enum class EndpointType{
-            NO_TYPE = 0,
-            MANAGEMENT = 1,
-            DEPLOYMENT_MASTER = 2,
-            MODEL_LOGGER = 3,
-            PUBLIC = 4,
-            PRIVATE = 5
-        };
-
-        struct Deployment{
-            std::string id;
-            DeploymentState state;
-            std::string ip_addr;
-            std::string master_port;
-            std::string model_logger_port;
-            std::string environment_manager_port;
-            std::vector<std::string> component_ids;
-            std::vector<std::string> public_component_ids;
-            uint64_t time_added;
-            //TODO: Add endpoint information s.t. MEDEA can query
-        };
-
-        struct Component{
-            std::string id;
-            std::string deployment_id;
-            
-        };
-
-        struct Endpoint{
-            std::string id;
-            EndpointType type;
-            Middleware middleware;
-        };
-
 
         std::mutex port_mutex_;
         std::set<int> available_ports_;
-        std::unordered_map<std::string, std::string> component_port_map_;
-        std::unordered_map<std::string, std::string> deployment_port_map_;
-        std::unordered_map<std::string, Deployment*> deployment_info_map_;
+        std::set<int> available_node_manager_ports_;
+
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT
