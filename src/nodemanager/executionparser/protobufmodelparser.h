@@ -23,6 +23,7 @@ class ProtobufModelParser{
         bool ParseHardwareItems(NodeManager::ControlMessage* environment_message);
         bool Process();
         void RecurseEdge(const std::string& source_id, const std::string& current_id);
+        void CalculateReplication();
 
         //Parse helpers
         std::string GetDeployedID(const std::string& id);
@@ -38,6 +39,7 @@ class ProtobufModelParser{
 
         std::string to_lower(const std::string& s);
         bool str2bool(std::string str);
+        std::string GetUniquePrefix(int count);
 
         NodeManager::ControlMessage* control_message_;
 
@@ -62,6 +64,11 @@ class ProtobufModelParser{
         std::unordered_map<std::string, int> replication_map_;
         std::unordered_map<std::string, std::string> full_assembly_name_map_;
 
+        //port replicate id -> eventport proto
+        std::unordered_map<std::string, NodeManager::EventPort*> port_replicate_id_map_;
+
+
+        std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
 
         std::vector<std::string> hardware_node_ids_;
         std::vector<std::string> component_ids_;

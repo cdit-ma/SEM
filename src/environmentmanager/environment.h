@@ -22,7 +22,7 @@ class Environment{
         void DeclusterNode(NodeManager::Node& message);
         void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
         void AddNodeToEnvironment(const NodeManager::Node& node);
-        void ConfigureNode(NodeManager::Node& node);
+        void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const std::string& port_id);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
@@ -58,9 +58,9 @@ class Environment{
                     auto it = available_ports.begin();
                     auto port = *it;
                     available_ports.erase(it);
-                    std::cout << name << std::endl;
-                    std::cout << available_ports.size() << std::endl;
-                    return std::to_string(port);
+                    auto port_str =  std::to_string(port);
+
+                    return port_str;
                 };
 
                 void FreePort(const std::string& port){
@@ -75,8 +75,11 @@ class Environment{
                 std::mutex port_mutex;
                 std::set<int> available_ports;
 
+                //eventport guid -> port number assigned
+                std::map<std::string, std::string> used_ports;
 
-            //type
+
+            //TODO: type??
         };
 
         struct EventPort{
@@ -86,6 +89,7 @@ class Environment{
             std::string guid;
             std::string topic;
 
+            //list of publisher ids
             std::vector<std::string> connected_ports;
         };
 
@@ -101,11 +105,17 @@ class Environment{
             std::string model_name_;
             std::string master_port_;
             std::string manager_port_;
+
+            //node_id -> protobuf node
             std::unordered_map<std::string, NodeManager::Node*> node_map_;
+
+            //node_id -> node_ip_addr
             std::unordered_map<std::string, std::string> node_address_map_;
 
+            //event port id -> eventport
             std::unordered_map<std::string, EventPort> port_map_;
 
+            //subscriber_id -> publisher_id
             std::unordered_map<std::string, std::vector<std::string> > connection_map_;
 
             uint64_t time_added;
@@ -113,12 +123,18 @@ class Environment{
 
         };
 
+        //model_name -> experiment data structure
         std::unordered_map<std::string, Experiment*> experiment_map_;
+
+        //node_ip -> node data structure
         std::unordered_map<std::string, Node*> node_map_;
 
 
         std::mutex port_mutex_;
+        //initially allocated set of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct
         std::set<int> available_ports_;
+
+        //ports available on the environment manager, uses same port range as nodes.
         std::set<int> available_node_manager_ports_;
 
 };

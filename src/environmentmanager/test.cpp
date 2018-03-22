@@ -26,6 +26,8 @@ int main(int argc, char **argv){
 
     Environment* environment = new Environment();
 
+    environment->AddExperiment(message->model_name());
+
     DeploymentGenerator generator(*environment);
     generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));
     generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment)));

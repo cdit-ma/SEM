@@ -29,8 +29,6 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
 
     //Hit bottom level sub node, or finished populating all subnodes. Fill this current node
 
-    //Populate management ports
-    environment_.ConfigureNode(node);
 
     for(auto& component : *node.mutable_components()){
         for(auto& port : *component.mutable_ports()){
@@ -43,6 +41,8 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
             }
         }
     }
+    //Populate management ports and update environment's understanding of this node
+    environment_.ConfigureNode(control_message.model_name(), node);
 }
 
 void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& control_message){

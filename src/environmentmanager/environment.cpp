@@ -119,7 +119,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
     }
 }
 
-void Environment::ConfigureNode(NodeManager::Node& node){
+void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node& node){
 
     std::string node_name = node.info().name();
 
@@ -141,6 +141,8 @@ void Environment::ConfigureNode(NodeManager::Node& node){
         management_endpoint_attribute_info->set_name("management_port");
         management_endpoint_attribute->add_s(management_port);
     }
+
+    experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
 
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const std::string& port_id){

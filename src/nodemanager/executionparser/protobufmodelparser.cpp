@@ -204,132 +204,205 @@ bool ProtobufModelParser::Process(){
 
     //Construct and fill component instances
     for(const auto& component_id : component_instance_ids_){
-        //Get id of deployed node
-        auto parent_id = graphml_parser_->GetParentNode(component_id);
-        auto hardware_id = deployed_entities_map_[component_id];
+        for(int i = 0; i < replication_map_[component_id]; i++){
+            std::string unique_id;
 
-        //Get hardware node pb message that this component is deployed to
-        NodeManager::Node* node_pb = 0;
-        if(node_message_map_.count(hardware_id)){
-            node_pb = node_message_map_.at(hardware_id);
-        }
-
-        //Move to next component_instance if we're missing anything
-        if(hardware_id.empty() || component_id.empty() || !node_pb){
-            continue;
-        }
-
-        //Set component info
-        auto component_pb = node_pb->add_components();
-        //component_pb->set_replication(replication_map_[component_id]);
-        auto component_info_pb = component_pb->mutable_info();
-        component_info_pb->set_id(graphml_parser_->GetAttribute(component_id, "id"));
-        std::string component_name = graphml_parser_->GetDataValue(component_id, "label");
-        component_info_pb->set_name(component_name);
-        component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
-
-        //Set component attributes
-        auto attribute_ids = graphml_parser_->FindNodes("AttributeInstance", component_id);
-        for(const auto& attribute_id : attribute_ids){
-            auto attr_pb = component_pb->add_attributes();
-            auto attr_info_pb = attr_pb->mutable_info();
-
-            attr_info_pb->set_id(attribute_id);
-            attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
-
-            SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), 
-                                    graphml_parser_->GetDataValue(attribute_id, "value"));
-
-        }
-
-        //Find all ports in/out of component instance
-        auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", component_id);
-        auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
-        auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", component_id);
-        port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
-        port_ids.insert(port_ids.end(), periodic_ids.begin(), periodic_ids.end());
-
-        //Set port info
-        for(const auto& port_id : port_ids){
-            auto aggregate_id = GetAggregateId(GetDefinitionId(port_id));
-            auto port_pb = component_pb->add_ports();
-            auto port_info_pb = port_pb->mutable_info();
-
-            port_info_pb->set_id(port_id);
-            std::string port_name = graphml_parser_->GetDataValue(port_id, "label");
-            port_info_pb->set_name(port_name);
-            port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
-            port_pb->set_namespace_name(graphml_parser_->GetDataValue(aggregate_id, "namespace"));
-
-            if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
-                port_pb->set_visibility(NodeManager::EventPort::PUBLIC);
-            }
-            else{
-                port_pb->set_visibility(NodeManager::EventPort::PRIVATE);
+            if(i > 0){
+                unique_id = "_" + std::to_string(i);
             }
 
-            port_pb->set_port_guid(port_guid_map_[port_id]);
+            auto component_uid = graphml_parser_->GetAttribute(component_id, "id") + unique_id;
 
-            port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(port_id, "kind")));
+            //Get id of deployed node
+            auto parent_id = graphml_parser_->GetParentNode(component_id);
+            auto hardware_id = deployed_entities_map_[component_id];
 
-            //Middleware ports
-            if(port_pb->kind() != NodeManager::EventPort::PERIODIC_PORT){
+            //Get hardware node pb message that this component is deployed to
+            NodeManager::Node* node_pb = 0;
+            if(node_message_map_.count(hardware_id)){
+                node_pb = node_message_map_.at(hardware_id);
+            }
 
-                //Fill connected port mapping
-                if(assembly_map_.count(port_id)){
-                    for(const auto& assembly_connection : assembly_map_[port_id]){
-                        std::string connected_id = assembly_connection.target_id;
+            //Move to next component_instance if we're missing anything
+            if(hardware_id.empty() || component_id.empty() || !node_pb){
+                continue;
+            }
 
-                        std::string connected_guid;
-                        if(graphml_parser_->GetDataValue(connected_id, "port_visibility") == "public"){
-                            connected_guid = port_guid_map_[connected_id];
-                        }
-                        else{
-                            connected_guid = connected_id;
-                        }
-                        port_pb->add_connected_ports(connected_guid);
+            //Set component info
+            auto component_pb = node_pb->add_components();
+            component_pb->set_replicate_id(i);
+            auto component_info_pb = component_pb->mutable_info();
+            component_info_pb->set_id(component_uid);
+            std::string component_name = graphml_parser_->GetDataValue(component_id, "label");
+            component_info_pb->set_name(component_name);
+            component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
+
+            //Set component attributes
+            auto attribute_ids = graphml_parser_->FindNodes("AttributeInstance", component_id);
+            for(const auto& attribute_id : attribute_ids){
+                auto attr_pb = component_pb->add_attributes();
+                auto attr_info_pb = attr_pb->mutable_info();
+
+                attr_info_pb->set_id(attribute_id);
+                attr_info_pb->set_name(graphml_parser_->GetDataValue(attribute_id, "label"));
+
+                SetAttributePb(attr_pb, graphml_parser_->GetDataValue(attribute_id, "type"), 
+                                        graphml_parser_->GetDataValue(attribute_id, "value"));
+
+            }
+
+            //Find all ports in/out of component instance
+            auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", component_id);
+            auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
+            auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", component_id);
+            port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
+            port_ids.insert(port_ids.end(), periodic_ids.begin(), periodic_ids.end());
+
+            //Set port info
+            for(const auto& port_id : port_ids){
+                auto aggregate_id = GetAggregateId(GetDefinitionId(port_id));
+                auto port_pb = component_pb->add_ports();
+                auto port_info_pb = port_pb->mutable_info();
+
+                port_info_pb->set_id(port_id + unique_id);
+                std::string port_name = graphml_parser_->GetDataValue(port_id, "label");
+                port_info_pb->set_name(port_name);
+                port_info_pb->set_type(graphml_parser_->GetDataValue(aggregate_id, "label"));
+                port_pb->set_namespace_name(graphml_parser_->GetDataValue(aggregate_id, "namespace"));
+
+                if(graphml_parser_->GetDataValue(aggregate_id, "port_visibility") == "public"){
+                    port_pb->set_visibility(NodeManager::EventPort::PUBLIC);
+                }
+                else{
+                    port_pb->set_visibility(NodeManager::EventPort::PRIVATE);
+                }
+
+                port_pb->set_port_guid(port_guid_map_[port_id]);
+
+                port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(port_id, "kind")));
+
+                port_replicate_id_map_[port_id + unique_id] = port_pb;
+
+                //Middleware ports
+                if(port_pb->kind() != NodeManager::EventPort::PERIODIC_PORT){
+
+                    //Set Middleware
+                    std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
+                    NodeManager::EventPort::Middleware mw;
+                    if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
+                        std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
+                    }
+                    port_pb->set_middleware(mw);
+
+                    //Set the topic_name
+                    std::string topic_name;
+                    topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
+
+                    if(!topic_name.empty()){
+                        auto topic_pb = port_pb->add_attributes();
+                        auto topic_info_pb = topic_pb->mutable_info();
+                        topic_info_pb->set_name("topic_name");
+                        topic_pb->set_kind(NodeManager::Attribute::STRING);
+                        //Only set if we actually have a topic name
+                        topic_pb->add_s(topic_name);
                     }
                 }
+                //Periodic ports
+                else{
+                    try{
+                        double freq = std::stod(graphml_parser_->GetDataValue(port_id, "frequency"));
+                        auto freq_pb = port_pb->add_attributes();
+                        auto freq_info_pb = freq_pb->mutable_info();
 
-                //Set Middleware
-                std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
-                NodeManager::EventPort::Middleware mw;
-                if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
-                    std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
-                }
-                port_pb->set_middleware(mw);
-
-                //Set the topic_name
-                std::string topic_name;
-                topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
-
-                if(!topic_name.empty()){
-                    auto topic_pb = port_pb->add_attributes();
-                    auto topic_info_pb = topic_pb->mutable_info();
-                    topic_info_pb->set_name("topic_name");
-                    topic_pb->set_kind(NodeManager::Attribute::STRING);
-                    //Only set if we actually have a topic name
-                    topic_pb->add_s(topic_name);
+                        freq_info_pb->set_name("frequency");
+                        freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
+                        freq_pb->set_d(freq);
+                    }
+                    catch(std::exception& ex){
+                        std::cerr << "Could not parse periodic event port frequency " << ex.what() << std::endl;
+                    }
                 }
             }
-            //Periodic ports
-            else{
-                try{
-                    double freq = std::stod(graphml_parser_->GetDataValue(port_id, "frequency"));
-                    auto freq_pb = port_pb->add_attributes();
-                    auto freq_info_pb = freq_pb->mutable_info();
+            component_replications_[component_id].push_back(component_pb);
+        }
+    }
+    CalculateReplication();
+}
 
-                    freq_info_pb->set_name("frequency");
-                    freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
-                    freq_pb->set_d(freq);
-                }
-                catch(std::exception& ex){
-                    std::cerr << "Could not parse periodic event port frequency " << ex.what() << std::endl;
+void ProtobufModelParser::CalculateReplication(){
+    //Calculate the connections taking into account replication!
+    for(const auto& m : assembly_map_){
+        for(const auto& ac : m.second){
+            auto source_port_id = ac.source_id;
+            auto target_port_id = ac.target_id;
+
+            auto source_component_id = graphml_parser_->GetParentNode(source_port_id);
+            auto target_component_id = graphml_parser_->GetParentNode(target_port_id);
+
+
+            if(component_replications_.count(source_component_id) && component_replications_.count(source_component_id)){
+                //Get all ComponentInstances from the Replication
+                for(auto source_component_instance_proto : component_replications_[source_component_id]){
+                    auto s_unique = GetUniquePrefix(source_component_instance_proto->replicate_id());
+                    auto s_uid = ac.source_id + s_unique;
+
+                    NodeManager::EventPort* source_port_instance_proto = 0;
+                    if(port_replicate_id_map_.count(s_uid)){
+                        source_port_instance_proto = port_replicate_id_map_[s_uid];
+                    }else{
+
+                    }
+
+                    //If we are an inter_assembly edge, we need to connect every outeventport instance to every ineventport instance
+                    if(ac.inter_assembly){
+                        //Connect to all!
+                        for(auto target_component_instance_proto : component_replications_[target_component_id]){
+                            auto t_unique = GetUniquePrefix(target_component_instance_proto->replicate_id());
+                            auto t_uid = ac.target_id + t_unique;
+
+                            NodeManager::EventPort* target_port_instance_proto = 0;
+                            if(port_replicate_id_map_.count(t_uid)){
+                                target_port_instance_proto = port_replicate_id_map_[t_uid];
+                            }else{
+
+                            }
+
+                            //Append the connection to our list
+                            if(source_port_instance_proto && target_port_instance_proto){
+                                source_port_instance_proto->add_connected_ports(t_uid);
+                                target_port_instance_proto->add_connected_ports(s_uid);
+                            }
+                        }
+                    }else{
+                        //If contained in an assembly, we only need to replicate the one outeventport to the matching replication ineventport instance
+                        auto t_uid = ac.target_id + s_unique;
+                        NodeManager::EventPort* target_port_instance_proto = 0;
+                        if(port_replicate_id_map_.count(t_uid)){
+                            target_port_instance_proto = port_replicate_id_map_[t_uid];
+                        }else{
+
+                        }
+
+                        if(source_port_instance_proto && target_port_instance_proto){
+                            source_port_instance_proto->add_connected_ports(t_uid);
+                            target_port_instance_proto->add_connected_ports(s_uid);
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+
+// std::string connected_guid;
+// if(graphml_parser_->GetDataValue(connected_id, "port_visibility") == "public"){
+//     connected_guid = port_guid_map_[connected_id];
+// }
+// else{
+//     connected_guid = connected_id;
+// }
+// port_pb->add_connected_ports(connected_guid);
 
 std::string ProtobufModelParser::GetDeployedID(const std::string& id){
     std::string d_id;
@@ -559,4 +632,13 @@ NodeManager::Node::NodeType ProtobufModelParser::GetHardwareItemKind(const std::
         //TODO: Throw exception??
         return NodeManager::Node::HARDWARE_NODE;
     }
+}
+
+std::string ProtobufModelParser::GetUniquePrefix(int count){
+    std::string str;
+    if(count > 0){
+
+        str += "_" + std::to_string(count);
+    }
+    return str;
 }

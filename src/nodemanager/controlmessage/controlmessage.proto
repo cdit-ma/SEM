@@ -73,6 +73,7 @@ message Component{
     repeated EventPort ports = 2;
     repeated Attribute attributes = 3;
     repeated Worker workers = 4;
+    uint32 replicate_id = 5;
 }
 
 message EventPort{
