@@ -13,13 +13,13 @@ void Zmq::DeploymentRule::ConfigureEventPort(const NodeManager::ControlMessage& 
 
     //find deployed hardware node
     if(event_port.kind() == NodeManager::EventPort::OUT_PORT){
-        auto publisher_address = environment_.GetPublisherAddress(message.model_name(), event_port.info().id());
+        auto publisher_address = environment_.GetPublisherAddress(message.model_name(), event_port);
         publisher_address_attr->add_s(publisher_address.at(0));
     }
 
     //If we're an in port, add all publisher endpoints
     else if(event_port.kind() == NodeManager::EventPort::IN_PORT){
-        auto connected_addresses = environment_.GetPublisherAddress(message.model_name(), event_port.info().id());
+        auto connected_addresses = environment_.GetPublisherAddress(message.model_name(), event_port);
         for(auto id : connected_addresses){
             publisher_address_attr->add_s(id);
         }

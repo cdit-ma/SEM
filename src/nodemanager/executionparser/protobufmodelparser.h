@@ -54,20 +54,31 @@ class ProtobufModelParser{
         std::vector<std::string> component_assembly_ids_;
         std::vector<std::string> qos_edge_ids_;
 
+        //source/target id -> set of all edge id's attached to source/target
         std::unordered_map<std::string, std::set<std::string> > entity_edge_ids_;
 
+        //ComponentInstance id - > HardwareNode id
         std::unordered_map<std::string, std::string> deployed_entities_map_;
+
+        //component instance id -> definition id
         std::unordered_map<std::string, std::string> definition_ids_;
+
+        //
         std::unordered_map<std::string, std::string> aggregate_ids_;
+
+        //
         std::unordered_map<std::string, std::string> entity_qos_map_;
 
+        //Component id -> replication count
         std::unordered_map<std::string, int> replication_map_;
+
+        //port id -> nested assembly string
         std::unordered_map<std::string, std::string> full_assembly_name_map_;
 
         //port replicate id -> eventport proto
         std::unordered_map<std::string, NodeManager::EventPort*> port_replicate_id_map_;
 
-
+        //component id -> vector of that component's replications
         std::unordered_map<std::string, std::vector<NodeManager::Component*> > component_replications_;
 
         std::vector<std::string> hardware_node_ids_;
@@ -75,8 +86,10 @@ class ProtobufModelParser{
         std::vector<std::string> component_impl_ids_;
         std::vector<std::string> component_instance_ids_;
 
+        //event port id -> fully qualified event port guid
         std::unordered_map<std::string, std::string> port_guid_map_;
 
+        //node id -> pointer to proto message for that node
         std::unordered_map<std::string, NodeManager::Node *> node_message_map_;
 
         class AssemblyConnection{

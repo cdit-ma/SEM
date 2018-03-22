@@ -24,7 +24,7 @@ class Environment{
         void AddNodeToEnvironment(const NodeManager::Node& node);
         void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
-        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const std::string& port_id);
+        std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
         
         std::string GetPort(const std::string& node_ip);

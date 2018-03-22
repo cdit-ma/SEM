@@ -145,16 +145,16 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
 
-std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const std::string& port_id){
+std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port){
     std::vector<std::string> publisher_addresses;
 
     //TODO:Check that experiment exists.
     auto experiment = experiment_map_[model_name];
 
     //check to see if port exists in connection map. In case it does, return list of publishers
-    if(experiment->connection_map_.count(port_id)){
+    if(port.kind() == NodeManager::EventPort::IN_PORT){
 
-        auto publisher_port_ids = experiment->connection_map_[port_id];
+        auto publisher_port_ids = experiment->connection_map_[port.info().id()];
         //Get list of connected ports
 
         //Get those ports addresses
@@ -166,9 +166,9 @@ std::vector<std::string> Environment::GetPublisherAddress(const std::string& mod
     }
 
     //In case port id does not exist in connection list, we must be a publisher. Therefore return port's deployment address.
-    else{
-        auto node_id = experiment->port_map_[port_id].node_id;
-        auto port_assigned_port = experiment->port_map_[port_id].port_number;
+    else if(port.kind() == NodeManager::EventPort::OUT_PORT){
+        auto node_id = experiment->port_map_[port.info().id()].node_id;
+        auto port_assigned_port = experiment->port_map_[port.info().id()].port_number;
         publisher_addresses.push_back(experiment->node_address_map_[node_id] + ":" + port_assigned_port);
     }
     return publisher_addresses;
