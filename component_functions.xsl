@@ -205,7 +205,7 @@
 
         <!-- Handle Attributes -->
         <xsl:for-each select="graphml:get_child_nodes_of_kind($component, 'Attribute')">
-            <xsl:value-of select="cdit:define_datatype_functions(., $qualified_class_name)" />
+            <xsl:value-of select="cdit:define_datatype_functions($component, ., $qualified_class_name)" />
         </xsl:for-each>
     </xsl:function>
 
@@ -442,7 +442,7 @@
 
         <!-- Handle variables -->
         <xsl:for-each select="$variables">
-            <xsl:value-of select="cdit:define_datatype_functions(., $qualified_impl_type)" />
+            <xsl:value-of select="cdit:define_datatype_functions($component_impl, ., $qualified_impl_type)" />
         </xsl:for-each>
     </xsl:function>
 

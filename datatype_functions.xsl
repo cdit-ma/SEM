@@ -787,12 +787,14 @@
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:if test="$is_union">
+            <xsl:value-of select="cpp:include_library_header('iostream')" />
+            <xsl:value-of select="o:nl(1)" />
             <xsl:value-of select="cdit:define_union_functions($aggregate, $class_type)" />
         </xsl:if>
 
         <!-- Define functions -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
-            <xsl:value-of select="cdit:define_datatype_functions(., $class_type)" />
+            <xsl:value-of select="cdit:define_datatype_functions($aggregate, ., $class_type)" />
         </xsl:for-each>
 
 

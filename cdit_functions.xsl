@@ -515,7 +515,16 @@
             </xsl:if>
         </xsl:variable>
 
-        <xsl:value-of select="cpp:combine_namespaces(($namespace, $label, $suffix))" />
+        <xsl:variable name="qualified_type" select="cpp:combine_namespaces(($namespace, $label, $suffix))" />
+
+        <xsl:choose>
+            <xsl:when test="$namespace = ''">
+                <xsl:value-of select="concat('::', $qualified_type)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$qualified_type" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cpp:get_vector_qualified_type" as="xs:string">
@@ -572,7 +581,16 @@
             </xsl:if>
         </xsl:variable>
 
-        <xsl:value-of select="concat('::', cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_label)))" />
+        <xsl:variable name="combined_namespace" select="cpp:combine_namespaces(($extra_namespace, $aggregate_namespace, $aggregate_label))" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'base'">
+                <xsl:value-of select="$combined_namespace" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat('::', $combined_namespace)" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
     
     <!-- Converts from the Aggregate Types into primitive CPP types -->
@@ -950,9 +968,11 @@
         <xsl:value-of select="cpp:scope_end($tab + 1)" />
         
         <xsl:value-of select="cpp:declare_function($descriminator_type, 'get_descriminator', '', ';', $tab + 1)" />
+
         <!-- Protected Declarations -->
         <xsl:value-of select="cpp:protected($tab)" />
         <xsl:value-of select="cpp:declare_function('void', 'set_descriminator', cpp:define_variable($descriminator_type, 'descriminator', '', '', 0), ';', $tab + 1)" />
+        
         <!-- Private Declarations -->
         <xsl:value-of select="cpp:private($tab)" />
         <xsl:value-of select="cpp:define_variable($descriminator_type, $descriminator_var, cpp:combine_namespaces(($descriminator_type, $unset_enum)), cpp:nl(), $tab + 1)" />
@@ -963,7 +983,7 @@
         <xsl:param name="class_name" as="xs:string" />
         
 
-        <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($aggregate)" />
+        <xsl:variable name="descriminator_enum_type" select="cpp:combine_namespaces(($class_name, cdit:get_union_descrimantor_type($aggregate)))" />
         <xsl:variable name="descriminator_type" select="$descriminator_enum_type" />
         <xsl:variable name="descriminator_var" select="'descriminator_'" />
 
@@ -981,23 +1001,38 @@
 
     <xsl:function name="cdit:define_datatype_functions">
         <xsl:param name="aggregate" as="element()" />
+        <xsl:param name="element" as="element()" />
         <xsl:param name="class_name" as="xs:string" />
         
-        <xsl:variable name="label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="cpp_type" select="cpp:get_qualified_type($aggregate)" />
-        <xsl:variable name="var_label" select="cdit:get_variable_label($aggregate)" />
-        <xsl:variable name="kind" select="graphml:get_kind($aggregate)" />
+        <xsl:variable name="label" select="graphml:get_label($element)" />
+        <xsl:variable name="cpp_type" select="cpp:get_qualified_type($element)" />
+        <xsl:variable name="var_label" select="cdit:get_variable_label($element)" />
+        <xsl:variable name="kind" select="graphml:get_kind($element)" />
+
+        <xsl:variable name="is_attribute" select="$kind = 'Attribute'" />
+
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
+        <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($aggregate)" />
+        <xsl:variable name="enum_val" select="cpp:combine_namespaces(($descriminator_enum_type, upper-case($label)))" />
+        <xsl:variable name="notset_enum_val" select="cpp:combine_namespaces(($descriminator_enum_type, 'UNSET'))" />
+        <xsl:variable name="descriminator_var" select="'descriminator_'" />
+        
 
         <xsl:if test="$cpp_type != ''">
                 <!-- Define Setter Function -->
                 <xsl:value-of select="cpp:define_function('void', $class_name, concat('set_', $label), cpp:const_ref_var_def($cpp_type, 'value'), cpp:scope_start(0))" />
                     <xsl:choose>
-                        <xsl:when test="$kind != 'Attribute'">
-                            <xsl:value-of select="cpp:define_variable('', $var_label, 'value', cpp:nl(), 1)" />
+                        <xsl:when test="$is_attribute">
+                            <xsl:value-of select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_set_function($element), 'value', 1)" />
+                            <xsl:value-of select="cpp:nl()" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_set_function($aggregate), 'value', 1)" />
-                            <xsl:value-of select="cpp:nl()" />
+                            <xsl:if test="$is_union">
+                                <xsl:value-of select="cpp:comment('Set the union descriminator on set', 1)" />
+                                <xsl:value-of select="cpp:invoke_function('', '', 'set_descriminator', $enum_val, 1)" />
+                                <xsl:value-of select="cpp:nl()" />
+                            </xsl:if>
+                            <xsl:value-of select="cpp:define_variable('', $var_label, 'value', cpp:nl(), 1)" />
                         </xsl:otherwise>
                     </xsl:choose>
                 <xsl:value-of select="cpp:scope_end(0)" />
@@ -1006,25 +1041,41 @@
                 <!-- Define Getter Function -->
                 <xsl:value-of select="cpp:define_function(cpp:const_ref_var_def($cpp_type, ''), $class_name, concat('get_', $label), '', concat(' const', cpp:scope_start(0)))" />
                     <xsl:choose>
-                        <xsl:when test="$kind != 'Attribute'">
-                            <xsl:value-of select="cpp:return($var_label, 1)" />
+                        <xsl:when test="$is_attribute">
+                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($element), '', 0)" />
+                            <xsl:value-of select="cpp:return($get_var, 1)" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($aggregate), '', 0)" />
-                            <xsl:value-of select="cpp:return($get_var, 1)" />
+                            <xsl:if test="$is_union">
+                                <xsl:value-of select="cpp:if_not(o:join_list(($descriminator_var, '==', $enum_val), ' '), cpp:scope_start(0), 1)" />
+                                    <xsl:value-of select="cpp:cerr(o:wrap_dblquote(concat(o:wrap_quote(concat($class_name, '::get_', $label)), ': Descriminator is not set as: ', $enum_val)), 2)" />
+                                <xsl:value-of select="cpp:scope_end(1)" />
+                            </xsl:if>
+                           
+                            <xsl:value-of select="cpp:return($var_label, 1)" />
                         </xsl:otherwise>
                     </xsl:choose>
                 <xsl:value-of select="cpp:scope_end(0)" />
                 <xsl:value-of select="o:nl(1)" />
 
+                <!-- Define Ref Getter Function -->
                 <xsl:value-of select="cpp:define_function(cpp:ref_var_def($cpp_type, ''), $class_name, $label, '', cpp:scope_start(0))" />
                     <xsl:choose>
-                        <xsl:when test="$kind != 'Attribute'">
-                            <xsl:value-of select="cpp:return($var_label, 1)" />
+                        <xsl:when test="$is_attribute">
+                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($element), '', 0)" />
+                            <xsl:value-of select="cpp:return($get_var, 1)" />
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:variable name="get_var" select="cpp:invoke_function($var_label, cpp:arrow(), cdit:get_attribute_ref_function($aggregate), '', 0)" />
-                            <xsl:value-of select="cpp:return($get_var, 1)" />
+                            <xsl:if test="$is_union">
+                                <xsl:value-of select="cpp:if_not(o:join_list(($descriminator_var, '==', $enum_val, cpp:or(), $descriminator_var, '==', $notset_enum_val), ' '), cpp:scope_start(0), 1)" />
+                                    <xsl:value-of select="cpp:cerr(o:wrap_dblquote(concat(o:wrap_quote(concat($class_name, '::', $label)), ': Descriminator is not set as: ', $enum_val)), 2)" />
+                                <xsl:value-of select="cpp:scope_end(1)" />
+
+                                <xsl:value-of select="cpp:comment('Set the union descriminator on set', 1)" />
+                                <xsl:value-of select="cpp:invoke_function('', '', 'set_descriminator', $enum_val, 1)" />
+                                <xsl:value-of select="cpp:nl()" />
+                            </xsl:if>
+                            <xsl:value-of select="cpp:return($var_label, 1)" />
                         </xsl:otherwise>
                     </xsl:choose>
                     <xsl:value-of select="cpp:scope_end(0)" />

@@ -778,4 +778,42 @@
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'if', o:wrap_bracket($condition), $suffix)" />
     </xsl:function>
+
+    <!--
+        Produces a an if statement
+        ie. if(!(${val})(){
+    -->
+    <xsl:function name="cpp:if_not" as="xs:string">
+        <xsl:param name="condition" as="xs:string" />
+        <xsl:param name="suffix" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cpp:if(concat('!', o:wrap_bracket($condition)), $suffix, $tab)" />
+    </xsl:function>
+
+    <!--
+        Produces an and statement for an if
+    -->
+    <xsl:function name="cpp:and" as="xs:string">
+        <xsl:value-of select="concat(o:and(), o:and())" />
+    </xsl:function>
+
+    <!--
+        Produces a or statement for an if
+    -->
+    <xsl:function name="cpp:or" as="xs:string">
+        <xsl:value-of select="'||'" />
+    </xsl:function>
+
+
+    <!--
+        Produces a std::cerr statement
+    -->
+    <xsl:function name="cpp:cerr" as="xs:string">
+        <xsl:param name="message" as="xs:string*"/>
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="pipe" select="concat(' ', o:lt(), o:lt(), ' ')" />
+        
+        <xsl:value-of select="concat(o:t($tab), 'std::cerr', $pipe, o:join_list($message, $pipe), $pipe, 'std::endl', cpp:nl())" />
+    </xsl:function>
 </xsl:stylesheet>
