@@ -1,4 +1,5 @@
 #include "openclexception.h"
+#include "openclutilities.h"
 
 OpenCLException::OpenCLException(std::string message, int opencl_error_code) :
     std::runtime_error(message),
