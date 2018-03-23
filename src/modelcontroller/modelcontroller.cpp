@@ -1364,7 +1364,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
-    if(dependant_kind != NODE_KIND::NONE)[
+    if(dependant_kind != NODE_KIND::NONE){
         //For each child in parent, check to see if any Nodes match Label/Type
         for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
             if(!child->getDefinition()){
@@ -1393,7 +1393,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
                 nodes_matched ++;
             }
         }
-    ]
+    }
     
     return nodes_matched;
 }
@@ -2636,7 +2636,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
-        qCritical() << kind << entity->gete
 
         Node* node = 0;
 
