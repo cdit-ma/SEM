@@ -72,8 +72,15 @@
                     <xsl:if test="cdit:middleware_requires_idl_file($middleware)">
                         <xsl:variable name="idl_file" select="concat($file_label, '.idl')" />
                         <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
-                            <xsl:value-of select="cdit:get_idl_file($aggregate, $middleware)" />
+                            <xsl:value-of select="cdit:get_idl_datatype($aggregate, $middleware)" />
                         </xsl:result-document>
+
+                        <!--<xsl:if test="$middleware = 'tao'">-->
+                            <xsl:variable name="idl_function_file" select="concat($file_label, '_functions.idl')" />
+                            <xsl:result-document href="{o:write_file(($aggregate_path, $idl_function_file))}">
+                                <xsl:value-of select="cdit:get_idl_function($aggregate, $middleware)" />
+                            </xsl:result-document>
+                        <!--<xsl:if test="$middleware = 'tao'">-->
                     </xsl:if>
                 </xsl:if>
 

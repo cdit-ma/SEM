@@ -1124,7 +1124,7 @@
             </xsl:if>
             <xsl:variable name="worker_lib_name" select="graphml:get_data_value(., 'file')" />
             <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
-            <xsl:value-of select="cmake:find_library($worker_lib_name, $worker_lib_var, cmake:get_re_path('lib'), 0)" />
+            <xsl:value-of select="cmake:find_library($worker_lib_var, $worker_lib_name, cmake:get_re_path('lib'), 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', cmake:wrap_variable($worker_lib_var), 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />

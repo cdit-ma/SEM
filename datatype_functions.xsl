@@ -165,7 +165,82 @@
         <xsl:value-of select="cpp:scope_end(0)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_idl_file">
+
+    <xsl:function name="cdit:get_idl_enum">
+        <xsl:param name="enum" />
+        <xsl:param name="tab" />
+           
+        <xsl:variable name="enum_namespace" select="graphml:get_namespace($enum)" />
+        <xsl:variable name="enum_label" select="o:title_case(graphml:get_label($enum))" />
+
+        <xsl:variable name="enum_members" as="xs:string*">
+            
+            <xsl:for-each select="graphml:get_child_nodes_of_kind($enum, 'EnumMember')">
+                <xsl:sequence select="upper-case(graphml:get_label(.))" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="idl:get_enum($enum_namespace, $enum_label, $enum_members, $tab)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_idl_function">
+        <xsl:param name="aggregate" />
+        <xsl:param name="middleware" />
+
+        <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
+        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
+        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
+
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="label" select="o:title_case($aggregate_label)" />
+        <xsl:variable name="tab" select="if ($aggregate_namespace != '') then 1 else 0" />
+
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'FUNCTION_IDL'), '_'))" />
+
+        <!-- Version Number -->
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_function', 0)" />
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
+
+        <!-- Import the definitions of each aggregate instance used -->
+        <xsl:for-each select="$aggregate_definitions">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
+            </xsl:if>
+            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., $middleware)" />
+            <xsl:value-of select="idl:include($required_file)" />
+            
+            <xsl:if test="position() = last()">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:if>
+        </xsl:for-each>
+
+        <xsl:if test="$aggregate_namespace != ''">
+            <xsl:value-of select="idl:module($aggregate_namespace)" />
+        </xsl:if>
+
+        <xsl:variable name="interface_label" select="concat($label, '_Server')" />
+        <xsl:variable name="function_label" select="'send'" />
+
+        <xsl:value-of select="idl:interface($interface_label, $tab)" />
+        <xsl:variable name="args" select="o:join_list(('in', cpp:combine_namespaces(($aggregate_namespace, $label)), 'message'), ' ')" />
+        <xsl:variable name="func_name" select="concat($function_label, o:wrap_bracket($args))" />
+        <xsl:value-of select="concat(o:t($tab + 1 ), o:join_list(('oneway', 'void', $func_name), ' '), cpp:nl())" />
+        <xsl:value-of select="cpp:scope_end($tab)" />
+
+        <xsl:if test="$aggregate_namespace != ''">
+            <xsl:value-of select="cpp:scope_end(0)" />
+        </xsl:if>
+
+        <xsl:value-of select="o:nl(1)" />
+        
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_idl_datatype">
         <xsl:param name="aggregate" />
         <xsl:param name="middleware" />
 
@@ -180,10 +255,12 @@
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
         <xsl:variable name="label" select="o:title_case($aggregate_label)" />
 
-        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'IDL'), '_'))" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
+
+        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'DATATYPE_IDL'), '_'))" />
 
         <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_file', 0)" />
+        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_datatype', 0)" />
 
         <!-- Define Guard -->
         <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
@@ -193,7 +270,7 @@
             <xsl:if test="position() = 1">
                 <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
             </xsl:if>
-            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., 'rti')" />
+            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., $middleware)" />
             <xsl:value-of select="idl:include($required_file)" />
             
             <xsl:if test="position() = last()">
@@ -204,42 +281,11 @@
         <!-- Declare the enums used, need to define guard them for multiple includes -->
         <xsl:for-each select="$enums">
             <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Declare enums', 0)" />
+                <xsl:value-of select="cpp:comment('Define Enumerations', 0)" />
             </xsl:if>
-           
-            <xsl:variable name="enum_namespace" select="graphml:get_namespace(.)" />
-            <xsl:variable name="enum_label" select="o:title_case(graphml:get_label(.))" />
-            <xsl:variable name="enum_guard_name" select="upper-case(o:join_list(($enum_namespace, $enum_label), '_'))" />
-
-            <!-- Define Guard -->
-            <xsl:value-of select="cpp:define_guard_start($enum_guard_name)" />
-
-
-            <xsl:variable name="tab" select="if($enum_namespace = '') then 0 else 1" />
-
-
-             <xsl:if test="$enum_namespace != ''">
-                <xsl:value-of select="idl:module($enum_namespace)" />
-            </xsl:if>
-
-            <xsl:value-of select="idl:enum($enum_label, $tab)" />
-
             
+            <xsl:value-of select="cdit:get_idl_enum(., 0)" />
 
-            <xsl:for-each select="graphml:get_child_nodes_of_kind(., 'EnumMember')">
-                <xsl:variable name="member_label" select="upper-case(graphml:get_label(.))" />
-                <xsl:value-of select="idl:enum_value($member_label, position() = last(), $tab + 1)" />
-            </xsl:for-each>
-
-            <xsl:value-of select="cpp:scope_end($tab)" />
-
-            <xsl:if test="$enum_namespace != ''">
-                <xsl:value-of select="cpp:scope_end(0)" />
-            </xsl:if>
-
-            <!-- Define Guard -->
-            <xsl:value-of select="cpp:define_guard_end($enum_guard_name)" />
-            
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>
@@ -250,6 +296,33 @@
         <xsl:if test="$aggregate_namespace != ''">
             <xsl:value-of select="idl:module($aggregate_namespace)" />
         </xsl:if>
+
+
+        <xsl:choose>
+            <xsl:when test="$is_union">
+                <xsl:value-of select="cdit:get_idl_union($aggregate, $tab)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:get_idl_struct($aggregate, $tab)" />
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:if test="$aggregate_namespace != ''">
+            <xsl:value-of select="cpp:scope_end(0)" />
+        </xsl:if>
+
+        <!-- Define Guard -->
+        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_idl_struct">
+        <xsl:param name="aggregate" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:variable name="label" select="o:title_case($aggregate_label)" />
+        
 
         <xsl:value-of select="idl:struct($label, $tab)" />
         
@@ -297,7 +370,109 @@
         
         <xsl:value-of select="cpp:scope_end($tab)" />
 
+        <!-- Set the pragma of the keys -->
+        <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+            <xsl:variable name="is_key" select="graphml:is_key(.)" />
+            <xsl:variable name="child_label" select="lower-case(graphml:get_label(.))" />
+            <xsl:if test="$is_key">
+                <xsl:value-of select="idl:key_pragma($label, $child_label, $tab)" />
+            </xsl:if>
+        </xsl:for-each>
 
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_union_descriminator_case">
+        <xsl:param name="union_member" as="element()" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:choose>
+            <xsl:when test="lower-case($middleware) = 'base'">
+                <xsl:variable name="parent_node" select="graphml:get_parent_node($union_member)" />
+                <xsl:variable name="aggregate_type" select="cpp:get_aggregate_qualified_type($parent_node, $middleware)" />
+                <xsl:variable name="descriminator_enum_type" select="cdit:get_union_descrimantor_type($parent_node)" />
+                <xsl:variable name="case_label" select="upper-case(graphml:get_label($union_member))" />
+                <xsl:value-of select="cpp:combine_namespaces(($aggregate_type, $descriminator_enum_type, $case_label))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="case_label" select="cdit:get_idl_union_case($union_member)" />
+                <xsl:value-of select="cpp:combine_namespaces(($case_label))" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_idl_union_enum_name">
+        <xsl:param name="aggregate" />
+
+        <xsl:variable name="aggregate_label" select="o:title_case(graphml:get_label($aggregate))" />
+        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        <xsl:value-of select="o:join_list(($aggregate_namespace, $aggregate_label, 'Descriminator'), '_')" />
+    </xsl:function>
+    
+    <xsl:function name="cdit:get_idl_union_prefix">
+        <xsl:param name="aggregate" />
+        <xsl:value-of select="upper-case(cdit:get_idl_union_enum_name($aggregate))" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_idl_union_case">
+        <xsl:param name="union_member" />
+
+        <xsl:variable name="aggregate" select="graphml:get_parent_node($union_member)" />
+        
+        <xsl:variable name="enum_val_prefix" select="cdit:get_idl_union_prefix($aggregate)" />
+        <xsl:variable name="member_label" select="upper-case(graphml:get_label($union_member))" />
+
+        <xsl:value-of select="o:join_list(($enum_val_prefix, $member_label), '_')" />
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_idl_union">
+        <xsl:param name="aggregate" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="label" select="o:title_case(graphml:get_label($aggregate))" />
+        <xsl:variable name="enum_label" select="cdit:get_idl_union_enum_name($aggregate)" />
+        <xsl:variable name="enum_val_prefix" select="cdit:get_idl_union_prefix($aggregate)" />
+
+
+        <xsl:variable name="enum_members" as="xs:string*">
+            <xsl:variable name="unset_label" select="o:join_list(($enum_val_prefix, 'UNSET'), '_')" />
+            <xsl:sequence select="$unset_label" />
+            <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+                <xsl:sequence select="cdit:get_idl_union_case(.)" />
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:value-of select="idl:get_enum('', $enum_label, $enum_members, $tab)" />
+
+        <xsl:value-of select="idl:union($label, $enum_label, $tab)" />
+            <xsl:for-each select="graphml:get_child_nodes($aggregate)">
+                <xsl:variable name="kind" select="graphml:get_kind(.)" />
+                <xsl:variable name="index" select="graphml:get_index(.) + 1" />
+                <xsl:variable name="label" select="lower-case(graphml:get_label(.))" />
+                <xsl:variable name="type" select="graphml:get_type(.)" />
+                <xsl:variable name="is_key" select="graphml:is_key(.)" />
+
+                <xsl:variable name="enum_val" select="upper-case(o:join_list(($enum_val_prefix, $label), '_'))" />
+                
+
+                <xsl:choose>    
+                    <xsl:when test="$kind = 'Member'">
+                        <xsl:variable name="cpp_type" select="cpp:get_primitive_type($type)" />
+                        <xsl:variable name="idl_type" select="idl:get_type($cpp_type)" />
+                        <xsl:value-of select="idl:union_member($enum_val, $idl_type, $label, $tab + 1)" />
+                    </xsl:when>
+                    <xsl:when test="$kind = 'EnumInstance'">
+                        <xsl:variable name="idl_type" select="idl:get_aggregate_qualified_type(graphml:get_definition(.))" />
+                        <xsl:value-of select="idl:union_member($enum_val, $idl_type, $label, $tab + 1)" />
+                    </xsl:when>
+                    <xsl:when test="$kind = 'AggregateInstance'">
+                        <xsl:variable name="idl_type" select="idl:get_aggregate_qualified_type(graphml:get_definition(.))" />
+                        <xsl:value-of select="idl:union_member($enum_val, $idl_type, $label, $tab + 1)" />
+                    </xsl:when>
+                </xsl:choose>
+            </xsl:for-each>
+        <xsl:value-of select="cpp:scope_end($tab)" />
 
         <!-- Set the pragma of the keys -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
@@ -308,21 +483,14 @@
             </xsl:if>
         </xsl:for-each>
 
-        <xsl:if test="$middleware = 'tao'">
-            <xsl:value-of select="o:nl(1)" />
-            <xsl:value-of select="idl:interface($label, $tab)" />
-            <xsl:variable name="args" select="o:join_list(('in', cpp:combine_namespaces(($aggregate_namespace, $aggregate_label)), 'message'), ' ')" />
-            <xsl:variable name="func_name" select="concat('send', o:wrap_bracket($args))" />
-            <xsl:value-of select="concat(o:t($tab + 1 ), o:join_list(('oneway', 'void', $func_name), ' '), cpp:nl())" />
-            <xsl:value-of select="cpp:scope_end($tab)" />
-        </xsl:if>
+        <xsl:value-of select="o:nl(1)" />
+    </xsl:function>
 
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="cpp:scope_end(0)" />
-        </xsl:if>
+    <xsl:function name="cdit:get_idl_file">
+        <xsl:param name="aggregate" />
+        <xsl:param name="middleware" />
 
-        <!-- Define Guard -->
-        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
+        
     </xsl:function>
 
 
@@ -1166,40 +1334,80 @@
         <xsl:value-of select="cpp:scope_end($tab)" />
     </xsl:function>
 
+    <xsl:function name="cdit:get_middleware_union_descriminator_function">
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware_lc = 'base'">
+                <xsl:value-of select="'get_descriminator'" />
+            </xsl:when>
+            <xsl:when test="$middleware_lc = 'tao'">
+                <xsl:value-of select="'_d'" />
+            </xsl:when>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="cdit:get_translate_function_cpp">
         <xsl:param name="aggregate" />
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="source_middleware" as="xs:string" />
         <xsl:param name="target_middleware" as="xs:string" />
 
-        <xsl:variable name="tab" select="2" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($aggregate, 'is_union')" />
         <xsl:variable name="target_type" select="cpp:get_aggregate_qualified_type($aggregate, $target_middleware)" />
+
+        <xsl:variable name="tab" select="2" />
 
         <xsl:value-of select="cpp:define_variable('auto', 'out', cpp:new_object($target_type, ''), cpp:nl(), $tab)" />
 
+
+        <xsl:variable name="get_descrim" select="concat('value.', cdit:get_middleware_union_descriminator_function($source_middleware), '()')" />
+
+        
+        <xsl:if test="$is_union">
+            <xsl:value-of select="cpp:switch($get_descrim, $tab)" />
+        </xsl:if>
 
         <!-- Handle the children of the aggregate -->
         <xsl:for-each select="graphml:get_child_nodes($aggregate)">
             <xsl:variable name="kind" select="graphml:get_kind(.)" />
 
+            <xsl:variable name="interior_tab" select="if($is_union) then $tab + 1 else $tab" />
+
+            <xsl:if test="$is_union">
+                <xsl:variable name="enum_case" select="cdit:get_union_descriminator_case(., $source_middleware)" />
+
+                <xsl:value-of select="cpp:switch_case($enum_case, $tab)" />
+            </xsl:if>
+
             <xsl:choose>    
                 <xsl:when test="$kind = 'Member'">
-                    <xsl:value-of select="cdit:translate_member(., $middleware, $source_middleware, $target_middleware, $tab)" />
+                    <xsl:value-of select="cdit:translate_member(., $middleware, $source_middleware, $target_middleware, $interior_tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
-                    <xsl:value-of select="cdit:translate_enum_instance(., $middleware, $source_middleware, $target_middleware, $tab)" />
+                    <xsl:value-of select="cdit:translate_enum_instance(., $middleware, $source_middleware, $target_middleware, $interior_tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'AggregateInstance'">
-                    <xsl:value-of select="cdit:translate_aggregate_instance(., $middleware, $source_middleware, $target_middleware, $tab)" />
+                    <xsl:value-of select="cdit:translate_aggregate_instance(., $middleware, $source_middleware, $target_middleware, $interior_tab)" />
                 </xsl:when>
                 <xsl:when test="$kind = 'Vector'">
-                    <xsl:value-of select="cdit:translate_vector(., $middleware, $source_middleware, $target_middleware, $tab)" />
+                    <xsl:value-of select="cdit:translate_vector(., $middleware, $source_middleware, $target_middleware, $interior_tab)" />
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="cpp:comment(('Kind ', o:wrap_quote($kind), 'Not implemented!'), $tab)" />
+                    <xsl:value-of select="cpp:comment(('Kind ', o:wrap_quote($kind), 'Not implemented!'), $interior_tab)" />
                 </xsl:otherwise>
             </xsl:choose>
+
+            <xsl:if test="$is_union">
+                <xsl:value-of select="cpp:scope_end($tab)" />
+            </xsl:if>
         </xsl:for-each>
+
+        <xsl:if test="$is_union">
+            <xsl:value-of select="cpp:scope_end($tab)" />
+        </xsl:if>
 
         <xsl:value-of select="cpp:return('out', $tab)" />
     </xsl:function>

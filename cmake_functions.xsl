@@ -79,8 +79,8 @@
         find_library(${libary_variable} ${library_name} "${library_path}")
     -->
     <xsl:function name="cmake:find_library">
-        <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="libary_variable" as="xs:string" />
+        <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="library_path" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 

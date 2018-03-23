@@ -39,10 +39,6 @@
         </xsl:choose>
     </xsl:function>
 
-    
-
-    
-
     <xsl:function name="cmake:find_middleware_package">
         <xsl:param name="middleware" />
         
@@ -97,7 +93,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
 
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base'">
+            <xsl:when test="$middleware_lc = 'proto' or $middleware_lc = 'base' or $middleware_lc = 'tao'">
                 <xsl:value-of select="false()" />
             </xsl:when>
             <xsl:otherwise>

@@ -164,8 +164,10 @@
         <xsl:param name="node" as="element()" />
         <xsl:param name="middleware" as="xs:string" />
 
-    
-        <xsl:variable name="kind" select="graphml:get_kind($node)" />        
+        <xsl:variable name="parent_node" select="graphml:get_parent_node($node)" />
+        <xsl:variable name="kind" select="graphml:get_kind($node)" />
+        <xsl:variable name="node_type" select="graphml:get_type($node)" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($parent_node, 'is_union')" />
 
         <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($node, $middleware)" />
         <xsl:variable name="function_name">
@@ -205,12 +207,24 @@
             </xsl:choose>
         </xsl:variable>
 
+        <xsl:variable name="value">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'tao' and $is_union = false() ">
+                    <xsl:value-of select="concat($obj, $operator, $function_name)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '', 0)" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
         <xsl:choose>
-            <xsl:when test="$middleware = 'tao'">
-                <xsl:value-of select="concat($obj, $operator, $function_name)" />
+            <xsl:when test="$middleware = 'tao' and $node_type = 'String'">
+                <!-- String wrap corba strings -->
+                <xsl:value-of select="concat('std::string(', $value, ')')" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, '', 0)" />
+                <xsl:value-of select="$value" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -292,8 +306,22 @@
         <xsl:param name="value" as="xs:string" />
 
         <xsl:variable name="node_kind" select="graphml:get_kind($node)" />
-        
+        <xsl:variable name="node_type" select="graphml:get_type($node)" />
+        <xsl:variable name="parent_node" select="graphml:get_parent_node($node)" />
+        <xsl:variable name="is_union" select="graphml:evaluate_data_value_as_boolean($parent_node, 'is_union')" />
+
         <xsl:variable name="variable_syntax" select="cdit:get_middleware_variable_syntax($node, $middleware)" />
+
+        <xsl:variable name="resolved_value">
+            <xsl:choose>
+                <xsl:when test="$middleware = 'tao' and $node_type = 'String'">
+                    <xsl:value-of select="concat($value, '.c_str()')" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$value" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
         <xsl:variable name="function_name">
             <xsl:choose>
@@ -325,20 +353,12 @@
             </xsl:choose>
         </xsl:variable>
 
-        <!--<xsl:choose>
-            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
-                <xsl:value-of select="concat(cpp:invoke_function($obj, $operator, $function_name, '', 0), ' = ', $value)" />
-            </xsl:when>
-            <xsl:otherwise>
-            </xsl:otherwise>
-        </xsl:choose>-->
-
         <xsl:choose>
-            <xsl:when test="$middleware = 'tao'">
-                <xsl:value-of select="concat($obj, $operator, $function_name, ' = ', $value)" />
+            <xsl:when test="$middleware = 'tao' and $is_union = false()">
+                <xsl:value-of select="concat($obj, $operator, $function_name, ' = ', $resolved_value)" />
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $value, 0)" />
+                <xsl:value-of select="cpp:invoke_function($obj, $operator, $function_name, $resolved_value, 0)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -456,6 +476,8 @@
         <xsl:param name="middleware" as="xs:string" />
 
         <xsl:variable name="aggregate_label" select="cdit:get_aggregate_file_prefix($aggregate, $middleware)" />
+
+      
         <xsl:variable name="middleware_extension" select="cdit:get_middleware_extension($middleware)" />
 
         <xsl:value-of select="o:join_list(($aggregate_label, $middleware_extension), '.')" />
@@ -467,7 +489,7 @@
         <xsl:variable name="middleware_lc" select="lower-case($middleware)" />
         
         <xsl:choose>
-            <xsl:when test="$middleware_lc = 'rti' or $middleware_lc = 'ospl'">
+            <xsl:when test="$middleware_lc = 'rti' or $middleware_lc = 'ospl' or $middleware_lc = 'tao'">
                 <xsl:value-of select="'idl'" />
             </xsl:when>
             <xsl:when test="$middleware_lc = 'proto'">
@@ -549,18 +571,7 @@
 
     <xsl:function name="cpp:get_aggregate_type_name" as="xs:string">
         <xsl:param name="aggregate_inst" as="element()" />
-        <!--
-        <xsl:param name="middleware" as="xs:string" />
-        <xsl:choose>
-            <xsl:when test="$middleware = 'base'">
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="namespace" select="o:title_case(graphml:get_namespace($aggregate))" />
-                <xsl:value-of select="o:join_list($namespace, $label), '_')" />
-            </xsl:otherwise>
-        </xsl:choose>
         
-        -->
         <xsl:variable name="aggregate" select="graphml:get_definition($aggregate_inst)" />
         <xsl:variable name="label" select="o:title_case(graphml:get_label($aggregate))" />
         <xsl:value-of select="$label" />
@@ -573,7 +584,10 @@
         <xsl:variable name="aggregate" select="graphml:get_definition($aggregate_inst)" />
 
         <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
+        
+
         <xsl:variable name="aggregate_label" select="cpp:get_aggregate_type_name($aggregate)" />
+
         
         <xsl:variable name="extra_namespace" as="xs:string*">
             <xsl:if test="$middleware = 'base'">
@@ -942,6 +956,10 @@
         <xsl:value-of select="concat(o:title_case($label), 'Descriminator')" />
     </xsl:function>
 
+    
+
+    
+
     <xsl:function name="cdit:declare_union_functions">
         <xsl:param name="aggregate" as="element()" />
         <xsl:param name="tab" as="xs:integer" />
@@ -967,7 +985,7 @@
         </xsl:for-each>
         <xsl:value-of select="cpp:scope_end($tab + 1)" />
         
-        <xsl:value-of select="cpp:declare_function($descriminator_type, 'get_descriminator', '', ';', $tab + 1)" />
+        <xsl:value-of select="cpp:declare_function($descriminator_type, 'get_descriminator', '', ' const;', $tab + 1)" />
 
         <!-- Protected Declarations -->
         <xsl:value-of select="cpp:protected($tab)" />
@@ -988,7 +1006,7 @@
         <xsl:variable name="descriminator_var" select="'descriminator_'" />
 
         <!-- Getter -->
-        <xsl:value-of select="cpp:define_function($descriminator_type, $class_name, 'get_descriminator', '', cpp:scope_start(0))" />
+        <xsl:value-of select="cpp:define_function($descriminator_type, $class_name, 'get_descriminator', '', concat(' const', cpp:scope_start(0)))" />
         <xsl:value-of select="cpp:return($descriminator_var, 1)" />
         <xsl:value-of select="cpp:scope_end(0)" />
         <xsl:value-of select="o:nl(1)" />
@@ -997,6 +1015,7 @@
         <xsl:value-of select="cpp:define_function('void', $class_name, 'set_descriminator', o:join_list(($descriminator_type, 'descriminator'), ' '), cpp:scope_start(0))" />
         <xsl:value-of select="cpp:define_variable('', $descriminator_var, 'descriminator', cpp:nl(), 1)" />
         <xsl:value-of select="cpp:scope_end(0)" />
+        <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
     <xsl:function name="cdit:define_datatype_functions">
