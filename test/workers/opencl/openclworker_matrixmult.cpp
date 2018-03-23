@@ -43,9 +43,9 @@ std::ostream& operator<<(std::ostream& os, const MatrixMultParam& m) {
     return os << m.device << " - Matrix A: " << m.matrix_a << " x Matrix B: " << m.matrix_b;
 };
 
-class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, public OpenCLWorkerConstructor{
+class MatrixMultFixture: public ::testing::TestWithParam<MatrixMultParam>, public OpenCL_WorkerConstructor{
     public:
-        MatrixMultFixture() : OpenCLWorkerConstructor(GetParam().device){
+        MatrixMultFixture() : OpenCL_WorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
                 throw std::runtime_error("Failed to configure worker in MatrixMultFixture constructor");
             }
@@ -227,9 +227,9 @@ INSTANTIATE_TEST_CASE_P(Rectangle, MatrixMultFixture, ::testing::ValuesIn(getRec
 
 
 /*
-class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCLWorkerConstructor{
+class RunParallelFixture: public ::testing::TestWithParam<RunParallelParam>, public OpenCL_WorkerConstructor{
     public:
-        RunParallelFixture() : OpenCLWorkerConstructor(GetParam().device){
+        RunParallelFixture() : OpenCL_WorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
                 HasFatalFailure();
             }

@@ -45,11 +45,11 @@ struct DeviceParam{
 
 
 
-class OpenCLWorkerConstructor{
+class OpenCL_WorkerConstructor{
     public:
-        OpenCLWorkerConstructor(DeviceParam device):
+        OpenCL_WorkerConstructor(DeviceParam device):
             component_("component"),
-            worker_(component_, "openclworker")
+            worker_(component_, "OpenCL_Worker")
         {
             auto platform_attr = worker_.GetAttribute("platform_id").lock();
             if (platform_attr) {
@@ -61,7 +61,7 @@ class OpenCLWorkerConstructor{
             }
         }
         Component component_;
-        OpenCLWorker worker_;
+        OpenCL_Worker worker_;
 };
 
 

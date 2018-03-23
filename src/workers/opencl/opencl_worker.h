@@ -1,5 +1,5 @@
-#ifndef OPENCLWORKER_H
-#define OPENCLWORKER_H
+#ifndef OpenCL_Worker_H
+#define OpenCL_Worker_H
 
 #include <core/worker.h>
 #include "openclmanager.h"
@@ -7,10 +7,10 @@
 #include "openclkernel.hpp"
 #include "openclloadbalancer.h"
 
-class OpenCLWorker : public Worker {
+class OpenCL_Worker : public Worker {
 public:
-    OpenCLWorker(const Component& component, std::string inst_name);
-    ~OpenCLWorker();
+    OpenCL_Worker(const Component& component, std::string inst_name);
+    ~OpenCL_Worker();
 
     bool Configure();
     bool IsValid() const;
@@ -57,7 +57,7 @@ private:
 
 
 template <typename T>
-OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
+OCLBuffer<T>* OpenCL_Worker::CreateBuffer(std::vector<T> data, bool blocking) {
     OCLBuffer<T>* new_buffer = manager_->CreateBuffer<T>(*this, data.size());
     /*for (const auto& dev_wrapper : devices_) {
         new_buffer->WriteData(data, dev_wrapper.get(), blocking, this);
@@ -67,12 +67,12 @@ OCLBuffer<T>* OpenCLWorker::CreateBuffer(std::vector<T> data, bool blocking) {
 }
 
 template <typename T>
-void OpenCLWorker::ReleaseBuffer(OCLBuffer<T>* buffer) {
+void OpenCL_Worker::ReleaseBuffer(OCLBuffer<T>* buffer) {
     return manager_->ReleaseBuffer(*this, buffer);
 }
 
 template <typename T>
-bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
+bool OpenCL_Worker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot write to buffer when worker has no associated devices");
@@ -97,7 +97,7 @@ bool OpenCLWorker::WriteBuffer(OCLBuffer<T>& buffer, const std::vector<T>& data,
 }
 
 template <typename T>
-std::vector<T> OpenCLWorker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
+std::vector<T> OpenCL_Worker::ReadBuffer(const OCLBuffer<T>& buffer, bool blocking) {
     if (devices_.size() == 0) {
         Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
             "Cannot read from buffer when worker has no associated devices");

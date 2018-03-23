@@ -6,7 +6,7 @@
 
 #include <exception>
 
-OpenCLWorker::OpenCLWorker(const Component& component, std::string inst_name)
+OpenCL_Worker::OpenCL_Worker(const Component& component, std::string inst_name)
     : Worker(component, __func__, inst_name) {
     
     platform_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "platform_id").lock();
@@ -20,11 +20,11 @@ OpenCLWorker::OpenCLWorker(const Component& component, std::string inst_name)
     }
 }
 
-OpenCLWorker::~OpenCLWorker() {
+OpenCL_Worker::~OpenCL_Worker() {
     
 }
 
-bool OpenCLWorker::Configure() {
+bool OpenCL_Worker::Configure() {
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();
@@ -68,11 +68,11 @@ bool OpenCLWorker::Configure() {
     return true;
 }
 
-bool OpenCLWorker::IsValid() const {
+bool OpenCL_Worker::IsValid() const {
     return is_valid_;
 }
 
-bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
+bool OpenCL_Worker::RunParallel(int num_threads, long long ops_per_thread) {
     bool success = false;
 
     auto device_id = load_balancer_->RequestDevice();
@@ -96,7 +96,7 @@ bool OpenCLWorker::RunParallel(int num_threads, long long ops_per_thread) {
     return success;
 }
 
-bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC) {
+bool OpenCL_Worker::MatrixMult(const std::vector<float>& matA, const std::vector<float>& matB, std::vector<float>& matC) {
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
 
@@ -119,7 +119,7 @@ bool OpenCLWorker::MatrixMult(const std::vector<float>& matA, const std::vector<
     return success;
 }
 
-bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC, OpenCLDevice& device) {
+bool OpenCL_Worker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<float>& matB, OCLBuffer<float>& matC, OpenCLDevice& device) {
     cl_uint lenA = (cl_uint)matA.GetNumElements();
     cl_uint lenB = (cl_uint)matB.GetNumElements();
     cl_uint lenC = (cl_uint)matC.GetNumElements();
@@ -128,7 +128,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
     if (lenA == 0 || lenB == 0 || lenC == 0) {
         if (lenA + lenB + lenC == 0) {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
-                "OpenCLWorker::MatrixMult(): warning: performing multiplication on empty matrices");
+                "OpenCL_Worker::MatrixMult(): warning: performing multiplication on empty matrices");
             return false;
         } else {
             Log(__func__, ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), 
@@ -194,7 +194,7 @@ bool OpenCLWorker::MatrixMult(const OCLBuffer<float>& matA, const OCLBuffer<floa
 }
 
 
-bool OpenCLWorker::KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations) {
+bool OpenCL_Worker::KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations) {
     auto point_buffer = CreateBuffer(points);
     auto centroid_buffer = CreateBuffer(centroids);
     auto classification_buffer = CreateBuffer(point_classifications, true);
@@ -209,7 +209,7 @@ bool OpenCLWorker::KmeansCluster(const std::vector<float>& points, std::vector<f
     return true;
 }
 
-bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
+bool OpenCL_Worker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations) {
     
     auto device_id = load_balancer_->RequestDevice();
     auto& device = manager_->GetDevices(*this)[device_id];
@@ -336,12 +336,12 @@ bool OpenCLWorker::KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float
     return true;
 }
 
-void OpenCLWorker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args) {
-    Worker::Log("OpenCLWorker::"+function_name, event, work_id, args);
-    std::cerr << "OpenCLWorker::" << function_name << ", " << args << std::endl;
+void OpenCL_Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args) {
+    Worker::Log("OpenCL_Worker::"+function_name, event, work_id, args);
+    std::cerr << "OpenCL_Worker::" << function_name << ", " << args << std::endl;
 }
 
-OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
+OpenCLKernel* OpenCL_Worker::InitKernel(OpenCLManager& manager, std::string kernel_name, std::string source_file) {
     std::vector<std::string> filenames;
     filenames.push_back(source_file);
 
@@ -365,7 +365,7 @@ OpenCLKernel* OpenCLWorker::InitKernel(OpenCLManager& manager, std::string kerne
     return NULL;
 }
 
-OpenCLKernel& OpenCLWorker::GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file) {
+OpenCLKernel& OpenCL_Worker::GetKernel(OpenCLDevice& device, const std::string& kernel_name, const std::string& source_file) {
     for (auto& kernel_wrapper : device.GetKernels()) {
         auto& kernel = kernel_wrapper.get();
         if (kernel.GetName() == kernel_name) {

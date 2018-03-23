@@ -20,9 +20,9 @@ std::ostream& operator<<(std::ostream& os, const BufferParam<T>& bp) {
 template <typename T>
 class BufferFixture:
     public ::testing::TestWithParam<BufferParam<T> >,
-    public OpenCLWorkerConstructor {
+    public OpenCL_WorkerConstructor {
 public:
-    BufferFixture() : OpenCLWorkerConstructor(::testing::TestWithParam<BufferParam<T> >::GetParam().device){
+    BufferFixture() : OpenCL_WorkerConstructor(::testing::TestWithParam<BufferParam<T> >::GetParam().device){
         if(!worker_.Configure()) {
             throw std::runtime_error("Failed to configure worker in BufferFixture constructor");
         }
@@ -35,7 +35,7 @@ typedef BufferFixture<int> IntFixture;
 typedef BufferFixture<double> DoubleFixture;
 
 template <typename T>
-void BufferTest(OpenCLWorker& worker_, const BufferParam<T> bf){
+void BufferTest(OpenCL_Worker& worker_, const BufferParam<T> bf){
     //Create buffer
     OCLBuffer<T>* buffer = worker_.CreateBuffer(bf.data, true);
     //Check for construct

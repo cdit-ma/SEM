@@ -48,9 +48,9 @@ std::ostream& operator<<(std::ostream& os, const KMeansParam& kmp) {
 
 class KMeansFixture:
     public ::testing::TestWithParam<KMeansParam>,
-    public OpenCLWorkerConstructor {
+    public OpenCL_WorkerConstructor {
 public:
-    KMeansFixture() : OpenCLWorkerConstructor(GetParam().device) {
+    KMeansFixture() : OpenCL_WorkerConstructor(GetParam().device) {
         if(!worker_.Configure()) {
             throw std::runtime_error("Failed to configure worker in KMeansFixture constructor");
         }
