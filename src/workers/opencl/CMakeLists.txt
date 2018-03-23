@@ -52,6 +52,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclloadbalancer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.cpp
     )
 
 set(HEADERS
