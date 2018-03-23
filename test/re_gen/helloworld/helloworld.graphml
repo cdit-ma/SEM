@@ -17,7 +17,7 @@
 	<key attr.name="value" attr.type="string" id="27"/>
 	<key attr.name="worker" attr.type="string" id="28"/>
 	<key attr.name="folder" attr.type="string" id="29"/>
-	<key attr.name="file" attr.type="string" id="30"/>
+	<key attr.name="file" attr.type="string" id="30"/> 
 	<key attr.name="icon" attr.type="string" id="31"/>
 	<key attr.name="icon_prefix" attr.type="string" id="32"/>
 	<key attr.name="operation" attr.type="string" id="33"/>

@@ -13,7 +13,7 @@ module Test
 		long time;
 		string inst_name;
 		long long_bois[25];
-			UnionEnum test;
+		UnionEnum test;
 		//sequence<long, 50> long_bois; 
 	};
 
