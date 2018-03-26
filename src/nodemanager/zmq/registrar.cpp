@@ -50,7 +50,6 @@ bool zmq::Registrar::RegistrationLoop(const std::string& endpoint){
         const auto& slave_addr_str = zmq::Zmq2String(slave_addr);
 
         //Send the startup response
-
         const auto& slave_startup_pb = execution_manager_->GetSlaveStartupMessage(slave_addr_str);
         socket.send(Proto2Zmq(slave_startup_pb));
 

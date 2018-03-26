@@ -46,7 +46,7 @@ void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
 }
 
 void Environment::DeclusterNode(NodeManager::Node& node){
-    //TODO: change this to have 2nd mode for distribution
+    //TODO: change this to have 2nd mode for distribution (reflecting components running on nodes from other experiments)
     if(node.type() == NodeManager::Node::HARDWARE_CLUSTER || node.type() == NodeManager::Node::DOCKER_CLUSTER){
         std::queue<NodeManager::Component> component_queue;
         for(int i = 0; i < node.components_size(); i++){
@@ -161,7 +161,7 @@ std::vector<std::string> Environment::GetPublisherAddress(const std::string& mod
         for(auto id : publisher_port_ids){
             auto node_id = experiment->port_map_[id].node_id;
             auto port_assigned_port = experiment->port_map_[id].port_number;
-            publisher_addresses.push_back(experiment->node_address_map_[node_id] + ":" + port_assigned_port);
+            publisher_addresses.push_back("tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port);
         }
     }
 
@@ -169,7 +169,7 @@ std::vector<std::string> Environment::GetPublisherAddress(const std::string& mod
     else if(port.kind() == NodeManager::EventPort::OUT_PORT){
         auto node_id = experiment->port_map_[port.info().id()].node_id;
         auto port_assigned_port = experiment->port_map_[port.info().id()].port_number;
-        publisher_addresses.push_back(experiment->node_address_map_[node_id] + ":" + port_assigned_port);
+        publisher_addresses.push_back("tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port);
     }
     return publisher_addresses;
 }

@@ -233,7 +233,7 @@ bool ProtobufModelParser::Process(){
             component_pb->set_replicate_id(i);
             auto component_info_pb = component_pb->mutable_info();
             component_info_pb->set_id(component_uid);
-            std::string component_name = graphml_parser_->GetDataValue(component_id, "label");
+            std::string component_name = graphml_parser_->GetDataValue(component_id, "label") + unique_id;
             component_info_pb->set_name(component_name);
             component_info_pb->set_type(graphml_parser_->GetDataValue(component_id, "type"));
 
@@ -254,7 +254,7 @@ bool ProtobufModelParser::Process(){
             //Find all ports in/out of component instance
             auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", component_id);
             auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
-            auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", component_id);
+            auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", GetImplId(component_id));
             port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
             port_ids.insert(port_ids.end(), periodic_ids.begin(), periodic_ids.end());
 
@@ -322,6 +322,9 @@ bool ProtobufModelParser::Process(){
                         std::cerr << "Could not parse periodic event port frequency " << ex.what() << std::endl;
                     }
                 }
+            }
+            for(const auto& periodic_id : periodic_ids){
+
             }
             component_replications_[component_id].push_back(component_pb);
         }

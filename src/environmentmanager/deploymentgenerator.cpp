@@ -28,16 +28,16 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
     }
 
     //Hit bottom level sub node, or finished populating all subnodes. Fill this current node
-
-
     for(auto& component : *node.mutable_components()){
         for(auto& port : *component.mutable_ports()){
-            auto& rule = GetDeploymentRule(MapMiddleware(port.middleware()));
-            try{
-                rule.ConfigureEventPort(control_message, port);
-            }
-            catch(std::exception& ex){
-                std::cerr << ex.what() << std::endl;
+            if(port.kind() != NodeManager::EventPort::PERIODIC_PORT){
+                auto& rule = GetDeploymentRule(MapMiddleware(port.middleware()));
+                try{
+                    rule.ConfigureEventPort(control_message, port);
+                }
+                catch(std::exception& ex){
+                    std::cerr << ex.what() << std::endl;
+                }
             }
         }
     }

@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include <vector>
 #include <google/protobuf/message_lite.h>
+#include "executionparser/protobufmodelparser.h"
+#include "environmentmanager/environment.h"
+
 
 #include "controlmessage/controlmessage.pb.h"
 
@@ -32,7 +35,6 @@ class ExecutionManager{
         const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);
         bool HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response);
         
-        std::string GetSlaveNameFromAddress(const std::string& slave_address);
         std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
         bool IsValid();
     private:
@@ -48,17 +50,23 @@ class ExecutionManager{
         void TriggerExecution(bool execute);
 
         bool ConstructControlMessages();
+        void ConfigureNode(const NodeManager::Node& node);
+        bool PopulateDeployment();
 
         std::mutex mutex_;
         std::string master_endpoint_;
 
         std::thread* execution_thread_ = 0;
 
-        std::unordered_map<std::string, NodeManager::ControlMessage*> deployment_map_;
+        NodeManager::ControlMessage* deployment_message_;
+
+        std::unordered_map<std::string, NodeManager::Node> deployment_map_;
 
         std::mutex execution_mutex_;
         std::condition_variable execution_lock_condition_;
         bool terminate_flag_ = false;
+
+        bool local_mode_ = true;
         
         bool finished_ = false;
         bool parse_succeed_ = false;
@@ -67,6 +75,7 @@ class ExecutionManager{
         
         zmq::ProtoWriter* proto_writer_;
         Graphml::ModelParser* model_parser_;
+        ProtobufModelParser* protobuf_model_parser_;
 
         
         std::unordered_map<std::string, SlaveState> slave_states_;

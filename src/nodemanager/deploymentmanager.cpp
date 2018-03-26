@@ -53,7 +53,7 @@ NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager:
 
     //Setup our subscriber
     {
-         if(subscriber_){
+        if(subscriber_){
              if(!subscriber_->Connect(startup.publisher_address())){
                  slave_response.add_error_codes("Subscriber couldn't connect to: '" + startup.publisher_address() + "'");
                  success = false;
@@ -115,8 +115,6 @@ void DeploymentManager::GotControlMessage(const NodeManager::ControlMessage& con
     notify_lock_condition_.notify_all();
 }
 
-
-
 bool DeploymentManager::ConfigureDeploymentContainers(const NodeManager::ControlMessage& control_message){
     bool success = true;
     for(const auto& node : control_message.nodes()){
@@ -164,8 +162,8 @@ void DeploymentManager::ProcessControlQueue(){
             }
         }
 
-         //Process the queue
-         while(!queue_.empty()){
+        //Process the queue
+        while(!queue_.empty()){
             const auto& control_message = queue_.front();
             queue_.pop();
 
@@ -207,7 +205,6 @@ void DeploymentManager::ProcessControlQueue(){
 
             auto ms = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
             std::cout << "* " << NodeManager::ControlMessage_Type_Name(control_message.type()) << " Deployment took: " << ms.count() << " us" << std::endl;
-            
         }
     }
 }

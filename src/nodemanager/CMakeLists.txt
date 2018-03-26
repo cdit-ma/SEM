@@ -96,6 +96,7 @@ target_link_libraries(${NODE_MANAGER_LIB} zmq_protoreceiver)
 target_link_libraries(${NODE_MANAGER_LIB} zmq_protowriter)
 target_link_libraries(${NODE_MANAGER_LIB} re_execution_parser_lib)
 target_link_libraries(${NODE_MANAGER_LIB} re_proto_control)
+target_link_libraries(${NODE_MANAGER_LIB} environment_manager_lib)
 
 target_link_libraries(${EXECUTION_TESTER} re_proto_control)
 

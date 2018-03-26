@@ -151,8 +151,6 @@ std::shared_ptr<EventPort> DeploymentContainer::GetConfiguredEventPort(std::shar
     return eventport;
 }
 
-       
-
 bool DeploymentContainer::HandleActivate(){
     auto success = true;
     for(const auto& c : components_){
