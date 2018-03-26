@@ -155,6 +155,7 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     switch(message.type()){
 
         case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
+            //Create generator and populate message
             DeploymentGenerator generator(*environment_);
             generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
             generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
@@ -164,7 +165,14 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
             ZMQSendReply(handler_socket_, message.SerializeAsString());
             break;
         }
-        
+
+        case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
+            RemoveExperiment(message_time);
+            message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+            ZMQSendReply(handler_socket_, message.SerializeAsString());
+            break;
+        }
+
         case NodeManager::EnvironmentMessage::HEARTBEAT:{
             message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
             ZMQSendReply(handler_socket_, message.SerializeAsString());

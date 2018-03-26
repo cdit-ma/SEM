@@ -35,7 +35,22 @@ std::cout << "adding experiment" << model_name << std::endl;
 
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
-    std::cout << "removing: " << model_name << " at: " << time_called <<  std::endl;
+    try{
+
+        auto experiment = experiment_map_[model_name];
+        for(const auto& port : experiment->port_map_){
+            auto event_port = port.second;
+            auto name = experiment->node_map_[event_port.node_id]->info().name();
+            auto port_number = event_port.port_number;
+            FreePort(name, port_number);
+        }
+
+        delete experiment;
+        experiment_map_.erase(model_name);
+    }
+    catch(...){
+        std::cout << "Could not delete deployment :" << model_name << std::endl;
+    }
 }
 
 void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
@@ -189,14 +204,17 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
         }
     }
     node_map_[new_node->name] = new_node;
-
 }
 
 std::string Environment::GetPort(const std::string& node_name){
     //Get first available port, store then erase it
     auto node = node_map_[node_name];
     return node->GetPort();
-    
+}
+
+void Environment::FreePort(const std::string& node_name, const std::string& port_number){
+    auto node = node_map_[node_name];
+    node->FreePort(port_number);
 }
 
 void Environment::ExperimentLive(const std::string& model_name, uint64_t time_called){

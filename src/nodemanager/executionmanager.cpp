@@ -1,6 +1,5 @@
 #include "executionmanager.h"
 #include "executionparser/modelparser.h"
-#include "environmentrequester.h"
 #include "environmentmanager/deploymentgenerator.h"
 #include "environmentmanager/deploymentrule.h"
 #include "environmentmanager/deploymentrules/zmq/zmqrule.h"
@@ -56,8 +55,13 @@ ExecutionManager::ExecutionManager(const std::string& endpoint, const std::strin
     protobuf_model_parser_ = new ProtobufModelParser(graphml_path);
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
+    //TODO: parse environment manager address from commandline args.
+    //TODO: parse local mode? from commandline args.
+    requester_ = new EnvironmentRequester("tcp://192.168.111.230:22334", deployment_message_->model_name());
+
     parse_succeed_ = PopulateDeployment();
     ConstructControlMessages();
+
 
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -88,18 +92,15 @@ bool ExecutionManager::PopulateDeployment(){
         generator.PopulateDeployment(*deployment_message_);
     }
     else{
-        EnvironmentRequester* requester = new EnvironmentRequester("tcp://192.168.111.230:22334", deployment_message_->model_name());
 
-        requester->Init();
-        requester->Start();
+        requester_->Init();
+        requester_->Start();
         
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        auto response = requester->AddDeployment(*deployment_message_);
+        auto response = requester_->AddDeployment(*deployment_message_);
 
         *deployment_message_ = response;
     }
-
-    //std::cout << deployment_message_->DebugString() << std::endl;
     return true;
 }
 
@@ -316,6 +317,10 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);
     PushMessage("*", terminate);
+
+    if(!local_mode_){
+        requester_->RemoveDeployment();
+    }
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
     execution_->Interrupt();

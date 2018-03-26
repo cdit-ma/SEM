@@ -28,6 +28,7 @@ class Environment{
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
         
         std::string GetPort(const std::string& node_ip);
+        void FreePort(const std::string& node_ip, const std::string& port_number);
         void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
         void ExperimentTimeout(const std::string& deployment_id, uint64_t time_called);
 
@@ -59,7 +60,6 @@ class Environment{
                     auto port = *it;
                     available_ports.erase(it);
                     auto port_str =  std::to_string(port);
-
                     return port_str;
                 };
 
@@ -67,6 +67,7 @@ class Environment{
                     std::unique_lock<std::mutex> lock(port_mutex);
                     int port_number = std::stoi(port);
                     available_ports.insert(port_number);
+                    std::cout << "free:" << ip << ":" << port << std::endl;
                 }
                 std::string name;
                 std::string ip;
@@ -78,8 +79,6 @@ class Environment{
                 //eventport guid -> port number assigned
                 std::map<std::string, std::string> used_ports;
 
-
-            //TODO: type??
         };
 
         struct EventPort{

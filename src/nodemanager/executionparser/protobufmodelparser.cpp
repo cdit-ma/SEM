@@ -256,7 +256,6 @@ bool ProtobufModelParser::Process(){
             auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", component_id);
             auto periodic_ids = graphml_parser_->FindNodes("PeriodicEvent", GetImplId(component_id));
             port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
-            port_ids.insert(port_ids.end(), periodic_ids.begin(), periodic_ids.end());
 
             //Set port info
             for(const auto& port_id : port_ids){
@@ -283,48 +282,44 @@ bool ProtobufModelParser::Process(){
 
                 port_replicate_id_map_[port_id + unique_id] = port_pb;
 
-                //Middleware ports
-                if(port_pb->kind() != NodeManager::EventPort::PERIODIC_PORT){
-
-                    //Set Middleware
-                    std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
-                    NodeManager::EventPort::Middleware mw;
-                    if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
-                        std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
-                    }
-                    port_pb->set_middleware(mw);
-
-                    //Set the topic_name
-                    std::string topic_name;
-                    topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
-
-                    if(!topic_name.empty()){
-                        auto topic_pb = port_pb->add_attributes();
-                        auto topic_info_pb = topic_pb->mutable_info();
-                        topic_info_pb->set_name("topic_name");
-                        topic_pb->set_kind(NodeManager::Attribute::STRING);
-                        //Only set if we actually have a topic name
-                        topic_pb->add_s(topic_name);
-                    }
+                //Set Middleware
+                std::string mw_string = graphml_parser_->GetDataValue(port_id, "middleware");
+                NodeManager::EventPort::Middleware mw;
+                if(!NodeManager::EventPort_Middleware_Parse(mw_string, &mw)){
+                    std::cerr << "Cannot parse middleware: " << mw_string << std::endl;
                 }
-                //Periodic ports
-                else{
-                    try{
-                        double freq = std::stod(graphml_parser_->GetDataValue(port_id, "frequency"));
-                        auto freq_pb = port_pb->add_attributes();
-                        auto freq_info_pb = freq_pb->mutable_info();
+                port_pb->set_middleware(mw);
 
-                        freq_info_pb->set_name("frequency");
-                        freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
-                        freq_pb->set_d(freq);
-                    }
-                    catch(std::exception& ex){
-                        std::cerr << "Could not parse periodic event port frequency " << ex.what() << std::endl;
-                    }
+                //Set the topic_name
+                std::string topic_name;
+                topic_name = graphml_parser_->GetDataValue(port_id, "topicName");
+
+                if(!topic_name.empty()){
+                    auto topic_pb = port_pb->add_attributes();
+                    auto topic_info_pb = topic_pb->mutable_info();
+                    topic_info_pb->set_name("topic_name");
+                    topic_pb->set_kind(NodeManager::Attribute::STRING);
+                    //Only set if we actually have a topic name
+                    topic_pb->add_s(topic_name);
                 }
             }
             for(const auto& periodic_id : periodic_ids){
+                std::string p_uid = component_uid + "_" + periodic_id;
+                auto port_pb = component_pb->add_ports();
+                auto port_info_pb = port_pb->mutable_info();
 
+                port_info_pb->set_id(p_uid);
+                port_info_pb->set_name(graphml_parser_->GetDataValue(periodic_id, "label"));
+
+                double freq = std::stod(graphml_parser_->GetDataValue(periodic_id, "frequency"));
+                auto freq_pb = port_pb->add_attributes();
+                auto freq_info_pb = freq_pb->mutable_info();
+
+                port_pb->set_kind(GetPortKind(graphml_parser_->GetDataValue(periodic_id, "kind")));
+
+                freq_info_pb->set_name("frequency");
+                freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
+                freq_pb->set_d(freq);
             }
             component_replications_[component_id].push_back(component_pb);
         }

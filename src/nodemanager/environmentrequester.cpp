@@ -157,8 +157,6 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::Con
         std::cout << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
     }
 
-
-
     return message.control_message();
 }
 
@@ -169,7 +167,11 @@ void EnvironmentRequester::RemoveDeployment(){
     auto response = QueueRequest(message.SerializeAsString());
 
     try{
-        auto response_msg = response.get();
+        NodeManager::EnvironmentMessage response_msg;
+        response_msg.ParseFromString(response.get());
+        if(response_msg.type() == NodeManager::EnvironmentMessage::SUCCESS){
+            std::cout << "Removed from environment manager." << std::endl;
+        }
     }
     catch(std::exception& ex){
         std::cout << ex.what() << " in EnvironmentRequester::RemoveDeployment" << std::endl;
