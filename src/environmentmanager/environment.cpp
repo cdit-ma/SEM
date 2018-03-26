@@ -36,7 +36,6 @@ std::cout << "adding experiment" << model_name << std::endl;
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
     try{
-
         auto experiment = experiment_map_[model_name];
         for(const auto& port : experiment->port_map_){
             auto event_port = port.second;

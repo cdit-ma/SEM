@@ -152,37 +152,43 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
     NodeManager::EnvironmentMessage message;
     message.ParseFromString(request.second);
 
-    switch(message.type()){
+    try{
+        switch(message.type()){
 
-        case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
-            //Create generator and populate message
-            DeploymentGenerator generator(*environment_);
-            generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
-            generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
-            generator.PopulateDeployment(*(message.mutable_control_message()));
-            
-            message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
+            case NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO:{
+                //Create generator and populate message
+                DeploymentGenerator generator(*environment_);
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
+                generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
+                generator.PopulateDeployment(*(message.mutable_control_message()));
+                
+                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+                ZMQSendReply(handler_socket_, message.SerializeAsString());
+                break;
+            }
 
-        case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
-            RemoveExperiment(message_time);
-            message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
+            case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
+                RemoveExperiment(message_time);
+                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+                ZMQSendReply(handler_socket_, message.SerializeAsString());
+                break;
+            }
 
-        case NodeManager::EnvironmentMessage::HEARTBEAT:{
-            message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
-        }
+            case NodeManager::EnvironmentMessage::HEARTBEAT:{
+                message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+                ZMQSendReply(handler_socket_, message.SerializeAsString());
+                break;
+            }
 
-        default:{
-            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-            ZMQSendReply(handler_socket_, message.SerializeAsString());
-            break;
+            default:{
+                message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                ZMQSendReply(handler_socket_, message.SerializeAsString());
+                break;
+            }
         }
+    }
+    catch(std::exception& ex){
+        message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+        ZMQSendReply(handler_socket_, message.SerializeAsString());
     }
 }

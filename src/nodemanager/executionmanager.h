@@ -29,7 +29,8 @@ class ExecutionManager{
             ERROR_ = 2,
         };
 
-        ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration, Execution* execution);
+        ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration,
+                            Execution* execution, const std::string& environment_manager_endpoint = "");
 
         std::vector<std::string> GetSlaveAddresses();
         const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);
@@ -66,7 +67,7 @@ class ExecutionManager{
         std::condition_variable execution_lock_condition_;
         bool terminate_flag_ = false;
 
-        bool local_mode_ = false;
+        bool local_mode_ = true;
 
         bool finished_ = false;
         bool parse_succeed_ = false;

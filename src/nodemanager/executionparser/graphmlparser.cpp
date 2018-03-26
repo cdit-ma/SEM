@@ -77,7 +77,6 @@ std::string GraphmlParser::GetAttribute(const std::string& id, const std::string
                 }
             }
         }else{
-            std::cerr << "GetAttribute" << std::endl;
             std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
         }
         return out;
@@ -108,8 +107,6 @@ std::string GraphmlParser::GetDataValue(const std::string& id, const std::string
                 }
             }
         }else{
-            std::cerr << "GetDataValue" << std::endl;
-            std::cerr << key_name << std::endl;
             std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
         }
         return out;
@@ -128,7 +125,6 @@ std::string GraphmlParser::GetParentNode(const std::string& id){
             out = res.node().attribute("id").value();
             parent_id_lookup_[id] = out;
         }else{
-            std::cerr << "GetParentNode" << std::endl;
             std::cerr << "GraphmlParser: No entity with ID: '" << id << "'" << std::endl;
         }
         return out;

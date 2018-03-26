@@ -38,7 +38,11 @@ void set_attr_string(NodeManager::Attribute* attr, const std::string& val){
     attr->add_s(val);
 }
 
-ExecutionManager::ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration, Execution* execution){
+ExecutionManager::ExecutionManager(const std::string& endpoint,
+                                    const std::string& graphml_path,
+                                    double execution_duration,
+                                    Execution* execution,
+                                    const std::string& environment_manager_endpoint){
     if(execution){
         //Setup writer
         proto_writer_ = new zmq::ProtoWriter();
@@ -55,9 +59,9 @@ ExecutionManager::ExecutionManager(const std::string& endpoint, const std::strin
     protobuf_model_parser_ = new ProtobufModelParser(graphml_path);
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
-    //TODO: parse environment manager address from commandline args.
-    //TODO: parse local mode? from commandline args.
-    requester_ = new EnvironmentRequester("tcp://192.168.111.230:22334", deployment_message_->model_name());
+    if(!environment_manager_endpoint.empty()){
+        requester_ = new EnvironmentRequester(environment_manager_endpoint, deployment_message_->model_name());
+    }
 
     parse_succeed_ = PopulateDeployment();
     ConstructControlMessages();
