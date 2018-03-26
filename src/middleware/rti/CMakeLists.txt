@@ -2,10 +2,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-#Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{CMAKE_MODULE_PATH}")
-
 #Find rti library
 find_package(RTIDDS)
 
@@ -28,11 +24,13 @@ set(HEADERS
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
-include_directories("${RE_PATH}/includes")
-include_directories(${RTIDDS_INCLUDE_DIRS})
-
 # Need this to make sure headers are using the correct function calls.
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE ${RTIDDS_DEFINITIONS})
+
+
+target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${PROJ_NAME} PRIVATE ${RTIDDS_INCLUDE_DIRS})
+
 
 target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
 

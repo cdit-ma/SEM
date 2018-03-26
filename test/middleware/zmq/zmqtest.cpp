@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
 
 // Include the proto convert functions for the port type
-#include "convert.hpp"
+#include "../base/basic.h"
+#include "../proto/basic.pb.h"
+
 #include <middleware/zmq/ineventport.hpp>
 #include <middleware/zmq/outeventport.hpp>
 
@@ -16,7 +18,7 @@ class ZeroMQ_InEventPort_FSMTester : public ActivatableFSMTester{
         void SetUp(){
             ActivatableFSMTester::SetUp();
             auto port_name = get_long_test_name();
-            auto port = new zmq::InEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
+            auto port = new zmq::InEventPort<Base::Basic, ::Basic>(std::weak_ptr<Component>(),  port_name, empty_callback);
             {
                 auto address = port->GetAttribute("publisher_address").lock();
                 EXPECT_TRUE(address);
@@ -35,7 +37,7 @@ protected:
     void SetUp(){
         ActivatableFSMTester::SetUp();
         auto port_name = get_long_test_name();
-        auto port = new zmq::OutEventPort<Base::Basic, Basic>(std::weak_ptr<Component>(), port_name);
+        auto port = new zmq::OutEventPort<Base::Basic, ::Basic>(std::weak_ptr<Component>(), port_name);
         {
             auto address = port->GetAttribute("publisher_address").lock();
             EXPECT_TRUE(address);
@@ -63,8 +65,8 @@ TEST(ZeroMQ_EventportPair, Stable100){
 
     
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
+    zmq::OutEventPort<Base::Basic, ::Basic> out_port(c, "tx_" + test_name);
+    zmq::InEventPort<Base::Basic, ::Basic> in_port(c, "rx_" + test_name, [&rx_callback_count](Base::Basic&){
             rx_callback_count ++;
     });
 
@@ -124,8 +126,8 @@ TEST(ZeroMQ_EventportPair, Busy100){
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
-    zmq::InEventPort<Base::Basic, Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
+    zmq::OutEventPort<Base::Basic, ::Basic> out_port(c, "tx_" + test_name);
+    zmq::InEventPort<Base::Basic, ::Basic> in_port(c, "rx_" + test_name, [&rx_callback_count, &out_port](Base::Basic&){
             rx_callback_count ++;
             sleep_ms(1000);
     });
@@ -189,7 +191,7 @@ TEST(ZeroMQ_SendAfterDead, Test1){
     auto rx_callback_count = 0;
 
     auto c = std::make_shared<Component>("Test");
-    zmq::OutEventPort<Base::Basic, Basic> out_port(c, "tx_" + test_name);
+    zmq::OutEventPort<Base::Basic, ::Basic> out_port(c, "tx_" + test_name);
     
 
     auto address = "inproc://" + test_name;

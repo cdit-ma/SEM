@@ -51,23 +51,23 @@ struct PeriodTestCase{
         this->workload_perc = workload_perc;
 
         //Calculate 
-        lower = expected_ticks * error_confidence;
-        upper  = expected_ticks * (1 + (1 - error_confidence));
+        lower = floor(expected_ticks * error_confidence);
+        upper  = ceil(expected_ticks * (1 + (1 - error_confidence)));
 
         if(periodic_hz > 0){
-            callback_time_ms = (1000.0 / (double) periodic_hz) * workload_perc;
+            callback_time_ms = static_cast<size_t>((1000.0 / (double) periodic_hz) * workload_perc);
         }else{
             callback_time_ms = 0;
         }
     }
-    int test_time_ms;
-    int periodic_hz;
-    int callback_time_ms;
-    int expected_ticks;
+    size_t test_time_ms;
+    double periodic_hz;
+    size_t callback_time_ms;
+    size_t expected_ticks;
     double workload_perc;
     double error_confidence;
-    double lower;
-    double upper;
+    int lower;
+    int upper;
 
 };
 std::ostream& operator<<(std::ostream& os, const PeriodTestCase& p) {

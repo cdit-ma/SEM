@@ -21,7 +21,6 @@ double Utility_Worker_Impl::TimeOfDay(){
 }
 
 double Utility_Worker_Impl::EvaluateComplexity(const char* complexity, va_list args){
-    char varlist[50];
 
     //Pull variables from expression
     std::vector<char> variable_list = ProcessVarList(complexity);
@@ -56,11 +55,13 @@ std::vector<char> Utility_Worker_Impl::ProcessVarList(const char* complexity){
                             "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
     //remove all math functions from complexity algorithm
     strcpy(varlist, complexity);
+
     for(unsigned int i = 0; i < 24; ++i){
         cptr = varlist;
         while ((cptr=strstr(cptr,mathfunc[i])) != NULL)
         memmove(cptr, cptr+strlen(mathfunc[i]), strlen(cptr+strlen(mathfunc[i]))+1);
     }
+    
     //remove all math characters from varlist
     for(unsigned int i = 0; i < strlen(mathchar); ++i){
         cptr = varlist;

@@ -17,7 +17,6 @@
 
 
 namespace zmq{class ProtoReceiver;};
-
 class Execution;
 
 class DeploymentManager{

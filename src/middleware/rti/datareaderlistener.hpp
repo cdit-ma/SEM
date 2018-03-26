@@ -16,10 +16,20 @@ namespace rti{
                 this->port_ = port;
             };
             void on_data_available(dds::sub::DataReader<S> &reader){
-                port_->notify();
+                try{
+                    for(const auto& sample : reader.take()){
+                        //Translate and callback into the component for each valid message we receive
+                        if(sample->info().valid()){
+                            auto m = rti::translate<T, S>(sample->data());
+                            port_->EnqueueMessage(m);
+                        }
+                    }
+                }catch(const std::exception& ex){
+                    Log(Severity::ERROR_).Context(port_).Func(__func__).Msg(std::string("Unable to process samples") + ex.what());
+                }
             };
         private:
-            rti::InEventPort<T,S>* port_;
+            rti::InEventPort<T,S>* port_ = 0;
     };
 };
 

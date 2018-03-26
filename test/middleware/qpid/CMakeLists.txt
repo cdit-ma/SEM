@@ -22,8 +22,8 @@ SET(SOURCE
 add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${QPID_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(MSVC)
@@ -36,4 +36,5 @@ endif()
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} gtest)
 target_link_libraries(${PROJ_NAME} qpid_helper)
+target_link_libraries(${PROJ_NAME} lib_test_basic_proto)
 target_link_libraries(${PROJ_NAME} ${QPID_LIBRARIES})

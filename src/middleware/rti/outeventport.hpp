@@ -1,11 +1,13 @@
 #ifndef RTI_OUTEVENTPORT_H
 #define RTI_OUTEVENTPORT_H
 
+#include <middleware/rti/translate.h>
+#include <middleware/rti/helper.hpp>
 #include <core/eventports/outeventport.hpp>
+
 #include <string>
 #include <mutex>
 #include <exception>
-#include "helper.hpp"
 
 namespace rti{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
@@ -22,6 +24,7 @@ namespace rti{
             bool tx(const T& message);
         private:
             bool setup_tx();
+            int count = 0;
 
              //Define the Attributes this port uses
             std::shared_ptr<Attribute> publisher_name_;
@@ -90,7 +93,7 @@ bool rti::OutEventPort<T, S>::tx(const T& message){
 
     if(should_send){
         if(writer_ != dds::core::null){
-            auto m = rti::translate(message);
+            auto m = rti::translate<T, S>(message);
             //De-reference the message and send
             writer_.write(*m);
             delete m;
@@ -111,6 +114,7 @@ bool rti::OutEventPort<T, S>::setup_tx(){
         auto topic = get_topic<S>(participant, topic_name_->String());
         auto publisher = helper->get_publisher(participant, publisher_name_->String());
         writer_ = get_data_writer<S>(publisher, topic, qos_path_->String(), qos_name_->String());
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         return true;
     }
     return false;
