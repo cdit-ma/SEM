@@ -34,17 +34,17 @@ void print_message(const Test::Message& message){
     std::cout << "\t UNION TYPE: " << message.test._d() << std::endl;
 
     std::cout << "\t UNION VALUE: ";
-    //switch(message.test._d()){
-        //case 1:
+    switch(message.test._d()){
+        case 1:
             std::cout << message.test.enum_short();
-            //break;
-        //case 2:
+            break;
+        case 2:
             std::cout << message.test.enum_string();
-            //break;
-        //case 3:
+            break;
+        case 3:
             std::cout << message.test.enum_long();
-            //break;
-    //}
+            break;
+    }
     std::cout << std::endl;
 
     

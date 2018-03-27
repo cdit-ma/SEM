@@ -146,11 +146,11 @@ bool Activatable::transition_state(Transition transition){
             state_condition_.notify_all();
             return true;
         }else{
-            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg("Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
+            Log(Severity::ERROR_).Context(this).Func(GET_FUNC).Msg(get_name() + ": Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
             return false;
         }
     }else{
-        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg("Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
+        Log(Severity::DEBUG).Context(this).Func(GET_FUNC).Msg(get_name() + " :Cannot transition from state: " + std::to_string((int)current_state) + " transition: " + std::to_string((int)transition));
     }
     return false;
 }

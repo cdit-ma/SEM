@@ -34,7 +34,7 @@ namespace tao{
 
         
         static std::shared_ptr<TaoHelper> singleton_;
-        static std::mutex global_mutex_;
+        std::mutex global_mutex_;
         
         std::unordered_map<std::string, CORBA::ORB_ptr> orb_lookup_;
         std::unordered_map<std::string, std::future<void>> orb_run_futures_;

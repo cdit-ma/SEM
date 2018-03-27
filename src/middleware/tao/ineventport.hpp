@@ -138,18 +138,19 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         
         auto orb_endpoint  = orb_endpoint_->String();
         auto& helper = tao::TaoHelper::get_tao_helper();
-        std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+        std::cout << "IN ORB ENDPOINT: " << orb_endpoint << std::endl;
         orb_ = helper.get_orb(orb_endpoint);
 
-        std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+        std::cout << "IN ORB ENDPOINT: " << orb_endpoint << std::endl;
 
         //R* reader_impl = 0;
         if(!orb_){
             state = ThreadState::TERMINATE;
+            std::cerr << "CAN'T GET ORB" << std::endl;
         }else{
             auto publisher_name  = publisher_name_->String();
 
-            std::cout << "Publisher: " << publisher_name << std::endl;
+            std::cout << "IN Publisher: " << publisher_name << std::endl;
             //Construct a callback function (Lambda) to call enqueue message
 
             // Create the child POA for the test logger factory servants.
@@ -178,6 +179,7 @@ void tao::InEventPort<T, S, R>::recv_loop(){
         bool run = true;
         while(run){
             {
+                std::cerr<< "LOL" << std::endl;
                 //Wait for next message
                 std::unique_lock<std::mutex> lock(receive_mutex_);
                 //Check to see if we've been interupted before sleeping the first time

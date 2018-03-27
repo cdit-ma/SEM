@@ -18,16 +18,16 @@ struct Message2{
 	UnionEnum test;
 };
 
-/// A very simple interface
-interface Hello
-{
-	exception TestException{
-		string message;
-	};
+	/// A very simple interface
+	interface Hello
+	{
+		exception TestException{
+			string message;
+		};
 
-	//void send(in Test::Message message);
-	void send22(in Test::Message2 message);// raises(TestException);
-};
+		//void send(in Test::Message message);
+		void send22(in Test::Message2 message);// raises(TestException);
+	};
 };
 
  

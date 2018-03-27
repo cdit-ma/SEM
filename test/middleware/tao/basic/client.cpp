@@ -13,7 +13,7 @@ bool interupt = false;
 
 void signal_handler(int sig)
 {
-    interupt = true;
+    interupt = true; 
 }
 
 int main(int argc, char** argv){
@@ -64,10 +64,15 @@ int main(int argc, char** argv){
                 auto ptr = helper.resolve_initial_references(orb, reference_str);
                 if(ptr){
                     object_ptrs[reference_str] = ptr;
-                    senders[reference_str] = Test::Hello::_narrow(ptr);
-                    registered_references.insert(reference_str);
-	                itt = unregistered_references.erase(itt);
-                    std::cout << "Registered: " << reference_str << std::endl;
+                    auto sender =  Test::Hello::_narrow(ptr);;
+                    if(sender){
+                        senders[reference_str] = sender;
+                        registered_references.insert(reference_str);
+                        itt = unregistered_references.erase(itt);
+                        std::cout << "Registered: " << reference_str << std::endl;
+                    }else{
+                        ++itt;
+                    }
                 }
             }catch(...){
                 ++itt;
@@ -99,7 +104,7 @@ int main(int argc, char** argv){
                     message.test.enum_long(20);
                 }
 
-                //std::cout << "Sending: " << registered_reference << std::endl;
+                std::cout << "Sending: " << reference_str << std::endl;
                 auto sender = senders[reference_str];
                 if(sender){
                     sender->send22(message);
@@ -117,6 +122,8 @@ int main(int argc, char** argv){
             }catch(const CORBA::Exception& e) {
                 std::cout << e._rep_id() << std::endl;
                 std::cout << e._name() << std::endl;
+            }catch(...){
+                std::cerr << "GOT INVALID DATA" << std::endl;
             }
 
             if(deregister){

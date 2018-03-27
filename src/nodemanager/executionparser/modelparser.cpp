@@ -383,8 +383,11 @@ bool Graphml::ModelParser::Process(){
 
                         if(port->kind == "InEventPortInstance" && deployed_node && port->middleware == "TAO"){
                             port->port_number = ++deployed_node->port_count;
-                            port->port_address = GetIiopAddress(deployed_node->ip_address, port->port_number);
-                            port->named_port_address = GetNamedIiopAddress(deployed_node->ip_address, port->port_number, port->name);
+                            //port->port_address = GetIiopAddress(deployed_node->ip_address, port->port_number);
+                            //port->named_port_address = GetNamedIiopAddress(deployed_node->ip_address, port->port_number, port->name);
+                            port->port_address = GetIiopAddress("192.168.111.90", 6009);
+                            port->named_port_address = GetNamedIiopAddress("192.168.111.90", 6009, port->name);
+                            //port->named_port_address = GetNamedIiopAddress(deployed_node->ip_address, port->port_number, port->name);
                         }
 
                         event_ports_[p_uid] = port;

@@ -427,6 +427,7 @@ bool ExecutionManager::ConstructControlMessages(){
 
                         if(is_zmq){
                             if(is_outport && event_port->port_number > 0){
+                                std::cout << "OUTPUT: " << event_port << std::endl;
                                 auto pub_addr_pb = port_pb->add_attributes();
                                 auto pub_addr_info_pb = pub_addr_pb->mutable_info();
                                 pub_addr_info_pb->set_name("publisher_address");
@@ -435,6 +436,7 @@ bool ExecutionManager::ConstructControlMessages(){
                             }
 
                             if(is_inport){
+                                std::cout << "INPORT: " << event_port << std::endl;
                                 //Construct a publisher_address list
                                 auto pub_addr_pb = port_pb->add_attributes();
                                 auto pub_addr_info_pb = pub_addr_pb->mutable_info();
@@ -461,9 +463,10 @@ bool ExecutionManager::ConstructControlMessages(){
 
                                 auto pub_addr_pb = port_pb->add_attributes();
                                 auto pub_addr_info_pb = pub_addr_pb->mutable_info();
-                                pub_addr_info_pb->set_name("publisher_address");
+                                pub_addr_info_pb->set_name("orb_endpoint");
                                 pub_addr_pb->set_kind(NodeManager::Attribute::STRING);
-                                set_attr_string(pub_addr_pb, event_port->port_address);
+                                //set_attr_string(pub_addr_pb, event_port->port_address);
+                                set_attr_string(pub_addr_pb, "iiop://192.168.111.90:60009");
                             }
                             if(is_outport){
                                 auto pub_name_pb = port_pb->add_attributes();
@@ -475,6 +478,13 @@ bool ExecutionManager::ConstructControlMessages(){
                                 auto pub_addr_info_pb = pub_addr_pb->mutable_info();
                                 pub_addr_info_pb->set_name("publisher_address");
                                 pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+                                
+                                auto orb_pb = port_pb->add_attributes();
+                                auto orb_info_pb = orb_pb->mutable_info();
+                                orb_info_pb->set_name("orb_endpoint");
+                                orb_pb->set_kind(NodeManager::Attribute::STRING);
+                                set_attr_string(orb_pb, "iiop://192.168.111.90:60009");
+                                //set_attr_string(orb_pb, "iiop://127.0.0.1:60010");
 
                                 //Find endpoints and push them onto address list
                                 for(auto port_id : event_port->connected_port_ids){
@@ -482,6 +492,7 @@ bool ExecutionManager::ConstructControlMessages(){
                                     if(ineventport && ineventport->port_number > 0){
                                         set_attr_string(pub_name_pb, ineventport->name);
                                         set_attr_string(pub_addr_pb, ineventport->named_port_address);
+                                        std::cerr << "Adding: " << ineventport->named_port_address << std::endl;
                                     }
                                 }
                             }

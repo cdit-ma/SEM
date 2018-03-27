@@ -14,6 +14,7 @@ tao::TaoHelper::TaoHelper(){
 }
 
 tao::TaoHelper::~TaoHelper(){
+    std::cerr << "DESTRUCTING" << this << std::endl;
     for(auto &poa : registered_poas_){
         std::cout << "DESTROYING: " << poa->the_name() << std::endl;
         poa->destroy(true, true);
@@ -54,6 +55,7 @@ void tao::TaoHelper::OrbThread(CORBA::ORB_ptr orb){
 }
 
 CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool debug_mode){
+    std::unique_lock<std::mutex> lock(global_mutex_);
     if(orb_lookup_.count(orb_endpoint)){
         return orb_lookup_[orb_endpoint];
     }else{
@@ -62,13 +64,14 @@ CORBA::ORB_ptr tao::TaoHelper::get_orb(const std::string& orb_endpoint, bool deb
             auto endpoint = strdup(orb_endpoint.c_str());
             auto debug_str = strdup(debug_mode ? "10" : "0");
             int argc = 4;
+            std::cerr << "CONSTRUCTING ORB: " << endpoint << std::endl;
             char* argv[4] = {"-ORBEndpoint", endpoint, "-ORBDebugLevel", debug_str};
             orb = CORBA::ORB_init (argc, argv);
             
             delete[] endpoint;
             delete[] debug_str;
         }catch(const CORBA::Exception& e){
-            std::cerr << "CORBA Exception: " << e._name() << std::endl;
+            std::cerr << "CORBA Exception: " << e._name() << "orb_endpoint: " << orb_endpoint << std::endl;
             orb = 0;
         }
 

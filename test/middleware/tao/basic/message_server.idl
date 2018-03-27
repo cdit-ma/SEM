@@ -16,7 +16,7 @@ module Test
 		UnionEnum test;
 		//sequence<long, 50> long_bois; 
 	};
-
+	
 	/// A very simple interface
 	interface Hello
 	{

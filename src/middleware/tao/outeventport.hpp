@@ -56,7 +56,9 @@ bool tao::OutEventPort<T, S, R>::HandleConfigure(){
 
     if(valid && ::OutEventPort<T>::HandleConfigure()){
         return setup_tx();
-    }
+    }else{
+        std::cerr << " CANNOT CONSTRUCT MATE: " <<orb_endpoint_->String() << " " << end_points_->StringList().size() << " " << publisher_names_->StringList().size() << std::endl;
+        }
     return false;
 };
 
@@ -106,9 +108,9 @@ template <class T, class S, class R>
 bool tao::OutEventPort<T, S, R>::setup_tx(){
     auto orb_endpoint  = orb_endpoint_->String();
     auto& helper = tao::TaoHelper::get_tao_helper();
-    std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+    std::cout << "OUT ORB ENDPOINT: " << orb_endpoint << std::endl;
     orb_ = helper.get_orb(orb_endpoint);
-    std::cout << "ORB ENDPOINT: " << orb_endpoint << std::endl;
+    std::cout << "OUT ORB ENDPOINT: " << orb_endpoint << std::endl;
 
     auto endpoints = end_points_->StringList();
     auto names = publisher_names_->StringList();
@@ -121,7 +123,9 @@ bool tao::OutEventPort<T, S, R>::setup_tx(){
         std::cerr << "Registered: " << name << " to addr " << endpoint << std::endl;
     }
 
-    return orb_;
+    std::cerr  << orb_ << std::endl;
+    return true;
+    //return orb_;
 };
 
 template <class T, class S, class R>
