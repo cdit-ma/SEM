@@ -17,11 +17,11 @@ cl::Device& storeDevice(cl::Device& dev) {
 
 
 OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Device& device) :
-    dev_(new cl::Device(device)),
+    dev_(std::make_shared<cl::Device>(device)),
     manager_(manager),
-    queue_(new cl::CommandQueue(manager_.GetContext(), *dev_, CL_QUEUE_PROFILING_ENABLE, &err_)),
     name_(dev_->getInfo<CL_DEVICE_NAME>())
 {
+	queue_ = std::make_shared<OpenCLQueue>(manager, *this);
     // /int err;
     //auto command_queue = new cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE, &err);
 
@@ -42,7 +42,7 @@ std::string OpenCLDevice::GetName() const {
     return name_;
 }
 
-cl::CommandQueue& OpenCLDevice::GetQueue() const {
+OpenCLQueue& OpenCLDevice::GetQueue() const {
     return *queue_;
 }
 
@@ -55,7 +55,7 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 	// Read, compile and link the Program from OpenCL code
 	cl::Program::Sources sources = ReadOpenCLSourceCode(filenames);
 
-	programs_.emplace_back(manager_.GetContext(), sources, &err);
+	programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), sources, &err));
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
@@ -63,7 +63,7 @@ bool OpenCLDevice::LoadKernelsFromSource(const Worker& worker, const std::vector
 			err);
 		return false;
 	}
-    cl::Program& new_program = programs_.back();
+    cl::Program& new_program = *(programs_.back());
 
     std::vector<cl::Device> device_vec;
     //device_vec.emplace_back(*dev_);
@@ -143,7 +143,8 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
     device_vec.push_back(*dev_);
 	std::vector<cl_int> binary_success;
 
-	programs_.emplace_back(manager_.GetContext(), device_vec, binaries, &binary_success, &err);
+	
+	programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), device_vec, binaries, &binary_success, &err));
 	if (err != CL_SUCCESS) {
 		LogError(worker,
 			std::string(__func__),
@@ -161,7 +162,7 @@ bool OpenCLDevice::LoadKernelsFromBinary(const Worker& worker, const std::string
 		}
 	}
 
-    cl::Program& new_program = programs_.back();
+    cl::Program& new_program = *(programs_.back());
 	err = new_program.build(device_vec);
 	if (err != CL_SUCCESS) {
 		LogError(worker,

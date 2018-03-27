@@ -5,10 +5,6 @@
 #include <set>
 #include <iostream>
 
-namespace cl {
-    class Device;
-}
-
 class OpenCLLoadBalancer {
 public:
     OpenCLLoadBalancer(const std::vector<unsigned int>& device_ids);

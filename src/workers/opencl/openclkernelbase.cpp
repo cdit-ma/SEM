@@ -20,7 +20,7 @@ void OpenCLKernelBase::Run(const OpenCLDevice& device, bool block, const cl::NDR
     cl_int err;
     cl::Event kernel_event;
 
-    err = queue.enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
+    err = queue.GetRef().enqueueNDRangeKernel(*kernel_, offset, global, local, NULL, &kernel_event);
     if (err != CL_SUCCESS) {
         throw OpenCLException(std::string(GET_FUNC)+": Failed to enqueue kernel '"+name_+"' for execution", err);
     }
