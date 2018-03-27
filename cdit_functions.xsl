@@ -16,7 +16,7 @@
         Get the version number
     -->
     <xsl:function name="cdit:get_re_gen_version" as="xs:string">
-        <xsl:value-of select="'re_gen-v1.5.2'" />
+        <xsl:value-of select="'re_gen-v1.6.0A'" />
     </xsl:function>
 
     <!--
@@ -77,7 +77,7 @@
                     <xsl:value-of select="'.pb.h'" />
                 </xsl:when>
                 <xsl:when test="$middleware = 'tao'">
-                    <xsl:value-of select="'C.h'" />
+                    <xsl:value-of select="'S.h'" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="o:warning(concat('Middleware ', $middleware, ' not implemented'))" />
@@ -753,6 +753,26 @@
             <xsl:sequence select="." />
         </xsl:for-each-group>
     </xsl:function>
+
+    <!--
+        Gets the EventPort Definitions of the aggregate provided
+    -->
+    <xsl:function name="cdit:get_eventports_for_aggregate" as="element(gml:node)*">
+        <xsl:param name="aggregate" as="element(gml:node)?" />
+        
+        <xsl:variable name="model" select="graphml:get_ancestor_nodes_of_kind($aggregate, 'Model')" />
+        
+        <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, ('OutEventPort', 'InEventPort'))">
+            <xsl:variable name="aggregate_instance" select="graphml:get_child_node(., 1)" />
+            <xsl:variable name="aggregate_definition" select="graphml:get_definition($aggregate_instance)" />
+
+            <xsl:if test="$aggregate_definition = $aggregate">
+                <xsl:sequence select="."/>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:function>
+
+    
 
 
 

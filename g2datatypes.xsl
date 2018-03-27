@@ -15,6 +15,7 @@
 
     <!-- Load in Functions -->
     <xsl:import href="general_functions.xsl"/>
+    <xsl:import href="tao_functions.xsl"/>
     <xsl:import href="cpp_functions.xsl"/>
     <xsl:import href="cmake_functions.xsl"/>
     <xsl:import href="graphml_functions.xsl"/>
@@ -74,15 +75,37 @@
                         <xsl:result-document href="{o:write_file(($aggregate_path, $idl_file))}">
                             <xsl:value-of select="cdit:get_idl_datatype($aggregate, $middleware)" />
                         </xsl:result-document>
-
-                        <!--<xsl:if test="$middleware = 'tao'">-->
-                            <xsl:variable name="idl_function_file" select="concat($file_label, '_functions.idl')" />
-                            <xsl:result-document href="{o:write_file(($aggregate_path, $idl_function_file))}">
-                                <xsl:value-of select="cdit:get_idl_function($aggregate, $middleware)" />
-                            </xsl:result-document>
-                        <!--<xsl:if test="$middleware = 'tao'">-->
                     </xsl:if>
                 </xsl:if>
+
+                <xsl:if test="$middleware = 'tao'">
+                    <xsl:for-each-group select="cdit:get_eventports_for_aggregate($aggregate)" group-by="cdit:get_tao_eventport_path(., $aggregate_path)">
+                        <xsl:variable name="eventport" select="." />
+                        <xsl:variable name="tao_aggregate_path" select="current-grouping-key()" />
+
+                        <xsl:variable name="idl_interface_name" select="lower-case(graphml:get_data_value($eventport, 'idl_interface_name'))" />
+
+                        <xsl:variable name="idl_function_file" select="concat($file_label, '_functions.idl')" />
+                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, $idl_function_file))}">
+                            <xsl:value-of select="cdit:get_idl_function($aggregate, $middleware)" />
+                        </xsl:result-document>
+
+                        <xsl:variable name="idl_impl_file" select="concat($idl_interface_name, 'impl.hpp')" />
+                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, $idl_impl_file))}">
+                            <xsl:value-of select="cdit:get_tao_port_impl_hpp($eventport, $aggregate)" />
+                        </xsl:result-document>
+
+                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, 'libportexport.cpp'))}">
+                            <xsl:value-of select="cdit:get_tao_port_export($eventport, $aggregate, $middleware)" />
+                        </xsl:result-document>
+
+                        <xsl:result-document href="{o:write_file(($tao_aggregate_path, cmake:cmake_file()))}">
+                            <xsl:value-of select="cdit:get_tao_translate_cmake($eventport, $aggregate, $middleware)" />
+                        </xsl:result-document>
+                    </xsl:for-each-group>
+                </xsl:if>
+                
+
 
                 <!-- Generate the Module(dll) port export class-->
                 <xsl:if test="cdit:build_module_library($middleware)">

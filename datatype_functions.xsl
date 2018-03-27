@@ -183,62 +183,7 @@
         <xsl:value-of select="idl:get_enum($enum_namespace, $enum_label, $enum_members, $tab)" />
     </xsl:function>
 
-    <xsl:function name="cdit:get_idl_function">
-        <xsl:param name="aggregate" />
-        <xsl:param name="middleware" />
-
-        <!-- Get the definitions of the AggregateInstances used in this Aggregate -->
-        <xsl:variable name="aggregate_instances" select="graphml:get_descendant_nodes_of_kind($aggregate, 'AggregateInstance')" />
-        <xsl:variable name="aggregate_definitions" select="graphml:get_definitions($aggregate_instances)" />
-
-        <xsl:variable name="aggregate_label" select="graphml:get_label($aggregate)" />
-        <xsl:variable name="aggregate_namespace" select="graphml:get_namespace($aggregate)" />
-        <xsl:variable name="label" select="o:title_case($aggregate_label)" />
-        <xsl:variable name="tab" select="if ($aggregate_namespace != '') then 1 else 0" />
-
-        <xsl:variable name="define_guard_name" select="upper-case(o:join_list(($aggregate_namespace, $aggregate_label, 'FUNCTION_IDL'), '_'))" />
-
-        <!-- Version Number -->
-        <xsl:value-of select="cpp:print_regen_version('datatype_functions.xsl', 'cdit:get_idl_function', 0)" />
-
-        <!-- Define Guard -->
-        <xsl:value-of select="cpp:define_guard_start($define_guard_name)" />
-
-        <!-- Import the definitions of each aggregate instance used -->
-        <xsl:for-each select="$aggregate_definitions">
-            <xsl:if test="position() = 1">
-                <xsl:value-of select="cpp:comment('Import required .idl files', 0)" />
-            </xsl:if>
-            <xsl:variable name="required_file" select="cdit:get_aggregates_middleware_file_name(., $middleware)" />
-            <xsl:value-of select="idl:include($required_file)" />
-            
-            <xsl:if test="position() = last()">
-                <xsl:value-of select="o:nl(1)" />
-            </xsl:if>
-        </xsl:for-each>
-
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="idl:module($aggregate_namespace)" />
-        </xsl:if>
-
-        <xsl:variable name="interface_label" select="concat($label, '_Server')" />
-        <xsl:variable name="function_label" select="'send'" />
-
-        <xsl:value-of select="idl:interface($interface_label, $tab)" />
-        <xsl:variable name="args" select="o:join_list(('in', cpp:combine_namespaces(($aggregate_namespace, $label)), 'message'), ' ')" />
-        <xsl:variable name="func_name" select="concat($function_label, o:wrap_bracket($args))" />
-        <xsl:value-of select="concat(o:t($tab + 1 ), o:join_list(('oneway', 'void', $func_name), ' '), cpp:nl())" />
-        <xsl:value-of select="cpp:scope_end($tab)" />
-
-        <xsl:if test="$aggregate_namespace != ''">
-            <xsl:value-of select="cpp:scope_end(0)" />
-        </xsl:if>
-
-        <xsl:value-of select="o:nl(1)" />
-        
-        <!-- Define Guard -->
-        <xsl:value-of select="cpp:define_guard_end($define_guard_name)" />
-    </xsl:function>
+    
 
     <xsl:function name="cdit:get_idl_datatype">
         <xsl:param name="aggregate" />
@@ -939,6 +884,8 @@
     </xsl:function>
 
 
+
+
     <xsl:function name="cdit:get_aggregate_base_cpp">
         <xsl:param name="aggregate" as="element()" />
 
@@ -1069,7 +1016,6 @@
 
         <xsl:value-of select="cmake:add_subdirectories($middlewares)" />
     </xsl:function>
-
     
 
     <xsl:function name="cdit:get_enum_h">
