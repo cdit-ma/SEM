@@ -573,6 +573,49 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 image = "label";
                 break;
             }
+            
+            case NODE_KIND::REPLY_PORT:{
+                alias = "EntityIcons";
+                image = "InEventPort";
+                break;
+            }
+            case NODE_KIND::REPLY_PORT_IMPL:{
+                alias = "EntityIcons";
+                image = "InEventPortImpl";
+                break;
+            }
+            case NODE_KIND::REPLY_PORT_INSTANCE:{
+                alias = "EntityIcons";
+                image = "InEventPortInstance";
+                break;
+            }
+
+            case NODE_KIND::REQUEST_PORT:{
+                alias = "EntityIcons";
+                image = "OutEventPort";
+                break;
+            }
+            case NODE_KIND::REQUEST_PORT_IMPL:{
+                alias = "EntityIcons";
+                image = "OutEventPortImpl";
+                break;
+            }
+            case NODE_KIND::REQUEST_PORT_INSTANCE:{
+                alias = "EntityIcons";
+                image = "OutEventPortInstance";
+                break;
+            }
+
+            case NODE_KIND::REPLY_TYPE:{
+                alias = "EntityIcons";
+                image = "ReturnParameter";
+                break;
+            }
+            case NODE_KIND::REQUEST_TYPE:{
+                alias = "EntityIcons";
+                image = "InputParameter";
+                break;
+            }
             case NODE_KIND::VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";

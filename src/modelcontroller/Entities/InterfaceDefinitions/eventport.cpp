@@ -15,9 +15,6 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
-
-    
-    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPort::isInPort() const
@@ -79,7 +76,7 @@ bool EventPort::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case EDGE_KIND::AGGREGATE:{
-        if(isNodeOfType(NODE_TYPE::INSTANCE)){
+        if(getDefinition()){
             //Don't allow Instances to have aggregate.
             return false;
         }

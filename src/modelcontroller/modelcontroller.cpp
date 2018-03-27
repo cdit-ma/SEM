@@ -482,6 +482,10 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_component_node(parent_node);
             break;
         }
+        case NODE_KIND::REQUESTREPLY:{
+            node = construct_requestreply_node(parent_node);
+            break;
+        }
         default:
             node = construct_child_node(parent_node, kind);
             break;
@@ -700,6 +704,7 @@ Node* ModelController::construct_component_node(Node* parent){
         triggerAction("Constructing Component");
 
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        
         if(node){
             auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
@@ -707,6 +712,23 @@ Node* ModelController::construct_component_node(Node* parent){
     }
     return 0;
 }
+
+Node* ModelController::construct_requestreply_node(Node* parent){
+    if(parent){
+        triggerAction("Constructing Request Reply");
+
+        auto node = construct_child_node(parent, NODE_KIND::REQUESTREPLY);
+
+        if(node){
+            auto request_type = construct_child_node(node, NODE_KIND::REQUEST_TYPE);
+            auto reply_type = construct_child_node(node, NODE_KIND::REPLY_TYPE);
+            return node;
+        }
+    }
+    return 0;
+}
+
+
 
 
 void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
@@ -1364,6 +1386,8 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
+    
+
     if(dependant_kind != NODE_KIND::NONE){
         //For each child in parent, check to see if any Nodes match Label/Type
         for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
@@ -1386,8 +1410,8 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         }
 
         if(!nodes_matched){
-            //qCritical() << definition << " Construct node!";
             //If we didn't find a match, we must create an Instance.
+            
             auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
             if(node){
                 nodes_matched ++;
@@ -1398,7 +1422,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
     return nodes_matched;
 }
 
-
+ 
 void ModelController::destructEdge_(Edge *edge){
     if(edge){
         auto id = edge->getID();
@@ -1662,7 +1686,10 @@ bool ModelController::canDeleteNode(Node *node)
 
         if(node->getDefinition()){
             switch(node_kind){
+            case NODE_KIND::REQUEST_PORT_IMPL:
             case NODE_KIND::OUTEVENTPORT_IMPL:
+            case NODE_KIND::REQUEST_PORT:
+            case NODE_KIND::REPLY_PORT:
             case NODE_KIND::COMPONENT_INSTANCE:
                 //CompoentInstances/Outeventportimpls can be destroyed at any time
                 break;
@@ -1899,7 +1926,10 @@ bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool set
 {
     if(src && dst){
         auto node_kind = src->getNodeKind();
-        auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
+
+        QSet<NODE_KIND> no_dependants = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE, NODE_KIND::REQUEST_PORT_INSTANCE, NODE_KIND::REPLY_PORT_INSTANCE};
+
+        auto construct_dependant = setup && isUserAction() && (no_dependants.contains(node_kind) == false) ;
         
         if(construct_dependant){
             for(auto child : dst->getChildren(0)){
@@ -1953,7 +1983,9 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         auto eventport = (EventPort*) src;
         auto aggregate = (Aggregate*) dst;
 
-        bool construct_instance = setup && isUserAction() && (eventport->getNodeKind() == NODE_KIND::INEVENTPORT || eventport->getNodeKind() == NODE_KIND::OUTEVENTPORT);
+        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::INEVENTPORT, NODE_KIND::REQUEST_TYPE,NODE_KIND::REPLY_TYPE};
+
+        bool construct_instance = setup && isUserAction() && (instance_kinds.contains(eventport->getNodeKind()));
         //Only auto construct if we are processing a user action.
         if(construct_instance){
             Node* aggregate_instance = 0;
@@ -3078,10 +3110,14 @@ bool ModelController::canRemove(QList<Entity *> selection)
             if(parent_node){
                 auto definition = node->getDefinition();
                 if(node->isImpl() && definition){
-                    //Only allowed to delete OutEventPortImpls
-                    if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
-                        return false;
-                    }
+                    switch(node->getNodeKind()){
+                        case NODE_KIND::OUTEVENTPORT_IMPL:
+                        case NODE_KIND::REQUEST_PORT_IMPL:
+                            break;
+                        default:
+                            return false;
+                    };
+
                 }
 
                 if(node->isInstance() && definition && parent_node->isInstance()){

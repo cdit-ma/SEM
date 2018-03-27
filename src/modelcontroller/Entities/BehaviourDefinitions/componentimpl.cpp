@@ -36,6 +36,8 @@ bool ComponentImpl::canAdoptChild(Node *child)
         case NODE_KIND::SETTER:
         case NODE_KIND::CODE:
         case NODE_KIND::HEADER:
+        case NODE_KIND::REQUEST_PORT_IMPL:
+        case NODE_KIND::REPLY_PORT_IMPL:
             break;
     default:
         return false;

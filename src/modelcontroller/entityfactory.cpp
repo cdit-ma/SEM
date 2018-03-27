@@ -90,6 +90,24 @@
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
+#include "Entities/InterfaceDefinitions/namespace.h"
+
+#include "Entities/InterfaceDefinitions/requestreply.h"
+#include "Entities/InterfaceDefinitions/requestport.h"
+#include "Entities/InterfaceDefinitions/replyport.h"
+
+
+#include "Entities/BehaviourDefinitions/requestportimpl.h"
+#include "Entities/BehaviourDefinitions/replyportimpl.h"
+
+#include "Entities/DeploymentDefinitions/requestportinstance.h"
+#include "Entities/DeploymentDefinitions/replyportinstance.h"
+
+#include "Entities/InterfaceDefinitions/requesttype.h"
+#include "Entities/InterfaceDefinitions/replytype.h"
+#include "Entities/InterfaceDefinitions/voidtype.h"
+
+
 
 
 //QOS Elements
@@ -399,6 +417,19 @@ EntityFactory::EntityFactory()
     //Elements
     IDL(this);
     SharedDatatypes(this);
+    Namespace(this);
+    RequestReply(this);
+    RequestType(this);
+    ReplyType(this);
+    VoidType(this);
+
+    RequestPort(this);
+    ReplyPort(this);
+
+    RequestPortImpl(this);
+    ReplyPortImpl(this);
+    RequestPortInstance(this);
+    ReplyPortInstance(this);
 
     //Edges
     DefinitionEdge(this);

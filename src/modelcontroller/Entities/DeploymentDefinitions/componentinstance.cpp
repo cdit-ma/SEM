@@ -31,6 +31,8 @@ bool ComponentInstance::canAdoptChild(Node *child)
     case NODE_KIND::ATTRIBUTE_INSTANCE:
     case NODE_KIND::INEVENTPORT_INSTANCE:
     case NODE_KIND::OUTEVENTPORT_INSTANCE:
+    case NODE_KIND::REQUEST_PORT_INSTANCE:
+    case NODE_KIND::REPLY_PORT_INSTANCE:
         break;
     default:
         return false;

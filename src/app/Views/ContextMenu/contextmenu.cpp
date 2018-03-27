@@ -24,6 +24,7 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
+    
     connect_node_edge_kinds[NODE_KIND::WORKER_PROCESS] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
@@ -31,6 +32,14 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
+
+    connect_node_edge_kinds[NODE_KIND::REQUEST_TYPE] = EDGE_KIND::AGGREGATE;
+    connect_node_edge_kinds[NODE_KIND::REPLY_TYPE] = EDGE_KIND::AGGREGATE;
+
+    connect_node_edge_kinds[NODE_KIND::REQUEST_PORT] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::REPLY_PORT] = EDGE_KIND::DEFINITION;
+
+    connect_node_edge_kinds[NODE_KIND::REQUEST_PORT_IMPL] = EDGE_KIND::DEFINITION;
 
     action_controller = view_controller->getActionController();
 

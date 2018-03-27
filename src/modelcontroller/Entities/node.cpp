@@ -134,8 +134,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
-        //HMM
-        //if(isDescendantOf())
 
         break;
     }

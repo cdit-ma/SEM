@@ -24,6 +24,8 @@ bool Component::canAdoptChild(Node *child)
     case NODE_KIND::ATTRIBUTE:
     case NODE_KIND::INEVENTPORT:
     case NODE_KIND::OUTEVENTPORT:
+    case NODE_KIND::REQUEST_PORT:
+    case NODE_KIND::REPLY_PORT:
         break;
     default:
         return false;

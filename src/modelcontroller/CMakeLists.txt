@@ -131,6 +131,18 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestreply.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requesttype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/replytype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/voidtype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/replyport.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/replyportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestportinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/replyportinstance.cpp
 )
 
 set(HEADERS

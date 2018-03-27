@@ -29,6 +29,22 @@ enum class NODE_KIND
         ENUM,
         ENUM_INSTANCE,
         ENUM_MEMBER,
+        NAMESPACE,
+        REQUESTREPLY,
+        REQUEST_PORT,
+        REPLY_PORT,
+        REQUEST_TYPE,
+        REPLY_TYPE,
+        VOID_TYPE,
+
+        REQUEST_PORT_IMPL,
+        REPLY_PORT_IMPL,
+
+        REQUEST_PORT_INSTANCE,
+        REPLY_PORT_INSTANCE,
+        
+        
+
 
         COMPONENT_ASSEMBLY,
         MANAGEMENT_COMPONENT,

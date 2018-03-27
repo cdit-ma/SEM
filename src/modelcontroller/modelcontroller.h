@@ -185,6 +185,7 @@ private:
     Node* construct_dds_profile_node(Node* parent);
     Node* construct_for_condition_node(Node* parent);
     Node* construct_component_node(Node* parent);
+    Node* construct_requestreply_node(Node* parent);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);

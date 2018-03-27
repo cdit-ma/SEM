@@ -886,16 +886,28 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+
+            case NODE_KIND::REPLY_PORT_INSTANCE:
+            case NODE_KIND::REQUEST_PORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
-                }else{
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+
+                switch(nodeKind){
+                    case NODE_KIND::INEVENTPORT_INSTANCE:
+                    case NODE_KIND::REPLY_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
+                    case NODE_KIND::OUTEVENTPORT_INSTANCE:
+                    case NODE_KIND::REQUEST_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
                 }
+                
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -1078,6 +1090,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+
+            case NODE_KIND::REQUESTREPLY:
+            case NODE_KIND::REQUEST_PORT:
+            case NODE_KIND::REQUEST_PORT_IMPL:
+            case NODE_KIND::REPLY_PORT:
+            case NODE_KIND::REPLY_PORT_IMPL:
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+
+                if(nodeKind == NODE_KIND::REQUEST_PORT_IMPL){
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
+                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
+                }
+
+                break;
+            
             default:
                 nodeItem = new StackNodeItem(item, parentNode);
                 break;
