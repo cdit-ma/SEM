@@ -29,6 +29,7 @@ bool WorkerDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
     case NODE_KIND::WORKLOAD:
+    case NODE_KIND::WORKER_DEFINITION:
         break;
     default:
         return false;

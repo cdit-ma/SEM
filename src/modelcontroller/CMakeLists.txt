@@ -127,6 +127,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
@@ -140,6 +141,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.h
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.h

@@ -87,6 +87,7 @@
 #include "Entities/InterfaceDefinitions/member.h"
 #include "Entities/InterfaceDefinitions/outeventport.h"
 #include "Entities/InterfaceDefinitions/vector.h"
+#include "Entities/workerdefinition.h"
 
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
@@ -370,6 +371,8 @@ EntityFactory::EntityFactory()
     Member(this);
     OutEventPort(this);
     Vector(this);
+
+    WorkerDefinition(this);
 
     Enum(this);
     EnumMember(this);

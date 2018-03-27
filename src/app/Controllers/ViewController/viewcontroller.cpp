@@ -560,6 +560,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 break;
             }
+            case NODE_KIND::WORKER_DEFINITION:
             case NODE_KIND::WORKLOAD:{
                 QString type = viewItem->getData("type").toString();
                 if(nodeViewItem->getViewAspect() == VIEW_ASPECT::WORKERS){

@@ -26,6 +26,7 @@ enum class NODE_KIND
         OUTEVENTPORT,
         IDL,
         VECTOR,
+        WORKER_DEFINITION,
         ENUM,
         ENUM_INSTANCE,
         ENUM_MEMBER,
