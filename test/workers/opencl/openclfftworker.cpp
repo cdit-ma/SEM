@@ -85,14 +85,14 @@ std::vector<float> generateConstantOutput(size_t length, float amplitude) {
 
 std::vector<float> generateAlignedFrequencyInput(size_t length, float amplitude, float frequency, size_t phase_shift) {
     std::vector<float> data(length, 0);
-    addFrequency(data, frequency, amplitude, phase_shift);
+    addFrequency(data, frequency, amplitude, (float)phase_shift);
     return data;
 }
 
 std::vector<float> generateAlignedFrequencyOutput(size_t length, float amplitude, float frequency, size_t phase_shift) {
     std::vector<float> data(length, (float)0);
-    data[abs(frequency)*2] = amplitude * length/2 * cos(phase_shift);
-    data[abs(frequency)*2+1] = amplitude * length/2 * sin(phase_shift);
+    data[(size_t)abs(frequency)*2] = amplitude * (float)(length/2) * (float)cos(phase_shift);
+    data[(size_t)abs(frequency)*2+1] = amplitude * (float)(length/2) * (float)sin(phase_shift);
     return data;
 }
 
@@ -105,8 +105,8 @@ std::vector<float> generateMultipleAlignedFrequencyInput(size_t length, float fr
 
 std::vector<float> generateMultipleAlignedFrequencyOutput(size_t length, float frequency1, float frequency2) {
     std::vector<float> data(length, (float)0);
-    data[abs(frequency1)*2] = 1 * length/2;
-    data[abs(frequency2)*2] = 3 * length/2;
+    data[(size_t)abs(frequency1)*2] = 1 * (float)(length/2);
+    data[(size_t)abs(frequency2)*2] = 3 * (float)(length/2);
     return data;
 }
 
