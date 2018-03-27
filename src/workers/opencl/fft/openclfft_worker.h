@@ -15,7 +15,7 @@ public:
     OpenCLFFTWorker(const Component& component, std::string inst_name);
     ~OpenCLFFTWorker();
 
-    bool Configure();
+    bool HandleConfigure();
 
     bool FFT(std::vector<float> &data);
 

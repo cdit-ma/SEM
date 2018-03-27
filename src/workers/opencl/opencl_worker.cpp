@@ -8,7 +8,7 @@
 
 OpenCL_Worker::OpenCL_Worker(const Component& component, std::string inst_name)
     : Worker(component, __func__, inst_name) {
-    
+
     platform_id_ = Activatable::ConstructAttribute(ATTRIBUTE_TYPE::INTEGER, "platform_id").lock();
     if (platform_id_ != NULL) {
         platform_id_->set_Integer(-1);
@@ -24,7 +24,7 @@ OpenCL_Worker::~OpenCL_Worker() {
     
 }
 
-bool OpenCL_Worker::Configure() {
+bool OpenCL_Worker::HandleConfigure() {
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();

@@ -12,7 +12,7 @@ public:
     OpenCL_Worker(const Component& component, std::string inst_name);
     ~OpenCL_Worker();
 
-    bool Configure();
+    bool HandleConfigure();
     bool IsValid() const;
 
     // Base/Utility functions

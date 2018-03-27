@@ -27,7 +27,7 @@ OpenCLFFTWorker::~OpenCLFFTWorker() {
     CleanupCLFFT();
 }
 
-bool OpenCLFFTWorker::Configure() {
+bool OpenCLFFTWorker::HandleConfigure() {
     int platform_id;
     int device_id;
     auto platform_attr = GetAttribute("platform_id").lock();
@@ -128,7 +128,7 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
 
     for (auto& dev_ref : devices_) {
         auto& dev = dev_ref.get();
-        auto& dev_queue = dev.GetQueue()();
+        auto& dev_queue = dev.GetQueue().GetRef()();
         /* Bake the plan. */
         err = clfftBakePlan(planHandle, 1, &dev_queue, NULL, NULL);
 
@@ -142,7 +142,7 @@ bool OpenCLFFTWorker::FFT(std::vector<float> &data) {
         err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD, 1, &dev_queue, 0, NULL, NULL, &(buffer->GetBackingRef()()), NULL, NULL);
 
         /* Wait for calculations to be finished. */
-        dev.GetQueue().finish();
+        dev.GetQueue().GetRef().finish();
 
         /* Fetch results of calculations. */
         //dev.GetQueue().enqueueReadBuffer(bufX, CL_TRUE, 0, dataBytes, dataIn);
