@@ -72,7 +72,6 @@ public:
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
     QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
-    QList<int> getWorkerFunctions();
     
 
     bool isNodeOfType(int ID, NODE_TYPE type);
@@ -119,6 +118,7 @@ public slots:
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
+    void constructWorkerFunction(int parent_id, int dst_id, QPointF centerPoint);
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
 
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);

@@ -51,7 +51,6 @@ public:
     SelectionController* getSelectionController();
     ActionController* getActionController();
 
-    QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
     QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
@@ -155,6 +154,7 @@ signals:
     
     void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
+    void vc_constructWorkerFunction(int parentID, int dstID, QPointF point);
     void vc_importProjects(QStringList fileData);
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);

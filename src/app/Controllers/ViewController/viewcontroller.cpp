@@ -145,6 +145,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
     connect(this, &ViewController::vc_constructWorkerProcess, controller, &ModelController::constructWorkerProcess);
+    connect(this, &ViewController::vc_constructWorkerFunction, controller, &ModelController::constructWorkerFunction);
     connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
     connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
     connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
@@ -290,19 +291,6 @@ void ViewController::welcomeScreenToggled(bool visible){
         //Toast the notification
         QTimer::singleShot(100, notification_manager, &NotificationManager::toastLatestNotification);
     }
-}
-
-QList<ViewItem *> ViewController::getWorkerFunctions()
-{
-    QList<ViewItem*> workers;
-
-    foreach(ViewItem* item, getItemsOfKind(NODE_KIND::WORKER_PROCESS)){
-        NodeViewItem* node = (NodeViewItem*)item;
-        if(item && node->getViewAspect() == VIEW_ASPECT::WORKERS){
-            workers << item;
-        }
-    }
-    return workers;
 }
 
 QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)

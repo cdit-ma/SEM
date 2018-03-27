@@ -49,6 +49,7 @@
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
 #include "Entities/BehaviourDefinitions/whileloop.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
+#include "Entities/workerfunction.h"
 #include "Entities/BehaviourDefinitions/workload.h"
 
 //Instance Elements
@@ -337,6 +338,7 @@ EntityFactory::EntityFactory()
     VariadicParameter(this);
     WhileLoop(this);
     WorkerProcess(this);
+    WorkerFunction(this);
     Workload(this);
 
     //Instance Elements

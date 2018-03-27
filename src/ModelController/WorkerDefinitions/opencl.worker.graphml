@@ -24,8 +24,18 @@
             <data key="icon_prefix">Icons</data>
             <data key="icon">gpu</data>
             <graph id="opencl:">
+                <node id="opencl::device_id">
+					<data key="type">Integer</data>
+					<data key="label">device_id</data>
+					<data key="kind">Attribute</data>
+				</node>
+				<node id="opencl::platform_id">
+                    <data key="type">Integer</data>
+					<data key="label">platform_id</data>
+					<data key="kind">Attribute</data>
+				</node>
                 <node id="opencl::createbuffer">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">CreateBuffer</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -64,7 +74,7 @@
                     </graph>
                 </node>
                 <node id="opencl::releasebuffer">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">ReleaseBuffer</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -86,7 +96,7 @@
                     </graph>
                 </node>
                 <node id="opencl::writebuffer">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">WriteBuffer</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -125,7 +135,7 @@
                     </graph>
                 </node>
                 <node id="opencl::readbuffer">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">ReadBuffer</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -165,7 +175,7 @@
                 </node>
 
                 <node id="opencl::runparallel">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">RunParallel</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -196,7 +206,7 @@
                 </node>
 
                 <node id="opencl::fft">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">FFT</data>
                     <data key="worker">OpenCLFFT_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl/fft</data>
@@ -219,7 +229,7 @@
                 </node>
 
                 <node id="opencl::kmeans">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">K-Means</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>
@@ -266,7 +276,7 @@
                 </node>
 
                 <node id="opencl::matrixmult">
-                    <data key="kind">WorkerProcess</data>
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">MatrixMult</data>
                     <data key="worker">OpenCL_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/opencl</data>

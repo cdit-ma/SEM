@@ -18,7 +18,7 @@ bool WorkerDefinition::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
     case NODE_KIND::ATTRIBUTE:
-    case NODE_KIND::WORKER_PROCESS:
+    case NODE_KIND::WORKER_FUNCTION:
         break;
     default:
         return false;

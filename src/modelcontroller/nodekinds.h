@@ -58,6 +58,7 @@ enum class NODE_KIND
         PERIODICEVENT,
         PROCESS,
         WORKER_PROCESS,
+        WORKER_FUNCTION,
         TERMINATION,
         VARIABLE,
         WHILELOOP,

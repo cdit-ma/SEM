@@ -506,6 +506,24 @@ void ModelController::constructWorkerProcess(int parent_id, int dst_id, QPointF 
     }
 }
 
+void ModelController::constructWorkerFunction(int parent_id, int dst_id, QPointF pos){
+    //Add undo step
+    triggerAction("Constructing Worker Function");
+    
+    auto parent_node = entity_factory->GetNode(parent_id);
+    auto worker_node = entity_factory->GetNode(dst_id);
+    if(parent_node && worker_node && worker_node->getNodeKind() == NODE_KIND::WORKER_FUNCTION){
+        //clone the worker into the parent
+        auto node = cloneNode(worker_node, parent_node);
+        if(node){
+            //Use position?
+            setData_(node, "x", pos.x());
+            setData_(node, "y", pos.y());
+        }
+    }
+}
+
+
 void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
 {
     QWriteLocker lock(&lock_);
@@ -714,7 +732,7 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
         triggerAction("Constructed Connected Node");
 
         Node* node = 0;
-        if(node_kind == NODE_KIND::WORKER_PROCESS){
+        if(node_kind == NODE_KIND::WORKER_PROCESS || node_kind == NODE_KIND::WORKER_FUNCTION){
             node = cloneNode(dst_node, parent_node);
         }else{
             node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
@@ -1012,13 +1030,6 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
         }
     }
     return valid_nodes;
-}
-
-QList<int> ModelController::getWorkerFunctions()
-{
-    QReadLocker lock(&lock_);
-    auto worker_processes = workerDefinitions->getChildrenOfKind(NODE_KIND::WORKER_DEFINITIONS);
-    return getIDs(worker_processes);
 }
 
 QList<Entity*> ModelController::getOrderedEntities(QList<int> ids){
@@ -2020,7 +2031,7 @@ bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
         auto dst_parent = dst->getParentNode();
 
         //Bind the special vector linking
-        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS  || dst_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTION){
             auto worker_name = dst_parent->getDataValue("worker").toString();
             auto parameter_label = dst->getDataValue("label").toString();
 
