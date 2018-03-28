@@ -18,6 +18,7 @@ bool SharedDatatypes::canAdoptChild(Node *item)
 {
     switch(item->getNodeKind()){
     case NODE_KIND::AGGREGATE:
+    case NODE_KIND::NAMESPACE:
     case NODE_KIND::ENUM:
         break;
     default:

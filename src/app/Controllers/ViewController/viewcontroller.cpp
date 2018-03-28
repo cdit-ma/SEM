@@ -574,35 +574,19 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             
-            case NODE_KIND::REPLY_PORT:{
-                alias = "EntityIcons";
-                image = "InEventPort";
-                break;
-            }
-            case NODE_KIND::REPLY_PORT_IMPL:{
-                alias = "EntityIcons";
-                image = "InEventPortImpl";
-                break;
-            }
+            case NODE_KIND::REPLY_PORT:
+            case NODE_KIND::REPLY_PORT_IMPL:
             case NODE_KIND::REPLY_PORT_INSTANCE:{
                 alias = "EntityIcons";
-                image = "InEventPortInstance";
+                image = "ReplyPort";
                 break;
             }
 
-            case NODE_KIND::REQUEST_PORT:{
-                alias = "EntityIcons";
-                image = "OutEventPort";
-                break;
-            }
-            case NODE_KIND::REQUEST_PORT_IMPL:{
-                alias = "EntityIcons";
-                image = "OutEventPortImpl";
-                break;
-            }
+            case NODE_KIND::REQUEST_PORT:
+            case NODE_KIND::REQUEST_PORT_IMPL:
             case NODE_KIND::REQUEST_PORT_INSTANCE:{
                 alias = "EntityIcons";
-                image = "OutEventPortInstance";
+                image = "RequestPort";
                 break;
             }
 

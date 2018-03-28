@@ -16,6 +16,14 @@ Namespace::Namespace(): Node(node_kind)
 
 bool Namespace::canAdoptChild(Node* child)
 {
+    //Dissallow SHARED_DATATYPES
+    switch(child->getNodeKind()){
+    case NODE_KIND::SHARED_DATATYPES:
+        return false;
+    default:
+        break;
+    }
+
     auto parent_node = getParentNode();
 
     if(parent_node){
