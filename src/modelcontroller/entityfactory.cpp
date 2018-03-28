@@ -90,6 +90,9 @@
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
+#include "Entities/InterfaceDefinitions/namespace.h"
+#include "Entities/BehaviourDefinitions/class.h"
+#include "Entities/BehaviourDefinitions/function.h"
 
 
 //QOS Elements
@@ -370,6 +373,8 @@ EntityFactory::EntityFactory()
     Enum(this);
     EnumMember(this);
     EnumInstance(this);
+    MEDEA::Class(this);
+    MEDEA::Function(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);
@@ -399,6 +404,7 @@ EntityFactory::EntityFactory()
     //Elements
     IDL(this);
     SharedDatatypes(this);
+    Namespace(this);
 
     //Edges
     DefinitionEdge(this);

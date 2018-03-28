@@ -27,6 +27,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     case NODE_KIND::AGGREGATE:
     case NODE_KIND::COMPONENT:
     case NODE_KIND::SHARED_DATATYPES:
+    case NODE_KIND::NAMESPACE:
         break;
     default:
         return false;

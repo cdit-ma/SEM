@@ -41,6 +41,8 @@ enum class NODE_KIND
         OUTEVENTPORT_INSTANCE,
         HARDWARE_CLUSTER,
         HARDWARE_NODE,
+        CLASS,
+        FUNCTION,
 
         ATTRIBUTE_IMPL,
         BRANCH,
@@ -67,6 +69,7 @@ enum class NODE_KIND
         SETTER,
         LOGGINGSERVER,
         LOGGINGPROFILE,
+        NAMESPACE,
 
         QOS_DDS_PROFILE,
         QOS_DDS_POLICY_DEADLINE,
