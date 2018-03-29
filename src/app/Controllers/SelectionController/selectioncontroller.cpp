@@ -145,6 +145,9 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
     if(new_dock != currentViewDockWidget){
         if(currentViewDockWidget){
             NodeView* nodeView = currentViewDockWidget->getNodeView();
+            
+            disconnect(this, &SelectionController::zoomIn, nodeView, &NodeView::zoomIn);
+            disconnect(this, &SelectionController::zoomOut, nodeView, &NodeView::zoomOut);
             disconnect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
             disconnect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }
@@ -154,6 +157,8 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
         if(currentViewDockWidget){
             selectionHandler = currentViewDockWidget->getSelectionHandler();
             NodeView* nodeView = currentViewDockWidget->getNodeView();
+            connect(this, &SelectionController::zoomIn, nodeView, &NodeView::zoomIn);
+            connect(this, &SelectionController::zoomOut, nodeView, &NodeView::zoomOut);
             connect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
             connect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }

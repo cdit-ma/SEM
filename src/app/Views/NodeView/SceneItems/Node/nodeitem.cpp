@@ -179,6 +179,13 @@ int NodeItem::getSortOrder() const
     return -1;
 }
 
+int NodeItem::getSortOrderRow() const{
+    if(hasData("row")){
+        return getData("row").toInt();
+    }
+    return 0;
+}
+
 bool NodeItem::hasChildNodes() const
 {
     return !childNodes.isEmpty();

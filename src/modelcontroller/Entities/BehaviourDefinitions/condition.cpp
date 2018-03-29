@@ -52,9 +52,18 @@ bool Condition::gotTermination()
     return false;
 }
 
-bool Condition::canAdoptChild(Node*)
+bool Condition::canAdoptChild(Node* child)
 {
-    return false;
+    if(child->isNodeOfType(NODE_TYPE::BEHAVIOUR)){
+        BehaviourNode* behaviour_node = (BehaviourNode*)child;
+
+        if(behaviour_node->isTopLevel()){
+            return false;
+        }
+    }else{
+        return false;
+    }
+    return BehaviourNode::canAdoptChild(child);
 }
 
 bool Condition::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)

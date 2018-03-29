@@ -20,6 +20,7 @@ BehaviourNode::BehaviourNode(NODE_KIND kind) : Node(kind)
     setAcceptsEdgeKind(EDGE_KIND::WORKFLOW);
     _isProducer = false;
     _isReciever = false;
+    is_top_level_ = false;
 }
 
 void BehaviourNode::setWorkflowProducer(bool producer)
@@ -126,7 +127,13 @@ BehaviourNode *BehaviourNode::getInitialProducer()
     return n;
 }
 
+void BehaviourNode::setTopLevel(bool top_level){
+    is_top_level_ = top_level;
+}
 
+bool BehaviourNode::isTopLevel() const{
+    return is_top_level_;
+}
 
 bool BehaviourNode::canAdoptChild(Node *child)
 {

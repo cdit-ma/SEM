@@ -138,6 +138,7 @@ signals:
     void vc_undo();
     void vc_redo();
     void vc_triggerAction(QString);
+    
     void vc_setData(int, QString, QVariant);
     void vc_removeData(int, QString);
     void vc_deleteEntities(QList<int> IDs);
@@ -189,6 +190,9 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
 public slots:
+    void incrementSelectedIndex();
+    void decrementSelectedIndex();
+    
     void welcomeScreenToggled(bool visible);
     void highlight(QList<int> ids);
 

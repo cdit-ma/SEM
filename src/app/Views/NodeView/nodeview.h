@@ -90,6 +90,13 @@ public slots:
 
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
+
+    void zoomIn(){
+        minimap_Zoom(1);
+    }
+    void zoomOut(){
+        minimap_Zoom(-1);
+    }
     
 private slots:
     void notification_Added(QSharedPointer<NotificationObject> obj);

@@ -134,6 +134,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/class.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/function.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/containernode.cpp
 )
 
 set(HEADERS

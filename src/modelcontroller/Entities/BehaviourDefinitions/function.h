@@ -1,10 +1,10 @@
 #ifndef MEDEA_FUNCTION_H
 #define MEDEA_FUNCTION_H
-#include "behaviournode.h"
+#include "containernode.h"
 
 class EntityFactory;
 namespace MEDEA{
-    class Function : public BehaviourNode{
+    class Function : public ContainerNode{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:

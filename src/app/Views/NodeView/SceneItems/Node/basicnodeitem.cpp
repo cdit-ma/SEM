@@ -28,6 +28,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     setPrimaryTextKey("label");
 
     addRequiredData("index");
+    addRequiredData("row");
     addRequiredData("x");
     addRequiredData("y");
 

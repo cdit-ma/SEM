@@ -14,9 +14,11 @@ public:
 
     void setWorkflowProducer(bool producer);
     void setWorkflowReciever(bool reciever);
+    void setTopLevel(bool top_level);
 
     bool isWorkflowProducer() const;
     bool isWorkflowReciever() const;
+    bool isTopLevel() const;
 
     BehaviourNode* getProducerNode();
     QList<BehaviourNode*> getRecieverNodes();
@@ -35,6 +37,7 @@ public:
 private:
     bool _isReciever;
     bool _isProducer;
+    bool is_top_level_;
 
 };
 

@@ -729,6 +729,25 @@ JobMonitor* ViewController::getExecutionMonitor(){
     return job_monitor;
 }
 
+void ViewController::incrementSelectedIndex(){
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        auto index = item->getData("index").toInt();
+        emit vc_triggerAction("Index Changed");
+        emit vc_setData(item->getID(), "index", index + 1);
+    }
+}
+void ViewController::decrementSelectedIndex(){
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        auto index = item->getData("index").toInt();
+        if(index > 0){
+            emit vc_triggerAction("Index Changed");
+            emit vc_setData(item->getID(), "index", index - 1);
+        }
+    }
+}
+
 void ViewController::RefreshExecutionMonitor(QString job_name){
     showExecutionMonitor();
     job_monitor->refreshRecentBuildsByName(job_name);

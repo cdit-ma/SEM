@@ -35,6 +35,7 @@ public:
     void removeChildNode(NodeItem *nodeItem);
 
     int getSortOrder() const;
+    int getSortOrderRow() const;
 
     bool hasChildNodes() const;
     QList<NodeItem*> getChildNodes() const;

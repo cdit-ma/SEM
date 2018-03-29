@@ -906,9 +906,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CONDITION:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
-                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "circleQuestion";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -1049,9 +1048,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
                 nodeItem->setSecondaryTextKey("frequency");
-                nodeItem->setExpandEnabled(false);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "clockCycle";
                 nodeItem->setSecondaryIconPath(secondary_icon);
@@ -1077,6 +1075,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
+             case NODE_KIND::FUNCTION:
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+
                 break;
             default:
                 nodeItem = new StackNodeItem(item, parentNode);

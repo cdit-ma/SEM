@@ -9,6 +9,9 @@ Header::Header(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::HEADE
 
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "code", QVariant::String);
+    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, true, 2);
+    RegisterDefaultData(factory, node_kind, "row_subgroup", QVariant::String, true, "RIGHT");
+
 };
 
 Header::Header():BehaviourNode(NODE_KIND::HEADER){

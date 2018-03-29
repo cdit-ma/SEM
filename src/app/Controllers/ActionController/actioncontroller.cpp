@@ -128,8 +128,8 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
 
-
-
+        connect(edit_incrementIndex, &QAction::triggered, viewController, &ViewController::incrementSelectedIndex);
+        connect(edit_decrementIndex, &QAction::triggered, viewController, &ViewController::decrementSelectedIndex);
     }
 }
 
@@ -140,6 +140,11 @@ void ActionController::connectSelectionController()
         connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionForward()));
         connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionBackward()));
         connect(edit_selectAll, SIGNAL(triggered(bool)), selectionController, SIGNAL(selectAll()));
+
+        connect(view_zoomIn, &QAction::triggered, selectionController, &SelectionController::zoomIn);
+        connect(view_zoomOut, &QAction::triggered, selectionController, &SelectionController::zoomOut);
+        
+        
         connect(edit_clearSelection, SIGNAL(triggered(bool)), selectionController, SIGNAL(clearSelection()));
     }
 }
@@ -310,6 +315,11 @@ void ActionController::selectionChanged(int selection_size)
         edit_replicate->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REPLICATE));
         edit_delete->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_REMOVE));
         edit_renameActiveSelection->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_RENAME));
+
+        edit_incrementIndex->setEnabled(got_selection);
+        edit_decrementIndex->setEnabled(got_selection);
+
+        
 
         //Active selection based.
         view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
@@ -719,6 +729,16 @@ void ActionController::setupActions()
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
 
+    view_zoomIn = createRootAction("View", "Zoom In", "", "Icons", "zoomIn");
+    view_zoomIn->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal));
+
+    edit_decrementIndex = createRootAction("View", "Decrement Index", "", "Icons", "circleMinusDark");
+    edit_incrementIndex = createRootAction("View", "Increment Index", "", "Icons", "circlePlusDark");
+
+    edit_incrementIndex->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Right));
+    edit_decrementIndex->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Left));
+    
+
     view_fitView = createRootAction("View", "Fit View", "", "Icons", "screenResize");
     view_fitView->setToolTip("Center all entities in active view.");
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
@@ -728,6 +748,12 @@ void ActionController::setupActions()
     view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
 
     view_centerOn = createRootAction("View", "Center On Selection", "", "Icons", "crosshair");
+    
+    view_zoomIn = createRootAction("View", "Zoom In", "", "Icons", "zoomIn");
+    view_zoomIn->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal));
+
+    view_zoomOut = createRootAction("View", "Zoom Out", "", "Icons", "zoomOut");
+    view_zoomOut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
 
     edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Icons", "triangleSouthEast");
     edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Icons", "triangleNorthWest");
@@ -888,6 +914,9 @@ void ActionController::setupActions()
     view_actions.append(view_viewImplInNewWindow);
     view_actions.append(view_viewConnections);
     view_actions.append(view_viewInNewWindow);
+    
+    
+    
 
     view_actions.append(model_getCodeForComponent);
 
@@ -949,6 +978,11 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_clearSelection);
     menu_edit->addAction(edit_CycleActiveSelectionForward);
     menu_edit->addAction(edit_CycleActiveSelectionBackward);
+    menu_edit->addSeparator();
+    menu_edit->addAction(edit_incrementIndex);
+    menu_edit->addAction(edit_decrementIndex);
+
+    
 
      // View Menu
     menu_view->addAction(view_fitView);
@@ -962,6 +996,9 @@ void ActionController::setupMainMenu()
     menu_view->addAction(view_viewDefnInNewWindow);
     menu_view->addAction(view_viewImplInNewWindow);
     menu_view->addAction(view_viewConnections);
+    menu_view->addSeparator();
+    menu_view->addAction(view_zoomIn);
+    menu_view->addAction(view_zoomOut);
 
     // Model Menu
     menu_model->addAction(model_selectModel);

@@ -25,10 +25,12 @@ QPointF StackNodeItem::getStemAnchorPoint() const
 QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 {
     int childPos = child->getSortOrder();
+    int row = child->getSortOrderRow();
     int gridSize = getGridSize();
 
     QPointF itemOffset = gridRect().topLeft();
 
+    //offset to the nearest grid
     qreal xMod = fmod(itemOffset.x(), gridSize);
     qreal yMod = fmod(itemOffset.y(), gridSize);
 
@@ -40,19 +42,54 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
         itemOffset.ry() += gridSize - yMod;
     }
 
-    //Work out the exact position given the things above us.
-    foreach(NodeItem* c, getChildNodes()){
-        if(c->getSortOrder() < childPos){
-            //Add a grid space gap
-            if(orientation == Qt::Vertical){
-                itemOffset.ry() += c->currentRect().height() + gridSize;
-            }else{
-                itemOffset.rx() += c->currentRect().width() + (gridSize * 5);
+    QMap<int, QSizeF> row_sizes;
+
+    if(orientation == Qt::Horizontal){
+        for(auto c : getChildNodes()){
+            auto c_row = c->getSortOrderRow();
+            auto c_size = c->currentRect();
+
+            if(c_row == row && c->getSortOrder() < childPos){
+                row_sizes[c_row].rwidth() += c_size.width() + 4 * gridSize;
+            }
+            if(row_sizes[c_row].height() < c_size.height()){
+                row_sizes[c_row].rheight() = c_size.height();
+            }
+        }
+
+        for(int i = 0; i <= row; i++){
+            if(row_sizes.contains(i)){
+                if(i < row){
+                    itemOffset.ry() += row_sizes[i].height() + 2 * gridSize;;
+                }else{
+                    itemOffset.rx() += row_sizes[i].width();
+                }
+            }
+        }
+    }else{
+        for(auto c : getChildNodes()){
+            auto c_row = c->getSortOrderRow();
+            auto c_size = c->currentRect();
+
+            if(c_row == row && c->getSortOrder() < childPos){
+                row_sizes[c_row].rheight() += c_size.height() + gridSize;
+            }
+            if(row_sizes[c_row].width() < c_size.width()){
+                row_sizes[c_row].rwidth() = c_size.width();
+            }
+        }
+
+        for(int i = 0; i <= row; i++){
+            if(row_sizes.contains(i)){
+                if(i < row){
+                    itemOffset.rx() += row_sizes[i].width() + gridSize;
+                }else{
+                    itemOffset.ry() += row_sizes[i].height();
+                }
             }
         }
     }
-
-    return itemOffset;// + child->getMarginOffset();
+    return itemOffset;
 }
 
 void StackNodeItem::childPosChanged()
