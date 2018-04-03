@@ -22,6 +22,7 @@ ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
 bool ComponentImpl::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
+        case NODE_KIND::ATTRIBUTE:
         case NODE_KIND::ATTRIBUTE_IMPL:
         case NODE_KIND::INEVENTPORT_IMPL:
         case NODE_KIND::OUTEVENTPORT_IMPL:

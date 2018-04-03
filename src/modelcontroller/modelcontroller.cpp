@@ -445,6 +445,7 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
         auto edge = construct_edge(edge_kind, source, destination, -1, false);
         
         if(!edge){
+            
             //Free the memory
             entity_factory->DestructEntity(source);
             source = 0;
@@ -1286,13 +1287,14 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
     if(parentNode->addChild(node)){
         if(notify_view){
             storeNode(node);
-        }
+        }   
 
         if(isUserAction()){
             if(node->isNodeOfType(NODE_TYPE::DEFINITION)){
                 for(auto dependant : parentNode->getDependants()){
+                    qCritical() << "DEPENDANT" << dependant;
                     //Setup dependant relationship only for user functions
-                    constructDependantRelative(dependant, node);
+                    qCritical() << constructDependantRelative(dependant, node);
                 }
             }
         }
@@ -1902,7 +1904,14 @@ bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool set
         auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
         
         if(construct_dependant){
-            for(auto child : dst->getChildren(0)){
+            QList<Node*> dependants;
+
+            dependants << dst->getChildren(0);
+            for(auto implementation : dst->getImplementations()){
+                dependants << implementation->getChildren(0);
+            }
+
+            for(auto child : dependants){
                 if(child->isNodeOfType(NODE_TYPE::DEFINITION)){
                     if(!constructDependantRelative(src, child)){
                         qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << src->toString();
