@@ -1286,13 +1286,14 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
     if(parentNode->addChild(node)){
         if(notify_view){
             storeNode(node);
-        }
+        }   
 
-        if(isUserAction()){
-            if(node->isNodeOfType(NODE_TYPE::DEFINITION)){
-                for(auto dependant : parentNode->getDependants()){
-                    //Setup dependant relationship only for user functions
-                    constructDependantRelative(dependant, node);
+        if(isUserAction() && node->isDefinition()){
+            for(auto dependant : parentNode->getDependants()){
+                
+                auto success = constructDependantRelative(dependant, node);
+                if(!success){
+                    qCritical() << "Failed to Construct Dependant Relationship of: " << node->toString() << " Inside: " << dependant->toString();
                 }
             }
         }
@@ -1898,14 +1899,28 @@ void ModelController::unbindData(Node *definition, Node *instance)
 bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
     if(src && dst){
+        QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
         auto node_kind = src->getNodeKind();
-        auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
+        auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
         
         if(construct_dependant){
-            for(auto child : dst->getChildren(0)){
-                if(child->isNodeOfType(NODE_TYPE::DEFINITION)){
-                    if(!constructDependantRelative(src, child)){
-                        qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << src->toString();
+            QSet<NODE_KIND> adopt_impl_kinds = {NODE_KIND::COMPONENT};
+            auto dst_kind = dst->getNodeKind();
+
+            //Construct the list of things we need to check to adopt
+            QList<Node*> nodes_to_adopt = dst->getChildren(0);
+
+            //Allow ComponentImpls to adopt Definitions placed in ComponentImpls
+            if(adopt_impl_kinds.contains(dst_kind)){
+                for(auto implementation : dst->getImplementations()){
+                    nodes_to_adopt << implementation->getChildren(0);
+                }
+            }
+            
+
+            for(auto node : nodes_to_adopt){
+                if(node->isDefinition()){
+                    if(!constructDependantRelative(src, node)){
                         return false;
                     }
                 }

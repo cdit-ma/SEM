@@ -118,8 +118,22 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         if(parentNode){
             if(parentNode->isInstanceImpl()){
-                Node* pDef = parentNode->getDefinition();
-                if(pDef && !pDef->isAncestorOf(dst)){
+                QList<Node*> valid_ancestors;
+                auto parent_definition = parentNode->getDefinition();
+                if(parent_definition){
+                    valid_ancestors << parent_definition;
+                    valid_ancestors << parent_definition->getImplementations();
+                }
+                
+                bool is_descendant = false;
+                for(auto ancestor : valid_ancestors){
+                    if(ancestor && ancestor->isAncestorOf(dst)){
+                        is_descendant = true;
+                        break;
+                    }
+                }
+
+                if(!is_descendant && valid_ancestors.size()){
                     //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                     return false;
                 }
@@ -133,9 +147,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         if(indirectlyConnectedTo(dst)){
             return false;
         }
-
-        //HMM
-        //if(isDescendantOf())
 
         break;
     }
@@ -950,6 +961,15 @@ QSet<Node *> Node::getDependants() const
     }
     for(auto i : instances){
         nodes.insert(i);
+    }
+    if(isImpl()){
+        //Get My Definitions Instances
+        auto definition = getDefinition(true);
+        if(definition){
+            for(auto d : definition->getInstances()){
+                nodes.insert(d);
+            }
+        }
     }
     return nodes;
 }
