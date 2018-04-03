@@ -128,7 +128,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
                 bool is_descendant = false;
                 for(auto ancestor : valid_ancestors){
-                    qCritical() << "VALID ANCESTOR " << ancestor->toString();
                     if(ancestor && ancestor->isAncestorOf(dst)){
                         is_descendant = true;
                         break;
@@ -970,8 +969,10 @@ QSet<Node *> Node::getDependants() const
     if(isImpl()){
         //Get My Definitions Instances
         auto definition = getDefinition(true);
-        for(auto d : definition->getInstances()){
-            nodes.insert(d);
+        if(definition){
+            for(auto d : definition->getInstances()){
+                nodes.insert(d);
+            }
         }
     }
     return nodes;

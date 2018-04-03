@@ -729,9 +729,6 @@ void ActionController::setupActions()
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
 
-    view_zoomIn = createRootAction("View", "Zoom In", "", "Icons", "zoomIn");
-    view_zoomIn->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal));
-
     edit_decrementIndex = createRootAction("View", "Decrement Index", "", "Icons", "circleMinusDark");
     edit_incrementIndex = createRootAction("View", "Increment Index", "", "Icons", "circlePlusDark");
 

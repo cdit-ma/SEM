@@ -440,6 +440,7 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
 }
 
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
+
     Node* source = construct_child_node(parent_node, node_kind, false);
     if(source){
         auto edge = construct_edge(edge_kind, source, destination, -1, false);
@@ -1290,11 +1291,13 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
         }   
 
         if(isUserAction()){
-            if(node->isNodeOfType(NODE_TYPE::DEFINITION)){
+            if(node->isDefinition()){
                 for(auto dependant : parentNode->getDependants()){
-                    qCritical() << "DEPENDANT" << dependant;
-                    //Setup dependant relationship only for user functions
-                    qCritical() << constructDependantRelative(dependant, node);
+                    
+                    auto success = constructDependantRelative(dependant, node);
+                    if(!success){
+                        qCritical() << "Failed: " << dependant->toString();
+                    }
                 }
             }
         }
@@ -1388,7 +1391,6 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         }
 
         if(!nodes_matched){
-            //qCritical() << definition << " Construct node!";
             //If we didn't find a match, we must create an Instance.
             auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
             if(node){
@@ -1900,21 +1902,28 @@ void ModelController::unbindData(Node *definition, Node *instance)
 bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
     if(src && dst){
+        QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
         auto node_kind = src->getNodeKind();
-        auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
+        auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
         
         if(construct_dependant){
-            QList<Node*> dependants;
+            QSet<NODE_KIND> adopt_impl_kinds = {NODE_KIND::COMPONENT};
+            auto dst_kind = dst->getNodeKind();
 
-            dependants << dst->getChildren(0);
-            for(auto implementation : dst->getImplementations()){
-                dependants << implementation->getChildren(0);
+            //Construct the list of things we need to check to adopt
+            QList<Node*> nodes_to_adopt = dst->getChildren(0);
+
+            //Allow ComponentImpls to adopt Definitions placed in ComponentImpls
+            if(adopt_impl_kinds.contains(dst_kind)){
+                for(auto implementation : dst->getImplementations()){
+                    nodes_to_adopt << implementation->getChildren(0);
+                }
             }
+            
 
-            for(auto child : dependants){
-                if(child->isNodeOfType(NODE_TYPE::DEFINITION)){
-                    if(!constructDependantRelative(src, child)){
-                        qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << src->toString();
+            for(auto node : nodes_to_adopt){
+                if(node->isDefinition()){
+                    if(!constructDependantRelative(src, node)){
                         return false;
                     }
                 }
