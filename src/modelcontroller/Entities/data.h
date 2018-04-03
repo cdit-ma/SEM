@@ -47,6 +47,7 @@ public:
     QString toGraphML(int indentDepth = 0, bool functional_export = false);
     QString toString();
 protected:
+
     void store_value();
     void restore_value();
 
@@ -55,6 +56,7 @@ protected:
     void setParentData(Data* data);
     void setParent(Entity* parent);
 private:
+    bool _setData(QVariant value);
     bool addChildData(Data* data);
     bool removeChildData(Data* data);
 signals:

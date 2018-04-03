@@ -7,6 +7,7 @@ OutEventPortInstance::OutEventPortInstance(EntityFactory* factory) : EventPortAs
 	auto node_kind = NODE_KIND::OUTEVENTPORT_INSTANCE;
 	QString kind_string = "OutEventPortInstance";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new OutEventPortInstance();});
+    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, false, 2);
 };
 
 OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NODE_KIND::OUTEVENTPORT_INSTANCE)

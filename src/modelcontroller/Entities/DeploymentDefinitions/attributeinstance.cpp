@@ -11,6 +11,7 @@ AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NOD
     //Register Data
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, false, 1);
 };
 
 AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)

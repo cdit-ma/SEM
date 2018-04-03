@@ -127,6 +127,15 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
     return new_value;
 }
 
+bool Key::setData(Data* data, QVariant data_value){
+    bool data_changed = false;
+    if(data){
+        auto valid_value = validateDataChange(data, data_value);
+        data_changed = data->_setData(valid_value);
+    }
+    return data_changed;
+}
+
 QString Key::toGraphML(int indent_depth, bool functional_export)
 {
     QString xml;

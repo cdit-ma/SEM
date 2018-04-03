@@ -484,6 +484,10 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_component_node(parent_node);
             break;
         }
+        //case NODE_KIND::PERIODICEVENT:{
+            //node = construct_periodic_eventport(parent_node);
+            //break;
+        //}
         default:
             node = construct_child_node(parent_node, kind);
             break;
@@ -704,6 +708,24 @@ Node* ModelController::construct_component_node(Node* parent){
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
         if(node){
             auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
+            return node;
+        }
+    }
+    return 0;
+}
+
+Node* ModelController::construct_periodic_eventport(Node* parent){
+    if(parent){
+        triggerAction("Constructing PeriodicEvent Port");
+
+
+        auto node = construct_child_node(parent, NODE_KIND::PERIODICEVENT);
+        if(node){
+            auto duration = construct_child_node(node, NODE_KIND::ATTRIBUTE_INSTANCE);
+            duration->setDataValue("label", "frequency");
+            duration->setDataValue("type", "Integer");
+            duration->setDataValue("value", 1);
+            duration->setDataValue("row", 1);
             return node;
         }
     }

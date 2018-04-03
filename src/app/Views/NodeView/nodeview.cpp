@@ -843,7 +843,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT_IMPL);
                 break;
             case NODE_KIND::COMPONENT_INSTANCE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                //nodeItem = new DefaultNodeItem(item, parentNode);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
@@ -1048,7 +1049,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "clockCycle";

@@ -6,6 +6,8 @@ InEventPortInstance::InEventPortInstance(EntityFactory* factory) : EventPortAsse
 	auto node_kind = NODE_KIND::INEVENTPORT_INSTANCE;
 	QString kind_string = "InEventPortInstance";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPortInstance();});
+
+    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, false, 0);
 };
 
 InEventPortInstance::InEventPortInstance():EventPortAssembly(NODE_KIND::INEVENTPORT_INSTANCE)

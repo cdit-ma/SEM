@@ -78,17 +78,19 @@ bool Data::isProtected() const
 }
 
 bool Data::_setValue(QVariant value, bool validate){
-    //Set using the 
-    QVariant new_value = value;
-    
-    if(validate && key){
-        new_value = key->validateDataChange(this, new_value);
+    bool success = true;
+    if(key && validate){
+        success = key->setData(this, value);
+    }else{
+        _setData(value);
     }
+    return success;
+}
 
+bool Data::_setData(QVariant new_value){
     //Check if the data changed
-    bool data_changed = new_value != this->value;
+    bool data_changed = new_value != value;
     this->value = new_value;
-    
     updateChildren(data_changed);
     return data_changed;
 }
