@@ -28,6 +28,28 @@ void EnvironmentRequester::Init(const std::string& manager_endpoint){
     manager_endpoint_ = manager_endpoint;
 }
 
+NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& node_endpoint){
+    //Construct query message
+
+    NodeManager::EnvironmentMessage message;
+    message.set_model_name(model_name_);
+    message.set_type(NodeManager::EnvironmentMessage::NODE_QUERY);
+
+    auto control_message = message.mutable_control_message();
+
+    auto node = control_message->add_nodes();
+    auto info = node->mutable_info();
+    auto attribute = node->add_attributes();
+    auto attribute_info = attribute->mutable_info();
+    attribute_info->set_name("ip_address");
+    attribute->set_kind(NodeManager::Attribute::STRING);
+    attribute->add_s(node_endpoint);
+
+    //Get update endpoint
+
+    
+}
+
 void EnvironmentRequester::Start(){
     try{
         heartbeat_thread_ = new std::thread(&EnvironmentRequester::HeartbeatLoop, this);

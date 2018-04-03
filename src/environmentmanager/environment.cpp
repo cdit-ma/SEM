@@ -102,6 +102,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
             experiment->node_address_map_[node.info().id()] = attribute.s(0);
+            experiment->node_id_map_[attribute.s(0)] = node.info().id();
             break;
         }
     }
@@ -154,7 +155,11 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
         management_endpoint_attribute_info->set_name("management_port");
         management_endpoint_attribute->add_s(management_port);
+
+        experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
+        experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
     }
+
 
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
@@ -214,6 +219,31 @@ std::string Environment::GetPort(const std::string& node_name){
 void Environment::FreePort(const std::string& node_name, const std::string& port_number){
     auto node = node_map_[node_name];
     node->FreePort(port_number);
+}
+
+bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+        auto experiment = experiment_map_.at(model_name);
+        return experiment->node_id_map_.count(ip_address);
+    }
+    return false;
+}
+
+std::string Environment::GetNodeManagementPort(const std::string& model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+        auto experiment = experiment_map_.at(model_name);
+        std::string node_id = experiment->node_id_map_.at(ip_address);
+        return experiment->management_port_map_.at(node_id);
+    }
+    return "";
+}
+std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+        auto experiment = experiment_map_.at(model_name);
+        std::string node_id = experiment->node_id_map_.at(ip_address);
+        return experiment->modellogger_port_map_.at(node_id);
+    }
+    return "";
 }
 
 void Environment::ExperimentLive(const std::string& model_name, uint64_t time_called){

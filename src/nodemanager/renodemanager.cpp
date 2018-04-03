@@ -34,6 +34,7 @@ int main(int argc, char **argv){
     std::string graphml_path;
     std::string slave_endpoint;
     std::string master_endpoint;
+    std::string environment_manager_endpoint;
     double execution_duration = 60.0;
     bool live_logging = false;
 
@@ -44,8 +45,8 @@ int main(int argc, char **argv){
     options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
     options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
     options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Master endpoint, including port");
+    options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint), "Environment manager endpoint.");
     options.add_options()("help,h", "Display help");
-
 
     //Construct a variable_map
 	boost::program_options::variables_map vm;
@@ -125,7 +126,7 @@ int main(int argc, char **argv){
     bool success = true;
 
     if(success && is_master){
-        auto execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration, exe);
+        auto execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration, exe, environment_manager_endpoint);
         master = new zmq::Registrar(execution_manager, master_endpoint);
 
         if(!execution_manager->IsValid()){
@@ -135,8 +136,8 @@ int main(int argc, char **argv){
 
     if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
-        auto deployment_manager = new DeploymentManager(dll_path, exe);
-        slave = new zmq::Registrant(deployment_manager, slave_endpoint);
+        auto deployment_manager = new DeploymentManager(dll_path, exe, "model_name", environment_manager_endpoint);
+        slave = new zmq::Registrant(deployment_manager);
     }
 
     if(success){

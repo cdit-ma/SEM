@@ -34,6 +34,7 @@ message EnvironmentMessage{
         HEARTBEAT = 9;
         HEARTBEAT_ACK = 10;
         SUCCESS = 11;
+        NODE_QUERY = 12;
     }
 
     Type type = 1;

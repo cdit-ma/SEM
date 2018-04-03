@@ -24,6 +24,10 @@ class Environment{
         void AddNodeToEnvironment(const NodeManager::Node& node);
         void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
+        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
+        std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
+        std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
+
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
         
@@ -111,11 +115,21 @@ class Environment{
             //node_id -> node_ip_addr
             std::unordered_map<std::string, std::string> node_address_map_;
 
+            //node_ip_address -> node_id
+            std::unordered_map<std::string, std::string> node_id_map_;
+
             //event port id -> eventport
             std::unordered_map<std::string, EventPort> port_map_;
 
             //subscriber_id -> publisher_id
             std::unordered_map<std::string, std::vector<std::string> > connection_map_;
+
+            //node_id -> management_port
+            std::unordered_map<std::string, std::string> management_port_map_;
+
+            //node_id -> model_logger_port
+            std::unordered_map<std::string, std::string> modellogger_port_map_;
+
 
             uint64_t time_added;
             ExperimentState state;

@@ -23,6 +23,8 @@ class EnvironmentRequester{
         void End();
         NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
         void RemoveDeployment();
+        NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
+        
 
     private:
         struct Request{

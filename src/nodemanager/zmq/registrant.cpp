@@ -8,7 +8,7 @@
 #include "controlmessage/controlmessage.pb.h"
 
 
-zmq::Registrant::Registrant(DeploymentManager* manager, std::string endpoint){
+zmq::Registrant::Registrant(DeploymentManager* manager){
     deployment_manager_ = manager;
     
     //Construct context
@@ -17,14 +17,14 @@ zmq::Registrant::Registrant(DeploymentManager* manager, std::string endpoint){
 
     
     //Start the registration thread
-    registration_thread_ = new std::thread(&zmq::Registrant::RegistrationLoop, this, endpoint);
+    registration_thread_ = new std::thread(&zmq::Registrant::RegistrationLoop, this);
 }
 
 zmq::Registrant::~Registrant(){
     //Deleting the context will interupt any blocking ZMQ calls
     
     if(context_){
-        delete context_;    
+        delete context_;
     }
 
     if(registration_thread_){
@@ -38,12 +38,18 @@ zmq::Registrant::~Registrant(){
     }
 }
 
-void zmq::Registrant::RegistrationLoop(std::string endpoint){
+void zmq::Registrant::RegistrationLoop(){
     //Start a request socket, and bind endpoint
     auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
-    socket.bind(endpoint.c_str());
 
     try{
+        std::string endpoint = deployment_manager_->GetSlaveEndpoint();
+        //if we're an unused node
+        if(endpoint.empty()){
+            //todo: shutdown deployment manager
+            return;
+        }
+        socket.bind(endpoint.c_str());
         zmq::message_t slave_startup;
 
         //Send our slave address

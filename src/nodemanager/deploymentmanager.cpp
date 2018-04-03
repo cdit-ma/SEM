@@ -7,12 +7,18 @@
 #include <re_common/zmq/protoreceiver/protoreceiver.h>
 #include "controlmessage/controlmessage.pb.h"
 #include "controlmessage/translate.h"
+#include "environmentrequester.h"
 
 
-DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution){
+DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution, const std::string& model_name, const std::string& ip_address, const std::string& environment_manager_endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
     execution_ = execution;
+    model_name_ = model_name;
+    ip_address_ = ip_address;
+    environment_manager_endpoint_ = environment_manager_endpoint;
+
+
 
     //Construct a live receiever
     subscriber_ = new zmq::ProtoReceiver();
@@ -21,7 +27,7 @@ DeploymentManager::DeploymentManager(const std::string& library_path, Execution*
 
     //Get all Main messages
     subscriber_->Filter("*");
-    
+
     //Subscribe to NodeManager::ControlMessage Types
     subscriber_->RegisterProtoCallback<NodeManager::ControlMessage>(std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1));
 
@@ -31,6 +37,53 @@ DeploymentManager::DeploymentManager(const std::string& library_path, Execution*
     }
 
     subscriber_->Start();
+}
+
+std::string DeploymentManager::GetSlaveEndpoint(){
+    std::string port;
+
+    std::future<std::string> response_future = std::async(&DeploymentManager::QueryEnvironmentManager, this);
+    std::future_status status = response_future.wait_for(std::chrono::seconds(3));
+
+    if(status == std::future_status::ready){
+        //parse return message
+        try{
+            port = response_future.get();
+        }
+        catch(...){
+            std::cerr << "Failed to get result of GetSlaveEndpoint" << std::endl;
+        }
+    }
+
+    if(port.empty()){
+        return "";
+    }
+
+    std::string endpoint("tcp://" + ip_address_ + ":" + port);
+
+    return endpoint;
+}
+
+std::string DeploymentManager::QueryEnvironmentManager(){
+    std::string port;
+    EnvironmentRequester requester(environment_manager_endpoint_, model_name_);
+
+    auto response = requester.NodeQuery(ip_address_);
+    if(response.type() == NodeManager::ControlMessage::TERMINATE){
+        return "";
+    }
+    if(response.type() == NodeManager::ControlMessage::CONFIGURE){
+        auto node = response.nodes(0);
+
+        for(int i = 0; i < node.attributes_size(); i++){
+            auto attribute = node.attributes(i);
+            if(attribute.info().name() == "management_port"){
+                port = attribute.s(0);
+            }
+        }
+    }
+
+    return port;
 }
 
 NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager::Startup startup){
@@ -50,18 +103,17 @@ NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager:
         }
     }
 
-
     //Setup our subscriber
     {
         if(subscriber_){
-             if(!subscriber_->Connect(startup.publisher_address())){
-                 slave_response.add_error_codes("Subscriber couldn't connect to: '" + startup.publisher_address() + "'");
-                 success = false;
-             }
-             if(!subscriber_->Filter(host_name + "*")){
-                 slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
-                 success = false;
-             }
+            if(!subscriber_->Connect(startup.publisher_address())){
+                slave_response.add_error_codes("Subscriber couldn't connect to: '" + startup.publisher_address() + "'");
+                success = false;
+            }
+            if(!subscriber_->Filter(host_name + "*")){
+                slave_response.add_error_codes("Subscriber couldn't attach filter: '" + host_name + "*'");
+                success = false;
+            }
         }else{
             success = false;
         }

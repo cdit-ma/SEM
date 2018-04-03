@@ -9,21 +9,21 @@
 #include <thread>
 #include <unordered_map>
 #include <memory>
+#include <future>
 
 #include <core/modellogger.h>
 #include "deploymentcontainer.h"
 #include "controlmessage/controlmessage.pb.h"
-
-
 
 namespace zmq{class ProtoReceiver;};
 class Execution;
 
 class DeploymentManager{
     public:
-        DeploymentManager(const std::string& library_path, Execution* execution);
+        DeploymentManager(const std::string& library_path, Execution* execution, const std::string& model_name, const std::string& ip_address, const std::string& environment_manager_endpoint = "");
         ~DeploymentManager();
 
+        std::string GetSlaveEndpoint();
         NodeManager::StartupResponse HandleStartup(const NodeManager::Startup startup);
 
         bool TeardownModelLogger();
@@ -34,14 +34,18 @@ class DeploymentManager{
         void InteruptQueueThread();
         void ProcessControlQueue();
 
+        std::string QueryEnvironmentManager();
+
         zmq::ProtoReceiver* subscriber_ = 0;
 
         std::string library_path_;
+        std::string model_name_;
+        std::string ip_address_;
+        std::string environment_manager_endpoint_;
         
         Execution* execution_;
 
         std::unordered_map<std::string, std::shared_ptr<DeploymentContainer> > deployment_containers_;
-
 
         std::queue<NodeManager::ControlMessage> control_message_queue_;
         std::mutex mutex_;

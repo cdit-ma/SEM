@@ -11,10 +11,10 @@ namespace zmq{
     
     class Registrant{
         public:
-            Registrant(DeploymentManager* manager, std::string endpoint);
+            Registrant(DeploymentManager* manager);
             ~Registrant();
         private:
-            void RegistrationLoop(std::string endpoint);
+            void RegistrationLoop();
 
             DeploymentManager* deployment_manager_ = 0;
             std::thread* registration_thread_ = 0;
