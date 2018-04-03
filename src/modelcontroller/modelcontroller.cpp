@@ -1290,14 +1290,12 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
             storeNode(node);
         }   
 
-        if(isUserAction()){
-            if(node->isDefinition()){
-                for(auto dependant : parentNode->getDependants()){
-                    
-                    auto success = constructDependantRelative(dependant, node);
-                    if(!success){
-                        qCritical() << "Failed: " << dependant->toString();
-                    }
+        if(isUserAction() && node->isDefinition()){
+            for(auto dependant : parentNode->getDependants()){
+                
+                auto success = constructDependantRelative(dependant, node);
+                if(!success){
+                    qCritical() << "Failed to Construct Dependant Relationship of: " << node->toString() << " Inside: " << dependant->toString();
                 }
             }
         }

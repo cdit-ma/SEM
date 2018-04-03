@@ -125,7 +125,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                     valid_ancestors << parent_definition->getImplementations();
                 }
                 
-
                 bool is_descendant = false;
                 for(auto ancestor : valid_ancestors){
                     if(ancestor && ancestor->isAncestorOf(dst)){
@@ -148,9 +147,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         if(indirectlyConnectedTo(dst)){
             return false;
         }
-
-        //HMM
-        //if(isDescendantOf())
 
         break;
     }
