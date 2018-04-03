@@ -9,7 +9,6 @@
 #include "controlmessage/translate.h"
 #include "environmentrequester.h"
 
-
 DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution, const std::string& model_name, const std::string& ip_address, const std::string& environment_manager_endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
@@ -17,8 +16,6 @@ DeploymentManager::DeploymentManager(const std::string& library_path, Execution*
     model_name_ = model_name;
     ip_address_ = ip_address;
     environment_manager_endpoint_ = environment_manager_endpoint;
-
-
 
     //Construct a live receiever
     subscriber_ = new zmq::ProtoReceiver();

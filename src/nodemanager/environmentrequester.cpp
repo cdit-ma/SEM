@@ -47,7 +47,29 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
 
     //Get update endpoint
 
-    
+    zmq::socket_t* initial_request_socket;
+    if(context_){
+        initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
+    }
+    else{
+        std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
+    }
+
+    try{
+        initial_request_socket->connect(manager_endpoint_);
+    }
+    catch(std::exception& ex){
+        std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;
+    }
+
+    ZMQSendRequest(initial_request_socket, message.SerializeAsString());
+    auto reply = ZMQReceiveReply(initial_request_socket);
+
+    NodeManager::EnvironmentMessage reply_message;
+
+    reply_message.ParseFromString(reply);
+
+    return reply_message.control_message();
 }
 
 void EnvironmentRequester::Start(){
