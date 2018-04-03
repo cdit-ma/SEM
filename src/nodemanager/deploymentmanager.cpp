@@ -52,7 +52,9 @@ std::string DeploymentManager::GetSlaveEndpoint(){
         }
     }
 
+    //We didn't get an endpoint shutdown
     if(port.empty()){
+        execution_->Interrupt();
         return "";
     }
 

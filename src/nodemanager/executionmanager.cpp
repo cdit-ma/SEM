@@ -252,15 +252,14 @@ void ExecutionManager::ConfigureNode(const NodeManager::Node& node){
     if(node.components_size() > 0){
         std::cout << "* Slave: '" << node.info().name() << "' Deploys:" << std::endl;
 
-        //todo: fix this
-        slave_states_["tcp://" + ip_address + ":" + "7001"] = SlaveState::OFFLINE;
+        slave_states_["tcp://" + ip_address + ":" + port] = SlaveState::OFFLINE;
         
         for(int i = 0; i < node.components_size(); i++){
             std::cout << "** " << node.components(i).info().name() << " [" << node.components(i).info().type() << "]" << std::endl;
         }
     }
     //TODO: Add fail cases
-    deployment_map_["tcp://" + ip_address + ":" + "7001"] = node;
+    deployment_map_["tcp://" + ip_address + ":" + port] = node;
 }
 
 void ExecutionManager::TriggerExecution(bool execute){

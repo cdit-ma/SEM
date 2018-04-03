@@ -35,6 +35,7 @@ int main(int argc, char **argv){
     std::string slave_endpoint;
     std::string master_endpoint;
     std::string environment_manager_endpoint;
+    std::string model_name;
     double execution_duration = 60.0;
     bool live_logging = false;
 
@@ -46,6 +47,7 @@ int main(int argc, char **argv){
     options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
     options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Master endpoint, including port");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint), "Environment manager endpoint.");
+    options.add_options()("model-name,n", boost::program_options::value<std::string>(&slave_endpoint), "Name of model slave belongs to.");
     options.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -136,7 +138,7 @@ int main(int argc, char **argv){
 
     if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
-        auto deployment_manager = new DeploymentManager(dll_path, exe, "model_name", environment_manager_endpoint);
+        auto deployment_manager = new DeploymentManager(dll_path, exe, model_name, slave_endpoint, environment_manager_endpoint);
         slave = new zmq::Registrant(deployment_manager);
     }
 

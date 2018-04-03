@@ -46,7 +46,6 @@ void zmq::Registrant::RegistrationLoop(){
         std::string endpoint = deployment_manager_->GetSlaveEndpoint();
         //if we're an unused node
         if(endpoint.empty()){
-            //todo: shutdown deployment manager
             return;
         }
         socket.bind(endpoint.c_str());
