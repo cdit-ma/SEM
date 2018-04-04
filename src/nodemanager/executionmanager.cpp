@@ -165,14 +165,15 @@ const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::s
     NodeManager::Startup startup;
     startup.set_allocated_configure(new NodeManager::ControlMessage(*deployment_message_));
 
-    auto configure = startup.configure();
-    configure.clear_nodes();
-    auto node = configure.add_nodes();
+    auto configure = startup.mutable_configure();
+    configure->clear_nodes();
+    auto node = configure->add_nodes();
 
     *node = deployment_map_[address];
 
     std::string ip_address;
     std::string port;
+    std::string master_publisher_port;
 
     for(int i = 0; i < node->attributes_size(); i++){
         auto attribute = node->attributes(i);
@@ -184,10 +185,17 @@ const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::s
         }
     }
 
+    for(int i = 0; i < deployment_message_->attributes_size(); i++){
+        auto attribute = deployment_message_->attributes(i);
+        if(attribute.info().name() == "master_publisher_port"){
+            master_publisher_port = attribute.s(0);
+        }
+    }
+
     startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
     startup.mutable_logger()->set_publisher_address("tcp://" + ip_address + ":" + port);
 
-    startup.set_publisher_address(master_endpoint_);
+    startup.set_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port);
     startup.set_host_name(node->info().name());
     return startup;
 }

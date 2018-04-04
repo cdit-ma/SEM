@@ -8,9 +8,16 @@ DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment
 void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& control_message){
     //Add experiment to environment
 
+
     environment_.DeclusterExperiment(control_message);
 
     AddExperiment(control_message);
+
+    auto master_publisher_port_attribute = control_message.add_attributes();
+    auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
+    master_publisher_port_attribute_info->set_name("master_publisher_port");
+    master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
+    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.model_name()));
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         NodeManager::Node* node = control_message.mutable_nodes(i);
@@ -74,7 +81,10 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 }
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
+
     std::string model_name(control_message.model_name());
+
+    //control_message.set_publisher_address(environment_.GetMasterPublisherAddress(model_name));
 
     for(int i = 0; i < control_message.nodes_size(); i++){
         AddNodeToExperiment(model_name, control_message.nodes(i));

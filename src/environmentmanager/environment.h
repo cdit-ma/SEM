@@ -25,6 +25,7 @@ class Environment{
         void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
+        std::string GetMasterPublisherPort(const std::string& model_name);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 

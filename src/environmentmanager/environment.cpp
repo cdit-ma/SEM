@@ -26,11 +26,15 @@ std::cout << "adding experiment" << model_name << std::endl;
         throw std::invalid_argument("");
     }
     experiment_map_[model_name] = new Environment::Experiment(model_name);
+    auto experiment = experiment_map_[model_name];
 
-    auto environment_manager_port = *(available_ports_.begin());
+    experiment->manager_port_ = std::to_string(*(available_ports_.begin()));
     available_ports_.erase(available_ports_.begin());
 
-    return std::to_string(environment_manager_port);
+    experiment->master_port_ = std::to_string(*(available_ports_.begin()));
+    available_ports_.erase(available_ports_.begin());
+
+    return experiment->manager_port_;
 }
 
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
@@ -222,15 +226,22 @@ void Environment::FreePort(const std::string& node_name, const std::string& port
 }
 
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+    if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         return experiment->node_id_map_.count(ip_address);
     }
     return false;
 }
 
+std::string Environment::GetMasterPublisherPort(const std::string& model_name){
+    if(experiment_map_.count(model_name)){
+        return experiment_map_[model_name]->master_port_;
+    }
+    return "";
+}
+
 std::string Environment::GetNodeManagementPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+    if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         std::string node_id = experiment->node_id_map_.at(ip_address);
         return experiment->management_port_map_.at(node_id);
@@ -238,7 +249,7 @@ std::string Environment::GetNodeManagementPort(const std::string& model_name, co
     return "";
 }
 std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name) && node_map_.count(ip_address)){
+    if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         std::string node_id = experiment->node_id_map_.at(ip_address);
         return experiment->modellogger_port_map_.at(node_id);

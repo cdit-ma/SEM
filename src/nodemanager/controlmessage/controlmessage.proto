@@ -18,6 +18,7 @@ message ControlMessage{
     string host_name = 3;
     repeated Node nodes = 4;
     string model_name = 5;
+    repeated Attribute attributes = 6;
 }
 
 message EnvironmentMessage{

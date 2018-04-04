@@ -82,13 +82,13 @@ void DeploymentRegister::RegistrationLoop(){
             std::cout << "GOT NODE_QUERY" << std::endl;
             std::string model_name = message.model_name();
 
-            auto control_message = message.control_message();
-            auto node = message.control_message().nodes(0);
+            auto control_message = message.mutable_control_message();
+            auto node = message.mutable_control_message()->mutable_nodes(0);
 
             std::string ip_address;
 
-            for(int i = 0; i < node.attributes_size(); i++){
-                auto attribute = node.attributes(i);
+            for(int i = 0; i < node->attributes_size(); i++){
+                auto attribute = node->attributes(i);
                 if(attribute.info().name() == "ip_address"){
                     ip_address = attribute.s(0);
                 }
@@ -100,25 +100,25 @@ void DeploymentRegister::RegistrationLoop(){
                 std::string management_port = environment_->GetNodeManagementPort(model_name, ip_address);
                 std::string model_logger_port = environment_->GetNodeModelLoggerPort(model_name, ip_address);
 
-                auto management_attribute = node.add_attributes();
+                auto management_attribute = node->add_attributes();
                 auto management_attribute_info = management_attribute->mutable_info();
                 management_attribute_info->set_name("management_port");
                 management_attribute->set_kind(NodeManager::Attribute::STRING);
                 management_attribute->add_s(management_port);
 
-                auto modellogger_attribute = node.add_attributes();
-                auto modellogger_attribute_info = management_attribute->mutable_info();
+                auto modellogger_attribute = node->add_attributes();
+                auto modellogger_attribute_info = modellogger_attribute->mutable_info();
                 modellogger_attribute_info->set_name("modellogger_port");
                 modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
                 modellogger_attribute->add_s(model_logger_port);
 
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                control_message.set_type(NodeManager::ControlMessage::CONFIGURE);
+                control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
             }
             else{
                 std::cout << "ASDSDFSDF" << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                control_message.set_type(NodeManager::ControlMessage::TERMINATE);
+                control_message->set_type(NodeManager::ControlMessage::TERMINATE);
             }
 
             std::cout << message.DebugString() << std::endl;
