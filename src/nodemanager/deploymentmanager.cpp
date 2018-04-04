@@ -39,7 +39,7 @@ DeploymentManager::DeploymentManager(const std::string& library_path, Execution*
 std::string DeploymentManager::GetSlaveEndpoint(){
     std::string port;
 
-    std::future<std::string> response_future = std::async(&DeploymentManager::QueryEnvironmentManager, this);
+    std::future<std::string> response_future = std::async(std::launch::async, &DeploymentManager::QueryEnvironmentManager, this);
     std::future_status status = response_future.wait_for(std::chrono::seconds(3));
 
     if(status == std::future_status::ready){
@@ -47,8 +47,8 @@ std::string DeploymentManager::GetSlaveEndpoint(){
         try{
             port = response_future.get();
         }
-        catch(...){
-            std::cerr << "Failed to get result of GetSlaveEndpoint" << std::endl;
+        catch(std::exception& ex){
+            std::cerr << "Failed to get result of GetSlaveEndpoint: " << ex.what() << std::endl;
         }
     }
 
@@ -66,7 +66,7 @@ std::string DeploymentManager::GetSlaveEndpoint(){
 std::string DeploymentManager::QueryEnvironmentManager(){
     std::string port;
     EnvironmentRequester requester(environment_manager_endpoint_, model_name_);
-
+    requester.Init(environment_manager_endpoint_);
     auto response = requester.NodeQuery(ip_address_);
     if(response.type() == NodeManager::ControlMessage::TERMINATE){
         return "";

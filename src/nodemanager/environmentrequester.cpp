@@ -46,7 +46,6 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     attribute->add_s(node_endpoint);
 
     //Get update endpoint
-
     zmq::socket_t* initial_request_socket;
     if(context_){
         initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
@@ -56,7 +55,7 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     }
 
     try{
-        initial_request_socket->connect(manager_endpoint_);
+        initial_request_socket->connect(manager_address_);
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::HeartbeatLoop" << std::endl;

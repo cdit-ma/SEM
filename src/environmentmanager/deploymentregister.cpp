@@ -29,6 +29,7 @@ void DeploymentRegister::Start(){
 void DeploymentRegister::RegistrationLoop(){
     zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
     try{
+        std::cout << ip_addr_ << registration_port_ << std::endl;
         rep->bind(TCPify(ip_addr_, registration_port_));
     }
     catch(zmq::error_t& e){
@@ -76,10 +77,12 @@ void DeploymentRegister::RegistrationLoop(){
 
         //Handle slave management port query
         if(message.type() == NodeManager::EnvironmentMessage::NODE_QUERY){
+            std::cout << "GOT NODE_QUERY" << std::endl;
             std::string model_name = message.model_name();
 
             auto control_message = message.control_message();
             auto node = message.control_message().nodes(0);
+
             std::string ip_address;
 
             for(int i = 0; i < node.attributes_size(); i++){
