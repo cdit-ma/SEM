@@ -51,6 +51,8 @@ void DeploymentRegister::RegistrationLoop(){
             std::future<std::string> port_future = port_promise->get_future();
             std::string port;
 
+            std::cout << "GOT ADD DEPLOYMENT" << std::endl;
+
             auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.model_name());
             deployments_.push_back(deployment_handler);
             try{
@@ -76,7 +78,7 @@ void DeploymentRegister::RegistrationLoop(){
         }
 
         //Handle slave management port query
-        if(message.type() == NodeManager::EnvironmentMessage::NODE_QUERY){
+        else if(message.type() == NodeManager::EnvironmentMessage::NODE_QUERY){
             std::cout << "GOT NODE_QUERY" << std::endl;
             std::string model_name = message.model_name();
 
@@ -91,6 +93,8 @@ void DeploymentRegister::RegistrationLoop(){
                     ip_address = attribute.s(0);
                 }
             }
+            std::cout << ip_address << std::endl;
+            std::cout << model_name << std::endl;
 
             if(environment_->NodeDeployedTo(model_name, ip_address)){
                 std::string management_port = environment_->GetNodeManagementPort(model_name, ip_address);
@@ -112,10 +116,12 @@ void DeploymentRegister::RegistrationLoop(){
                 control_message.set_type(NodeManager::ControlMessage::CONFIGURE);
             }
             else{
+                std::cout << "ASDSDFSDF" << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 control_message.set_type(NodeManager::ControlMessage::TERMINATE);
             }
 
+            std::cout << message.DebugString() << std::endl;
             ZMQSendReply(rep, message.SerializeAsString());
         }
 

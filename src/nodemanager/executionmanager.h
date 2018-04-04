@@ -67,7 +67,7 @@ class ExecutionManager{
         std::condition_variable execution_lock_condition_;
         bool terminate_flag_ = false;
 
-        bool local_mode_ = true;
+        bool local_mode_ = false;
 
         bool finished_ = false;
         bool parse_succeed_ = false;
