@@ -10,6 +10,7 @@ class Enum : public Node
 protected:
 	Enum(EntityFactory* factory);
 	Enum();
+    void DataAdded(Data* data);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

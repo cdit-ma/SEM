@@ -23,13 +23,12 @@ Data::~Data()
         parent->removeData(this);
     }
 
-    if(parent_data){
-        //Unset Parent Data.
-        parent_data->removeChildData(this);
+    for(auto data : child_datas){
+        data->removeParentData(this);
     }
 
-    for(auto data : child_data){
-        data->setParentData(0);
+    for(auto data : parent_datas){
+        removeParentData(data);
     }
 }
 
@@ -74,7 +73,7 @@ void Data::setProtected(bool protect)
 
 bool Data::isProtected() const
 {
-    return is_data_linked || is_protected;
+    return parent_datas.size() || is_protected;
 }
 
 bool Data::_setValue(QVariant value, bool validate){
@@ -105,18 +104,10 @@ bool Data::setValue(QVariant value)
     return _setValue(value, true);
 }
 
-void Data::setParentData(Data *data)
-{
-    this->parent_data = data;
-    bool valid_data = data != 0;
 
-    this->parent_data_id = valid_data ? data->getID() : -1;
-    this->is_data_linked = valid_data;
-}
-
-Data *Data::getParentData()
+bool Data::isParentData(Data* data)
 {
-    return parent_data;
+    return parent_datas.contains(data);
 }
 
 
@@ -186,74 +177,66 @@ QString Data::toString()
     return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
-bool Data::bindData(Data* data, bool setup_bind){
+bool Data::linkData(Data* data, bool setup_bind){
     if(setup_bind){
-        return bindData(data);
+        return linkData(data);
     }else{
-        return unbindData(data);
+        return unlinkData(data);
     }
 }
 
-bool Data::bindData(Data* data){
-    if(data && !data->getParentData()){
-        if(addChildData(data)){
-            data->setParentData(this);
-            return true;
+void Data::addParentData(Data* data){
+    if(data && !parent_datas.contains(data)){
+        parent_datas.insert(data);
+        if(parent_datas.size() == 1){
+            store_value();
+        }
+
+        connect(data, &Data::dataChanged, this, &Data::setValue);
+        setValue(data->getValue());
+    }
+}
+
+void Data::removeParentData(Data* data){
+    if(data && parent_datas.contains(data)){
+        parent_datas.remove(data);
+        disconnect(data, &Data::dataChanged, this, &Data::setValue);
+        if(parent_datas.isEmpty()){
+            restore_value();
         }
     }
-    return false;
 }
-bool Data::unbindData(Data* data){
-     if(data && data->getParentData() == this){
-         if(removeChildData(data)){
-            data->setParentData(0);
-            return true; 
-         }
-    }
-    return false;
-}
-bool Data::addChildData(Data *data)
-{
-    if(data && !child_data.contains(data)){
-        child_data.insert(data);
-        //Store the old value
-        data->store_value();
-        data->setValue(getValue());
+
+bool Data::linkData(Data* data){
+    if(data && !child_datas.contains(data)){
+        child_datas.insert(data);
+        data->addParentData(this);
         return true;
     }
     return false;
 }
 
-bool Data::removeChildData(Data *data)
-{
-    if(child_data.remove(data)){
-        data->restore_value();
+bool Data::unlinkData(Data* data){
+    if(data && child_datas.contains(data)){
+        child_datas.remove(data);
+        data->removeParentData(this);
         return true;
     }
     return false;
 }
-
 
 void Data::revalidateData(){
     setValue(getValue());
 }
 
-void Data::parentDataChanged(int ID, QString, QVariant data)
-{
-    if(ID == parent_data_id){
-        //If this signal is coming from our parent, update our value
-        setValue(data);
-    }
-}
-
 void Data::updateChildren(bool changed)
 {
     //Send a signal saying the data changed, regardless of whether it did.
-    if(changed){
+    /*if(changed){
         for(auto data: child_data){
             data->setValue(value);
         }
-    }
+    }*/
     if(parent){
         parent->_dataChanged(this);
     }

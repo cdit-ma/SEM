@@ -8,7 +8,6 @@ InnerTypeKey::InnerTypeKey(): Key("inner_type", QVariant::String){
 }
 
 bool InnerTypeKey::setData(Data* data, QVariant data_value){
-    qCritical() << toString() << ": TRYING TO SET: " << data_value;
     bool data_changed = Key::setData(data, data_value);
 
     auto entity = data->getParent();

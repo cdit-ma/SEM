@@ -8,7 +8,7 @@ const QString kind_string = "Namespace";
 Namespace::Namespace(EntityFactory* factory) : Node(factory, node_kind, kind_string){
     //Allow reordering
     RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, true);
     
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Namespace();});
 };
@@ -45,8 +45,7 @@ void Namespace::BindNamespace(Node* parent, Node* child, bool bind){
     auto src_namespace_data = parent->getData("namespace");
     auto dst_namespace_data = child->getData("namespace");
     if(src_namespace_data && dst_namespace_data){
-        qCritical() << "BOUND PARENT: " << parent->toString() << " NAMESPACE TO " << child->toString();
-        src_namespace_data->bindData(dst_namespace_data, bind);
+        src_namespace_data->linkData(dst_namespace_data, bind);
     }
 }
 
@@ -60,8 +59,7 @@ void Namespace::DataAdded(Data* data){
         auto namespace_data = getData("namespace");
 
         if(label_data && namespace_data){
-            qCritical() << " == BOUND " << toString() << " LABEL TO NAMESPACE";
-            //label_data->bindData(namespace_data, true);
+            label_data->linkData(namespace_data, true);
         }
     }
 }

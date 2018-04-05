@@ -2,6 +2,8 @@
 #include "../data.h"
 
 #include "../../edgekinds.h"
+#include "../Keys/typekey.h"
+
 
 
 
@@ -11,7 +13,7 @@ Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGAT
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Aggregate();});
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String);
+    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "comment", QVariant::String);
 };
 
@@ -24,10 +26,10 @@ Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
     setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     
 
-    connect(this, &Node::dataChanged, this, &Aggregate::updateType);
+    //connect(this, &Node::dataChanged, this, &Aggregate::updateType);
 }
 
-
+/*
 QString Aggregate::getType()
 {
     QString agg_namespace = getDataValue("namespace").toString();
@@ -46,6 +48,7 @@ void Aggregate::updateType(int ID, QString keyName)
         }
     }
 }
+*/
 
 bool Aggregate::canAdoptChild(Node *child)
 {
@@ -92,3 +95,14 @@ bool Aggregate::canAcceptEdge(EDGE_KIND, Node *)
     return false;
 }
 
+
+
+void Aggregate::DataAdded(Data* data){
+    Node::DataAdded(data);
+
+    auto key_name = data->getKeyName();
+
+    if(key_name == "label" || key_name == "namespace" || key_name == "type"){
+        TypeKey::BindNamespaceAndLabelToType(this, true);
+    }
+}

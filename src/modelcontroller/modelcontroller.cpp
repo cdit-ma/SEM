@@ -1877,35 +1877,34 @@ void ModelController::bindData(Node *defn, Node *child)
     
     if(bind_types){
         if(defn_type){
-            defn_type->bindData(child_type);
+            defn_type->linkData(child_type);
         }else if(defn_label){
-            defn_label->bindData(child_type);
+            defn_label->linkData(child_type);
         }
     }
 
     //Bind label
     if(bind_labels){
-        defn_label->bindData(child_label);
+        defn_label->linkData(child_label);
     }
 
     //Bind Keys
     if(bind_keys){
-        defn_key->bindData(child_key);
+        defn_key->linkData(child_key);
     }
 
     //Bind Index
     if(bind_index){
-        defn_index->bindData(child_index);
+        defn_index->linkData(child_index);
     }
 }
 
 void ModelController::unbindData(Node *definition, Node *instance)
 {
-    foreach(Data* attachedData, definition->getData()){
-        Data* newData = 0;
-        newData = instance->getData(attachedData->getKey());
-        if(newData){
-            attachedData->unbindData(newData);
+    for(auto data : definition->getData()){
+        auto instance_data = instance->getData(data->getKey());
+        if(instance_data){
+            data->unlinkData(instance_data);
         }
     }
 }
@@ -2022,12 +2021,12 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
                 //Edge Created Set Aggregate relation.
                 eventport->setAggregate(aggregate);
                 //Bind type to type
-                bindData_(aggregate, "type", eventport, "type");
+                linkData_(aggregate, "type", eventport, "type", true);
             }else{
                 //Unset the Aggregate
                 eventport->unsetAggregate();
                 //unbind type to type
-                unbindData_(aggregate, "type", eventport, "type");
+                linkData_(aggregate, "type", eventport, "type", false);
             }
             return true;
         }
@@ -2035,29 +2034,13 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
     return false;
 }
 
-//Data binds the value of src->getData(src_key) into dst->getData(dst_key)
-bool ModelController::bindData_(Node* src, QString src_key, Node* dst, QString dst_key){
+bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link){
     if(src && dst){
         auto src_data = src->getData(src_key);
         auto dst_data = dst->getData(dst_key);
-        if(src_data && dst_data && !dst_data->getParentData()){
-            src_data->bindData(dst_data);
-            return true;
+        if(src_data && dst_data){
+            return src_data->linkData(dst_data, setup_link);
         }
-    }
-    return false;
-}
-
-//Data binds the value of src->getData(src_key) into dst->getData(dst_key)
-bool ModelController::unbindData_(Node* src, QString src_key, Node* dst, QString dst_key){
-    if(src && dst){
-        auto src_data = src->getData(src_key);
-        auto dst_data = dst->getData(dst_key);
-        if(src_data && dst_data && dst_data->getParentData() == src_data){
-            src_data->unbindData(dst_data);
-            return true;
-        }
-
     }
     return false;
 }
@@ -2093,11 +2076,7 @@ bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
                             bind_src = vector;
                         }
 
-                        if(setup){
-                            bindData_(bind_src, "type", param, "type");
-                        }else{
-                            unbindData_(bind_src, "type", param, "type");
-                        }
+                        linkData_(bind_src, "type", param, "type", setup);
                     }
                 }
             }
@@ -2116,11 +2095,9 @@ bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
             src_key = "label";
         }
 
-        if(setup){
-            bindData_(bind_src, src_key, dst, "value");
-        }else{
-            unbindData_(bind_src, src_key, dst, "value");
-        }
+
+
+        linkData_(bind_src, src_key, dst, "value", setup);
         return true;
    }
    return false;

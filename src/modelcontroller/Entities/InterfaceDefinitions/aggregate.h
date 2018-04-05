@@ -10,13 +10,14 @@ class Aggregate : public Node
 protected:
 	Aggregate(EntityFactory* factory);
 	Aggregate();
+    void DataAdded(Data* data);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 private:
-    QString getType();
+    //QString getType();
 private slots:
-    void updateType(int ID, QString keyName);
+    //void updateType(int ID, QString keyName);
 };
 
 

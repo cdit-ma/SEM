@@ -256,8 +256,8 @@ private:
     void bindData(Node* definition, Node* instance);
     void unbindData(Node* definition, Node* instance);
 
-    bool bindData_(Node* src, QString src_key, Node* dst, QString dst_key);
-    bool unbindData_(Node* src, QString src_key, Node* dst, QString dst_key);
+    bool linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link);
+    
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);
