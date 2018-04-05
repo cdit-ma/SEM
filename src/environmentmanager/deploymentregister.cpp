@@ -29,7 +29,6 @@ void DeploymentRegister::Start(){
 void DeploymentRegister::RegistrationLoop(){
     zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
     try{
-        std::cout << ip_addr_ << registration_port_ << std::endl;
         rep->bind(TCPify(ip_addr_, registration_port_));
     }
     catch(zmq::error_t& e){
@@ -93,8 +92,6 @@ void DeploymentRegister::RegistrationLoop(){
                     ip_address = attribute.s(0);
                 }
             }
-            std::cout << ip_address << std::endl;
-            std::cout << model_name << std::endl;
 
             if(environment_->NodeDeployedTo(model_name, ip_address)){
                 std::string management_port = environment_->GetNodeManagementPort(model_name, ip_address);
@@ -116,12 +113,10 @@ void DeploymentRegister::RegistrationLoop(){
                 control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
             }
             else{
-                std::cout << "ASDSDFSDF" << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 control_message->set_type(NodeManager::ControlMessage::TERMINATE);
             }
 
-            std::cout << message.DebugString() << std::endl;
             ZMQSendReply(rep, message.SerializeAsString());
         }
 

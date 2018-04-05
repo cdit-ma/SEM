@@ -56,6 +56,7 @@ class ExecutionManager{
 
         std::mutex mutex_;
         std::string master_endpoint_;
+        std::string master_publisher_port_;
 
         std::thread* execution_thread_ = 0;
 

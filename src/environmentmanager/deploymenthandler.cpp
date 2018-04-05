@@ -19,7 +19,6 @@ DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, 
 }
 
 void DeploymentHandler::Init(){
-    
     handler_socket_ = new zmq::socket_t(*context_, ZMQ_REP);
 
     time_added_ = environment_->GetClock();
@@ -38,7 +37,6 @@ void DeploymentHandler::Init(){
 
     //Start heartbeat to track liveness of deployment
     //Use heartbeat to receive any updates re. components addition/removal
-    
     HeartbeatLoop();
 }
 

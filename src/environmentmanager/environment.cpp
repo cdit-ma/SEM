@@ -20,7 +20,6 @@ Environment::Environment(int port_range_min, int port_range_max){
 }
 
 std::string Environment::AddExperiment(const std::string& model_name){
-std::cout << "adding experiment" << model_name << std::endl;
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(experiment_map_.count(model_name)){
         throw std::invalid_argument("");
@@ -29,9 +28,6 @@ std::cout << "adding experiment" << model_name << std::endl;
     auto experiment = experiment_map_[model_name];
 
     experiment->manager_port_ = std::to_string(*(available_ports_.begin()));
-    available_ports_.erase(available_ports_.begin());
-
-    experiment->master_port_ = std::to_string(*(available_ports_.begin()));
     available_ports_.erase(available_ports_.begin());
 
     return experiment->manager_port_;
@@ -47,6 +43,7 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
             auto port_number = event_port.port_number;
             FreePort(name, port_number);
         }
+
 
         delete experiment;
         experiment_map_.erase(model_name);
@@ -100,7 +97,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
 
     AddNodeToEnvironment(node);
 
-    experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
+    experiment->node_map_[node.info().id()] = new NodeManager::Node(node);
 
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
@@ -110,6 +107,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
             break;
         }
     }
+
     for(int i = 0; i < node.components_size(); i++){
         auto component = node.components(i);
         for(int j = 0; j < component.ports_size(); j++){
@@ -233,9 +231,11 @@ bool Environment::NodeDeployedTo(const std::string& model_name, const std::strin
     return false;
 }
 
-std::string Environment::GetMasterPublisherPort(const std::string& model_name){
+std::string Environment::GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address){
     if(experiment_map_.count(model_name)){
-        return experiment_map_[model_name]->master_port_;
+        auto experiment = experiment_map_.at(model_name);
+        std::string node_name = experiment->node_map_[experiment->node_id_map_[master_ip_address]]->info().name();
+        return experiment->master_port_ = GetPort(node_name);
     }
     return "";
 }

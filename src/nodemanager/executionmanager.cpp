@@ -46,7 +46,6 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     if(execution){
         //Setup writer
         proto_writer_ = new zmq::ProtoWriter();
-        proto_writer_->BindPublisherSocket(endpoint);
 
         execution_ = execution;
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
@@ -59,6 +58,13 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     protobuf_model_parser_ = new ProtobufModelParser(graphml_path);
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
+    auto master_ip_address = deployment_message_->add_attributes();
+    auto master_ip_address_info = master_ip_address->mutable_info();
+    master_ip_address_info->set_name("master_ip_address");
+    master_ip_address->set_kind(NodeManager::Attribute::STRING);
+    master_ip_address->add_s(master_endpoint_);
+
+
     if(!environment_manager_endpoint.empty()){
         requester_ = new EnvironmentRequester(environment_manager_endpoint, deployment_message_->model_name());
     }
@@ -66,6 +72,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     parse_succeed_ = PopulateDeployment();
     ConstructControlMessages();
 
+    proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
 
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -104,6 +111,13 @@ bool ExecutionManager::PopulateDeployment(){
         auto response = requester_->AddDeployment(*deployment_message_);
 
         *deployment_message_ = response;
+
+        for(int i = 0; i < deployment_message_->attributes_size(); i++){
+        auto attribute = deployment_message_->attributes(i);
+        if(attribute.info().name() == "master_publisher_port"){
+            master_publisher_port_ = attribute.s(0);
+        }
+    }
     }
     return true;
 }
@@ -185,17 +199,10 @@ const NodeManager::Startup ExecutionManager::GetSlaveStartupMessage(const std::s
         }
     }
 
-    for(int i = 0; i < deployment_message_->attributes_size(); i++){
-        auto attribute = deployment_message_->attributes(i);
-        if(attribute.info().name() == "master_publisher_port"){
-            master_publisher_port = attribute.s(0);
-        }
-    }
-
     startup.mutable_logger()->set_mode(NodeManager::Logger::CACHED);
     startup.mutable_logger()->set_publisher_address("tcp://" + ip_address + ":" + port);
 
-    startup.set_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port);
+    startup.set_publisher_address("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
     startup.set_host_name(node->info().name());
     return startup;
 }

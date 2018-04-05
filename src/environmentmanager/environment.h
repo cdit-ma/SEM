@@ -25,7 +25,7 @@ class Environment{
         void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
         bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
-        std::string GetMasterPublisherPort(const std::string& model_name);
+        std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
 
@@ -108,6 +108,7 @@ class Environment{
             NodeManager::ControlMessage deployment_message_;
             std::string model_name_;
             std::string master_port_;
+            std::string master_ip_address_;
             std::string manager_port_;
 
             //node_id -> protobuf node
