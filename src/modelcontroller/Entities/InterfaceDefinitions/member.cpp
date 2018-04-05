@@ -21,7 +21,7 @@ Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Membe
 
     //Register values
     RegisterValidDataValues(factory, node_kind, "type", QVariant::String, types);
-    RegisterValidDataValues(factory, NODE_KIND::VARIABLE, "type", QVariant::String, types);
+    //RegisterValidDataValues(factory, NODE_KIND::VARIABLE, "type", QVariant::String, types);
     RegisterValidDataValues(factory, NODE_KIND::ATTRIBUTE, "type", QVariant::String, types);
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, false, "String");

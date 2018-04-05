@@ -24,7 +24,6 @@ class Node : public Entity
         static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
         static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
-
         //Constuctor
         Node(NODE_KIND kind);
         ~Node();
@@ -48,7 +47,12 @@ class Node : public Entity
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
 
-    virtual VIEW_ASPECT getViewAspect() const;
+    protected:
+        virtual void childAdded(Node* child){};
+        virtual void childRemoved(Node* child){};
+    public:
+
+        virtual VIEW_ASPECT getViewAspect() const;
     
 
     int getDepth() const;

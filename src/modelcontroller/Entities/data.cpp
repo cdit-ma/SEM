@@ -186,6 +186,14 @@ QString Data::toString()
     return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
+bool Data::bindData(Data* data, bool setup_bind){
+    if(setup_bind){
+        return bindData(data);
+    }else{
+        return unbindData(data);
+    }
+}
+
 bool Data::bindData(Data* data){
     if(data && !data->getParentData()){
         if(addChildData(data)){
@@ -260,5 +268,6 @@ void Data::store_value(){
 }
 
 void Data::restore_value(){
+    qCritical() << toString() << ": RESTORING VALUE: " << old_value;
     setValue(old_value);
 }

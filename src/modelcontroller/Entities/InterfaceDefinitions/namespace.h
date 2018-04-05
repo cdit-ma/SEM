@@ -13,6 +13,13 @@ protected:
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+
+protected:
+    void DataAdded(Data* data);
+    void childAdded(Node* child);
+    void childRemoved(Node* child);
+    static void BindNamespace(Node* parent, Node* child, bool bind);
+    
 };
 
 #endif // NAMESPACE_H

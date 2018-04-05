@@ -28,9 +28,11 @@ public:
 
     bool setValue(QVariant value);
     
-
+    bool bindData(Data* data, bool setup_bind);
     bool bindData(Data* data);
     bool unbindData(Data* data);
+
+
     void registerParent(Entity* parent);
 
     Data* getParentData();

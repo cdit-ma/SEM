@@ -1,6 +1,7 @@
 #include "vector.h"
 #include <QDebug>
 #include "../data.h"
+#include "../Keys/typekey.h"
 
 
 Vector::Vector(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR, "Vector"){
@@ -9,6 +10,8 @@ Vector::Vector(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR, "V
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Vector();});
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true, "Vector");
 };
 
 Vector::Vector(): DataNode(NODE_KIND::VECTOR)
@@ -20,33 +23,12 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
    
 	setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
 
+    
+
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
 }
 
-QString Vector::getVectorType()
-{
-    QString vectorType = "Vector";
-    QString childType;
-    Node* child = getFirstChild();
-    if(child){
-        //Check Type
-        switch(child->getNodeKind()){
-        case NODE_KIND::MEMBER:
-        case NODE_KIND::AGGREGATE_INSTANCE:{
-            childType = child->getDataValue("type").toString();
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    if(childType != ""){
-        childType = "::" + childType;
-    }
-    return vectorType + childType;
-}
 
 bool Vector::canAdoptChild(Node *child)
 {
@@ -85,20 +67,14 @@ bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return DataNode::canAcceptEdge(edgeKind, dst);
 }
 
-void Vector::updateType()
-{
-    //Get Data
-    Data* d = getData("type");
-    if(d){
-        d->setValue(getVectorType());
-    }
+
+void Vector::childAdded(Node* child){
+    DataNode::childAdded(child);
+    TypeKey::BindTypes(child, this, true);
 }
 
-void Vector::childrenChanged()
-{
-    Node* child = getFirstChild();
-    if(child){
-        connect(child, &Node::dataChanged, this, &Vector::updateType);
-    }
-    updateType();
+void Vector::childRemoved(Node* child){
+    qCritical() << "UNBINDG PLEASE" << child;
+    DataNode::childRemoved(child);
+    TypeKey::BindTypes(child, this, false);
 }

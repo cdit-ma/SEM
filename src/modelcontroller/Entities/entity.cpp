@@ -60,6 +60,7 @@ bool Entity::addData(Data *data)
 
     //Attach this.
     data->registerParent(this);
+    DataAdded(data);
     return true;
 }
 

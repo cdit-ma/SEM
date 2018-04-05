@@ -103,8 +103,12 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
 
     //Check if the value can be converted to this key type
     if(!new_value.canConvert(key_type_)){
-        emit validation_failed(ID, "Value cannot be converted to Key's type.");
-        return value;
+        if(new_value.isValid()){
+            emit validation_failed(ID, "Value cannot be converted to Key's type.");
+            return value;
+        }else{
+            new_value = QVariant(key_type_);
+        }
     }else{
         new_value.convert(key_type_);
     }
@@ -131,6 +135,7 @@ bool Key::setData(Data* data, QVariant data_value){
     bool data_changed = false;
     if(data){
         auto valid_value = validateDataChange(data, data_value);
+        //qCritical() << toString() << " = " << data_value << " CONVERTED TO VALID VALUE: " << valid_value;
         data_changed = data->_setData(valid_value);
     }
     return data_changed;

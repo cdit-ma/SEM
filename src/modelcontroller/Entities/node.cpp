@@ -441,6 +441,7 @@ bool Node::addChild(Node *child)
             }
         }
         emit childCountChanged();
+        childAdded(child);
         return true;
     }
     return false;
@@ -651,6 +652,7 @@ bool Node::removeChild(Node *child)
 
     if(removeCount > 0){
         emit childCountChanged();
+        childRemoved(child);
         return true;
     }
     return false;

@@ -135,7 +135,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/class.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/containernode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/innertypekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/outertypekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/namespacekey.cpp
 )
 
 set(HEADERS

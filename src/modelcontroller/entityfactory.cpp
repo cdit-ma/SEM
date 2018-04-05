@@ -16,6 +16,10 @@
 #include "Entities/Keys/replicatecountkey.h"
 #include "Entities/Keys/frequencykey.h"
 #include "Entities/Keys/rowkey.h"
+#include "Entities/Keys/typekey.h"
+#include "Entities/Keys/innertypekey.h"
+#include "Entities/Keys/outertypekey.h"
+#include "Entities/Keys/namespacekey.h"
 
 //Model Includes
 
@@ -580,6 +584,14 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new ReplicateCountKey();    
         }else if(key_name == "frequency"){
             key = new FrequencyKey();    
+        }else if(key_name == "inner_type"){
+            key = new InnerTypeKey();    
+        }else if(key_name == "outer_type"){
+            key = new OuterTypeKey();    
+        }else if(key_name == "type"){
+            key = new TypeKey();    
+        }else if(key_name == "namespace"){
+            key = new NamespaceKey();
         }else{
             key = new Key(key_name, type);
         }
