@@ -110,14 +110,16 @@ bool ExecutionManager::PopulateDeployment(){
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto response = requester_->AddDeployment(*deployment_message_);
 
+        std::cout << response.DebugString() << std::endl;
+
         *deployment_message_ = response;
 
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
-        auto attribute = deployment_message_->attributes(i);
-        if(attribute.info().name() == "master_publisher_port"){
-            master_publisher_port_ = attribute.s(0);
+            auto attribute = deployment_message_->attributes(i);
+            if(attribute.info().name() == "master_publisher_port"){
+                master_publisher_port_ = attribute.s(0);
+            }
         }
-    }
     }
     return true;
 }

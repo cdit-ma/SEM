@@ -11,7 +11,7 @@ Environment::Environment(int port_range_min, int port_range_max){
     auto hint_iterator = available_ports_.begin();
     auto hint_iterator_manager = available_node_manager_ports_.begin();
     for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
-        available_ports_.insert(hint_iterator, i);
+        available_ports_.insert(hint_iterator, i+10000);
         available_node_manager_ports_.insert(hint_iterator_manager, i);
         hint_iterator++;
         hint_iterator_manager++;
@@ -20,15 +20,13 @@ Environment::Environment(int port_range_min, int port_range_max){
 }
 
 std::string Environment::AddExperiment(const std::string& model_name){
-    std::unique_lock<std::mutex> lock(port_mutex_);
     if(experiment_map_.count(model_name)){
         throw std::invalid_argument("");
     }
     experiment_map_[model_name] = new Environment::Experiment(model_name);
     auto experiment = experiment_map_[model_name];
 
-    experiment->manager_port_ = std::to_string(*(available_ports_.begin()));
-    available_ports_.erase(available_ports_.begin());
+    experiment->manager_port_ = GetManagerPort();
 
     return experiment->manager_port_;
 }
@@ -43,8 +41,21 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
             auto port_number = event_port.port_number;
             FreePort(name, port_number);
         }
+        for(const auto& node : experiment->node_map_){
+            auto node_struct = node.second;
+            auto name = node_struct->info().name();
 
+            if(experiment->management_port_map_.count(node.first)){
+                auto management_port = experiment->management_port_map_[node.first];
+                FreePort(name, management_port);
 
+            }
+            if(experiment->modellogger_port_map_.count(node.first)){
+                auto modellogger_port = experiment->modellogger_port_map_[node.first];
+                FreePort(name, modellogger_port);
+            }
+        }
+        FreeManagerPort(experiment->manager_port_);
         delete experiment;
         experiment_map_.erase(model_name);
     }
@@ -200,8 +211,12 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
 }
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
-    auto new_node = new Node(node.info().name(), available_ports_);
 
+    //Bail out early yo
+    if(node_map_.count(node.info().name())){
+        return;
+    }
+    auto new_node = new Node(node.info().name(), available_ports_);
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
@@ -223,6 +238,25 @@ void Environment::FreePort(const std::string& node_name, const std::string& port
     node->FreePort(port_number);
 }
 
+std::string Environment::GetManagerPort(){
+    std::unique_lock<std::mutex> lock(port_mutex_);
+
+    if(available_node_manager_ports_.empty()){
+        return "";
+    }
+    auto it = available_node_manager_ports_.begin();
+    auto port = *it;
+    available_node_manager_ports_.erase(it);
+    auto port_str =  std::to_string(port);
+    return port_str;
+}
+
+void Environment::FreeManagerPort(const std::string& port){
+     std::unique_lock<std::mutex> lock(port_mutex_);
+    int port_number = std::stoi(port);
+    available_node_manager_ports_.insert(port_number);
+}
+
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
@@ -235,7 +269,8 @@ std::string Environment::GetMasterPublisherPort(const std::string& model_name, c
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         std::string node_name = experiment->node_map_[experiment->node_id_map_[master_ip_address]]->info().name();
-        return experiment->master_port_ = GetPort(node_name);
+        experiment->master_port_ = GetPort(node_name);
+        return experiment->master_port_;
     }
     return "";
 }
@@ -258,7 +293,6 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
 }
 
 void Environment::ExperimentLive(const std::string& model_name, uint64_t time_called){
-    std::unique_lock<std::mutex> lock(port_mutex_);
     try{
         auto experiment = experiment_map_.at(model_name);
         if(time_called >= experiment->time_added){
@@ -271,7 +305,6 @@ void Environment::ExperimentLive(const std::string& model_name, uint64_t time_ca
 }
 
 void Environment::ExperimentTimeout(const std::string& model_name, uint64_t time_called){
-    std::unique_lock<std::mutex> lock(port_mutex_);
 
     try{
         auto experiment = experiment_map_.at(model_name);

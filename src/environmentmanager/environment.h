@@ -50,6 +50,9 @@ class Environment{
         int PORT_RANGE_MIN;
         int PORT_RANGE_MAX;
 
+        std::string GetManagerPort();
+        void FreeManagerPort(const std::string& port);
+
         class Node{
             public:
                 Node(const std::string& name, std::set<int> port_set){
@@ -73,6 +76,7 @@ class Environment{
                     int port_number = std::stoi(port);
                     available_ports.insert(port_number);
                     std::cout << "free:" << ip << ":" << port << std::endl;
+                    std::cout << "size:" << available_ports.size() << std::endl;
                 }
                 std::string name;
                 std::string ip;
@@ -151,7 +155,6 @@ class Environment{
 
         //ports available on the environment manager, uses same port range as nodes.
         std::set<int> available_node_manager_ports_;
-
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT
