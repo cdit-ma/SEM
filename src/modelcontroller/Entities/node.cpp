@@ -870,6 +870,7 @@ void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
+        BindDefinitionToInstance(definition, this, true);
     }
 
 }
@@ -887,7 +888,11 @@ Node *Node::getDefinition(bool recurse) const
 
 void Node::unsetDefinition()
 {
-    definition = 0;
+    if(definition){
+
+        BindDefinitionToInstance(definition, this, false);
+        definition = 0;
+    }
 }
 
 void Node::addInstance(Node *inst)
@@ -1080,4 +1085,135 @@ NODE_KIND Node::getDefinitionKind() const{
 
 NODE_KIND Node::getImplKind() const{
     return impl_kind_;
+}
+
+void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
+    auto source_data = source->getData(source_key);
+    auto destination_data = destination->getData(destination_key);
+
+    if(source_data && destination_data){
+        source_data->linkData(destination_data, setup);
+    }
+}
+
+void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
+
+    if(!definition || !instance){
+        return;
+    }
+    //qCritical() << "BINDING DEFINITION: " << definition << " TO " << instance << " " << (setup ? "LINK" : "UNLINK");
+    auto instance_parent = instance->getParentNode();
+
+    auto definition_kind = definition->getNodeKind();
+    auto instance_kind = instance->getNodeKind();
+    
+    auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
+
+    QMultiMap<QString, QString> bind_values;
+    bind_values.insert("key", "key");
+
+    bool bind_index = true;
+    bool bind_labels = true;
+    bool bind_types = true;
+
+    //The only time we should bind the index is when we are contained in another instance
+    if(instance_parent->isInstance()){
+        bind_index = false;
+    }
+
+    if(instance->isInstanceImpl()){
+        switch(instance_kind){
+            case NODE_KIND::COMPONENT_INSTANCE:{
+                bind_labels = false;
+                break;
+            }
+            case NODE_KIND::AGGREGATE_INSTANCE:
+            case NODE_KIND::VECTOR_INSTANCE:
+            case NODE_KIND::ENUM_INSTANCE:{
+                if(instance_parent_kind == NODE_KIND::AGGREGATE){
+                    bind_labels = false;
+                }
+                break;
+            };
+            default:
+                break;
+        }
+    }else if(instance->isDefinition()){
+        bind_labels = false;
+    }
+
+    if(bind_types){
+        if(definition->gotData("type")){
+            bind_values.insert("type", "type");
+        }else if(definition->gotData("label")){
+            bind_values.insert("label", "type");
+        }
+    }
+
+    if(bind_labels){
+        bind_values.insert("label", "label");
+    }
+
+    //Bind Index
+    if(bind_index){
+        bind_values.insert("index", "index");
+    }
+
+    for(auto definition_key : bind_values.uniqueKeys()){
+        for(auto instance_key : bind_values.values(definition_key)){
+            LinkData(definition, definition_key, instance, instance_key, setup);
+        }
+    }
+}
+
+void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
+    if(source && destination && source->isNodeOfType(NODE_TYPE::DATA) && destination->isNodeOfType(NODE_TYPE::DATA)){
+        auto source_parent = source->getParentNode();
+        auto destination_parent = destination->getParentNode();
+
+        //Bind the special vector linking
+        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+            auto worker_name = destination_parent->getDataValue("worker").toString();
+            auto parameter_label = destination->getDataValue("label").toString();
+
+            //Check bindings
+            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
+                //Get the child type of the Vector
+                
+
+                //Get the siblings of the parameter
+                for(auto param : destination_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        auto param_label = param->getDataValue("label").toString();
+                        Node* bind_src = 0;
+
+                        auto definition_key = "";
+                        
+                        if(param_label.contains("Value")){
+                            definition_key = "inner_type";
+                        }else if(param_label.contains("Vector")){
+                            definition_key = "type";
+                        }
+                        LinkData(source, definition_key, param, "type", setup);
+                    }
+                }
+            }
+        }
+        auto bind_source = source;
+        auto source_key = "type";
+
+        //Data bind to the Variable, instead of the Member
+        if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
+            bind_source = source_parent;
+        }
+
+        //BIND LABEL
+        QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER};
+
+        if(bind_labels.contains(bind_source->getNodeKind())){
+            source_key = "label";
+        }
+
+        LinkData(bind_source, source_key, destination, "value", setup);
+    }
 }

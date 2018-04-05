@@ -1,6 +1,7 @@
 #include "eventport.h"
 #include "aggregate.h"
 #include "aggregateinstance.h"
+#include "../Keys/typekey.h"
 
 
 
@@ -34,6 +35,8 @@ void EventPort::setAggregate(Aggregate *aggregate)
 {
     if(!getAggregate()){
         this->aggregate = aggregate;
+        //Do binding!
+        TypeKey::BindTypes(aggregate, this, true);
     }
 }
 
@@ -53,6 +56,7 @@ Aggregate *EventPort::getAggregate()
 void EventPort::unsetAggregate()
 {
     if(aggregate){
+        TypeKey::BindTypes(aggregate, this, false);
         aggregate = 0;
     }
 }

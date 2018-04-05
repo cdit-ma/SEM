@@ -12,8 +12,8 @@ public:
     TypeKey();
     QVariant validateDataChange(Data* data, QVariant dataValue);
 
-    static bool BindTypes(Node* src, Node* dst, bool bind);
-
+    static void BindInnerAndOuterTypes(Node* src, Node* dst, bool bind);
+    static void BindTypes(Node* src, Node* dst, bool bind);
     static void BindNamespaceAndLabelToType(Node* node, bool bind);
 private:
     QSet<NODE_KIND> combine_namespace_kinds;

@@ -70,11 +70,10 @@ bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
 void Vector::childAdded(Node* child){
     DataNode::childAdded(child);
-    TypeKey::BindTypes(child, this, true);
+    TypeKey::BindInnerAndOuterTypes(child, this, true);
 }
 
 void Vector::childRemoved(Node* child){
-    qCritical() << "UNBINDG PLEASE" << child;
     DataNode::childRemoved(child);
-    TypeKey::BindTypes(child, this, false);
+    TypeKey::BindInnerAndOuterTypes(child, this, false);
 }

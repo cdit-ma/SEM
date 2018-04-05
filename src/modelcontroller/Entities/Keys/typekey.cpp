@@ -48,7 +48,7 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
 }
 
 
-bool TypeKey::BindTypes(Node* src, Node* dst, bool bind){
+void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
     auto src_inner_type_data = src->getData("inner_type");
     auto src_outer_type_data = src->getData("outer_type");
     auto src_type_data = src->getData("type");
@@ -73,8 +73,6 @@ bool TypeKey::BindTypes(Node* src, Node* dst, bool bind){
             src_type_data->linkData(dst_inner_type_data, bind);
         }
     }
-    
-    return true;
 }
 
 void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
@@ -84,5 +82,14 @@ void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){
     if(namespace_data && label_data && type_data){
         namespace_data->linkData(type_data, bind);
         label_data->linkData(type_data, bind);
+    }
+}
+
+void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
+    auto src_type_data = src->getData("type");
+    auto dst_type_data = dst->getData("type");
+    
+    if(src_type_data && dst_type_data){
+        src_type_data->linkData(dst_type_data, bind);
     }
 }

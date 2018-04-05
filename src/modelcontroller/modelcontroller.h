@@ -252,9 +252,7 @@ private:
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
 
-    //Binds matching Data elements from the Node Child, to the Node Definition.
-    void bindData(Node* definition, Node* instance);
-    void unbindData(Node* definition, Node* instance);
+    
 
     bool linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link);
     

@@ -24,6 +24,11 @@ class Node : public Entity
         static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
         static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
+        static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
+    public:
+        static void BindDataRelationship(Node* source, Node* destination, bool setup);
+    protected:
+
         //Constuctor
         Node(NODE_KIND kind);
         ~Node();

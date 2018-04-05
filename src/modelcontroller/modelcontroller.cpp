@@ -1825,89 +1825,6 @@ void ModelController::setupModel()
 
 
 
-void ModelController::bindData(Node *defn, Node *child)
-{
-    if(!defn || !child){
-        return;
-    }
-
-    auto defn_kind = defn->getNodeKind();
-    auto parent_kind = NODE_KIND::NONE;
-    if(child->getParentNode()){
-        parent_kind = child->getParentNode()->getNodeKind();
-    }
-    auto child_kind = child->getNodeKind();
-
-    auto defn_type = defn->getData("type");
-    auto defn_label = defn->getData("label");
-    auto defn_key = defn->getData("key");
-    auto defn_index = defn->getData("index");
-
-    auto child_type = child->getData("type");
-    auto child_label = child->getData("label");
-    auto child_key = child->getData("key");
-    auto child_index = child->getData("index");
-
-    //We can't bind to any of these if they aren't set
-    bool bind_types = child_type;
-    bool bind_labels = child_label && defn_label;
-    bool bind_keys = child_key && defn_key;
-    bool bind_index = child_index && defn_index;
-
-    //The only time we should bind the index is when we are contained in another instance
-    if(!child->getParentNode()->isInstance()){
-        bind_index = false;
-    }
-    
-    if(child->isInstance() || child->isImpl()){
-        if(child_kind == NODE_KIND::COMPONENT_INSTANCE || child_kind == NODE_KIND::BLACKBOX_INSTANCE){
-            //Allow ComponentInstance and BlackBoxInstance to have unique labels
-            bind_labels = false;
-        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE || child_kind == NODE_KIND::VECTOR_INSTANCE || child_kind == NODE_KIND::ENUM_INSTANCE){
-            if(parent_kind == NODE_KIND::AGGREGATE){
-                //Allow Aggregates to contain Aggregate Instances with unique labels
-                bind_labels = false;
-            }
-        }
-    }else if(child->isDefinition()){
-        bind_labels = false;
-    }
-
-    //Bind Type to either Type or Label
-    
-    if(bind_types){
-        if(defn_type){
-            defn_type->linkData(child_type);
-        }else if(defn_label){
-            defn_label->linkData(child_type);
-        }
-    }
-
-    //Bind label
-    if(bind_labels){
-        defn_label->linkData(child_label);
-    }
-
-    //Bind Keys
-    if(bind_keys){
-        defn_key->linkData(child_key);
-    }
-
-    //Bind Index
-    if(bind_index){
-        defn_index->linkData(child_index);
-    }
-}
-
-void ModelController::unbindData(Node *definition, Node *instance)
-{
-    for(auto data : definition->getData()){
-        auto instance_data = instance->getData(data->getKey());
-        if(instance_data){
-            data->unlinkData(instance_data);
-        }
-    }
-}
 
 /**
  * @brief NewController::setupDefinitionRelationship
@@ -1952,18 +1869,12 @@ bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool set
         //Check for an edge between the EventPort and the Aggregate
         if(src->gotEdgeTo(dst, EDGE_KIND::DEFINITION)){
             if(setup){
-                //Bind the un-protected Data attached to the Definition to the Instance.
-                bindData(dst, src);
-
                 if(src->isInstance()){
                     dst->addInstance(src);
                 }else{
                     dst->addImplementation(src);
                 }
             }else{
-                //Bind the un-protected Data attached to the Definition to the Instance.
-                unbindData(dst, src);
-
                 if(src->isInstance()){
                     dst->removeInstance(src);
                 }else{
@@ -2020,13 +1931,9 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
             if(setup){
                 //Edge Created Set Aggregate relation.
                 eventport->setAggregate(aggregate);
-                //Bind type to type
-                linkData_(aggregate, "type", eventport, "type", true);
             }else{
                 //Unset the Aggregate
                 eventport->unsetAggregate();
-                //unbind type to type
-                linkData_(aggregate, "type", eventport, "type", false);
             }
             return true;
         }
@@ -2047,60 +1954,8 @@ bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString d
 
 bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
 {
-   if(src && dst && src->isNodeOfType(NODE_TYPE::DATA) && dst->isNodeOfType(NODE_TYPE::DATA)){
-        auto src_parent = src->getParentNode();
-        auto dst_parent = dst->getParentNode();
-
-        //Bind the special vector linking
-        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
-            auto worker_name = dst_parent->getDataValue("worker").toString();
-            auto parameter_label = dst->getDataValue("label").toString();
-
-            //Check bindings
-            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
-                //Get the child type of the Vector
-                Node* vector = src;
-                Node* vector_child = src->getFirstChild();
-
-                //Get the siblings of the parameter
-                for(auto param : dst_parent->getChildren(0)){
-                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        auto param_label = param->getDataValue("label").toString();
-                        Node* bind_src = 0;
-
-                        if(param_label.contains("Value")){
-                            //Bind the child type to the param
-                            bind_src = vector_child;
-                        }else if(param_label.contains("Vector")){
-                            //Bind the vector type to the param
-                            bind_src = vector;
-                        }
-
-                        linkData_(bind_src, "type", param, "type", setup);
-                    }
-                }
-            }
-        }
-
-        QString src_key = "type";
-        auto bind_src = src;
-        
-        //Data bind to the Variable, instead of the Member
-        if(src_parent && src_parent->getNodeKind() == NODE_KIND::VARIABLE){
-            bind_src = src_parent;
-        }
-
-        //If what we are binding to is a Variable/AttributeImpl, bind to the label
-        if(bind_src->getNodeKind() == NODE_KIND::VARIABLE || bind_src->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL || bind_src->getNodeKind() == NODE_KIND::ENUM_MEMBER){
-            src_key = "label";
-        }
-
-
-
-        linkData_(bind_src, src_key, dst, "value", setup);
-        return true;
-   }
-   return false;
+    Node::BindDataRelationship(src, dst, setup);
+    return true;
 }
 
 

@@ -23,12 +23,15 @@ Data::~Data()
         parent->removeData(this);
     }
 
-    for(auto data : child_datas){
-        data->removeParentData(this);
+    for(auto child_data : child_datas){
+        child_data->removeParentData(this);
     }
+    child_datas.clear();
 
-    for(auto data : parent_datas){
-        removeParentData(data);
+    auto parent_data_copy = parent_datas;
+
+    for(auto parent_data : parent_data_copy){
+        removeParentData(parent_data);
     }
 }
 
@@ -251,6 +254,6 @@ void Data::store_value(){
 }
 
 void Data::restore_value(){
-    qCritical() << toString() << ": RESTORING VALUE: " << old_value;
+    //qCritical() << toString() << ": RESTORING VALUE: " << old_value;
     setValue(old_value);
 }

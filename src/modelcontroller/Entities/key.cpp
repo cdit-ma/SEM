@@ -186,3 +186,4 @@ bool Key::gotValidValues(NODE_KIND kind){
 QList<QVariant> Key::getValidValues(NODE_KIND kind){
     return valid_values_.values(kind);
 }
+
