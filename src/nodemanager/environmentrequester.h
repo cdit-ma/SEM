@@ -32,7 +32,9 @@ class EnvironmentRequester{
             std::promise<std::string>* response_;
         };
         //Constants
-        const int heartbeat_period_ = 2;
+        const int HEARTBEAT_PERIOD = 2000;
+
+        const int REQUEST_TIMEOUT = 3000;
 
         //ZMQ endpoints
         std::string manager_address_;

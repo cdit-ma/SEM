@@ -22,7 +22,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
-	)
+    )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h

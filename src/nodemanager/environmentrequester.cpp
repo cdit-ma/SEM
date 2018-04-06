@@ -14,9 +14,20 @@ void EnvironmentRequester::Init(){
         sub.connect(manager_address_);
         sub.setsockopt(ZMQ_SUBSCRIBE, "", 0);
         zmq::message_t message;
-        sub.recv(&message);
-        manager_endpoint_ = std::string(static_cast<const char*>(message.data()), message.size());
-        sub.close();
+
+        std::vector<zmq::pollitem_t> poll_items = {{sub, 0, ZMQ_POLLIN, 0}};
+        int events = zmq::poll(poll_items, REQUEST_TIMEOUT);
+
+        if(events >= 1){
+            sub.recv(&message);
+            manager_endpoint_ = std::string(static_cast<const char*>(message.data()), message.size());
+            sub.close();
+        }
+        else{
+            std::cerr << "Wait for environment broadcast message timed out in EnvironmentRequester: " << model_name << std::endl;
+            assert(false);
+        }
+
     }
     catch(std::exception& ex){
         std::cerr << ex.what() << " in EnvironmentRequester::Init" << std::endl;
@@ -145,19 +156,24 @@ void EnvironmentRequester::HeartbeatLoop(){
         //If our request queue is empty, wait till time for next heartbeat and send unless we get a wake up in that time
         if(request_queue_.empty()){
             std::unique_lock<std::mutex> lock(request_queue_lock_);
-            auto trigger = request_queue_cv_.wait_for(lock, std::chrono::duration<int>(heartbeat_period_));
+            auto trigger = request_queue_cv_.wait_for(lock, std::chrono::milliseconds(HEARTBEAT_PERIOD));
 
             if(end_flag_){
                 break;
             }
             NodeManager::EnvironmentMessage message;
             message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT);
+            //CV timed out, send heartbeat
             if(trigger == std::cv_status::timeout){
                 std::string output;
                 message.SerializeToString(&output);
                 ZMQSendRequest(update_socket_, output);
                 auto reply = ZMQReceiveReply(update_socket_);
+                if(reply.empty()){
+                    std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
+                }
             }
+            //CV got wakeup, take from request queue
             else if(trigger == std::cv_status::no_timeout){
                 auto request = request_queue_.front();
                 request_queue_.pop();
@@ -260,19 +276,35 @@ void EnvironmentRequester::ZMQSendRequest(zmq::socket_t* socket, const std::stri
 std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t* socket){
     zmq::message_t lamport_time_msg;
     zmq::message_t request_contents_msg;
-    try{
-        socket->recv(&lamport_time_msg);
-        socket->recv(&request_contents_msg);
-    }
-    catch(zmq::error_t error){
-        //TODO: Handle this
-        std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
-    }
-    std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
 
-    //Update and get current lamport time
-    std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
-    long lamport_time = SetClock(std::stoull(incoming_time));
+    std::vector<zmq::pollitem_t> poll_items = {{*socket, 0, ZMQ_POLLIN, 0}};
 
-    return contents;
+    int events = zmq::poll(poll_items, REQUEST_TIMEOUT);
+
+    if(end_flag_){
+        return "";
+    }
+
+    if(events >= 1){
+        try{
+            socket->recv(&lamport_time_msg);
+            socket->recv(&request_contents_msg);
+        }
+        catch(zmq::error_t error){
+            //TODO: Handle this
+            std::cerr << error.what() << " in EnvironmentRequester::ZMQReceiveTwoPartReply" << std::endl;
+        }
+        std::string contents(static_cast<const char*>(request_contents_msg.data()), request_contents_msg.size());
+
+        //Update and get current lamport time
+        std::string incoming_time(static_cast<const char*>(lamport_time_msg.data()), lamport_time_msg.size());
+        long lamport_time = SetClock(std::stoull(incoming_time));
+
+        return contents;
+
+    }
+    else{
+        std::cerr << "Communication with environment manager timed out" << std::endl;
+        return "";
+    }
 }

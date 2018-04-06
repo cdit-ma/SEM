@@ -42,6 +42,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
                                     const std::string& graphml_path,
                                     double execution_duration,
                                     Execution* execution,
+                                    const std::string& experiment_id,
                                     const std::string& environment_manager_endpoint){
     if(execution){
         //Setup writer
@@ -51,10 +52,10 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
         execution_->AddTerminateCallback(std::bind(&ExecutionManager::TerminateExecution, this));
     }
     master_endpoint_ = endpoint;
+    experiment_id_ = experiment_id;
 
-    //Setup the parser
     auto start = std::chrono::steady_clock::now();
-
+    //Setup the parser
     protobuf_model_parser_ = new ProtobufModelParser(graphml_path);
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
@@ -64,15 +65,12 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     master_ip_address->set_kind(NodeManager::Attribute::STRING);
     master_ip_address->add_s(master_endpoint_);
 
-
     if(!environment_manager_endpoint.empty()){
-        requester_ = new EnvironmentRequester(environment_manager_endpoint, deployment_message_->model_name());
+        requester_ = new EnvironmentRequester(environment_manager_endpoint, experiment_id_);
     }
 
     parse_succeed_ = PopulateDeployment();
     ConstructControlMessages();
-
-    proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
 
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -81,6 +79,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     }else{
         std::cout << "* Deployment Parsing Failed!" << std::endl;
     }
+    proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
 
     if(parse_succeed_ && execution){
         std::cout << "--------[Slave Registration]--------" << std::endl;
@@ -110,14 +109,13 @@ bool ExecutionManager::PopulateDeployment(){
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto response = requester_->AddDeployment(*deployment_message_);
 
-        std::cout << response.DebugString() << std::endl;
-
         *deployment_message_ = response;
 
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
             auto attribute = deployment_message_->attributes(i);
             if(attribute.info().name() == "master_publisher_port"){
                 master_publisher_port_ = attribute.s(0);
+                break;
             }
         }
     }

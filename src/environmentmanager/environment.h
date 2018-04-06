@@ -50,6 +50,9 @@ class Environment{
         int PORT_RANGE_MIN;
         int PORT_RANGE_MAX;
 
+        int MANAGER_PORT_RANGE_MIN;
+        int MANAGER_PORT_RANGE_MAX;
+
         std::string GetManagerPort();
         void FreeManagerPort(const std::string& port);
 

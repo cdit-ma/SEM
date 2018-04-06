@@ -6,14 +6,24 @@
 Environment::Environment(int port_range_min, int port_range_max){
     PORT_RANGE_MIN = port_range_min;
     PORT_RANGE_MAX = port_range_max;
-    assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
 
+    MANAGER_PORT_RANGE_MIN = port_range_min + 10000;
+    MANAGER_PORT_RANGE_MAX = port_range_max + 10000;
+
+    //Bail out if ranges are illegal
+    assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
+    assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
+
+    //populate range sets
     auto hint_iterator = available_ports_.begin();
-    auto hint_iterator_manager = available_node_manager_ports_.begin();
     for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
-        available_ports_.insert(hint_iterator, i+10000);
-        available_node_manager_ports_.insert(hint_iterator_manager, i);
+        available_ports_.insert(hint_iterator, i);
         hint_iterator++;
+    }
+
+    auto hint_iterator_manager = available_node_manager_ports_.begin();
+    for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
+        available_node_manager_ports_.insert(hint_iterator_manager, i);
         hint_iterator_manager++;
     }
     clock_ = 0;
@@ -172,8 +182,6 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
         experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
     }
-
-
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
 
@@ -333,4 +341,3 @@ uint64_t Environment::Tick(){
     clock_++;
     return clock_;
 }
-
