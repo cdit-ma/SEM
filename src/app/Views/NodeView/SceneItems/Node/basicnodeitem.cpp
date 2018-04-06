@@ -27,10 +27,24 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
 
     setPrimaryTextKey("label");
 
-    addRequiredData("index");
-    addRequiredData("row");
-    addRequiredData("x");
-    addRequiredData("y");
+    bool require_x_y = true;
+    if(parentContainer && parentContainer->isSortOrdered()){
+        setMoveEnabled(false);
+        connect(this, &NodeItem::indexChanged, [=](){parentContainer->childPosChanged(this);});
+
+        require_x_y = false;
+    }
+
+    if(require_x_y){
+        addRequiredData("x");
+        addRequiredData("y");
+    }else{
+        addRequiredData("index");
+        addRequiredData("row");
+        addRequiredData("row_subgroup");
+
+    }
+
 
 
     if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
@@ -61,37 +75,12 @@ QPointF BasicNodeItem::getElementPosition(BasicNodeItem *child)
     return child->getPos();
 }
 
-QPoint BasicNodeItem::getElementIndex(BasicNodeItem *child)
-{
-    return child->getIndexPosition();
-}
 
 BasicNodeItem *BasicNodeItem::getParentContainer() const
 {
     return parentContainer;
 }
 
-QPoint BasicNodeItem::getIndexPosition() const
-{
-    return indexPosition;
-}
-
-void BasicNodeItem::setIndexPosition(QPoint point)
-{
-    indexPosition = point;
-}
-
-void BasicNodeItem::dataChanged(QString keyName, QVariant data)
-{
-    NodeItem::dataChanged(keyName, data);
-
-    if(keyName == "index" && getParentContainer() && getParentContainer()->isSortOrdered()){
-        QPoint index = getIndexPosition();
-        index.setY(getSortOrder());
-        setIndexPosition(index);
-        setPos(QPointF());
-    }
-}
 
 void BasicNodeItem::setPos(const QPointF &p)
 {
@@ -155,8 +144,7 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
     return NodeItem::getElementRect(rect);
 }
 
-void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
+void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
@@ -183,6 +171,11 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         }
 
     }
+}
+
+void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    paintBackground(painter, option, widget);
     NodeItem::paint(painter, option, widget);
 }
 

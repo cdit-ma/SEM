@@ -901,8 +901,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FOR_CONDITION:
-                nodeItem = new StackNodeItem(item, parentNode);
-
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;

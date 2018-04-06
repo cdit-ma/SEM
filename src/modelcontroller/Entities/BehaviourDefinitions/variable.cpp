@@ -35,6 +35,7 @@ bool Variable::canAdoptChild(Node* child)
     case NODE_KIND::MEMBER:
     case NODE_KIND::AGGREGATE_INSTANCE:
     case NODE_KIND::VECTOR:
+    case NODE_KIND::ENUM_INSTANCE:
         break;
     default:
         return false;
@@ -59,7 +60,7 @@ void Variable::childRemoved(Node* child){
 
 bool Variable::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(!acceptsEdgeKind(edgeKind)){ 
         return false;
     }
 

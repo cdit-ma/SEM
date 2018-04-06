@@ -135,7 +135,6 @@ bool Key::setData(Data* data, QVariant data_value){
     bool data_changed = false;
     if(data){
         auto valid_value = validateDataChange(data, data_value);
-        //qCritical() << toString() << " = " << data_value << " CONVERTED TO VALID VALUE: " << valid_value;
         data_changed = data->_setData(valid_value);
     }
     return data_changed;

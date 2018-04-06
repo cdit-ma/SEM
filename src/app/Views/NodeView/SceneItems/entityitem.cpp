@@ -227,16 +227,21 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 
 void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
 {
-    painter->setBrush(getBodyColor().darker(150));
+    painter->save();
+    
+    auto text_color = getDefaultPen();
+    
     auto text_item = textMap.value(pos, 0);
     if(!text_item){
         //If we haven't got one, construct a text tiem
-        text_item = new StaticTextItem();
+        text_item = new StaticTextItem(Qt::AlignLeft | Qt::AlignVCenter);
         textMap[pos] = text_item;
     }
 
+    painter->setPen(text_color);
+    
     text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
-    return;
+    painter->restore();
 }
 
 void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCursor cursor)

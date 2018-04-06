@@ -93,3 +93,56 @@ void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
         src_type_data->linkData(dst_type_data, bind);
     }
 }
+
+bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
+    if(node_1 && node_2){
+        qCritical() << "Compare: " << node_1->toString() << " & " << node_2->toString();
+        QSet<QString> number_types = {"Float", "Double", "Integer", "Boolean"};
+
+        //Variadic Parameters can always use Anything
+        if(node_2->getNodeKind() == NODE_KIND::VARIADIC_PARAMETER){
+            qCritical() << "Got a Varaidic Paremeter";
+           return true;
+        }
+
+        auto type_1 = node_1->getDataValue("type").toString();
+        auto type_2 = node_2->getDataValue("type").toString();
+
+        if(type_1 == type_2 && type_1.size()){
+            qCritical() << "Exact Type Match!";
+            //Allow Exact matches
+            return true;
+        }
+
+        if(number_types.contains(type_1) && number_types.contains(type_2)){
+            qCritical() << "Both Numbers";
+            //Allow matches of numbers
+            return true;
+        }
+
+        auto outer_type_data_1 = node_1->getData("outer_type");
+        auto outer_type_data_2 = node_2->getData("outer_type");
+
+        auto inner_type_data_1 = node_1->getData("inner_type");
+        auto inner_type_data_2 = node_2->getData("inner_type");
+
+        if(outer_type_data_1 &&  outer_type_data_2){
+            qCritical() << "GOT INNER AND OUTER TYPE DATA";
+            auto outer_type_1 = outer_type_data_1->getValue().toString();
+            auto outer_type_2 = outer_type_data_2->getValue().toString();
+            qCritical() << "Outer_Type: 1" << outer_type_data_1->toString();
+            qCritical() << "Outer_Type: 2" << outer_type_data_2->toString();
+
+            if(outer_type_1 == outer_type_2 && outer_type_1.size()){
+                auto inner_type_2 = inner_type_data_2 ? inner_type_data_2->getValue().toString() : "";
+
+                if(inner_type_2 == ""){
+                    qCritical() << "Outer Types Match, and no inner type on 2";
+                    //If inner_type in the destination doesn't have a defined inner-type go ahead and use it.
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}

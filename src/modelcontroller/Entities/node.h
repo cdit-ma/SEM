@@ -54,7 +54,7 @@ class Node : public Entity
 
     protected:
         virtual void childAdded(Node* child){};
-        virtual void childRemoved(Node* child){};
+        virtual void childRemoved(Node* child);
     public:
 
         virtual VIEW_ASPECT getViewAspect() const;
@@ -75,7 +75,7 @@ class Node : public Entity
     Node* getCommonAncestor(Node* dst);
 
 
-
+    QList<Node*> getParentNodes(int depth = 1);
     Node* getParentNode(int depth = 1);
     int getParentNodeID();
 

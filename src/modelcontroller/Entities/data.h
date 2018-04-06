@@ -38,7 +38,7 @@ public:
     bool isParentData(Data* data);
     //Data* getParentData();
     
-    void revalidateData();
+    bool revalidateData();
     void clearValue();
     bool compare(const Data* data) const;
 
@@ -56,20 +56,16 @@ protected:
 
     bool forceValue(QVariant value);
 
-
+    void setParent(Entity* parent);
+private:
     void addParentData(Data* data);
     void removeParentData(Data* data);
-
-    void setParentData(Data* data);
-    void setParent(Entity* parent);
 private:
     bool _setData(QVariant value);
     bool addChildData(Data* data);
     bool removeChildData(Data* data);
 signals:
     void dataChanged(QVariant data);
-private slots:
-    //void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
     bool _setValue(QVariant value, bool validate = true);
     void updateChildren(bool changed = true);

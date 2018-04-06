@@ -687,14 +687,20 @@ Node* ModelController::construct_for_condition_node(Node* parent)
             variable->setDataValue("type", "Integer");
             variable->setDataValue("label", "i");
             variable->setDataValue("value", 0);
-            condition->setDataValue("type", "String");
+            setData_(variable, "row_subgroup", -1);
+            
+            condition->setDataValue("type", "Boolean");
             condition->setDataValue("label", "Condition");
             condition->setDataValue("icon", "Condition");
             condition->setDataValue("icon_prefix", "EntityIcons");
+            setData_(condition, "row_subgroup", -1);
+
             iteration->setDataValue("type", "String");
             iteration->setDataValue("label", "Iteration");
             iteration->setDataValue("icon", "reload");
             iteration->setDataValue("icon_prefix", "Icons");
+            setData_(iteration, "row_subgroup", -1);
+
             return node;
         }
     }
@@ -2134,6 +2140,7 @@ void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
 {
     Entity* graphML = entity_factory->GetEntity(parentID);
     if(graphML){
+        qCritical() << "== REQUEST: " << parentID << " KEY: " << keyName << " = " << dataValue;
         setData_(graphML, keyName, dataValue, true);
     }
 }

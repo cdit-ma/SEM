@@ -1,6 +1,6 @@
 #ifndef CONDITION_H
 #define CONDITION_H
-#include "behaviournode.h"
+#include "containernode.h"
 
 #include "../../edgekinds.h"
 
@@ -8,7 +8,7 @@ class Termination;
 class Branch;
 
 class EntityFactory;
-class Condition: public BehaviourNode
+class Condition: public ContainerNode
 {
 	friend class EntityFactory;
     Q_OBJECT

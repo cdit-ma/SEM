@@ -21,7 +21,6 @@ PeriodicEvent::PeriodicEvent():ContainerNode(NODE_KIND::PERIODICEVENT){
 #include <QDebug>
 bool PeriodicEvent::canAdoptChild(Node* child)
 {
-    qCritical() << "TRYING TO ADOPT: " << child->toString() << " = " << (ContainerNode::canAdoptChild(child) ? "YES" : "NO");
     return ContainerNode::canAdoptChild(child);
 }
 

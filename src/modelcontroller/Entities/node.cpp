@@ -11,6 +11,7 @@
 
 #include "../nodekinds.h"
 #include "../edgekinds.h"
+#include "Keys/indexkey.h"
 
 Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
 {
@@ -81,6 +82,7 @@ bool Node::isAttached() const
 
 Node::~Node()
 {
+    //qCritical() << "DESTRUCTING FAM" << this->toString();
     if(parentNode){
         parentNode->removeChild(this);
     }
@@ -337,6 +339,20 @@ VIEW_ASPECT Node::getViewAspect() const
     return aspect;
 }
 
+QList<Node*> Node::getParentNodes(int depth){
+    QList<Node*> parents;
+    Node* node = this;
+
+    while(depth == -1 || depth-- > 0){
+        node = node->getParentNode();
+        if(node){
+            parents.push_back(node);
+        }else{
+            break;
+        }
+    }
+    return parents;
+}
 
 
 Node *Node::getParentNode(int depth)
@@ -641,6 +657,12 @@ bool Node::hasEdges()
     return !edges.isEmpty();
 }
 
+void Node::childRemoved(Node* child){
+    //qCritical() << "CHILD REMOVED" << child->toString();
+
+    IndexKey::RevalidateChildrenIndex(this);
+}
+
 
 bool Node::removeChild(Node *child)
 {
@@ -651,8 +673,11 @@ bool Node::removeChild(Node *child)
     }
 
     if(removeCount > 0){
-        emit childCountChanged();
         childRemoved(child);
+        
+        emit childCountChanged();
+
+        //Recontiguate 
         return true;
     }
     return false;
@@ -1112,13 +1137,13 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     QMultiMap<QString, QString> bind_values;
     bind_values.insert("key", "key");
 
-    bool bind_index = true;
+    bool bind_index = false;
     bool bind_labels = true;
     bool bind_types = true;
 
     //The only time we should bind the index is when we are contained in another instance
     if(instance_parent->isInstance()){
-        bind_index = false;
+        bind_index = true;
     }
 
     if(instance->isInstanceImpl()){
@@ -1179,7 +1204,6 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
             //Check bindings
             if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
                 //Get the child type of the Vector
-                
 
                 //Get the siblings of the parameter
                 for(auto param : destination_parent->getChildren(0)){

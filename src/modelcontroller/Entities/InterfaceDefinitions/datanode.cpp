@@ -2,6 +2,7 @@
 #include "vectorinstance.h"
 #include <QDebug>
 #include "../edge.h"
+#include "../Keys/typekey.h"
 
 
 DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
@@ -127,78 +128,59 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case EDGE_KIND::DATA:{
-        if(!dst->isNodeOfType(NODE_TYPE::DATA)){
+        if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
             //Cannot connect to a non DataNode type.
             return false;
         }
-        DataNode* dataNode = (DataNode*) dst;
 
-        if(!isDataProducer()){
-            //qCritical() << "Cannot connect from something which can't produce";
+        DataNode* data_node = (DataNode*) dst;
+
+        if(isDataProducer() == false){
             //Cannot connect from something which can't produce
             return false;
         }
-        if(!dataNode->isDataReciever()){
-            //qCritical() << "Cannot connect to something which can't recieve";
+
+        if(data_node->isDataReciever() == false){
             //Cannot connect to something which can't recieve
             return false;
         }
 
-        if(!dataNode->isMultipleDataReceiver() && dataNode->hasInputData()){
-            //qCritical() << "Cannot have multiple input datas";
+        if(data_node->hasInputData() && data_node->isMultipleDataReceiver() != true){
             //Cannot have multiple input datas.
             return false;
         }
 
-
-
-
-
-
-
-        int heightToAncestor = getDepthFromCommonAncestor(dst);
-        int heightToComponentImpl = getDepthFromAspect() - 1;
-        
-
-        if(heightToAncestor > heightToComponentImpl){
-            //Cannot connect to something outside of the same Component.
+        if(isContainedInVector() || data_node->isContainedInVector()){
+            //Cannot Data-Connect inside a vector.
             return false;
         }
 
-        Node* sharedAncestor = getParentNode(heightToAncestor);
-        if(sharedAncestor){
-            if(sharedAncestor->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
-                //Can't data connect if our shared parent is an Aggregate Instance.
-                return false;
-            }
-        }
-
-        Node* srcTopParent = getParentNode(heightToComponentImpl - 1);
-        if(srcTopParent){
-            if(srcTopParent->getNodeKind() == NODE_KIND::OUTEVENTPORT_IMPL){
-                //Can't connect data from Aggregates stored in OutEventPortIMpls
-                return false;
-            }
-        }
-
-        int max_height = dst->getDepthFromAspect() - 1;
-        int height = 0;
-        auto dst_parent = dst->getParentNode();
-        while(dst_parent && height < max_height){
-            if(dst_parent->getNodeKind() == NODE_KIND::VECTOR_INSTANCE){
-                //Can't data bind into a vector directly
-                return false;
-            }else{
-                dst_parent = dst_parent->getParentNode();
-                height ++;
-            }
-        }
-        
-
-        //Compare types!
-        if(!comparableTypes(dataNode)){
+        if(data_node->isContainedInVariable()){
+            //Cannot Data-Connect into a Variable
             return false;
         }
+
+        auto source_containment_node = getContainmentNode();
+        auto destination_containment_node = data_node->getContainmentNode();
+        
+        if(source_containment_node && destination_containment_node){
+            auto source_contains_destination = source_containment_node->isAncestorOf(destination_containment_node);
+            auto destination_contains_source = destination_containment_node->isAncestorOf(source_containment_node);
+
+            //One of those needs to be true
+            if(!source_contains_destination && !destination_contains_source){
+                //The Variable we are setting needs to be in scope.
+                return false;
+            }
+        }else{
+            return false;
+        }
+
+        if(TypeKey::CompareTypes(this, data_node) == false){
+            //Must have compareable types
+            return false;
+        }
+        
         break;
         }
     default:
@@ -207,3 +189,50 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return Node::canAcceptEdge(edgeKind, dst);
 }
 
+bool DataNode::isContainedInVector(){
+    RunContainmentChecks();
+    return _contained_in_vector;
+}
+
+bool DataNode::isContainedInVariable(){
+    RunContainmentChecks();
+    return _contained_in_variable;
+}
+
+
+void DataNode::RunContainmentChecks(){
+    if(getParentNode() && !_run_containment_checks){
+        auto parent_nodes = getParentNodes(-1);
+        parent_nodes.push_front(this);
+        //Check if we are inside a vector
+        for(auto parent_node : parent_nodes){
+            if(!_containment_node){
+                if(parent_node->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
+                    _containment_node = parent_node;
+                }
+            }
+
+            switch(parent_node->getNodeKind()){
+                case NODE_KIND::VARIABLE:{
+                    _contained_in_variable = true;
+                    break;
+                }
+                case NODE_KIND::VECTOR:
+                case NODE_KIND::VECTOR_INSTANCE:{
+                    _contained_in_vector = true;
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        _run_containment_checks = true;
+    }
+}
+
+
+
+Node* DataNode::getContainmentNode(){
+    RunContainmentChecks();
+    return _containment_node;
+}

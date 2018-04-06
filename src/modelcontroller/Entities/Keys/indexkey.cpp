@@ -6,28 +6,11 @@ IndexKey::IndexKey(): Key("index", QVariant::Int){
 
 }
 
-bool SortByRowSubgroup(const Node* node1, const Node* node2){
-    //VALID VALUES "LEFT", "", "RIGHT"
-    auto node1_subgroup =   node1->getDataValue("row_subgroup").toString().toUpper();
-    auto node2_subgroup = node2->getDataValue("row_subgroup").toString().toUpper();
-
-    if(node1_subgroup == "LEFT"){
-        //Always on the left
-        return true;
-    }else if(node1_subgroup == "RIGHT"){
-        return false;
-    }else if(node2_subgroup == "LEFT"){
-        return false;
-    }else if(node2_subgroup == "RIGHT"){
-        return true;
-    }
-}
-
-
 QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     
     int new_index = data_value.toInt();
     int old_index = data->getValue().toInt();
+
     Node* node = 0;
     Node* parent_node = 0;
 
@@ -45,26 +28,10 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
 
     //Get all our children
     auto siblings = parent_node->getChildren(0);
-
-    //Force all children to be index ordered starting at 0. This should fix any gaps due to deleted elements
-    for(int i = 0; i < siblings.count(); i++){
-        auto sibling = siblings[i];
-        auto sibling_data = sibling->getData("index");
-        
-        if(sibling_data){
-            //Get the index the sibling node
-            int current_index = sibling_data->getValue().toInt();
-            if(current_index != i){
-                //Force set the value if its different
-                forceDataValue(sibling_data, i);
-            }
-        }
-    }
-    
     //Get the max index
     int max_index = siblings.count();
     
-    siblings.removeAll(node);
+    
     
     //Don't set Below 0
     if(new_index < -1){
@@ -80,35 +47,49 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     if(old_index < 0){
         old_index = max_index;
     }
-    
-    //Force the new index value
-    forceDataValue(data, new_index);
-    
-    //Insert the node into the list of siblings
-    siblings.push_back(node);
+
+    siblings.removeAll(node);
+
+
+    QMap<const Node*, int> desired_index;
+
+    siblings.insert(new_index, node);
+
+
+    //Force all children to be index ordered starting at 0. This should fix any gaps due to deleted elements
+    for(int i = 0; i < siblings.count(); i++){
+        auto sibling = siblings[i];
+        desired_index[sibling] = i;
+    }
+
+
+
 
     //Sort the List by Row (Lowest to Highest) and also by Index (Lowest to Highest)
-    std::sort(siblings.begin(), siblings.end(), [&old_index](const Node* node1, const Node* node2){
+    std::sort(siblings.begin(), siblings.end(), [&desired_index, &old_index](const Node* node1, const Node* node2){
+        if(node1 == node2){
+            return false;
+        }
+        
         int node1_row = node1->getDataValue("row").toInt();
         int node2_row = node2->getDataValue("row").toInt();
         if(node1_row == node2_row){
-            auto node1_subgroup = node1->getDataValue("row_subgroup").toString();
-            auto node2_subgroup = node2->getDataValue("row_subgroup").toString();
+            auto node1_subgroup = node1->getDataValue("row_subgroup").toInt();
+            auto node2_subgroup = node2->getDataValue("row_subgroup").toInt();
             
             if(node1_subgroup == node2_subgroup){
-                int node1_index = node1->getDataValue("index").toInt();
-                int node2_index = node2->getDataValue("index").toInt();
-
+                auto node1_index = desired_index[node1];
+                auto node2_index = desired_index[node2];
+                //int node1_index = node1->getDataValue("index").toInt();
+                //int node2_index = node2->getDataValue("index").toInt();
                 if(node1_index == node2_index){
-                    //In the case of a collision of both row and index, we want to put the node we are trying to change at the position the user selected, and shove the previous element.
-                    //return node1 == node;
-                    return node1_index < old_index;
+                    qCritical() << "Got Invalid index' which are the same";
                 }else{
                     //Sort Lowest to Highest Index
                     return node1_index < node2_index;
                 }
             }else{
-                return SortByRowSubgroup(node1, node2);
+                return node1_subgroup < node2_subgroup;
             }
         }
         //Sort Lowest to Highest Row
@@ -136,4 +117,11 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     }
     //Return the index
     return new_index;
+}
+
+void IndexKey::RevalidateChildrenIndex(Node* parent){
+    auto child = parent->getFirstChild();
+    if(child){
+        child->setDataValue("index", child->getDataValue("index"));
+    }
 }

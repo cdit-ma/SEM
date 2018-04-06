@@ -7,11 +7,6 @@ BranchState::BranchState(EntityFactory* factory) : Branch(factory, NODE_KIND::BR
 	auto node_kind = NODE_KIND::BRANCH_STATE;
 	QString kind_string = "BranchState";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BranchState();});
-
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "condition", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, true, 2);
-    RegisterDefaultData(factory, node_kind, "row_subgroup", QVariant::String, true, "LEFT");
 };
 
 BranchState::BranchState():Branch(NODE_KIND::BRANCH_STATE){

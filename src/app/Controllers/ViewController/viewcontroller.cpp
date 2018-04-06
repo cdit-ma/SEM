@@ -1516,6 +1516,7 @@ void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
+        qCritical() << "== REPLY: " << ID << " KEY: " << key << " = " << data;
         viewItem->changeData(key, data);
     }
 }

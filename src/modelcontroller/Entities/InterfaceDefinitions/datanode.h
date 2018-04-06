@@ -24,7 +24,18 @@ public:
 
     bool comparableTypes(DataNode* node);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) = 0;
+
+    bool isContainedInVector();
+    bool isContainedInVariable();
+    Node* getContainmentNode();
 private:
+    void RunContainmentChecks();
+    bool _run_containment_checks = false;
+
+    bool _contained_in_vector = false;
+    bool _contained_in_variable = false;
+    Node* _containment_node = 0;
+
 
     bool _isProducer = false;
     bool _isReciever = false;;

@@ -5,6 +5,8 @@
 
 #include "../entityitem.h"
 #include "../../../../../modelcontroller/entityfactory.h"
+#include "../../../../../modelcontroller/Entities/Keys/rowkey.h"
+
 #include <algorithm>
 
 
@@ -140,9 +142,8 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
         nodeItem->setParentItem(this);
-
-        connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(childPosChanged()));
-        connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
+        connect(nodeItem, &EntityItem::sizeChanged, this, [=](){childPosChanged(nodeItem);});
+        connect(nodeItem, &EntityItem::positionChanged, this, [=](){childPosChanged(nodeItem);});
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
@@ -150,7 +151,7 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
         nodeItem->setBaseBodyColor(getBaseBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
-        childPosChanged();
+        childPosChanged(nodeItem);
     }
 }
 
@@ -165,7 +166,8 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
         }
         //Unset child moving.
         nodeItem->unsetParent();
-        childPosChanged();
+
+        childPosChanged(nodeItem);
     }
 }
 
@@ -186,6 +188,13 @@ int NodeItem::getSortOrderRow() const{
     return 0;
 }
 
+int NodeItem::getSortOrderRowSubgroup() const{
+    if(hasData("row_subgroup")){
+        return getData("row_subgroup").toInt();
+    }
+    return 0;
+}
+
 bool NodeItem::hasChildNodes() const
 {
     return !childNodes.isEmpty();
@@ -194,6 +203,14 @@ bool NodeItem::hasChildNodes() const
 QList<NodeItem *> NodeItem::getChildNodes() const
 {
     return childNodes.values();
+}
+
+QList<NodeItem*> NodeItem::getSortedChildNodes() const{
+    auto children = getChildNodes();
+    std::sort(children.begin(), children.end(), [](const NodeItem* n1, const NodeItem* n2){
+        return n1->getSortOrder() < n2->getSortOrder();
+    });
+    return children;
 }
 
 
@@ -785,6 +802,8 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "key" && getNodeKind() == NODE_KIND::MEMBER){
             bool boolData = data.toBool();
             setIconOverlayVisible(boolData);
+        }else if(keyName =="index"){
+            emit indexChanged();
         }
 
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
@@ -807,11 +826,11 @@ void NodeItem::dataRemoved(QString keyName)
     }
 }
 
-void NodeItem::childPosChanged()
+void NodeItem::childPosChanged(EntityItem*)
 {
     //Update the child rect.
     QRectF rect;
-    foreach(EntityItem* child, getChildEntities()){
+    for(auto child : getChildEntities()){
         if(child->isNodeItem()){
             rect = rect.united(child->translatedBoundingRect());
         }else if(child->isEdgeItem()){

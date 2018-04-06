@@ -7,7 +7,7 @@ ContainerNode::ContainerNode(EntityFactory* factory, NODE_KIND kind, QString kin
 
 ContainerNode::ContainerNode(NODE_KIND kind) : Node(kind)
 {
-
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 }
 
 bool ContainerNode::canAdoptChild(Node *child)

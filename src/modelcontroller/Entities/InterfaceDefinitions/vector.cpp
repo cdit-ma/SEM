@@ -36,6 +36,7 @@ bool Vector::canAdoptChild(Node *child)
     switch(child->getNodeKind()){
     case NODE_KIND::MEMBER:
     case NODE_KIND::AGGREGATE_INSTANCE:
+    case NODE_KIND::ENUM_INSTANCE:
         if(hasChildren()){
             return false;
         }

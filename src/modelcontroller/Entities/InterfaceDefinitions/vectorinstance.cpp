@@ -31,6 +31,7 @@ bool VectorInstance::canAdoptChild(Node *child)
     //Can only adopt a MemberInstance/AggregateInstance
     switch(child->getNodeKind()){
     case NODE_KIND::MEMBER_INSTANCE:
+    case NODE_KIND::ENUM_INSTANCE:
     case NODE_KIND::AGGREGATE_INSTANCE:{
         if(hasChildren()){
             return false;

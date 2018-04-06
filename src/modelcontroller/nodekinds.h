@@ -124,6 +124,7 @@ enum class NODE_TYPE{
     PARAMETER            = 1 << 13,  //bin. 0000 0000 0000 0000 0010 0000 0000 0000
     CONDITION            = 1 << 14,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
     LOGGING              = 1 << 15,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
+    BEHAVIOUR_CONTAINER  = 1 << 16,  //bin. 0000 0000 0000 0000 1000 0000 0000 0000
 };
 
 inline uint qHash(NODE_TYPE key, uint seed)

@@ -23,15 +23,14 @@ Data::~Data()
         parent->removeData(this);
     }
 
-    for(auto child_data : child_datas){
-        child_data->removeParentData(this);
+    while(parent_datas.size()){
+        auto top = *parent_datas.begin();
+        top->unlinkData(this);
     }
-    child_datas.clear();
 
-    auto parent_data_copy = parent_datas;
-
-    for(auto parent_data : parent_data_copy){
-        removeParentData(parent_data);
+    while(child_datas.size()){
+        auto top = *child_datas.begin();
+        unlinkData(top);
     }
 }
 
@@ -51,10 +50,11 @@ void Data::registerParent(Entity* parent){
 
     if(parent){
         setParent(parent);
-        //Call the parent datachanged
-        parent->_dataChanged(this);
         //Revalidate
-        revalidateData();
+        if(!revalidateData()){
+            //Fake the validity
+            updateChildren(true);
+        }
     }
 };
 
@@ -228,19 +228,13 @@ bool Data::unlinkData(Data* data){
     return false;
 }
 
-void Data::revalidateData(){
-    setValue(getValue());
+bool Data::revalidateData(){
+    return setValue(getValue());
 }
 
 void Data::updateChildren(bool changed)
 {
-    //Send a signal saying the data changed, regardless of whether it did.
-    /*if(changed){
-        for(auto data: child_data){
-            data->setValue(value);
-        }
-    }*/
-    if(parent){
+    if(parent && changed){
         parent->_dataChanged(this);
     }
 

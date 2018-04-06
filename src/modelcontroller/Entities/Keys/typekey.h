@@ -15,6 +15,8 @@ public:
     static void BindInnerAndOuterTypes(Node* src, Node* dst, bool bind);
     static void BindTypes(Node* src, Node* dst, bool bind);
     static void BindNamespaceAndLabelToType(Node* node, bool bind);
+
+    static bool CompareTypes(Node* node_1 , Node* node_2);
 private:
     QSet<NODE_KIND> combine_namespace_kinds;
 };

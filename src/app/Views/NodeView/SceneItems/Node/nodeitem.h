@@ -36,9 +36,11 @@ public:
 
     int getSortOrder() const;
     int getSortOrderRow() const;
+    int getSortOrderRowSubgroup() const;
 
     bool hasChildNodes() const;
     QList<NodeItem*> getChildNodes() const;
+    QList<NodeItem*> getSortedChildNodes() const;
     QList<EntityItem*> getChildEntities() const;
 
     QPainterPath getChildNodePath();
@@ -181,7 +183,9 @@ public:
 
     QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
     int getVertexAngle(NodeItem::RectVertex vert) const;
+    virtual void childPosChanged(EntityItem* child);
 signals:
+    void indexChanged();
     //Request changes
     void req_connectMode(NodeItem* item);
     
@@ -200,7 +204,6 @@ public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void propertyChanged(QString propertyName, QVariant data);
     virtual void dataRemoved(QString keyName);
-    virtual void childPosChanged();
 private:
     void edgeAdded(EDGE_KIND kind);
     void edgeRemoved(EDGE_KIND kind);
