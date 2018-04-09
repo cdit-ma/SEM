@@ -152,7 +152,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         break;
     }
-    case EDGE_KIND::WORKFLOW:
     case EDGE_KIND::DATA:{
         int depthToAspect = getDepthFromAspect();
         int depthToCommonParent = getDepthFromCommonAncestor(dst);
@@ -222,9 +221,6 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
         }
         case EDGE_KIND::ASSEMBLY:
             //Can always have more assembly edges
-            return true;
-        case EDGE_KIND::WORKFLOW:
-            //Handled by BehaviourNode
             return true;
         case EDGE_KIND::DEPLOYMENT:
             return true;

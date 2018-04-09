@@ -1,10 +1,10 @@
 #ifndef WORKLOAD_H
 #define WORKLOAD_H
 
-#include "behaviournode.h"
+#include "../node.h"
 
 class EntityFactory;
-class Workload: public BehaviourNode
+class Workload: public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

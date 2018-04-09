@@ -96,7 +96,7 @@ void TypeKey::BindTypes(Node* src, Node* dst, bool bind){
 
 bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
     if(node_1 && node_2){
-        qCritical() << "Compare: " << node_1->toString() << " & " << node_2->toString();
+        //qCritical() << "Compare: " << node_1->toString() << " & " << node_2->toString();
         QSet<QString> number_types = {"Float", "Double", "Integer", "Boolean"};
 
         //Variadic Parameters can always use Anything

@@ -1,12 +1,12 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "behaviournode.h"
+#include "../node.h"
 
 #include "../../edgekinds.h"
 
 class EntityFactory;
-class Process: public BehaviourNode
+class Process: public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

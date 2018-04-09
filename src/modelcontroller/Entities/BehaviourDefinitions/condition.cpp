@@ -1,6 +1,4 @@
 #include "condition.h"
-#include "termination.h"
-#include "branch.h"
 
 
 Condition::Condition(EntityFactory* factory, NODE_KIND kind, QString kind_str) : ContainerNode(factory, kind, kind_str){
@@ -17,25 +15,8 @@ Condition::Condition(EntityFactory* factory) : ContainerNode(factory, NODE_KIND:
     RegisterDefaultData(factory, node_kind, "row_subgroup", QVariant::Int, true, -1);
 };
 
-Condition::Condition(NODE_KIND kind):ContainerNode(kind){
+Condition::Condition(NODE_KIND kind) : ContainerNode(kind){
     setNodeType(NODE_TYPE::CONDITION);
-}
-
-Branch *Condition::getBranch()
-{
-    return 0;
-}
-
-Termination *Condition::getRequiredTermination()
-{
- 
-    return 0;
-}
-
-bool Condition::gotTermination()
-{
- 
-    return false;
 }
 
 bool Condition::canAdoptChild(Node* child)

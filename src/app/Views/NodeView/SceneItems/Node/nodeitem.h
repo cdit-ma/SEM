@@ -80,6 +80,7 @@ public:
     virtual QRectF contractedRect() const;
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
+    QRectF translatedHeaderRect() const;
     QRectF gridRect() const;
     QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;

@@ -22,8 +22,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     expandedWidth = 0;
     modelHeight = 0;
     modelWidth = 0;
-    //manuallyAdjustedWidth = 0;
-    //manuallyAdjustedHeight = 0;
+    
     gridVisible = false;
     gridEnabled = false;
     hoveredConnect = false;
@@ -148,7 +147,7 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBaseBodyColor(getBaseBodyColor().darker(110));
+        nodeItem->setBaseBodyColor(getBaseBodyColor());//.darker(110));
 
         nodeItem->setVisible(isExpanded());
         childPosChanged(nodeItem);
@@ -392,6 +391,12 @@ QRectF NodeItem::headerRect() const
     return currentRect();
 }
 
+QRectF NodeItem::translatedHeaderRect() const{
+    QRectF rect = headerRect();
+    //we should use the bounding rect coordinates!
+    rect.translate(pos());
+    return rect;
+}
 
 QRectF NodeItem::childrenRect() const
 {

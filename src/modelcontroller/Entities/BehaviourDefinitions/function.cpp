@@ -1,5 +1,4 @@
 #include "function.h"
-#include "behaviournode.h"
 
 const NODE_KIND node_kind = NODE_KIND::FUNCTION;
 const QString kind_string = "Function";

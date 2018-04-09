@@ -1,6 +1,7 @@
 #include "stacknodeitem.h"
 
 #include <QDebug>
+#include <QDateTime>
 #include <cmath>
 
 StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation):
@@ -16,6 +17,26 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     this->orientation = orientation;
 }
 
+void StackNodeItem::SetPaintSubArea(int row, int col, QColor color){
+    sub_areas_on.append(qMakePair(qMakePair(row, col), color));
+    sub_areas_dirty = true;
+}
+
+void StackNodeItem::SetSubAreaLabel(int row, int col, QString label, QColor color){
+    if(!sub_area_labels[row].contains(col)){
+        SetPaintSubArea(row, col, color);
+        sub_area_labels[row][col] = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop, label);
+        sub_areas_dirty = true;
+    }
+}
+
+void StackNodeItem::SetSubAreaIcons(int row, int col, QString icon_path, QString icon_name){
+    if(!gap_icon_path[row].contains(col)){
+        gap_icon_path[row].insert(col, qMakePair(icon_path, icon_name));
+        sub_areas_dirty = true;
+    }
+}
+
 QPointF StackNodeItem::getStemAnchorPoint() const
 {
     //QPointF offset;
@@ -23,7 +44,7 @@ QPointF StackNodeItem::getStemAnchorPoint() const
 }
 
 int StackNodeItem::GetHorizontalGap() const{
-    return 4 * getGridSize();
+    return 2 * getGridSize();
 }
 int StackNodeItem::GetVerticalGap() const{
     return getGridSize();
@@ -38,13 +59,15 @@ QMap<int, QMap<int, QSizeF> > StackNodeItem::GetGridRectangles(const QList<NodeI
     if(should_cache && cached_grid_rectangles.size()){
         qCritical() << "Using Cache!";
         return cached_grid_rectangles;
+    }else{
+        cached_node_items.clear();
     }
 
     for(auto c : children){
         auto c_index = c->getSortOrder();
         auto c_row = c->getSortOrderRow();
         auto c_row_group = c->getSortOrderRowSubgroup();
-        cached_node_items[c_row].insert(c_row_group,c);
+        cached_node_items[c_row].insert(c_row_group, c);
         
         if(ignore_any && c_index >= ignore_indexes_higher_than){
             continue;
@@ -115,7 +138,7 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 
     auto item_offset = GetGridAlignedTopLeft();
     
-    auto grid_sizes = GetGridRectangles(getChildNodes(), child_index);
+    auto grid_sizes = GetGridRectangles(getSortedChildNodes(), child_index);
 
     for(auto row : grid_sizes.keys()){
         auto row_width = 0;
@@ -161,6 +184,7 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 
 void StackNodeItem::childPosChanged(EntityItem* child)
 {
+    sub_areas_dirty = true;
     cached_grid_rectangles.clear();
     cached_node_items.clear();
     
@@ -188,70 +212,109 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
     painter->setClipRect(option->exposedRect);
 
-    
     if(state >= RENDER_STATE::BLOCK && isExpanded()){
         painter->setPen(Qt::NoPen);
 
-        auto children = getChildNodes();
         
-        if(!cached_node_items.size() && children.size()){
-            GetGridRectangles(children);
-        }
         auto body_rect = bodyRect();
-        {
+        
+        recalculateSubAreas();
+
+        //Calculate the sub area Rects
+        for(const auto& sub_area : sub_areas_on){
+            const auto& row = sub_area.first.first;
+            const auto& column = sub_area.first.second;
+            const auto& color = sub_area.second;
             
-            QRectF rect;
-
-            for(auto node : cached_node_items[0].values(-1)){
-                rect = rect.united(node->translatedBoundingRect());
-            }
-
-
-
-
-            if(rect.isValid()){
-                rect.setBottom(body_rect.bottom());
-                painter->setPen(Qt::NoPen);
-                painter->setBrush(getHeaderColor().lighter(110));
-                
-                painter->drawRect(rect);
-
-                if(!left_text_item){
-                    left_text_item = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop);
-                }
-                rect.setHeight(getGridSize());
-                painter->setPen(getPen());
-                left_text_item->RenderText(painter, getRenderState(lod), rect, "Input Parameters");
-            }
-        }
-
-        {
-             QRectF rect;
-
-            for(auto col : cached_node_items[1].uniqueKeys()){
-                for(auto node : cached_node_items[1].values(col)){
-                    rect = rect.united(node->translatedBoundingRect());
-                }
-            }
-
-
+            auto rect = sub_area_rects[row].value(column);
             if(rect.isValid()){
                 painter->setPen(Qt::NoPen);
-                painter->setBrush(getHeaderColor().lighter(110));
-                rect.setBottom(body_rect.bottom());
-                rect.setRight(body_rect.right());
-                
+                painter->setBrush(color);
                 painter->drawRect(rect);
 
-                if(!bottom_text_item){
-                    bottom_text_item = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop);
+                auto label = sub_area_labels[row].value(column, 0);
+                if(label){
+                    auto text_rect = rect;
+
+                    text_rect.setHeight(getGridSize());
+
+                    painter->setBrush(Qt::black);
+                    painter->setPen(getDefaultPen());
+                    label->RenderText(painter, getRenderState(lod), text_rect);
                 }
-                rect.setHeight(getGridSize());
-                painter->setPen(getPen());
-                bottom_text_item->RenderText(painter, getRenderState(lod), rect, "Variables");
             }
         }
     }
+
     NodeItem::paint(painter, option, widget);
 
+    if(state >= RENDER_STATE::BLOCK && isExpanded()){
+        for(auto row : gap_icon_path.keys()){
+            for(auto col : gap_icon_path[row].keys()){
+                for(const auto& icon_path : gap_icon_path[row].values(col)){
+                    for(auto rect : gap_icon_rects[row].values(col)){
+                        paintPixmap(painter, lod, rect, icon_path.first, icon_path.second);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void StackNodeItem::recalculateSubAreas(){
+    if(sub_areas_dirty){
+        qCritical() << this << ": recalculateSubAreas";
+        //Clear old maps
+        gap_icon_rects.clear();
+        sub_area_rects.clear();
+
+        auto children = getSortedChildNodes();
+        if(!cached_node_items.size() && children.size()){
+            GetGridRectangles(children);
+        }
+
+        
+
+        //Calculate the sub area Rects
+        for(const auto& sub_area : sub_areas_on){
+            const auto& row = sub_area.first.first;
+            const auto& column = sub_area.first.second;
+
+            QRectF sub_area_rect;
+            
+            for(auto node : cached_node_items[row].values(column)){
+                sub_area_rect |= node->translatedBoundingRect();
+            }
+
+            if(sub_area_rect.isValid()){
+                sub_area_rects[row][column] = sub_area_rect;
+            }
+        }
+
+        
+        //Calculate gap_icon_rects
+        for(auto row : gap_icon_path.keys()){
+            for(auto col : gap_icon_path[row].keys()){
+                QRectF prev_header_rect;
+
+                for(auto node : cached_node_items[row].values(col)){
+                    auto current_header_rect = node->translatedHeaderRect();
+
+                    if(prev_header_rect.isValid()){
+                        QRectF item_rect(current_header_rect.topRight(), prev_header_rect.bottomLeft());
+                        item_rect = item_rect.normalized();
+                        
+                        QRectF icon_rect;
+                        icon_rect.setSize(smallIconSize() * 2);
+                        icon_rect.moveCenter(item_rect.center());
+
+                        gap_icon_rects[row].insert(col, icon_rect);
+                    }
+                    prev_header_rect = current_header_rect;
+                }
+            }
+        }
+        
+        sub_areas_dirty = false;
+    }
 }

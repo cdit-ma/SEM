@@ -41,9 +41,6 @@ bool MemberInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             }
             break;
         }
-    case EDGE_KIND::WORKFLOW:{
-        return false;
-    }
     default:
         break;
     }

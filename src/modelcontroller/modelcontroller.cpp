@@ -254,16 +254,14 @@ int ModelController::GetEdgeOrderIndex(EDGE_KIND kind){
             return 0;
         case EDGE_KIND::AGGREGATE:
             return 1;
-        case EDGE_KIND::WORKFLOW:
-            return 2;
         case EDGE_KIND::DATA:
-            return 3;
+            return 2;
         case EDGE_KIND::QOS:
-            return 4;
+            return 3;
         case EDGE_KIND::ASSEMBLY:
-            return 5;
+            return 4;
         case EDGE_KIND::DEPLOYMENT:
-            return 6;
+            return 5;
         default:
             return 100;
     }
@@ -274,7 +272,6 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
 
     indices << EDGE_KIND::DEFINITION;
     indices << EDGE_KIND::AGGREGATE;
-    indices << EDGE_KIND::WORKFLOW;
     indices << EDGE_KIND::DATA;
     indices << EDGE_KIND::QOS;
     indices << EDGE_KIND::ASSEMBLY;

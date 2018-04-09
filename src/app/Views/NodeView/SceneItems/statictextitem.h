@@ -12,8 +12,8 @@
 enum class RENDER_STATE;
 class StaticTextItem{
     public:
-        StaticTextItem(Qt::Alignment text_align = Qt::AlignCenter);
-        void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text);
+        StaticTextItem(Qt::Alignment text_align = Qt::AlignCenter, QString text = "");
+        void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text = "");
     private:
         void UpdateText(QPainter* painter, QRectF rect, QString text);
         QStaticText text_item;
@@ -24,6 +24,8 @@ class StaticTextItem{
         QPointF top_left;
         Qt::Alignment text_align;
         QTextOption option;
+
+        bool setup = true;
 
         int max_size = 10;
         int min_size = 4;

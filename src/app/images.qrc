@@ -284,5 +284,6 @@
         <file alias="filterList">Resources/Icons/filterList.png</file>
         <file alias="running">Resources/Icons/running.png</file>
         <file alias="package">Resources/Icons/package.png</file>
+        <file alias="lineHorizontal">Resources/Icons/lineHorizontal.png</file>
     </qresource>
 </RCC>

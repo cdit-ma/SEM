@@ -1,9 +1,9 @@
 #ifndef SETFUNCTION_H
 #define SETFUNCTION_H
-#include "behaviournode.h"
+#include "../node.h"
 
 class EntityFactory;
-class Setter: public BehaviourNode
+class Setter: public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

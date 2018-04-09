@@ -2,18 +2,18 @@
 #include "parameter.h"
 #include <QDebug>
 
-Process::Process(EntityFactory* factory, NODE_KIND kind, QString kind_str) : BehaviourNode(factory, kind, kind_str){
+
+const NODE_KIND node_kind = NODE_KIND::PROCESS;
+const QString kind_string = "Process";
+
+Process::Process(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
 };
 
-Process::Process(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::PROCESS, "Process"){
-	auto node_kind = NODE_KIND::PROCESS;
-	QString kind_string = "Process";
+Process::Process(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Process();});
 };
 
-Process::Process(NODE_KIND kind):BehaviourNode(kind){
-    setWorkflowReciever(true);
-    setWorkflowProducer(true);
+Process::Process(NODE_KIND kind):Node(kind){
 }
 
 bool Process::canAdoptChild(Node* node)
@@ -37,13 +37,10 @@ bool Process::canAdoptChild(Node* node)
             return false;
         }
     }
-    return BehaviourNode::canAdoptChild(node);
+    return Node::canAdoptChild(node);
 }
 
 bool Process::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    return BehaviourNode::canAcceptEdge(edgeKind, dst);
-    //Q_UNUSED(edgeKind);
-    //Q_UNUSED(dst);
-    //return false;
+    return Node::canAcceptEdge(edgeKind, dst);
 }

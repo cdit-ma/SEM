@@ -56,7 +56,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/workflowedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.cpp
@@ -111,7 +110,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/termination.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.cpp
@@ -122,13 +120,11 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ineventportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/eventportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
@@ -174,7 +170,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/workflowedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.h
@@ -229,7 +224,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/termination.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.h
@@ -240,13 +234,11 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ineventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/eventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
 )

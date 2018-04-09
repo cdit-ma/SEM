@@ -1,16 +1,17 @@
 #include "branchstate.h"
 #include "condition.h"
 
+const NODE_KIND node_kind = NODE_KIND::BRANCH_STATE;
+const QString kind_string = "BranchState";
 
 
-BranchState::BranchState(EntityFactory* factory) : Branch(factory, NODE_KIND::BRANCH_STATE, "BranchState"){
-	auto node_kind = NODE_KIND::BRANCH_STATE;
-	QString kind_string = "BranchState";
+BranchState::BranchState(EntityFactory* factory) : Branch(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BranchState();});
 };
 
-BranchState::BranchState():Branch(NODE_KIND::BRANCH_STATE){
+BranchState::BranchState():Branch(node_kind){
 }
+
 
 bool BranchState::canAdoptChild(Node *child)
 {

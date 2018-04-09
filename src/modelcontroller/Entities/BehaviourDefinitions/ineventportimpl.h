@@ -1,9 +1,9 @@
 #ifndef INEVENTPORTIMPL_H
 #define INEVENTPORTIMPL_H
-#include "eventportimpl.h"
+#include "../node.h"
 
 class EntityFactory;
-class InEventPortImpl : public EventPortImpl
+class InEventPortImpl : public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

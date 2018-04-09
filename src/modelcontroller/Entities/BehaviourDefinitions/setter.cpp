@@ -1,27 +1,23 @@
 #include "setter.h"
 
 
+const NODE_KIND node_kind = NODE_KIND::SETTER;
+const QString kind_string = "Setter";
 
-Setter::Setter(EntityFactory* factory) : BehaviourNode(factory, NODE_KIND::SETTER, "Setter"){
-	auto node_kind = NODE_KIND::SETTER;
-	QString kind_string = "Setter";
+
+Setter::Setter(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Setter();});
 
 
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "operator", QVariant::String, false, "=");
+    QList<QVariant> operator_types = {"=", "+=", "-=", "*=", "/="};
 
-    QList<QVariant> operator_types;
-    operator_types << "=" << "+=" << "-=" << "*=" << "/=";
-
-    //Register values
     RegisterValidDataValues(factory, node_kind, "operator", QVariant::String, operator_types);
 };
 
-Setter::Setter():BehaviourNode(NODE_KIND::SETTER)
+Setter::Setter() : Node(node_kind)
 {
-    setWorkflowProducer(true);
-    setWorkflowReciever(true);
 }
 
 bool Setter::canAdoptChild(Node* child)
@@ -38,10 +34,10 @@ bool Setter::canAdoptChild(Node* child)
         return false;
     }
 
-    return BehaviourNode::canAdoptChild(child);
+    return Node::canAdoptChild(child);
 }
 
 bool Setter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    return BehaviourNode::canAcceptEdge(edgeKind, dst);
+    return false;
 }

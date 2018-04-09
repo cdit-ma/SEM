@@ -2,18 +2,22 @@
 #include "entityitem.h"
 #include <QDebug>
 
-StaticTextItem::StaticTextItem(Qt::Alignment text_align){
+StaticTextItem::StaticTextItem(Qt::Alignment text_align, QString text){
     text_item.setPerformanceHint(QStaticText::AggressiveCaching);
     this->text_align = text_align;
+    this->text = text;
     option = QTextOption(text_align);
     option.setWrapMode(QTextOption::WrapAnywhere);
-    //text_options.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
     text_item.setTextOption(option);
 }
 
 void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text){
     painter->save();
     {
+        if(text == ""){
+            text = this->text;
+        }
+        
         UpdateText(painter, rect, text);
         painter->setClipRect(rect);
 
@@ -39,11 +43,13 @@ void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF re
 
 void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
 
-    bool recalculate = false;
-    if(this->text != text){
+    bool recalculate = setup;
+    
+    if(this->text != text || setup){
         this->text = text;
         text_item.setText(text);
         recalculate = true;
+        setup = false;
     }
 
 

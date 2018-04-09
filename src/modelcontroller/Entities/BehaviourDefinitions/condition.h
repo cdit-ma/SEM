@@ -18,11 +18,6 @@ protected:
 
     Condition(NODE_KIND kind = NODE_KIND::CONDITION);
 public:
-
-    Branch* getBranch();
-    Termination* getRequiredTermination();
-    bool gotTermination();
-
     virtual bool canAdoptChild(Node*);
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

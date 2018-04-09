@@ -1,10 +1,10 @@
 #ifndef MODEL_IMPL_HEADER_H
 #define MODEL_IMPL_HEADER_H
 
-#include "behaviournode.h"
+#include "../node.h"
 
 class EntityFactory;
-class Header: public BehaviourNode
+class Header: public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

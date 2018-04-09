@@ -49,7 +49,6 @@
 #include "Entities/BehaviourDefinitions/process.h"
 #include "Entities/BehaviourDefinitions/returnparameter.h"
 #include "Entities/BehaviourDefinitions/setter.h"
-#include "Entities/BehaviourDefinitions/termination.h"
 #include "Entities/BehaviourDefinitions/variable.h"
 #include "Entities/BehaviourDefinitions/variableparameter.h"
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
@@ -132,7 +131,6 @@
 #include "Entities/Edges/definitionedge.h"
 #include "Entities/Edges/deploymentedge.h"
 #include "Entities/Edges/qosedge.h"
-#include "Entities/Edges/workflowedge.h"
 
 EntityFactory* EntityFactory::global_factory = 0;
 
@@ -337,7 +335,6 @@ EntityFactory::EntityFactory()
     Process(this);
     ReturnParameter(this);
     Setter(this);
-    Termination(this);
     Variable(this);
     VariableParameter(this);
     VariadicParameter(this);
@@ -414,7 +411,6 @@ EntityFactory::EntityFactory()
     //Edges
     DefinitionEdge(this);
     AggregateEdge(this);
-    WorkflowEdge(this);
     AssemblyEdge(this);
     DataEdge(this);
     DeploymentEdge(this);

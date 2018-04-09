@@ -43,9 +43,6 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edgeKind, Node * dst)
             }
             break;
         }
-    case EDGE_KIND::WORKFLOW:{
-        return false;
-    }
     case EDGE_KIND::DATA:{
         bool allow_edge = false;
         if(dst->getNodeKind() == NODE_KIND::ENUM_INSTANCE){
