@@ -12,6 +12,7 @@
 #include "../nodekinds.h"
 #include "../edgekinds.h"
 #include "Keys/indexkey.h"
+#include "Keys/typekey.h"
 
 Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
 {
@@ -153,12 +154,12 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case EDGE_KIND::DATA:{
-        int depthToAspect = getDepthFromAspect();
+        /*int depthToAspect = getDepthFromAspect();
         int depthToCommonParent = getDepthFromCommonAncestor(dst);
 
         if(depthToCommonParent >= depthToAspect){
             return false;
-        }
+        }*/
         break;
     }
     case EDGE_KIND::QOS:{
@@ -1235,5 +1236,6 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         }
 
         LinkData(bind_source, source_key, destination, "value", setup);
+        TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
     }
 }

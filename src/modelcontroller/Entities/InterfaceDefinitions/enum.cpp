@@ -47,3 +47,14 @@ void Enum::DataAdded(Data* data){
         TypeKey::BindNamespaceAndLabelToType(this, true);
     }
 }
+
+
+void Enum::childAdded(Node* child){
+    Node::childAdded(child);
+    TypeKey::BindTypes(this, child, true);
+}
+
+void Enum::childRemoved(Node* child){
+    Node::childRemoved(child);
+    TypeKey::BindTypes(this, child, false);
+}

@@ -13,7 +13,6 @@ ContainerNode::ContainerNode(NODE_KIND kind) : Node(kind)
 bool ContainerNode::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-        case NODE_KIND::ATTRIBUTE_INSTANCE:
         case NODE_KIND::OUTEVENTPORT_IMPL:
         case NODE_KIND::BRANCH_STATE:
         case NODE_KIND::VARIABLE:

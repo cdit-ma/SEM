@@ -22,12 +22,12 @@ Header::Header():Node(node_kind){
 
 }
 
-bool Header::canAdoptChild(Node *child)
+bool Header::canAdoptChild(Node*)
 {
     return false;
 }
 
-bool Header::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool Header::canAcceptEdge(EDGE_KIND, Node*)
 {
     return false;
 }

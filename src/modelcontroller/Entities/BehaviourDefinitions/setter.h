@@ -10,6 +10,7 @@ class Setter: public Node
 protected:
 	Setter(EntityFactory* factory);
 	Setter();
+    void childAdded(Node* child);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

@@ -1,4 +1,5 @@
 #include "setter.h"
+#include "../Keys/typekey.h"
 
 
 const NODE_KIND node_kind = NODE_KIND::SETTER;
@@ -18,19 +19,19 @@ Setter::Setter(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 
 Setter::Setter() : Node(node_kind)
 {
+
 }
 
 bool Setter::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
     case NODE_KIND::INPUT_PARAMETER:
-    case NODE_KIND::VARIADIC_PARAMETER:
         break;
     default:
         return false;
     }
 
-    if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+    if(getChildrenOfKind(NODE_KIND::INPUT_PARAMETER, 0).size() == 2){
         return false;
     }
 
@@ -40,4 +41,15 @@ bool Setter::canAdoptChild(Node* child)
 bool Setter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     return false;
+}
+
+void Setter::childAdded(Node* child){
+    Node::childAdded(child);
+
+    auto input_params = getChildrenOfKind(NODE_KIND::INPUT_PARAMETER);
+
+    if(input_params.length() == 2){
+        //Bind types
+        TypeKey::BindInnerAndOuterTypes(input_params[0], input_params[1], true);
+    }
 }

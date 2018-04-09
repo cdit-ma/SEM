@@ -4,11 +4,14 @@
 
 
 
-Parameter::Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str) : DataNode(factory, kind, kind_str){
-    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, kind, "icon", QVariant::String, true);
-    RegisterDefaultData(factory, kind, "icon_prefix", QVariant::String, true);
-    RegisterDefaultData(factory, kind, "label", QVariant::String, true);
+Parameter::Parameter(EntityFactory* factory, NODE_KIND node_kind, QString kind_str) : DataNode(factory, node_kind, kind_str){
+    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true);
 };
 
 Parameter::Parameter(NODE_KIND kind):DataNode(kind)

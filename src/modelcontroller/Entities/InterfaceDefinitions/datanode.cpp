@@ -155,26 +155,29 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
-        if(data_node->isContainedInVariable()){
+        //if(data_node->isContainedInVariable()){
             //Cannot Data-Connect into a Variable
-            return false;
-        }
+            //return false;
+        //}
 
-        auto source_containment_node = getContainmentNode();
-        auto destination_containment_node = data_node->getContainmentNode();
-        
-        if(source_containment_node && destination_containment_node){
-            auto source_contains_destination = source_containment_node->isAncestorOf(destination_containment_node);
-            auto destination_contains_source = destination_containment_node->isAncestorOf(source_containment_node);
+        if(!isPromiscuousDataLinker() && !data_node->isPromiscuousDataLinker()){
+            auto source_containment_node = getContainmentNode();
+            auto destination_containment_node = data_node->getContainmentNode();
+            
+            if(source_containment_node && destination_containment_node){
+                auto source_contains_destination = source_containment_node->isAncestorOf(destination_containment_node);
+                auto destination_contains_source = destination_containment_node->isAncestorOf(source_containment_node);
 
-            //One of those needs to be true
-            if(!source_contains_destination && !destination_contains_source){
-                //The Variable we are setting needs to be in scope.
+                //One of those needs to be true
+                if(!source_contains_destination && !destination_contains_source){
+                    //The Variable we are setting needs to be in scope.
+                }
+            }else{
                 return false;
             }
-        }else{
-            return false;
         }
+
+        
 
         if(TypeKey::CompareTypes(this, data_node) == false){
             //Must have compareable types
@@ -235,4 +238,12 @@ void DataNode::RunContainmentChecks(){
 Node* DataNode::getContainmentNode(){
     RunContainmentChecks();
     return _containment_node;
+}
+
+void DataNode::setPromiscuousDataLinker(bool set){
+    promiscuous_data_linker_ = set;
+}
+
+bool DataNode::isPromiscuousDataLinker() const{
+    return promiscuous_data_linker_;
 }

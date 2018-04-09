@@ -63,9 +63,9 @@ public:
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;
     virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
 
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor=QColor());
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor=QColor());
-    void paintPixmap(QPainter *painter, qreal lod, QRectF pos, QString imagePath, QString imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
 
 private:
 public:

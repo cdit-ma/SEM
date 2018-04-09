@@ -612,7 +612,7 @@ Node* ModelController::construct_setter_node(Node* parent)
         auto node = construct_child_node(parent, NODE_KIND::SETTER);
         if(node){
             auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
-            auto value = construct_child_node(node, NODE_KIND::VARIADIC_PARAMETER);
+            auto value = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
             setData_(variable, "icon", "Variable");
             setData_(variable, "icon_prefix", "EntityIcons");
@@ -1367,7 +1367,9 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
         if(node){
             //Get the data
             for(auto data : original->getData()){
-                setData_(node, data->getKeyName(), data->getValue());
+                if(data->getKeyName() != "index"){
+                    setData_(node, data->getKeyName(), data->getValue());
+                }
             }
 
             for(auto child : original->getChildren(0)){

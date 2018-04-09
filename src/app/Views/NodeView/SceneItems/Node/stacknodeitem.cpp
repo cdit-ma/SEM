@@ -252,7 +252,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         for(auto row : gap_icon_path.keys()){
             for(auto col : gap_icon_path[row].keys()){
                 for(const auto& icon_path : gap_icon_path[row].values(col)){
-                    for(auto rect : gap_icon_rects[row].values(col)){
+                    for(const auto& rect : gap_icon_rects[row].values(col)){
                         paintPixmap(painter, lod, rect, icon_path.first, icon_path.second);
                     }
                 }
@@ -263,7 +263,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
 void StackNodeItem::recalculateSubAreas(){
     if(sub_areas_dirty){
-        qCritical() << this << ": recalculateSubAreas";
         //Clear old maps
         gap_icon_rects.clear();
         sub_area_rects.clear();

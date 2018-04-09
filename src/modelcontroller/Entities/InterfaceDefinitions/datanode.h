@@ -15,11 +15,14 @@ public:
     DataNode* getInputData();
     DataNode* getOutputData();
 
+    void setPromiscuousDataLinker(bool set);
     void setMultipleDataReceiver(bool receiver);
     void setDataProducer(bool producer);
     void setDataReciever(bool reciever);
     bool isDataProducer() const;
     bool isDataReciever() const;
+
+    bool isPromiscuousDataLinker() const;
     bool isMultipleDataReceiver() const;
 
     bool comparableTypes(DataNode* node);
@@ -35,6 +38,8 @@ private:
     bool _contained_in_vector = false;
     bool _contained_in_variable = false;
     Node* _containment_node = 0;
+
+    bool promiscuous_data_linker_ = false;
 
 
     bool _isProducer = false;

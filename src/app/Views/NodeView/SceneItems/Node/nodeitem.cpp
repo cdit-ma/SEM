@@ -235,7 +235,7 @@ void NodeItem::addChildEdge(EdgeItem *edgeItem)
 
         edgeItem->setBaseBodyColor(getBaseBodyColor().darker(120));
 
-        connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
+        connect(edgeItem, &EntityItem::positionChanged, this, [=](){childPosChanged(0);});
         edgeItem->setVisible(isExpanded());
     }
 }

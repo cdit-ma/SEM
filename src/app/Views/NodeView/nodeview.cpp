@@ -46,6 +46,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
+    setRenderHint(QPainter::HighQualityAntialiasing, true);
 
 
     //Turn off the Scroll bars.
@@ -713,6 +714,7 @@ void NodeView::topLevelItemMoved()
 
 
 void NodeView::update_minimap(){
+    
     emit viewport_changed(viewportRect(), transform().m11());
     emit scenerect_changed(currentSceneRect);
 }

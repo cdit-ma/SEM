@@ -133,7 +133,7 @@ bool TypeKey::CompareTypes(Node* node_1, Node* node_2){
             qCritical() << "Outer_Type: 1" << outer_type_data_1->toString();
             qCritical() << "Outer_Type: 2" << outer_type_data_2->toString();
 
-            if(outer_type_1 == outer_type_2 && outer_type_1.size()){
+            if(outer_type_1 == outer_type_2){
                 auto inner_type_2 = inner_type_data_2 ? inner_type_data_2->getValue().toString() : "";
 
                 if(inner_type_2 == ""){
