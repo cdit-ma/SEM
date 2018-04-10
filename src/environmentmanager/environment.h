@@ -31,6 +31,8 @@ class Environment{
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
+
+        std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
         
         std::string GetPort(const std::string& node_ip);
         void FreePort(const std::string& node_ip, const std::string& port_number);
@@ -139,6 +141,8 @@ class Environment{
             //node_id -> model_logger_port
             std::unordered_map<std::string, std::string> modellogger_port_map_;
 
+            //list of topics used in this experiment
+            std::set<std::string> topic_set_;
 
             uint64_t time_added;
             ExperimentState state;

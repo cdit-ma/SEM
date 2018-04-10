@@ -28,7 +28,7 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     auto master_publisher_port_attribute_info = master_publisher_port_attribute->mutable_info();
     master_publisher_port_attribute_info->set_name("master_publisher_port");
     master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
-    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.model_name(), master_ip_address));
+    master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.experiment_id(), master_ip_address));
 }
 
 void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node){
@@ -55,7 +55,7 @@ void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& contro
         }
     }
     //Populate management ports and update environment's understanding of this node
-    environment_.ConfigureNode(control_message.model_name(), node);
+    environment_.ConfigureNode(control_message.experiment_id(), node);
 }
 
 void DeploymentGenerator::TerminateDeployment(NodeManager::ControlMessage& control_message){
@@ -88,20 +88,18 @@ DeploymentRule& DeploymentGenerator::GetDeploymentRule(DeploymentRule::Middlewar
 
 void DeploymentGenerator::AddExperiment(const NodeManager::ControlMessage& control_message){
 
-    std::string model_name(control_message.model_name());
-
-    //control_message.set_publisher_address(environment_.GetMasterPublisherAddress(model_name));
+    std::string experiment_id(control_message.experiment_id());
 
     for(int i = 0; i < control_message.nodes_size(); i++){
-        AddNodeToExperiment(model_name, control_message.nodes(i));
+        AddNodeToExperiment(experiment_id, control_message.nodes(i));
     }
 }
 
-void DeploymentGenerator::AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node){
+void DeploymentGenerator::AddNodeToExperiment(const std::string& experiment_id, const NodeManager::Node& node){
 
     for(int i = 0; i < node.nodes_size(); i++){
-        AddNodeToExperiment(model_name, node.nodes(i));
+        AddNodeToExperiment(experiment_id, node.nodes(i));
     }
 
-    environment_.AddNodeToExperiment(model_name, node);
+    environment_.AddNodeToExperiment(experiment_id, node);
 }

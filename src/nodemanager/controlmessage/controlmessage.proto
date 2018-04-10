@@ -17,7 +17,7 @@ message ControlMessage{
     double time_stamp = 2;
     string host_name = 3;
     repeated Node nodes = 4;
-    string model_name = 5;
+    string experiment_id = 5;
     repeated Attribute attributes = 6;
 }
 
@@ -41,7 +41,7 @@ message EnvironmentMessage{
     Type type = 1;
     string update_endpoint = 2;
 
-    string model_name = 3;
+    string experiment_id = 3;
     ControlMessage control_message = 4;
 
 }

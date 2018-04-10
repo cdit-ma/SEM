@@ -50,7 +50,7 @@ class EnvironmentRequester{
         std::future<std::string> QueueRequest(const std::string& request);
         void SendRequest(Request request);
 
-        std::string model_name_;
+        std::string experiment_id_;
 
         //Local clock
         std::mutex clock_mutex_;

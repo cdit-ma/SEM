@@ -7,7 +7,7 @@
 #include <google/protobuf/util/json_util.h>
 
 
-ProtobufModelParser::ProtobufModelParser(const std::string& filename){
+ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
     graphml_parser_ = new GraphmlParser(filename);
     is_valid_ = graphml_parser_->IsValid();
     pre_process_success_ = PreProcess();
@@ -65,7 +65,6 @@ bool ProtobufModelParser::PreProcess(){
     component_impl_ids_ = graphml_parser_->FindNodes("ComponentImpl");
     component_assembly_ids_ = graphml_parser_->FindNodes("ComponentAssembly");
     model_id_ = graphml_parser_->FindNodes("Model")[0];
-    model_name_ = graphml_parser_->GetDataValue(model_id_, "label");
 
     //Get the ID's of the edges
     deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
@@ -195,12 +194,10 @@ bool ProtobufModelParser::Process(){
     }
 
     control_message_ = new NodeManager::ControlMessage();
-    control_message_->set_model_name(model_name_);
+    control_message_->set_experiment_id(experiment_id_);
 
     //populate environment message's hardware fields. Fills local node_message_map_
     ParseHardwareItems(control_message_);
-
-    std::string model_name = graphml_parser_->GetDataValue(model_id_, "label");
 
     //Construct and fill component instances
     for(const auto& component_id : component_instance_ids_){
@@ -593,7 +590,7 @@ bool ProtobufModelParser::str2bool(std::string str) {
     return b;
 }
 
-//build port guid based on fully qualified path to port "model_name.(assembly_names)xN.component_name.port_name"
+//build port guid based on fully qualified path to port "experiment_id.(assembly_names)xN.component_name.port_name"
 std::string ProtobufModelParser::BuildPortGuid(const std::string& port_id){
     std::string out = "." + graphml_parser_->GetDataValue(port_id, "label");
 
@@ -615,7 +612,7 @@ std::string ProtobufModelParser::BuildPortGuid(const std::string& port_id){
         }
     }
 
-    out.insert(0, model_name_);
+    out.insert(0, experiment_id_);
 
     return out;
 }

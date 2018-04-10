@@ -56,7 +56,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
 
     auto start = std::chrono::steady_clock::now();
     //Setup the parser
-    protobuf_model_parser_ = new ProtobufModelParser(graphml_path);
+    protobuf_model_parser_ = new ProtobufModelParser(graphml_path, experiment_id_);
     deployment_message_ = protobuf_model_parser_->ControlMessage();
 
     auto master_ip_address = deployment_message_->add_attributes();
@@ -92,7 +92,7 @@ bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
         Environment* environment = new Environment();
 
-        environment->AddExperiment(deployment_message_->model_name());
+        environment->AddExperiment(deployment_message_->experiment_id());
 
         DeploymentGenerator generator(*environment);
         //TODO: Add other middlewares.

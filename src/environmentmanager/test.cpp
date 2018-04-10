@@ -17,7 +17,7 @@ int main(int argc, char **argv){
 
 
     std::string model_path(argv[1]);
-    ProtobufModelParser parser(model_path);
+    ProtobufModelParser parser(model_path, "experiment_id");
     std::cout << parser.GetDeploymentJSON() << std::endl;
 
     auto message = parser.ControlMessage();
@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 
     Environment* environment = new Environment();
 
-    environment->AddExperiment(message->model_name());
+    environment->AddExperiment(message->experiment_id());
 
     DeploymentGenerator generator(*environment);
     generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment)));

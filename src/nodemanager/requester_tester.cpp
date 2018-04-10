@@ -11,7 +11,7 @@ int main(int argc, char** argv){
     auto message = parser.ControlMessage();
 
 
-    EnvironmentRequester* requester = new EnvironmentRequester("tcp://192.168.111.230:22334", message->model_name());
+    EnvironmentRequester* requester = new EnvironmentRequester("tcp://192.168.111.230:22334", message->experiment_id());
 
     requester->Init();
     requester->Start();

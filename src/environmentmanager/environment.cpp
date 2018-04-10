@@ -14,7 +14,7 @@ Environment::Environment(int port_range_min, int port_range_max){
     assert(PORT_RANGE_MIN < PORT_RANGE_MAX);
     assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
 
-    //populate range sets
+    //Populate range sets
     auto hint_iterator = available_ports_.begin();
     for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
         available_ports_.insert(hint_iterator, i);
@@ -144,6 +144,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
                 auto attribute = port.attributes(a);
                 if(attribute.info().name() == "topic"){
                     event_port.topic = attribute.s(0);
+                    experiment->topic_set_.insert(event_port.topic);
                     break;
                 }
             }
@@ -218,8 +219,20 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
     auto port = experiment_map_[model_name]->port_map_[port_id];
 }
 
-void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
+std::vector<std::string> Environment::CheckTopic(const std::string& model_name, const std::string& topic){
+    std::vector<std::string> out;
+    for(auto experiment_pair : experiment_map_){
+        auto experiment = experiment_pair.second;
+        for(auto check_topic : experiment->topic_set_){
+            if(topic == check_topic){
+                out.push_back(experiment->model_name_);
+            }
+        }
+    }
+    return out;
+}
 
+void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     //Bail out early yo
     if(node_map_.count(node.info().name())){
         return;

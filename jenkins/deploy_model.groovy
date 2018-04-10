@@ -43,15 +43,17 @@ def blockingKill(String pid){
 
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
-def buildDir = "gen" + env.BUILD_ID
-def buildArchiveDir = "build" + env.BUILD_ID
+def experimentID = env.BUILD_ID
+def buildDir = "run" + experimentID
+def buildArchiveDir = "build" + experimentID
 
 //Deployment plans
 def loganServers = [:]
 def loganClients = [:]
 def loganServers_shutdown = [:]
 def loganClients_shutdown = [:]
-def reManagers = [:]
+def experimentMasters = [:]
+def experimentSlaves = [:]
 def compileCode = [:]
 
 def fail_flag = false
@@ -60,6 +62,8 @@ def failureList = []
 def jDeployment = "";
 
 def file = "model.graphml"
+
+def reNodes = utils.getLabelledNodes("re")
 
 withEnv(["model=''"]){
     node(masterNode){
@@ -88,15 +92,6 @@ withEnv(["model=''"]){
             //Parse json
             jDeployment = readJSON file: 'execution.json'
         
-        }
-        
-        //Checkout transforms
-        dir(reGenPath){
-            if("${checkout}" == 'true'){
-                stage('Checkout Transforms'){
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: false, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '1f1e1fcb-b84a-48a4-be37-0aac3118caa0', url: 'https://github.com/cdit-ma/re_gen.git']]])
-                }
-            }
         }
 
         def middlewares = jDeployment["model"]["middlewares"]
@@ -148,7 +143,6 @@ withEnv(["model=''"]){
     }
 
     //Itterate through all nodes
-    def nodeKeys = jDeployment["nodes"].keySet() as List;
     def modelName = jDeployment["model"].name
     def modelDescription = jDeployment["model"].description
     currentBuild.description = modelName
@@ -157,62 +151,82 @@ withEnv(["model=''"]){
     }
     
     stage("Build deployment plan"){
-    for(def i = 0; i < nodeKeys.size(); i++){
-        def nodeName = nodeKeys[i];
-        def jNode = jDeployment["nodes"][nodeName];
-        
-        
-        if(jNode["re_node_manager"]){
-            def args = "";
+    for(def i = 0; i < reNodes.size(); i++){
+        def nodeName = reNodes[i];
 
-            for(arg in jNode["re_node_manager"]){
-                args +=  " --" + arg.key + " " + arg.value;
-            }
-            if(jNode["re_node_manager"]["master"]){
-                //TODO: parse this
-                args += " -t " + executionTime;
-                args += " -d " + file
-            }
-            if(jNode["re_node_manager"]["slave"]){
-                args += " -l .";
-            }
-
-            //Update the map to include the compile
-            compileCode[nodeName] = {
-                node(nodeName){
-                    unstash 'codeGen'
-                    withEnv(['CMAKE_MODULE_PATH=' + "${RE_PATH}" + '/cmake_modules']) {
-                        dir(buildDir + "/build"){
-                            if(utils.runScript('cmake ..') != 0){
-                                failureList << ("cmake failed on node: " + nodeName)
-                                fail_flag = true;
-                            }
-                            if(utils.runScript('make') != 0){
-                                failureList << ("Compilation failed on node: " + nodeName)
-                                fail_flag = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Update the map to include the launch instructions for re_node_manager
-            reManagers[nodeName] = {
-                node(nodeName){
-                    def workspacePath = pwd()
-                    def buildPath = workspacePath + "/" + buildDir + "/lib"
-                    dir(buildPath){
-                        unstash 'model'
-                        def command = "${RE_PATH}" + "/bin/re_node_manager" + args
-                        if(utils.runScript(command) != 0){
-                            failureList << ("Node manager failed on node: " + nodeName)
-                            fail_flag = true
-                        } 
+        //Update the map to include the compile
+        compileCode[nodeName] = {
+            node(nodeName){
+                unstash 'codeGen'
+                dir(buildDir + "/build"){
+                    if(!utils.buildProject("Ninja", "")){
+                        failureList << ("cmake failed on node: " + nodeName)
+                        fail_flag = true;
                     }
                 }
             }
         }
 
+        //if we've found the node we plan on running master on, build master instructions
+        if(nodeName == masterNode){
+            experimentMasters[nodeName] = {
+                node(nodeName){
+                    def workspacePath = pwd()
+                    def buildPath = workspacePath + "/" + buildDir + "/lib"
+
+                    def deploymentFilePath = ""
+                    def ipAddr = InetAddress.localHost.hostAddress
+                    //TODO: Get these from somewhere
+                    def environmentManagerIp = ""
+                    def environmentManangerPort = ""
+
+                    def args = " -m " + ipAddr
+                    args += " -d " + file
+                    args += " -t " + executionTime
+                    args += " -n " + experimentID
+                    args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+
+                    dir(buildPath){
+                        unstash 'model'
+                        def command = "${RE_PATH}" + "/bin/re_experiment_master" + args
+                        if(utils.runScript(command) != 0){
+                            failureList << ("Experiment master failed on node: " + nodeName)
+                            fail_flag = true
+                        }
+                    }
+                }
+            }
+        }
+
+        experimentSlaves[nodeName] = {
+            node(nodeName){
+                def workspacePath = pwd()
+                def buildPath = workspacePath + "/" + buildDir + "/lib"
+                def ipAddr = InetAddress.localHost.hostAddress
+
+                //TODO: Get these from somewhere
+                def environmentManagerIp = ""
+                def environmentManangerPort = ""
+
+                def args = " -s " + ipAddr
+                args += " -l . "
+                args += " -n " + experimentID
+                args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+
+                dir(buildPath){
+                    unstash 'model'
+                    def command = "${RE_PATH}" + "/bin/re_experiment_slave" + args
+                    if(utils.runScript(command) != 0){
+                        failureList << ("Experiment slave failed on node: " + nodeName)
+                        fail_flag = true
+                    }
+                }
+
+            }
+        }
+
+
+        /*
         if(jNode["logan_server"]){
             def args = ""
             def databaseFile = ""
@@ -229,7 +243,6 @@ withEnv(["model=''"]){
                 }else{
                     args += " " + arg.value;
                 }
-                
             }
 
             //Update the map to include the launch instructions for logan_server
@@ -252,6 +265,9 @@ withEnv(["model=''"]){
             }
         }
 
+        */
+
+        /*
         if(jNode["logan_client"]){
             def args = "";
 
@@ -272,6 +288,7 @@ withEnv(["model=''"]){
                 }
             }
         }
+        */
     }
     }
 
@@ -289,12 +306,14 @@ withEnv(["model=''"]){
 
     stage("Execute Model"){
         if(!fail_flag){
-            parallel reManagers
+            parallel experimentMasters
+            //wait for master to communicate with 
+            sleep 300
+            parallel experimentSlaves
         }
         else{
             print("############# Execution skipped, compilation or code generation failed! #############")
         }
-
     }
 
     stage("Stop logan clients"){

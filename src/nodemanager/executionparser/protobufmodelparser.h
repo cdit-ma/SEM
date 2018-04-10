@@ -8,7 +8,7 @@
 
 class ProtobufModelParser{
     public:
-        ProtobufModelParser(const std::string& filename);
+        ProtobufModelParser(const std::string& filename, const std::string& experiment_id);
         bool IsValid();
 
         std::string GetDeploymentJSON();
@@ -44,7 +44,7 @@ class ProtobufModelParser{
         NodeManager::ControlMessage* control_message_;
 
         std::string model_id_;
-        std::string model_name_;
+        std::string experiment_id_;
 
         std::vector<std::string> deployment_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;

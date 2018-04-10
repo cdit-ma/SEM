@@ -15,7 +15,7 @@ namespace NodeManager{
 class DeploymentHandler{
     public:
         DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                            std::promise<std::string>* port_promise, const std::string& model_name);
+                            std::promise<std::string>* port_promise, const std::string& experiment_id);
 
     private:
         //Heartbeat constants (ms)
@@ -49,7 +49,7 @@ class DeploymentHandler{
 
         Environment* environment_;
 
-        std::string model_name_;
+        std::string experiment_id_;
         std::map<std::string, std::string> port_map_;
         long time_added_;
 

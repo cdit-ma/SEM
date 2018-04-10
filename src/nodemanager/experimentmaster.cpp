@@ -22,8 +22,8 @@ void signal_handler(int sig)
 
 int main(int argc, char **argv){
     //Connect the SIGINT/SIGTERM signals to our handler.
-	signal(SIGINT, signal_handler);
-	signal(SIGTERM, signal_handler);
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
 
     exe = new Execution();
 
@@ -97,7 +97,8 @@ int main(int argc, char **argv){
     auto execution_manager = new ExecutionManager(master_endpoint,
                                                     graphml_path,
                                                     execution_duration,
-                                                    exe, experiment_id,
+                                                    exe,
+                                                    experiment_id,
                                                     environment_manager_endpoint);
     master = new zmq::Registrar(execution_manager, master_endpoint);
 

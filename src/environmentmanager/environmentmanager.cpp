@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <exception>
 #include <boost/program_options.hpp>
 
 #include "broadcaster.h"
@@ -24,15 +25,14 @@ int main(int argc, char **argv){
                             "Port number for deployment registration.");
     options.add_options()("help,h", "Display help");
 
-
     boost::program_options::variables_map vm;
 
     try{
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
         boost::program_options::notify(vm);
     }
-    catch(boost::program_options::error& e){
-        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+    catch(...){
+        //std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
         std::cout << options << std::endl;
         return 1;
     }
@@ -50,7 +50,6 @@ int main(int argc, char **argv){
         registration_port = default_registration_port;
     }
 
-
     std::string bcast_address("tcp://" + ip_address + ":" + bcast_port);
     std::string bcast_message("tcp://" + ip_address + ":" + registration_port);
 
@@ -59,7 +58,6 @@ int main(int argc, char **argv){
 
     DeploymentRegister* deployment_register = new DeploymentRegister(ip_address, registration_port);
     deployment_register->Start();
-
 
     //TODO: condition variable to control termination correctly.
     while(true){

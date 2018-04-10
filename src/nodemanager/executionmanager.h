@@ -30,7 +30,7 @@ class ExecutionManager{
         };
 
         ExecutionManager(const std::string& endpoint, const std::string& graphml_path, double execution_duration,
-                            Execution* execution, const std::string& experiment_id const std::string& environment_manager_endpoint = "");
+                            Execution* execution, const std::string& experiment_id, const std::string& environment_manager_endpoint = "");
 
         std::vector<std::string> GetSlaveAddresses();
         const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);

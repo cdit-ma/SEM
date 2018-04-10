@@ -40,7 +40,7 @@ int main(int argc, char **argv){
     boost::program_options::options_description options("Node manager options");
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Library path");
     options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
-    options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Master endpoint, including port");
+    options.add_options()("live-logging,L", boost::program_options::value<bool>(&live_logging), "Logging option");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint), "Environment manager endpoint.");
     options.add_options()("experiment-id,n", boost::program_options::value<std::string>(&experiment_id), "ID of experiment to attach slave to.");
     options.add_options()("help,h", "Display help");

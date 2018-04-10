@@ -9,11 +9,11 @@
 #include "controlmessage/translate.h"
 #include "environmentrequester.h"
 
-DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution, const std::string& model_name, const std::string& ip_address, const std::string& environment_manager_endpoint){
+DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution, const std::string& experiment_id, const std::string& ip_address, const std::string& environment_manager_endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
     library_path_ = library_path;
     execution_ = execution;
-    model_name_ = model_name;
+    experiment_id_ = experiment_id;
     ip_address_ = ip_address;
     environment_manager_endpoint_ = environment_manager_endpoint;
 
@@ -65,7 +65,7 @@ std::string DeploymentManager::GetSlaveEndpoint(){
 
 std::string DeploymentManager::QueryEnvironmentManager(){
     std::string port;
-    EnvironmentRequester requester(environment_manager_endpoint_, model_name_);
+    EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_);
     requester.Init(environment_manager_endpoint_);
     auto response = requester.NodeQuery(ip_address_);
     if(response.type() == NodeManager::ControlMessage::TERMINATE){

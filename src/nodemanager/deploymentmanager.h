@@ -20,7 +20,7 @@ class Execution;
 
 class DeploymentManager{
     public:
-        DeploymentManager(const std::string& library_path, Execution* execution, const std::string& model_name, const std::string& ip_address, const std::string& environment_manager_endpoint = "");
+        DeploymentManager(const std::string& library_path, Execution* execution, const std::string& experiment_id, const std::string& ip_address, const std::string& environment_manager_endpoint = "");
         ~DeploymentManager();
 
         std::string GetSlaveEndpoint();
@@ -39,7 +39,7 @@ class DeploymentManager{
         zmq::ProtoReceiver* subscriber_ = 0;
 
         std::string library_path_;
-        std::string model_name_;
+        std::string experiment_id_;
         std::string ip_address_;
         std::string environment_manager_endpoint_;
         

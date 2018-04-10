@@ -2,9 +2,9 @@
 #include "controlmessage.pb.h"
 
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
-                                            const std::string& model_name){
+                                            const std::string& experiment_id){
     manager_address_ = manager_address;
-    model_name_ = model_name;
+    experiment_id_ = experiment_id;
 }
 
 void EnvironmentRequester::Init(){
@@ -24,7 +24,7 @@ void EnvironmentRequester::Init(){
             sub.close();
         }
         else{
-            std::cerr << "Wait for environment broadcast message timed out in EnvironmentRequester: " << model_name << std::endl;
+            std::cerr << "Wait for environment broadcast message timed out in EnvironmentRequester: " << experiment_id_ << std::endl;
             assert(false);
         }
 
@@ -43,7 +43,7 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     //Construct query message
 
     NodeManager::EnvironmentMessage message;
-    message.set_model_name(model_name_);
+    message.set_experiment_id(experiment_id_);
     message.set_type(NodeManager::EnvironmentMessage::NODE_QUERY);
 
     auto control_message = message.mutable_control_message();
@@ -126,7 +126,7 @@ void EnvironmentRequester::HeartbeatLoop(){
     //Register this deployment with the environment manager
     NodeManager::EnvironmentMessage initial_message;
     initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
-    initial_message.set_model_name(model_name_);
+    initial_message.set_experiment_id(experiment_id_);
 
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);

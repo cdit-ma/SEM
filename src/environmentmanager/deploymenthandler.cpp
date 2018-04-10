@@ -8,12 +8,12 @@
 #include "controlmessage.pb.h"
 
 DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                                    std::promise<std::string>* port_promise, const std::string& model_name){
+                                    std::promise<std::string>* port_promise, const std::string& experiment_id){
 
     environment_ = env;
     context_ = context;
     ip_addr_ = ip_addr;
-    model_name_ = model_name;
+    experiment_id_ = experiment_id;
     port_promise_ = port_promise;
     handler_thread_ = new std::thread(&DeploymentHandler::Init, this);
 }
@@ -23,7 +23,7 @@ void DeploymentHandler::Init(){
 
     time_added_ = environment_->GetClock();
 
-    std::string assigned_port = environment_->AddExperiment(model_name_);
+    std::string assigned_port = environment_->AddExperiment(experiment_id_);
     try{
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 
@@ -79,10 +79,10 @@ void DeploymentHandler::HeartbeatLoop(){
             if(removed_flag_){
                 break;
             }
-            environment_->ExperimentLive(model_name_, time_added_);
+            environment_->ExperimentLive(experiment_id_, time_added_);
         }
         else if(--liveness == 0){
-            environment_->ExperimentTimeout(model_name_, time_added_);
+            environment_->ExperimentTimeout(experiment_id_, time_added_);
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
             if(interval < MAX_INTERVAL){
                 interval *= 2;
@@ -99,7 +99,7 @@ void DeploymentHandler::HeartbeatLoop(){
 }
 
 void DeploymentHandler::RemoveExperiment(uint64_t call_time){
-    environment_->RemoveExperiment(model_name_, call_time);
+    environment_->RemoveExperiment(experiment_id_, call_time);
     removed_flag_ = true;
 }
 

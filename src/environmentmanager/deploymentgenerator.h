@@ -14,13 +14,12 @@ class DeploymentGenerator{
 
         void AddDeploymentRule(std::unique_ptr<DeploymentRule> rule);
 
-
     private:
 
         DeploymentRule& GetDeploymentRule(DeploymentRule::MiddlewareType type);
 
         void AddExperiment(const NodeManager::ControlMessage& control_message);
-        void AddNodeToExperiment(const std::string& model_name, const NodeManager::Node& node);
+        void AddNodeToExperiment(const std::string& experiment_id, const NodeManager::Node& node);
         void PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node);
         DeploymentRule::MiddlewareType MapMiddleware(NodeManager::EventPort::Middleware middleware);
 

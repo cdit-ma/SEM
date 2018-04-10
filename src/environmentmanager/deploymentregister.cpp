@@ -52,7 +52,7 @@ void DeploymentRegister::RegistrationLoop(){
 
             std::cout << "GOT ADD DEPLOYMENT" << std::endl;
 
-            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.model_name());
+            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.experiment_id());
             deployments_.push_back(deployment_handler);
             try{
                 //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
@@ -79,7 +79,7 @@ void DeploymentRegister::RegistrationLoop(){
         //Handle slave management port query
         else if(message.type() == NodeManager::EnvironmentMessage::NODE_QUERY){
             std::cout << "GOT NODE_QUERY" << std::endl;
-            std::string model_name = message.model_name();
+            std::string experiment_id = message.experiment_id();
 
             auto control_message = message.mutable_control_message();
             auto node = message.mutable_control_message()->mutable_nodes(0);
@@ -93,9 +93,9 @@ void DeploymentRegister::RegistrationLoop(){
                 }
             }
 
-            if(environment_->NodeDeployedTo(model_name, ip_address)){
-                std::string management_port = environment_->GetNodeManagementPort(model_name, ip_address);
-                std::string model_logger_port = environment_->GetNodeModelLoggerPort(model_name, ip_address);
+            if(environment_->NodeDeployedTo(experiment_id, ip_address)){
+                std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
+                std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
 
                 auto management_attribute = node->add_attributes();
                 auto management_attribute_info = management_attribute->mutable_info();
