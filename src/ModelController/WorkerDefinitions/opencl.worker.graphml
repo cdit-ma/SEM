@@ -16,7 +16,7 @@
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
 
     <graph id="G">
-        <node id="n0">
+        <node id="opencl">
             <data key="kind">WorkerDefinition</data>
             <data key="worker">OpenCL_Worker</data>
             <data key="label">OpenCL Worker</data>
@@ -44,7 +44,6 @@
                     <data key="description">Buffer a given amount of data and copy it across to the OpenCL device</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circlePlus</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::createbuffer:">
                         <node id="opencl::createbuffer::data">
                             <data key="kind">InputParameter</data>
@@ -61,6 +60,7 @@
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">The buffer containing the provided data.</data>
+
                         </node>
                         <node id="opencl::createbuffer::blocking">
                             <data key="kind">InputParameter</data>
@@ -83,7 +83,6 @@
                     <data key="description">Deletes an OpenCL buffer</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">circleMinus</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::releasebuffer:">
                         <node id="opencl::releasebuffer::buffer">
                             <data key="kind">InputParameter</data>
@@ -105,7 +104,6 @@
                     <data key="description">Write data to a buffer</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">arrowRight</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::writebuffer:">
                         <node id="opencl::writebuffer::buffer">
                             <data key="kind">InputParameter</data>
@@ -144,7 +142,6 @@
                     <data key="description">Write data to a buffer</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">arrowLeft</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::readbuffer:">
                         <node id="opencl::readbuffer::buffer">
                             <data key="kind">InputParameter</data>
@@ -184,7 +181,6 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">arrowFork</data>
                     <data key="description">Launch a kernel to run on a GPU, executing as many of the specified number of threads as is possible at once.</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::runparallel:">
                         <node id="opencl::runparallel::numthreads">
                             <data key="kind">InputParameter</data>
@@ -215,7 +211,6 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">wave</data>
                     <data key="description">Run an FFT using the given data, with the result overwriting the input array.</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::fft:">
                         <node id="opencl::fft::data">
                             <data key="kind">InputParameter</data>
@@ -238,7 +233,6 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">dice</data>
                     <data key="description">Perform K-Means clustering algorithm</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::kmeans:">
                         <node id="opencl::kmeans::points">
                             <data key="kind">InputParameter</data>
@@ -285,7 +279,6 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">grid3x3</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
-                    <data key="workerID">opencl_worker</data>
                     <graph id="opencl::matrixmult:">
                         <node id="opencl::matrixmult::matrixa">
                             <data key="kind">InputParameter</data>

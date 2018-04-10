@@ -17,16 +17,16 @@
     <key attr.name="is_variadic" attr.type="boolean" for="all" id="is_variadic"/>
 
     <graph id="G">
-        <node id="n0">
-            <data key="kind">Workload</data>
+        <node id="utilityworker">
+            <data key="kind">WorkerDefinition</data>
             <data key="worker">Utility_Worker</data>
             <data key="label">Utility Worker</data>
             <data key="description">A Worker that provides utility functions for use in workload.</data>
             <data key="icon_prefix">Icons</data>
             <data key="icon">spanner</data>
-            <graph id="n0:">
-                <node id="n0::n0">
-                    <data key="kind">WorkerProcess</data>
+            <graph id="utilityworker:">
+                <node id="utilityworker::evaluatecomplexity">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">EvaluateComplexity</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -37,8 +37,8 @@
                     <data key="description">Evaluate the complexity function given, may use one or more value parameters (eg n, m, x, y etc).</data>
                     <data key="workerID">utility_worker</data>
                     <data key="is_variadic">true</data>
-                    <graph id="n0::n0:">
-                        <node id="n0::n0::n0">
+                    <graph id="utilityworker::evaluatecomplexity:">
+                        <node id="utilityworker::evaluatecomplexity::complexity">
                             <data key="kind">InputParameter</data>
                             <data key="label">Complexity Function</data>
                             <data key="type">String</data>
@@ -46,7 +46,7 @@
                             <data key="icon">sigma</data>
                             <data key="description">Mathematical expression for the complexity of an algorithm that will be simulated using a workload execution worker.</data>
                         </node>
-                        <node id="n0::n0::n1">
+                        <node id="utilityworker::evaluatecomplexity::ops">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
@@ -56,8 +56,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n1">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::log">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">Log</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -68,8 +68,8 @@
                     <data key="description">Logs a message to the database.</data>
                     <data key="workerID">utility_worker</data>
                     <data key="is_variadic">true</data>
-                    <graph id="n0::n1:">
-                        <node id="n0::n1:n0">
+                    <graph id="utilityworker::log:">
+                        <node id="utilityworker::log::message">
                             <data key="kind">InputParameter</data>
                             <data key="label">Message Format</data>
                             <data key="type">String</data>
@@ -77,7 +77,7 @@
                             <data key="icon">format</data>
                             <data key="description">Message to Log.</data>
                         </node>
-                        <node id="n0::n1::n1">
+                        <node id="utilityworker::log::print">
                             <data key="kind">InputParameter</data>
                             <data key="label">Print</data>
                             <data key="type">Boolean</data>
@@ -88,8 +88,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n2">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::gettimeofdaystring">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetTimeOfDayString</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -99,8 +99,8 @@
                     <data key="icon">clock</data>
                     <data key="description">Get the time of day in a string.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n2:">
-                        <node id="n0::n2:n0">
+                    <graph id="utilityworker::gettimeofdaystring:">
+                        <node id="utilityworker::gettimeofdaystring::time">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
                             <data key="type">String</data>
@@ -110,8 +110,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n3">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::gettimeofday">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetTimeOfDay</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -121,8 +121,8 @@
                     <data key="icon">clock</data>
                     <data key="description">Get the time of day as a double.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n3:">
-                        <node id="n0::n3:n0">
+                    <graph id="utilityworker::gettimeofday:">
+                        <node id="utilityworker::gettimeofday::time">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
                             <data key="type">Double</data>
@@ -132,8 +132,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n4">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::setrandomseed">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">SetRandomSeed</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -143,8 +143,8 @@
                     <data key="icon">drop</data>
                     <data key="description">Sets the seed for the Random Number Generator used by this worker.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n4:">
-                        <node id="n0::n4:n0">
+                    <graph id="utilityworker::setrandomseed:">
+                        <node id="utilityworker::setrandomseed::seed">
                             <data key="kind">InputParameter</data>
                             <data key="label">Seed</data>
                             <data key="type">Integer</data>
@@ -154,8 +154,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n5">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::usleep">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">USleep</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -165,8 +165,8 @@
                     <data key="icon">bed</data>
                     <data key="description">Sleeps the current thread for x microseconds.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n5:">
-                        <node id="n0::n5:n0">
+                    <graph id="utilityworker::usleep:">
+                        <node id="utilityworker::usleep::duration">
                             <data key="kind">InputParameter</data>
                             <data key="label">duration</data>
                             <data key="type">Integer</data>
@@ -176,8 +176,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n6">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::sleep">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">Sleep</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -187,8 +187,8 @@
                     <data key="icon">bed</data>
                     <data key="description">Sleeps the current thread for x seconds.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n6:">
-                        <node id="n0::n6:n0">
+                    <graph id="utilityworker::sleep:">
+                        <node id="utilityworker::sleep::duration">
                             <data key="kind">InputParameter</data>
                             <data key="label">duration</data>
                             <data key="type">Integer</data>
@@ -198,8 +198,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n7">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::getrandomuniformint">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetRandomUniformInt</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -209,8 +209,8 @@
                     <data key="icon">chartUniform</data>
                     <data key="description">Gets a random Integer in an inclusive range (Lower Bound - Upper Bound)</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n7:">
-                        <node id="n0::n7:n0">
+                    <graph id="utilityworker::getrandomuniformint:">
+                        <node id="utilityworker::getrandomuniformint::lowerbounds">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lower Bound</data>
                             <data key="type">Integer</data>
@@ -218,7 +218,7 @@
                             <data key="icon">arrowLineLeft</data>
                             <data key="description">The lower bound</data>
                         </node>
-                        <node id="n0::n7:n1">
+                        <node id="utilityworker::getrandomuniformint::upperbounds">
                             <data key="kind">InputParameter</data>
                             <data key="label">Upper Bound</data>
                             <data key="type">Integer</data>
@@ -226,7 +226,7 @@
                             <data key="icon">arrowLineRight</data>
                             <data key="description">The upper bound</data>
                         </node>
-                        <node id="n0::n7:n2">
+                        <node id="utilityworker::getrandomuniformint::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="type">Integer</data>
@@ -237,8 +237,8 @@
                     </graph>
                 </node>
 
-                <node id="n0::n8">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::getrandomuniformreal">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetRandomUniformReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -248,8 +248,8 @@
                     <data key="icon">chartUniform</data>
                     <data key="description">Gets a random double in an inclusive range (Lower Bound - Upper Bound)</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n8:">
-                        <node id="n0::n8:n0">
+                    <graph id="utilityworker::getrandomuniformreal:">
+                        <node id="utilityworker::getrandomuniformreal::lowerbound">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lower Bound</data>
                             <data key="type">Double</data>
@@ -257,7 +257,7 @@
                             <data key="icon">arrowLineLeft</data>
                             <data key="description">The lower bound</data>
                         </node>
-                        <node id="n0::n8:n1">
+                        <node id="utilityworker::getrandomuniformreal::upperbound">
                             <data key="kind">InputParameter</data>
                             <data key="label">Upper Bound</data>
                             <data key="type">Double</data>
@@ -265,7 +265,7 @@
                             <data key="icon">arrowLineRight</data>
                             <data key="description">The upper bound</data>
                         </node>
-                        <node id="n0::n8:n2">
+                        <node id="utilityworker::getrandomuniformreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="type">Double</data>
@@ -276,8 +276,8 @@
                     </graph>
                 </node>
 
-                <node id="n0::n9">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::getrandomnormalreal">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetRandomNormalReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -287,8 +287,8 @@
                     <data key="icon">chartNormal</data>
                     <data key="description">Gets a random double in a Normal distribution.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n9:">
-                        <node id="n0::n9:n0">
+                    <graph id="utilityworker::getrandomnormalreal:">
+                        <node id="utilityworker::getrandomnormalreal::mean">
                             <data key="kind">InputParameter</data>
                             <data key="label">Mean</data>
                             <data key="type">Double</data>
@@ -296,7 +296,7 @@
                             <data key="icon">chartMean</data>
                             <data key="description">The mean of the normal distribution</data>
                         </node>
-                        <node id="n0::n9:n1">
+                        <node id="utilityworker::getrandomnormalreal::standarddeviation">
                             <data key="kind">InputParameter</data>
                             <data key="label">Standard Deviation</data>
                             <data key="type">Double</data>
@@ -304,7 +304,7 @@
                             <data key="icon">chartStdDev</data>
                             <data key="description">The standard deviation of the normal distribution</data>
                         </node>
-                        <node id="n0::n9:n2">
+                        <node id="utilityworker::getrandomnormalreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="type">Double</data>
@@ -315,8 +315,8 @@
                     </graph>
                 </node>
 
-                <node id="n0::n10">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::getrandomexponentialreal">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetRandomExponentialReal</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -326,8 +326,8 @@
                     <data key="icon">chartExponential</data>
                     <data key="description">Gets a random double in an Exponential distribution. This distribution produces random numbers where each value represents the interval between two random events that are independent but statistically defined by a constant average rate of occurrence</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n10:">
-                        <node id="n0::n10:n0">
+                    <graph id="utilityworker::getrandomexponentialreal:">
+                        <node id="utilityworker::getrandomexponentialreal::lambda">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lambda</data>
                             <data key="type">Double</data>
@@ -335,7 +335,7 @@
                             <data key="icon">chartLambda</data>
                             <data key="description">The mean of the normal distribution</data>
                         </node>
-                        <node id="n0::n10:n1">
+                        <node id="utilityworker::getrandomexponentialreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
                             <data key="type">Double</data>
@@ -345,8 +345,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n11">
-                    <data key="kind">WorkerProcess</data>
+                <node id="utilityworker::generateuuid">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">GetUUID</data>
                     <data key="worker">Utility_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
@@ -356,8 +356,8 @@
                     <data key="icon">fingerprint</data>
                     <data key="description">Generates a 128-bit unique universal unique identifier, in the form of a string. Represented as 32 hexadecimal digits, displayed in five groups separated by hyphens, in the form 8-4-4-4-12.</data>
                     <data key="workerID">utility_worker</data>
-                    <graph id="n0::n11:">
-                        <node id="n0::n11:n0">
+                    <graph id="utilityworker::generateuuid:">
+                        <node id="utilityworker::generateuuid::uuid">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">UUID</data>
                             <data key="type">String</data>
