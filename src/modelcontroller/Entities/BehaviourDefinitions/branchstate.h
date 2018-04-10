@@ -1,5 +1,6 @@
 #ifndef BRANCHSTATE_H
 #define BRANCHSTATE_H
+
 #include "branch.h"
 
 class EntityFactory;

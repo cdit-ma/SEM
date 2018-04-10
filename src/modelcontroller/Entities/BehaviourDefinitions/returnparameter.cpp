@@ -15,7 +15,7 @@ ReturnParameter::ReturnParameter(EntityFactory* factory) : Parameter(factory, NO
 ReturnParameter::ReturnParameter(): Parameter(NODE_KIND::RETURN_PARAMETER)
 {
     setDataProducer(true);
-    setDataReciever(false);
+    setDataReceiver(false);
 }
 
 bool ReturnParameter::canAdoptChild(Node *)

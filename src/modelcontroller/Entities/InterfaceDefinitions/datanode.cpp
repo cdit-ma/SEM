@@ -6,14 +6,13 @@
 
 
 DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
+
 };
 
 DataNode::DataNode(NODE_KIND kind):Node(kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DATA);
+    
     setNodeType(NODE_TYPE::DATA);
-    _isProducer = false;
-    _isReciever = false;
 }
 
 bool DataNode::hasInputData()
@@ -28,7 +27,7 @@ bool DataNode::hasOutputData()
 
 DataNode *DataNode::getInputData()
 {
-    foreach(Edge* edge, getEdges(0, EDGE_KIND::DATA)){
+    for(auto edge : getEdges(0, EDGE_KIND::DATA)){
         if(edge->getDestination() == this){
             return (DataNode*) edge->getSource();
         }
@@ -38,7 +37,7 @@ DataNode *DataNode::getInputData()
 
 DataNode *DataNode::getOutputData()
 {
-    foreach(Edge* edge, getEdges(0, EDGE_KIND::DATA)){
+    for(auto edge : getEdges(0, EDGE_KIND::DATA)){
         if(edge->getSource() == this){
             return (DataNode*) edge->getDestination();
         }
@@ -48,32 +47,37 @@ DataNode *DataNode::getOutputData()
 
 void DataNode::setMultipleDataReceiver(bool receiver)
 {
-    _isMultipleDataReceiver = receiver;
+    is_multiple_data_receiver_ = receiver;
+    if(receiver){
+        setDataReceiver(true);
+    }
 }
 
 void DataNode::setDataProducer(bool producer)
 {
-    _isProducer = producer;
+    is_producer_ = producer;
+    setAcceptsEdgeKind(EDGE_KIND::DATA, isDataReceiver() || isDataProducer());
 }
 
-void DataNode::setDataReciever(bool reciever)
+void DataNode::setDataReceiver(bool receiver)
 {
-    _isReciever = reciever;
+    is_receiver_ = receiver;
+    setAcceptsEdgeKind(EDGE_KIND::DATA, isDataReceiver() || isDataProducer());
 }
 
 bool DataNode::isDataProducer() const
 {
-    return _isProducer;
+    return is_producer_;
 }
 
-bool DataNode::isDataReciever() const
+bool DataNode::isDataReceiver() const
 {
-    return _isReciever;
+    return is_receiver_;
 }
 
 bool DataNode::isMultipleDataReceiver() const
 {
-    return _isMultipleDataReceiver;
+    return is_multiple_data_receiver_;
 }
 
 bool DataNode::comparableTypes(DataNode *node)
@@ -126,9 +130,12 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
+    
     switch(edgeKind){
     case EDGE_KIND::DATA:{
+        qCritical() << this->toString() << " -> " << dst->toString();
         if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
+            qCritical() << 1;
             //Cannot connect to a non DataNode type.
             return false;
         }
@@ -136,21 +143,25 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         DataNode* data_node = (DataNode*) dst;
 
         if(isDataProducer() == false){
+            qCritical() << 2;
             //Cannot connect from something which can't produce
             return false;
         }
 
-        if(data_node->isDataReciever() == false){
+        if(data_node->isDataReceiver() == false){
+            qCritical() << 3;
             //Cannot connect to something which can't recieve
             return false;
         }
 
         if(data_node->hasInputData() && data_node->isMultipleDataReceiver() != true){
+            qCritical() << 4;
             //Cannot have multiple input datas.
             return false;
         }
 
         if(isContainedInVector() || data_node->isContainedInVector()){
+            qCritical() << 5;
             //Cannot Data-Connect inside a vector.
             return false;
         }
@@ -159,6 +170,7 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             //Cannot Data-Connect into a Variable
             //return false;
         //}
+
 
         if(!isPromiscuousDataLinker() && !data_node->isPromiscuousDataLinker()){
             auto source_containment_node = getContainmentNode();
@@ -170,9 +182,19 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
                 //One of those needs to be true
                 if(!source_contains_destination && !destination_contains_source){
+                    qCritical() << 6;
+                    return false;
                     //The Variable we are setting needs to be in scope.
                 }
+            }else if(!source_containment_node && !destination_containment_node){
+                auto source_parent = getParentNode();
+
+                if(!source_parent || !source_parent->isAncestorOf(data_node)){
+                    qCritical() << 7;
+                    return false;
+                }
             }else{
+                qCritical() << 7.5;
                 return false;
             }
         }
@@ -180,6 +202,7 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         
 
         if(TypeKey::CompareTypes(this, data_node) == false){
+            qCritical() << 8;
             //Must have compareable types
             return false;
         }
@@ -206,7 +229,7 @@ bool DataNode::isContainedInVariable(){
 void DataNode::RunContainmentChecks(){
     if(getParentNode() && !_run_containment_checks){
         auto parent_nodes = getParentNodes(-1);
-        parent_nodes.push_front(this);
+        //parent_nodes.push_front(this);
         //Check if we are inside a vector
         for(auto parent_node : parent_nodes){
             if(!_containment_node){
@@ -232,8 +255,6 @@ void DataNode::RunContainmentChecks(){
         _run_containment_checks = true;
     }
 }
-
-
 
 Node* DataNode::getContainmentNode(){
     RunContainmentChecks();

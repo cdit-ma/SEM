@@ -95,7 +95,7 @@ Node::~Node()
  */
 bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(!requiresEdgeKind(edgeKind)){
         return false;
     }
     
@@ -154,12 +154,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case EDGE_KIND::DATA:{
-        /*int depthToAspect = getDepthFromAspect();
-        int depthToCommonParent = getDepthFromCommonAncestor(dst);
-
-        if(depthToCommonParent >= depthToAspect){
-            return false;
-        }*/
         break;
     }
     case EDGE_KIND::QOS:{
@@ -201,14 +195,25 @@ bool Node::isNodeOfType(NODE_TYPE type) const
     return types.contains(type);
 }
 
-bool Node::acceptsEdgeKind(EDGE_KIND edgeKind) const
+bool Node::acceptsEdgeKind(EDGE_KIND edge_kind) const
 {
-    return validEdgeKinds.contains(edgeKind);
+    return valid_edge_kinds.contains(edge_kind);
 }
 
-bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
+QSet<EDGE_KIND> Node::getRequiredEdgeKinds() const{
+    QSet<EDGE_KIND> required_edge_kinds;
+    for(auto edge_kind: valid_edge_kinds){
+        if(requiresEdgeKind(edge_kind)){
+            required_edge_kinds.insert(edge_kind);
+        }
+    }
+    return required_edge_kinds;
+}
+
+
+bool Node::requiresEdgeKind(EDGE_KIND edgeKind) const
 {
-    if(validEdgeKinds.contains(edgeKind)){
+    if(acceptsEdgeKind(edgeKind)){
         switch(edgeKind){
         case EDGE_KIND::DEFINITION:{
             if(definition){
@@ -227,7 +232,7 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
             return true;
         case EDGE_KIND::AGGREGATE:
         case EDGE_KIND::QOS:{
-            foreach(Edge* edge, edges.values(edgeKind)){
+            for(auto edge : edges.values(edgeKind)){
                 if(edge->getSource() == this){
                     return false;
                 }
@@ -235,11 +240,7 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
             break;
         }
         case EDGE_KIND::DATA:{
-            if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                return true;
-            }else{
-                return false;
-            }
+            break;
         }
         default:
             return false;
@@ -249,9 +250,8 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
     return false;
 }
 
-QList<EDGE_KIND> Node::getAcceptedEdgeKinds() const
-{
-    return validEdgeKinds;
+QSet<EDGE_KIND> Node::getValidEdgeKinds() const{
+    return valid_edge_kinds;
 }
 
 void Node::setNodeType(NODE_TYPE type)
@@ -264,16 +264,18 @@ void Node::removeNodeType(NODE_TYPE type)
     types.remove(type);
 }
 
-void Node::setAcceptsEdgeKind(EDGE_KIND edgeKind)
+void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, bool accept)
 {
-    if(!validEdgeKinds.contains(edgeKind)){
-        validEdgeKinds.append(edgeKind);
+    if(accept){
+        valid_edge_kinds.insert(edge_kind);
+    }else{
+        valid_edge_kinds.remove(edge_kind);
     }
 }
 
-void Node::removeEdgeKind(EDGE_KIND edgeKind)
+void Node::removeEdgeKind(EDGE_KIND edge_kind)
 {
-    validEdgeKinds.removeAll(edgeKind);
+    setAcceptsEdgeKind(edge_kind, false);
 }
 
 int Node::getDepthFromAspect()
@@ -453,7 +455,6 @@ bool Node::addChild(Node *child)
                 child->addData(child_data);
             }
         }
-        emit childCountChanged();
         childAdded(child);
         return true;
     }
@@ -671,9 +672,6 @@ bool Node::removeChild(Node *child)
 
     if(removeCount > 0){
         childRemoved(child);
-        
-        emit childCountChanged();
-
         //Recontiguate 
         return true;
     }
@@ -893,8 +891,8 @@ void Node::setDefinition(Node *def)
     if(isImpl() || isInstance()){
         definition = def;
         BindDefinitionToInstance(definition, this, true);
+        setAcceptsEdgeKind(EDGE_KIND::DEFINITION, !definition);
     }
-
 }
 
 Node *Node::getDefinition(bool recurse) const
@@ -1041,9 +1039,11 @@ void Node::setParentNode(Node *parent, int index)
         //Set the view Aspect.
         setViewAspect(parent->getViewAspect());
 
-        foreach(auto data, getData()){
+        for(auto data : getData()){
             data->revalidateData();
         }
+
+        parentSet(parent);
     }else{
         setViewAspect(VIEW_ASPECT::NONE);
     }
@@ -1229,7 +1229,7 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         }
 
         //BIND LABEL
-        QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER};
+        QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
 
         if(bind_labels.contains(bind_source->getNodeKind())){
             source_key = "label";

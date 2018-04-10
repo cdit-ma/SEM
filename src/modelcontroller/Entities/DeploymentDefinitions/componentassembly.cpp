@@ -26,6 +26,7 @@ bool ComponentAssembly::canAdoptChild(Node *child)
     case NODE_KIND::COMPONENT_INSTANCE:
     case NODE_KIND::INEVENTPORT_DELEGATE:
     case NODE_KIND::OUTEVENTPORT_DELEGATE:
+    case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
         break;
     default:
         return false;

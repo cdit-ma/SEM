@@ -55,6 +55,7 @@ class Node : public Entity
     protected:
         virtual void childAdded(Node* child){};
         virtual void childRemoved(Node* child);
+        virtual void parentSet(Node* parent){};
     public:
 
         virtual VIEW_ASPECT getViewAspect() const;
@@ -150,8 +151,6 @@ class Node : public Entity
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
 
-signals:
-    void childCountChanged();
 private:
     void setViewAspect(VIEW_ASPECT aspect);
     void setParentNode(Node* parent, int index);
@@ -200,7 +199,7 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QList<EDGE_KIND> validEdgeKinds;
+    QSet<EDGE_KIND> valid_edge_kinds;
 
     NODE_KIND definition_kind_;
     NODE_KIND instance_kind_;
@@ -209,15 +208,17 @@ protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
     void removeNodeType(NODE_TYPE type);
-    void setAcceptsEdgeKind(EDGE_KIND edgeKind);
+    void setAcceptsEdgeKind(EDGE_KIND edgeKind, bool accept = true);
     void removeEdgeKind(EDGE_KIND edgeKind);
+
 public:
     bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(EDGE_KIND edgeKind) const;
 
-    QList<EDGE_KIND> getAcceptedEdgeKinds() const;
+    QSet<EDGE_KIND> getValidEdgeKinds() const;
+    QSet<EDGE_KIND> getRequiredEdgeKinds() const;
     
-    virtual bool requiresEdgeKind(EDGE_KIND edgeKind);
+    bool requiresEdgeKind(EDGE_KIND edge_kind) const;
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);
 };
 

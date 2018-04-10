@@ -505,11 +505,15 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
 
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
-    QList<EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edge_kinds;
     if(selectionController && controller){
-        edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+        edge_kinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+
+        for(auto edge_kind : edge_kinds){
+            qCritical() << EntityFactory::getEdgeKindString(edge_kind);
+        }
     }
-    return edgeKinds;
+    return edge_kinds;
 }
 
 QList<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
@@ -573,6 +577,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 image = "label";
                 break;
             }
+            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
             case NODE_KIND::VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";

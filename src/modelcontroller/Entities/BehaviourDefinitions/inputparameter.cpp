@@ -14,7 +14,7 @@ InputParameter::InputParameter(EntityFactory* factory) : Parameter(factory, NODE
 
 InputParameter::InputParameter(): Parameter(NODE_KIND::INPUT_PARAMETER)
 {
-    setDataReciever(true);
+    setDataReceiver(true);
     setDataProducer(false);
 }
 

@@ -6,9 +6,10 @@
 #include "../Keys/typekey.h"
 #include <QDebug>
 
-Variable::Variable(EntityFactory* factory) : DataNode(factory, NODE_KIND::VARIABLE, "Variable"){
-	auto node_kind = NODE_KIND::VARIABLE;
-	QString kind_string = "Variable";
+const NODE_KIND node_kind = NODE_KIND::VARIABLE;
+const QString kind_string = "Variable";
+
+Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Variable();});
 
     //Register DefaultData
@@ -20,10 +21,11 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, NODE_KIND::VARIAB
     RegisterDefaultData(factory, node_kind, "row", QVariant::Int, true, 1);
     RegisterDefaultData(factory, node_kind, "index", QVariant::Int, true);
 };
-Variable::Variable():DataNode(NODE_KIND::VARIABLE)
+
+Variable::Variable() : DataNode(node_kind)
 {
     setDataProducer(true);
-    setDataReciever(true);
+    setDataReceiver(true);
     setMultipleDataReceiver(true);
 }
 
@@ -56,7 +58,6 @@ void Variable::childRemoved(Node* child){
     DataNode::childRemoved(child);
     TypeKey::BindInnerAndOuterTypes(child, this, false);
 }
-
 
 bool Variable::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {

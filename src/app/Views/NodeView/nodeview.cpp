@@ -908,6 +908,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "circleQuestion";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
+                secondary_icon.second = "pencil";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
             case NODE_KIND::ATTRIBUTE_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
@@ -948,6 +956,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");

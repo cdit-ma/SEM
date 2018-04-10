@@ -18,7 +18,7 @@ PeriodicEvent::PeriodicEvent():ContainerNode(NODE_KIND::PERIODICEVENT){
     //setDefinitionKind(NODE_KIND::PERIODICEVENT);
     //setInstanceKind(NODE_KIND::PERIODICEVENT);
 }
-#include <QDebug>
+
 bool PeriodicEvent::canAdoptChild(Node* child)
 {
     return ContainerNode::canAdoptChild(child);

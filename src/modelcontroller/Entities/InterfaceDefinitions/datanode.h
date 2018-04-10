@@ -18,9 +18,9 @@ public:
     void setPromiscuousDataLinker(bool set);
     void setMultipleDataReceiver(bool receiver);
     void setDataProducer(bool producer);
-    void setDataReciever(bool reciever);
+    void setDataReceiver(bool receiver);
     bool isDataProducer() const;
-    bool isDataReciever() const;
+    bool isDataReceiver() const;
 
     bool isPromiscuousDataLinker() const;
     bool isMultipleDataReceiver() const;
@@ -42,9 +42,9 @@ private:
     bool promiscuous_data_linker_ = false;
 
 
-    bool _isProducer = false;
-    bool _isReciever = false;;
-    bool _isMultipleDataReceiver = false;;
+    bool is_producer_ = false;
+    bool is_receiver_ = false;
+    bool is_multiple_data_receiver_ = false;
 
 };
 

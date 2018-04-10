@@ -17,7 +17,7 @@ EnumInstance::EnumInstance():DataNode(NODE_KIND::ENUM_INSTANCE)
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DATA);
     setNodeType(NODE_TYPE::DATA);
-    setDataReciever(true);
+    setDataReceiver(true);
     setDataProducer(true);
 
 

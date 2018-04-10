@@ -10,6 +10,7 @@ class MemberInstance : public DataNode
 protected:
 	MemberInstance(EntityFactory* factory);
 	MemberInstance();
+    void parentSet(Node* parent);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

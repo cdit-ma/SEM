@@ -2,10 +2,11 @@
 
 #include "../../edgekinds.h"
 
+const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
+const QString kind_string = "AttributeInstance";
 
-AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NODE_KIND::ATTRIBUTE_INSTANCE, "AttributeInstance"){
-	auto node_kind = NODE_KIND::ATTRIBUTE_INSTANCE;
-	QString kind_string = "AttributeInstance";
+
+AttributeInstance::AttributeInstance(EntityFactory* factory) : DataNode(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AttributeInstance();});
 
     //Register Data
@@ -14,12 +15,13 @@ AttributeInstance::AttributeInstance(EntityFactory* factory) : Node(factory, NOD
     RegisterDefaultData(factory, node_kind, "row", QVariant::Int, false, 1);
 };
 
-AttributeInstance::AttributeInstance():Node(NODE_KIND::ATTRIBUTE_INSTANCE)
+AttributeInstance::AttributeInstance() : DataNode(node_kind)
 {
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    
     setDefinitionKind(NODE_KIND::ATTRIBUTE);
+
+    setDataReceiver(true);
 }
 
 bool AttributeInstance::canAdoptChild(Node*)
@@ -40,8 +42,9 @@ bool AttributeInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         }
         break;
     }
+    
     default:
         break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edgeKind, dst);
 }

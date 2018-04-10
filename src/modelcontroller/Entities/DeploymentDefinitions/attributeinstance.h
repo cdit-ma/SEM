@@ -1,9 +1,9 @@
 #ifndef ATTRIBUTEINSTANCE_H
 #define ATTRIBUTEINSTANCE_H
-#include "../node.h"
+#include "../InterfaceDefinitions/datanode.h"
 
 class EntityFactory;
-class AttributeInstance : public Node
+class AttributeInstance : public DataNode
 {
 	friend class EntityFactory;
     Q_OBJECT

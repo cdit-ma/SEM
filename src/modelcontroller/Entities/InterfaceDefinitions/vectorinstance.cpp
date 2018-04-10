@@ -15,7 +15,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 {
     //Can be both an input/output for data.
     setDataProducer(true);
-    setDataReciever(true);
+    setDataReceiver(true);
 
     setDefinitionKind(NODE_KIND::VECTOR);
     setInstanceKind(NODE_KIND::VECTOR_INSTANCE);

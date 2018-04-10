@@ -9,13 +9,15 @@ const QString kind_string = "OutEventPortImpl";
 
 OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new OutEventPortImpl();});
+
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
 };
 
 OutEventPortImpl::OutEventPortImpl():Node(node_kind){
     setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    
     setDefinitionKind(NODE_KIND::OUTEVENTPORT);
+
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
@@ -41,10 +43,7 @@ bool OutEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
     switch(edgeKind){
     case EDGE_KIND::DEFINITION:{
-        if(!dst->getImplementations().isEmpty()){
-            return false;
-        }
-        if(dst->getNodeKind() != NODE_KIND::INEVENTPORT){
+        if(dst->getNodeKind() != NODE_KIND::OUTEVENTPORT){
             return false;
         }
         break;

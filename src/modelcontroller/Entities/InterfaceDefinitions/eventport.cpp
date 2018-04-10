@@ -16,9 +16,6 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
-
-    
-    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPort::isInPort() const
@@ -38,6 +35,8 @@ void EventPort::setAggregate(Aggregate *aggregate)
         //Do binding!
         TypeKey::BindTypes(aggregate, this, true);
     }
+
+    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, !this->aggregate);
 }
 
 Aggregate *EventPort::getAggregate()

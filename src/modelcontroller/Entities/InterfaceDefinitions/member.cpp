@@ -10,19 +10,13 @@ Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Membe
     RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Member();});
 
-    QList<QVariant> types;
-    types << "String";
-    types << "Boolean";
-    types << "Integer";
-    types << "Double";
-    types << "Float";
-    types << "Character";
+    QList<QVariant> types = {"String",  "Boolean", "Integer", "Double", "Float", "Character"};
 
 
     //Register values
     RegisterValidDataValues(factory, node_kind, "type", QVariant::String, types);
-    //RegisterValidDataValues(factory, NODE_KIND::VARIABLE, "type", QVariant::String, types);
     RegisterValidDataValues(factory, NODE_KIND::ATTRIBUTE, "type", QVariant::String, types);
+    RegisterValidDataValues(factory, NODE_KIND::DEPLOYMENT_ATTRIBUTE, "type", QVariant::String, types);
 
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, false, "String");
     RegisterDefaultData(factory, node_kind, "key", QVariant::Bool, false, false);

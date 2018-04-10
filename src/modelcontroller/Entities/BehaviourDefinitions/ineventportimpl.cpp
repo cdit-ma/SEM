@@ -8,6 +8,7 @@ const QString kind_string = "InEventPortImpl";
 
 InEventPortImpl::InEventPortImpl(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPortImpl();});
+    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
 };
 
 InEventPortImpl::InEventPortImpl() : Node(node_kind){

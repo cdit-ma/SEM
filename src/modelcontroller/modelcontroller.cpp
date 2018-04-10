@@ -2031,30 +2031,27 @@ QList<EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
     lock_.lockForRead();
 
     QList<Entity*> entities = getOrderedEntities(IDs);
-    QList<EDGE_KIND> edgeKinds;
+    QSet<EDGE_KIND> edge_kinds;
 
     if(!entities.isEmpty()){
-        edgeKinds = entity_factory->getEdgeKinds();
+        edge_kinds = entity_factory->getEdgeKinds().toSet();
     }
 
-    foreach(Entity* entity, entities){
+    for(auto entity : entities){
+        QSet<EDGE_KIND> required_edge_kinds;
+        
         if(entity->isNode()){
-            Node* node = (Node*) entity;
-            foreach(EDGE_KIND edgeKind, edgeKinds){
-                if(!node->requiresEdgeKind(edgeKind)){
-                    edgeKinds.removeAll(edgeKind);
-                }
-            }
-        }else{
-            //Is edge, no valid edges.
-            edgeKinds.clear();
+            auto node = (Node*) entity;
+            required_edge_kinds = node->getRequiredEdgeKinds();
         }
-        if(edgeKinds.isEmpty()){
+
+        edge_kinds &= required_edge_kinds;
+        if(edge_kinds.isEmpty()){
             break;
         }
     }
     lock_.unlock();
-    return edgeKinds;
+    return edge_kinds.toList();
 }
 
 QList<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs)

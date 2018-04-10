@@ -62,6 +62,9 @@
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
 #include "Entities/DeploymentDefinitions/blackboxinstance.h"
+
+#include "Entities/DeploymentDefinitions/deploymentattribute.h"
+
 #include "Entities/InterfaceDefinitions/aggregateinstance.h"
 #include "Entities/InterfaceDefinitions/memberinstance.h"
 #include "Entities/InterfaceDefinitions/vectorinstance.h"
@@ -243,7 +246,7 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
         if(!edge_kind_lookup.contains(kind_string)){
             edge_kind_lookup.insert(kind_string, kind);
         }
-        //qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
+        qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
     }
 }
 
@@ -377,6 +380,7 @@ EntityFactory::EntityFactory()
     EnumInstance(this);
     MEDEA::Class(this);
     MEDEA::Function(this);
+    MEDEA::DeploymentAttribute(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);
@@ -451,7 +455,7 @@ EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
 
 EntityFactory::EdgeLookupStruct* EntityFactory::getEdgeStruct(EDGE_KIND kind){
     auto edge = edge_struct_lookup.value(kind, 0);
-    if(!edge){
+    if(!edge && kind != EDGE_KIND::NONE){
         edge = new EdgeLookupStruct();
         edge->kind = kind;
         edge_struct_lookup.insert(kind, edge);
