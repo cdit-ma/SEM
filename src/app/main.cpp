@@ -6,10 +6,13 @@
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 
 int launchMEDEA(int argc, char *argv[]){
+    // If we are on windows and openend through a console pipe stdout and stderr for debugging
     #ifdef _WIN32
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
         freopen("CONOUT$", "w", stdout);
