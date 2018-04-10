@@ -940,6 +940,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::WORKER_PROCESS:
             case NODE_KIND::PROCESS:
+            case NODE_KIND::WORKER_FUNCTION:
+            case NODE_KIND::WORKER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);

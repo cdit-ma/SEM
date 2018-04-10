@@ -67,6 +67,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp
@@ -219,6 +220,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/blackboxinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.h
@@ -246,7 +248,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
-)
+    )
 
 
 set(RESOURCES

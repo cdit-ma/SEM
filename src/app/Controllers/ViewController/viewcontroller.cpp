@@ -537,6 +537,12 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             auto icon = viewItem->getData("icon").toString();
             auto icon_prefix = viewItem->getData("icon_prefix").toString();
 
+            if(Theme::theme()->gotImage(icon_prefix, icon)){
+                //Use these as our defaults
+                alias = icon_prefix;
+                image = icon;
+            }
+
 
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:{
@@ -545,16 +551,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 QString spec_image = (os % "_" % arch);
                 if(Theme::theme()->gotImage(alias, spec_image)){
                     image = spec_image;
-                }
-                break;
-            }
-            case NODE_KIND::WORKER_DEFINITION:
-            case NODE_KIND::WORKLOAD:{
-                QString type = viewItem->getData("type").toString();
-                if(nodeViewItem->getViewAspect() == VIEW_ASPECT::WORKERS){
-                    //If we are
-                    alias = icon_prefix;
-                    image = icon;
                 }
                 break;
             }
@@ -595,15 +591,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case NODE_KIND::WORKER_DEFINITIONS:{
                 alias = "Icons";
                 image = "medeaLogo";
-                break;
-            }
-            case NODE_KIND::WORKER_PROCESS:
-            case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::RETURN_PARAMETER:{
-                if(icon_prefix.length() > 0 && icon.length() > 0){
-                    alias = icon_prefix;
-                    image = icon;
-                }
                 break;
             }
             case NODE_KIND::VECTOR:

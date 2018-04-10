@@ -34,12 +34,27 @@ bool WorkerFunction::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             if(dst->getNodeKind() != NODE_KIND::WORKER_FUNCTION){
                 return false;
             }
-            if(dst->isInModel()){
+            //Get the Worker Definition that the Worker FUnction came from and check that we have an instance of that WorkerDefinition in our current parent
+            auto worker_function_parent = dst->getParentNode();
+            if(worker_function_parent->getNodeKind() != NODE_KIND::WORKER_DEFINITION){
                 return false;
             }
-            if(!isInModel()){
+
+            bool got_instance = false;
+            for(auto worker_instance : getParentNode()->getChildrenOfKind(NODE_KIND::WORKER_INSTANCE)){
+                auto worker_definition = worker_instance->getDefinition();
+
+                if(worker_definition == worker_function_parent){
+                    got_instance = true;
+                    break;
+                }
+            }
+            if(!got_instance){
                 return false;
             }
+
+            
+
             return true;
             break;
         }

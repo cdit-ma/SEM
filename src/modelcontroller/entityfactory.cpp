@@ -58,6 +58,7 @@
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
 #include "Entities/DeploymentDefinitions/blackboxinstance.h"
+#include "Entities/DeploymentDefinitions/workerinstance.h"
 #include "Entities/InterfaceDefinitions/aggregateinstance.h"
 #include "Entities/InterfaceDefinitions/memberinstance.h"
 #include "Entities/InterfaceDefinitions/vectorinstance.h"
@@ -350,6 +351,7 @@ EntityFactory::EntityFactory()
     AggregateInstance(this);
     MemberInstance(this);
     VectorInstance(this);
+    MEDEA::WorkerInstance(this);
     
     //Deployment Elements
     ComponentAssembly(this);
@@ -697,8 +699,9 @@ void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
         uuid_lookup_.remove(old_uuid);
 
         if(!uuid.isEmpty()){
+            qCritical() << entity->toString() << " : " << uuid;
             uuid_lookup_.insert(uuid, entity->getID());
-            //qCritical() << "UUID[" << uuid_lookup_.size() << "]: " << uuid << " -> " << entity->toString();
+            
         }
     }
 }

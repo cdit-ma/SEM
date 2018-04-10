@@ -122,6 +122,10 @@ void ModelController::loadWorkerDefinitions()
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
+                qCritical() << file;
+                /*if(file != "opencl.worker"){
+                    continue;
+                }*/
                 auto file_path = dir.absolutePath() + "/" + file;
                 auto data = readFile(file_path);
                 bool success = importGraphML(data.second, workerDefinitions);
@@ -1367,6 +1371,8 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
+    qCritical() << "Trying to construct: " << entity_factory->getNodeKindString(dependant_kind) << " INSIDE: " << parent->toString();
+
     //For each child in parent, check to see if any Nodes match Label/Type
     for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
         if(!child->getDefinition()){
@@ -1758,7 +1764,7 @@ void ModelController::setupModel()
 {
     //Construct the top level parents.
     model = construct_node(0, NODE_KIND::MODEL);
-    workerDefinitions = construct_node(0, NODE_KIND::WORKER_DEFINITIONS);
+    
 
     Data* labelData = model->getData("label");
     if(labelData){
@@ -1773,6 +1779,7 @@ void ModelController::setupModel()
     deploymentDefinitions = construct_child_node(model, NODE_KIND::DEPLOYMENT_DEFINITIONS, false);
     assemblyDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::ASSEMBLY_DEFINITIONS, false);
     hardwareDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::HARDWARE_DEFINITIONS, false);
+    workerDefinitions = construct_child_node(model, NODE_KIND::WORKER_DEFINITIONS, false);
 
     //Construct the localhost node
     auto localhostNode = construct_child_node(hardwareDefinitions, NODE_KIND::HARDWARE_NODE, false);
@@ -1783,9 +1790,10 @@ void ModelController::setupModel()
     localhostNode->setDataValue("architecture", QSysInfo::currentCpuArchitecture());
     localhostNode->setDataValue("uuid", "localhost");
 
+    
     //Protect the nodes
     protected_nodes << model;
-    protected_nodes << workerDefinitions;
+    //protected_nodes << workerDefinitions;
     protected_nodes << interfaceDefinitions;
     protected_nodes << behaviourDefinitions;
     protected_nodes << deploymentDefinitions;
@@ -1797,6 +1805,8 @@ void ModelController::setupModel()
     for(auto node : protected_nodes){
         storeNode(node);
     }
+
+    storeNode(workerDefinitions);
 }
 
 
@@ -1818,17 +1828,23 @@ void ModelController::bindData(Node *defn, Node *child)
     auto defn_label = defn->getData("label");
     auto defn_key = defn->getData("key");
     auto defn_index = defn->getData("index");
+    auto defn_icon_prefix = defn->getData("icon_prefix");
+    auto defn_icon = defn->getData("icon");
 
     auto child_type = child->getData("type");
     auto child_label = child->getData("label");
     auto child_key = child->getData("key");
     auto child_index = child->getData("index");
+    auto child_icon_prefix = child->getData("icon_prefix");
+    auto child_icon = child->getData("icon");
 
     //We can't bind to any of these if they aren't set
     bool bind_types = child_type;
     bool bind_labels = child_label && defn_label;
     bool bind_keys = child_key && defn_key;
     bool bind_index = child_index && defn_index;
+    bool bind_icons = defn_icon && child_icon && defn_icon_prefix && child_icon_prefix;
+
 
     //The only time we should bind the index is when we are contained in another instance
     if(!child->getParentNode()->isInstance()){
@@ -1857,6 +1873,11 @@ void ModelController::bindData(Node *defn, Node *child)
         }else if(defn_label){
             defn_label->bindData(child_type);
         }
+    }
+
+    if(bind_icons){
+        defn_icon->bindData(child_icon);
+        defn_icon_prefix->bindData(child_icon_prefix);
     }
 
     //Bind label
@@ -2392,8 +2413,11 @@ bool ModelController::importGraphML(QString document, Node *parent)
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
     bool show_progress = !isModelAction(MODEL_ACTION::NONE);
     bool process_uuids = isModelAction(MODEL_ACTION::IMPORT);
+    bool generate_uuid_off_id = (parent == workerDefinitions);
 
     current_entity->setID(parent->getID());
+
+    qCritical() << "Processing UUIDS: " << (process_uuids ? "YES" : "NO");
 
 
     if(show_progress){
@@ -2478,6 +2502,13 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     entity->setIDStr(id);
                     entity->setLineNumber(xml.lineNumber());
 
+                    //If we are meant to generate UUIDS, and our parent has a uuid, set it!
+                    if(generate_uuid_off_id){
+                        auto uuid_id = ExportIDKey::GetUUIDOfValue(id);
+                        entity->addData("uuid", uuid_id);
+                        unique_entity_ids.push_back(id);
+                    }
+
                     if(!entity_hash.contains(id)){
                         //Insert into the hash.
                         entity_hash.insert(id, entity);
@@ -2498,7 +2529,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     }
                     //Set the Item as the current Entity.
                     current_entity = entity;
-                    //TODO reset position
                 }
                 default:
                     break;
@@ -2534,6 +2564,18 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 default:
                     break;
             }
+
+            //CHeck if our parent is a WorkerDefinition
+            auto parent = entity;
+            while(parent && parent->isNode()){
+                auto parent_kind_str = parent->getDataValue("kind").toString();
+                auto parent_kind = entity_factory->getNodeKind(parent_kind_str);
+                if(parent_kind == NODE_KIND::WORKER_DEFINITION){
+                    export_uuid = true;
+                    break;
+                }
+                parent = parent->getParent();
+            }
         }
 
 
@@ -2541,9 +2583,11 @@ bool ModelController::importGraphML(QString document, Node *parent)
         if(export_uuid){
             //If we have a uuid, we should set the entity as read-only
             entity->addData("readOnly", true);
-
+            
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
+
+            qCritical() << "LOOKING FOR UUID: " << uuid << matched_entity;
             
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;

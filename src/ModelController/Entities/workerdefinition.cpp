@@ -12,6 +12,12 @@ WorkerDefinition::WorkerDefinition():Node(NODE_KIND::WORKER_DEFINITION){
     //setWorkflowReciever(true);
     //setWorkflowProducer(true);
     //setExpandEnabled(true);
+
+    setNodeType(NODE_TYPE::DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    
+    setInstanceKind(NODE_KIND::WORKER_INSTANCE);
+    setImplKind(NODE_KIND::WORKER_INSTANCE);
 }
 
 bool WorkerDefinition::canAdoptChild(Node *child)
@@ -28,5 +34,5 @@ bool WorkerDefinition::canAdoptChild(Node *child)
 
 bool WorkerDefinition::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    return Node::canAcceptEdge(edgeKind, dst);
+    return false;
 }

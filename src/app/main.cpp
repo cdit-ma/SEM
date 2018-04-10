@@ -6,7 +6,17 @@
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 
+#include <windows.h>
+
+
 int launchMEDEA(int argc, char *argv[]){
+    #ifdef _WIN32
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+    #endif
+
     //Construct a QApplication
     QApplication a(argc, argv);
 

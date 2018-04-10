@@ -44,6 +44,7 @@ enum class NODE_KIND
         HARDWARE_NODE,
         OPENCL_PLATFORM,
         OPENCL_DEVICE,
+        WORKER_INSTANCE,
 
         ATTRIBUTE_IMPL,
         BRANCH,
