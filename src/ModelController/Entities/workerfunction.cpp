@@ -26,10 +26,6 @@ WorkerFunction::WorkerFunction(EntityFactory* factory) : Process(factory, NODE_K
     RegisterDefaultData(factory, node_kind, "worker", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "workerID", QVariant::String, false);
     RegisterDefaultData(factory, node_kind, "description", QVariant::String, true);
-    
-    // Stop workerFunction from pulling in readOnly value from workerDefinition?
-    qCritical() << "Registering workerFunction with readOnly defaulting to false"; 
-    RegisterDefaultData(factory, node_kind, "readOnly", QVariant::String, true, false);
 }
 
 
@@ -53,9 +49,6 @@ bool WorkerFunction::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 }
             }
             
-
-            
-
             //return true;
             break;
         }
