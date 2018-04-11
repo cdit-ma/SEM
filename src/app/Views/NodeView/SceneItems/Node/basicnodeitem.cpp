@@ -81,6 +81,14 @@ BasicNodeItem *BasicNodeItem::getParentContainer() const
     return parentContainer;
 }
 
+QPointF BasicNodeItem::validateMove(QPointF delta){
+    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+        return delta;
+    }else{
+        return NodeItem::validateMove(delta);
+    }
+}
+
 
 void BasicNodeItem::setPos(const QPointF &p)
 {

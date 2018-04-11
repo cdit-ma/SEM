@@ -3,6 +3,10 @@
 
 #include "basicnodeitem.h"
 
+typedef QPair<int, int> CellIndex;
+
+
+
 class StackNodeItem: public BasicNodeItem
 {
     Q_OBJECT
@@ -12,42 +16,75 @@ public:
     QPointF getStemAnchorPoint() const;
     QPointF getElementPosition(BasicNodeItem *child);
 
-    QMap<int, QMap<int, QSizeF> > GetGridRectangles(const QList<NodeItem*> &children, int ignore_indexes_higher_than = -1);
     QPointF GetGridAlignedTopLeft() const;
 
-    void SetPaintSubArea(int row, int col, QColor background_color);
-    void SetSubAreaLabel(int row, int col, QString label, QColor background_color);
-    void SetSubAreaIcons(int row, int col, QString icon_path, QString icon_name);
+    void SetRenderCellArea(int row, int col, bool render, QColor color = QColor());
+    void SetRenderCellText(int row, int col, bool render, QString label = "", QColor color = QColor());
+    void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
+    void SetCellOrientation(int row, int col, Qt::Orientation orientation);
+    void SetCellSpacing(int row, int col, int spacing);
+
 
 
     void childPosChanged(EntityItem* child);
     void ChildIndexChanged(NodeItem* child);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
+    
+    QMarginsF getDefaultCellMargin() const;
+    QMarginsF getCellMargin(const CellIndex& index) const;
+    qreal getDefaultCellSpacing() const;
+    qreal getCellSpacing(const CellIndex& index) const;
+    Qt::Orientation getCellOrientation(const CellIndex& index) const;
+
     int GetHorizontalGap() const;
     int GetVerticalGap() const;
     Qt::Orientation orientation;
 
-    void recalculateSubAreas();
+    void updateCells();
 
-    QMap<int, QMap<int, QSizeF> > cached_grid_rectangles;
-    QMap<int, QMultiMap<int, NodeItem*> > cached_node_items;
+    QRectF getRowRect(int row) const;
     
+
+    static CellIndex GetCellIndex(NodeItem* child);
+
+    struct PersistentCellInfo{
+        CellIndex index;
+
+        bool render_rect = false;
+        bool render_text = false;
+        bool render_icons = false;
+        Qt::Orientation orientation;
+        
+        QColor rect_color;
+        StaticTextItem* text_item = 0;
+        QColor text_color;
+        QPair<QString, QString> icon;
+        QSize icon_size;
+
+
+        QMarginsF margin;
+        qreal spacing;
+    };
+
+    struct Cell{
+        CellIndex index;
+        Qt::Orientation orientation;
+
+        QRectF bounding_rect;
+        QRectF child_rect;
+
+        QList<QRectF> child_gap_rects;
+        QMap<NodeItem*, QPointF> child_offsets;
+        QList<NodeItem*> children;
+    };
+
     bool sub_areas_dirty = true;
 
-    QList<QPair <QPair<int, int>, QColor> > sub_areas_on;
+    QMap<CellIndex, PersistentCellInfo> cell_info;
+    QMap<CellIndex, Cell> cells;
 
-    QMap<int, QMultiMap<int, QPair<QString, QString> > > gap_icon_path;
-    QMap<int, QMultiMap<int, QRectF> > gap_icon_rects;
-
-    QMap<int, QMap<int, QRectF> > sub_area_rects;
-    QMap<int, QMap<int, StaticTextItem*> > sub_area_labels;
-    
-
-    StaticTextItem* left_text_item = 0;
-    StaticTextItem* right_text_item = 0;
-    StaticTextItem* bottom_text_item = 0;
-
+    PersistentCellInfo& SetupCellInfo(int row, int col);
 };
 
 #endif // STACKNODEITEM_H

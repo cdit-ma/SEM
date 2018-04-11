@@ -12,7 +12,8 @@
 enum class RENDER_STATE;
 class StaticTextItem{
     public:
-        StaticTextItem(Qt::Alignment text_align = Qt::AlignCenter, QString text = "");
+        StaticTextItem(Qt::Alignment text_align = Qt::AlignCenter);
+        void setText(QString text);
         void RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text = "");
     private:
         void UpdateText(QPainter* painter, QRectF rect, QString text);

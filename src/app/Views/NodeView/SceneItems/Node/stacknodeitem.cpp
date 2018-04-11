@@ -15,26 +15,106 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     removeRequiredData("height");
     reloadRequiredData();
     this->orientation = orientation;
+
+    
+    
 }
 
-void StackNodeItem::SetPaintSubArea(int row, int col, QColor color){
-    sub_areas_on.append(qMakePair(qMakePair(row, col), color));
-    sub_areas_dirty = true;
-}
+StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col){
+    CellIndex index(row, col);
 
-void StackNodeItem::SetSubAreaLabel(int row, int col, QString label, QColor color){
-    if(!sub_area_labels[row].contains(col)){
-        SetPaintSubArea(row, col, color);
-        sub_area_labels[row][col] = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop, label);
-        sub_areas_dirty = true;
+    if(cell_info.contains(index)){
+        return cell_info[index];
+    }else{
+        PersistentCellInfo& info = cell_info[index];
+        info.index = index;
+        info.orientation = orientation;
+        info.margin = getDefaultCellMargin();
+        info.spacing = getDefaultCellSpacing();
+
+        return info;
     }
 }
 
-void StackNodeItem::SetSubAreaIcons(int row, int col, QString icon_path, QString icon_name){
-    if(!gap_icon_path[row].contains(col)){
-        gap_icon_path[row].insert(col, qMakePair(icon_path, icon_name));
-        sub_areas_dirty = true;
+
+
+QMarginsF StackNodeItem::getDefaultCellMargin() const{
+    return QMarginsF(getGridSize(), getGridSize(), getGridSize(), getGridSize());
+}
+
+QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
+    auto grid_size = getGridSize();
+    if(cell_info.contains(index)){
+        return cell_info[index].margin;
     }
+    return getDefaultCellMargin();
+}
+
+Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index) const{
+    if(cell_info.contains(index)){
+        return cell_info[index].orientation;
+    }
+    return orientation;
+}
+
+qreal StackNodeItem::getDefaultCellSpacing() const{
+    return getGridSize();
+}
+
+qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
+    auto grid_size = getGridSize();
+
+    if(cell_info.contains(index)){
+        return cell_info[index].spacing;
+    }
+    return getDefaultCellSpacing();
+}
+
+void StackNodeItem::SetRenderCellText(int row, int col, bool render, QString label, QColor color){
+    auto& cell_info = SetupCellInfo(row, col);
+
+    cell_info.render_text = render && label.length();
+    
+    if(cell_info.render_text){
+        if(!cell_info.text_item){
+            cell_info.text_item = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop);
+        }
+    }else{
+        if(cell_info.text_item){
+            delete cell_info.text_item;
+            cell_info.text_item = 0;
+        }
+    }
+    cell_info.text_item->setText(label);
+    cell_info.text_color = color;
+}
+
+void StackNodeItem::SetRenderCellArea(int row, int col, bool render, QColor color){
+    auto& cell_info = SetupCellInfo(row, col);
+
+    cell_info.render_rect = render;
+
+    if(cell_info.render_rect){
+        cell_info.rect_color = color;
+    }
+}
+
+void StackNodeItem::SetCellOrientation(int row, int col, Qt::Orientation orientation){
+    auto& cell_info = SetupCellInfo(row, col);
+    cell_info.orientation = orientation;
+}
+void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
+    auto& cell_info = SetupCellInfo(row, col);
+    cell_info.spacing = spacing;
+}
+
+
+void StackNodeItem::SetRenderCellIcons(int row, int col, bool render, QString icon_path, QString icon_name, QSize icon_size){
+    auto& cell_info = SetupCellInfo(row, col);
+
+    cell_info.render_icons = render;
+    cell_info.icon = qMakePair(icon_path, icon_name);
+    cell_info.icon_size = icon_size;
 }
 
 QPointF StackNodeItem::getStemAnchorPoint() const
@@ -50,66 +130,216 @@ int StackNodeItem::GetVerticalGap() const{
     return getGridSize();
 }
 
-QMap<int, QMap<int, QSizeF> > StackNodeItem::GetGridRectangles(const QList<NodeItem*> &children, int ignore_indexes_higher_than){
-    QMap<int, QMap<int, QSizeF> > grid_rectangles;
+QRectF StackNodeItem::getRowRect(int row) const{
 
-    bool ignore_any = ignore_indexes_higher_than != -1;
-    auto should_cache = !ignore_any && children.size();
+    QRectF rect;
 
-    if(should_cache && cached_grid_rectangles.size()){
-        qCritical() << "Using Cache!";
-        return cached_grid_rectangles;
-    }else{
-        cached_node_items.clear();
-    }
-
-    for(auto c : children){
-        auto c_index = c->getSortOrder();
-        auto c_row = c->getSortOrderRow();
-        auto c_row_group = c->getSortOrderRowSubgroup();
-        cached_node_items[c_row].insert(c_row_group, c);
-        
-        if(ignore_any && c_index >= ignore_indexes_higher_than){
-            continue;
-        }
-        
-
-        //Insert into lookup
-        auto c_size = c->currentRect();
-        
-        auto& row_size = grid_rectangles[c_row][c_row_group];
-        
-        bool stack_height = c_row == 0 && c_row_group != 0;
-        bool stack_width = !stack_height;
-
-        auto adjusted_width = c_size.width() + GetHorizontalGap();
-
-        if(stack_height){
-            
-            auto adjusted_height = c_size.height() + GetVerticalGap();
-            row_size.rheight() += adjusted_height;
-            
-            if(row_size.width() < adjusted_width){
-                row_size.rwidth() = adjusted_width;
-            }
-        }
-        
-        if(stack_width){
-            row_size.rwidth() += adjusted_width;
-
-            if(row_size.height() < c_size.height()){
-                row_size.rheight() = c_size.height();
-            }
+    for(auto& cell : cells){
+        if(cell.index.first == row){
+            rect |= cell.bounding_rect;
         }
     }
-
-    if(should_cache){
-        qCritical() << "Storing Cache!";
-        cached_grid_rectangles = grid_rectangles;
-    }
-    
-    return grid_rectangles;
+    return rect;
 }
+
+void StackNodeItem::updateCells(){
+    if(sub_areas_dirty){
+        cells.clear();
+
+        //Get Our Children
+        bool got_prev_index = false;
+        CellIndex prev_index;
+
+        QMap<int, CellIndex> last_row_cell;
+        QMultiMap<int, CellIndex> row_cols;
+        
+        for(auto child : getSortedChildNodes()){
+            auto index = GetCellIndex(child);
+            
+            bool inserted = !cells.contains(index);
+            auto& cell = cells[index];
+            auto& cell_br = cell.bounding_rect;
+            auto& cell_cr = cell.child_rect;
+            
+
+            if(inserted){
+                //Insert this into the row lookup
+                row_cols.insert(index.first, index);
+                
+                cell.index = index;
+                cell.orientation = orientation;
+
+                
+                
+
+                QPointF cell_br_top_left;
+                
+                if(got_prev_index){
+                    //If we are in a different cell, get this cells position from the previous
+                    if(prev_index != index){
+                        auto& prev_cell = cells[prev_index];
+                        auto& prev_cell_br = prev_cell.bounding_rect;
+
+                        auto prev_cell_margin = getCellMargin(prev_index);
+
+                        //Adjust the Previous Cells Bounding Rect to add some padding between cells
+                        prev_cell_br = prev_cell.child_rect.marginsAdded(prev_cell_margin);
+
+                        //If our rows are the same
+                        if(index.first == prev_index.first){
+                            if(orientation == Qt::Vertical){
+                                //Vertical stacked items means columns stack on the bottom
+                                cell_br_top_left = QPointF(prev_cell_br.left(), prev_cell_br.bottom());
+                            }else if(orientation == Qt::Horizontal){
+                                //Vertical stacked items means columns stack on the Right
+                                cell_br_top_left = QPointF(prev_cell_br.right(), prev_cell_br.top());
+                            }
+                        }else{
+                            //Inser the last index as the last cell in the row
+                            last_row_cell.insert(prev_index.first, prev_index);
+                            //If our rows are different, use the previous row to calculate our offset
+                            auto prev_row_rect = getRowRect(prev_index.first);
+
+                            if(orientation == Qt::Vertical){
+                                cell_br_top_left = QPointF(prev_row_rect.right(), prev_row_rect.top());
+                            }else if(orientation == Qt::Horizontal){
+                                cell_br_top_left = QPointF(prev_row_rect.left(), prev_row_rect.bottom());
+                            }
+                        }
+                    }
+                }else{
+                    //If we don't have a previous rect, use the top left of the grid Rect
+                    cell_br_top_left = GetGridAlignedTopLeft();
+                }
+
+                auto cell_margin = getCellMargin(index);
+                cell.orientation = getCellOrientation(index);
+
+                auto cell_cr_top_left = cell_br_top_left + QPointF(cell_margin.left(), cell_margin.top());
+                cell_cr = QRectF(cell_cr_top_left, cell_cr_top_left);
+            }
+
+            auto cell_spacing = getCellSpacing(index);
+
+            cell_spacing = inserted ? 0 : cell_spacing;
+            
+            auto child_rect = child->currentRect();
+
+            QPointF child_pos;
+
+            if(cell.orientation == Qt::Vertical){
+                child_pos = QPointF(cell_cr.left(), cell_cr.bottom());
+                child_pos.ry() += cell_spacing;
+            }else if(cell.orientation == Qt::Horizontal){
+                child_pos = QPointF(cell_cr.right(), cell_cr.top());
+                child_pos.rx() += cell_spacing;
+            }
+            
+            child_rect.moveTopLeft(child_pos);
+
+            cell_cr |= child_rect;
+
+
+
+            
+            cell.children.append(child);
+            cell.child_offsets[child] = child_pos;
+            //child->setPos(child_pos);
+            prev_index = index;
+            got_prev_index = true;
+        }
+        
+        //Set the last index'd rectangle
+        if(got_prev_index){
+            last_row_cell.insert(prev_index.first, prev_index);
+            auto& cell = cells[prev_index];
+            auto& cell_br = cell.bounding_rect;
+            auto& cell_cr = cell.child_rect;
+            //Adjust the Previous Cells Bounding Rect to add some padding between cells
+            cell_br = cell_cr.marginsAdded(getCellMargin(prev_index));
+        }
+
+        //Keep Track of the overall rect
+        QRectF overall_rect;
+
+        //Make each column in each row match height/width depending on orientation
+        for(auto row : row_cols.keys()){
+            QRectF prev_header_rect;
+            for(const auto& index : row_cols.values(row)){
+                auto& cell = cells[index];
+                auto& child_rect = cell.child_rect;
+
+                auto row_rect = getRowRect(index.first);
+                auto margin = getCellMargin(index);
+
+                //Calculate what the cells bounding rect would be, so we can 
+                auto cell_br = cell.child_rect.marginsAdded(margin);
+
+                if(orientation == Qt::Vertical){
+                    auto adjustment = row_rect.width() - cell_br.width();
+                    child_rect.setWidth(child_rect.width() + adjustment);
+                }else if(orientation == Qt::Horizontal){
+                    auto adjustment = row_rect.height() - cell_br.height();
+                    child_rect.setHeight(child_rect.height() + adjustment);
+                }
+
+                cell.bounding_rect = child_rect.marginsAdded(margin);
+
+                overall_rect |= cell.bounding_rect;
+
+                //Calculate the gap rectangles
+                QRectF prev_header_rect;
+                for(auto child : cell.children){
+                    auto header_rect = child->headerRect();
+                    auto child_pos = cell.child_offsets[child];
+                    header_rect.moveTopLeft(child_pos);
+                    //header_rect.setTopRight(child_pos - header_rect.topRight());
+                    
+                    if(prev_header_rect.isValid()){
+                        QRectF gap_rect;
+                        if(cell.orientation == Qt::Horizontal){
+                            gap_rect.setTopLeft(prev_header_rect.topRight());
+                            gap_rect.setBottomRight(header_rect.bottomLeft());
+                        }else if(cell.orientation == Qt::Vertical){
+                            gap_rect.setTopLeft(prev_header_rect.bottomLeft());
+                            gap_rect.setBottomRight(header_rect.topRight());
+                        }
+                        gap_rect = gap_rect.normalized();
+                        if(gap_rect.isValid()){
+                            cell.child_gap_rects.append(gap_rect);
+                        }
+                    }
+                    prev_header_rect = header_rect;
+                }
+            }
+        }
+
+        //Make the last column in each row stretch
+        for(auto row : last_row_cell.keys()){
+            auto& index = last_row_cell[row];
+            auto& cell = cells[index];
+            
+            auto& child_rect = cell.child_rect;
+            auto margin = getCellMargin(index);
+            
+            //Adjust the Previous Cells Bounding Rect to add some padding between cells
+            auto cell_br = cell.child_rect.marginsAdded(margin);
+
+            if(orientation == Qt::Vertical){
+                auto adjustment = overall_rect.bottom() - cell_br.bottom();
+                child_rect.setHeight(child_rect.height() + adjustment);
+            }else if(orientation == Qt::Horizontal){
+                auto adjustment = overall_rect.right() - cell_br.right();
+                child_rect.setWidth(child_rect.width() + adjustment);
+            }
+
+            cell.bounding_rect = child_rect.marginsAdded(margin);
+        }
+
+        sub_areas_dirty = false;
+    }
+}
+
 
 QPointF StackNodeItem::GetGridAlignedTopLeft() const{
     auto grid_size = getGridSize();
@@ -127,57 +357,18 @@ QPointF StackNodeItem::GetGridAlignedTopLeft() const{
         item_offset.ry() += grid_size - y_mod;
     }
 
-    return item_offset;
+    return item_offset - QPointF(getGridSize(), getGridSize());
+}
+
+CellIndex StackNodeItem::GetCellIndex(NodeItem* child){
+    return CellIndex(child->getSortOrderRow(), child->getSortOrderRowSubgroup());
 }
 
 QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 {
-    auto child_index = child->getSortOrder();
-    auto child_row = child->getSortOrderRow();
-    auto child_col = child->getSortOrderRowSubgroup();
-
-    auto item_offset = GetGridAlignedTopLeft();
-    
-    auto grid_sizes = GetGridRectangles(getSortedChildNodes(), child_index);
-
-    for(auto row : grid_sizes.keys()){
-        auto row_width = 0;
-        auto row_height = 0;
-        auto& row_map = grid_sizes[row];
-        
-        for(auto col : row_map.keys()){
-            auto& row_col_size = row_map[col];
-
-            auto row_height_offset = col == 0 ? GetVerticalGap() : 0;
-
-            auto adjusted_height = row_col_size.height() + row_height_offset;
-
-            if(row < child_row){
-                if(adjusted_height > row_height){
-                    row_height = adjusted_height; 
-                }
-            }
-
-            if(row == child_row){
-                bool sum_height = row == 0 && (col == child_col && col != 0);
-                bool sum_width = !sum_height;
-
-                if(sum_width){
-                    row_width += row_col_size.width();
-                }else if(sum_height){
-                    
-                    if(adjusted_height > row_height){
-                        row_height = adjusted_height; 
-                    }
-                }
-            }
-        }
-
-        item_offset.rx() += row_width;
-        item_offset.ry() += row_height;
-    }
-    
-    return item_offset;
+    updateCells();
+    auto index = GetCellIndex(child);
+    return cells[index].child_offsets[child];
 }
 
 
@@ -185,13 +376,10 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 void StackNodeItem::childPosChanged(EntityItem* child)
 {
     sub_areas_dirty = true;
-    cached_grid_rectangles.clear();
-    cached_node_items.clear();
     
     auto new_index = child ? child->getData("index").toInt() : 0;
-    auto ordered_children = getSortedChildNodes();
 
-    for(auto c : ordered_children){
+    for(auto c : getSortedChildNodes()){
         auto child_index = c->getSortOrder();
         if(child_index >= new_index){
             c->setPos(QPointF());
@@ -200,6 +388,11 @@ void StackNodeItem::childPosChanged(EntityItem* child)
 
     BasicNodeItem::childPosChanged(child);
     update();
+
+    //updateCells();
+
+    //BasicNodeItem::childPosChanged(child);
+    //update();
 }
 
 
@@ -212,108 +405,37 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
     painter->setClipRect(option->exposedRect);
 
+    
+
     if(state >= RENDER_STATE::BLOCK && isExpanded()){
         painter->setPen(Qt::NoPen);
-
         
-        auto body_rect = bodyRect();
-        
-        recalculateSubAreas();
-
-        //Calculate the sub area Rects
-        for(const auto& sub_area : sub_areas_on){
-            const auto& row = sub_area.first.first;
-            const auto& column = sub_area.first.second;
-            const auto& color = sub_area.second;
-            
-            auto rect = sub_area_rects[row].value(column);
-            if(rect.isValid()){
-                painter->setPen(Qt::NoPen);
-                painter->setBrush(color);
-                painter->drawRect(rect);
-
-                auto label = sub_area_labels[row].value(column, 0);
-                if(label){
-                    auto text_rect = rect;
-
-                    text_rect.setHeight(getGridSize());
-
-                    painter->setBrush(Qt::black);
-                    painter->setPen(getDefaultPen());
-                    label->RenderText(painter, getRenderState(lod), text_rect);
+        for(auto& p_cell : cell_info.values()){
+            const auto& index = p_cell.index;
+            if(cells.contains(index)){
+                const auto& cell = cells[index];
+                if(p_cell.render_rect){
+                    painter->setPen(Qt::NoPen);
+                    painter->setBrush(p_cell.rect_color);
+                    painter->drawRect(cell.bounding_rect);
+                }
+                if(p_cell.render_text && p_cell.text_item){
+                    auto text_rect = cell.bounding_rect;
+                    text_rect.setHeight(p_cell.margin.top());
+                    if(text_rect.height()){
+                        painter->setPen(p_cell.text_color);
+                        p_cell.text_item->RenderText(painter, getRenderState(lod), text_rect);
+                    }
+                }
+                for(const auto& rect : cell.child_gap_rects){
+                    QRectF icon_rect;
+                    icon_rect.setSize(p_cell.icon_size);
+                    icon_rect.moveCenter(rect.center());
+                    paintPixmap(painter, lod, icon_rect, p_cell.icon.first, p_cell.icon.second);
                 }
             }
         }
     }
 
     NodeItem::paint(painter, option, widget);
-
-    if(state >= RENDER_STATE::BLOCK && isExpanded()){
-        for(auto row : gap_icon_path.keys()){
-            for(auto col : gap_icon_path[row].keys()){
-                for(const auto& icon_path : gap_icon_path[row].values(col)){
-                    for(const auto& rect : gap_icon_rects[row].values(col)){
-                        paintPixmap(painter, lod, rect, icon_path.first, icon_path.second);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void StackNodeItem::recalculateSubAreas(){
-    if(sub_areas_dirty){
-        //Clear old maps
-        gap_icon_rects.clear();
-        sub_area_rects.clear();
-
-        auto children = getSortedChildNodes();
-        if(!cached_node_items.size() && children.size()){
-            GetGridRectangles(children);
-        }
-
-        
-
-        //Calculate the sub area Rects
-        for(const auto& sub_area : sub_areas_on){
-            const auto& row = sub_area.first.first;
-            const auto& column = sub_area.first.second;
-
-            QRectF sub_area_rect;
-            
-            for(auto node : cached_node_items[row].values(column)){
-                sub_area_rect |= node->translatedBoundingRect();
-            }
-
-            if(sub_area_rect.isValid()){
-                sub_area_rects[row][column] = sub_area_rect;
-            }
-        }
-
-        
-        //Calculate gap_icon_rects
-        for(auto row : gap_icon_path.keys()){
-            for(auto col : gap_icon_path[row].keys()){
-                QRectF prev_header_rect;
-
-                for(auto node : cached_node_items[row].values(col)){
-                    auto current_header_rect = node->translatedHeaderRect();
-
-                    if(prev_header_rect.isValid()){
-                        QRectF item_rect(current_header_rect.topRight(), prev_header_rect.bottomLeft());
-                        item_rect = item_rect.normalized();
-                        
-                        QRectF icon_rect;
-                        icon_rect.setSize(smallIconSize() * 2);
-                        icon_rect.moveCenter(item_rect.center());
-
-                        gap_icon_rects[row].insert(col, icon_rect);
-                    }
-                    prev_header_rect = current_header_rect;
-                }
-            }
-        }
-        
-        sub_areas_dirty = false;
-    }
 }

@@ -2,13 +2,16 @@
 #include "entityitem.h"
 #include <QDebug>
 
-StaticTextItem::StaticTextItem(Qt::Alignment text_align, QString text){
+StaticTextItem::StaticTextItem(Qt::Alignment text_align){
     text_item.setPerformanceHint(QStaticText::AggressiveCaching);
     this->text_align = text_align;
-    this->text = text;
     option = QTextOption(text_align);
     option.setWrapMode(QTextOption::WrapAnywhere);
     text_item.setTextOption(option);
+}
+
+void StaticTextItem::setText(QString text){
+    this->text = text;
 }
 
 void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF rect, QString text){

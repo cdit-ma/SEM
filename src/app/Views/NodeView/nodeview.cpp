@@ -854,7 +854,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::COMPONENT_IMPL:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
@@ -926,7 +926,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::AGGREGATE:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
                 //Don't show icon
                 //secondary_icon.second = "tiles";
                 //nodeItem->setSecondaryIconPath(secondary_icon);
@@ -967,7 +967,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
             case NODE_KIND::AGGREGATE_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
@@ -1083,17 +1083,36 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     nodeItem->setIgnorePosition(true);
                 }
 
-                if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
+                if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER) && nodeKind != NODE_KIND::COMPONENT_IMPL){
                     auto stack_item = dynamic_cast<StackNodeItem*>(nodeItem);
                     if(stack_item){
-                        stack_item->SetSubAreaLabel(0, -1, "[Input Parameters]", stack_item->getHeaderColor().lighter(110));
-                        stack_item->SetSubAreaIcons(0, -1, "Icons", "lineHorizontal");
-                        stack_item->SetSubAreaLabel(0, 1, "[Return Parameters]", stack_item->getHeaderColor().lighter(110));
-                        stack_item->SetSubAreaLabel(0, 0, "[Workflow]", stack_item->getBodyColor());
-                        stack_item->SetSubAreaIcons(0, 0, "Icons", "arrowHeadRight");
+                        auto header_color = stack_item->getHeaderColor();;
+                        auto parameter_color = stack_item->getHeaderColor().lighter(110);
+                        auto text_color = Qt::black;
 
-                        stack_item->SetSubAreaLabel(1, 0, "[Variables]", stack_item->getHeaderColor());
-                        stack_item->SetSubAreaLabel(1, -1, "[Headers]", stack_item->getHeaderColor());
+                        stack_item->SetRenderCellArea(0, -1, true, parameter_color);
+                        stack_item->SetRenderCellText(0, -1, true, "[Input Parameters]", text_color);
+                        stack_item->SetRenderCellIcons(0, -1, true, "Icons", "lineHorizontal", QSize(8,8));
+                        stack_item->SetCellOrientation(0, -1, Qt::Vertical);
+                        
+
+                        stack_item->SetRenderCellArea(0, 1, true, parameter_color);
+                        stack_item->SetRenderCellText(0, 1, true, "[Return Parameters]", text_color);
+                        stack_item->SetRenderCellIcons(0, 1, true, "Icons", "lineHorizontal", QSize(8,8));
+                        stack_item->SetCellOrientation(0, 1, Qt::Vertical);
+
+                        stack_item->SetRenderCellText(0, 0, true, "[Workflow]", text_color);
+                        stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));
+                        stack_item->SetCellSpacing(0, 0, 20);
+                        
+                        stack_item->SetRenderCellText(0, 0, true, "[Workflow]", text_color);
+
+                        stack_item->SetRenderCellArea(1, 0, true, header_color);
+                        stack_item->SetRenderCellText(1, 0, true, "[Variables]", text_color);
+
+                        stack_item->SetRenderCellArea(1, -1, true, header_color);
+                        stack_item->SetRenderCellText(1, -1, true, "[Headers]", text_color);
+                        stack_item->SetCellOrientation(1,-1, Qt::Vertical);
                     }
                 }
 

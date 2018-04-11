@@ -21,6 +21,8 @@ public:
     void setPos(const QPointF &pos);
     QPointF getNearestGridPoint(QPointF newPos);
 
+    
+
     // QGraphicsItem interface
 public:
 
@@ -29,6 +31,8 @@ public:
     void paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 private:
+    QPointF validateMove(QPointF delta);
+
     QRectF headerRect() const;
     QRectF connectRect() const;
     QRectF connectSourceRect() const;

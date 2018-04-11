@@ -89,7 +89,7 @@ public:
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
-    QPointF validateMove(QPointF delta);
+    virtual QPointF validateMove(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
     bool isDataProtected(QString keyName) const;
