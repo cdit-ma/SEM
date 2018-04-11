@@ -3,6 +3,7 @@
 
 
 #include <QDebug>
+#include <algorithm>
 
 
 #include "Entities/key.h"
@@ -485,9 +486,16 @@ QList<Data *> EntityFactory::getDefaultEdgeData(EDGE_KIND kind)
     return data_list;
 }
 
-QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data){
+QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data_struct_list){
     QList<Data*> data_list;
-    foreach(auto data_struct, data){
+
+    //Sort Data by key name to make ID's deterministic
+    std::sort(data_struct_list.begin(), data_struct_list.end(), [](const DefaultDataStruct* struct2, const DefaultDataStruct* struct1){
+        return struct2->key_name > struct1->key_name;
+    });
+    
+
+    for(auto data_struct : data_struct_list){
         auto key = GetKey(data_struct->key_name, data_struct->type);
         auto data = CreateData(key, data_struct->value, data_struct->is_protected);
         if(data){
@@ -519,6 +527,8 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
 void EntityFactory::StoreEntity(GraphML* graphml, int id){
     if(graphml){
         graphml->setFactory(this);
+
+        
         RegisterEntity(graphml, id);
     }
 }
@@ -582,6 +592,7 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         }
 
         key_lookup_[key_name] = key;
+        
         StoreEntity(key);
         return key;
     }
@@ -675,7 +686,6 @@ void EntityFactory::RegisterEntity(GraphML* graphml, int id){
 
         if(id > -1){
             if(!hash_.contains(id)){
-                //qCritical() << "HASH: " << id << graphml->toString();
                 hash_.insert(id, graphml);
             }else{
                 qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;

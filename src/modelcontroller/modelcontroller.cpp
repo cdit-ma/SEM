@@ -205,7 +205,13 @@ QString ModelController::exportGraphML(QList<Entity*> selection, bool all_edges,
             xml += entity->toGraphML(2, functional_export);
         }
         
-        for(auto edge : edges){
+        //Sort the edges to be lowest to highest IDS for determinism
+        auto edge_list = edges.toList();
+        std::sort(edge_list.begin(), edge_list.end(), [](const Edge* e1, const Edge* e2){
+            return e1->getID() > e2->getID();
+        });
+
+        for(auto edge : edge_list){
             auto src = edge->getSource();
             auto dst = edge->getDestination();
             //Only export the edge if we contain both sides, unless we should export all
@@ -1295,12 +1301,15 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
     if(parentNode->addChild(node)){
         if(notify_view){
             storeNode(node);
-        }
+        }   
 
-        if(isUserAction()){
+        if(isUserAction() && node->isDefinition()){
             for(auto dependant : parentNode->getDependants()){
-                //Setup dependant relationship only for user functions
-                constructDependantRelative(dependant, node);
+                
+                auto success = constructDependantRelative(dependant, node);
+                if(!success){
+                    qCritical() << "Failed to Construct Dependant Relationship of: " << node->toString() << " Inside: " << dependant->toString();
+                }
             }
         }
         return true;
@@ -1371,6 +1380,7 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
+<<<<<<< HEAD
     qCritical() << "Trying to construct: " << entity_factory->getNodeKindString(dependant_kind) << " INSIDE: " << parent->toString();
 
     //For each child in parent, check to see if any Nodes match Label/Type
@@ -1378,29 +1388,39 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         if(!child->getDefinition()){
             auto labels_match = child->compareData(definition, "label");
             auto types_match = child->compareData(definition, "type");
+=======
+    if(dependant_kind != NODE_KIND::NONE){
+        //For each child in parent, check to see if any Nodes match Label/Type
+        for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
+            if(!child->getDefinition()){
+                auto labels_match = child->compareData(definition, "label");
+                auto types_match = child->compareData(definition, "type");
+>>>>>>> origin/ComponentImplDefinition
 
-            //If the labels and types match, we can construct an edge between them
-            if(types_match){
-                if(definition->isInstance() && !labels_match){
-                    continue;
+                //If the labels and types match, we can construct an edge between them
+                if(types_match){
+                    if(definition->isInstance() && !labels_match){
+                        continue;
+                    }
+                    construct_edge(EDGE_KIND::DEFINITION, child, definition);
                 }
-                construct_edge(EDGE_KIND::DEFINITION, child, definition);
+            }
+            if(child->getDefinition() == definition){
+                nodes_matched ++;
+                break;
             }
         }
-        if(child->getDefinition() == definition){
-            nodes_matched ++;
-            break;
-        }
-    }
 
-    if(!nodes_matched){
-        //qCritical() << definition << " Construct node!";
-        //If we didn't find a match, we must create an Instance.
-        auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
-        if(node){
-            nodes_matched ++;
+        if(!nodes_matched){
+            //qCritical() << definition << " Construct node!";
+            //If we didn't find a match, we must create an Instance.
+            auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
+            if(node){
+                nodes_matched ++;
+            }
         }
     }
+    
     return nodes_matched;
 }
 
@@ -1919,14 +1939,28 @@ void ModelController::unbindData(Node *definition, Node *instance)
 bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
     if(src && dst){
+        QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
         auto node_kind = src->getNodeKind();
-        auto construct_dependant = setup && isUserAction() && (node_kind != NODE_KIND::INEVENTPORT_INSTANCE && node_kind != NODE_KIND::OUTEVENTPORT_INSTANCE) ;
+        auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
         
         if(construct_dependant){
-            for(auto child : dst->getChildren(0)){
-                if(child->isNodeOfType(NODE_TYPE::DEFINITION)){
-                    if(!constructDependantRelative(src, child)){
-                        qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << src->toString();
+            QSet<NODE_KIND> adopt_impl_kinds = {NODE_KIND::COMPONENT};
+            auto dst_kind = dst->getNodeKind();
+
+            //Construct the list of things we need to check to adopt
+            QList<Node*> nodes_to_adopt = dst->getChildren(0);
+
+            //Allow ComponentImpls to adopt Definitions placed in ComponentImpls
+            if(adopt_impl_kinds.contains(dst_kind)){
+                for(auto implementation : dst->getImplementations()){
+                    nodes_to_adopt << implementation->getChildren(0);
+                }
+            }
+            
+
+            for(auto node : nodes_to_adopt){
+                if(node->isDefinition()){
+                    if(!constructDependantRelative(src, node)){
                         return false;
                     }
                 }
@@ -2437,12 +2471,12 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     auto key_name = getXMLAttribute(xml, "attr.name");
                     auto key_type = Key::getTypeFromGraphML(getXMLAttribute(xml, "attr.type"));
 
+                  
                     auto key = entity_factory->GetKey(key_name, key_type);
 
                     if(key){
 
                         if(!key_hash.contains(key_id)){
-
                             //First time we've seen it
                             key_hash.insert(key_id, key);
                         }else{
@@ -2864,7 +2898,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
                         auto value = entity->getDataValue(key_name);
                         setData_(edge, key_name, value, true);
                     }
-
                     //Set Actual ID
                     entity->setID(edge->getID());
                 }

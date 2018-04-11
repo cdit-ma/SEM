@@ -12,6 +12,7 @@ EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QSt
         values << "ZMQ";
         values << "RTI";
         values << "OSPL";
+        values << "TAO";
         //values << "QPID";
         
         RegisterValidDataValues(factory, kind, "middleware", QVariant::String, values);
