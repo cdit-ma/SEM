@@ -4,6 +4,7 @@
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
+import hudson.model.Computer.ListPossibleNames
 
 def utils = new Utils(this);
 
@@ -55,6 +56,7 @@ def loganClients_shutdown = [:]
 def experimentMasters = [:]
 def experimentSlaves = [:]
 def compileCode = [:]
+def addrMap = [:]
 
 def fail_flag = false
 def failureList = []
@@ -64,6 +66,14 @@ def jDeployment = "";
 def file = "model.graphml"
 
 def reNodes = utils.getLabelledNodes("envmanager_test")
+
+for(def i = 0; i < reNodes.size(); i++){
+    def nodeName = reNodes[i];
+
+    def nodeIPLookup = jenkins.model.Jenkins.instance.getNode(nodeName)
+    def ip_addr_list = nodeIPLookup.computer.getChannel().call(new ListPossibleNames())
+    addrMap[nodeName] = ip_addr_list[0]
+}
 
 def environmentManagerIp = "192.168.224.100"
 def environmentManangerPort = "20000"
@@ -107,7 +117,7 @@ withEnv(["model=''"]){
         // }
         
         def buildPath = workspacePath + "/" + buildDir
-        
+        middlewareString += "zmq,proto"
         //Generate C++ code
         dir(buildPath){
             unstash "model"
@@ -155,6 +165,7 @@ withEnv(["model=''"]){
     stage("Build deployment plan"){
     for(def i = 0; i < reNodes.size(); i++){
         def nodeName = reNodes[i];
+        def ipAddr = addrMap[nodeName]
 
         //Update the map to include the compile
         compileCode[nodeName] = {
@@ -170,14 +181,11 @@ withEnv(["model=''"]){
         }
 
         //if we've found the node we plan on running master on, build master instructions
-        if(nodeName == masterNode){
-            experimentMasters[nodeName] = {
+        experimentMasters[nodeName] = {
+            if(nodeName == masterNode){
                 node(nodeName){
                     def workspacePath = pwd()
                     def buildPath = workspacePath + "/" + buildDir + "/lib"
-
-                    def deploymentFilePath = ""
-                    def ipAddr = InetAddress.localHost.hostAddress
 
                     def args = " -m " + ipAddr
                     args += " -d " + file
@@ -195,31 +203,28 @@ withEnv(["model=''"]){
                     }
                 }
             }
-        }
+            else{
+                node(nodeName){
+                    def workspacePath = pwd()
+                    def buildPath = workspacePath + "/" + buildDir + "/lib"
 
-        experimentSlaves[nodeName] = {
-            node(nodeName){
-                def workspacePath = pwd()
-                def buildPath = workspacePath + "/" + buildDir + "/lib"
-                def ipAddr = InetAddress.localHost.hostAddress
+                    def args = " -s " + ipAddr
+                    args += " -l . "
+                    args += " -n " + experimentID
+                    args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
 
-                def args = " -s " + ipAddr
-                args += " -l . "
-                args += " -n " + experimentID
-                args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
-
-                dir(buildPath){
-                    unstash 'model'
-                    def command = "${RE_PATH}" + "/bin/re_experiment_slave" + args
-                    if(utils.runScript(command) != 0){
-                        failureList << ("Experiment slave failed on node: " + nodeName)
-                        fail_flag = true
+                    dir(buildPath){
+                        unstash 'model'
+                        def command = "sleep 3 && " + "${RE_PATH}" + "/bin/re_experiment_slave" + args
+                        if(utils.runScript(command) != 0){
+                            failureList << ("Experiment slave failed on node: " + nodeName)
+                            fail_flag = true
+                        }
                     }
-                }
 
+                }
             }
         }
-
 
         /*
         if(jNode["logan_server"]){
@@ -302,9 +307,6 @@ withEnv(["model=''"]){
     stage("Execute Model"){
         if(!fail_flag){
             parallel experimentMasters
-            //wait for master to communicate with 
-            sleep 300
-            parallel experimentSlaves
         }
         else{
             print("############# Execution skipped, compilation or code generation failed! #############")
