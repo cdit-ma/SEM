@@ -131,9 +131,11 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                         is_descendant = true;
                         break;
                     }
-                }
+                }  
 
-                if(!is_descendant && valid_ancestors.size()){
+                QSet<NODE_KIND> ignore_descendants = {NODE_KIND::WORKER_FUNCTION, NODE_KIND::WORKER_INSTANCE};
+
+                if(!is_descendant && valid_ancestors.size() && !ignore_descendants.contains(getNodeKind())){
                     //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                     return false;
                 }

@@ -742,11 +742,11 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
         triggerAction("Constructed Connected Node");
 
         Node* node = 0;
-        if(node_kind == NODE_KIND::WORKER_PROCESS || node_kind == NODE_KIND::WORKER_FUNCTION){
-            node = cloneNode(dst_node, parent_node);
-        }else{
+        //if(node_kind == NODE_KIND::WORKER_PROCESS || node_kind == NODE_KIND::WORKER_FUNCTION){
+            //node = cloneNode(dst_node, parent_node);
+        //}else{
             node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
-        }
+        //}
 
         if(node){
             //Use position?

@@ -1,4 +1,5 @@
 #include "workerinstance.h"
+#include "../data.h"
 
 const NODE_KIND node_kind = NODE_KIND::WORKER_INSTANCE;
 const QString kind_string = "WorkerInstance";
@@ -12,16 +13,14 @@ MEDEA::WorkerInstance::WorkerInstance(EntityFactory* factory) : Node(factory, no
     
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
+    //setData_("readOnly", false);
+    //getData("readOnly")->setValue(true);
 };
 
 MEDEA::WorkerInstance::WorkerInstance() : Node(NODE_KIND::WORKER_INSTANCE)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
-    //setNodeType(NODE_TYPE::DEFINITION);
-
-    setInstanceKind(node_kind);
-    //setImplKind(node_kind);
 
     setDefinitionKind(NODE_KIND::WORKER_DEFINITION);
 }
@@ -30,6 +29,7 @@ bool MEDEA::WorkerInstance::canAdoptChild(Node* node)
 {
     switch(node->getNodeKind()){
         case NODE_KIND::ATTRIBUTE_INSTANCE:
+        case NODE_KIND::WORKER_FUNCTION:
             break;
         default:
             return false;

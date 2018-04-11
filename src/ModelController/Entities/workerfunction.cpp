@@ -4,6 +4,12 @@
 WorkerFunction::WorkerFunction():Process(NODE_KIND::WORKER_FUNCTION)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    setNodeType(NODE_TYPE::INSTANCE);
+    setNodeType(NODE_TYPE::DEFINITION);
+
+    setInstanceKind(NODE_KIND::WORKER_FUNCTION);
+    setImplKind(NODE_KIND::WORKER_FUNCTION);
+    setDefinitionKind(NODE_KIND::WORKER_FUNCTION);
 }
 
 WorkerFunction::WorkerFunction(EntityFactory* factory) : Process(factory, NODE_KIND::WORKER_FUNCTION, "WorkerFunction"){
@@ -20,6 +26,10 @@ WorkerFunction::WorkerFunction(EntityFactory* factory) : Process(factory, NODE_K
     RegisterDefaultData(factory, node_kind, "worker", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "workerID", QVariant::String, false);
     RegisterDefaultData(factory, node_kind, "description", QVariant::String, true);
+    
+    // Stop workerFunction from pulling in readOnly value from workerDefinition?
+    qCritical() << "Registering workerFunction with readOnly defaulting to false"; 
+    RegisterDefaultData(factory, node_kind, "readOnly", QVariant::String, true, false);
 }
 
 
@@ -34,28 +44,19 @@ bool WorkerFunction::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             if(dst->getNodeKind() != NODE_KIND::WORKER_FUNCTION){
                 return false;
             }
-            //Get the Worker Definition that the Worker FUnction came from and check that we have an instance of that WorkerDefinition in our current parent
-            auto worker_function_parent = dst->getParentNode();
-            if(worker_function_parent->getNodeKind() != NODE_KIND::WORKER_DEFINITION){
-                return false;
-            }
 
-            bool got_instance = false;
-            for(auto worker_instance : getParentNode()->getChildrenOfKind(NODE_KIND::WORKER_INSTANCE)){
-                auto worker_definition = worker_instance->getDefinition();
+            
+            if(getParentNode()->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
 
-                if(worker_definition == worker_function_parent){
-                    got_instance = true;
-                    break;
+                if(!dst->getDefinition()){
+                    return false;
                 }
             }
-            if(!got_instance){
-                return false;
-            }
+            
 
             
 
-            return true;
+            //return true;
             break;
         }
         default:
