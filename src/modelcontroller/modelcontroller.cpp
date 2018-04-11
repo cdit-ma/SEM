@@ -1380,22 +1380,12 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
         dependant_kind = definition->getImplKind();
     }
 
-<<<<<<< HEAD
-    qCritical() << "Trying to construct: " << entity_factory->getNodeKindString(dependant_kind) << " INSIDE: " << parent->toString();
-
-    //For each child in parent, check to see if any Nodes match Label/Type
-    for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
-        if(!child->getDefinition()){
-            auto labels_match = child->compareData(definition, "label");
-            auto types_match = child->compareData(definition, "type");
-=======
     if(dependant_kind != NODE_KIND::NONE){
         //For each child in parent, check to see if any Nodes match Label/Type
         for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
             if(!child->getDefinition()){
                 auto labels_match = child->compareData(definition, "label");
                 auto types_match = child->compareData(definition, "type");
->>>>>>> origin/ComponentImplDefinition
 
                 //If the labels and types match, we can construct an edge between them
                 if(types_match){
