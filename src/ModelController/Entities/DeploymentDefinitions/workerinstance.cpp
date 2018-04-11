@@ -1,5 +1,4 @@
 #include "workerinstance.h"
-#include "../data.h"
 
 const NODE_KIND node_kind = NODE_KIND::WORKER_INSTANCE;
 const QString kind_string = "WorkerInstance";
@@ -13,8 +12,6 @@ MEDEA::WorkerInstance::WorkerInstance(EntityFactory* factory) : Node(factory, no
     
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
-    //setData_("readOnly", false);
-    //getData("readOnly")->setValue(true);
 };
 
 MEDEA::WorkerInstance::WorkerInstance() : Node(NODE_KIND::WORKER_INSTANCE)
