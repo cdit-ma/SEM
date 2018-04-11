@@ -186,6 +186,11 @@ public:
     int getVertexAngle(NodeItem::RectVertex vert) const;
     virtual void childPosChanged(EntityItem* child);
 signals:
+    void childSizeChanged(EntityItem* child);
+    void childPositionChanged(EntityItem* child);
+    void childIndexChanged(EntityItem* child);
+    void childCountChanged();
+
     void indexChanged();
     //Request changes
     void req_connectMode(NodeItem* item);

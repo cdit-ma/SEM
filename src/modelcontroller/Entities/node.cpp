@@ -83,7 +83,6 @@ bool Node::isAttached() const
 
 Node::~Node()
 {
-    //qCritical() << "DESTRUCTING FAM" << this->toString();
     if(parentNode){
         parentNode->removeChild(this);
     }
@@ -656,6 +655,7 @@ bool Node::hasEdges()
 }
 
 void Node::childRemoved(Node* child){
+    qCritical() << "CHILD: " << child->toString() << "REMOVED!";
     //qCritical() << "CHILD REMOVED" << child->toString();
 
     IndexKey::RevalidateChildrenIndex(this);

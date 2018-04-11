@@ -13,6 +13,7 @@ class StackNodeItem: public BasicNodeItem
 public:
     StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation = Qt::Vertical);
 
+
     QPointF getStemAnchorPoint() const;
     QPointF getElementPosition(BasicNodeItem *child);
 
@@ -24,12 +25,17 @@ public:
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
 
-
-
     void childPosChanged(EntityItem* child);
-    void ChildIndexChanged(NodeItem* child);
+
+
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
+    void ChildSizeChanged(EntityItem* item);
+    void ChildIndexChanged(EntityItem* item);
+    void ChildCountChanged();
+    
+    void RecalculateCells();
     
     QMarginsF getDefaultCellMargin() const;
     QMarginsF getCellMargin(const CellIndex& index) const;

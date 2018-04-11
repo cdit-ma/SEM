@@ -94,10 +94,7 @@ void BasicNodeItem::setPos(const QPointF &p)
 {
     QPointF pos = p;
     if(getParentContainer() && getParentContainer()->isSortOrdered()){
-        if(!isMoving()){
-            //Force it's position if it isn't moving!
-            pos = getParentContainer()->getElementPosition(this);
-        }
+        pos = getParentContainer()->getElementPosition(this);
     }
     NodeItem::setPos(pos);
 }

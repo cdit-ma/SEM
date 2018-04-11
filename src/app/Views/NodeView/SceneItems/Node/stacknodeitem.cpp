@@ -16,8 +16,33 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     reloadRequiredData();
     this->orientation = orientation;
 
-    
-    
+    disconnect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
+    disconnect(this, &NodeItem::childPositionChanged, this, &NodeItem::childPosChanged);
+
+    connect(this, &NodeItem::childSizeChanged, this, &StackNodeItem::ChildSizeChanged);
+    connect(this, &NodeItem::childIndexChanged, this, &StackNodeItem::ChildIndexChanged);
+    connect(this, &NodeItem::childCountChanged, this, &StackNodeItem::ChildCountChanged);
+
+    RecalculateCells();
+}
+void StackNodeItem::RecalculateCells(){
+    sub_areas_dirty = true;
+    updateCells();
+}
+
+void StackNodeItem::ChildCountChanged(){
+    //qCritical() << "CHILD COUNT CHANGED";
+    RecalculateCells();
+}
+
+void StackNodeItem::ChildSizeChanged(EntityItem* item){
+    //qCritical() << "CHILD CHANGED SIZE";
+    RecalculateCells();
+}
+
+void StackNodeItem::ChildIndexChanged(EntityItem* item){
+    //qCritical() << "CHILD CHANGED INDEX";
+    RecalculateCells();
 }
 
 StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col){
@@ -105,6 +130,7 @@ void StackNodeItem::SetCellOrientation(int row, int col, Qt::Orientation orienta
 }
 void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
     auto& cell_info = SetupCellInfo(row, col);
+
     cell_info.spacing = spacing;
 }
 
@@ -169,8 +195,6 @@ void StackNodeItem::updateCells(){
                 cell.index = index;
                 cell.orientation = orientation;
 
-                
-                
 
                 QPointF cell_br_top_left;
                 
@@ -244,7 +268,7 @@ void StackNodeItem::updateCells(){
             
             cell.children.append(child);
             cell.child_offsets[child] = child_pos;
-            //child->setPos(child_pos);
+            child->setPos(child_pos);
             prev_index = index;
             got_prev_index = true;
         }
@@ -336,6 +360,8 @@ void StackNodeItem::updateCells(){
             cell.bounding_rect = child_rect.marginsAdded(margin);
         }
 
+
+        NodeItem::childPosChanged(0);
         sub_areas_dirty = false;
     }
 }
@@ -366,7 +392,6 @@ CellIndex StackNodeItem::GetCellIndex(NodeItem* child){
 
 QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 {
-    updateCells();
     auto index = GetCellIndex(child);
     return cells[index].child_offsets[child];
 }
@@ -375,26 +400,8 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 
 void StackNodeItem::childPosChanged(EntityItem* child)
 {
-    sub_areas_dirty = true;
-    
-    auto new_index = child ? child->getData("index").toInt() : 0;
-
-    for(auto c : getSortedChildNodes()){
-        auto child_index = c->getSortOrder();
-        if(child_index >= new_index){
-            c->setPos(QPointF());
-        }
-    }
-
-    BasicNodeItem::childPosChanged(child);
-    update();
-
-    //updateCells();
-
-    //BasicNodeItem::childPosChanged(child);
-    //update();
+    return;
 }
-
 
 
 void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

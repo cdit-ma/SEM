@@ -68,7 +68,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
         setPos(getNearestGridPoint());
     }
 
-   
+    connect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
+    connect(this, &NodeItem::childPositionChanged, this, &NodeItem::childPosChanged);
 
 
     gridLinePen.setColor(getBaseBodyColor().darker(150));
@@ -141,16 +142,21 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
         nodeItem->setParentItem(this);
-        connect(nodeItem, &EntityItem::sizeChanged, this, [=](){childPosChanged(nodeItem);});
-        connect(nodeItem, &EntityItem::positionChanged, this, [=](){childPosChanged(nodeItem);});
+        connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
+        connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
+        connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
+        
+
+        
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBaseBodyColor(getBaseBodyColor());//.darker(110));
+        nodeItem->setBaseBodyColor(getBaseBodyColor());
 
         nodeItem->setVisible(isExpanded());
         childPosChanged(nodeItem);
+        emit childCountChanged();
     }
 }
 
@@ -167,6 +173,7 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
         nodeItem->unsetParent();
 
         childPosChanged(nodeItem);
+        emit childCountChanged();
     }
 }
 

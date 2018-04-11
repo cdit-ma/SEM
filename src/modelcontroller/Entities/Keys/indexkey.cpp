@@ -10,6 +10,7 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
     
     int new_index = data_value.toInt();
     int old_index = data->getValue().toInt();
+    
 
     Node* node = 0;
     Node* parent_node = 0;
@@ -48,22 +49,20 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
         old_index = max_index;
     }
 
-    siblings.removeAll(node);
 
+    //Remove our self
+    siblings.removeAll(node);
 
     QMap<const Node*, int> desired_index;
 
+    //Re-insert at the desired location
     siblings.insert(new_index, node);
-
-
+  
     //Force all children to be index ordered starting at 0. This should fix any gaps due to deleted elements
     for(int i = 0; i < siblings.count(); i++){
         auto sibling = siblings[i];
         desired_index[sibling] = i;
     }
-
-
-
 
     //Sort the List by Row (Lowest to Highest) and also by Index (Lowest to Highest)
     std::sort(siblings.begin(), siblings.end(), [&desired_index, &old_index](const Node* node1, const Node* node2){
@@ -120,8 +119,12 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
 }
 
 void IndexKey::RevalidateChildrenIndex(Node* parent){
-    auto child = parent->getFirstChild();
-    if(child){
-        child->setDataValue("index", child->getDataValue("index"));
+    if(parent){
+        auto children = parent->getChildren(0);
+
+        if(children.size()){
+            auto child = children.last();
+            child->setDataValue("index", child->getDataValue("index"));
+        }
     }
 }
