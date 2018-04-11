@@ -58,6 +58,7 @@ class ExecutionManager{
         std::string master_endpoint_;
         std::string master_publisher_port_;
         std::string experiment_id_;
+        std::string environment_manager_endpoint_;
 
         std::thread* execution_thread_ = 0;
 

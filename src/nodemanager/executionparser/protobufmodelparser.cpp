@@ -8,6 +8,7 @@
 
 
 ProtobufModelParser::ProtobufModelParser(const std::string& filename, const std::string& experiment_id){
+    experiment_id_ = experiment_id;
     graphml_parser_ = new GraphmlParser(filename);
     is_valid_ = graphml_parser_->IsValid();
     pre_process_success_ = PreProcess();

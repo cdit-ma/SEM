@@ -53,6 +53,7 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     }
     master_endpoint_ = endpoint;
     experiment_id_ = experiment_id;
+    environment_manager_endpoint_ = environment_manager_endpoint;
 
     auto start = std::chrono::steady_clock::now();
     //Setup the parser
@@ -102,14 +103,15 @@ bool ExecutionManager::PopulateDeployment(){
         generator.PopulateDeployment(*deployment_message_);
     }
     else{
-
-        requester_->Init();
+        requester_->Init(environment_manager_endpoint_);
         requester_->Start();
         
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto response = requester_->AddDeployment(*deployment_message_);
 
         *deployment_message_ = response;
+
+        std::cout << response.DebugString() << std::endl;
 
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
             auto attribute = deployment_message_->attributes(i);

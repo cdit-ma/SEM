@@ -63,7 +63,7 @@ def jDeployment = "";
 
 def file = "model.graphml"
 
-def reNodes = utils.getLabelledNodes("re")
+def reNodes = utils.getLabelledNodes("envmanager_test")
 
 withEnv(["model=''"]){
     node(masterNode){
@@ -81,27 +81,27 @@ withEnv(["model=''"]){
         //Parse graphml model and generate deployment plan
         stage('Build Deployment Plan'){
             //Generate deployment json
-            def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
-            sh(script: executionParser)
-            archiveArtifacts "execution.json"
+            // def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
+            // sh(script: executionParser)
+            // archiveArtifacts "execution.json"
 
             def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
             sh(script: execution_debug)
             archiveArtifacts "execution.dump"
 
             //Parse json
-            jDeployment = readJSON file: 'execution.json'
+            // jDeployment = readJSON file: 'execution.json'
         
         }
 
-        def middlewares = jDeployment["model"]["middlewares"]
+        // def middlewares = jDeployment["model"]["middlewares"]
 
-        for(def i = 0; i < middlewares.size(); i++){
-            middlewareString += middlewares[i]
-            if(i != middlewares.size()-1){
-                middlewareString += ","
-            }
-        }
+        // for(def i = 0; i < middlewares.size(); i++){
+        //     middlewareString += middlewares[i]
+        //     if(i != middlewares.size()-1){
+        //         middlewareString += ","
+        //     }
+        // }
         
         def buildPath = workspacePath + "/" + buildDir
         
@@ -142,13 +142,12 @@ withEnv(["model=''"]){
         }
     }
 
-    //Itterate through all nodes
-    def modelName = jDeployment["model"].name
-    def modelDescription = jDeployment["model"].description
-    currentBuild.description = modelName
-    if(modelDescription){
-        currentBuild.description = currentBuild.description + " : " + modelDescription
-    }
+    // def modelName = jDeployment["model"].name
+    // def modelDescription = jDeployment["model"].description
+    // currentBuild.description = modelName
+    // if(modelDescription){
+    //     currentBuild.description = currentBuild.description + " : " + modelDescription
+    // }
     
     stage("Build deployment plan"){
     for(def i = 0; i < reNodes.size(); i++){
@@ -177,8 +176,8 @@ withEnv(["model=''"]){
                     def deploymentFilePath = ""
                     def ipAddr = InetAddress.localHost.hostAddress
                     //TODO: Get these from somewhere
-                    def environmentManagerIp = ""
-                    def environmentManangerPort = ""
+                    def environmentManagerIp = "192.168.224.1"
+                    def environmentManangerPort = "20000"
 
                     def args = " -m " + ipAddr
                     args += " -d " + file
@@ -205,8 +204,8 @@ withEnv(["model=''"]){
                 def ipAddr = InetAddress.localHost.hostAddress
 
                 //TODO: Get these from somewhere
-                def environmentManagerIp = ""
-                def environmentManangerPort = ""
+                def environmentManagerIp = "192.168.224.1"
+                def environmentManangerPort = "20000"
 
                 def args = " -s " + ipAddr
                 args += " -l . "
@@ -292,13 +291,13 @@ withEnv(["model=''"]){
     }
     }
 
-    stage("Start logan servers"){
-        parallel loganServers
-    }
+    // stage("Start logan servers"){
+    //     parallel loganServers
+    // }
 
-    stage("Start logan clients"){
-        parallel loganClients
-    }
+    // stage("Start logan clients"){
+    //     parallel loganClients
+    // }
 
     stage("Compiling C++"){
         parallel compileCode
@@ -316,12 +315,12 @@ withEnv(["model=''"]){
         }
     }
 
-    stage("Stop logan clients"){
-        parallel loganClients_shutdown
-    }
-    stage("Stop logan servers"){
-        parallel loganServers_shutdown
-    }
+    // stage("Stop logan clients"){
+    //     parallel loganClients_shutdown
+    // }
+    // stage("Stop logan servers"){
+    //     parallel loganServers_shutdown
+    // }
 
     if(fail_flag){
         currentBuild.result = 'FAILURE'
