@@ -88,9 +88,9 @@ withEnv(["model=''"]){
             // sh(script: executionParser)
             // archiveArtifacts "execution.json"
 
-            def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
-            sh(script: execution_debug)
-            archiveArtifacts "execution.dump"
+            // def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
+            // sh(script: execution_debug)
+            // archiveArtifacts "execution.dump"
 
             //Parse json
             // jDeployment = readJSON file: 'execution.json'
