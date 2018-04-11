@@ -65,6 +65,9 @@ def file = "model.graphml"
 
 def reNodes = utils.getLabelledNodes("envmanager_test")
 
+def environmentManagerIp = "192.168.224.100"
+def environmentManangerPort = "20000"
+
 withEnv(["model=''"]){
     node(masterNode){
         deleteDir()
@@ -175,9 +178,6 @@ withEnv(["model=''"]){
 
                     def deploymentFilePath = ""
                     def ipAddr = InetAddress.localHost.hostAddress
-                    //TODO: Get these from somewhere
-                    def environmentManagerIp = "192.168.224.1"
-                    def environmentManangerPort = "20000"
 
                     def args = " -m " + ipAddr
                     args += " -d " + file
@@ -202,10 +202,6 @@ withEnv(["model=''"]){
                 def workspacePath = pwd()
                 def buildPath = workspacePath + "/" + buildDir + "/lib"
                 def ipAddr = InetAddress.localHost.hostAddress
-
-                //TODO: Get these from somewhere
-                def environmentManagerIp = "192.168.224.1"
-                def environmentManangerPort = "20000"
 
                 def args = " -s " + ipAddr
                 args += " -l . "
