@@ -119,7 +119,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
     AddNodeToEnvironment(node);
 
     experiment->node_map_[node.info().id()] = new NodeManager::Node(node);
-
+    experiment->deployment_map_[experiment->node_address_map_[node.info().id()]] = 0;
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
@@ -155,6 +155,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
             }
             experiment->port_map_[event_port.id] = event_port;
         }
+        experiment->deployment_map_[experiment->node_address_map_[node.info().id()]]++;
     }
 }
 
@@ -162,24 +163,27 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
 
     std::string node_name = node.info().name();
 
-    //set modellogger port
-    auto logger_port = GetPort(node_name);
-    auto logger_attribute = node.add_attributes();
-    auto logger_attribute_info = logger_attribute->mutable_info();
-    logger_attribute->set_kind(NodeManager::Attribute::STRING);
-    logger_attribute_info->set_name("modellogger_port");
-    logger_attribute->add_s(logger_port);
+    if(node.components_size() > 0){
+        //set modellogger port
+        auto logger_port = GetPort(node_name);
+        auto logger_attribute = node.add_attributes();
+        auto logger_attribute_info = logger_attribute->mutable_info();
+        logger_attribute->set_kind(NodeManager::Attribute::STRING);
+        logger_attribute_info->set_name("modellogger_port");
+        logger_attribute->add_s(logger_port);
 
-    //set master/slave port
-    auto management_port = GetPort(node_name);
-    auto management_endpoint_attribute = node.add_attributes();
-    auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
-    management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
-    management_endpoint_attribute_info->set_name("management_port");
-    management_endpoint_attribute->add_s(management_port);
+        //set master/slave port
+        auto management_port = GetPort(node_name);
+        auto management_endpoint_attribute = node.add_attributes();
+        auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
+        management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
+        management_endpoint_attribute_info->set_name("management_port");
+        management_endpoint_attribute->add_s(management_port);
 
-    experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
-    experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
+        experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
+        experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
+    }
+
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
 
@@ -278,7 +282,12 @@ void Environment::FreeManagerPort(const std::string& port){
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address){
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
-        return experiment->node_id_map_.count(ip_address);
+        try{
+            bool out = experiment->deployment_map_.at(ip_address) > 0;
+            return out;
+        }catch(...){
+            return false;
+        }
     }
     return false;
 }

@@ -144,6 +144,9 @@ class Environment{
             //list of topics used in this experiment
             std::set<std::string> topic_set_;
 
+            //map of node id -> deployed component count
+            std::unordered_map<std::string, int> deployment_map_;
+
             uint64_t time_added;
             ExperimentState state;
 
