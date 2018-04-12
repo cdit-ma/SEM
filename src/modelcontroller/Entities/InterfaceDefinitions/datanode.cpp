@@ -133,7 +133,7 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     
     switch(edgeKind){
     case EDGE_KIND::DATA:{
-        qCritical() << this->toString() << " -> " << dst->toString();
+        //qCritical() << this->toString() << " -> " << dst->toString();
         if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
             //Cannot connect to a non DataNode type.
             return false;

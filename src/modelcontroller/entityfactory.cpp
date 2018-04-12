@@ -256,7 +256,6 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
         if(!edge_kind_lookup.contains(kind_string)){
             edge_kind_lookup.insert(kind_string, kind);
         }
-        qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
     }
 }
 

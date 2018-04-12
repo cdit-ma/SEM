@@ -349,7 +349,7 @@ QRectF BasicNodeItem::expandStateRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() / 2);
-    QRectF cr = currentRect().marginsRemoved(headerMargin);
+    QRectF cr = currentRect().marginsRemoved(QMarginsF(1,1,1,1));
     rect.moveBottomRight(cr.bottomRight());
     return rect;
 }

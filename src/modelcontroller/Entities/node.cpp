@@ -655,9 +655,6 @@ bool Node::hasEdges()
 }
 
 void Node::childRemoved(Node* child){
-    qCritical() << "CHILD: " << child->toString() << "REMOVED!";
-    //qCritical() << "CHILD REMOVED" << child->toString();
-
     IndexKey::RevalidateChildrenIndex(this);
 }
 

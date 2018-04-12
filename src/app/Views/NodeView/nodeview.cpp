@@ -1096,7 +1096,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             }
 
             if(nodeItem){
-                bool small_style = false;
+                bool small_style = true;
 
                 if(small_style){
                     nodeItem->setMinimumHeight(20);
@@ -1114,7 +1114,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
                 auto stack_item = dynamic_cast<StackNodeItem*>(nodeItem);
                 if(small_style && stack_item){
-                    stack_item->setDefaultCellSpacing(2);
+                    stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
                 }
 
                 if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
@@ -1123,7 +1123,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         stack_item->setAlignment(Qt::Horizontal);
                         auto header_color = stack_item->getHeaderColor();;
                         auto parameter_color = stack_item->getHeaderColor().lighter(110);
-                        auto text_color = Qt::black;
+                        auto text_color = Qt::darkGray;
 
                         
 
@@ -1136,32 +1136,39 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             margin.setLeft(margin.left() * 2);
 
                             stack_item->SetRenderCellArea(0, -1, true, parameter_color);
-                            stack_item->SetRenderCellText(0, -1, true, "[Input Parameters]", text_color);
+                            stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS", text_color);
                             stack_item->SetRenderCellIcons(0, -1, true, "Icons", "lineHorizontal", QSize(8,8));
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);
                             stack_item->SetCellMargins(0, -1, margin);
                             
 
                             stack_item->SetRenderCellArea(0, 1, true, parameter_color);
-                            stack_item->SetRenderCellText(0, 1, true, "[Return Parameters]", text_color);
+                            stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS", text_color);
                             stack_item->SetRenderCellIcons(0, 1, true, "Icons", "lineHorizontal", QSize(8,8));
                             stack_item->SetCellOrientation(0, 1, Qt::Vertical);
                             stack_item->SetCellMargins(0, 1, margin);
 
-                            stack_item->SetRenderCellText(0, 0, true, "[Workflow]", text_color);
-                            stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));
-                            stack_item->SetCellSpacing(0, 0, 20);
+                            stack_item->SetRenderCellText(0, 0, true, "WORKFLOW", text_color);
+
+                            if(small_style){
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(16,16));
+                                stack_item->SetCellSpacing(0, 0, 10);
+                            }else{
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));
+                                stack_item->SetCellSpacing(0, 0, 20);
+
+                            }
                         }
 
                         stack_item->SetRenderCellArea(1, 0, true, header_color);
-                        stack_item->SetRenderCellText(1, 0, true, "[Attributes]", text_color);
+                        stack_item->SetRenderCellText(1, 0, true, "Attributes", text_color);
 
                         stack_item->SetRenderCellArea(1, 1, true, header_color);
-                        stack_item->SetRenderCellText(1, 1, true, "[Variables]", text_color);
+                        stack_item->SetRenderCellText(1, 1, true, "Variables", text_color);
 
 
                         stack_item->SetRenderCellArea(1, -1, true, header_color);
-                        stack_item->SetRenderCellText(1, -1, true, "[Headers]", text_color);
+                        stack_item->SetRenderCellText(1, -1, true, "Headers", text_color);
                         stack_item->SetCellOrientation(1, -1, Qt::Vertical);
                     }
                 }
