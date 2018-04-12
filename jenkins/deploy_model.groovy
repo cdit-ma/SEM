@@ -182,48 +182,45 @@ withEnv(["model=''"]){
             }
         }
 
-        //if we've found the node we plan on running master on, build master instructions
         experimentMasters[nodeName] = {
-            if(nodeName == masterNode){
-                node(nodeName){
-                    def workspacePath = pwd()
-                    def buildPath = workspacePath + "/" + buildDir + "/lib"
+            node(nodeName){
+                def workspacePath = pwd()
+                def buildPath = workspacePath + "/" + buildDir + "/lib"
+                def master_command = ""
+                def slave_command = ""
+                if(nodeName == masterNode){
+                    
+                    def master_args = " -m " + ipAddr
+                    master_args += " -d " + file
+                    master_args += " -t " + executionTime
+                    master_args += " -n " + experimentID
+                    master_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
 
-                    def args = " -m " + ipAddr
-                    args += " -d " + file
-                    args += " -t " + executionTime
-                    args += " -n " + experimentID
-                    args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                    master_command = "${RE_PATH}" + "/bin/re_experiment_master" + master_args
 
-                    dir(buildPath){
-                        unstash 'model'
-                        def command = "${RE_PATH}" + "/bin/re_experiment_master" + args
-                        if(utils.runScript(command) != 0){
-                            failureList << ("Experiment master failed on node: " + nodeName)
-                            fail_flag = true
-                        }
-                    }
                 }
-            }
-            else{
-                node(nodeName){
-                    def workspacePath = pwd()
-                    def buildPath = workspacePath + "/" + buildDir + "/lib"
 
-                    def args = " -s " + ipAddr
-                    args += " -l . "
-                    args += " -n " + experimentID
-                    args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                def slave_args = " -s " + ipAddr
+                slave_args += " -l . "
+                slave_args += " -n " + experimentID
+                slave_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                slave_command = "sleep 3 && " + "${RE_PATH}" + "/bin/re_experiment_slave" + slave_args
 
-                    dir(buildPath){
-                        unstash 'model'
-                        def command = "sleep 3 && " + "${RE_PATH}" + "/bin/re_experiment_slave" + args
-                        if(utils.runScript(command) != 0){
-                            failureList << ("Experiment slave failed on node: " + nodeName)
-                            fail_flag = true
-                        }
+                def command = ""
+                if(nodeName == masterNode){
+                    command += master_command
+                    command += " & "
+                    command += slave_command
+                }else{
+                    command = slave_command
+                }
+                
+                dir(buildPath){
+                    unstash 'model'
+                    if(utils.runScript(command) != 0){
+                        failureList << ("Experiment slave failed on node: " + nodeName)
+                        fail_flag = true
                     }
-
                 }
             }
         }

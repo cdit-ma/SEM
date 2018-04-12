@@ -105,11 +105,16 @@ bool ExecutionManager::PopulateDeployment(){
     else{
         requester_->Init(environment_manager_endpoint_);
         requester_->Start();
+
+        std::cout << deployment_message_->DebugString() << std::endl;
+        
         
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto response = requester_->AddDeployment(*deployment_message_);
 
         *deployment_message_ = response;
+
+        std::cout << response.DebugString() << std::endl;
 
         for(int i = 0; i < deployment_message_->attributes_size(); i++){
             auto attribute = deployment_message_->attributes(i);
