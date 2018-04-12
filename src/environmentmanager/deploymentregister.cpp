@@ -93,7 +93,11 @@ void DeploymentRegister::RegistrationLoop(){
                 }
             }
 
+            std::cout << experiment_id << ":" << ip_address << std::endl;
+            assert(!ip_address.empty());
+
             if(environment_->NodeDeployedTo(experiment_id, ip_address)){
+                std::cout << "populating" << std::endl;
                 std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
                 std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
 
@@ -113,6 +117,7 @@ void DeploymentRegister::RegistrationLoop(){
                 control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
             }
             else{
+                std::cout << "terminating" << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 control_message->set_type(NodeManager::ControlMessage::TERMINATE);
             }
