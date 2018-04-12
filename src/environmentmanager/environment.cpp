@@ -162,27 +162,24 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
 
     std::string node_name = node.info().name();
 
-    //Only fill if we're actually deploying components to this node
-    if(node.components_size() > 0){
-        //set modellogger port
-        auto logger_port = GetPort(node_name);
-        auto logger_attribute = node.add_attributes();
-        auto logger_attribute_info = logger_attribute->mutable_info();
-        logger_attribute->set_kind(NodeManager::Attribute::STRING);
-        logger_attribute_info->set_name("modellogger_port");
-        logger_attribute->add_s(logger_port);
+    //set modellogger port
+    auto logger_port = GetPort(node_name);
+    auto logger_attribute = node.add_attributes();
+    auto logger_attribute_info = logger_attribute->mutable_info();
+    logger_attribute->set_kind(NodeManager::Attribute::STRING);
+    logger_attribute_info->set_name("modellogger_port");
+    logger_attribute->add_s(logger_port);
 
-        //set master/slave port
-        auto management_port = GetPort(node_name);
-        auto management_endpoint_attribute = node.add_attributes();
-        auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
-        management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
-        management_endpoint_attribute_info->set_name("management_port");
-        management_endpoint_attribute->add_s(management_port);
+    //set master/slave port
+    auto management_port = GetPort(node_name);
+    auto management_endpoint_attribute = node.add_attributes();
+    auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
+    management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
+    management_endpoint_attribute_info->set_name("management_port");
+    management_endpoint_attribute->add_s(management_port);
 
-        experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
-        experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
-    }
+    experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
+    experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
     experiment_map_[model_name]->node_map_[node.info().id()] = new NodeManager::Node(node);
 }
 
