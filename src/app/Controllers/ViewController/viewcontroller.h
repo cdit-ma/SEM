@@ -109,8 +109,10 @@ public:
     QVariant getEntityDataValue(int ID, QString key_name);
     bool isNodeOfType(int ID, NODE_TYPE type);
     int getNodeParentID(int ID);
-
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
+private:
+    void SetParentNode(ViewItem* parent, ViewItem* child);
+
 signals:
     //TO OTHER VIEWS SIGNALS
 
@@ -190,8 +192,8 @@ signals:
     void vc_highlightItem(int ID, bool highlight);
 
 public slots:
-    void incrementSelectedIndex();
-    void decrementSelectedIndex();
+    void incrementSelectedKey(QString key_name);
+    void decrementSelectedKey(QString key_name);
     
     void welcomeScreenToggled(bool visible);
     void highlight(QList<int> ids);

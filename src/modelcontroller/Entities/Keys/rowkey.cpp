@@ -37,15 +37,16 @@ QVariant RowKey::validateDataChange(Data* data, QVariant data_value){
 }
 bool RowKey::setData(Data* data, QVariant data_value){
     bool data_changed = Key::setData(data, data_value);
-
-    //Get the node this data is attached to
     auto entity = data->getParent();
+
+    //If our row has been changed, we should update the index such that it ends up last in the column it's been moved to
     if(entity && entity->isNode()){
         auto node = (Node*) entity;
         auto node_index = node->getData("index");
         if(node_index){
-            node_index->setValue(node_index->getValue());
+            node_index->setValue(-1);
         }
     }
+    
     return data_changed;
 }

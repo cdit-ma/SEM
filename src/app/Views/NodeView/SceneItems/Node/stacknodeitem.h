@@ -13,7 +13,7 @@ class StackNodeItem: public BasicNodeItem
 public:
     StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation = Qt::Vertical);
 
-
+    void setAlignment(Qt::Orientation orientation);
     QPointF getStemAnchorPoint() const;
     QPointF getElementPosition(BasicNodeItem *child);
 
@@ -24,20 +24,25 @@ public:
     void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
+    void SetCellMargins(int row, int col, QMarginsF margins);
 
     void childPosChanged(EntityItem* child);
 
 
+public:
+    QMarginsF getDefaultCellMargin() const;
+    void setDefaultCellSpacing(qreal spacing);
+
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
+    QRectF childrenRect() const;
     void ChildSizeChanged(EntityItem* item);
     void ChildIndexChanged(EntityItem* item);
     void ChildCountChanged();
     
     void RecalculateCells();
     
-    QMarginsF getDefaultCellMargin() const;
     QMarginsF getCellMargin(const CellIndex& index) const;
     qreal getDefaultCellSpacing() const;
     qreal getCellSpacing(const CellIndex& index) const;
@@ -85,10 +90,15 @@ private:
         QList<NodeItem*> children;
     };
 
+
+
     bool sub_areas_dirty = true;
 
     QMap<CellIndex, PersistentCellInfo> cell_info;
     QMap<CellIndex, Cell> cells;
+    QRectF cell_rect;
+
+    qreal cell_spacing;
 
     PersistentCellInfo& SetupCellInfo(int row, int col);
 };

@@ -8,7 +8,7 @@ class Termination;
 class Branch;
 
 class EntityFactory;
-class Condition: public ContainerNode
+class Condition: public Node, public ContainerNode
 {
 	friend class EntityFactory;
     Q_OBJECT

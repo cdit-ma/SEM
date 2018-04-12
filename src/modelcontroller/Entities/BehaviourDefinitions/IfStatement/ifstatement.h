@@ -1,19 +1,19 @@
-#ifndef MEDEA_FUNCTION_H
-#define MEDEA_FUNCTION_H
-#include "containernode.h"
+#ifndef MEDEA_IFSTATEMENT_H
+#define MEDEA_IFSTATEMENT_H
+#include "../../node.h"
 
 class EntityFactory;
 namespace MEDEA{
-    class Function :  public Node, public ContainerNode{
+    class IfStatement: public Node
+    {
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        Function(EntityFactory* factory);
-        Function();
+        IfStatement(EntityFactory* factory);
+        IfStatement();
     public:
         bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
-
-#endif // MEDEA_FUNCTION_H
+#endif // MEDEA_IFSTATEMENT_H

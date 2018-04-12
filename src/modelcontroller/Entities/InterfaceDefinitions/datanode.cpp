@@ -135,7 +135,6 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     case EDGE_KIND::DATA:{
         qCritical() << this->toString() << " -> " << dst->toString();
         if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
-            qCritical() << 1;
             //Cannot connect to a non DataNode type.
             return false;
         }
@@ -143,25 +142,21 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         DataNode* data_node = (DataNode*) dst;
 
         if(isDataProducer() == false){
-            qCritical() << 2;
             //Cannot connect from something which can't produce
             return false;
         }
 
         if(data_node->isDataReceiver() == false){
-            qCritical() << 3;
             //Cannot connect to something which can't recieve
             return false;
         }
 
         if(data_node->hasInputData() && data_node->isMultipleDataReceiver() != true){
-            qCritical() << 4;
             //Cannot have multiple input datas.
             return false;
         }
 
         if(isContainedInVector() || data_node->isContainedInVector()){
-            qCritical() << 5;
             //Cannot Data-Connect inside a vector.
             return false;
         }
@@ -182,7 +177,6 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
                 //One of those needs to be true
                 if(!source_contains_destination && !destination_contains_source){
-                    qCritical() << 6;
                     return false;
                     //The Variable we are setting needs to be in scope.
                 }
@@ -190,11 +184,9 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 auto source_parent = getParentNode();
 
                 if(!source_parent || !source_parent->isAncestorOf(data_node)){
-                    qCritical() << 7;
                     return false;
                 }
             }else{
-                qCritical() << 7.5;
                 return false;
             }
         }
@@ -202,7 +194,6 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         
 
         if(TypeKey::CompareTypes(this, data_node) == false){
-            qCritical() << 8;
             //Must have compareable types
             return false;
         }

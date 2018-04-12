@@ -106,7 +106,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/whileloop.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.cpp
@@ -123,7 +123,16 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.cpp
+
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
@@ -134,6 +143,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/columnkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/innertypekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/outertypekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/namespacekey.cpp
@@ -221,7 +231,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/whileloop.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.h
@@ -238,7 +247,15 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.h
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h

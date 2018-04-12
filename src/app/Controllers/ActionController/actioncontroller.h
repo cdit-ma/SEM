@@ -132,6 +132,11 @@ public:
     RootAction* edit_incrementIndex;
     RootAction* edit_decrementIndex;
 
+    RootAction* edit_incrementRow;
+    RootAction* edit_decrementRow;
+    
+    
+
     RootAction* view_fitView;
     RootAction* view_fitAllViews;
 

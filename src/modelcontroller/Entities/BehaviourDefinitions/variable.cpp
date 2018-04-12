@@ -16,9 +16,6 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_s
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true);
-
-    //RegisterDefaultData(factory, node_kind, "value", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "row", QVariant::Int, true, 1);
     RegisterDefaultData(factory, node_kind, "index", QVariant::Int, true);
 };
 

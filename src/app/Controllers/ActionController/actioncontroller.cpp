@@ -128,8 +128,11 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
 
-        connect(edit_incrementIndex, &QAction::triggered, viewController, &ViewController::incrementSelectedIndex);
-        connect(edit_decrementIndex, &QAction::triggered, viewController, &ViewController::decrementSelectedIndex);
+        connect(edit_incrementIndex, &QAction::triggered, [=](){viewController->incrementSelectedKey("index");});
+        connect(edit_decrementIndex, &QAction::triggered, [=](){viewController->decrementSelectedKey("index");});
+
+        connect(edit_incrementRow, &QAction::triggered, [=](){viewController->incrementSelectedKey("row");});
+        connect(edit_decrementRow, &QAction::triggered, [=](){viewController->decrementSelectedKey("row");});
     }
 }
 
@@ -318,6 +321,10 @@ void ActionController::selectionChanged(int selection_size)
 
         edit_incrementIndex->setEnabled(got_selection);
         edit_decrementIndex->setEnabled(got_selection);
+        edit_incrementRow->setEnabled(got_selection);
+        edit_decrementRow->setEnabled(got_selection);
+        
+        
 
         
 
@@ -729,11 +736,15 @@ void ActionController::setupActions()
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
 
-    edit_decrementIndex = createRootAction("View", "Decrement Index", "", "Icons", "circleMinusDark");
-    edit_incrementIndex = createRootAction("View", "Increment Index", "", "Icons", "circlePlusDark");
+    edit_decrementIndex = createRootAction("View", "Shift Left", "", "Icons", "arrowHeadLeft");
+    edit_incrementIndex = createRootAction("View", "Shift Right", "", "Icons", "arrowHeadRight");
+    edit_incrementRow = createRootAction("View", "Shift Up", "", "Icons", "arrowHeadUp");
+    edit_decrementRow = createRootAction("View", "Shift Down", "", "Icons", "arrowHeadDown");
 
     edit_incrementIndex->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Right));
     edit_decrementIndex->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Left));
+    edit_decrementRow->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Up));
+    edit_incrementRow->setShortcut(QKeySequence(Qt::ALT + Qt::Key_Down));
     
 
     view_fitView = createRootAction("View", "Fit View", "", "Icons", "screenResize");
@@ -978,7 +989,8 @@ void ActionController::setupMainMenu()
     menu_edit->addSeparator();
     menu_edit->addAction(edit_incrementIndex);
     menu_edit->addAction(edit_decrementIndex);
-
+    menu_edit->addAction(edit_incrementRow);
+    menu_edit->addAction(edit_decrementRow);
     
 
      // View Menu

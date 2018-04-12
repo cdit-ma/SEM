@@ -3,15 +3,10 @@
 #include "../node.h"
 
 class EntityFactory;
-class ContainerNode : public Node
+class ContainerNode
 {
-	friend class EntityFactory;
-    Q_OBJECT
 protected:
-    ContainerNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
-    ContainerNode(NODE_KIND kind);
-public:
-    virtual bool canAdoptChild(Node* child);
+    bool canAdoptChild(Node* child);
 };
 
 #endif // CONTAINERNODE_H

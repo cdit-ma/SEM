@@ -152,6 +152,7 @@ signals:
     void SetClipboardData(QString);
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
+    void setCustomNodeData(Node* node);
     double compare_medea_version(QString version);
     QSet<NODE_KIND> getGUINodeKinds();
     bool canReplicate(QList<Entity*> selection);
@@ -183,7 +184,7 @@ private:
 
     Node* construct_setter_node(Node* parent);
     Node* construct_dds_profile_node(Node* parent);
-    Node* construct_for_condition_node(Node* parent);
+    Node* construct_for_node(Node* parent);
     Node* construct_component_node(Node* parent);
     Node* construct_periodic_eventport(Node* parent);
 

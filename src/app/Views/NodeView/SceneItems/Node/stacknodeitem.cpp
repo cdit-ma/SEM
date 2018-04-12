@@ -23,8 +23,15 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     connect(this, &NodeItem::childIndexChanged, this, &StackNodeItem::ChildIndexChanged);
     connect(this, &NodeItem::childCountChanged, this, &StackNodeItem::ChildCountChanged);
 
+    cell_spacing = getGridSize();
     RecalculateCells();
 }
+
+void StackNodeItem::setAlignment(Qt::Orientation orientation){
+    this->orientation = orientation;
+    RecalculateCells();
+}
+
 void StackNodeItem::RecalculateCells(){
     sub_areas_dirty = true;
     updateCells();
@@ -64,7 +71,7 @@ StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col
 
 
 QMarginsF StackNodeItem::getDefaultCellMargin() const{
-    return QMarginsF(getGridSize(), getGridSize(), getGridSize(), getGridSize());
+    return QMarginsF(getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing());
 }
 
 QMarginsF StackNodeItem::getCellMargin(const CellIndex& index) const{
@@ -83,7 +90,11 @@ Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index) const{
 }
 
 qreal StackNodeItem::getDefaultCellSpacing() const{
-    return getGridSize();
+    return cell_spacing;
+}
+
+void StackNodeItem::setDefaultCellSpacing(qreal spacing){
+    cell_spacing = spacing;
 }
 
 qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
@@ -124,6 +135,11 @@ void StackNodeItem::SetRenderCellArea(int row, int col, bool render, QColor colo
     }
 }
 
+QRectF StackNodeItem::childrenRect() const
+{
+    return cell_rect;
+}
+
 void StackNodeItem::SetCellOrientation(int row, int col, Qt::Orientation orientation){
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.orientation = orientation;
@@ -132,6 +148,12 @@ void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
     auto& cell_info = SetupCellInfo(row, col);
 
     cell_info.spacing = spacing;
+}
+
+void StackNodeItem::SetCellMargins(int row, int col, QMarginsF margins){
+    auto& cell_info = SetupCellInfo(row, col);
+
+    cell_info.margin = margins;
 }
 
 
@@ -360,9 +382,16 @@ void StackNodeItem::updateCells(){
             cell.bounding_rect = child_rect.marginsAdded(margin);
         }
 
+        QRectF child_rect;
+        for(auto row : last_row_cell.keys()){
+            auto& index = last_row_cell[row];
+            auto& cell = cells[index];
+            child_rect |= cell.bounding_rect;
+        }
 
-        NodeItem::childPosChanged(0);
         sub_areas_dirty = false;
+        cell_rect = child_rect;
+        resizeToChildren();
     }
 }
 

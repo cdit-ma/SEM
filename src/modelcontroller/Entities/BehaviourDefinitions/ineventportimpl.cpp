@@ -12,24 +12,30 @@ InEventPortImpl::InEventPortImpl(EntityFactory* factory) : Node(factory, node_ki
 };
 
 InEventPortImpl::InEventPortImpl() : Node(node_kind){
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setNodeType(NODE_TYPE::IMPLEMENTATION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     
     setDefinitionKind(NODE_KIND::INEVENTPORT);
 }
 
+
 bool InEventPortImpl::canAdoptChild(Node *child)
 {
-    //Can Only accept 1 child.
-    if(hasChildren()){
-        return false;
+    auto child_node_kind = child->getNodeKind();
+    
+    switch(child_node_kind){
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(getChildrenOfKind(child_node_kind, 0).size() >= 1){
+                return false;
+            }
+            break;
+        default:
+            if(!ContainerNode::canAdoptChild(child)){
+                return false;
+            }
+        }
     }
-
-    //Can only adopt AggregateInstances
-    if(child->getNodeKind() != NODE_KIND::AGGREGATE_INSTANCE){
-        return false;
-    }
-
     return Node::canAdoptChild(child);
 }
 

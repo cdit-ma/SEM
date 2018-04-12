@@ -41,8 +41,7 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     }else{
         addRequiredData("index");
         addRequiredData("row");
-        addRequiredData("row_subgroup");
-
+        addRequiredData("column");
     }
 
 
@@ -260,7 +259,7 @@ QRectF BasicNodeItem::iconRect() const
 QRectF BasicNodeItem::iconOverlayRect() const
 {
     QRectF rect;
-    rect.setSize(smallIconSize() * 2);
+    rect.setSize(smallIconSize());
     rect.moveCenter(iconRect().center());
     return rect;
 }
@@ -269,7 +268,7 @@ QRectF BasicNodeItem::topTextRect() const
 {
     QRectF rect(headerTextRect());
     if(gotSecondaryTextKey()){
-        rect.setHeight(20);
+        rect.setHeight(rect.height() * (4.0 / 7.0));
     }
     rect.setWidth(rect.width());
     return rect;
@@ -280,7 +279,7 @@ QRectF BasicNodeItem::bottomTextRect() const
     QRectF rect;
     if(bottomTextOutlineRect().isValid()){
         rect = bottomTextOutlineRect();
-        rect.adjust(1,1,-1,-1);
+        rect.adjust(1,0,-1,0);
     }
     return rect;
 }
@@ -314,8 +313,10 @@ QRectF BasicNodeItem::bottomRect() const
     if(!gotSecondaryTextKey()){
         return QRectF();
     }
-    QRectF rect(headerTextRect());
-    rect.setTop(rect.top() + 24);
+    auto header_rect = headerTextRect();
+    QRectF rect(header_rect);
+    rect.setHeight(header_rect.height() * (3.0 / 7.0));
+    rect.moveBottom(header_rect.bottom());
     return rect;
 }
 

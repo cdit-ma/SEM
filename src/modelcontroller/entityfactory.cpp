@@ -16,6 +16,7 @@
 #include "Entities/Keys/replicatecountkey.h"
 #include "Entities/Keys/frequencykey.h"
 #include "Entities/Keys/rowkey.h"
+#include "Entities/Keys/columnkey.h"
 #include "Entities/Keys/typekey.h"
 #include "Entities/Keys/innertypekey.h"
 #include "Entities/Keys/outertypekey.h"
@@ -39,7 +40,17 @@
 #include "Entities/BehaviourDefinitions/outeventportimpl.h"
 
 //Behaviour Elements
-#include "Entities/BehaviourDefinitions/branchstate.h"
+#include "Entities/BehaviourDefinitions/IfStatement/ifstatement.h"
+#include "Entities/BehaviourDefinitions/IfStatement/ifcondition.h"
+#include "Entities/BehaviourDefinitions/IfStatement/elseifcondition.h"
+#include "Entities/BehaviourDefinitions/IfStatement/elsecondition.h"
+
+
+#include "Entities/BehaviourDefinitions/Loops/whileloop.h"
+#include "Entities/BehaviourDefinitions/Loops/forloop.h"
+
+
+
 #include "Entities/BehaviourDefinitions/code.h"
 #include "Entities/BehaviourDefinitions/condition.h"
 #include "Entities/BehaviourDefinitions/forcondition.h"
@@ -52,7 +63,6 @@
 #include "Entities/BehaviourDefinitions/variable.h"
 #include "Entities/BehaviourDefinitions/variableparameter.h"
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
-#include "Entities/BehaviourDefinitions/whileloop.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/BehaviourDefinitions/workload.h"
 
@@ -328,7 +338,14 @@ EntityFactory::EntityFactory()
     OutEventPortImpl(this);
 
     //Behaviour Elements
-    BranchState(this);
+    MEDEA::IfStatement(this);
+    MEDEA::IfCondition(this);
+    MEDEA::ElseIfCondition(this);
+    MEDEA::ElseCondition(this);
+
+    MEDEA::WhileLoop(this);
+    MEDEA::ForLoop(this);
+
     Code(this);
     Condition(this);
     ForCondition(this);
@@ -341,7 +358,8 @@ EntityFactory::EntityFactory()
     Variable(this);
     VariableParameter(this);
     VariadicParameter(this);
-    WhileLoop(this);
+    
+    
     WorkerProcess(this);
     Workload(this);
 
@@ -578,6 +596,8 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new IndexKey();    
         }else if(key_name == "row"){
             key = new RowKey();    
+        }else if(key_name == "column"){
+            key = new ColumnKey();    
         }else if(key_name == "uuid"){
             key = new ExportIDKey();
         }else if(key_name == "replicate_count"){

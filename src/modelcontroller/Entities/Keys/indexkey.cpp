@@ -73,8 +73,8 @@ QVariant IndexKey::validateDataChange(Data* data, QVariant data_value){
         int node1_row = node1->getDataValue("row").toInt();
         int node2_row = node2->getDataValue("row").toInt();
         if(node1_row == node2_row){
-            auto node1_subgroup = node1->getDataValue("row_subgroup").toInt();
-            auto node2_subgroup = node2->getDataValue("row_subgroup").toInt();
+            auto node1_subgroup = node1->getDataValue("column").toInt();
+            auto node2_subgroup = node2->getDataValue("column").toInt();
             
             if(node1_subgroup == node2_subgroup){
                 auto node1_index = desired_index[node1];

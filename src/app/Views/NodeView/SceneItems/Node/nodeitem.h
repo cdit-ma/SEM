@@ -105,7 +105,7 @@ public:
     
 
 
-    QRectF childrenRect() const;
+    virtual QRectF childrenRect() const;
 
     QSizeF getSize() const;
 
@@ -217,8 +217,9 @@ private:
 
     void updateReadState();
     void setUpColors();
-
+protected:
     void resizeToChildren();
+private:
     int getResizeArrowRotation(NodeItem::RectVertex vert) const;
 
 

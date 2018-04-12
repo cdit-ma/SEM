@@ -14,6 +14,7 @@ Attribute::Attribute() : Node(node_kind)
     setNodeType(NODE_TYPE::DEFINITION);
     setInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     setImplKind(NODE_KIND::ATTRIBUTE_IMPL);
+    
 }
 
 bool Attribute::canAdoptChild(Node*)

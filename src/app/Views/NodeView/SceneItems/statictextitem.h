@@ -29,7 +29,7 @@ class StaticTextItem{
         bool setup = true;
 
         int max_size = 10;
-        int min_size = 4;
+        int min_size = 3;
 };
 
 #endif //STATICTEXTITEM_HT

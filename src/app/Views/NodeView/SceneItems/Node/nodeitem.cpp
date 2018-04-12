@@ -195,8 +195,8 @@ int NodeItem::getSortOrderRow() const{
 }
 
 int NodeItem::getSortOrderRowSubgroup() const{
-    if(hasData("row_subgroup")){
-        return getData("row_subgroup").toInt();
+    if(hasData("column")){
+        return getData("column").toInt();
     }
     return 0;
 }
@@ -816,6 +816,10 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
             setIconOverlayVisible(boolData);
         }else if(keyName =="index"){
             emit indexChanged();
+        }else if(keyName =="row"){
+            emit indexChanged();
+        }else if(keyName =="column"){
+            emit indexChanged();
         }
 
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
@@ -840,7 +844,7 @@ void NodeItem::dataRemoved(QString keyName)
 
 void NodeItem::childPosChanged(EntityItem*)
 {
-    //Update the child rect.
+    //Update the child rect.    
     QRectF rect;
     for(auto child : getChildEntities()){
         if(child->isNodeItem()){

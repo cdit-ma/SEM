@@ -1,31 +1,21 @@
 #include "containernode.h"
-#include "../node.h"
-
-ContainerNode::ContainerNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
-    RegisterDefaultData(factory, kind, "comment", QVariant::String);
-};
-
-ContainerNode::ContainerNode(NODE_KIND kind) : Node(kind)
-{
-    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-}
 
 bool ContainerNode::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
         case NODE_KIND::OUTEVENTPORT_IMPL:
-        case NODE_KIND::BRANCH_STATE:
+        case NODE_KIND::IF_STATEMENT:
+        case NODE_KIND::FOR_LOOP:
         case NODE_KIND::VARIABLE:
         case NODE_KIND::WORKER_PROCESS:
-        case NODE_KIND::WHILELOOP:
+        case NODE_KIND::WHILE_LOOP:
         case NODE_KIND::SETTER:
         case NODE_KIND::CODE:
-        case NODE_KIND::HEADER:
+        
         {
-            break;
+            return true;
         }
     default:
         return false;
     }
-    return Node::canAdoptChild(child);
 }

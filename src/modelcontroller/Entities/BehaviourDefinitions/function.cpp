@@ -3,11 +3,11 @@
 const NODE_KIND node_kind = NODE_KIND::FUNCTION;
 const QString kind_string = "Function";
 
-MEDEA::Function::Function(EntityFactory* factory) : ContainerNode(factory, node_kind, kind_string){
+MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Function();});
 };
 
-MEDEA::Function::Function(): ContainerNode(node_kind)
+MEDEA::Function::Function(): Node(node_kind)
 {
     
 }
@@ -22,7 +22,10 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
             break;
     }
 
-    return ContainerNode::canAdoptChild(child);
+    if(ContainerNode::canAdoptChild(child)){
+        return Node::canAdoptChild(child);
+    }
+    return false;
 }
 
 bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND, Node *)

@@ -3,7 +3,7 @@
 #include "containernode.h"
 
 class EntityFactory;
-class PeriodicEvent: public ContainerNode
+class PeriodicEvent: public Node, public ContainerNode
 {
 	friend class EntityFactory;
     Q_OBJECT

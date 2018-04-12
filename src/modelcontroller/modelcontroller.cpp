@@ -473,8 +473,8 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_dds_profile_node(parent_node);
             break;
         }
-        case NODE_KIND::FOR_CONDITION:{
-            node = construct_for_condition_node(parent_node);
+        case NODE_KIND::FOR_LOOP:{
+            node = construct_for_node(parent_node);
             break;
         }
         case NODE_KIND::COMPONENT:{
@@ -669,13 +669,13 @@ Node* ModelController::construct_dds_profile_node(Node* parent)
 
 
 
-Node* ModelController::construct_for_condition_node(Node* parent)
+Node* ModelController::construct_for_node(Node* parent)
 {
     if(parent){
         triggerAction("Constructing For Condition");
 
 
-        auto node = construct_child_node(parent, NODE_KIND::FOR_CONDITION);
+        auto node = construct_child_node(parent, NODE_KIND::FOR_LOOP);
         if(node){
             auto variable = construct_child_node(node, NODE_KIND::VARIABLE_PARAMETER);
             auto condition = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
@@ -684,20 +684,16 @@ Node* ModelController::construct_for_condition_node(Node* parent)
             variable->setDataValue("type", "Integer");
             variable->setDataValue("label", "i");
             variable->setDataValue("value", 0);
-            setData_(variable, "row_subgroup", -1);
             
             condition->setDataValue("type", "Boolean");
             condition->setDataValue("label", "Condition");
             condition->setDataValue("icon", "Condition");
             condition->setDataValue("icon_prefix", "EntityIcons");
-            setData_(condition, "row_subgroup", -1);
 
             iteration->setDataValue("type", "String");
             iteration->setDataValue("label", "Iteration");
             iteration->setDataValue("icon", "reload");
             iteration->setDataValue("icon_prefix", "Icons");
-            setData_(iteration, "row_subgroup", -1);
-
             return node;
         }
     }
@@ -1766,10 +1762,83 @@ QString ModelController::_copy(QList<Entity *> selection)
     return exportGraphML(selection, false);
 }
 
+void ModelController::setCustomNodeData(Node* node){
+    auto parent_node = node->getParentNode();
+    auto parent_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
+    auto node_kind = node->getNodeKind();
+
+    QMap<QString, QVariant> new_data;
+
+    switch(node_kind){
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(parent_kind == NODE_KIND::INEVENTPORT_IMPL){
+                new_data["row"] = 0;
+                new_data["column"] = -1;
+            }
+            break;
+        }
+        case NODE_KIND::INEVENTPORT:
+        case NODE_KIND::INEVENTPORT_INSTANCE:{
+            new_data["row"] = 0;
+            break;
+        }
+        case NODE_KIND::OUTEVENTPORT:
+        case NODE_KIND::OUTEVENTPORT_INSTANCE:{
+            new_data["row"] = 2;
+            break;
+        }
+        case NODE_KIND::ATTRIBUTE:
+        case NODE_KIND::ATTRIBUTE_INSTANCE:{
+            new_data["row"] = 1;
+            break;
+        }
+        case NODE_KIND::ATTRIBUTE_IMPL:{
+            new_data["row"] = 1;
+            new_data["column"] = 0;
+            break;
+        }
+        case NODE_KIND::VARIABLE:{
+            new_data["row"] = 1;
+            new_data["column"] = 1;
+            break;
+        }
+        case NODE_KIND::HEADER:{
+            new_data["row"] = 1;
+            new_data["column"] = -1;
+            break;
+        }
+        default:
+            break;
+    }
+
+    switch(parent_kind){
+        case NODE_KIND::WHILE_LOOP:
+        case NODE_KIND::FOR_LOOP:{
+            if(node_kind == NODE_KIND::INPUT_PARAMETER || node_kind == NODE_KIND::VARIABLE_PARAMETER){
+                new_data["row"] = 0;
+                new_data["column"] = -1;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+
+
+    for(auto key : new_data.keys()){
+        if(!node->gotData(key)){
+            setData_(node, key, new_data[key], false);
+        }
+    }
+}
+
 
 void ModelController::storeNode(Node *node)
 {
     if(node){
+        setCustomNodeData(node);
+        
         //Construct an ActionItem to reverse Node Construction.
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.Action.type = ACTION_TYPE::CONSTRUCTED;
