@@ -67,9 +67,11 @@ def file = "model.graphml"
 
 def reNodes = utils.getLabelledNodes("envmanager_test")
 
+
+//XXX: Problems ahoy here
+//In case where node has multiple network interfaces, we're cooked.
 for(def i = 0; i < reNodes.size(); i++){
     def nodeName = reNodes[i];
-
     def nodeIPLookup = jenkins.model.Jenkins.instance.getNode(nodeName)
     def ip_addr_list = nodeIPLookup.computer.getChannel().call(new ListPossibleNames())
     addrMap[nodeName] = ip_addr_list[0]

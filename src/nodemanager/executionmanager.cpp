@@ -165,6 +165,8 @@ bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_addre
 
     if(slave_states_.count(slave_address)){
         slave_states_[slave_address] = slave_state;
+
+        std::cout << "remaining offline slaves: " << GetSlaveStateCount(SlaveState::OFFLINE) << std::endl;
         
         if(GetSlaveStateCount(SlaveState::OFFLINE) == 0){
             bool should_execute = GetSlaveStateCount(SlaveState::ERROR_) == 0;
