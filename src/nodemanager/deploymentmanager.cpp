@@ -217,6 +217,7 @@ void DeploymentManager::ProcessControlQueue(){
         //Process the queue
         while(!queue_.empty()){
             const auto& control_message = queue_.front();
+            std::cout << control_message.DebugString() << std::endl;
             queue_.pop();
             auto start = std::chrono::steady_clock::now();
 
