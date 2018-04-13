@@ -218,12 +218,13 @@ void DeploymentManager::ProcessControlQueue(){
         while(!queue_.empty()){
             const auto& control_message = queue_.front();
             queue_.pop();
-            std::cout << control_message.DebugString() << std::endl;
             auto start = std::chrono::steady_clock::now();
 
             switch(control_message.type()){
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE:{
+            std::cout << control_message.DebugString() << std::endl;
+                    
                     auto success = ConfigureDeploymentContainers(control_message);
                     break;
                 }
@@ -243,6 +244,8 @@ void DeploymentManager::ProcessControlQueue(){
                     break;
                 }
                 case NodeManager::ControlMessage::TERMINATE:{
+            std::cout << control_message.DebugString() << std::endl;
+                    
                     bool success = true;
                     for(const auto& c : deployment_containers_){
                         success = c.second->Terminate() ? success : false;
