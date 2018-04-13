@@ -6,6 +6,10 @@ WorkerFunctionCall::WorkerFunctionCall():Node(NODE_KIND::WORKER_FUNCTIONCALL)
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
     setDefinitionKind(NODE_KIND::WORKER_FUNCTION);
+
+    //Disable rules which break
+    SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION, false);
+    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
 WorkerFunctionCall::WorkerFunctionCall(EntityFactory* factory) : Node(factory, NODE_KIND::WORKER_FUNCTIONCALL, "WorkerFunctionCall"){

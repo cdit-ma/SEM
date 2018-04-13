@@ -25,6 +25,9 @@ Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
     definition_kind_ = NODE_KIND::NONE;
     instance_kind_ = NODE_KIND::NONE;
     impl_kind_ = NODE_KIND::NONE;
+    
+    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY);
+    SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION);
 }
 
 
@@ -88,6 +91,19 @@ Node::~Node()
     }
 }
 
+void Node::SetEdgeRuleActive(EdgeRule rule, bool active){
+    if(active){
+        active_edge_rules.insert(rule);
+    }else{
+        active_edge_rules.remove(rule);
+    }
+}
+
+
+bool Node::IsEdgeRuleActive(EdgeRule rule){
+    return active_edge_rules.contains(rule);
+}
+
 /**
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
@@ -115,16 +131,17 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         //Node must be a Definition Node Type.
         if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
             return false;
-        }   
+        }
 
 
-        if(parentNode){
-            //When we are adding this to a parent which is an instance or and impl
-            //We Should check that the thing we are connecting to(Or using as a Definition)
-            //Is contained within our parent's Definition, or Parent's Implementations
-            //Unless we are an OutEventPortImpl
-
-            if(parentNode->isInstanceImpl()){
+        if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
+            /*
+            When this is contained within and instance or impl
+            we should check that the dst we are connecting to (AKA Using as this's definition)
+            is contained within our parent's Definition/Implementations
+            */
+            if(parentNode && parentNode->isInstanceImpl()){
+                
                 QList<Node*> valid_ancestors;
                 auto parent_definition = parentNode->getDefinition();
                 if(parent_definition){
@@ -134,23 +151,26 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 
                 bool is_descendant = false;
                 for(auto ancestor : valid_ancestors){
-                    if(ancestor && ancestor->isAncestorOf(dst)){
+                    if(ancestor->isAncestorOf(dst)){
                         is_descendant = true;
                         break;
                     }
                 }
 
-                if(!is_descendant && valid_ancestors.size()){
-                    //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                if(!is_descendant && valid_ancestors.size() > 0){
                     return false;
                 }
-            }else{
-                //When are are adding This to a parent which isn't derived from a Definition,
-                //We shouldn't allow instances to be made of something which itself is an instance/impl
-                //Unless we are a WorkerFunctionCall
+            }
+        }
 
+        if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
+            /*
+            When this isn't contained within and instance or impl
+            we should check that the dst we are connecting to (AKA Using as this's definition)
+            doesn't have a definition set
+            */
+            if(parentNode && !parentNode->isInstanceImpl()){
                 if(dst->getDefinition()){
-                    qCritical() << this->toString() << " TO " << dst->toString();
                     return false;
                 }
             }

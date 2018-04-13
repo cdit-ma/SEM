@@ -18,6 +18,8 @@ OutEventPortImpl::OutEventPortImpl():Node(node_kind){
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setDefinitionKind(NODE_KIND::OUTEVENTPORT);
 
+    //Allow links from within things like InEventPortImpls back to the
+    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

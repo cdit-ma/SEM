@@ -11,6 +11,7 @@
 #include <functional>
 enum class VIEW_ASPECT;
 
+
 class Edge;
 class EntityFactory;
 class Node : public Entity
@@ -18,6 +19,17 @@ class Node : public Entity
     Q_OBJECT
     friend class Edge;
     friend class EntityFactory;
+
+    public:
+        enum class EdgeRule{
+            MIRROR_PARENT_DEFINITION_HIERARCHY,
+            REQUIRE_NO_DEFINITION
+        };
+
+    
+
+    
+    
 
     protected:
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
@@ -56,6 +68,13 @@ class Node : public Entity
         virtual void childAdded(Node* child){};
         virtual void childRemoved(Node* child);
         virtual void parentSet(Node* parent){};
+
+    protected:
+        void SetEdgeRuleActive(EdgeRule rule, bool active = true);
+        bool IsEdgeRuleActive(EdgeRule rule);
+    private:
+
+        QSet<EdgeRule> active_edge_rules;
     public:
 
         virtual VIEW_ASPECT getViewAspect() const;
@@ -64,6 +83,8 @@ class Node : public Entity
     int getDepth() const;
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();
+
+    
 
     NODE_KIND getNodeKind() const;
 
@@ -204,8 +225,6 @@ private:
     NODE_KIND definition_kind_;
     NODE_KIND instance_kind_;
     NODE_KIND impl_kind_;
-
-    bool rule_definitionedge_ignore_parent_definition = false;;
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
@@ -223,6 +242,10 @@ public:
     
     
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);
+};
+
+inline uint qHash(Node::EdgeRule key, uint seed){
+    return ::qHash(static_cast<uint>(key), seed);
 };
 
 #endif // NODE_H
