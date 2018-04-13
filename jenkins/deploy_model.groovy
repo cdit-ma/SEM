@@ -42,11 +42,12 @@ def blockingKill(String pid){
     }
 }
 
+
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
 def experimentID = env.BUILD_ID
 def buildDir = "run" + experimentID
-def buildArchiveDir = "build" + experimentID
+
 
 //Deployment plans
 def loganServers = [:]
@@ -82,10 +83,17 @@ def environmentManangerPort = "20000"
 
 withEnv(["model=''"]){
     node(masterNode){
-        deleteDir()
-        unstashParam "model", file
-        stash includes: file, name: 'model'
-        archiveArtifacts file
+
+        // def executorNumber = env.EXECUTOR_NUMBER
+
+        // def executorNumberSuffix = ""
+        // if(executorNumber > 0){
+        //     executorNumberSuffix += "@"
+        //     executorNumberSuffix += executorNumber
+        //     buildDir +=executorNumberSuffix
+        //     buildArchiveDir +=executorNumberSuffix
+        // }
+
         def workspacePath = pwd()
         def reGenPath = "${RE_GEN_PATH}"
         def saxonPath = reGenPath
@@ -93,36 +101,18 @@ withEnv(["model=''"]){
         def middlewareString = ' middlewares='
         def fileString = ' -s:' + workspacePath + "/" + file
         def jarString = 'java -jar '  + saxonPath + '/saxon.jar -xsl:' + reGenPath
-        //Parse graphml model and generate deployment plan
-        stage('Build Deployment Plan'){
-            //Generate deployment json
-            // def executionParser = "${RE_PATH}" + '/bin/re_execution_parser ' + file + ' > execution.json'
-            // sh(script: executionParser)
-            // archiveArtifacts "execution.json"
-
-            // def execution_debug = "${RE_PATH}" + '/bin/re_execution_tester -d ' + file + ' > execution.dump'
-            // sh(script: execution_debug)
-            // archiveArtifacts "execution.dump"
-
-            //Parse json
-            // jDeployment = readJSON file: 'execution.json'
-        
-        }
-
-        // def middlewares = jDeployment["model"]["middlewares"]
-
-        // for(def i = 0; i < middlewares.size(); i++){
-        //     middlewareString += middlewares[i]
-        //     if(i != middlewares.size()-1){
-        //         middlewareString += ","
-        //     }
-        // }
         
         def buildPath = workspacePath + "/" + buildDir
+        unstashParam "model", file
+        stash includes: file, name: 'model'
+
+        //TODO: Fix this to actually get middlewares from somewhere
         middlewareString += "zmq,proto"
         //Generate C++ code
         dir(buildPath){
-            unstash "model"
+            unstash 'model'
+            archiveArtifacts file
+            
             stage('C++ Generation'){
                 def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
                 if(utils.runScript(typeGenCommand) != 0){
@@ -145,14 +135,11 @@ withEnv(["model=''"]){
                     }
                 }
             }
-        }
-
-        stage('Archive'){
-            //Store an archive of generated C++ files
-            zip(zipFile: "archive.zip", archive: true, dir: buildPath)
-            dir(workspacePath){
+            stage('Archive'){
+                //Store an archive of generated C++ files
+                //zip(zipFile: "archive.zip", archive: true, dir: buildPath)
                 // Stash generated cpp files.
-                stash includes: buildDir + '/**', name: 'codeGen'
+                stash includes: '**', name: 'codeGen'
             }
         }
     }
@@ -172,7 +159,9 @@ withEnv(["model=''"]){
         //Update the map to include the compile
         compileCode[nodeName] = {
             node(nodeName){
-                unstash 'codeGen'
+                dir(buildDir){
+                    unstash 'codeGen'
+                }
                 dir(buildDir + "/build"){
                     if(!utils.buildProject("Ninja", "")){
                         failureList << ("cmake failed on node: " + nodeName)
@@ -216,6 +205,8 @@ withEnv(["model=''"]){
                 }
                 
                 dir(buildPath){
+                    print("#####################################################COMPILING")
+                    print(pwd())
                     unstash 'model'
                     if(utils.runScript(command) != 0){
                         failureList << ("Experiment slave failed on node: " + nodeName)

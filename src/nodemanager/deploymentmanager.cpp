@@ -69,6 +69,7 @@ std::string DeploymentManager::QueryEnvironmentManager(){
     requester.Init(environment_manager_endpoint_);
     auto response = requester.NodeQuery(ip_address_);
     if(response.type() == NodeManager::ControlMessage::TERMINATE){
+        std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
         return "";
     }
     if(response.type() == NodeManager::ControlMessage::CONFIGURE){
