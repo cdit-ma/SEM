@@ -4,6 +4,11 @@
 
 StaticTextItem::StaticTextItem(Qt::Alignment text_align){
     text_item.setPerformanceHint(QStaticText::AggressiveCaching);
+    setAlignment(text_align);
+}
+
+void StaticTextItem::setAlignment(Qt::Alignment text_align){
+    dirty_ = true;
     this->text_align = text_align;
     option = QTextOption(text_align);
     option.setWrapMode(QTextOption::WrapAnywhere);
@@ -46,13 +51,13 @@ void StaticTextItem::RenderText(QPainter* painter, RENDER_STATE state, QRectF re
 
 void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
 
-    bool recalculate = setup;
+    bool recalculate = dirty_;
     
-    if(this->text != text || setup){
+    if(this->text != text || dirty_){
         this->text = text;
         text_item.setText(text);
         recalculate = true;
-        setup = false;
+        dirty_ = false;
     }
 
 
@@ -73,6 +78,8 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
             current_size = rect.height();
         }
 
+        auto test_br = rect.toAlignedRect();
+
         QRect text_bounding_rect;
         int topLineWidth = 0;
 
@@ -81,10 +88,14 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
             auto fm = QFontMetrics(font);
             auto valid_bounding_rect = fm.boundingRect(rect.toAlignedRect(), Qt::TextWrapAnywhere | text_align, text);
 
-            if(bounding_rect.contains(valid_bounding_rect)){
+            if(test_br.contains(valid_bounding_rect)){
                 text_bounding_rect = valid_bounding_rect;
                 break;
             }else{
+                qCritical() << " == " << bounding_rect;
+                qCritical() << " BR: " << bounding_rect;
+                qCritical() << " TBR: " << valid_bounding_rect;
+                qCritical() << " TEXT: " << text << " SIZE: " << current_size;
                 current_size --;
             }
         }
@@ -96,7 +107,9 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
 
         QPointF offset;
 
-        if((Qt::AlignVCenter & text_align)){
+        //Center 
+        if(Qt::AlignVCenter & text_align){
+            qCritical() << text << ": TEXT IS AlignVCenter ALIGNED";
             offset = QPointF(0, (rect.height() - text_bounding_rect.height()) / 2.0);
         }
 

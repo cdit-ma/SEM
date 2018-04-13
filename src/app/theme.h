@@ -59,7 +59,7 @@ public:
     QColor getPressedColor();
     QString getPressedColorHex();
 
-    QMovie* getGif(QString path, QString name);
+    QMovie* getGif(const QString& path, const QString& name);
 
     QColor getSelectedItemBorderColor();
     QString getSelectedItemBorderColorHex();
@@ -79,16 +79,16 @@ public:
     QColor getDefaultImageTintColor();
     QString getDefaultImageTintColorHex();
 
-    QColor getMainImageColor(QString prefix, QString alias);
+    QColor getMainImageColor(const QString& prefix, const QString& alias);
     QColor getMainImageColor(IconPair path);
 
     QIcon getIcon(IconPair icon);
-    QIcon getIcon(QString prefix, QString alias);
+    QIcon getIcon(const QString& prefix, const QString& alias);
 
 private:
-    QPixmap _getPixmap(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
+    QPixmap _getPixmap(const QString& resourceName, QSize size = QSize(), QColor tintColor = QColor());
 public:
-    QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
+    QPixmap getImage(const QString& prefix, const QString& alias, QSize size = QSize(), QColor tintColor = QColor());
 
     QString getPixmapResourceName(QString resource_name, QSize size, QColor tintColor);
     QColor getAltTextColor();
@@ -103,13 +103,13 @@ public:
     void setTextColor(ColorRole role, QColor color);
     void setMenuIconColor(ColorRole role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
-    void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias, bool ignore_toggle_coloring = true);
+    void setIconToggledImage(const QString& prefix, const QString& alias, const QString& toggledOnPrefix, const QString& toggledOnAlias, const QString& toggledOffPrefix, const QString& toggleOffAlias, bool ignore_toggle_coloring = true);
 
-    void setWindowIcon(QString window_title, QString visible_icon_prefix, QString visible_icon_alias);
+    void setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias);
 
-    void setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias);
+    void setIconAlias(const QString& prefix, const QString& alias, const QString& icon_prefix, const QString& icon_alias);
     void setDefaultImageTintColor(QColor color);
-    void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
+    void setDefaultImageTintColor(const QString& prefix, const QString& alias, QColor color);
 
     void setSeverityColor(Notification::Severity severity, QColor color);
     QColor getSeverityColor(Notification::Severity);
@@ -118,7 +118,7 @@ public:
     bool isValid() const;
 
     bool gotImage(IconPair icon);
-    bool gotImage(QString, QString);
+    bool gotImage(const QString&, const QString&);
 
     void setIconSize(int size);
     QSize getIconSize();
@@ -182,16 +182,16 @@ private:
     
     void setFont(QFont size);
 
-    QImage getImage(QString resource_name);
-    QColor getTintColor(QString resource_name);
-    QSize getOriginalSize(QString resource_name);
+    QImage getImage(const QString& resource_name);
+    QColor getTintColor(const QString& resource_name);
+    QSize getOriginalSize(const QString& resource_name);
 
-    IconPair splitImagePath(QString path);
+    IconPair splitImagePath(const QString& path);
 
     bool tintIcon(IconPair pair);
-    bool tintIcon(QString prefix, QString alias);
+    bool tintIcon(const QString& prefix, const QString& alias);
     bool tintIcon(QSize size);
-    bool tintIcon(QString resource_name);
+    bool tintIcon(const QString& resource_name);
 
     QSet<QString> image_names;
 

@@ -282,11 +282,11 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
     return Theme::QColorToHex(color);
 }
 
-void Theme::setWindowIcon(QString window_title, QString visible_icon_prefix, QString visible_icon_alias){
+void Theme::setWindowIcon(const QString& window_title, const QString& visible_icon_prefix, const QString& visible_icon_alias){
     setIconToggledImage("WindowIcon", window_title, visible_icon_prefix, visible_icon_alias, "Icons", "transparent");
 }
 
-void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias, bool ignore_toggle_coloring){
+void Theme::setIconToggledImage(const QString& prefix, const QString& alias, const QString& toggledOnPrefix, const QString& toggledOnAlias, const QString& toggledOffPrefix, const QString& toggleOffAlias, bool ignore_toggle_coloring){
     QString name = getResourceName(prefix, alias);
     
     //Construct pairs
@@ -316,7 +316,7 @@ QString Theme::getDefaultImageTintColorHex()
     return Theme::QColorToHex(iconColor);
 }
 
-QColor Theme::getMainImageColor(QString prefix, QString alias)
+QColor Theme::getMainImageColor(const QString& prefix, const QString& alias)
 {
     QString key = getResourceName(prefix, alias);
     if(pixmapTintLookup.contains(key)){
@@ -342,7 +342,7 @@ void Theme::setDefaultImageTintColor(QColor color)
     }
 }
 
-void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color)
+void Theme::setDefaultImageTintColor(const QString& prefix, const QString& alias, QColor color)
 {
     QString longName = getResourceName(prefix, alias);
     pixmapTintLookup[longName] = color;
@@ -365,7 +365,7 @@ bool Theme::gotImage(IconPair icon)
     return gotImage(icon.first, icon.second);
 }
 
-bool Theme::gotImage(QString path, QString alias)
+bool Theme::gotImage(const QString& path, const QString& alias)
 {
     auto resource_name = getResourceName(path, alias);
     QReadLocker lock(&lock_);
@@ -392,7 +392,7 @@ QIcon Theme::getIcon(IconPair icon)
     return getIcon(icon.first, icon.second);
 }
 
-QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_colors)
+QIcon Theme::getIcon(const QString& prefix, const QString& alias)//{//, bool ignore_checked_colors)
 {
     bool ignore_checked_colors = false;
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -453,7 +453,7 @@ QIcon Theme::getIcon(QString prefix, QString alias)//{//, bool ignore_checked_co
     }
 }
 
-QPixmap Theme::_getPixmap(QString resourceName, QSize size, QColor tintColor)
+QPixmap Theme::_getPixmap(const QString& resourceName, QSize size, QColor tintColor)
 {
     QPixmap pixmap;
     //Get the name of the pixmap url
@@ -504,13 +504,14 @@ QPixmap Theme::_getPixmap(QString resourceName, QSize size, QColor tintColor)
     return pixmap;
 }
 
-QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
+QPixmap Theme::getImage(const QString& prefix, const QString& alias, QSize size, QColor tintColor)
 {
     return _getPixmap(getResourceName(prefix, alias), size, tintColor);
 }
 
 QString Theme::getPixmapResourceName(QString resource_name, QSize size, QColor tintColor)
 {
+
     QSize original_size = pixmapSizeLookup.value(resource_name);
 
     if(size.isValid() && size != original_size){
@@ -625,7 +626,7 @@ QString Theme::getWidgetStyleSheet(QString widgetName)
            "}";
 }
 
-QMovie* Theme::getGif(QString path, QString name){
+QMovie* Theme::getGif(const QString& path, const QString& name){
     auto lookupName = getResourceName(path, name);
     
     if(!gifLookup.contains(lookupName)){
@@ -1390,7 +1391,7 @@ void Theme::setupAliasIcons(){
     setIconAlias("Data", "ID", "Icons", "numberOne");
 }   
 
-void Theme::setIconAlias(QString prefix, QString alias, QString icon_prefix, QString icon_alias){
+void Theme::setIconAlias(const QString& prefix, const QString& alias, const QString& icon_prefix, const QString& icon_alias){
     auto alias_rn = resourceName(prefix, alias);
     auto icon_rn = resourceName(icon_prefix, icon_alias);
     
@@ -1607,7 +1608,7 @@ void Theme::updateValid()
     themeChanged = true;
 }
 
-QImage Theme::getImage(QString resource_name)
+QImage Theme::getImage(const QString& resource_name)
 {
     {
         //Try load the image
@@ -1629,19 +1630,19 @@ QImage Theme::getImage(QString resource_name)
     return image;
 }
 
-QColor Theme::getTintColor(QString resource_name)
+QColor Theme::getTintColor(const QString& resource_name)
 {
     QReadLocker lock(&lock_);
     return pixmapTintLookup.value(resource_name, iconColor);
 }
 
-QSize Theme::getOriginalSize(QString resource_name)
+QSize Theme::getOriginalSize(const QString& resource_name)
 {
     QReadLocker lock(&lock_);
     return pixmapSizeLookup.value(resource_name);
 }
 
-IconPair Theme::splitImagePath(QString path)
+IconPair Theme::splitImagePath(const QString& path)
 {
     int midSlash = path.lastIndexOf('/');
 
@@ -1657,7 +1658,7 @@ bool Theme::tintIcon(IconPair pair){
     return tintIcon(getResourceName(pair));
 }
 
-bool Theme::tintIcon(QString resource_name){
+bool Theme::tintIcon(const QString& resource_name){
     return tintIcon(pixmapSizeLookup.value(resource_name, QSize(0, 0)));
 }
 bool Theme::tintIcon(QSize size)

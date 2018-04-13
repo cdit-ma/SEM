@@ -11,6 +11,7 @@
 
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
+#include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/managementcomponentnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 
@@ -884,7 +885,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new CompactNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE){
@@ -1104,6 +1105,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                     nodeItem->setExpandedHeight(20);
                     nodeItem->setExpandedWidth(20*3);
+
+                    if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE || nodeKind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+                        nodeItem->setMinimumHeight(20);
+                        nodeItem->setMinimumWidth(40);
+
+                        nodeItem->setExpandedHeight(20);
+                        nodeItem->setExpandedWidth(40);
+                    }
                 }
                 
                 
@@ -1117,14 +1126,22 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
                 }
 
+                auto theme = Theme::theme();
+                nodeItem->setBaseBodyColor(theme->getAltBackgroundColor());
+                nodeItem->setHeaderColor(theme->getBackgroundColor());
+                nodeItem->setTextColor(theme->getTextColor());
+                QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
+                defaultPen.setCosmetic(true);
+                nodeItem->setDefaultPen(defaultPen);
+
+
                 if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
                     if(stack_item){
                    
                         stack_item->setAlignment(Qt::Horizontal);
                         auto header_color = stack_item->getHeaderColor();;
-                        auto parameter_color = stack_item->getHeaderColor().lighter(110);
-                        auto text_color = Qt::darkGray;
-
+                        auto parameter_color = theme->getDisabledBackgroundColor();
+                        auto text_color = stack_item->getTextColor();
                         
 
                         if(nodeKind == NODE_KIND::COMPONENT_IMPL){

@@ -1515,11 +1515,16 @@ QColor NodeItem::getBodyColor() const
 
 QColor NodeItem::getHeaderColor() const
 {
-    auto color = getBodyColor().darker(120);
+    auto color = header_color;
     if(!isHighlighted() && paint_notification){
         color = Theme::blendColors(notification_color, color, .60);
     }
     return color;
+}
+
+void NodeItem::setHeaderColor(QColor color){
+    header_color = color;
+    update();
 }
 
 QPointF NodeItem::getTopLeftOffset() const

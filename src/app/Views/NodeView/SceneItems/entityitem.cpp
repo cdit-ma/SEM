@@ -215,6 +215,7 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
 void EntityItem::paintPixmap(QPainter *painter, qreal lod, const QRectF& image_rect, const QString& imagePath, const QString& imageName, QColor tintColor){
     if(!image_rect.isEmpty()){
         auto required_size = getPixmapSize(image_rect, lod);
+        
         auto pixmap = getPixmap(imagePath, imageName, required_size, tintColor);
         paintPixmap(painter, image_rect, pixmap);
     }
@@ -225,18 +226,21 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
 }
 
-void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
-{
-    painter->save();
-    
-    auto text_color = getDefaultPen();
-    
+StaticTextItem* EntityItem::getTextItem(ELEMENT_RECT pos){
     auto text_item = textMap.value(pos, 0);
     if(!text_item){
         //If we haven't got one, construct a text tiem
         text_item = new StaticTextItem(Qt::AlignLeft | Qt::AlignVCenter);
         textMap[pos] = text_item;
     }
+    return text_item;
+}
+
+void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
+{
+    painter->save();
+    
+    auto text_item = getTextItem(pos);
 
     painter->setPen(text_color);
     
@@ -296,9 +300,10 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
     return requiredSize;
 }
 
-QPixmap EntityItem::getPixmap(QString imageAlias, QString imageName, QSize requiredSize, QColor tintColor) const
+QPixmap EntityItem::getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize, QColor tintColor) const
 {
     Theme* theme = Theme::theme();
+    tintColor = Theme::theme()->getMenuIconColor();
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
     return image;
 }
@@ -782,7 +787,7 @@ QPen EntityItem::getPen()
         }
         pen.setCosmetic(true);
         pen.setWidthF(SELECTED_LINE_WIDTH);
-        penColor = Theme::theme()->getSelectedItemBorderColor();
+        penColor = Theme::theme()->getHighlightColor();
     }
 
     if(!isHovered()){
@@ -918,6 +923,14 @@ void EntityItem::paintPixmapRect(QPainter* painter, QString imageAlias, QString 
 QColor EntityItem::getBaseBodyColor() const
 {
     return bodyColor;
+}
+
+QColor EntityItem::getTextColor() const{
+    return text_color;
+}
+void EntityItem::setTextColor(QColor color){
+    text_color = color;
+    update();
 }
 
 QColor EntityItem::getBodyColor() const
