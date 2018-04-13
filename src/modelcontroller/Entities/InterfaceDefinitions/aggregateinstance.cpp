@@ -11,6 +11,7 @@ AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory,
     RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
 };
+
 AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
@@ -82,7 +83,6 @@ void AggregateInstance::ParentSet(DataNode* child){
 
         //Check our ancestor type
         for(auto ancestor : child->getParentNodes(-1)){
-            qCritical() << "ANCESTOR: " << ancestor;
             auto ancestor_kind = ancestor->getNodeKind();
             if(!got_valid_producer && valid_producer_parents.contains(ancestor_kind)){
                 got_valid_producer = true;
@@ -97,9 +97,6 @@ void AggregateInstance::ParentSet(DataNode* child){
                 break;
             }
         }
-        qCritical() << child->toString();
-        qCritical() << "CHILD IS PRODUCER: " << (got_valid_producer ? "YES" : "NO");
-        qCritical() << "CHILD IS RECEIVER: " << (got_valid_receiver ? "YES" : "NO");
         child->setDataProducer(got_valid_producer);
         child->setDataReceiver(got_valid_receiver);
     }

@@ -18,15 +18,24 @@ MEDEA::WorkerInstance::WorkerInstance() : Node(NODE_KIND::WORKER_INSTANCE)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
+    setNodeType(NODE_TYPE::DEFINITION);
 
     setDefinitionKind(NODE_KIND::WORKER_DEFINITION);
+    setInstanceKind(NODE_KIND::WORKER_INSTANCE);
 }
 
 bool MEDEA::WorkerInstance::canAdoptChild(Node* node)
 {
     switch(node->getNodeKind()){
         case NODE_KIND::ATTRIBUTE_INSTANCE:
-        case NODE_KIND::WORKER_FUNCTION:
+            break;
+        case NODE_KIND::WORKER_FUNCTION:{
+            //Only allow workerInstances to adopt Worker Function
+            if(getViewAspect() != VIEW_ASPECT::BEHAVIOUR){
+                return false;
+            }
+            break;
+        }
             break;
         default:
             return false;
@@ -42,9 +51,9 @@ bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             case NODE_KIND::WORKER_DEFINITION:{
                 return true;
             }
-            /*case NODE_KIND::WORKER_INSTANCE:{
+            case NODE_KIND::WORKER_INSTANCE:{
                 return true;
-            }*/
+            }
             default:
                 return false;
         }

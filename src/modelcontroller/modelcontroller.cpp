@@ -122,10 +122,6 @@ void ModelController::loadWorkerDefinitions()
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
-                qCritical() << file;
-                /*if(file != "opencl.worker"){
-                    continue;
-                }*/
                 auto file_path = dir.absolutePath() + "/" + file;
                 auto data = readFile(file_path);
                 bool success = importGraphML(data.second, workerDefinitions);
@@ -443,7 +439,9 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
 Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
 
     Node* source = construct_child_node(parent_node, node_kind, false);
+    
     if(source){
+        qCritical() << source->toString();
         auto edge = construct_edge(edge_kind, source, destination, -1, false);
         
         if(!edge){
@@ -1330,6 +1328,7 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
 
         if(isUserAction() && node->isDefinition()){
             for(auto dependant : parentNode->getDependants()){
+                qCritical() << dependant->toString();
                 
                 auto success = constructDependantRelative(dependant, node);
                 if(!success){
@@ -1397,6 +1396,7 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
 
 int ModelController::constructDependantRelative(Node *parent, Node *definition)
 {
+    qCritical() << "constructDependantRelative: Making Instance/Impl of" << definition->toString() << " WITHIN " << parent->toString();
     int nodes_matched = 0;
     
     auto dependant_kind = NODE_KIND::NONE;
@@ -1406,6 +1406,8 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
     }else{
         dependant_kind = definition->getImplKind();
     }
+
+    qCritical() << "DEPENDANT KIND: " << entity_factory->getNodeKindString(dependant_kind);
 
     if(dependant_kind != NODE_KIND::NONE){
         //For each child in parent, check to see if any Nodes match Label/Type
@@ -1938,6 +1940,7 @@ void ModelController::setupModel()
 bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
     if(src && dst){
+        qCritical() << "setupDefinitionRelationship: " << src->toString() << " TO " << dst->toString();
         QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
         auto node_kind = src->getNodeKind();
         auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
@@ -1959,6 +1962,7 @@ bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool set
 
             for(auto node : nodes_to_adopt){
                 if(node->isDefinition()){
+                    qCritical() << "Trying to make an Instance of: " << node->toString();
                     if(!constructDependantRelative(src, node)){
                         return false;
                     }
@@ -2364,8 +2368,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
     current_entity->setID(parent->getID());
 
-    qCritical() << "Processing UUIDS: " << (process_uuids ? "YES" : "NO");
-
 
     if(show_progress){
         ProgressUpdated_("Parsing Project");
@@ -2533,9 +2535,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
             
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
-
-            qCritical() << "LOOKING FOR UUID: " << uuid << matched_entity;
-            
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes

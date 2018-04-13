@@ -751,9 +751,7 @@ void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
         uuid_lookup_.remove(old_uuid);
 
         if(!uuid.isEmpty()){
-            qCritical() << entity->toString() << " : " << uuid;
             uuid_lookup_.insert(uuid, entity->getID());
-            
         }
     }
 }
