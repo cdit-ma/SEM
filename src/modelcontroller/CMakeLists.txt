@@ -129,6 +129,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
@@ -144,6 +145,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.h

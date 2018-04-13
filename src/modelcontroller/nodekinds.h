@@ -60,6 +60,7 @@ enum class NODE_KIND
         PROCESS,
         WORKER_PROCESS,
         WORKER_FUNCTION,
+        WORKER_FUNCTIONCALL,
         TERMINATION,
         VARIABLE,
         WHILELOOP,

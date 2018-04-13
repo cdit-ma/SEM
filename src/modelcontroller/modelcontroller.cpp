@@ -2076,7 +2076,8 @@ bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
         auto dst_parent = dst->getParentNode();
 
         //Bind the special vector linking
-        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS  || dst_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTION){
+        if(dst_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS  || dst_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTION ||
+            dst_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTION){
             auto worker_name = dst_parent->getDataValue("worker").toString();
             auto parameter_label = dst->getDataValue("label").toString();
 

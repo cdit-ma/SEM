@@ -38,6 +38,7 @@ bool ComponentImpl::canAdoptChild(Node *child)
         case NODE_KIND::HEADER:
         case NODE_KIND::WORKER_INSTANCE:
         case NODE_KIND::WORKER_FUNCTION:
+        case NODE_KIND::WORKER_FUNCTIONCALL:
             break;
     default:
         return false;

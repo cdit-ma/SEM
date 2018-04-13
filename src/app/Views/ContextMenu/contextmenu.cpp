@@ -29,6 +29,7 @@ ContextMenu::ContextMenu(ViewController *vc){
 
     connect_node_edge_kinds[NODE_KIND::WORKER_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTION] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTIONCALL] = EDGE_KIND::DEFINITION;
     
 
     connect_node_edge_kinds[NODE_KIND::INEVENTPORT] = EDGE_KIND::AGGREGATE;

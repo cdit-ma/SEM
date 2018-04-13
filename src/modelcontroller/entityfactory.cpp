@@ -51,6 +51,7 @@
 #include "Entities/BehaviourDefinitions/whileloop.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/workerfunction.h"
+#include "Entities/workerfunctioncall.h"
 #include "Entities/BehaviourDefinitions/workload.h"
 
 //Instance Elements
@@ -341,6 +342,7 @@ EntityFactory::EntityFactory()
     WhileLoop(this);
     WorkerProcess(this);
     WorkerFunction(this);
+    WorkerFunctionCall(this);
     Workload(this);
 
     //Instance Elements
