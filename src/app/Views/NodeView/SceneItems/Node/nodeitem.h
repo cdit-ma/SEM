@@ -35,9 +35,12 @@ public:
     void removeChildNode(NodeItem *nodeItem);
 
     int getSortOrder() const;
+    int getSortOrderRow() const;
+    int getSortOrderRowSubgroup() const;
 
     bool hasChildNodes() const;
     QList<NodeItem*> getChildNodes() const;
+    QList<NodeItem*> getSortedChildNodes() const;
     QList<EntityItem*> getChildEntities() const;
 
     QPainterPath getChildNodePath();
@@ -77,6 +80,7 @@ public:
     virtual QRectF contractedRect() const;
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
+    QRectF translatedHeaderRect() const;
     QRectF gridRect() const;
     QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;
@@ -101,7 +105,7 @@ public:
     
 
 
-    QRectF childrenRect() const;
+    virtual QRectF childrenRect() const;
 
     QSizeF getSize() const;
 
@@ -180,7 +184,14 @@ public:
 
     QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
     int getVertexAngle(NodeItem::RectVertex vert) const;
+    virtual void childPosChanged(EntityItem* child);
 signals:
+    void childSizeChanged(EntityItem* child);
+    void childPositionChanged(EntityItem* child);
+    void childIndexChanged(EntityItem* child);
+    void childCountChanged();
+
+    void indexChanged();
     //Request changes
     void req_connectMode(NodeItem* item);
     
@@ -199,7 +210,6 @@ public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void propertyChanged(QString propertyName, QVariant data);
     virtual void dataRemoved(QString keyName);
-    virtual void childPosChanged();
 private:
     void edgeAdded(EDGE_KIND kind);
     void edgeRemoved(EDGE_KIND kind);
@@ -207,8 +217,9 @@ private:
 
     void updateReadState();
     void setUpColors();
-
+protected:
     void resizeToChildren();
+private:
     int getResizeArrowRotation(NodeItem::RectVertex vert) const;
 
 

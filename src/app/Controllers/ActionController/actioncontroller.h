@@ -129,6 +129,13 @@ public:
     RootAction* edit_renameActiveSelection;
     RootAction* edit_expand;
     RootAction* edit_contract;
+    RootAction* edit_incrementIndex;
+    RootAction* edit_decrementIndex;
+
+    RootAction* edit_incrementRow;
+    RootAction* edit_decrementRow;
+    
+    
 
     RootAction* view_fitView;
     RootAction* view_fitAllViews;
@@ -140,6 +147,10 @@ public:
     RootAction* view_viewImplInNewWindow;
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
+    RootAction* view_zoomIn;
+    RootAction* view_zoomOut;
+
+
 
     RootAction* model_validateModel;
     RootAction* model_selectModel;

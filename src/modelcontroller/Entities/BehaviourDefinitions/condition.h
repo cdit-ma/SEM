@@ -1,6 +1,6 @@
 #ifndef CONDITION_H
 #define CONDITION_H
-#include "behaviournode.h"
+#include "containernode.h"
 
 #include "../../edgekinds.h"
 
@@ -8,7 +8,7 @@ class Termination;
 class Branch;
 
 class EntityFactory;
-class Condition: public BehaviourNode
+class Condition: public Node, public ContainerNode
 {
 	friend class EntityFactory;
     Q_OBJECT
@@ -18,11 +18,6 @@ protected:
 
     Condition(NODE_KIND kind = NODE_KIND::CONDITION);
 public:
-
-    Branch* getBranch();
-    Termination* getRequiredTermination();
-    bool gotTermination();
-
     virtual bool canAdoptChild(Node*);
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

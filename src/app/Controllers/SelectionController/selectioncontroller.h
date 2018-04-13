@@ -25,15 +25,19 @@ public:
     int getFirstSelectedItemID();
 
 signals:
+    void zoomIn();
+    void zoomOut();
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
     void selectionChanged(int selected);
     void viewItemDeleted(ViewItem* item);
     void clearSelection();
     void selectAll();
+    void setIndex(int ID, int index);
 private slots:
     void activeViewDockWidgetChanged(ViewDockWidget* widget);
     void cycleActiveSelectionBackward();
     void cycleActiveSelectionForward();
+
     void removeSelectionHandler();
 private:
     void cycleActiveSelectedItem(bool forward);

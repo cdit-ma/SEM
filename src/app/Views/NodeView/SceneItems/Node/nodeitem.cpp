@@ -5,6 +5,8 @@
 
 #include "../entityitem.h"
 #include "../../../../../modelcontroller/entityfactory.h"
+#include "../../../../../modelcontroller/Entities/Keys/rowkey.h"
+
 #include <algorithm>
 
 
@@ -20,8 +22,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     expandedWidth = 0;
     modelHeight = 0;
     modelWidth = 0;
-    //manuallyAdjustedWidth = 0;
-    //manuallyAdjustedHeight = 0;
+    
     gridVisible = false;
     gridEnabled = false;
     hoveredConnect = false;
@@ -67,7 +68,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
         setPos(getNearestGridPoint());
     }
 
-   
+    connect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
+    connect(this, &NodeItem::childPositionChanged, this, &NodeItem::childPosChanged);
 
 
     gridLinePen.setColor(getBaseBodyColor().darker(150));
@@ -140,17 +142,21 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
         nodeItem->setParentItem(this);
+        connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
+        connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
+        connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
+        
 
-        connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(childPosChanged()));
-        connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
+        
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBaseBodyColor(getBaseBodyColor().darker(110));
+        nodeItem->setBaseBodyColor(getBaseBodyColor());
 
         nodeItem->setVisible(isExpanded());
-        childPosChanged();
+        childPosChanged(nodeItem);
+        emit childCountChanged();
     }
 }
 
@@ -165,7 +171,9 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
         }
         //Unset child moving.
         nodeItem->unsetParent();
-        childPosChanged();
+
+        childPosChanged(nodeItem);
+        emit childCountChanged();
     }
 }
 
@@ -179,6 +187,20 @@ int NodeItem::getSortOrder() const
     return -1;
 }
 
+int NodeItem::getSortOrderRow() const{
+    if(hasData("row")){
+        return getData("row").toInt();
+    }
+    return 0;
+}
+
+int NodeItem::getSortOrderRowSubgroup() const{
+    if(hasData("column")){
+        return getData("column").toInt();
+    }
+    return 0;
+}
+
 bool NodeItem::hasChildNodes() const
 {
     return !childNodes.isEmpty();
@@ -187,6 +209,14 @@ bool NodeItem::hasChildNodes() const
 QList<NodeItem *> NodeItem::getChildNodes() const
 {
     return childNodes.values();
+}
+
+QList<NodeItem*> NodeItem::getSortedChildNodes() const{
+    auto children = getChildNodes();
+    std::sort(children.begin(), children.end(), [](const NodeItem* n1, const NodeItem* n2){
+        return n1->getSortOrder() < n2->getSortOrder();
+    });
+    return children;
 }
 
 
@@ -212,7 +242,7 @@ void NodeItem::addChildEdge(EdgeItem *edgeItem)
 
         edgeItem->setBaseBodyColor(getBaseBodyColor().darker(120));
 
-        connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
+        connect(edgeItem, &EntityItem::positionChanged, this, [=](){childPosChanged(0);});
         edgeItem->setVisible(isExpanded());
     }
 }
@@ -368,6 +398,12 @@ QRectF NodeItem::headerRect() const
     return currentRect();
 }
 
+QRectF NodeItem::translatedHeaderRect() const{
+    QRectF rect = headerRect();
+    //we should use the bounding rect coordinates!
+    rect.translate(pos());
+    return rect;
+}
 
 QRectF NodeItem::childrenRect() const
 {
@@ -778,6 +814,12 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "key" && getNodeKind() == NODE_KIND::MEMBER){
             bool boolData = data.toBool();
             setIconOverlayVisible(boolData);
+        }else if(keyName =="index"){
+            emit indexChanged();
+        }else if(keyName =="row"){
+            emit indexChanged();
+        }else if(keyName =="column"){
+            emit indexChanged();
         }
 
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
@@ -800,11 +842,11 @@ void NodeItem::dataRemoved(QString keyName)
     }
 }
 
-void NodeItem::childPosChanged()
+void NodeItem::childPosChanged(EntityItem*)
 {
-    //Update the child rect.
+    //Update the child rect.    
     QRectF rect;
-    foreach(EntityItem* child, getChildEntities()){
+    for(auto child : getChildEntities()){
         if(child->isNodeItem()){
             rect = rect.united(child->translatedBoundingRect());
         }else if(child->isEdgeItem()){

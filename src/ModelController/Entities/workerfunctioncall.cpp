@@ -5,9 +5,6 @@ WorkerFunctionCall::WorkerFunctionCall():Node(NODE_KIND::WORKER_FUNCTIONCALL)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
-
-    setInstanceKind(NODE_KIND::WORKER_FUNCTIONCALL);
-    //setImplKind(NODE_KIND::WORKER_FUNCTIONCALL);
     setDefinitionKind(NODE_KIND::WORKER_FUNCTION);
 }
 
@@ -40,17 +37,12 @@ bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             if(dst->getNodeKind() != NODE_KIND::WORKER_FUNCTION){
                 return false;
             }
-
             // The WorkerFunctionCall must exist within a ComponentImpl
-            if(getParentNode()->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
-                if(!dst->getDefinition()){
+            auto parent_node = dst->getParentNode();
+            if(parent_node){
+                if(parent_node->getNodeKind() != NODE_KIND::WORKER_INSTANCE){
                     return false;
                 }
-            }
-
-            // The WorkerFunction must exist within the WorkerDefinitions aspect
-            if(dst->getViewAspect() != VIEW_ASPECT::BEHAVIOUR){
-                return false;
             }
             
             break;
@@ -58,6 +50,5 @@ bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         default:
             break;
     }
-
     return Node::canAcceptEdge(edgeKind, dst);
 }

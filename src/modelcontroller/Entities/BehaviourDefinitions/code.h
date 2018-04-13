@@ -1,10 +1,10 @@
 #ifndef MODEL_IMPL_CODE_H
 #define MODEL_IMPL_CODE_H
 
-#include "behaviournode.h"
+#include "../node.h"
 
 class EntityFactory;
-class Code: public BehaviourNode
+class Code: public Node
 {
 	friend class EntityFactory;
     Q_OBJECT

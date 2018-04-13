@@ -18,6 +18,8 @@ public:
     //Used for conversion to and from for export
     static QString getGraphMLTypeName(const QVariant::Type type);
     static QVariant::Type getTypeFromGraphML(const QString typeString);
+
+    
 protected:
     Key(QString keyName, QVariant::Type type);
     ~Key();
@@ -35,6 +37,7 @@ public:
 
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);
+    virtual bool setData(Data* data, QVariant data_value);
     QString toGraphML(int indent_depth = 0, bool functional_export = false);
     QString toString();
 protected:

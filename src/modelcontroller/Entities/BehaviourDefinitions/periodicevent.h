@@ -1,9 +1,9 @@
 #ifndef PERIODICEVENT_H
 #define PERIODICEVENT_H
-#include "behaviournode.h"
+#include "containernode.h"
 
 class EntityFactory;
-class PeriodicEvent: public BehaviourNode
+class PeriodicEvent: public Node, public ContainerNode
 {
 	friend class EntityFactory;
     Q_OBJECT

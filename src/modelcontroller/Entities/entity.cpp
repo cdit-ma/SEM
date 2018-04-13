@@ -10,7 +10,9 @@ Entity::Entity(GRAPHML_KIND kind):GraphML(kind)
 
 Entity::~Entity()
 {
+    disconnect(this);
     for(auto data : dataLookup){
+        
         //Unregister the data so we don't bother calling back into this class
         data->setParent(0);
         delete data;
@@ -60,6 +62,7 @@ bool Entity::addData(Data *data)
 
     //Attach this.
     data->registerParent(this);
+    DataAdded(data);
     return true;
 }
 

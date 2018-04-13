@@ -20,10 +20,9 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
     setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setDefinitionKind(NODE_KIND::AGGREGATE);
     setImplKind(NODE_KIND::AGGREGATE_INSTANCE);
-    
 
-    setDataProducer(true);
-    setDataReciever(true);
+    //Only allow data binding for particular cases based on ancestor
+    removeEdgeKind(EDGE_KIND::DATA);
 }
 
 bool AggregateInstance::canAdoptChild(Node *child)
@@ -70,3 +69,42 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return DataNode::canAcceptEdge(edgeKind, dst);
 }
 
+
+void AggregateInstance::ParentSet(DataNode* child){
+    if(child->getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
+        bool got_valid_producer = false;
+        bool got_valid_receiver = false;
+
+        QSet<NODE_KIND> valid_producer_parents = {NODE_KIND::INEVENTPORT_IMPL, NODE_KIND::VARIABLE};
+        QSet<NODE_KIND> valid_receiver_parents = {NODE_KIND::OUTEVENTPORT_IMPL, NODE_KIND::VARIABLE};
+        QSet<NODE_KIND> invalid_parents = {NODE_KIND::VECTOR, NODE_KIND::VECTOR_INSTANCE};
+
+
+        //Check our ancestor type
+        for(auto ancestor : child->getParentNodes(-1)){
+            qCritical() << "ANCESTOR: " << ancestor;
+            auto ancestor_kind = ancestor->getNodeKind();
+            if(!got_valid_producer && valid_producer_parents.contains(ancestor_kind)){
+                got_valid_producer = true;
+            }
+            if(!got_valid_receiver && valid_receiver_parents.contains(ancestor_kind)){
+                got_valid_receiver = true;
+            }
+            
+            if(invalid_parents.contains(ancestor_kind)){
+                got_valid_producer = false;
+                got_valid_receiver = false;
+                break;
+            }
+        }
+        qCritical() << child->toString();
+        qCritical() << "CHILD IS PRODUCER: " << (got_valid_producer ? "YES" : "NO");
+        qCritical() << "CHILD IS RECEIVER: " << (got_valid_receiver ? "YES" : "NO");
+        child->setDataProducer(got_valid_producer);
+        child->setDataReceiver(got_valid_receiver);
+    }
+}
+void AggregateInstance::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
+}

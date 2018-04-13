@@ -13,12 +13,9 @@ protected:
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-private:
-    QString getVectorType();
-private slots:
-    void updateType();
-    void childrenChanged();
-
+protected:
+    void childAdded(Node* child);
+    void childRemoved(Node* child);
 };
 
 

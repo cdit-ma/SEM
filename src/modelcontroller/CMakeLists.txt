@@ -23,28 +23,32 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/class.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/eventportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/containernode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ineventportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/inputparameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/outeventportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/termination.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/whileloop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.cpp
@@ -53,6 +57,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/blackboxinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.cpp
@@ -67,7 +72,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportdelegate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp
@@ -91,6 +95,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/edge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/aggregateedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/assemblyedge.cpp
@@ -98,7 +103,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/workflowedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.cpp
@@ -116,22 +120,29 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/memberinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/outeventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vectorinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/key.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/columnkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/exportidkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/frequencykey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/innertypekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/namespacekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/outertypekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
@@ -174,7 +185,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/workflowedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.h
@@ -226,11 +236,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/whileloop.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/termination.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.h
@@ -241,16 +249,23 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ineventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/eventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branchstate.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.h
+
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviournode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.h
+)
 
 
 set(RESOURCES

@@ -171,8 +171,10 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         inactive_pen.setWidthF(pen.widthF() / 2.0);
 
         //Paint the bezier curves
-        painter->strokePath(srcCurve, src == vSrc ? pen : inactive_pen);
-        painter->strokePath(dstCurve, dst == vDst ? pen : inactive_pen);
+        //if(isSelected()){
+            painter->strokePath(srcCurve, src == vSrc ? pen : inactive_pen);
+            painter->strokePath(dstCurve, dst == vDst ? pen : inactive_pen);
+        //}
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(pen.color());
@@ -181,40 +183,39 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawPath(srcArrow);
         painter->drawPath(dstArrow);
     }
+    //if(isSelected()){
+        if(state > RENDER_STATE::BLOCK){
+            painter->setBrush(getBodyColor());
+            pen.setStyle(Qt::SolidLine);
+            painter->setPen(pen);
 
-    if(state > RENDER_STATE::BLOCK){
-        painter->setBrush(getBodyColor());
-        pen.setStyle(Qt::SolidLine);
-        painter->setPen(pen);
+            QPainterPath path;
+            path.setFillRule(Qt::WindingFill);
 
-        QPainterPath path;
-        path.setFillRule(Qt::WindingFill);
+            //Draw the center Circle/Rectangle
 
-        //Draw the center Circle/Rectangle
+            path.addEllipse(translatedCenterCircleRect());
+            if(isSelected()){
+                //If we are selected add the circles to the left/right
+                path.addEllipse(srcIconCircle());
+                path.addEllipse(dstIconCircle());
+            }
+            path = path.simplified();
 
-        path.addEllipse(translatedCenterCircleRect());
-        if(isSelected()){
-            //If we are selected add the circles to the left/right
-            path.addEllipse(srcIconCircle());
-            path.addEllipse(dstIconCircle());
+            //Stroke the path
+            painter->drawPath(path);
         }
-        path = path.simplified();
-
-        //Stroke the path
-        painter->drawPath(path);
-    }
-
-
-
-    //Draw the icons.
-    if(state == RENDER_STATE::BLOCK){
-        painter->setClipPath(getElementPath(ER_SELECTION));
-    }
-    paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
-    if(state > RENDER_STATE::BLOCK && isSelected()){
-        paintPixmap(painter, lod, ER_MAIN_ICON, src->getIconPath());
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, dst->getIconPath());
-    }
+    
+        //Draw the icons.
+        if(state == RENDER_STATE::BLOCK){
+            painter->setClipPath(getElementPath(ER_SELECTION));
+        }
+        paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
+        if(state > RENDER_STATE::BLOCK && isSelected()){
+            paintPixmap(painter, lod, ER_MAIN_ICON, src->getIconPath());
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, dst->getIconPath());
+        }
+    //}
 }
 
 QPainterPath EdgeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const

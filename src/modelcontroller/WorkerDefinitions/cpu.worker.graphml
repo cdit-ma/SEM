@@ -5,6 +5,9 @@
 
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
@@ -38,7 +41,7 @@
                         <node id="cpuworker::intop::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -60,7 +63,7 @@
                         <node id="cpuworker::floatop::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -82,7 +85,7 @@
                         <node id="cpuworker::whetstone::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -104,7 +107,7 @@
                         <node id="cpuworker::mwip::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -126,7 +129,7 @@
                         <node id="cpuworker::dhrystone::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -148,7 +151,7 @@
                         <node id="cpuworker::dmip::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
@@ -170,7 +173,8 @@
                         <node id="cpuworker::matrixmult::matrixa">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">The first of the two matrix operands.</data>
@@ -178,7 +182,8 @@
                         <node id="cpuworker::matrixmult::matrixb">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">The second of the two matrix operands.</data>
@@ -186,7 +191,8 @@
                         <node id="cpuworker::matrixmult::matrixc">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix C</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowRight</data>
                             <data key="description">The matrix to be filled with the result of the multiplication.</data>

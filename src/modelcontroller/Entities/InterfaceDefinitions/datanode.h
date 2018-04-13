@@ -15,20 +15,36 @@ public:
     DataNode* getInputData();
     DataNode* getOutputData();
 
+    void setPromiscuousDataLinker(bool set);
     void setMultipleDataReceiver(bool receiver);
     void setDataProducer(bool producer);
-    void setDataReciever(bool reciever);
+    void setDataReceiver(bool receiver);
     bool isDataProducer() const;
-    bool isDataReciever() const;
+    bool isDataReceiver() const;
+
+    bool isPromiscuousDataLinker() const;
     bool isMultipleDataReceiver() const;
 
     bool comparableTypes(DataNode* node);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) = 0;
-private:
 
-    bool _isProducer = false;
-    bool _isReciever = false;;
-    bool _isMultipleDataReceiver = false;;
+    bool isContainedInVector();
+    bool isContainedInVariable();
+    Node* getContainmentNode();
+private:
+    void RunContainmentChecks();
+    bool _run_containment_checks = false;
+
+    bool _contained_in_vector = false;
+    bool _contained_in_variable = false;
+    Node* _containment_node = 0;
+
+    bool promiscuous_data_linker_ = false;
+
+
+    bool is_producer_ = false;
+    bool is_receiver_ = false;
+    bool is_multiple_data_receiver_ = false;
 
 };
 

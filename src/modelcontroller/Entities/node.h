@@ -24,6 +24,10 @@ class Node : public Entity
         static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
         static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
+        static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
+    public:
+        static void BindDataRelationship(Node* source, Node* destination, bool setup);
+    protected:
 
         //Constuctor
         Node(NODE_KIND kind);
@@ -48,7 +52,13 @@ class Node : public Entity
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
 
-    virtual VIEW_ASPECT getViewAspect() const;
+    protected:
+        virtual void childAdded(Node* child){};
+        virtual void childRemoved(Node* child);
+        virtual void parentSet(Node* parent){};
+    public:
+
+        virtual VIEW_ASPECT getViewAspect() const;
     
 
     int getDepth() const;
@@ -66,7 +76,7 @@ class Node : public Entity
     Node* getCommonAncestor(Node* dst);
 
 
-
+    QList<Node*> getParentNodes(int depth = 1);
     Node* getParentNode(int depth = 1);
     int getParentNodeID();
 
@@ -141,8 +151,6 @@ class Node : public Entity
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
 
-signals:
-    void childCountChanged();
 private:
     void setViewAspect(VIEW_ASPECT aspect);
     void setParentNode(Node* parent, int index);
@@ -191,24 +199,29 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QList<EDGE_KIND> validEdgeKinds;
+    QSet<EDGE_KIND> valid_edge_kinds;
 
     NODE_KIND definition_kind_;
     NODE_KIND instance_kind_;
     NODE_KIND impl_kind_;
+
+    bool rule_definitionedge_ignore_parent_definition = false;;
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
     void removeNodeType(NODE_TYPE type);
-    void setAcceptsEdgeKind(EDGE_KIND edgeKind);
+    void setAcceptsEdgeKind(EDGE_KIND edgeKind, bool accept = true);
     void removeEdgeKind(EDGE_KIND edgeKind);
+
 public:
     bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(EDGE_KIND edgeKind) const;
+    bool requiresEdgeKind(EDGE_KIND edge_kind) const;
 
-    QList<EDGE_KIND> getAcceptedEdgeKinds() const;
+    QSet<EDGE_KIND> getValidEdgeKinds() const;
+    QSet<EDGE_KIND> getRequiredEdgeKinds() const;
     
-    virtual bool requiresEdgeKind(EDGE_KIND edgeKind);
+    
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);
 };
 

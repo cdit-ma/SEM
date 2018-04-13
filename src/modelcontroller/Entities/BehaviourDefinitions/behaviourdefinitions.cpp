@@ -26,9 +26,10 @@ VIEW_ASPECT BehaviourDefinitions::getViewAspect() const
 bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NODE_KIND::COMPONENT_IMPL:{
-        break;
-    }
+        case NODE_KIND::CLASS:
+        case NODE_KIND::COMPONENT_IMPL:{
+            break;
+        }
     default:
         return false;
     }

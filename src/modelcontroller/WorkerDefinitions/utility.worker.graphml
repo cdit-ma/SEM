@@ -5,6 +5,7 @@
 
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
@@ -41,7 +42,7 @@
                         <node id="utilityworker::evaluatecomplexity::complexity">
                             <data key="kind">InputParameter</data>
                             <data key="label">Complexity Function</data>
-                            <data key="type">String</data>
+                            <data key="inner_type">String</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">sigma</data>
                             <data key="description">Mathematical expression for the complexity of an algorithm that will be simulated using a workload execution worker.</data>
@@ -49,7 +50,7 @@
                         <node id="utilityworker::evaluatecomplexity::ops">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Operations</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">Number of operations, or size of memory to be used in workload execution</data>
@@ -72,7 +73,7 @@
                         <node id="utilityworker::log::message">
                             <data key="kind">InputParameter</data>
                             <data key="label">Message Format</data>
-                            <data key="type">String</data>
+                            <data key="inner_type">String</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
                             <data key="description">Message to Log.</data>
@@ -80,7 +81,7 @@
                         <node id="utilityworker::log::print">
                             <data key="kind">InputParameter</data>
                             <data key="label">Print</data>
-                            <data key="type">Boolean</data>
+                            <data key="inner_type">Boolean</data>
                             <data key="value">true</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">printer</data>
@@ -103,7 +104,7 @@
                         <node id="utilityworker::gettimeofdaystring::time">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
-                            <data key="type">String</data>
+                            <data key="inner_type">String</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
                             <data key="description">Current Time of Day</data>
@@ -125,7 +126,7 @@
                         <node id="utilityworker::gettimeofday::time">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Time</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">numberOne</data>
                             <data key="description">Current Time of Day</data>
@@ -147,7 +148,7 @@
                         <node id="utilityworker::setrandomseed::seed">
                             <data key="kind">InputParameter</data>
                             <data key="label">Seed</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
                             <data key="description">The seed value</data>
@@ -169,7 +170,7 @@
                         <node id="utilityworker::usleep::duration">
                             <data key="kind">InputParameter</data>
                             <data key="label">duration</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockDark</data>
                             <data key="description">Microseconds to sleep for</data>
@@ -191,7 +192,7 @@
                         <node id="utilityworker::sleep::duration">
                             <data key="kind">InputParameter</data>
                             <data key="label">duration</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">clockDark</data>
                             <data key="description">Seconds to sleep for</data>
@@ -213,7 +214,7 @@
                         <node id="utilityworker::getrandomuniformint::lowerbounds">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lower Bound</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowLineLeft</data>
                             <data key="description">The lower bound</data>
@@ -221,7 +222,7 @@
                         <node id="utilityworker::getrandomuniformint::upperbounds">
                             <data key="kind">InputParameter</data>
                             <data key="label">Upper Bound</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowLineRight</data>
                             <data key="description">The upper bound</data>
@@ -229,7 +230,7 @@
                         <node id="utilityworker::getrandomuniformint::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The random integer</data>
@@ -252,7 +253,7 @@
                         <node id="utilityworker::getrandomuniformreal::lowerbound">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lower Bound</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowLineLeft</data>
                             <data key="description">The lower bound</data>
@@ -260,7 +261,7 @@
                         <node id="utilityworker::getrandomuniformreal::upperbound">
                             <data key="kind">InputParameter</data>
                             <data key="label">Upper Bound</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowLineRight</data>
                             <data key="description">The upper bound</data>
@@ -268,7 +269,7 @@
                         <node id="utilityworker::getrandomuniformreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
@@ -291,7 +292,7 @@
                         <node id="utilityworker::getrandomnormalreal::mean">
                             <data key="kind">InputParameter</data>
                             <data key="label">Mean</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">chartMean</data>
                             <data key="description">The mean of the normal distribution</data>
@@ -299,7 +300,7 @@
                         <node id="utilityworker::getrandomnormalreal::standarddeviation">
                             <data key="kind">InputParameter</data>
                             <data key="label">Standard Deviation</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">chartStdDev</data>
                             <data key="description">The standard deviation of the normal distribution</data>
@@ -307,7 +308,7 @@
                         <node id="utilityworker::getrandomnormalreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
@@ -330,7 +331,7 @@
                         <node id="utilityworker::getrandomexponentialreal::lambda">
                             <data key="kind">InputParameter</data>
                             <data key="label">Lambda</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">chartLambda</data>
                             <data key="description">The mean of the normal distribution</data>
@@ -338,7 +339,7 @@
                         <node id="utilityworker::getrandomexponentialreal::value">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Value</data>
-                            <data key="type">Double</data>
+                            <data key="inner_type">Double</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The random double</data>
@@ -360,7 +361,7 @@
                         <node id="utilityworker::generateuuid::uuid">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">UUID</data>
-                            <data key="type">String</data>
+                            <data key="inner_type">String</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The uuid</data>

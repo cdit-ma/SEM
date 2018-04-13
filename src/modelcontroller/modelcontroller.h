@@ -152,6 +152,7 @@ signals:
     void SetClipboardData(QString);
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
+    void setCustomNodeData(Node* node);
     double compare_medea_version(QString version);
     QSet<NODE_KIND> getGUINodeKinds();
     bool canReplicate(QList<Entity*> selection);
@@ -183,8 +184,9 @@ private:
 
     Node* construct_setter_node(Node* parent);
     Node* construct_dds_profile_node(Node* parent);
-    Node* construct_for_condition_node(Node* parent);
+    Node* construct_for_node(Node* parent);
     Node* construct_component_node(Node* parent);
+    Node* construct_periodic_eventport(Node* parent);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
@@ -251,12 +253,10 @@ private:
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
 
-    //Binds matching Data elements from the Node Child, to the Node Definition.
-    void bindData(Node* definition, Node* instance);
-    void unbindData(Node* definition, Node* instance);
+    
 
-    bool bindData_(Node* src, QString src_key, Node* dst, QString dst_key);
-    bool unbindData_(Node* src, QString src_key, Node* dst, QString dst_key);
+    bool linkData_(Node* src, QString src_key, Node* dst, QString dst_key, bool setup_link);
+    
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);

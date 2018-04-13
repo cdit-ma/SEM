@@ -16,13 +16,11 @@ AttributeImpl::AttributeImpl(EntityFactory* factory) : DataNode(factory, NODE_KI
 AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
 {
     setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(EDGE_KIND::DATA);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
     setDefinitionKind(NODE_KIND::ATTRIBUTE);
 
     setDataProducer(true);
-    setDataReciever(true);
+    setDataReceiver(true);
     setMultipleDataReceiver(true);
 }
 

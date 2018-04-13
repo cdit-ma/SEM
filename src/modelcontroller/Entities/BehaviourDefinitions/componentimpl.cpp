@@ -15,6 +15,7 @@ ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::
 
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
     setNodeType(NODE_TYPE::IMPLEMENTATION);
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setDefinitionKind(NODE_KIND::COMPONENT);
 }
@@ -24,21 +25,10 @@ bool ComponentImpl::canAdoptChild(Node *child)
     switch(child->getNodeKind()){
         case NODE_KIND::ATTRIBUTE_IMPL:
         case NODE_KIND::INEVENTPORT_IMPL:
-        case NODE_KIND::OUTEVENTPORT_IMPL:
-        case NODE_KIND::BRANCH_STATE:
         case NODE_KIND::PERIODICEVENT:
-        case NODE_KIND::TERMINATION:
         case NODE_KIND::VARIABLE:
-        case NODE_KIND::WORKLOAD:
-        case NODE_KIND::PROCESS:
-        case NODE_KIND::WORKER_PROCESS:
-        case NODE_KIND::WHILELOOP:
-        case NODE_KIND::SETTER:
-        case NODE_KIND::CODE:
         case NODE_KIND::HEADER:
         case NODE_KIND::WORKER_INSTANCE:
-        case NODE_KIND::WORKER_FUNCTION:
-        case NODE_KIND::WORKER_FUNCTIONCALL:
             break;
     default:
         return false;

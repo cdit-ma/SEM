@@ -46,6 +46,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
+    setRenderHint(QPainter::HighQualityAntialiasing, true);
 
 
     //Turn off the Scroll bars.
@@ -713,6 +714,7 @@ void NodeView::topLevelItemMoved()
 
 
 void NodeView::update_minimap(){
+    
     emit viewport_changed(viewportRect(), transform().m11());
     emit scenerect_changed(currentSceneRect);
 }
@@ -840,11 +842,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::COMPONENT:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT_IMPL);
-                break;
-            case NODE_KIND::COMPONENT_INSTANCE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                if(nodeKind == NODE_KIND::COMPONENT){
+                    nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT_IMPL);
+                }
+                //nodeItem = new DefaultNodeItem(item, parentNode);
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setSecondaryTextKey("type");
@@ -852,7 +854,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
                 break;
             case NODE_KIND::COMPONENT_IMPL:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
@@ -866,12 +868,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::BLACKBOX:
             case NODE_KIND::BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
-                break;
-            case NODE_KIND::TERMINATION:
-                nodeItem = new DefaultNodeItem(item, parentNode);
-                nodeItem->setExpandEnabled(false);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -900,18 +896,24 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::FOR_CONDITION:
-                nodeItem = new StackNodeItem(item, parentNode);
+            case NODE_KIND::FOR_CONDITION:{
+                auto stack_item = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                nodeItem = stack_item;
 
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
+            }
             case NODE_KIND::CONDITION:
-                nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
-                nodeItem->setExpandEnabled(false);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setSecondaryTextKey("value");
                 secondary_icon.second = "circleQuestion";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
+            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
+                secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::ATTRIBUTE_INSTANCE:
@@ -924,17 +926,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::AGGREGATE:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                
                 //Don't show icon
-                //secondary_icon.second = "tiles";
-                //nodeItem->setSecondaryIconPath(secondary_icon);
-                //nodeItem->setSecondaryTextKey("namespace");
+                secondary_icon.second = "tiles";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                nodeItem->setSecondaryTextKey("namespace");
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operator");
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -944,16 +945,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::WORKER_FUNCTIONCALL:
             case NODE_KIND::WORKER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
@@ -961,8 +962,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            
             case NODE_KIND::VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
@@ -971,7 +974,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
             case NODE_KIND::AGGREGATE_INSTANCE:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+                
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
@@ -980,6 +984,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::ENUM_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DATA);
@@ -988,20 +993,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::MEMBER:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
+                
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setIconOverlay("Icons", "key");
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::INEVENTPORT_IMPL:
             case NODE_KIND::OUTEVENTPORT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                if(nodeKind != NODE_KIND::INEVENTPORT_IMPL){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                }
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -1014,6 +1016,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::VARIABLE_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
+                
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
@@ -1026,6 +1030,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::INPUT_PARAMETER:
             case NODE_KIND::VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setTertiaryIcon("Items", nodeKindStr);
                 nodeItem->setTertiaryIconVisible(true);
@@ -1048,32 +1053,34 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::INEVENTPORT:
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
+                nodeItem->setSecondaryTextKey("type");
+                secondary_icon.second = "tiles";
+                nodeItem->setSecondaryIconPath(secondary_icon);
+                break;
+            case NODE_KIND::INEVENTPORT_IMPL:
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setSecondaryTextKey("type");
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::PERIODICEVENT:
-                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setSecondaryTextKey("frequency");
-                nodeItem->setExpandEnabled(false);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 secondary_icon.second = "clockCycle";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::BRANCH_STATE:
-            case NODE_KIND::WHILELOOP:
+            case NODE_KIND::IF_STATEMENT:
+            case NODE_KIND::WHILE_LOOP:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::CODE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::WORKFLOW);
-                nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::WORKFLOW);
                 break;
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 nodeItem->setSecondaryTextKey("type");
                 if(item->getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
                     nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::DATA);
@@ -1082,15 +1089,95 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+             case NODE_KIND::FUNCTION:
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+
+                break;
             default:
                 nodeItem = new StackNodeItem(item, parentNode);
+                
                 break;
             }
 
             if(nodeItem){
+                bool small_style = true;
+
+                if(small_style){
+                    nodeItem->setMinimumHeight(20);
+                    nodeItem->setMinimumWidth(20*3);
+
+                    nodeItem->setExpandedHeight(20);
+                    nodeItem->setExpandedWidth(20*3);
+                }
+                
+                
+                
 
                 if(ignorePosition){
                     nodeItem->setIgnorePosition(true);
+                }
+                auto stack_item = dynamic_cast<StackNodeItem*>(nodeItem);
+                if(small_style && stack_item){
+                    stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
+                }
+
+                if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
+                    if(stack_item){
+                   
+                        stack_item->setAlignment(Qt::Horizontal);
+                        auto header_color = stack_item->getHeaderColor();;
+                        auto parameter_color = stack_item->getHeaderColor().lighter(110);
+                        auto text_color = Qt::darkGray;
+
+                        
+
+                        if(nodeKind == NODE_KIND::COMPONENT_IMPL){
+                            stack_item->SetRenderCellText(0, 0, true, "Functions", text_color);
+                            stack_item->SetCellOrientation(0, 0, Qt::Vertical);
+                        }else{
+                            auto margin = stack_item->getDefaultCellMargin();
+                            margin.setRight(margin.right() * 2);
+                            margin.setLeft(margin.left() * 2);
+
+                            stack_item->SetRenderCellArea(0, -1, true, parameter_color);
+                            stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS", text_color);
+                            stack_item->SetRenderCellIcons(0, -1, true, "Icons", "lineHorizontal", QSize(8,8));
+                            stack_item->SetCellOrientation(0, -1, Qt::Vertical);
+                            stack_item->SetCellMargins(0, -1, margin);
+                            
+
+                            stack_item->SetRenderCellArea(0, 1, true, parameter_color);
+                            stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS", text_color);
+                            stack_item->SetRenderCellIcons(0, 1, true, "Icons", "lineHorizontal", QSize(8,8));
+                            stack_item->SetCellOrientation(0, 1, Qt::Vertical);
+                            stack_item->SetCellMargins(0, 1, margin);
+
+                            stack_item->SetRenderCellText(0, 0, true, "WORKFLOW", text_color);
+
+                            if(small_style){
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(16,16));
+                                stack_item->SetCellSpacing(0, 0, 10);
+                            }else{
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));
+                                stack_item->SetCellSpacing(0, 0, 20);
+
+                            }
+                        }
+
+                        stack_item->SetRenderCellArea(1, 0, true, header_color);
+                        stack_item->SetRenderCellText(1, 0, true, "Attributes", text_color);
+
+                        stack_item->SetRenderCellArea(1, 1, true, header_color);
+                        stack_item->SetRenderCellText(1, 1, true, "Variables", text_color);
+
+
+                        stack_item->SetRenderCellArea(1, -1, true, header_color);
+                        stack_item->SetRenderCellText(1, -1, true, "Headers", text_color);
+                        stack_item->SetCellOrientation(1, -1, Qt::Vertical);
+
+                        stack_item->SetRenderCellArea(1, 2, true, header_color);
+                        stack_item->SetRenderCellText(1, 2, true, "Workers", text_color);
+                    }
                 }
 
                 
@@ -1118,7 +1205,6 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
     switch(item->getEdgeKind()){
         case EDGE_KIND::ASSEMBLY:
         case EDGE_KIND::DATA:
-        case EDGE_KIND::WORKFLOW:
         case EDGE_KIND::DEPLOYMENT:
             break;
         default:

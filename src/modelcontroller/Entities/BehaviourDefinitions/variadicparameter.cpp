@@ -12,7 +12,7 @@ VariadicParameter::VariadicParameter(EntityFactory* factory) : Parameter(factory
 
 VariadicParameter::VariadicParameter(): Parameter(NODE_KIND::VARIADIC_PARAMETER)
 {
-    setDataReciever(true);
+    setDataReceiver(true);
     setDataProducer(false);
 }
 

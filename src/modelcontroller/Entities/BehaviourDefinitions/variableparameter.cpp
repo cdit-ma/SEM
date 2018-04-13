@@ -13,7 +13,7 @@ VariableParameter::VariableParameter(EntityFactory* factory) : Parameter(factory
 VariableParameter:: VariableParameter(): Parameter(NODE_KIND::VARIABLE_PARAMETER)
 {
     setDataProducer(true);
-    setDataReciever(true);
+    setDataReceiver(true);
 }
 
 bool VariableParameter::canAdoptChild(Node *node)

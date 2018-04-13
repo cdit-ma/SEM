@@ -5,6 +5,9 @@
 
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
@@ -37,7 +40,8 @@
                         <node id="vectorworker::get::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -45,7 +49,7 @@
                         <node id="vectorworker::get::index">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
@@ -56,6 +60,7 @@
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
                             <data key="description">The Value @ Index</data>
+                            <data key="inner_type"/>
                         </node>
                     </graph>
                 </node>
@@ -70,8 +75,9 @@
                     <graph id="vectorworker::remove:">
                         <node id="vectorworker::remove::vector">
                             <data key="kind">InputParameter</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -79,7 +85,7 @@
                         <node id="vectorworker::remove::index">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
@@ -89,6 +95,7 @@
                             <data key="label">Value</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">squareEquals</data>
+                            
                             <data key="description">The Value @ Index</data>
                         </node>
                     </graph>
@@ -105,7 +112,8 @@
                         <node id="vectorworker::insert::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -113,7 +121,7 @@
                         <node id="vectorworker::insert::index">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
@@ -124,6 +132,7 @@
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">pencil</data>
                             <data key="description">The Value to set</data>
+                            
                         </node>
                     </graph>
                 </node>
@@ -139,7 +148,8 @@
                         <node id="vectorworker::set::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -147,7 +157,7 @@
                         <node id="vectorworker::set::index">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
@@ -173,15 +183,16 @@
                         <node id="vectorworker::length::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
                         </node>
                         <node id="vectorworker::length::length">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Length</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">pencil</data>
                             <data key="description">The number of elements in the vector.</data>
@@ -200,7 +211,9 @@
                         <node id="vectorworker::clear::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
+                            
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -219,7 +232,9 @@
                         <node id="vectorworker::resize::vector">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
+                            
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -227,7 +242,7 @@
                         <node id="vectorworker::resize::size">
                             <data key="kind">InputParameter</data>
                             <data key="label">Size</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type">Integer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowUpDown</data>
                             <data key="description">The size to set the vector.</data>
@@ -253,7 +268,9 @@
                         <node id="vectorworker::swap::vectora">
                             <data key="kind">InputParameter</data>
                             <data key="label">VectorA</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
+                            
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
@@ -261,7 +278,9 @@
                         <node id="vectorworker::swap::vectorb">
                             <data key="kind">InputParameter</data>
                             <data key="label">VectorB</data>
-                            <data key="type">Vector</data>
+                            <data key="outer_type">Vector</data>
+                            <data key="inner_type"/>
+                            
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector.</data>

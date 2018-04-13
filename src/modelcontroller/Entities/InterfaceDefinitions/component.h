@@ -10,6 +10,8 @@ class Component : public Node
 protected:
 	Component(EntityFactory* factory);
 	Component();
+    void DataAdded(Data* data);
+    
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

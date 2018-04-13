@@ -1,5 +1,5 @@
 #include "memberinstance.h"
-
+#include "aggregateinstance.h"
 
 MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::MEMBER_INSTANCE, "MemberInstance"){
 	auto node_kind = NODE_KIND::MEMBER_INSTANCE;
@@ -15,8 +15,10 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
     setNodeType(NODE_TYPE::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDataReciever(true);
-    setDataProducer(true);
+
+    removeEdgeKind(EDGE_KIND::DATA);
+
+    
 
     setDefinitionKind(NODE_KIND::MEMBER);
     setInstanceKind(NODE_KIND::MEMBER_INSTANCE);
@@ -41,11 +43,13 @@ bool MemberInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             }
             break;
         }
-    case EDGE_KIND::WORKFLOW:{
-        return false;
-    }
     default:
         break;
     }
     return DataNode::canAcceptEdge(edgeKind, dst);
+}
+
+void MemberInstance::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
 }

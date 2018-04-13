@@ -15,7 +15,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 {
     //Can be both an input/output for data.
     setDataProducer(true);
-    setDataReciever(true);
+    setDataReceiver(true);
 
     setDefinitionKind(NODE_KIND::VECTOR);
     setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
@@ -31,6 +31,7 @@ bool VectorInstance::canAdoptChild(Node *child)
     //Can only adopt a MemberInstance/AggregateInstance
     switch(child->getNodeKind()){
     case NODE_KIND::MEMBER_INSTANCE:
+    case NODE_KIND::ENUM_INSTANCE:
     case NODE_KIND::AGGREGATE_INSTANCE:{
         if(hasChildren()){
             return false;

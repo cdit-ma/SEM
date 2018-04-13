@@ -1,6 +1,7 @@
 #include "eventport.h"
 #include "aggregate.h"
 #include "aggregateinstance.h"
+#include "../Keys/typekey.h"
 
 
 
@@ -15,9 +16,6 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
-
-    
-    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool EventPort::isInPort() const
@@ -34,7 +32,11 @@ void EventPort::setAggregate(Aggregate *aggregate)
 {
     if(!getAggregate()){
         this->aggregate = aggregate;
+        //Do binding!
+        TypeKey::BindTypes(aggregate, this, true);
     }
+
+    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, !this->aggregate);
 }
 
 Aggregate *EventPort::getAggregate()
@@ -53,6 +55,7 @@ Aggregate *EventPort::getAggregate()
 void EventPort::unsetAggregate()
 {
     if(aggregate){
+        TypeKey::BindTypes(aggregate, this, false);
         aggregate = 0;
     }
 }

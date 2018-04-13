@@ -493,11 +493,15 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
 
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
-    QList<EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edge_kinds;
     if(selectionController && controller){
-        edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+        edge_kinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+
+        for(auto edge_kind : edge_kinds){
+            qCritical() << EntityFactory::getEdgeKindString(edge_kind);
+        }
     }
-    return edgeKinds;
+    return edge_kinds;
 }
 
 QList<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
@@ -583,6 +587,19 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 image = "label";
                 break;
             }
+            case NODE_KIND::FOR_LOOP:{
+                alias = "EntityIcons";
+                image = "WhileLoop";
+                break;
+            }
+            case NODE_KIND::IF_CONDITION:
+            case NODE_KIND::ELSEIF_CONDITION:
+            case NODE_KIND::ELSE_CONDITION:{
+                alias = "EntityIcons";
+                image = "Condition";
+                break;
+            }
+            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
             case NODE_KIND::VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";
@@ -728,6 +745,25 @@ JobMonitor* ViewController::getExecutionMonitor(){
         toolbar->addAction(actionController->jenkins_executeJob);
     }
     return job_monitor;
+}
+
+void ViewController::incrementSelectedKey(QString key_name){
+    ViewItem* item = getActiveSelectedItem();
+    if(item && item->hasData(key_name) && !item->isDataProtected(key_name)){
+        auto data = item->getData(key_name).toInt();
+        emit vc_triggerAction(key_name + " Changed");
+        emit vc_setData(item->getID(), key_name, data + 1);
+    }
+}
+void ViewController::decrementSelectedKey(QString key_name){
+    ViewItem* item = getActiveSelectedItem();
+    if(item && item->hasData(key_name) && !item->isDataProtected(key_name)){
+        auto data = item->getData(key_name).toInt();
+        if(data > 0){
+            emit vc_triggerAction(key_name + " Changed");
+            emit vc_setData(item->getID(), key_name, data - 1);
+        }
+    }
 }
 
 void ViewController::RefreshExecutionMonitor(QString job_name){
@@ -1432,12 +1468,7 @@ void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, i
 
         edgeKindLookups.insertMulti(kind, id);
 
-        if(parent){
-            parent->addChild(edge);
-        }else{
-            rootItem->addChild(edge);
-            topLevelItems.append(id);
-        }
+        SetParentNode(parent, edge);
 
         src->addEdgeItem(edge);
         dst->addEdgeItem(edge);
@@ -1457,32 +1488,38 @@ void ViewController::highlight(QList<int> ids){
         emit vc_highlightItem(id, true);
     }
 }
+
+void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
+    if(!parent){
+        parent = rootItem;
+        topLevelItems.append(child->getID());
+    }
+
+    if(parent){
+        parent->addChild(child);
+    }
+}
+
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
 
     //Fill with Data
     foreach(QString key, getEntityKeys(id)){
-        //qCritical() << "Updating Data: " << key;
         item->changeData(key, getEntityDataValue(id, key));
     }
 
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
-    
-    
-    if(parent){
-        parent->addChild(item);
-    }else{
-        rootItem->addChild(item);
-        topLevelItems.append(id);
-    }
     nodeKindLookups.insertMulti(kind, id);
-
     //Insert into map
     viewItems[id] = item;
     setDefaultIcon(item);
     connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+    
+
+    SetParentNode(parent, item);
+
     //Tell Views
     emit vc_viewItemConstructed(item);
 }
@@ -1498,6 +1535,7 @@ void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
+        //qCritical() << "== REPLY: " << ID << " KEY: " << key << " = " << data;
         viewItem->changeData(key, data);
     }
 }

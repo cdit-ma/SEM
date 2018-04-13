@@ -185,7 +185,7 @@ QPainterPath EntityItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
     return region;
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, const QString& imagePath, const QString& imageName, QColor tintColor)
 {
     QRectF imageRect = getElementRect(pos);
 
@@ -212,7 +212,7 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
     }
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, QRectF image_rect, QString imagePath, QString imageName, QColor tintColor){
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, const QRectF& image_rect, const QString& imagePath, const QString& imageName, QColor tintColor){
     if(!image_rect.isEmpty()){
         auto required_size = getPixmapSize(image_rect, lod);
         auto pixmap = getPixmap(imagePath, imageName, required_size, tintColor);
@@ -220,23 +220,28 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, QRectF image_rect, QS
     }
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, const QPair<QString, QString>& image, QColor tintColor)
 {
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
 }
 
 void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
 {
-    painter->setBrush(getBodyColor().darker(150));
+    painter->save();
+    
+    auto text_color = getDefaultPen();
+    
     auto text_item = textMap.value(pos, 0);
     if(!text_item){
         //If we haven't got one, construct a text tiem
-        text_item = new StaticTextItem();
+        text_item = new StaticTextItem(Qt::AlignLeft | Qt::AlignVCenter);
         textMap[pos] = text_item;
     }
 
+    painter->setPen(text_color);
+    
     text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
-    return;
+    painter->restore();
 }
 
 void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCursor cursor)

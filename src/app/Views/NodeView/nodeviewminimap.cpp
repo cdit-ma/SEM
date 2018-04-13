@@ -24,6 +24,12 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
+    setRenderHint(QPainter::Antialiasing, false);
+    setRenderHint(QPainter::TextAntialiasing, false);
+    setRenderHint(QPainter::SmoothPixmapTransform, false);
+    setRenderHint(QPainter::HighQualityAntialiasing, false);
+    setRenderHint(QPainter::NonCosmeticDefaultPen, false);
+
     zoomPixmap = Theme::theme()->getImage("Icons", "zoom", QSize(16, 16), Qt::white);
 
 
@@ -148,6 +154,7 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
+    return;
     if(drawRect){
         QRegion mainArea(rect.toAlignedRect());
         QRegion viewArea(viewportRect.toAlignedRect());

@@ -1,7 +1,7 @@
 #include "workerfunction.h"
 #include <QDebug>
 
-WorkerFunction::WorkerFunction():Process(NODE_KIND::WORKER_FUNCTION)
+WorkerFunction::WorkerFunction():Node(NODE_KIND::WORKER_FUNCTION)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
@@ -12,7 +12,7 @@ WorkerFunction::WorkerFunction():Process(NODE_KIND::WORKER_FUNCTION)
     setDefinitionKind(NODE_KIND::WORKER_FUNCTION);
 }
 
-WorkerFunction::WorkerFunction(EntityFactory* factory) : Process(factory, NODE_KIND::WORKER_FUNCTION, "WorkerFunction"){
+WorkerFunction::WorkerFunction(EntityFactory* factory) : Node(factory, NODE_KIND::WORKER_FUNCTION, "WorkerFunction"){
 	auto node_kind = NODE_KIND::WORKER_FUNCTION;
 	QString kind_string = "WorkerFunction";
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new WorkerFunction();});
@@ -56,5 +56,5 @@ bool WorkerFunction::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             break;
     }
 
-    return Process::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edgeKind, dst);
 }

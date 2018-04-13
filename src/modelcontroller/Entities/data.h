@@ -28,14 +28,17 @@ public:
 
     bool setValue(QVariant value);
     
+    bool linkData(Data* data, bool setup_bind);
+    bool linkData(Data* data);
+    bool unlinkData(Data* data);
 
-    bool bindData(Data* data);
-    bool unbindData(Data* data);
+
     void registerParent(Entity* parent);
-
-    Data* getParentData();
     
-    void revalidateData();
+    bool isParentData(Data* data);
+    //Data* getParentData();
+    
+    bool revalidateData();
     void clearValue();
     bool compare(const Data* data) const;
 
@@ -47,28 +50,31 @@ public:
     QString toGraphML(int indentDepth = 0, bool functional_export = false);
     QString toString();
 protected:
+
     void store_value();
     void restore_value();
 
     bool forceValue(QVariant value);
 
-    void setParentData(Data* data);
     void setParent(Entity* parent);
 private:
+    void addParentData(Data* data);
+    void removeParentData(Data* data);
+private:
+    bool _setData(QVariant value);
     bool addChildData(Data* data);
     bool removeChildData(Data* data);
 signals:
     void dataChanged(QVariant data);
-private slots:
-    void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
     bool _setValue(QVariant value, bool validate = true);
     void updateChildren(bool changed = true);
     
     Entity* parent = 0;
     Key* key = 0;
-    Data* parent_data = 0;
-    int parent_data_id = -1;
+
+    QSet<Data*> parent_datas;
+    QSet<Data*> child_datas;
     
     QString key_name;
 
@@ -78,8 +84,6 @@ private:
     
     QVariant value;
     QVariant old_value;
-
-    QSet<Data*> child_data;
 };
 
 #endif // DATA_H

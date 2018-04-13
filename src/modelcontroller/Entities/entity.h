@@ -23,8 +23,10 @@ public:
 
 
 protected:
+
     void _dataChanged(Data* data);
     void _dataRemoved(Data* data);
+    virtual void DataAdded(Data* data){};
 public:
     Data* getData(QString keyName) const;
     Data* getData(Key* key) const;
@@ -61,6 +63,7 @@ public:
 
     virtual QString toGraphML(int indentDepth=0, bool function_only = false) = 0;
     QString toString();
+    
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);

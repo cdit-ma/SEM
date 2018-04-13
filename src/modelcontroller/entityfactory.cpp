@@ -15,6 +15,12 @@
 #include "Entities/Keys/exportidkey.h"
 #include "Entities/Keys/replicatecountkey.h"
 #include "Entities/Keys/frequencykey.h"
+#include "Entities/Keys/rowkey.h"
+#include "Entities/Keys/columnkey.h"
+#include "Entities/Keys/typekey.h"
+#include "Entities/Keys/innertypekey.h"
+#include "Entities/Keys/outertypekey.h"
+#include "Entities/Keys/namespacekey.h"
 
 //Model Includes
 
@@ -34,7 +40,17 @@
 #include "Entities/BehaviourDefinitions/outeventportimpl.h"
 
 //Behaviour Elements
-#include "Entities/BehaviourDefinitions/branchstate.h"
+#include "Entities/BehaviourDefinitions/IfStatement/ifstatement.h"
+#include "Entities/BehaviourDefinitions/IfStatement/ifcondition.h"
+#include "Entities/BehaviourDefinitions/IfStatement/elseifcondition.h"
+#include "Entities/BehaviourDefinitions/IfStatement/elsecondition.h"
+
+
+#include "Entities/BehaviourDefinitions/Loops/whileloop.h"
+#include "Entities/BehaviourDefinitions/Loops/forloop.h"
+
+
+
 #include "Entities/BehaviourDefinitions/code.h"
 #include "Entities/BehaviourDefinitions/condition.h"
 #include "Entities/BehaviourDefinitions/forcondition.h"
@@ -44,11 +60,9 @@
 #include "Entities/BehaviourDefinitions/process.h"
 #include "Entities/BehaviourDefinitions/returnparameter.h"
 #include "Entities/BehaviourDefinitions/setter.h"
-#include "Entities/BehaviourDefinitions/termination.h"
 #include "Entities/BehaviourDefinitions/variable.h"
 #include "Entities/BehaviourDefinitions/variableparameter.h"
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
-#include "Entities/BehaviourDefinitions/whileloop.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/workerfunction.h"
 #include "Entities/workerfunctioncall.h"
@@ -61,6 +75,9 @@
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
 #include "Entities/DeploymentDefinitions/blackboxinstance.h"
 #include "Entities/DeploymentDefinitions/workerinstance.h"
+
+#include "Entities/DeploymentDefinitions/deploymentattribute.h"
+
 #include "Entities/InterfaceDefinitions/aggregateinstance.h"
 #include "Entities/InterfaceDefinitions/memberinstance.h"
 #include "Entities/InterfaceDefinitions/vectorinstance.h"
@@ -96,6 +113,9 @@
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
+#include "Entities/InterfaceDefinitions/namespace.h"
+#include "Entities/BehaviourDefinitions/class.h"
+#include "Entities/BehaviourDefinitions/function.h"
 
 
 //QOS Elements
@@ -130,7 +150,6 @@
 #include "Entities/Edges/definitionedge.h"
 #include "Entities/Edges/deploymentedge.h"
 #include "Entities/Edges/qosedge.h"
-#include "Entities/Edges/workflowedge.h"
 
 EntityFactory* EntityFactory::global_factory = 0;
 
@@ -243,7 +262,6 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
         if(!edge_kind_lookup.contains(kind_string)){
             edge_kind_lookup.insert(kind_string, kind);
         }
-        //qCritical() << "EntityFactory: Registered Edge #" << edge_kind_lookup.size() << kind_string;
     }
 }
 
@@ -325,7 +343,14 @@ EntityFactory::EntityFactory()
     OutEventPortImpl(this);
 
     //Behaviour Elements
-    BranchState(this);
+    MEDEA::IfStatement(this);
+    MEDEA::IfCondition(this);
+    MEDEA::ElseIfCondition(this);
+    MEDEA::ElseCondition(this);
+
+    MEDEA::WhileLoop(this);
+    MEDEA::ForLoop(this);
+
     Code(this);
     Condition(this);
     ForCondition(this);
@@ -335,11 +360,11 @@ EntityFactory::EntityFactory()
     Process(this);
     ReturnParameter(this);
     Setter(this);
-    Termination(this);
     Variable(this);
     VariableParameter(this);
     VariadicParameter(this);
-    WhileLoop(this);
+    
+    
     WorkerProcess(this);
     WorkerFunction(this);
     WorkerFunctionCall(this);
@@ -384,6 +409,9 @@ EntityFactory::EntityFactory()
     Enum(this);
     EnumMember(this);
     EnumInstance(this);
+    MEDEA::Class(this);
+    MEDEA::Function(this);
+    MEDEA::DeploymentAttribute(this);
 
     //QOS Profiles
     DDS_QOSProfile(this);
@@ -413,11 +441,11 @@ EntityFactory::EntityFactory()
     //Elements
     IDL(this);
     SharedDatatypes(this);
+    Namespace(this);
 
     //Edges
     DefinitionEdge(this);
     AggregateEdge(this);
-    WorkflowEdge(this);
     AssemblyEdge(this);
     DataEdge(this);
     DeploymentEdge(this);
@@ -458,7 +486,7 @@ EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
 
 EntityFactory::EdgeLookupStruct* EntityFactory::getEdgeStruct(EDGE_KIND kind){
     auto edge = edge_struct_lookup.value(kind, 0);
-    if(!edge){
+    if(!edge && kind != EDGE_KIND::NONE){
         edge = new EdgeLookupStruct();
         edge->kind = kind;
         edge_struct_lookup.insert(kind, edge);
@@ -579,12 +607,24 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
             key = new LabelKey();
         }else if(key_name == "index"){
             key = new IndexKey();    
+        }else if(key_name == "row"){
+            key = new RowKey();    
+        }else if(key_name == "column"){
+            key = new ColumnKey();    
         }else if(key_name == "uuid"){
             key = new ExportIDKey();
         }else if(key_name == "replicate_count"){
             key = new ReplicateCountKey();    
         }else if(key_name == "frequency"){
             key = new FrequencyKey();    
+        }else if(key_name == "inner_type"){
+            key = new InnerTypeKey();    
+        }else if(key_name == "outer_type"){
+            key = new OuterTypeKey();    
+        }else if(key_name == "type"){
+            key = new TypeKey();    
+        }else if(key_name == "namespace"){
+            key = new NamespaceKey();
         }else{
             key = new Key(key_name, type);
         }

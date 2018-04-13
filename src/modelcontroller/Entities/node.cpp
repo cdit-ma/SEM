@@ -11,6 +11,8 @@
 
 #include "../nodekinds.h"
 #include "../edgekinds.h"
+#include "Keys/indexkey.h"
+#include "Keys/typekey.h"
 
 Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
 {
@@ -92,7 +94,7 @@ Node::~Node()
  */
 bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(!requiresEdgeKind(edgeKind)){
         return false;
     }
     
@@ -113,10 +115,15 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         //Node must be a Definition Node Type.
         if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
             return false;
-        }
-       
+        }   
+
 
         if(parentNode){
+            //When we are adding this to a parent which is an instance or and impl
+            //We Should check that the thing we are connecting to(Or using as a Definition)
+            //Is contained within our parent's Definition, or Parent's Implementations
+            //Unless we are an OutEventPortImpl
+
             if(parentNode->isInstanceImpl()){
                 QList<Node*> valid_ancestors;
                 auto parent_definition = parentNode->getDefinition();
@@ -131,16 +138,19 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                         is_descendant = true;
                         break;
                     }
-                }  
+                }
 
-                QSet<NODE_KIND> ignore_descendants = {NODE_KIND::WORKER_FUNCTION, NODE_KIND::WORKER_INSTANCE};
-
-                if(!is_descendant && valid_ancestors.size() && !ignore_descendants.contains(getNodeKind())){
+                if(!is_descendant && valid_ancestors.size()){
                     //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                     return false;
                 }
             }else{
+                //When are are adding This to a parent which isn't derived from a Definition,
+                //We shouldn't allow instances to be made of something which itself is an instance/impl
+                //Unless we are a WorkerFunctionCall
+
                 if(dst->getDefinition()){
+                    qCritical() << this->toString() << " TO " << dst->toString();
                     return false;
                 }
             }
@@ -152,14 +162,7 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         break;
     }
-    case EDGE_KIND::WORKFLOW:
     case EDGE_KIND::DATA:{
-        int depthToAspect = getDepthFromAspect();
-        int depthToCommonParent = getDepthFromCommonAncestor(dst);
-
-        if(depthToCommonParent >= depthToAspect){
-            return false;
-        }
         break;
     }
     case EDGE_KIND::QOS:{
@@ -201,17 +204,28 @@ bool Node::isNodeOfType(NODE_TYPE type) const
     return types.contains(type);
 }
 
-bool Node::acceptsEdgeKind(EDGE_KIND edgeKind) const
+bool Node::acceptsEdgeKind(EDGE_KIND edge_kind) const
 {
-    return validEdgeKinds.contains(edgeKind);
+    return valid_edge_kinds.contains(edge_kind);
 }
 
-bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
+QSet<EDGE_KIND> Node::getRequiredEdgeKinds() const{
+    QSet<EDGE_KIND> required_edge_kinds;
+    for(auto edge_kind: valid_edge_kinds){
+        if(requiresEdgeKind(edge_kind)){
+            required_edge_kinds.insert(edge_kind);
+        }
+    }
+    return required_edge_kinds;
+}
+
+
+bool Node::requiresEdgeKind(EDGE_KIND edgeKind) const
 {
-    if(validEdgeKinds.contains(edgeKind)){
+    if(acceptsEdgeKind(edgeKind)){
         switch(edgeKind){
         case EDGE_KIND::DEFINITION:{
-            if(definition){
+            if(definition && !isInstance()){
                 return false;
             }
 
@@ -223,14 +237,11 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
         case EDGE_KIND::ASSEMBLY:
             //Can always have more assembly edges
             return true;
-        case EDGE_KIND::WORKFLOW:
-            //Handled by BehaviourNode
-            return true;
         case EDGE_KIND::DEPLOYMENT:
             return true;
         case EDGE_KIND::AGGREGATE:
         case EDGE_KIND::QOS:{
-            foreach(Edge* edge, edges.values(edgeKind)){
+            for(auto edge : edges.values(edgeKind)){
                 if(edge->getSource() == this){
                     return false;
                 }
@@ -238,11 +249,7 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
             break;
         }
         case EDGE_KIND::DATA:{
-            if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                return true;
-            }else{
-                return false;
-            }
+            break;
         }
         default:
             return false;
@@ -252,9 +259,8 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind)
     return false;
 }
 
-QList<EDGE_KIND> Node::getAcceptedEdgeKinds() const
-{
-    return validEdgeKinds;
+QSet<EDGE_KIND> Node::getValidEdgeKinds() const{
+    return valid_edge_kinds;
 }
 
 void Node::setNodeType(NODE_TYPE type)
@@ -267,16 +273,18 @@ void Node::removeNodeType(NODE_TYPE type)
     types.remove(type);
 }
 
-void Node::setAcceptsEdgeKind(EDGE_KIND edgeKind)
+void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, bool accept)
 {
-    if(!validEdgeKinds.contains(edgeKind)){
-        validEdgeKinds.append(edgeKind);
+    if(accept){
+        valid_edge_kinds.insert(edge_kind);
+    }else{
+        valid_edge_kinds.remove(edge_kind);
     }
 }
 
-void Node::removeEdgeKind(EDGE_KIND edgeKind)
+void Node::removeEdgeKind(EDGE_KIND edge_kind)
 {
-    validEdgeKinds.removeAll(edgeKind);
+    setAcceptsEdgeKind(edge_kind, false);
 }
 
 int Node::getDepthFromAspect()
@@ -339,6 +347,20 @@ VIEW_ASPECT Node::getViewAspect() const
     return aspect;
 }
 
+QList<Node*> Node::getParentNodes(int depth){
+    QList<Node*> parents;
+    Node* node = this;
+
+    while(depth == -1 || depth-- > 0){
+        node = node->getParentNode();
+        if(node){
+            parents.push_back(node);
+        }else{
+            break;
+        }
+    }
+    return parents;
+}
 
 
 Node *Node::getParentNode(int depth)
@@ -442,7 +464,7 @@ bool Node::addChild(Node *child)
                 child->addData(child_data);
             }
         }
-        emit childCountChanged();
+        childAdded(child);
         return true;
     }
     return false;
@@ -642,6 +664,10 @@ bool Node::hasEdges()
     return !edges.isEmpty();
 }
 
+void Node::childRemoved(Node* child){
+    IndexKey::RevalidateChildrenIndex(this);
+}
+
 
 bool Node::removeChild(Node *child)
 {
@@ -652,7 +678,8 @@ bool Node::removeChild(Node *child)
     }
 
     if(removeCount > 0){
-        emit childCountChanged();
+        childRemoved(child);
+        //Recontiguate 
         return true;
     }
     return false;
@@ -870,8 +897,21 @@ void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
-    }
+        BindDefinitionToInstance(definition, this, true);
 
+        //If have a definition, 
+        bool can_have_definition_edge = false;
+
+        if(definition){
+            if(isInstance()){
+                can_have_definition_edge = true;
+            }
+        }else{
+            can_have_definition_edge = true;
+        }
+
+        setAcceptsEdgeKind(EDGE_KIND::DEFINITION, can_have_definition_edge);
+    }
 }
 
 Node *Node::getDefinition(bool recurse) const
@@ -887,7 +927,11 @@ Node *Node::getDefinition(bool recurse) const
 
 void Node::unsetDefinition()
 {
-    definition = 0;
+    if(definition){
+
+        BindDefinitionToInstance(definition, this, false);
+        definition = 0;
+    }
 }
 
 void Node::addInstance(Node *inst)
@@ -1014,9 +1058,11 @@ void Node::setParentNode(Node *parent, int index)
         //Set the view Aspect.
         setViewAspect(parent->getViewAspect());
 
-        foreach(auto data, getData()){
+        for(auto data : getData()){
             data->revalidateData();
         }
+
+        parentSet(parent);
     }else{
         setViewAspect(VIEW_ASPECT::NONE);
     }
@@ -1080,4 +1126,137 @@ NODE_KIND Node::getDefinitionKind() const{
 
 NODE_KIND Node::getImplKind() const{
     return impl_kind_;
+}
+
+void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
+    auto source_data = source->getData(source_key);
+    auto destination_data = destination->getData(destination_key);
+
+    if(source_data && destination_data){
+        source_data->linkData(destination_data, setup);
+    }
+}
+
+void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup){
+
+    if(!definition || !instance){
+        return;
+    }
+    //qCritical() << "BINDING DEFINITION: " << definition << " TO " << instance << " " << (setup ? "LINK" : "UNLINK");
+    auto instance_parent = instance->getParentNode();
+
+    auto definition_kind = definition->getNodeKind();
+    auto instance_kind = instance->getNodeKind();
+    
+    auto instance_parent_kind = instance_parent ? instance_parent->getNodeKind() : NODE_KIND::NONE;
+
+    QMultiMap<QString, QString> bind_values;
+    bind_values.insert("key", "key");
+    bind_values.insert("icon", "icon");
+    bind_values.insert("icon_prefix", "icon_prefix");
+
+    bool bind_index = false;
+    bool bind_labels = true;
+    bool bind_types = true;
+
+    //The only time we should bind the index is when we are contained in another instance
+    if(instance_parent->isInstance()){
+        bind_index = true;
+    }
+
+    if(instance->isInstanceImpl()){
+        switch(instance_kind){
+            case NODE_KIND::COMPONENT_INSTANCE:{
+                bind_labels = false;
+                break;
+            }
+            case NODE_KIND::AGGREGATE_INSTANCE:
+            case NODE_KIND::VECTOR_INSTANCE:
+            case NODE_KIND::ENUM_INSTANCE:{
+                if(instance_parent_kind == NODE_KIND::AGGREGATE){
+                    bind_labels = false;
+                }
+                break;
+            };
+            default:
+                break;
+        }
+    }else if(instance->isDefinition()){
+        bind_labels = false;
+    }
+
+    if(bind_types){
+        if(definition->gotData("type")){
+            bind_values.insert("type", "type");
+        }else if(definition->gotData("label")){
+            bind_values.insert("label", "type");
+        }
+    }
+
+    if(bind_labels){
+        bind_values.insert("label", "label");
+    } 
+
+    //Bind Index
+    if(bind_index){
+        bind_values.insert("index", "index");
+    }
+
+    for(auto definition_key : bind_values.uniqueKeys()){
+        for(auto instance_key : bind_values.values(definition_key)){
+            LinkData(definition, definition_key, instance, instance_key, setup);
+        }
+    }
+}
+
+void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
+    if(source && destination && source->isNodeOfType(NODE_TYPE::DATA) && destination->isNodeOfType(NODE_TYPE::DATA)){
+        auto source_parent = source->getParentNode();
+        auto destination_parent = destination->getParentNode();
+
+        //Bind the special vector linking
+        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+            auto worker_name = destination_parent->getDataValue("worker").toString();
+            auto parameter_label = destination->getDataValue("label").toString();
+
+            //Check bindings
+            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
+                //Get the child type of the Vector
+
+                //Get the siblings of the parameter
+                for(auto param : destination_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        auto param_label = param->getDataValue("label").toString();
+                        Node* bind_src = 0;
+
+                        auto definition_key = "";
+                        
+                        if(param_label.contains("Value")){
+                            definition_key = "inner_type";
+                        }else if(param_label.contains("Vector")){
+                            definition_key = "type";
+                        }
+                        LinkData(source, definition_key, param, "type", setup);
+                    }
+                }
+            }
+        }
+        auto bind_source = source;
+        auto source_key = "type";
+
+        //Data bind to the Variable, instead of the Member
+        if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
+            bind_source = source_parent;
+        }
+
+        //BIND LABEL
+        QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
+
+        if(bind_labels.contains(bind_source->getNodeKind())){
+            source_key = "label";
+        }
+
+        LinkData(bind_source, source_key, destination, "value", setup);
+        TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
+    }
 }

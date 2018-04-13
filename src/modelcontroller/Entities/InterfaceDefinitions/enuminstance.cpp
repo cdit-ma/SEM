@@ -17,7 +17,7 @@ EnumInstance::EnumInstance():DataNode(NODE_KIND::ENUM_INSTANCE)
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DATA);
     setNodeType(NODE_TYPE::DATA);
-    setDataReciever(true);
+    setDataReceiver(true);
     setDataProducer(true);
 
 
@@ -43,9 +43,6 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edgeKind, Node * dst)
             }
             break;
         }
-    case EDGE_KIND::WORKFLOW:{
-        return false;
-    }
     case EDGE_KIND::DATA:{
         bool allow_edge = false;
         if(dst->getNodeKind() == NODE_KIND::ENUM_INSTANCE){

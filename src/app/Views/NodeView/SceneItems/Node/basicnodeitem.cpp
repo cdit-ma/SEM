@@ -27,9 +27,23 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
 
     setPrimaryTextKey("label");
 
-    addRequiredData("index");
-    addRequiredData("x");
-    addRequiredData("y");
+    bool require_x_y = true;
+    if(parentContainer && parentContainer->isSortOrdered()){
+        setMoveEnabled(false);
+        connect(this, &NodeItem::indexChanged, [=](){parentContainer->childPosChanged(this);});
+
+        require_x_y = false;
+    }
+
+    if(require_x_y){
+        addRequiredData("x");
+        addRequiredData("y");
+    }else{
+        addRequiredData("index");
+        addRequiredData("row");
+        addRequiredData("column");
+    }
+
 
 
     if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
@@ -60,46 +74,26 @@ QPointF BasicNodeItem::getElementPosition(BasicNodeItem *child)
     return child->getPos();
 }
 
-QPoint BasicNodeItem::getElementIndex(BasicNodeItem *child)
-{
-    return child->getIndexPosition();
-}
 
 BasicNodeItem *BasicNodeItem::getParentContainer() const
 {
     return parentContainer;
 }
 
-QPoint BasicNodeItem::getIndexPosition() const
-{
-    return indexPosition;
-}
-
-void BasicNodeItem::setIndexPosition(QPoint point)
-{
-    indexPosition = point;
-}
-
-void BasicNodeItem::dataChanged(QString keyName, QVariant data)
-{
-    NodeItem::dataChanged(keyName, data);
-
-    if(keyName == "index" && getParentContainer() && getParentContainer()->isSortOrdered()){
-        QPoint index = getIndexPosition();
-        index.setY(getSortOrder());
-        setIndexPosition(index);
-        setPos(QPointF());
+QPointF BasicNodeItem::validateMove(QPointF delta){
+    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+        return delta;
+    }else{
+        return NodeItem::validateMove(delta);
     }
 }
+
 
 void BasicNodeItem::setPos(const QPointF &p)
 {
     QPointF pos = p;
     if(getParentContainer() && getParentContainer()->isSortOrdered()){
-        if(!isMoving()){
-            //Force it's position if it isn't moving!
-            pos = getParentContainer()->getElementPosition(this);
-        }
+        pos = getParentContainer()->getElementPosition(this);
     }
     NodeItem::setPos(pos);
 }
@@ -154,8 +148,7 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
     return NodeItem::getElementRect(rect);
 }
 
-void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
+void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
@@ -182,6 +175,11 @@ void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         }
 
     }
+}
+
+void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    paintBackground(painter, option, widget);
     NodeItem::paint(painter, option, widget);
 }
 
@@ -261,7 +259,7 @@ QRectF BasicNodeItem::iconRect() const
 QRectF BasicNodeItem::iconOverlayRect() const
 {
     QRectF rect;
-    rect.setSize(smallIconSize() * 2);
+    rect.setSize(smallIconSize());
     rect.moveCenter(iconRect().center());
     return rect;
 }
@@ -270,7 +268,7 @@ QRectF BasicNodeItem::topTextRect() const
 {
     QRectF rect(headerTextRect());
     if(gotSecondaryTextKey()){
-        rect.setHeight(20);
+        rect.setHeight(rect.height() * (4.0 / 7.0));
     }
     rect.setWidth(rect.width());
     return rect;
@@ -281,7 +279,7 @@ QRectF BasicNodeItem::bottomTextRect() const
     QRectF rect;
     if(bottomTextOutlineRect().isValid()){
         rect = bottomTextOutlineRect();
-        rect.adjust(1,1,-1,-1);
+        rect.adjust(1,0,-1,0);
     }
     return rect;
 }
@@ -315,8 +313,10 @@ QRectF BasicNodeItem::bottomRect() const
     if(!gotSecondaryTextKey()){
         return QRectF();
     }
-    QRectF rect(headerTextRect());
-    rect.setTop(rect.top() + 24);
+    auto header_rect = headerTextRect();
+    QRectF rect(header_rect);
+    rect.setHeight(header_rect.height() * (3.0 / 7.0));
+    rect.moveBottom(header_rect.bottom());
     return rect;
 }
 
@@ -349,7 +349,7 @@ QRectF BasicNodeItem::expandStateRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() / 2);
-    QRectF cr = currentRect().marginsRemoved(headerMargin);
+    QRectF cr = currentRect().marginsRemoved(QMarginsF(1,1,1,1));
     rect.moveBottomRight(cr.bottomRight());
     return rect;
 }
