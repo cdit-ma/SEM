@@ -117,8 +117,6 @@ public slots:
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
-    void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
-    void constructWorkerFunction(int parent_id, int dst_id, QPointF centerPoint);
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
 
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);

@@ -1,5 +1,6 @@
 #include "WorkerFunctionCall.h"
 #include <QDebug>
+#include "BehaviourDefinitions/parameter.h"
 
 WorkerFunctionCall::WorkerFunctionCall():Node(NODE_KIND::WORKER_FUNCTIONCALL)
 {
@@ -55,4 +56,29 @@ bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             break;
     }
     return Node::canAcceptEdge(edgeKind, dst);
+}
+
+bool WorkerFunctionCall::canAdoptChild(Node* node)
+{
+    if(!node->isNodeOfType(NODE_TYPE::PARAMETER)){
+        return false;
+    }
+
+    Parameter* parameter = (Parameter*)node;
+
+    if(parameter->isReturnParameter()){
+        if(!getChildrenOfKind(NODE_KIND::RETURN_PARAMETER, 0).isEmpty()){
+            return false;
+        }
+    }
+
+    if(parameter->isVariadicParameter()){
+        //Check to see if worker function is variadic
+        auto d = gotData("is_variadic");
+        if(!d){
+            return false;
+        }
+    }
+
+    return Node::canAdoptChild(node);
 }

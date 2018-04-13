@@ -172,8 +172,8 @@ inline QString getViewAspectName(VIEW_ASPECT aspect){
 
   
 inline uint qHash(VIEW_ASPECT key, uint seed)
-    {
-        return ::qHash(static_cast<uint>(key), seed);
-    }
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 Q_DECLARE_METATYPE(VIEW_ASPECT);
 #endif

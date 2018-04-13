@@ -144,8 +144,6 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
-    connect(this, &ViewController::vc_constructWorkerProcess, controller, &ModelController::constructWorkerProcess);
-    connect(this, &ViewController::vc_constructWorkerFunction, controller, &ModelController::constructWorkerFunction);
     connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
     connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
     connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
@@ -608,24 +606,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case NODE_KIND::WORKER_DEFINITIONS:{
                 alias = "Icons";
                 image = "medeaLogo";
-                break;
-            }
-            case NODE_KIND::VECTOR:
-            case NODE_KIND::VECTOR_INSTANCE:{
-                //Check children
-                foreach(ViewItem* child, viewItem->getDirectChildren()){
-                    auto* node = (NodeViewItem*) child;
-                    if(child->isNode()){
-                        auto child_kind = node->getNodeKind();
-
-                        if(child_kind == NODE_KIND::MEMBER || child_kind == NODE_KIND::MEMBER_INSTANCE){
-                            image += "_Member";
-                        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE){
-                            image += "_AggregateInstance";
-                        }
-                    }
-                    break;
-                }
                 break;
             }
             case NODE_KIND::MODEL:

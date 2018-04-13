@@ -441,7 +441,6 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
     Node* source = construct_child_node(parent_node, node_kind, false);
     
     if(source){
-        qCritical() << source->toString();
         auto edge = construct_edge(edge_kind, source, destination, -1, false);
         
         if(!edge){
@@ -483,10 +482,10 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_component_node(parent_node);
             break;
         }
-        //case NODE_KIND::PERIODICEVENT:{
-            //node = construct_periodic_eventport(parent_node);
-            //break;
-        //}
+        case NODE_KIND::PERIODICEVENT:{
+            node = construct_periodic_eventport(parent_node);
+            break;
+        }
         default:
             node = construct_child_node(parent_node, kind);
             break;
@@ -500,39 +499,6 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
     emit ActionFinished();
 }
 
-void ModelController::constructWorkerProcess(int parent_id, int dst_id, QPointF pos){
-    //Add undo step
-    triggerAction("Constructing Worker Process");
-    
-    auto parent_node = entity_factory->GetNode(parent_id);
-    auto worker_node = entity_factory->GetNode(dst_id);
-    if(parent_node && worker_node && worker_node->getNodeKind() == NODE_KIND::WORKER_PROCESS){
-        //clone the worker into the parent
-        auto node = cloneNode(worker_node, parent_node);
-        if(node){
-            //Use position?
-            setData_(node, "x", pos.x());
-            setData_(node, "y", pos.y());
-        }
-    }
-}
-
-void ModelController::constructWorkerFunction(int parent_id, int dst_id, QPointF pos){
-    //Add undo step
-    triggerAction("Constructing Worker Function");
-    
-    auto parent_node = entity_factory->GetNode(parent_id);
-    auto worker_node = entity_factory->GetNode(dst_id);
-    if(parent_node && worker_node && worker_node->getNodeKind() == NODE_KIND::WORKER_FUNCTION){
-        //clone the worker into the parent
-        auto node = cloneNode(worker_node, parent_node);
-        if(node){
-            //Use position?
-            setData_(node, "x", pos.x());
-            setData_(node, "y", pos.y());
-        }
-    }
-}
 
 
 void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
@@ -761,13 +727,8 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
 
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
-
-        Node* node = 0;
-        //if(node_kind == NODE_KIND::WORKER_PROCESS || node_kind == NODE_KIND::WORKER_FUNCTION){
-            //node = cloneNode(dst_node, parent_node);
-        //}else{
-            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
-        //}
+        
+        Node* node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
 
         if(node){
             //Use position?
@@ -966,7 +927,6 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_
         nodes = _getConnectableNodes({temp_node}, edge_kind);
         entity_factory->DestructEntity(temp_node);
     }
-    //qCritical() << nodes;
     return getIDs(nodes);
 }
 
@@ -1033,10 +993,8 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
 
     //Check if they can all accept edges of the kind we care about.
     for(auto src : src_nodes){
-        qCritical() << "SRC: " << src->toString();
         //Check to see if the src Node requires an edge of edge_kind
         if(!src->requiresEdgeKind(edge_kind)){
-            qCritical() << "SRC: " << src->toString() << " " << entity_factory->getEdgeKindString(edge_kind);
             srcs_require_edge = false;
             break;
         }
@@ -1328,8 +1286,6 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_
 
         if(isUserAction() && node->isDefinition()){
             for(auto dependant : parentNode->getDependants()){
-                qCritical() << dependant->toString();
-                
                 auto success = constructDependantRelative(dependant, node);
                 if(!success){
                     qCritical() << "Failed to Construct Dependant Relationship of: " << node->toString() << " Inside: " << dependant->toString();
@@ -1377,9 +1333,12 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
         auto node = construct_child_node(parent, original->getNodeKind());
         
         if(node){
+            QSet<QString> ignore_keys = {"index", "readOnly"};
             //Get the data
             for(auto data : original->getData()){
-                if(data->getKeyName() != "index"){
+                auto key_name = data->getKeyName();
+                
+                if(!ignore_keys.contains(key_name)){
                     setData_(node, data->getKeyName(), data->getValue());
                 }
             }
@@ -1396,7 +1355,6 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
 
 int ModelController::constructDependantRelative(Node *parent, Node *definition)
 {
-    qCritical() << "constructDependantRelative: Making Instance/Impl of" << definition->toString() << " WITHIN " << parent->toString();
     int nodes_matched = 0;
     
     auto dependant_kind = NODE_KIND::NONE;
@@ -1406,8 +1364,6 @@ int ModelController::constructDependantRelative(Node *parent, Node *definition)
     }else{
         dependant_kind = definition->getImplKind();
     }
-
-    qCritical() << "DEPENDANT KIND: " << entity_factory->getNodeKindString(dependant_kind);
 
     if(dependant_kind != NODE_KIND::NONE){
         //For each child in parent, check to see if any Nodes match Label/Type
@@ -1706,6 +1662,19 @@ bool ModelController::canDeleteNode(Node *node)
 
         if(node->getDefinition()){
             switch(node_kind){
+            case NODE_KIND::WORKER_INSTANCE:{
+                auto parent_node = node->getParentNode();
+                auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
+                 switch(parent_node_kind){
+                    case NODE_KIND::COMPONENT_INSTANCE:
+                        return false;
+                    default:
+                        break;
+                }
+                break;
+            }
+                
+
             case NODE_KIND::OUTEVENTPORT_IMPL:
             case NODE_KIND::COMPONENT_INSTANCE:
                 //CompoentInstances/Outeventportimpls can be destroyed at any time
@@ -1940,7 +1909,6 @@ void ModelController::setupModel()
 bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
 {
     if(src && dst){
-        qCritical() << "setupDefinitionRelationship: " << src->toString() << " TO " << dst->toString();
         QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
         auto node_kind = src->getNodeKind();
         auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
@@ -1958,12 +1926,31 @@ bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool set
                     nodes_to_adopt << implementation->getChildren(0);
                 }
             }
+
+            auto clone_parameters = src->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL;
+
+
+            //ALlow WorkerFunction to adopt Definitions placed in the Highest Definition
+            if(clone_parameters){
+                auto top_definition = dst->getDefinition(true);
+                
+                if(top_definition){
+                    for(auto child : top_definition->getChildren(0)){
+                        if(child->isNodeOfType(NODE_TYPE::PARAMETER)){
+                            nodes_to_adopt << child;
+                        }
+                    }
+                }
+            } 
             
 
             for(auto node : nodes_to_adopt){
                 if(node->isDefinition()){
-                    qCritical() << "Trying to make an Instance of: " << node->toString();
                     if(!constructDependantRelative(src, node)){
+                        return false;
+                    }
+                }else if(clone_parameters && node->isNodeOfType(NODE_TYPE::PARAMETER)){
+                    if(!cloneNode(node, src)){
                         return false;
                     }
                 }

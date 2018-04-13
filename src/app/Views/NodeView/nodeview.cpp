@@ -805,10 +805,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             QPair<QString, QString> secondary_icon;
             secondary_icon.first = "Icons";
             switch(nodeKind){
-            case NODE_KIND::WORKER_FUNCTION:{
+            //case NODE_KIND::WORKER_FUNCTION:{
                 //THIS SHOULD NEVER BE RENDERED OKAY :D
-                return;
-            }
+                //return;
+            //}
             case NODE_KIND::HARDWARE_NODE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");

@@ -269,7 +269,12 @@ void ViewItem::changeData(QString keyName, QVariant data)
 
     if(keyName == "label"){
         emit labelChanged(data.toString());
+    }else if(keyName == "icon" || keyName == "icon_prefix"){
+        auto icon = _data.value("icon", "").toString();
+        auto icon_prefix = _data.value("icon_prefix", "").toString();
+        setIcon(icon_prefix, icon);
     }
+
 }
 
 void ViewItem::removeData(QString keyName)

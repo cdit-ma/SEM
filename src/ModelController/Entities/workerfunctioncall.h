@@ -11,6 +11,7 @@ public:
 	WorkerFunctionCall();
 
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+	bool canAdoptChild(Node* child);
 };
 
 #endif // WORKERFUNCTIONCALL_H
