@@ -27,6 +27,8 @@ class Node : public Entity
         static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
     public:
         static void BindDataRelationship(Node* source, Node* destination, bool setup);
+    signals:
+        void acceptedEdgeKindsChanged(Node* node);
     protected:
 
         //Constuctor
@@ -45,6 +47,7 @@ class Node : public Entity
         void setInstanceKind(NODE_KIND kind);
         void setDefinitionKind(NODE_KIND kind);
         void setImplKind(NODE_KIND kind);
+        QSet<EDGE_KIND> getAcceptedEdgeKinds() const;
     public:
         NODE_KIND getInstanceKind() const;
         NODE_KIND getDefinitionKind() const;
@@ -199,7 +202,7 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QSet<EDGE_KIND> valid_edge_kinds;
+    QSet<EDGE_KIND> accepted_edge_kinds_;
 
     NODE_KIND definition_kind_;
     NODE_KIND instance_kind_;

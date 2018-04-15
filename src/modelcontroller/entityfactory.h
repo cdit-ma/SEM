@@ -70,6 +70,8 @@ public:
 protected:
     static EntityFactory* getNewFactory();
 
+    QSet<Node*> GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind);
+
     //Constructors
     Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind, int id = -1);
     Node* CreateNode(NODE_KIND node_kind, int id = -1);
@@ -108,6 +110,8 @@ protected:
 
     void EntityUUIDChanged(Entity* entity, QString uuid);
 private:
+    void acceptedEdgeKindsChanged(Node* node);
+    void clearAcceptedEdgeKinds(Node* node);
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
     void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
@@ -133,7 +137,8 @@ private:
 
     QHash<QString, int> uuid_lookup_;
     QHash<QString, Key*> key_lookup_;
-    
+
+    QHash<EDGE_KIND, QSet<Node*> > accepted_edge_map;
     QHash<int, GraphML*> hash_;
     int id_counter_ = 0;
 

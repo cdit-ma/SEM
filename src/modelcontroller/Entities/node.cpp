@@ -196,12 +196,12 @@ bool Node::isNodeOfType(NODE_TYPE type) const
 
 bool Node::acceptsEdgeKind(EDGE_KIND edge_kind) const
 {
-    return valid_edge_kinds.contains(edge_kind);
+    return accepted_edge_kinds_.contains(edge_kind);
 }
 
 QSet<EDGE_KIND> Node::getRequiredEdgeKinds() const{
     QSet<EDGE_KIND> required_edge_kinds;
-    for(auto edge_kind: valid_edge_kinds){
+    for(auto edge_kind: accepted_edge_kinds_){
         if(requiresEdgeKind(edge_kind)){
             required_edge_kinds.insert(edge_kind);
         }
@@ -250,7 +250,7 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind) const
 }
 
 QSet<EDGE_KIND> Node::getValidEdgeKinds() const{
-    return valid_edge_kinds;
+    return accepted_edge_kinds_;
 }
 
 void Node::setNodeType(NODE_TYPE type)
@@ -266,9 +266,13 @@ void Node::removeNodeType(NODE_TYPE type)
 void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, bool accept)
 {
     if(accept){
-        valid_edge_kinds.insert(edge_kind);
+        accepted_edge_kinds_.insert(edge_kind);
     }else{
-        valid_edge_kinds.remove(edge_kind);
+        accepted_edge_kinds_.remove(edge_kind);
+    }
+    auto factory = getFactory();
+    if(factory){
+        factory->acceptedEdgeKindsChanged(this);
     }
 }
 
@@ -1007,6 +1011,9 @@ void Node::removeImplementation(Node *impl)
 
 }
 
+QSet<EDGE_KIND> Node::getAcceptedEdgeKinds() const{
+    return accepted_edge_kinds_;
+}
 
 
 
