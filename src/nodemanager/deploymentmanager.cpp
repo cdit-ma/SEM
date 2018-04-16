@@ -60,6 +60,9 @@ std::string DeploymentManager::GetSlaveEndpoint(){
 
     //We didn't get an endpoint shutdown
     if(port.empty()){
+        if(!on_master_node_){
+            execution_->Interrupt();
+        }
         return "";
     }
 
