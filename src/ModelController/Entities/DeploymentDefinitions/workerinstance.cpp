@@ -22,6 +22,8 @@ MEDEA::WorkerInstance::WorkerInstance() : Node(NODE_KIND::WORKER_INSTANCE)
 
     setDefinitionKind(NODE_KIND::WORKER_DEFINITION);
     setInstanceKind(NODE_KIND::WORKER_INSTANCE);
+
+    SetEdgeRuleActive(Node::EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
 bool MEDEA::WorkerInstance::canAdoptChild(Node* node)
@@ -48,11 +50,15 @@ bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         switch(dst->getNodeKind()){
-            case NODE_KIND::WORKER_DEFINITION:{
-                return true;
-            }
+            case NODE_KIND::WORKER_DEFINITION:
             case NODE_KIND::WORKER_INSTANCE:{
-                return true;
+                if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
+                    if(dst->getViewAspect() != VIEW_ASPECT::WORKERS) {
+                        return false;
+                    }
+                }
+                
+                break;
             }
             default:
                 return false;
