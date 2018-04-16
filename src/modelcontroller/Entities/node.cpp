@@ -1178,6 +1178,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_index = false;
     bool bind_labels = true;
     bool bind_types = true;
+    bool copy_labels = false;
 
     //The only time we should bind the index is when we are contained in another instance
     if(instance_parent->isInstance()){
@@ -1198,6 +1199,24 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
+            case NODE_KIND::WORKER_INSTANCE:
+                bind_labels = false;
+                copy_labels = true;
+                break;
+            case NODE_KIND::WORKER_FUNCTIONCALL:
+                bind_labels = false;
+                copy_labels = true;
+                bind_values.insert("workerID", "workerID");
+                bind_values.insert("operation", "operation");
+                bind_values.insert("description", "description");
+                break;
+            case NODE_KIND::WORKER_FUNCTION:{
+                bind_labels = true;
+                bind_values.insert("workerID", "workerID");
+                bind_values.insert("operation", "operation");
+                bind_values.insert("description", "description");
+                break;
+            }
             default:
                 break;
         }
@@ -1215,7 +1234,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     if(bind_labels){
         bind_values.insert("label", "label");
-    } 
+    }
 
     //Bind Index
     if(bind_index){
@@ -1226,6 +1245,11 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         for(auto instance_key : bind_values.values(definition_key)){
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
+    }
+
+    if(copy_labels){
+        auto def_label = definition->getDataValue("label");
+        instance->setDataValue("label", def_label);
     }
 }
 

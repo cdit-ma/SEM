@@ -1674,10 +1674,10 @@ bool ModelController::canDeleteNode(Node *node)
                 break;
             }
                 
-
+            case NODE_KIND::WORKER_FUNCTIONCALL:
             case NODE_KIND::OUTEVENTPORT_IMPL:
             case NODE_KIND::COMPONENT_INSTANCE:
-                //CompoentInstances/Outeventportimpls can be destroyed at any time
+                // These node kinds can be destroyed at any time
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:{
                 auto parent_node = node->getParentNode();

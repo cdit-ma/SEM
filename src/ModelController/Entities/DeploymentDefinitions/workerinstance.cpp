@@ -1,4 +1,5 @@
 #include "workerinstance.h"
+#include "../data.h"
 
 const NODE_KIND node_kind = NODE_KIND::WORKER_INSTANCE;
 const QString kind_string = "WorkerInstance";
@@ -69,4 +70,26 @@ bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     }
 
     return Node::canAcceptEdge(edge_kind, dst);
+}
+
+
+void MEDEA::WorkerInstance::bindWorkerID(Node* child, bool setup){
+    if(child){
+        auto label_data = getData("label");
+        auto worker_id_data = child->getData("workerID");
+        if(label_data && worker_id_data){
+            label_data->linkData(worker_id_data, setup);
+        }
+    }
+}
+
+void MEDEA::WorkerInstance::childAdded(Node* child){
+    bindWorkerID(child, true);
+    Node::childAdded(child);
+    
+}
+
+void MEDEA::WorkerInstance::childRemoved(Node* child){
+    bindWorkerID(child, true);
+    Node::childRemoved(child);
 }

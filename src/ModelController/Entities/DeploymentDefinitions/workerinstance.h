@@ -11,6 +11,11 @@ namespace MEDEA{
 
             bool canAdoptChild(Node* child);
             bool canAcceptEdge(EDGE_KIND edge_kind, Node* dst);
+
+        protected:
+            void bindWorkerID(Node* child, bool setup);
+            void childAdded(Node* child);
+            void childRemoved(Node* child);
     };
 };
 

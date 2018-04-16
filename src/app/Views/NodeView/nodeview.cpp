@@ -806,7 +806,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             secondary_icon.first = "Icons";
             switch(nodeKind){
             case NODE_KIND::WORKER_FUNCTION:{
-                
                 return;
             }
             case NODE_KIND::HARDWARE_NODE:
@@ -948,10 +947,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::PROCESS:
             case NODE_KIND::WORKER_FUNCTIONCALL:
                 nodeItem = new StackNodeItem(item, parentNode);
-                
-                nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
-                nodeItem->setIconOverlayVisible(true);
-                nodeItem->setSecondaryTextKey("worker");
+                nodeItem->setSecondaryTextKey("workerID");
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
