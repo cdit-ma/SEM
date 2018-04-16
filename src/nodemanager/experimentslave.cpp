@@ -29,12 +29,9 @@ int main(int argc, char **argv){
 
     //Get the library path from the argument variables
     std::string dll_path;
-    std::string graphml_path;
     std::string slave_endpoint;
-    std::string master_endpoint;
     std::string environment_manager_endpoint;
     std::string experiment_id;
-    double execution_duration = 60.0;
     bool live_logging = false;
 
     boost::program_options::options_description options("Node manager options");

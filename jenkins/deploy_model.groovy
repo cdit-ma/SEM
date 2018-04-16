@@ -56,6 +56,7 @@ def loganServers_shutdown = [:]
 def loganClients_shutdown = [:]
 def experimentMasters = [:]
 def experimentSlaves = [:]
+def master_shutdown = [:]
 def compileCode = [:]
 def addrMap = [:]
 
@@ -83,16 +84,6 @@ def environmentManangerPort = "20000"
 
 withEnv(["model=''"]){
     node(masterNode){
-
-        // def executorNumber = env.EXECUTOR_NUMBER
-
-        // def executorNumberSuffix = ""
-        // if(executorNumber > 0){
-        //     executorNumberSuffix += "@"
-        //     executorNumberSuffix += executorNumber
-        //     buildDir +=executorNumberSuffix
-        //     buildArchiveDir +=executorNumberSuffix
-        // }
 
         def workspacePath = pwd()
         def reGenPath = "${RE_GEN_PATH}"
@@ -136,20 +127,11 @@ withEnv(["model=''"]){
                 }
             }
             stage('Archive'){
-                //Store an archive of generated C++ files
-                //zip(zipFile: "archive.zip", archive: true, dir: buildPath)
-                // Stash generated cpp files.
                 stash includes: '**', name: 'codeGen'
             }
         }
     }
 
-    // def modelName = jDeployment["model"].name
-    // def modelDescription = jDeployment["model"].description
-    // currentBuild.description = modelName
-    // if(modelDescription){
-    //     currentBuild.description = currentBuild.description + " : " + modelDescription
-    // }
     
     stage("Build deployment plan"){
     for(def i = 0; i < reNodes.size(); i++){
@@ -173,81 +155,27 @@ withEnv(["model=''"]){
 
         experimentMasters[nodeName] = {
             node(nodeName){
-                def workspacePath = pwd()
-                def buildPath = workspacePath + "/" + buildDir + "/lib"
-                def master_command = ""
-                def slave_command = ""
                 if(nodeName == masterNode){
-                    
-                    def master_args = " -m " + ipAddr
-                    master_args += " -d " + file
-                    master_args += " -t " + executionTime
-                    master_args += " -n " + experimentID
-                    master_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                    def workspacePath = pwd()
+                    def buildPath = workspacePath + "/" + buildDir + "/lib"
+                    def master_command = ""
+                        
+                        def master_args = " -m " + ipAddr
+                        master_args += " -d " + file
+                        master_args += " -t " + executionTime
+                        master_args += " -n " + experimentID
+                        master_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
 
-                    master_command = "${RE_PATH}" + "/bin/re_experiment_master" + master_args
+                        master_command = "${RE_PATH}" + "/bin/re_experiment_master" + master_args
 
-                }
 
-                def slave_args = " -s " + ipAddr
-                slave_args += " -l . "
-                slave_args += " -n " + experimentID
-                slave_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
-                slave_command = "sleep 3 && " + "${RE_PATH}" + "/bin/re_experiment_slave" + slave_args
-
-                def command = ""
-                if(nodeName == masterNode){
-                    command += master_command
-                    command += " & "
-                    command += slave_command
-                }else{
-                    command = slave_command
-                }
-                
-                dir(buildPath){
-                    print("#####################################################COMPILING")
-                    print(pwd())
-                    unstash 'model'
-                    if(utils.runScript(command) != 0){
-                        failureList << ("Experiment slave failed on node: " + nodeName)
-                        fail_flag = true
-                    }
-                }
-            }
-        }
-
-        /*
-        if(jNode["logan_server"]){
-            def args = ""
-            def databaseFile = ""
-
-            for(arg in jNode["logan_server"]){
-                if(arg.key == "database"){
-                    databaseFile = arg.value
-                }
-                args +=" --" + arg.key 
-                if(arg.value instanceof Collection){
-                    for(v in arg.value){
-                        args += " " + v
-                    }
-                }else{
-                    args += " " + arg.value;
-                }
-            }
-
-            //Update the map to include the launch instructions for logan_server
-            loganServers[nodeName] = {
-                node(nodeName){
-                    def out
-                    dir(buildDir){
-                        def serverRun = "${LOGAN_PATH}" + "/bin/logan_server" + args;
-                        out = runScriptPid(serverRun)
-                    }
-                    loganServers_shutdown[nodeName] = {
-                        node(nodeName){
-                            dir(buildDir){
+                    dir(buildPath){
+                        unstash 'model'
+                        def out
+                        out = runScriptPid(master_command)
+                        master_shutdown[nodeName] = {
+                            node(nodeName){
                                 blockingKill(out)
-                                archiveArtifacts databaseFile
                             }
                         }
                     }
@@ -255,40 +183,29 @@ withEnv(["model=''"]){
             }
         }
 
-        */
+        experimentSlaves[nodeName] = {
+            node(nodeName){
+                def workspacePath = pwd()
+                def buildPath = workspacePath + "/" + buildDir + "/lib"
+                def slave_command = ""
 
-        /*
-        if(jNode["logan_client"]){
-            def args = "";
+                def slave_args = " -s " + ipAddr
+                slave_args += " -l . "
+                slave_args += " -n " + experimentID
+                slave_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                slave_command = "${RE_PATH}" + "/bin/re_experiment_slave" + slave_args
 
-            for(arg in jNode["logan_client"]){
-                args +=  " --" + arg.key + " " + arg.value;
-            }
-
-            //Update the map to include the launch instructions for logan_client
-            loganClients[nodeName] = {
-                node(nodeName){
-                    def clientRun = "${LOGAN_PATH}" + "/bin/logan_client" + args;
-                    def out = runScriptPid(clientRun)
-                    loganClients_shutdown[nodeName] = {
-                        node(nodeName){
-                            blockingKill(out)
-                        }
+                dir(buildPath){
+                    if(utils.runScript(slave_command) != 0){
+                        failureList << ("Experiment slave failed on node: " + nodeName)
+                        fail_flag = true
                     }
                 }
             }
         }
-        */
+
     }
     }
-
-    // stage("Start logan servers"){
-    //     parallel loganServers
-    // }
-
-    // stage("Start logan clients"){
-    //     parallel loganClients
-    // }
 
     stage("Compiling C++"){
         parallel compileCode
@@ -297,18 +214,17 @@ withEnv(["model=''"]){
     stage("Execute Model"){
         if(!fail_flag){
             parallel experimentMasters
+            sleep 3
+            parallel experimentSlaves
         }
         else{
             print("############# Execution skipped, compilation or code generation failed! #############")
         }
     }
 
-    // stage("Stop logan clients"){
-    //     parallel loganClients_shutdown
-    // }
-    // stage("Stop logan servers"){
-    //     parallel loganServers_shutdown
-    // }
+    stage("Kill masters"){
+        parallel master_shutdown
+    }
 
     if(fail_flag){
         currentBuild.result = 'FAILURE'
@@ -322,5 +238,3 @@ withEnv(["model=''"]){
         currentBuild.result = 'SUCCESS'
     }
 }
-
-
