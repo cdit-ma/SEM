@@ -160,6 +160,8 @@ int main(int argc, char **argv){
         success = execution_manager->IsValid();
     }
 
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
     if(success && is_slave){
         //Construct a Deployment Manager to handle the Deployment
         auto deployment_manager = new DeploymentManager(dll_path, exe, experiment_id, slave_endpoint, environment_manager_endpoint);

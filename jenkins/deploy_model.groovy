@@ -155,55 +155,41 @@ withEnv(["model=''"]){
 
         experimentMasters[nodeName] = {
             node(nodeName){
-                if(nodeName == masterNode){
-                    def workspacePath = pwd()
-                    def buildPath = workspacePath + "/" + buildDir + "/lib"
-                    def master_command = ""
-                        
-                        def master_args = " -m " + ipAddr
-                        master_args += " -d " + file
-                        master_args += " -t " + executionTime
-                        master_args += " -n " + experimentID
-                        master_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
-
-                        master_command = "${RE_PATH}" + "/bin/re_experiment_master" + master_args
-
-
-                    dir(buildPath){
-                        unstash 'model'
-                        def out
-                        out = runScriptPid(master_command)
-                        master_shutdown[nodeName] = {
-                            node(nodeName){
-                                blockingKill(out)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        experimentSlaves[nodeName] = {
-            node(nodeName){
                 def workspacePath = pwd()
                 def buildPath = workspacePath + "/" + buildDir + "/lib"
-                def slave_command = ""
+                def master_args = ""
+                def slave_args = ""
+                def shared_args = ""
+                def command = "${RE_PATH}" + "/bin/re_node_manager"
 
-                def slave_args = " -s " + ipAddr
+
+                shared_args += " -n " + experimentID
+                shared_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+
+                slave_args += " -s " + ipAddr
                 slave_args += " -l . "
-                slave_args += " -n " + experimentID
-                slave_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
-                slave_command = "${RE_PATH}" + "/bin/re_experiment_slave" + slave_args
+
+                if(nodeName == masterNode){
+                    master_args += " -m " + ipAddr
+                    master_args += " -t " + executionTime
+                    master_args += " -d " + file
+                }
+
+                command += shared_args
+                command += slave_args
+                command += master_args
 
                 dir(buildPath){
-                    if(utils.runScript(slave_command) != 0){
+                    if(nodeName == masterNode){
+                        unstash 'model'
+                    }
+                    if(utils.runScript(command) != 0){
                         failureList << ("Experiment slave failed on node: " + nodeName)
                         fail_flag = true
                     }
                 }
             }
         }
-
     }
     }
 
@@ -214,16 +200,10 @@ withEnv(["model=''"]){
     stage("Execute Model"){
         if(!fail_flag){
             parallel experimentMasters
-            sleep 3
-            parallel experimentSlaves
         }
         else{
             print("############# Execution skipped, compilation or code generation failed! #############")
         }
-    }
-
-    stage("Kill masters"){
-        parallel master_shutdown
     }
 
     if(fail_flag){
