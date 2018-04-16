@@ -166,7 +166,6 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
             }
 
             case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
-                std::cout << message.DebugString() << std::endl;
                 RemoveExperiment(message_time);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 ZMQSendReply(handler_socket_, message.SerializeAsString());
