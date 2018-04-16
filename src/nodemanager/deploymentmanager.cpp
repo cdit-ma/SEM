@@ -9,8 +9,14 @@
 #include "controlmessage/translate.h"
 #include "environmentrequester.h"
 
-DeploymentManager::DeploymentManager(const std::string& library_path, Execution* execution, const std::string& experiment_id, const std::string& ip_address, const std::string& environment_manager_endpoint){
+DeploymentManager::DeploymentManager(bool on_master_node,
+                                    const std::string& library_path,
+                                    Execution* execution,
+                                    const std::string& experiment_id,
+                                    const std::string& ip_address,
+                                    const std::string& environment_manager_endpoint){
     std::unique_lock<std::mutex> lock(mutex_);
+    on_master_node_ = on_master_node;
     library_path_ = library_path;
     execution_ = execution;
     experiment_id_ = experiment_id;
@@ -54,7 +60,6 @@ std::string DeploymentManager::GetSlaveEndpoint(){
 
     //We didn't get an endpoint shutdown
     if(port.empty()){
-        execution_->Interrupt();
         return "";
     }
 
@@ -217,7 +222,6 @@ void DeploymentManager::ProcessControlQueue(){
         //Process the queue
         while(!queue_.empty()){
             const auto& control_message = queue_.front();
-            std::cout << control_message.DebugString() << std::endl;
             queue_.pop();
             auto start = std::chrono::steady_clock::now();
 
@@ -248,7 +252,9 @@ void DeploymentManager::ProcessControlQueue(){
                         success = c.second->Terminate() ? success : false;
                     }
                     InteruptQueueThread();
-                    execution_->Interrupt();
+                    if(!on_master_node_){
+                        execution_->Interrupt();
+                    }
                     break;
                 }
                 default:

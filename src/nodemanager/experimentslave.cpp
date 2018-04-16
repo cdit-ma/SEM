@@ -87,7 +87,7 @@ int main(int argc, char **argv){
 
 
     //Construct a Deployment Manager to handle the Deployment
-    auto deployment_manager = new DeploymentManager(dll_path, exe, experiment_id, slave_endpoint, environment_manager_endpoint);
+    auto deployment_manager = new DeploymentManager(false, dll_path, exe, experiment_id, slave_endpoint, environment_manager_endpoint);
     slave = new zmq::Registrant(deployment_manager);
 
     //Use execution class to wait for interrupt
