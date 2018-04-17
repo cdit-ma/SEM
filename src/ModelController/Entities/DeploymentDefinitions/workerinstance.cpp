@@ -48,6 +48,10 @@ bool MEDEA::WorkerInstance::canAdoptChild(Node* node)
 
 bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
+    if(!requiresEdgeKind(edge_kind)){
+        return false;
+    }
+
     switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         switch(dst->getNodeKind()){
@@ -58,14 +62,31 @@ bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                         return false;
                     }
                 }
-                
                 break;
             }
             default:
                 return false;
         }
+        break;
     }
     case EDGE_KIND::DEPLOYMENT:{
+        auto top_definition = getDefinition(true);
+        if(top_definition){
+            if (top_definition->getDataValue("label") == "OpenCL_Worker") {
+                auto dst_nodekind = dst->getNodeKind();
+                switch(dst_nodekind){
+                    case NODE_KIND::OPENCL_DEVICE:
+                    case NODE_KIND::OPENCL_PLATFORM:
+                        break;
+                    default:
+                        return false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
         break;
     }
     default:

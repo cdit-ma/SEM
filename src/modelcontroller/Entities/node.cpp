@@ -195,6 +195,10 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
         }
+        //Can only have oen edge kind
+        if(gotEdgeKind(edgeKind)){
+            return false;
+        }
         break;
     }
     default:

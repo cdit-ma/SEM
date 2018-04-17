@@ -494,10 +494,6 @@ QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     QList<EDGE_KIND> edge_kinds;
     if(selectionController && controller){
         edge_kinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
-
-        for(auto edge_kind : edge_kinds){
-            qCritical() << EntityFactory::getEdgeKindString(edge_kind);
-        }
     }
     return edge_kinds;
 }
@@ -562,7 +558,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 
                 if(type == "Advanced Micro Devices, Inc."){
                     image = "amd";
-                }else if(type == "intel"){
+                }else if(type == "Altera Corporation"){
                     image = "intel";
                 }else if(type == "NVIDIA Corporation"){
                     image = "nvidia";
