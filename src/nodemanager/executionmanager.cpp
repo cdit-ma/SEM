@@ -84,7 +84,6 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
 
     if(parse_succeed_ && execution){
         std::cout << "--------[Slave Registration]--------" << std::endl;
-        //Start Execution thread for 60!
         execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
     }
 }
