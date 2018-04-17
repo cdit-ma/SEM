@@ -1181,6 +1181,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     bind_values.insert("icon", "icon");
     bind_values.insert("icon_prefix", "icon_prefix");
+    bind_values.insert("worker", "worker");
+    
 
     bool bind_index = false;
     bool bind_labels = true;
@@ -1226,7 +1228,6 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 break;
             case NODE_KIND::WORKER_FUNCTION:{
                 bind_labels = true;
-                bind_values.insert("workerID", "workerID");
                 bind_values.insert("operation", "operation");
                 bind_values.insert("description", "description");
                 break;
@@ -1292,29 +1293,20 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
-        //Bind the special vector linking
-        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
+        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL){
             auto worker_name = destination_parent->getDataValue("worker").toString();
             auto parameter_label = destination->getDataValue("label").toString();
 
-            //Check bindings
-            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
-                //Get the child type of the Vector
 
-                //Get the siblings of the parameter
+
+            if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
                 for(auto param : destination_parent->getChildren(0)){
                     if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        auto param_label = param->getDataValue("label").toString();
-                        Node* bind_src = 0;
-
-                        auto definition_key = "";
-                        
-                        if(param_label.contains("Value")){
-                            definition_key = "inner_type";
-                        }else if(param_label.contains("Vector")){
-                            definition_key = "type";
+                        //Check if we are using generic params
+                        auto is_generic_param = param->getDataValue("is_generic_param").toBool();
+                        if(is_generic_param){
+                            LinkData(source, "inner_type", param, "inner_type", setup);    
                         }
-                        LinkData(source, definition_key, param, "type", setup);
                     }
                 }
             }

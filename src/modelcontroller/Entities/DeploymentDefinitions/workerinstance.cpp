@@ -95,8 +95,6 @@ bool MEDEA::WorkerInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 
     return Node::canAcceptEdge(edge_kind, dst);
 }
-
-
 void MEDEA::WorkerInstance::bindWorkerID(Node* child, bool setup){
     if(child){
         auto label_data = getData("label");
@@ -114,7 +112,7 @@ void MEDEA::WorkerInstance::childAdded(Node* child){
 }
 
 void MEDEA::WorkerInstance::childRemoved(Node* child){
-    bindWorkerID(child, true);
+    bindWorkerID(child, false);
     Node::childRemoved(child);
 }
 

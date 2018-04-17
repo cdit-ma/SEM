@@ -7,6 +7,7 @@
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
 
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
@@ -17,10 +18,13 @@
     <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
         <node id="opencl">
             <data key="kind">WorkerDefinition</data>
+            
+            <data key="version">1.01</data>
             <data key="worker">OpenCL_Worker</data>
             <data key="label">OpenCL Worker</data>
             <data key="description">Provides heterogeneous compute workload functionality.</data>
@@ -57,17 +61,21 @@
                         <node id="opencl::createbuffer::data">
                             <data key="kind">InputParameter</data>
                             <data key="label">Data</data>
-                            <data key="type">Vector</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
+                            <data key="is_generic_param">true</data>
                             <data key="description">The data to be buffered.</data>
                         </node>
                         <node id="opencl::createbuffer::buffer">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Buffer</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">OpenCLBuffer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
+                            <data key="is_generic_param">true</data>
                             <data key="description">The buffer containing the provided data.</data>
 
                         </node>
@@ -96,10 +104,12 @@
                         <node id="opencl::releasebuffer::buffer">
                             <data key="kind">InputParameter</data>
                             <data key="label">Buffer</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">OpenCLBuffer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">The buffer to be released</data>
+                            <data key="is_generic_param">true</data>
                         </node>
                     </graph>
                 </node>
@@ -117,18 +127,22 @@
                         <node id="opencl::writebuffer::buffer">
                             <data key="kind">InputParameter</data>
                             <data key="label">Buffer</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">OpenCLBuffer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">The buffer to be written to</data>
+                            <data key="is_generic_param">true</data>
                         </node>
                         <node id="opencl::writebuffer::data">
                             <data key="kind">InputParameter</data>
                             <data key="label">Data</data>
-                            <data key="type">Vector</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The data to be written</data>
+                            <data key="is_generic_param">true</data>
                         </node>
                         <node id="opencl::writebuffer::blocking">
                             <data key="kind">InputParameter</data>
@@ -155,18 +169,22 @@
                         <node id="opencl::readbuffer::buffer">
                             <data key="kind">InputParameter</data>
                             <data key="label">Buffer</data>
-                            <data key="type">Integer</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">OpenCLBuffer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">The buffer to be read from</data>
+                            <data key="is_generic_param">true</data>
                         </node>
                         <node id="opencl::readbuffer::data">
-                            <data key="kind">InputParameter</data>
+                            <data key="kind">ReturnParameter</data>
                             <data key="label">Data</data>
-                            <data key="type">Vector</data>
+                            <data key="inner_type" />
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector</data>
                             <data key="description">The vector to be written to</data>
+                            <data key="is_generic_param">true</data>
                         </node>
                         <node id="opencl::readbuffer::blocking">
                             <data key="kind">InputParameter</data>
@@ -224,7 +242,8 @@
                         <node id="opencl::fft::data">
                             <data key="kind">InputParameter</data>
                             <data key="label">Data</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">An array of floats whose length is combination of powers of 2, 3 and 5.</data>
@@ -269,7 +288,8 @@
                         <node id="opencl::kmeans::points">
                             <data key="kind">InputParameter</data>
                             <data key="label">Points</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">The list of 4D points to be processed by the clustering algorithm</data>
@@ -277,7 +297,8 @@
                         <node id="opencl::kmeans::centroids">
                             <data key="kind">InputParameter</data>
                             <data key="label">centroids</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">A list of 4D points that represent the seed values for each of the centroids</data>
@@ -285,7 +306,8 @@
                         <node id="opencl::kmeans::classifications">
                             <data key="kind">InputParameter</data>
                             <data key="label">classifications</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Integer</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowRight</data>
                             <data key="description">The index of the centroid nearest to each point</data>
@@ -315,7 +337,8 @@
                         <node id="opencl::matrixmult::matrixa">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">The first of the two matrix operands.</data>
@@ -323,7 +346,8 @@
                         <node id="opencl::matrixmult::matrixb">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">Vector_Member</data>
                             <data key="description">The second of the two matrix operands.</data>
@@ -331,7 +355,8 @@
                         <node id="opencl::matrixmult::matrixc">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix C</data>
-                            <data key="type">Vector::Float</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">Vector</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">arrowRight</data>
                             <data key="description">The matrix to be filled with the result of the multiplication.</data>

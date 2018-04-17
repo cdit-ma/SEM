@@ -1365,8 +1365,10 @@ QList<Entity *> ModelController::getUnorderedEntities(QList<int> ids){
 
 Node *ModelController::cloneNode(Node *original, Node *parent)
 {
+
     if(original && parent){
-        auto node = construct_child_node(parent, original->getNodeKind());
+        
+        auto node = construct_node(parent, original->getNodeKind());
         
         if(node){
             QSet<QString> ignore_keys = {"index", "uuid"};
@@ -1377,6 +1379,13 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
                 if(!ignore_keys.contains(key_name)){
                     setData_(node, data->getKeyName(), data->getValue());
                 }
+            }
+            //Attach CLones of the data before we try and adopt
+            auto success = attachChildNode(parent, node, true);
+            if(!success){
+                entity_factory->DestructEntity(node);
+                node = 0;
+                return node;
             }
 
             for(auto child : original->getChildren(0)){
@@ -2513,11 +2522,13 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
                 
-                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES){
+                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::WORKER_DEFINITION){
                     auto version = entity->getDataValue("version").toString();
+                    qCritical() << "HEY MATE" << version;
                     auto old_version = matched_entity->getDataValue("version").toString();
                     auto old_label = matched_entity->getDataValue("label").toString();
                     if(!version.isEmpty() && !old_version.isEmpty()){
+                        
 
                         QString title = "Updated SharedDatatypes '" % old_label % "' to '" % version % "'";
                         QString description = "Updated from '" % old_version % "'";

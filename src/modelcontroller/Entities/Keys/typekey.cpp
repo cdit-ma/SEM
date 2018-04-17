@@ -47,6 +47,7 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
     return new_type;
 }
 
+#include <QDebug>
 
 void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
     auto src_inner_type_data = src->getData("inner_type");
@@ -59,17 +60,17 @@ void TypeKey::BindInnerAndOuterTypes(Node* src, Node* dst, bool bind){
 
     //Got fully described data
     if(src_inner_type_data && src_outer_type_data && src_type_data){
-        if(src_inner_type_data && dst_inner_type_data){
+        if(dst_inner_type_data){
             src_inner_type_data->linkData(dst_inner_type_data, bind);
         }
-        if(src_outer_type_data && dst_outer_type_data){
+        if(dst_outer_type_data){
             src_outer_type_data->linkData(dst_outer_type_data, bind);
         }
-        if(src_type_data && dst_type_data){
+        if(dst_type_data){
             src_type_data->linkData(dst_type_data, bind);
         }
     }else if(src_type_data){
-        if(src_type_data && dst_inner_type_data){
+        if(dst_inner_type_data){
             src_type_data->linkData(dst_inner_type_data, bind);
         }
     }
