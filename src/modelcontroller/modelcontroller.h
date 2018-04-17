@@ -123,6 +123,8 @@ public slots:
     void destructAllEdges(QList<int> srcIDs, EDGE_KIND edgeClass);
 
     void triggerAction(QString actionName);
+
+    void addDependantsToDependants(Node* parent_node, Node* dependant);
 private slots:
     void ModelNameChanged();
 signals:
@@ -217,11 +219,6 @@ private:
     Node* getDefinition(Node* node);
     QList<Node*> getInstances(Node* node);
 
-    //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    int constructDependantRelative(Node* parent, Node* definition);
-
-   
-
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
     QList<int> getIDs(QList<Entity*> items);
@@ -258,6 +255,8 @@ private:
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);
+    bool setupDefinitionRelationship2(Node* src, Node* dst, bool setup=true);
+    
     bool setupAggregateRelationship(Node* src, Node* dst, bool setup);
     bool setupDataRelationship(Node *src, Node *dst, bool setup = true);
 
@@ -275,7 +274,8 @@ private:
     void unsetModelAction(MODEL_ACTION action);
     bool isUserAction();
     
-    Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
+    Node* get_persistent_node(NODE_KIND node_kind);
+    QList<Node*> get_matching_dependant_of_definition(Node* parent_node, Node* definition);
     
     QList<Node*> getNodes(QList<int> IDs);
 private:

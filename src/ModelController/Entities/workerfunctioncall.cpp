@@ -82,3 +82,20 @@ bool WorkerFunctionCall::canAdoptChild(Node* node)
 
     return Node::canAdoptChild(node);
 }
+
+
+QList<Node*> WorkerFunctionCall::getAdoptableNodes(Node* definition){
+    //The only things we need to adopt in a WorkerFunctionCall is all of the Parameters from the top level definition of the WorkerFunction
+    QList<Node*> adoptable_nodes;
+    if(definition){
+        auto top_definition = definition->getDefinition(true);
+        if(top_definition){
+            for(auto child : top_definition->getChildren(0)){
+                if(child->isNodeOfType(NODE_TYPE::PARAMETER)){
+                    adoptable_nodes << child;
+                }
+            }
+        }
+    }
+    return adoptable_nodes;
+}

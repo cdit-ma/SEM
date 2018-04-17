@@ -931,6 +931,8 @@ void Node::setDefinition(Node *def)
         }
 
         setAcceptsEdgeKind(EDGE_KIND::DEFINITION, can_have_definition_edge);
+
+        definitionSet(def);
     }
 }
 
@@ -1172,6 +1174,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
     QMultiMap<QString, QString> bind_values;
     bind_values.insert("key", "key");
+
     bind_values.insert("icon", "icon");
     bind_values.insert("icon_prefix", "icon_prefix");
 
@@ -1199,10 +1202,17 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
-            case NODE_KIND::WORKER_INSTANCE:
-                bind_labels = false;
-                copy_labels = true;
+            case NODE_KIND::WORKER_INSTANCE:{
+
+            
+                if(definition_kind == NODE_KIND::WORKER_INSTANCE){
+                    bind_labels = true;
+                }else{
+                    bind_labels = false;
+                    copy_labels = true;
+                }
                 break;
+            }
             case NODE_KIND::WORKER_FUNCTIONCALL:
                 bind_labels = false;
                 copy_labels = true;
@@ -1239,6 +1249,26 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     //Bind Index
     if(bind_index){
         bind_values.insert("index", "index");
+    }
+
+
+    auto def_icon_prefix = definition->getData("icon_prefix");
+    auto def_icon = definition->getData("icon");
+    if(def_icon && def_icon_prefix){
+        auto key_icon_prefix = def_icon_prefix->getKey();
+        auto key_icon = def_icon->getKey();
+        auto factory = instance->getFactory();
+
+        //Construct Icon Prefix if we don't have one already
+        if(!instance->gotData(key_icon_prefix)){
+            auto data_icon_prefix = factory->CreateData(key_icon_prefix, def_icon_prefix->getValue());
+            instance->addData(data_icon_prefix);
+        }
+        //Construct Icon if we don't have one already
+        if(!instance->gotData(key_icon)){
+            auto data_icon = factory->CreateData(key_icon, def_icon->getValue());
+            instance->addData(data_icon);
+        }
     }
 
     for(auto definition_key : bind_values.uniqueKeys()){
@@ -1303,4 +1333,25 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         LinkData(bind_source, source_key, destination, "value", setup);
         TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
     }
+}
+
+QList<Node*> Node::getAdoptableNodes(Node* definition){
+    QList<Node*> adoptable_nodes;
+
+    if(definition){
+        for(auto child : definition->getChildren(0)){
+            if(child->isDefinition()){
+                adoptable_nodes << child;
+            }
+        }
+    }
+    return adoptable_nodes;
+}
+
+bool Node::canConstructChildren() const{
+    if(isInstance() && getDefinition()){
+        return false;
+    }
+
+    return true;
 }

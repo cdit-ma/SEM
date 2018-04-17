@@ -1065,9 +1065,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::PERIODICEVENT:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-                nodeItem->setSecondaryTextKey("frequency");
-                secondary_icon.second = "clockCycle";
-                nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::IF_STATEMENT:
             case NODE_KIND::WHILE_LOOP:

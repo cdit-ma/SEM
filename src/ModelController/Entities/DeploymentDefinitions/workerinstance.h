@@ -15,7 +15,9 @@ namespace MEDEA{
         protected:
             void bindWorkerID(Node* child, bool setup);
             void childAdded(Node* child);
-            void childRemoved(Node* child);
+            void childRemoved(Node* child); 
+
+            void definitionSet(Node* definition);
     };
 };
 

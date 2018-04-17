@@ -12,6 +12,7 @@ public:
 
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 	bool canAdoptChild(Node* child);
+	QList<Node*> getAdoptableNodes(Node* definition);
 };
 
 #endif // WORKERFUNCTIONCALL_H

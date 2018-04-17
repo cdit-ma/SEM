@@ -62,12 +62,16 @@ class Node : public Entity
         NODE_KIND getDefinitionKind() const;
         NODE_KIND getImplKind() const;
 
+        virtual QList<Node*> getAdoptableNodes(Node* definition);
+
+
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
 
     protected:
         virtual void childAdded(Node* child){};
         virtual void childRemoved(Node* child);
         virtual void parentSet(Node* parent){};
+        virtual void definitionSet(Node* definition){};
 
     protected:
         void SetEdgeRuleActive(EdgeRule rule, bool active = true);
@@ -89,6 +93,8 @@ class Node : public Entity
     NODE_KIND getNodeKind() const;
 
     bool isAttached() const;
+
+    bool canConstructChildren() const;
 
 
     int getDepthFromAspect();
