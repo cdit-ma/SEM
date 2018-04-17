@@ -67,6 +67,7 @@
 #include "Entities/workerfunction.h"
 #include "Entities/workerfunctioncall.h"
 #include "Entities/BehaviourDefinitions/workload.h"
+#include "Entities/BehaviourDefinitions/externaltype.h"
 
 //Instance Elements
 #include "Entities/DeploymentDefinitions/componentinstance.h"
@@ -350,6 +351,7 @@ EntityFactory::EntityFactory()
 
     MEDEA::WhileLoop(this);
     MEDEA::ForLoop(this);
+    MEDEA::ExternalType(this);
 
     Code(this);
     Condition(this);

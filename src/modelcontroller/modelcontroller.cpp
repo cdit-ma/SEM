@@ -455,6 +455,7 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
         if(!source->getParentNode()){
             attachChildNode(parent_node, source, false);
         }
+
         
         if(source->getParentNode() == parent_node){
             auto edge = construct_edge(edge_kind, source, destination, -1, false);
@@ -755,8 +756,22 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
 
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
-        
-        Node* node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
+
+
+        auto should_clone = false;
+
+        if(edge_kind == EDGE_KIND::DEFINITION){
+            if(!dst_node->isDefinition()){
+                should_clone = true;
+            }
+        }
+        Node* node = 0;
+
+        if(should_clone){
+            node = cloneNode(dst_node, parent_node);
+        }else{
+            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
+        }
 
         if(node){
             //Use position?
@@ -1354,7 +1369,7 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
         auto node = construct_child_node(parent, original->getNodeKind());
         
         if(node){
-            QSet<QString> ignore_keys = {"index", "readOnly"};
+            QSet<QString> ignore_keys = {"index", "uuid"};
             //Get the data
             for(auto data : original->getData()){
                 auto key_name = data->getKeyName();

@@ -25,6 +25,7 @@ bool WorkerDefinition::canAdoptChild(Node *child)
     switch(child->getNodeKind()){
     case NODE_KIND::ATTRIBUTE:
     case NODE_KIND::WORKER_FUNCTION:
+    case NODE_KIND::EXTERNAL_TYPE:
         break;
     default:
         return false;

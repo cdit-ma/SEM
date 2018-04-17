@@ -35,6 +35,7 @@ bool Variable::canAdoptChild(Node* child)
     case NODE_KIND::AGGREGATE_INSTANCE:
     case NODE_KIND::VECTOR:
     case NODE_KIND::ENUM_INSTANCE:
+    case NODE_KIND::EXTERNAL_TYPE:
         break;
     default:
         return false;

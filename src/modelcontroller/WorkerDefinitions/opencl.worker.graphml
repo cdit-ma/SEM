@@ -5,6 +5,9 @@
 
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
@@ -33,6 +36,12 @@
                     <data key="type">Integer</data>
 					<data key="label">platform_id</data>
 					<data key="kind">Attribute</data>
+				</node>
+                <node id="opencl::opencl_buffer_float">
+					<data key="inner_type">Float</data>
+                    <data key="outer_type">OpenCLBuffer</data>
+					<data key="label">OpenCLBuffer::Float</data>
+					<data key="kind">ExternalType</data>
 				</node>
                 <node id="opencl::createbuffer">
                     <data key="kind">WorkerFunction</data>
@@ -216,6 +225,29 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Data</data>
                             <data key="type">Vector::Float</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
+                            <data key="description">An array of floats whose length is combination of powers of 2, 3 and 5.</data>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="opencl::fft_buffer_float">
+                    <data key="kind">WorkerFunction</data>
+                    <data key="label">Buffer FFT</data>
+                    <data key="worker">OpenCLFFT_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/opencl/fft</data>
+                    <data key="file">openclfft_worker</data>
+                    <data key="operation">FFT</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">wave</data>
+                    <data key="description">Run an FFT using the given data, with the result overwriting the input array.</data>
+                    <graph id="opencl::fft_buffer_float:">
+                        <node id="opencl::fft_buffer_float::data">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Data</data>
+                            <data key="inner_type">Float</data>
+                            <data key="outer_type">OpenCLBuffer</data>
                             <data key="icon_prefix">Icons</data>
                             <data key="icon">memoryCard</data>
                             <data key="description">An array of floats whose length is combination of powers of 2, 3 and 5.</data>
