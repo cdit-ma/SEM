@@ -105,9 +105,6 @@ bool ExecutionManager::PopulateDeployment(){
         requester_->Init(environment_manager_endpoint_);
         requester_->Start();
 
-        std::cout << deployment_message_->DebugString() << std::endl;
-        
-        
         std::this_thread::sleep_for(std::chrono::seconds(1));
         auto response = requester_->AddDeployment(*deployment_message_);
 
