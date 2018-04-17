@@ -59,6 +59,7 @@ def experimentSlaves = [:]
 def master_shutdown = [:]
 def compileCode = [:]
 def addrMap = [:]
+def libLocationMap = [:]
 
 def fail_flag = false
 def failureList = []
@@ -132,7 +133,6 @@ withEnv(["model=''"]){
         }
     }
 
-    
     stage("Build deployment plan"){
     for(def i = 0; i < reNodes.size(); i++){
         def nodeName = reNodes[i];
@@ -143,6 +143,7 @@ withEnv(["model=''"]){
             node(nodeName){
                 dir(buildDir){
                     unstash 'codeGen'
+                    libLocationMap[nodeName] = pwd()
                 }
                 dir(buildDir + "/build"){
                     if(!utils.buildProject("Ninja", "")){
@@ -155,8 +156,7 @@ withEnv(["model=''"]){
 
         experimentMasters[nodeName] = {
             node(nodeName){
-                def workspacePath = pwd()
-                def buildPath = workspacePath + "/" + buildDir + "/lib"
+                def buildPath = libLocationMap[nodeName] + "/lib"
                 def master_args = ""
                 def slave_args = ""
                 def shared_args = ""
@@ -180,6 +180,9 @@ withEnv(["model=''"]){
                 command += master_args
 
                 dir(buildPath){
+                    def print_string = "Loading libs from: "
+                    print_string += pwd()
+                    print(print_string)
                     if(nodeName == masterNode){
                         unstash 'model'
                     }
