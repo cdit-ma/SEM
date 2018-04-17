@@ -292,6 +292,10 @@ bool Environment::NodeDeployedTo(const std::string& model_name, const std::strin
     return false;
 }
 
+bool Environment::ModelNameExists(const std::string& model_name){
+    return experiment_map_.count(model_name);
+}
+
 std::string Environment::GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address){
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);

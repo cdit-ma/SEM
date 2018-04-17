@@ -42,21 +42,17 @@ def blockingKill(String pid){
     }
 }
 
-
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
 def experimentID = env.BUILD_ID
 def buildDir = "run" + experimentID
-
 
 //Deployment plans
 def loganServers = [:]
 def loganClients = [:]
 def loganServers_shutdown = [:]
 def loganClients_shutdown = [:]
-def experimentMasters = [:]
-def experimentSlaves = [:]
-def master_shutdown = [:]
+def nodeManagers = [:]
 def compileCode = [:]
 def addrMap = [:]
 def libLocationMap = [:]
@@ -64,12 +60,9 @@ def libLocationMap = [:]
 def fail_flag = false
 def failureList = []
 
-def jDeployment = "";
-
 def file = "model.graphml"
 
 def reNodes = utils.getLabelledNodes("envmanager_test")
-
 
 //XXX: Problems ahoy here
 //In case where node has multiple network interfaces, we're cooked.
@@ -80,6 +73,7 @@ for(def i = 0; i < reNodes.size(); i++){
     addrMap[nodeName] = ip_addr_list[0]
 }
 
+//TODO: Add this as parameter to job.
 def environmentManagerIp = "192.168.224.100"
 def environmentManangerPort = "20000"
 
@@ -101,99 +95,100 @@ withEnv(["model=''"]){
         //TODO: Fix this to actually get middlewares from somewhere
         middlewareString += "zmq,proto,rti,ospl"
         //Generate C++ code
-        dir(buildPath){
-            unstash 'model'
-            archiveArtifacts file
-            
-            stage('C++ Generation'){
-                def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
-                if(utils.runScript(typeGenCommand) != 0){
-                    failureList << "Datatype code generation failed"
-                    fail_flag = true;
-                } 
-                def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
-                if(utils.runScript(componentGenCommand) !=0){
-                    failureList << "Component code generation failed"
-                    fail_flag = true;
-                }
-
-                dir("lib"){
-                    //Generate QOS into lib directory
-                    def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
-                    print(qosGenCommand)
-                    if(utils.runScript(qosGenCommand) != 0){
-                        failureList << "QoS generation failed"
+        stage('CodeGen'){
+            dir(buildPath){
+                unstash 'model'
+                archiveArtifacts file
+                
+                stage('C++ Generation'){
+                    def typeGenCommand = jarString + '/g2datatypes.xsl' + fileString + middlewareString
+                    if(utils.runScript(typeGenCommand) != 0){
+                        failureList << "Datatype code generation failed"
                         fail_flag = true;
+                    } 
+                    def componentGenCommand = jarString + '/g2components.xsl' + fileString + middlewareString
+                    if(utils.runScript(componentGenCommand) !=0){
+                        failureList << "Component code generation failed"
+                        fail_flag = true;
+                    }
+
+                    dir("lib"){
+                        //Generate QOS into lib directory
+                        def qosGenCommand = jarString + '/g2qos.xsl' + fileString + middlewareString
+                        print(qosGenCommand)
+                        if(utils.runScript(qosGenCommand) != 0){
+                            failureList << "QoS generation failed"
+                            fail_flag = true;
+                        }
                     }
                 }
             }
-            stage('Archive'){
+        }
+        stage('Archive'){
+            dir(buildPath){
                 stash includes: '**', name: 'codeGen'
+                zip(zipFile: "archive.zip", archive: true, glob: '**')
             }
         }
     }
 
     stage("Build deployment plan"){
-    for(def i = 0; i < reNodes.size(); i++){
-        def nodeName = reNodes[i];
-        def ipAddr = addrMap[nodeName]
+        for(def i = 0; i < reNodes.size(); i++){
+            def nodeName = reNodes[i];
+            def ipAddr = addrMap[nodeName]
 
-        //Update the map to include the compile
-        compileCode[nodeName] = {
-            node(nodeName){
-                dir(buildDir){
-                    unstash 'codeGen'
-                    libLocationMap[nodeName] = pwd()
-                }
-                dir(buildDir + "/build"){
-                    if(!utils.buildProject("Ninja", "")){
-                        failureList << ("cmake failed on node: " + nodeName)
-                        fail_flag = true;
+            //Update the map to include the compile
+            compileCode[nodeName] = {
+                node(nodeName){
+                    dir(buildDir){
+                        unstash 'codeGen'
+                        libLocationMap[nodeName] = pwd()
+                    }
+                    dir(buildDir + "/build"){
+                        if(!utils.buildProject("Ninja", "")){
+                            failureList << ("cmake failed on node: " + nodeName)
+                            fail_flag = true;
+                        }
                     }
                 }
             }
-        }
 
-        experimentMasters[nodeName] = {
-            node(nodeName){
-                def buildPath = libLocationMap[nodeName] + "/lib"
-                def master_args = ""
-                def slave_args = ""
-                def shared_args = ""
-                def command = "${RE_PATH}" + "/bin/re_node_manager"
+            nodeManagers[nodeName] = {
+                node(nodeName){
+                    def buildPath = libLocationMap[nodeName] + "/lib"
+                    def master_args = ""
+                    def slave_args = ""
+                    def shared_args = ""
+                    def command = "${RE_PATH}" + "/bin/re_node_manager"
 
+                    shared_args += " -n " + experimentID
+                    shared_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
 
-                shared_args += " -n " + experimentID
-                shared_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                    slave_args += " -s " + ipAddr
+                    slave_args += " -l . "
 
-                slave_args += " -s " + ipAddr
-                slave_args += " -l . "
-
-                if(nodeName == masterNode){
-                    master_args += " -m " + ipAddr
-                    master_args += " -t " + executionTime
-                    master_args += " -d " + file
-                }
-
-                command += shared_args
-                command += slave_args
-                command += master_args
-
-                dir(buildPath){
-                    def print_string = "Loading libs from: "
-                    print_string += pwd()
-                    print(print_string)
                     if(nodeName == masterNode){
-                        unstash 'model'
+                        master_args += " -m " + ipAddr
+                        master_args += " -t " + executionTime
+                        master_args += " -d " + file
                     }
-                    if(utils.runScript(command) != 0){
-                        failureList << ("Experiment slave failed on node: " + nodeName)
-                        fail_flag = true
+
+                    command += shared_args
+                    command += slave_args
+                    command += master_args
+
+                    dir(buildPath){
+                        if(nodeName == masterNode){
+                            unstash 'model'
+                        }
+                        if(utils.runScript(command) != 0){
+                            failureList << ("Experiment slave failed on node: " + nodeName)
+                            fail_flag = true
+                        }
                     }
                 }
             }
         }
-    }
     }
 
     stage("Compiling C++"){
@@ -202,7 +197,7 @@ withEnv(["model=''"]){
 
     stage("Execute Model"){
         if(!fail_flag){
-            parallel experimentMasters
+            parallel nodeManagers
         }
         else{
             print("############# Execution skipped, compilation or code generation failed! #############")

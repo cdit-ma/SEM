@@ -76,22 +76,31 @@ std::string DeploymentManager::QueryEnvironmentManager(){
     EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_);
     requester.Init(environment_manager_endpoint_);
     auto response = requester.NodeQuery(ip_address_);
-    if(response.type() == NodeManager::ControlMessage::TERMINATE){
-        std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
-        return "";
-    }
-    if(response.type() == NodeManager::ControlMessage::CONFIGURE){
-        auto node = response.nodes(0);
 
-        for(int i = 0; i < node.attributes_size(); i++){
-            auto attribute = node.attributes(i);
-            if(attribute.info().name() == "management_port"){
-                port = attribute.s(0);
-            }
+    //We dont have an experiment with this id on the environment manager, retry a few times.
+    for(int i = 0; i < RETRY_COUNT; i++){
+        //Re-try till we get a valid response message.
+        //This happens when the environment manager at least has an experiment with this slave's experiment id
+        if(response.type() == NodeManager::ControlMessage::TERMINATE){
+            std::cout << "Environment manager returned no management port. Shutting down." << std::endl;
+            return "";
         }
+        if(response.type() == NodeManager::ControlMessage::CONFIGURE){
+            auto node = response.nodes(0);
+
+            for(int i = 0; i < node.attributes_size(); i++){
+                auto attribute = node.attributes(i);
+                if(attribute.info().name() == "management_port"){
+                    port = attribute.s(0);
+                }
+            }
+            return port;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        response = requester.NodeQuery(ip_address_);
     }
 
-    return port;
+    return "";
 }
 
 NodeManager::StartupResponse DeploymentManager::HandleStartup(const NodeManager::Startup startup){

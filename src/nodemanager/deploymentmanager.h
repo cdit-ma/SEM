@@ -43,6 +43,8 @@ class DeploymentManager{
 
         bool on_master_node_ = false;
 
+        const int RETRY_COUNT = 10;
+
         zmq::ProtoReceiver* subscriber_ = 0;
 
         std::string library_path_;

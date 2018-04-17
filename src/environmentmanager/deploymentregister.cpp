@@ -97,6 +97,7 @@ void DeploymentRegister::RegistrationLoop(){
             assert(!ip_address.empty());
 
             if(environment_->NodeDeployedTo(experiment_id, ip_address)){
+                //Have experiment_id in environment, and ip_addr has component deployed to id
                 std::cout << "populating" << std::endl;
                 std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
                 std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
@@ -116,7 +117,15 @@ void DeploymentRegister::RegistrationLoop(){
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
             }
+            else if(!environment_->ModelNameExists(experiment_id)){
+                //Dont have an experiment with this id, send back a no_type s.t. client re-trys in a bit
+                std::cout << "no experiment id, probably still parsing" << std::endl;
+                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+                control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
+            }
             else{
+                //At this point, we have an experiment of the same id as ours and we aren't deployed to it.
+                //Therefore terminate
                 std::cout << "terminating" << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 control_message->set_type(NodeManager::ControlMessage::TERMINATE);
