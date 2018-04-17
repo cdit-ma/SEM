@@ -86,7 +86,7 @@ withEnv(["model=''"]){
     node(masterNode){
 
         def workspacePath = pwd()
-        def reGenPath = "${RE_GEN_PATH}"
+        def reGenPath = "${RE_PATH}" + "/re_gen"
         def saxonPath = reGenPath
 
         def middlewareString = ' middlewares='
@@ -98,7 +98,7 @@ withEnv(["model=''"]){
         stash includes: file, name: 'model'
 
         //TODO: Fix this to actually get middlewares from somewhere
-        middlewareString += "zmq,proto"
+        middlewareString += "zmq,proto,rti,ospl"
         //Generate C++ code
         dir(buildPath){
             unstash 'model'
