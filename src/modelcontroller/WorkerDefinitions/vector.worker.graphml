@@ -23,6 +23,7 @@
     <graph id="G">
         <node id="vectorworker">
             <data key="kind">WorkerDefinition</data>
+            <data key="version">1.01.00</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
             <data key="icon_prefix">EntityIcons</data>
