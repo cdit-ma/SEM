@@ -71,20 +71,22 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     }
 
     parse_succeed_ = PopulateDeployment();
-    ConstructControlMessages();
+    if(parse_succeed_){
+        ConstructControlMessages();
+    }
 
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     if(parse_succeed_){
         std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+        proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
+
+        if(parse_succeed_ && execution){
+            std::cout << "--------[Slave Registration]--------" << std::endl;
+            execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
+        }
     }else{
         std::cout << "* Deployment Parsing Failed!" << std::endl;
-    }
-    proto_writer_->BindPublisherSocket("tcp://" + master_endpoint_ + ":" + master_publisher_port_);
-
-    if(parse_succeed_ && execution){
-        std::cout << "--------[Slave Registration]--------" << std::endl;
-        execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
     }
 }
 
@@ -106,7 +108,14 @@ bool ExecutionManager::PopulateDeployment(){
         requester_->Start();
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        auto response = requester_->AddDeployment(*deployment_message_);
+        NodeManager::ControlMessage response;
+        try{
+            response = requester_->AddDeployment(*deployment_message_);
+
+        }catch(const std::runtime_error& ex){
+            //If anything goes wrong, we've failed to populate our deployment. Return false
+            return false;
+        }
 
         *deployment_message_ = response;
 

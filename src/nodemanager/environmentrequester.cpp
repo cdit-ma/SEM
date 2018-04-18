@@ -57,7 +57,6 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     attribute->add_s(node_endpoint);
 
 
-
     //Get update endpoint
     zmq::socket_t* initial_request_socket;
 
@@ -146,8 +145,9 @@ void EnvironmentRequester::HeartbeatLoop(){
         manager_update_endpoint_ = initial_reply.update_endpoint();
     }
     else{
-        //TODO: Handle this error
-        std::cerr << "HANDLE THIS ERROR! 1" << std::endl;
+        std::cerr << "Environment manager not found at: " << manager_endpoint_ << std::endl;
+        std::cerr << "Terminating." << std::endl;
+        return;
     }
 
     //Connect to our update socket
@@ -200,8 +200,8 @@ void EnvironmentRequester::HeartbeatLoop(){
 }
 
 void EnvironmentRequester::End(){
-    request_queue_cv_.notify_one();
     end_flag_ = true;
+    request_queue_cv_.notify_one();
     heartbeat_thread_->join();
 }
 
@@ -213,15 +213,16 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::Con
 
     env_message.set_type(NodeManager::EnvironmentMessage::GET_DEPLOYMENT_INFO);
 
-    auto response = QueueRequest(env_message.SerializeAsString());
     NodeManager::EnvironmentMessage message;
-
     try{
+        auto response = QueueRequest(env_message.SerializeAsString());
+
         auto response_msg = response.get();
         message.ParseFromString(response_msg);
     }
     catch(std::exception& ex){
-        std::cout << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
+        std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
+        throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
     }
 
     return message.control_message();
@@ -316,3 +317,4 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t* socket){
         return "";
     }
 }
+
