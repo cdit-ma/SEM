@@ -1,18 +1,14 @@
 #include "workerdefinition.h"
 
+const NODE_KIND node_kind = NODE_KIND::WORKER_DEFINITION;
+const QString kind_string = "WorkerDefinition";
 
 
-WorkerDefinition::WorkerDefinition(EntityFactory* factory) : Node(factory, NODE_KIND::WORKER_DEFINITION, "WorkerDefinition"){
-	auto node_kind = NODE_KIND::WORKER_DEFINITION;
-	QString kind_string = "WorkerDefinition";
+WorkerDefinition::WorkerDefinition(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new WorkerDefinition();});
 };
 
-WorkerDefinition::WorkerDefinition():Node(NODE_KIND::WORKER_DEFINITION){
-    //setWorkflowReciever(true);
-    //setWorkflowProducer(true);
-    //setExpandEnabled(true);
-
+WorkerDefinition::WorkerDefinition() : Node(node_kind){
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     
@@ -33,7 +29,7 @@ bool WorkerDefinition::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool WorkerDefinition::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool WorkerDefinition::canAcceptEdge(EDGE_KIND, Node *)
 {
     return false;
 }

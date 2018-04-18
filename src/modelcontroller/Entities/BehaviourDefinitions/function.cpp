@@ -9,23 +9,27 @@ MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kin
 
 MEDEA::Function::Function(): Node(node_kind)
 {
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+
+    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
     
 }
 
 bool MEDEA::Function::Function::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
         case NODE_KIND::INEVENTPORT_IMPL:
         case NODE_KIND::OUTEVENTPORT_IMPL:
             return false;
         default:
+            if(!ContainerNode::canAdoptChild(child)){
+                return false;
+            }
             break;
     }
-
-    if(ContainerNode::canAdoptChild(child)){
-        return Node::canAdoptChild(child);
-    }
-    return false;
+    return Node::canAdoptChild(child);
 }
 
 bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND, Node *)

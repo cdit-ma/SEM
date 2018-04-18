@@ -861,6 +861,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
                 nodeItem->setVisualNodeKind(NODE_KIND::COMPONENT);
                 break;
+            case NODE_KIND::CLASS:
+                nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
+                break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 secondary_icon.second = "copyX";
@@ -1127,7 +1130,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                         
 
-                        if(nodeKind == NODE_KIND::COMPONENT_IMPL){
+                        if(nodeKind == NODE_KIND::COMPONENT_IMPL || nodeKind == NODE_KIND::CLASS){
                             stack_item->SetRenderCellText(0, 0, true, "Functions", text_color);
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                         }else{

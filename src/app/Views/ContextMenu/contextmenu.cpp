@@ -28,6 +28,8 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::WORKER_INSTANCE] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::CLASS_INSTANCE] = EDGE_KIND::DEFINITION;
+    
     connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTION] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTIONCALL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::EXTERNAL_TYPE] = EDGE_KIND::DEFINITION;

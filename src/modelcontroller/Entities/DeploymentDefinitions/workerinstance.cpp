@@ -10,7 +10,6 @@ MEDEA::WorkerInstance::WorkerInstance(EntityFactory* factory) : Node(factory, no
 
     //Register Data
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
 };

@@ -5,13 +5,20 @@ const QString kind_string = "Class";
 
 MEDEA::Class::Class(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Class();});
+    
+    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
 };
 
 MEDEA::Class::Class(): Node(node_kind)
 {
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    
     setNodeType(NODE_TYPE::DEFINITION);
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    //setInstanceKind(NODE_KIND::CLASS_INSTANCE);
+
+    setInstanceKind(NODE_KIND::CLASS_INSTANCE);
+    setImplKind(NODE_KIND::CLASS_INSTANCE);
 }
 
 bool MEDEA::Class::Class::canAdoptChild(Node* child)

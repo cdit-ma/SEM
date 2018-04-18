@@ -1794,6 +1794,7 @@ void ModelController::setCustomNodeData(Node* node){
             }
             break;
         }
+        case NODE_KIND::CLASS_INSTANCE:
         case NODE_KIND::WORKER_INSTANCE:{
             new_data["row"] = 1;
             new_data["column"] = 2;

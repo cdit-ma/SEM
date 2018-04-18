@@ -46,6 +46,7 @@ enum class NODE_KIND
         OPENCL_DEVICE,
         WORKER_INSTANCE,
         CLASS,
+        CLASS_INSTANCE,
         FUNCTION,
 
         ATTRIBUTE_IMPL,

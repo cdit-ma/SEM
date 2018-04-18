@@ -116,6 +116,7 @@
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
 #include "Entities/InterfaceDefinitions/namespace.h"
 #include "Entities/BehaviourDefinitions/class.h"
+#include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
 
 
@@ -412,6 +413,7 @@ EntityFactory::EntityFactory()
     EnumMember(this);
     EnumInstance(this);
     MEDEA::Class(this);
+    MEDEA::ClassInstance(this);
     MEDEA::Function(this);
     MEDEA::DeploymentAttribute(this);
 

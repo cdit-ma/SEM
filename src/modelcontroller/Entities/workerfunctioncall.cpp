@@ -1,4 +1,4 @@
-#include "WorkerFunctionCall.h"
+#include "workerfunctioncall.h"
 #include <QDebug>
 #include "BehaviourDefinitions/parameter.h"
 
