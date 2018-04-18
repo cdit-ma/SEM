@@ -1152,7 +1152,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                             if(small_style){
                                 stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(16,16));
-                                stack_item->SetCellSpacing(0, 0, 10);
+                                stack_item->SetCellSpacing(0, 0, 20);
                             }else{
                                 stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));
                                 stack_item->SetCellSpacing(0, 0, 20);

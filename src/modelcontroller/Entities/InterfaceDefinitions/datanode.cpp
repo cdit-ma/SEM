@@ -133,7 +133,6 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     
     switch(edgeKind){
     case EDGE_KIND::DATA:{
-        //qCritical() << this->toString() << " -> " << dst->toString();
         if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
             //Cannot connect to a non DataNode type.
             return false;
@@ -161,10 +160,15 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
-        //if(data_node->isContainedInVariable()){
-            //Cannot Data-Connect into a Variable
-            //return false;
-        //}
+        if(isContainedInVariable() && getNodeKind() == NODE_KIND::VECTOR){
+            //Cannot data-link from a vector itself
+            return false;
+        }
+
+        if(data_node->isContainedInVariable()){
+            //Cannot data link into a variable
+            return false;
+        }
 
 
         if(!isPromiscuousDataLinker() && !data_node->isPromiscuousDataLinker()){
@@ -173,12 +177,27 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             
             if(source_containment_node && destination_containment_node){
                 auto source_contains_destination = source_containment_node->isAncestorOf(destination_containment_node);
-                auto destination_contains_source = destination_containment_node->isAncestorOf(source_containment_node);
 
-                //One of those needs to be true
-                if(!source_contains_destination && !destination_contains_source){
+                if(source_contains_destination){
+                    //Check to see if we are trying to link into parameters, if the variables scoped parent is the same as the parameter,
+                    //We shouldn't allow
+                    if(data_node->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        if(data_node->getParentNode() == source_containment_node){
+                            return false;
+                        }
+                    }
+                }else{
+                    //Source needs to contain the destination for scoping to work
                     return false;
-                    //The Variable we are setting needs to be in scope.
+                }
+
+                auto src_child_of_containment_node = getChildOfContainmentNode();
+                auto dst_child_of_containment_node = data_node->getChildOfContainmentNode();
+                qCritical() << "SRC: " << toString() << " VS " << src_child_of_containment_node->toString();
+                qCritical() << "DST: " << dst->toString() << " VS " << dst_child_of_containment_node->toString();
+                //Cannot inside the same workflow item
+                if(src_child_of_containment_node == dst_child_of_containment_node){
+                    //return false;
                 }
             }else if(!source_containment_node && !destination_containment_node){
                 auto source_parent = getParentNode();
@@ -190,7 +209,8 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 return false;
             }
         }
-
+        
+        
         
 
         if(TypeKey::CompareTypes(this, data_node) == false){
@@ -222,10 +242,13 @@ void DataNode::RunContainmentChecks(){
         auto parent_nodes = getParentNodes(-1);
         //parent_nodes.push_front(this);
         //Check if we are inside a vector
+
+        Node* previous_node = this;
         for(auto parent_node : parent_nodes){
             if(!_containment_node){
                 if(parent_node->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
                     _containment_node = parent_node;
+                    _child_of_containment_node = previous_node;
                 }
             }
 
@@ -242,6 +265,7 @@ void DataNode::RunContainmentChecks(){
                 default:
                     break;
             }
+            previous_node = parent_node;
         }
         _run_containment_checks = true;
     }
@@ -250,6 +274,11 @@ void DataNode::RunContainmentChecks(){
 Node* DataNode::getContainmentNode(){
     RunContainmentChecks();
     return _containment_node;
+}
+
+Node* DataNode::getChildOfContainmentNode(){
+    RunContainmentChecks();
+    return _child_of_containment_node;
 }
 
 void DataNode::setPromiscuousDataLinker(bool set){

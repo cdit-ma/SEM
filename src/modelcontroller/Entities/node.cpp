@@ -1189,9 +1189,16 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     bool bind_types = true;
     bool copy_labels = false;
 
-    //The only time we should bind the index is when we are contained in another instance
-    if(instance_parent->isInstance()){
-        bind_index = true;
+    switch(instance_kind){
+        case NODE_KIND::MEMBER_INSTANCE:
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE){
+                bind_index = true;
+            }
+            break;
+        }
+        default:
+            break;
     }
 
     if(instance->isInstanceImpl()){

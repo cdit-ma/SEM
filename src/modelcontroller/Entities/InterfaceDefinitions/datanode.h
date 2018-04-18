@@ -31,6 +31,7 @@ public:
     bool isContainedInVector();
     bool isContainedInVariable();
     Node* getContainmentNode();
+    Node* getChildOfContainmentNode();
 private:
     void RunContainmentChecks();
     bool _run_containment_checks = false;
@@ -38,6 +39,7 @@ private:
     bool _contained_in_vector = false;
     bool _contained_in_variable = false;
     Node* _containment_node = 0;
+    Node* _child_of_containment_node = 0;
 
     bool promiscuous_data_linker_ = false;
 

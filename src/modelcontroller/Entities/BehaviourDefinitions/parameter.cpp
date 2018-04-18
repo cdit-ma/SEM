@@ -53,30 +53,5 @@ bool Parameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-
-    switch(edgeKind){
-    case EDGE_KIND::DATA:{
-        if(dst->isNodeOfType(NODE_TYPE::PARAMETER)){
-            Parameter* parameter = (Parameter*) dst;
-            //Allow connection to things in the same component
-            if(getDepthFromCommonAncestor(dst) == 1){
-                return false;
-            }
-            /*
-            if(!isReturnParameter()){
-                //Only allow connections from Return Parameters
-                return false;
-            }
-            if(!(parameter->isInputParameter() || parameter->isVariadicParameter() || parameter)){
-                //Allow connection to Input Parameters or VariadicParameter
-                return false;
-            }*/
-        }
-        break;
-    }
-    default:
-        break;
-    }
     return DataNode::canAcceptEdge(edgeKind, dst);
-
 }

@@ -22,8 +22,8 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_s
 Variable::Variable() : DataNode(node_kind)
 {
     setDataProducer(true);
-    setDataReceiver(true);
-    setMultipleDataReceiver(true);
+    //setDataReceiver(true);
+    //setMultipleDataReceiver(true);
 }
 
 

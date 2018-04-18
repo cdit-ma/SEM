@@ -624,13 +624,13 @@ Node* ModelController::construct_setter_node(Node* parent)
             auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto value = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
-            setData_(variable, "icon", "Variable");
-            setData_(variable, "icon_prefix", "EntityIcons");
-            setData_(variable, "label", "Variable");
+            setData_(variable, "icon", "Variable", false);
+            setData_(variable, "icon_prefix", "EntityIcons", false);
+            setData_(variable, "label", "Variable", false);
 
-            setData_(value, "icon", "arrowHeadRight");
-            setData_(value, "icon_prefix", "Icons");
-            setData_(value, "label", "operand");
+            setData_(value, "icon", "arrowHeadRight", false);
+            setData_(value, "icon_prefix", "Icons", false);
+            setData_(value, "label", "operand", false);
             return node;
         }
     }
@@ -688,19 +688,22 @@ Node* ModelController::construct_for_node(Node* parent)
             auto condition = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto iteration = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
-            variable->setDataValue("type", "Integer");
-            variable->setDataValue("label", "i");
-            variable->setDataValue("value", 0);
-            
-            condition->setDataValue("type", "Boolean");
-            condition->setDataValue("label", "Condition");
-            condition->setDataValue("icon", "Condition");
-            condition->setDataValue("icon_prefix", "EntityIcons");
+            setData_(variable, "label", "i", false);
+            setData_(variable, "type", "Integer", false);
+            setData_(variable, "value", 0, false);
 
-            iteration->setDataValue("type", "String");
-            iteration->setDataValue("label", "Iteration");
-            iteration->setDataValue("icon", "reload");
-            iteration->setDataValue("icon_prefix", "Icons");
+            setData_(condition, "label", "Condition", false);
+            setData_(condition, "type", "Integer", false);
+            setData_(condition, "icon", "Condition", false);
+            setData_(condition, "icon_prefix", "EntityIcons", false);
+
+
+            setData_(iteration, "label", "iterator", false);
+            setData_(iteration, "type", "String", false);
+            setData_(iteration, "icon", "reload", false);
+            setData_(iteration, "icon_prefix", "Icons", false);
+            setData_(iteration, "value", "i++", false);
+
             return node;
         }
     }
@@ -729,13 +732,12 @@ Node* ModelController::construct_periodic_eventport(Node* parent){
         if(node){
             auto duration = construct_child_node(node, NODE_KIND::ATTRIBUTE_INSTANCE);
             if(duration){
-                duration->setDataValue("label", "frequency");
-                duration->setDataValue("type", "Integer");
-                duration->setDataValue("value", 1);
-                duration->setDataValue("row", 1);
-
-                setData_(duration, "icon", "clockCycle");
-                setData_(duration, "icon_prefix", "Icons");
+                setData_(duration, "label", "frequency", false);
+                setData_(duration, "type", "Integer", false);
+                setData_(duration, "value", 1, false);
+                setData_(duration, "row", 1, false);
+                setData_(duration, "icon", "clockCycle", false);
+                setData_(duration, "icon_prefix", "Icons", false);
             }
             return node;
         }
@@ -1374,7 +1376,7 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
                 auto key_name = data->getKeyName();
                     
                 if(!ignore_keys.contains(key_name)){
-                    setData_(node, data->getKeyName(), data->getValue());
+                    setData_(node, data->getKeyName(), data->getValue(), false);
                 }
             }
             //Attach CLones of the data before we try and adopt
