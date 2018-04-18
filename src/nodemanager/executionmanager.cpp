@@ -114,6 +114,7 @@ bool ExecutionManager::PopulateDeployment(){
 
         }catch(const std::runtime_error& ex){
             //If anything goes wrong, we've failed to populate our deployment. Return false
+            std::cerr << "Failed to populate deployment." << std::endl;
             return false;
         }
 

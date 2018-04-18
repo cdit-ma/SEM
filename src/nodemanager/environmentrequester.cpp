@@ -216,8 +216,10 @@ NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::Con
     NodeManager::EnvironmentMessage message;
     try{
         auto response = QueueRequest(env_message.SerializeAsString());
-
         auto response_msg = response.get();
+        if(response_msg.empty()){
+            throw std::runtime_error("Got empty response message in EnvironmentRequester::AddDeployment");
+        }
         message.ParseFromString(response_msg);
     }
     catch(std::exception& ex){
