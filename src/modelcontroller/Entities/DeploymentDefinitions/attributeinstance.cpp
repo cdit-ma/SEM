@@ -25,7 +25,8 @@ AttributeInstance::AttributeInstance() : DataNode(node_kind)
     setInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     
 
-    setDataReceiver(true);
+    setDataProducer(true);
+    
 }
 
 bool AttributeInstance::canAdoptChild(Node*)
@@ -55,4 +56,11 @@ bool AttributeInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     return DataNode::canAcceptEdge(edgeKind, dst);
+}
+
+void AttributeInstance::parentSet(Node* parent){
+    if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
+        setDataReceiver(true);
+    }
+    DataNode::parentSet(parent);
 }

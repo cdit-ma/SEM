@@ -193,20 +193,17 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
                 auto src_child_of_containment_node = getChildOfContainmentNode();
                 auto dst_child_of_containment_node = data_node->getChildOfContainmentNode();
-                qCritical() << "SRC: " << toString() << " VS " << src_child_of_containment_node->toString();
-                qCritical() << "DST: " << dst->toString() << " VS " << dst_child_of_containment_node->toString();
+                
                 //Cannot inside the same workflow item
                 if(src_child_of_containment_node == dst_child_of_containment_node){
-                    //return false;
+                    return false;
                 }
-            }else if(!source_containment_node && !destination_containment_node){
+            }else{
                 auto source_parent = getParentNode();
 
                 if(!source_parent || !source_parent->isAncestorOf(data_node)){
                     return false;
                 }
-            }else{
-                return false;
             }
         }
         
