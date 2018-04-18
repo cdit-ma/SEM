@@ -147,6 +147,15 @@ void EnvironmentRequester::HeartbeatLoop(){
     else{
         std::cerr << "Environment manager not found at: " << manager_endpoint_ << std::endl;
         std::cerr << "Terminating." << std::endl;
+        std::unique_lock<std::mutex> lock(request_queue_lock_);
+        if(!request_queue_.empty()){
+            while(!request_queue_.empty()){
+                auto request = request_queue_.front();
+                request_queue_.pop();
+                request.response_->set_value("");
+            }
+        }
+        environment_manager_not_found_ = true;
         return;
     }
 
@@ -206,6 +215,9 @@ void EnvironmentRequester::End(){
 }
 
 NodeManager::ControlMessage EnvironmentRequester::AddDeployment(NodeManager::ControlMessage& control_message){
+    if(environment_manager_not_found_){
+        throw std::runtime_error("Could not add deployment as environment manager was not found.");
+    }
     NodeManager::EnvironmentMessage env_message;
     auto current_control_message = env_message.mutable_control_message();
 

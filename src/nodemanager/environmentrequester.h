@@ -40,6 +40,8 @@ class EnvironmentRequester{
         std::string manager_address_;
         std::string manager_endpoint_;
         std::string manager_update_endpoint_;
+
+        bool environment_manager_not_found_ = false;
         
         //Threads
         void HeartbeatLoop();
