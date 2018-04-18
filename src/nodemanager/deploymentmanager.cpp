@@ -45,18 +45,7 @@ DeploymentManager::DeploymentManager(bool on_master_node,
 std::string DeploymentManager::GetSlaveEndpoint(){
     std::string port;
 
-    std::future<std::string> response_future = std::async(std::launch::async, &DeploymentManager::QueryEnvironmentManager, this);
-    std::future_status status = response_future.wait_for(std::chrono::seconds(3));
-
-    if(status == std::future_status::ready){
-        //parse return message
-        try{
-            port = response_future.get();
-        }
-        catch(std::exception& ex){
-            std::cerr << "Failed to get result of GetSlaveEndpoint: " << ex.what() << std::endl;
-        }
-    }
+    port = QueryEnvironmentManager();
 
     //We didn't get an endpoint shutdown
     if(port.empty()){
@@ -97,9 +86,14 @@ std::string DeploymentManager::QueryEnvironmentManager(){
             return port;
         }
         std::this_thread::sleep_for(std::chrono::seconds(3));
-        response = requester.NodeQuery(ip_address_);
+        try{
+            response = requester.NodeQuery(ip_address_);
+        }
+        catch(const std::runtime_error& ex){
+            return "";
+        }
 
-        std::cout << "No response from env manager on this experiment_id, retrying." << std::endl;
+        std::cout << "No response from env manager on this experiment_id, retrying. " << i << std::endl;
     }
 
     return "";

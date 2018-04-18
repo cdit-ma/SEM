@@ -80,7 +80,7 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     auto reply = ZMQReceiveReply(initial_request_socket);
 
     if(reply.empty()){
-        
+        throw std::runtime_error("Environment manager request timed out.");
     }
 
     NodeManager::EnvironmentMessage reply_message;
