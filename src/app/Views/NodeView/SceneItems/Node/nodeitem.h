@@ -320,7 +320,6 @@ protected:
 public:
     QColor getBodyColor() const;
     QColor getHeaderColor() const;
-    void setHeaderColor(QColor color);
 
     // EntityItemNew interface
 public:

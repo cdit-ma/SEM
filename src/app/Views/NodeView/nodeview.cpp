@@ -318,14 +318,31 @@ void NodeView::clearSelection()
 
 void NodeView::themeChanged()
 {
-
+    auto theme = Theme::theme();
     if(isAspectView){
-        background_color = Theme::theme()->getAspectBackgroundColor(containedAspect);
+        background_color = theme->getAspectBackgroundColor(containedAspect);
     }else{
-        background_color = Theme::theme()->getAltBackgroundColor();
+        background_color = theme->getAltBackgroundColor();
     }
     background_text_color = background_color.darker(110);
     setBackgroundBrush(background_color);
+
+    auto body_color = theme->getAltBackgroundColor();
+    auto text_color = theme->getTextColor();
+    auto header_color = theme->getBackgroundColor();
+    auto highlight_color = theme->getHighlightColor();
+    QPen pen(theme->getTextColor(ColorRole::DISABLED));
+    pen.setCosmetic(true);
+
+    for(auto entity : guiItems){
+        if(entity){
+            entity->setBaseBodyColor(body_color);
+            entity->setTextColor(text_color);
+            entity->setHeaderColor(header_color);
+            entity->setHighlightColor(highlight_color);
+            entity->setDefaultPen(pen);
+        }
+    }
 }
 
 void NodeView::node_ConnectMode(NodeItem *item)

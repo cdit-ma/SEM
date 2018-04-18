@@ -54,6 +54,14 @@ public:
 
     QColor getTextColor() const;
     void setTextColor(QColor color);
+
+    virtual QColor getHeaderColor() const;
+    void setHeaderColor(QColor color);
+
+
+    QColor getHighlightColor() const;
+    void setHighlightColor(QColor color);
+   
     
     QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
@@ -278,6 +286,8 @@ private:
     QPen defaultPen;
     QColor bodyColor;
     QColor text_color;
+    QColor highlight_color;
+    QColor header_color;
 
     KIND kind;
     bool ignorePosition;

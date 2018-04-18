@@ -928,15 +928,35 @@ QColor EntityItem::getBaseBodyColor() const
 QColor EntityItem::getTextColor() const{
     return text_color;
 }
+
 void EntityItem::setTextColor(QColor color){
     text_color = color;
+    update();
+}
+
+void EntityItem::setHeaderColor(QColor color){
+    header_color = color;
+    update();
+}
+
+QColor EntityItem::getHeaderColor() const{
+    return header_color;
+}
+
+
+QColor EntityItem::getHighlightColor() const{
+    return highlight_color;
+}
+
+void EntityItem::setHighlightColor(QColor color){
+    highlight_color = color;
     update();
 }
 
 QColor EntityItem::getBodyColor() const
 {
     if(isHighlighted()){
-        return Theme::theme()->getHighlightColor();
+        return highlight_color;
     } else {
         return bodyColor;
     }
