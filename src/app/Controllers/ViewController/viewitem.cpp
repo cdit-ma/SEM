@@ -117,7 +117,7 @@ bool ViewItem::hasData(QString keyName) const
 
 bool ViewItem::isDataProtected(QString keyName) const
 {
-    if(isReadOnly() && keyName != "value"){
+    if(isReadOnly()){
         return true;
     }else{
         return getProtectedKeys().contains(keyName);

@@ -628,12 +628,9 @@ Node* ModelController::construct_setter_node(Node* parent)
             setData_(variable, "icon_prefix", "EntityIcons");
             setData_(variable, "label", "Variable");
 
-            value->setDataValue("icon", "Variable");
-            value->setDataValue("icon_prefix", "EntityIcons");
-
-            value->setDataValue("icon", "Variable");
-            value->setDataValue("icon_prefix", "EntityIcons");
-            value->setDataValue("label", "value");
+            setData_(value, "icon", "arrowHeadRight");
+            setData_(value, "icon_prefix", "Icons");
+            setData_(value, "label", "operand");
             return node;
         }
     }
@@ -1375,7 +1372,7 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
             //Get the data
             for(auto data : original->getData()){
                 auto key_name = data->getKeyName();
-                
+                    
                 if(!ignore_keys.contains(key_name)){
                     setData_(node, data->getKeyName(), data->getValue());
                 }
@@ -1675,8 +1672,16 @@ bool ModelController::canDeleteNode(Node *node)
             return false;
         }
         auto node_kind = node->getNodeKind();
+        auto parent_node = node->getParentNode();
+        auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
         switch(node_kind){
+            case NODE_KIND::ATTRIBUTE_INSTANCE:
+                if(parent_node_kind == NODE_KIND::PERIODICEVENT){
+                    return false;
+                }
+                break;
+            case NODE_KIND::WORKER_DEFINITION:
             case NODE_KIND::INPUT_PARAMETER:
             case NODE_KIND::RETURN_PARAMETER:
                 return false;
@@ -1687,7 +1692,6 @@ bool ModelController::canDeleteNode(Node *node)
         if(node->getDefinition()){
             switch(node_kind){
             case NODE_KIND::WORKER_INSTANCE:{
-                auto parent_node = node->getParentNode();
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
                  switch(parent_node_kind){
                     case NODE_KIND::COMPONENT_INSTANCE:
@@ -1704,7 +1708,6 @@ bool ModelController::canDeleteNode(Node *node)
                 // These node kinds can be destroyed at any time
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:{
-                auto parent_node = node->getParentNode();
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
                 switch(parent_node_kind){
@@ -2287,8 +2290,8 @@ bool ModelController::isKeyNameVisual(QString key_name){
     return visual_keynames.contains(key_name);
 }
 
-double ModelController::compare_medea_version(QString compare_version){
-    auto current_version = APP_VERSION();
+double ModelController::compare_version(QString current_version, QString compare_version){
+    
 
     auto compare_first =  compare_version.indexOf(".") + 1;
     auto compare_second =  compare_version.indexOf(".", compare_first);
@@ -2304,7 +2307,7 @@ double ModelController::compare_medea_version(QString compare_version){
 
     if(!current_v){
         //Should never happen
-        qCritical() << "compare_medea_version(): Can't tokenize version number: " << current_version;
+        qCritical() << "compare_version(): Can't tokenize version number: " << current_version;
     }
     if(!compare_okay){
         compare_v = 0;
@@ -2402,7 +2405,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
-                            auto model_version = compare_medea_version(value);
+                            auto model_version = compare_version(APP_VERSION(), value);
 
                             if(model_version > 0){
                                 QString title = "Loading model from future MEDEA";
@@ -2524,15 +2527,23 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 
                 if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::WORKER_DEFINITION){
                     auto version = entity->getDataValue("version").toString();
-                    qCritical() << "HEY MATE" << version;
                     auto old_version = matched_entity->getDataValue("version").toString();
                     auto old_label = matched_entity->getDataValue("label").toString();
-                    if(!version.isEmpty() && !old_version.isEmpty()){
-                        
+                    auto node_kind = matched_node->getDataValue("kind").toString();
 
-                        QString title = "Updated SharedDatatypes '" % old_label % "' to '" % version % "'";
-                        QString description = "Updated from '" % old_version % "'";
-                        emit Notification(MODEL_SEVERITY::INFO, title, description);
+                    if(!version.isEmpty() && !old_version.isEmpty()){
+                        auto version_compare = compare_version(old_version, version);
+
+                        if(version_compare > 0){
+                            QString title = "Model contains a newer " + node_kind + " named '" + old_label + "'";
+                            QString description = "Updated from '" % old_version % "' to '" % version % "'. Please check usage.";
+                            emit Notification(MODEL_SEVERITY::WARNING, title, description);
+                        }else if(version_compare < 0){
+                            QString title = "Model contains an older " + node_kind + " named '" + old_label + "'";
+                            QString description = "Reverted from '" % old_version % "' to '" % version % "'. Please check usage.";
+                            emit Notification(MODEL_SEVERITY::WARNING, title, description);
+                        }else{
+                        }
                     }
                 }
                 //Set the entity to use this.
@@ -3060,24 +3071,6 @@ bool ModelController::canRemove(QList<Entity *> selection)
 
             if(!canDeleteNode(node)){
                 return false;
-            }
-
-            if(parent_node){
-                auto definition = node->getDefinition();
-                if(node->isImpl() && definition){
-                    //Only allowed to delete OutEventPortImpls
-                    if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
-                        return false;
-                    }
-                }
-
-                if(node->isInstance() && definition && parent_node->isInstance()){
-                    return false;
-                }
-
-                if(node->isReadOnly() && parent_node->isReadOnly()){
-                    return false;
-                }
             }
         }else if(entity->isEdge()){
             Edge* edge = (Edge*) entity;

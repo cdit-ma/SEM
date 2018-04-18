@@ -17,11 +17,12 @@
     <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
         <node id="cpuworker">
             <data key="kind">WorkerDefinition</data>
-            <data key="version">1.01.00</data>
+            <data key="version">1.0.0</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>

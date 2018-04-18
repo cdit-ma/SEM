@@ -16,11 +16,12 @@
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="is_variadic" attr.type="boolean" for="all" id="is_variadic"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
         <node id="utilityworker">
             <data key="kind">WorkerDefinition</data>
-            <data key="version">1.01.00</data>
+            <data key="version">1.0.0</data>
             <data key="worker">Utility_Worker</data>
             <data key="label">Utility Worker</data>
             <data key="description">A Worker that provides utility functions for use in workload.</data>

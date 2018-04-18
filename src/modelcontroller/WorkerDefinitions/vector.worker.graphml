@@ -19,11 +19,12 @@
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
     <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
         <node id="vectorworker">
             <data key="kind">WorkerDefinition</data>
-            <data key="version">1.01.00</data>
+            <data key="version">1.0.0</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
             <data key="icon_prefix">EntityIcons</data>

@@ -1293,23 +1293,35 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
-        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL){
-            auto worker_name = destination_parent->getDataValue("worker").toString();
-            auto parameter_label = destination->getDataValue("label").toString();
+        if(destination_parent){
+            if(destination_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL){
+                auto worker_name = destination_parent->getDataValue("worker").toString();
+                auto parameter_label = destination->getDataValue("label").toString();
 
-
-
-            if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
-                for(auto param : destination_parent->getChildren(0)){
-                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        //Check if we are using generic params
-                        auto is_generic_param = param->getDataValue("is_generic_param").toBool();
-                        if(is_generic_param){
-                            LinkData(source, "inner_type", param, "inner_type", setup);    
+                if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
+                    for(auto param : destination_parent->getChildren(0)){
+                        if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                            //Check if we are using generic params
+                            auto is_generic_param = param->getDataValue("is_generic_param").toBool();
+                            if(is_generic_param){
+                                LinkData(source, "inner_type", param, "inner_type", setup);
+                                if(!setup){
+                                    param->setDataValue("inner_type", "");
+                                }
+                            }
                         }
                     }
                 }
             }
+            if(destination_parent->getNodeKind() == NODE_KIND::SETTER){
+                for(auto param : destination_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        LinkData(source, "inner_type", param, "inner_type", setup);
+                        LinkData(source, "outer_type", param, "outer_type", setup);
+                    }
+                }
+            }
+            
         }
         auto bind_source = source;
         auto source_key = "type";
