@@ -64,7 +64,13 @@ std::string DeploymentManager::QueryEnvironmentManager(){
     std::string port;
     EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_);
     requester.Init(environment_manager_endpoint_);
-    auto response = requester.NodeQuery(ip_address_);
+    NodeManager::ControlMessage response;
+    try{
+        response = requester.NodeQuery(ip_address_);
+    }catch(const std::runtime_error& ex){
+        //Communication with environment manager has likely timed out. Return blank string.
+        return "";
+    }
 
     //We dont have an experiment with this id on the environment manager, retry a few times.
     for(int i = 0; i < RETRY_COUNT; i++){
@@ -90,11 +96,13 @@ std::string DeploymentManager::QueryEnvironmentManager(){
             response = requester.NodeQuery(ip_address_);
         }
         catch(const std::runtime_error& ex){
+            //Communication with environment manager has likely timed out. Return blank string.
             return "";
         }
 
         std::cout << "No response from env manager on this experiment_id, retrying. " << i << std::endl;
     }
+    //After retrying RETRY_COUNT times, assume error and return blank string.
 
     return "";
 }
