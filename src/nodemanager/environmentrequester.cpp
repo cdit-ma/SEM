@@ -56,15 +56,19 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
     attribute->set_kind(NodeManager::Attribute::STRING);
     attribute->add_s(node_endpoint);
 
+
+
     //Get update endpoint
     zmq::socket_t* initial_request_socket;
+
+
     if(context_){
         initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
     }
     else{
         std::cerr << "Context in EnvironmentRequester::HeartbeatLoop not initialised." << std::endl;
     }
-
+    
     try{
         initial_request_socket->connect(manager_address_);
     }
@@ -74,6 +78,10 @@ NodeManager::ControlMessage EnvironmentRequester::NodeQuery(const std::string& n
 
     ZMQSendRequest(initial_request_socket, message.SerializeAsString());
     auto reply = ZMQReceiveReply(initial_request_socket);
+
+    if(reply.empty()){
+        
+    }
 
     NodeManager::EnvironmentMessage reply_message;
 

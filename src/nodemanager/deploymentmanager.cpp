@@ -98,6 +98,8 @@ std::string DeploymentManager::QueryEnvironmentManager(){
         }
         std::this_thread::sleep_for(std::chrono::seconds(3));
         response = requester.NodeQuery(ip_address_);
+
+        std::cout << "No response from env manager on this experiment_id, retrying." << std::endl;
     }
 
     return "";
