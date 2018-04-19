@@ -1621,6 +1621,13 @@ QImage Theme::getImage(QString resource_name)
     //qCritical() << resource_name;
     auto color = calculateImageColor(image);
 
+
+    //Try Remove Images of the front
+
+
+    auto icon_path = splitImagePath(resource_name);
+    icon_prefix_lookup[icon_path.first].insert(icon_path.second);
+
     QWriteLocker lock(&lock_);
     //Gain lock to write to the lookups
     imageLookup[resource_name] = image;
@@ -1643,11 +1650,16 @@ QSize Theme::getOriginalSize(QString resource_name)
 
 IconPair Theme::splitImagePath(QString path)
 {
+    auto origin = 0;
+    const QString image_prefix("Images/");
+    if(path.startsWith(image_prefix)){
+        origin = image_prefix.length();
+    }
     int midSlash = path.lastIndexOf('/');
 
     IconPair pair;
     if(midSlash > 0){
-        pair.first = path.mid(0, midSlash);
+        pair.first = path.mid(origin, midSlash - origin);
         pair.second = path.mid(midSlash + 1);
     }
     return pair;
@@ -1705,4 +1717,16 @@ int CustomMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option,
         s = icon_size;
     }
     return s;
+}
+
+
+QStringList Theme::getIconPrefixs(){
+    return icon_prefix_lookup.keys();
+}
+QStringList Theme::getIcons(const QString& icon_prefix){
+    QStringList icons;
+    if(icon_prefix_lookup.contains(icon_prefix)){
+        icons = icon_prefix_lookup[icon_prefix].toList();
+    }
+    return icons;
 }

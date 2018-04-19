@@ -1,6 +1,7 @@
 #ifndef DATATABLEMODEL_H
 #define DATATABLEMODEL_H
 
+#include <QSet>
 #include <QAbstractTableModel>
 
 
@@ -12,7 +13,8 @@ public:
     enum ATTRIBUTE_ROLES {
         MULTILINE_ROLE = Qt::UserRole + 1,
         VALID_VALUES_ROLE = Qt::UserRole + 2,
-        ID_ROLE = Qt::UserRole + 3
+        ID_ROLE = Qt::UserRole + 3,
+        ICON_ROLE = Qt::UserRole + 4
     };
     DataTableModel(ViewItem* item);
     ~DataTableModel();
@@ -44,7 +46,8 @@ private:
     QString getKey(int row) const;
     bool isIndexProtected(const QModelIndex &index) const;
     bool isRowProtected(int row) const;
-    bool hasPopupEditor(const QModelIndex &index) const;
+    bool hasCodeEditor(const QModelIndex &index) const;
+    bool hasIconEditor(const QModelIndex &index) const;
     QVariant getData(const QModelIndex &index) const;
 
     bool isDataProtected(int row) const;
@@ -57,11 +60,12 @@ private:
 
 
 
+    QSet<QString> multiline_keys;
+    QSet<QString> icon_keys;
 
     QStringList ignoredKeys;
     QStringList editableKeys;
     QStringList lockedKeys;
-    QStringList multiLineKeys;
 };
 
 #endif // DATATABLEMODEL_H

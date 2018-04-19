@@ -5,15 +5,13 @@ const QString kind_string = "Function";
 
 MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Function();});
+    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
 };
 
 MEDEA::Function::Function(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
-    
 }
 
 bool MEDEA::Function::Function::canAdoptChild(Node* child)

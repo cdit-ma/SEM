@@ -526,97 +526,112 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
         EdgeViewItem* edgeViewItem = (EdgeViewItem*)viewItem;
 
-        QString alias = "EntityIcons";
-        QString image = viewItem->getData("kind").toString();
-
+        QString default_icon_prefix = "EntityIcons";
+        QString default_icon_name = viewItem->getData("kind").toString();
+        
+        QString custom_icon_prefix = viewItem->getData("icon_prefix").toString();
+        QString custom_icon_name = viewItem->getData("icon").toString();
+        
         if(isNode){
             auto node_kind = nodeViewItem->getNodeKind();
-
-            auto icon = viewItem->getData("icon").toString();
-            auto icon_prefix = viewItem->getData("icon_prefix").toString();
-
-            if(Theme::theme()->gotImage(icon_prefix, icon)){
-                //Use these as our defaults
-                alias = icon_prefix;
-                image = icon;
-            }
 
 
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:{
-                QString os = viewItem->getData("os").toString();
-                QString arch = viewItem->getData("architecture").toString();
-                QString spec_image = (os % "_" % arch);
-                if(Theme::theme()->gotImage(alias, spec_image)){
-                    image = spec_image;
-                }
+                auto os = viewItem->getData("os").toString();
+                auto arch = viewItem->getData("architecture").toString();
+                custom_icon_prefix = "EntityIcons";
+                custom_icon_name = (os % "_" % arch);
                 break;
             }
             case NODE_KIND::OPENCL_PLATFORM:{
-                QString type = viewItem->getData("vendor").toString();
-                alias = "Icons";
+                auto vendor = viewItem->getData("vendor").toString();
                 
-                if(type == "Advanced Micro Devices, Inc."){
-                    image = "amd";
-                }else if(type == "Altera Corporation"){
-                    image = "intel";
-                }else if(type == "NVIDIA Corporation"){
-                    image = "nvidia";
+                custom_icon_prefix = "Icons";
+                
+                if(vendor == "Advanced Micro Devices, Inc."){
+                    custom_icon_name = "amd";
+                }else if(vendor == "Altera Corporation"){
+                    custom_icon_name = "intel";
+                }else if(vendor == "NVIDIA Corporation"){
+                    custom_icon_name = "nvidia";
                 }
                 
                 break;
             }
             case NODE_KIND::OPENCL_DEVICE:{
-                QString type = viewItem->getData("type").toString();
+                auto type = viewItem->getData("type").toString();
+                
+                custom_icon_prefix = "Icons";
                 if(type == "CL_DEVICE_TYPE_CPU"){
-                    image = "cpu";
+                    custom_icon_name = "cpu";
                 }else if(type == "CL_DEVICE_TYPE_GPU"){
-                    image = "gpu";
+                    custom_icon_name = "gpu";
                 }
-                alias = "Icons";
                 break;
             }
             case NODE_KIND::VARIADIC_PARAMETER:{
-                alias = "Icons";
-                image = "label";
+                default_icon_prefix = "Icons";
+                default_icon_name = "label";
                 break;
             }
             case NODE_KIND::FOR_LOOP:{
-                alias = "EntityIcons";
-                image = "WhileLoop";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "WhileLoop";
                 break;
             }
             case NODE_KIND::IF_CONDITION:
             case NODE_KIND::ELSEIF_CONDITION:
             case NODE_KIND::ELSE_CONDITION:{
-                alias = "EntityIcons";
-                image = "Condition";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Condition";
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
             case NODE_KIND::VARIABLE_PARAMETER:{
-                alias = "EntityIcons";
-                image = "Variable";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Variable";
                 break;
             }
             case NODE_KIND::WORKER_DEFINITIONS:{
-                alias = "Icons";
-                image = "medeaLogo";
+                default_icon_prefix = "Icons";
+                default_icon_name = "medeaLogo";
                 break;
             }
             case NODE_KIND::MODEL:
-                alias = "Icons";
-                image = "medeaLogo";
+                default_icon_prefix = "Icons";
+                default_icon_name = "medeaLogo";
                 break;
+            case NODE_KIND::EXTERNAL_TYPE:
+                default_icon_prefix = "Icons";
+                default_icon_name = "translate";
+                break;
+            case NODE_KIND::FUNCTION:
+            case NODE_KIND::WORKER_FUNCTIONCALL:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "WorkerProcess";
+                break;
+            }
+            case NODE_KIND::WORKER_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "ManagementComponent";
+                break;
+            }
+            case NODE_KIND::CLASS:
+            case NODE_KIND::CLASS_INSTANCE:{
+                default_icon_prefix = "Icons";
+                default_icon_name = "circleStarDark";
+                break;
+            }
             case NODE_KIND::ENUM_INSTANCE:
             case NODE_KIND::ENUM:{
-                alias = "Icons";
-                image = "circleCirclesDark";
+                default_icon_prefix = "Icons";
+                default_icon_name = "circleCirclesDark";
                 break;
             }
             case NODE_KIND::ENUM_MEMBER:{
-                alias = "Icons";
-                image = "circleDark";
+                default_icon_prefix = "Icons";
+                default_icon_name = "circleDark";
                 break;
             }
             default:
@@ -625,22 +640,32 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         }else if(isEdge){
             switch(edgeViewItem->getEdgeKind()){
                 case EDGE_KIND::DEFINITION:{
-                    alias = "Icons";
-                    image = "gears";
+                    default_icon_prefix = "Icons";
+                    default_icon_name = "gears";
                 }
                 break;
             default:
                 break;
             }
         }
-        auto i = Theme::theme()->getIcon(alias, image);
-        if(!Theme::theme()->gotImage(alias, image)){
-            alias = "Icons";
-            image = "circleDark";
+
+        ;
+        auto got_icon = false;
+        if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
+            Theme::theme()->getIcon(default_icon_prefix, default_icon_name);
+            viewItem->setIcon(default_icon_prefix, default_icon_name);
+            got_icon = true;
         }
-        //Try and get the image
-        
-        viewItem->setIcon(alias, image);
+
+        if(Theme::theme()->gotImage(custom_icon_prefix, custom_icon_name)){
+            Theme::theme()->getIcon(custom_icon_prefix, custom_icon_name);
+            viewItem->setIcon(custom_icon_prefix, custom_icon_name);
+            got_icon = true;
+        }
+
+        if(!got_icon){
+            viewItem->setIcon("Icons", "circleQuestion");
+        }
     }
 }
 
@@ -848,7 +873,6 @@ void ViewController::setupEntityKindItems()
         QString label = EntityFactory::getNodeKindString(kind);
 
         auto item = new NodeViewItem(this, kind, label);
-        //qCritical() << label;
         setDefaultIcon(item);
         nodeKindItems[kind] = item;
     }
@@ -993,25 +1017,6 @@ bool ViewController::destructViewItem(ViewItem *item)
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
             edgeItem->disconnectEdge();
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
-        }
-
-        ViewItem* parentItem = viewItem->getParentItem();
-        if(parentItem){
-            parentItem->removeChild(viewItem);
-
-            NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
-
-            if(parentItem->isNode()){
-                //Update the Icon of Vectors!
-                switch(parentNodeItem->getNodeKind()){
-                case NODE_KIND::VECTOR:
-                case NODE_KIND::VECTOR_INSTANCE:
-                    setDefaultIcon(parentItem);
-                    break;
-                default:
-                    break;
-                }
-            }
         }
 
         //Remove the item from the Hash/TopLevel Hash
