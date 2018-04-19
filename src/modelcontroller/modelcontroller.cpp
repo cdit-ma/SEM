@@ -867,6 +867,7 @@ void ModelController::remove(QList<int> ids)
     auto selection = getOrderedEntities(ids);
     bool success = false;
     if(canRemove(selection)){
+
         triggerAction("Removing Selection");
         success = destructEntities(selection);
     }
@@ -1511,7 +1512,6 @@ bool ModelController::destructEntities(QList<Entity*> entities)
 
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
-
         //Create an undo state for each top level item
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.entity_id = entity->getID();

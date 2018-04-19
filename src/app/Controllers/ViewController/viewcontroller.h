@@ -339,7 +339,6 @@ private:
     bool _controllerReady = false;
 
 
-    bool destructChildItems(ViewItem* parent);
     bool clearVisualItems();
 
 
@@ -366,7 +365,7 @@ private:
     JenkinsManager* jenkins_manager;
 
     ContextMenu* menu = 0;
-    ModelController* controller;
+    ModelController* controller = 0;
     QMutex mutex;
     QTimer* autosave_timer_ = 0;
     int autosave_id_ = 0;

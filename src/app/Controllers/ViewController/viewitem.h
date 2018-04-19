@@ -53,8 +53,8 @@ public:
 
     void addChild(ViewItem* child);
     void removeChild(ViewItem* child);
-    QVector<ViewItem *> getDirectChildren() const;
-    QList<ViewItem* > getNestedChildren() const;
+    QList<ViewItem *> getDirectChildren() const;
+    QList<ViewItem* > getNestedChildren();
 
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);

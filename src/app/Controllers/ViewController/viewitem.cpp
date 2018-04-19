@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QStack>
+#include <QQueue>
 
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
     auto a_kind = a->getData("label").toString();
@@ -170,6 +171,11 @@ IconPair ViewItem::getIcon() const
 
 void ViewItem::destruct()
 {
+    auto parent = getParentItem();
+    if(parent){
+        parent->removeChild(this);
+    }
+    
     if(hasRegisteredObjects()){
         emit destructing(ID);
     }else{
@@ -197,29 +203,33 @@ void ViewItem::removeChild(ViewItem *child)
     }
 }
 
-QVector<ViewItem *> ViewItem::getDirectChildren() const
+QList<ViewItem *> ViewItem::getDirectChildren() const
 {
-    return children.values().toVector();
+    return children.values();
 }
 
-QList<ViewItem *> ViewItem::getNestedChildren() const
-{
-    //Edges Last
+QList<ViewItem* > ViewItem::getNestedChildren(){
     QList<ViewItem*> nodes;
     QList<ViewItem*> edges;
 
-    QStack<ViewItem*> items;
-    items.append(getDirectChildren());
+    QQueue<ViewItem*> process_queue;
+    process_queue.enqueue(this);
 
-    while(!items.isEmpty()){
-        ViewItem* child = items.takeLast();
-        if(child->isNode()){
-            nodes.append(child);
-        }else{
-            edges.append(child);
+    while(!process_queue.isEmpty()){
+        auto item = process_queue.dequeue();
+        for(auto child : item->getDirectChildren()){
+            if(child->isNode()){
+                process_queue.enqueue(child);
+            }else{
+                edges << child;
+            }
         }
-        items.append(child->getDirectChildren());
+
+        if(item != this){
+            nodes << item;
+        }
     }
+
     return nodes + edges;
 }
 

@@ -58,12 +58,6 @@
 
 
 ViewController::ViewController() : QObject(){
-    //qRegisterMetaType<Notification::Type>("Notification::Type");
-    controller = 0;
-
-    codeViewer = 0;
-
-
     rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
@@ -996,9 +990,11 @@ bool ViewController::destructViewItem(ViewItem *item)
     if(!item){
         return false;
     }
+
     QList<ViewItem*> children;
     children.append(item);
     children.append(item->getNestedChildren());
+    
     QListIterator<ViewItem*> it(children);
     it.toBack();
     while(it.hasPrevious()){
@@ -1008,6 +1004,7 @@ bool ViewController::destructViewItem(ViewItem *item)
         }
         int ID = viewItem->getID();
 
+        
         if(viewItem->isNode()){
             //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
@@ -1019,12 +1016,14 @@ bool ViewController::destructViewItem(ViewItem *item)
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
+
         //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
         topLevelItems.removeAll(ID);
 
         //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
+
         viewItem->destruct();
     }
     return true;
@@ -1228,6 +1227,7 @@ void ViewController::TeardownController()
         emit vc_projectPathChanged("");
         emit mc_projectModified(false);
         destructViewItem(rootItem);
+
         nodeKindLookups.clear();
         edgeKindLookups.clear();
 
@@ -1429,7 +1429,7 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     if(controller){
         data = controller->getEntityDataValue(ID, key_name);
     }
-    //qCritical() << "Data for: " << ID << " KEY : " << key_name << " = " << data;
+    // () << "Data for: " << ID << " KEY : " << key_name << " = " << data;
     return data;
 }
 
@@ -1485,13 +1485,15 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
 
-    //Fill with Data
-    foreach(QString key, getEntityKeys(id)){
+
+    for(const auto& key : getEntityKeys(id)){
         item->changeData(key, getEntityDataValue(id, key));
     }
 
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
+
+
     nodeKindLookups.insertMulti(kind, id);
     //Insert into map
     viewItems[id] = item;
@@ -1508,6 +1510,7 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
     auto view_item = getViewItem(ID);
+    //qCritical() << "DESTRUCT #" << ID << " " <<view_item->getData("kind").toString() << " = " << view_item->getData("label").toString();
     destructViewItem(view_item);
 }
 
@@ -1943,16 +1946,6 @@ void ViewController::initializeController()
 }
 
 
-bool ViewController::destructChildItems(ViewItem *parent)
-{
-    QVectorIterator<ViewItem*> it(parent->getDirectChildren());
-    it.toBack();
-    while(it.hasPrevious()){
-        ViewItem* item = it.previous();
-        destructViewItem(item);
-    }
-    return true;
-}
 
 bool ViewController::clearVisualItems()
 {
