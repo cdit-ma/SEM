@@ -43,6 +43,7 @@ void DeploymentRegister::RegistrationLoop() noexcept{
 
         if(parse_success){
             try{
+                //Handle message. Reply message is created by mutating this message.
                 RequestHandler(message);
             }
             catch(const std::exception& exception){
