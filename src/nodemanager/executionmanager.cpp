@@ -295,16 +295,15 @@ void ExecutionManager::TriggerExecution(bool execute){
 }
 
 void ExecutionManager::TerminateExecution(){
-    //Interupt 
+    //Interupt
     TriggerExecution(false);
-
     if(execution_thread_){
         //Notify
         execution_thread_->join();
     }
 }
 
-void ExecutionManager::ExecutionLoop(double duration_sec){
+void ExecutionManager::ExecutionLoop(double duration_sec) noexcept{
     auto execution_duration = std::chrono::duration<double>(duration_sec);
     
     bool execute = true;

@@ -39,7 +39,7 @@ class ExecutionManager{
         std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
         bool IsValid();
     private:
-        void ExecutionLoop(double duration_sec);
+        void ExecutionLoop(double duration_sec) noexcept;
 
         void ActivateExecution();
         void TerminateExecution();

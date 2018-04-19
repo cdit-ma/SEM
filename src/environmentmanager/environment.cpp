@@ -234,7 +234,7 @@ std::vector<std::string> Environment::CheckTopic(const std::string& model_name, 
 }
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
-    //Bail out early yo
+    //Bail out early
     if(node_map_.count(node.info().name())){
         return;
     }

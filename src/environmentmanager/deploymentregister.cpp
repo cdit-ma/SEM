@@ -5,9 +5,6 @@
 
 #include "controlmessage.pb.h"
 
-const std::string DeploymentRegister::SUCCESS = "SUCCESS";
-const std::string DeploymentRegister::ERROR = "ERROR";
-
 DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 
                                         int portrange_min, int portrange_max){
 
@@ -25,15 +22,16 @@ void DeploymentRegister::Start(){
 }
 
 //Main registration loop, passes request workload off to other threads
-//NOTHROW
-void DeploymentRegister::RegistrationLoop(){
-    zmq::socket_t* rep = new zmq::socket_t(*context_, ZMQ_REP);
+void DeploymentRegister::RegistrationLoop() noexcept{
+    zmq::socket_t* rep;
     try{
+        rep = new zmq::socket_t(*context_, ZMQ_REP);
         rep->bind(TCPify(ip_addr_, registration_port_));
     }
     catch(zmq::error_t& e){
-        throw new std::invalid_argument("Could not bind reply socket in registration loop. IP_ADDR: " + ip_addr_ +
-                                        " Port: " + registration_port_);
+        std::cerr << "Could not bind reply socket in registration loop. IP_ADDR: " << ip_addr_ <<
+                                        " Port: " << registration_port_ << std::endl;
+        return;
     }
 
     while(true){
@@ -41,104 +39,117 @@ void DeploymentRegister::RegistrationLoop(){
         auto reply = ZMQReceiveRequest(rep);
 
         NodeManager::EnvironmentMessage message;
-        message.ParseFromString(reply.second);
+        bool parse_success = message.ParseFromString(reply.second);
 
-        //Handle new deployment manager contact
-        if(message.type() == NodeManager::EnvironmentMessage::ADD_DEPLOYMENT){
-            //Push work onto new thread with port number promise
-            std::promise<std::string>* port_promise = new std::promise<std::string>();
-            std::future<std::string> port_future = port_promise->get_future();
-            std::string port;
-
-            std::cout << "GOT ADD DEPLOYMENT" << std::endl;
-
-            auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.experiment_id());
-            deployments_.push_back(deployment_handler);
+        if(parse_success){
             try{
-                //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
-                port = port_future.get();
-                message.set_update_endpoint(TCPify(ip_addr_, port));
+                RequestHandler(message);
             }
-            catch(const std::exception& e){
-                std::cerr << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
-
-                std::string error_msg("Exception thrown by deployment register: ");
-                error_msg += e.what();
-
+            catch(const std::exception& exception){
+                std::cerr << "Exception when handling request in DeploymentRegister::RegistrationLoop: " << exception.what() << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                ZMQSendReply(rep, message.SerializeAsString());
-
-                //Continue with no state change
-                continue;
             }
-
-            //Reply with enpoint to send heartbeats and status updates to
-            ZMQSendReply(rep, message.SerializeAsString());
         }
 
-        //Handle slave management port query
-        else if(message.type() == NodeManager::EnvironmentMessage::NODE_QUERY){
-            std::cout << "GOT NODE_QUERY" << std::endl;
-            std::string experiment_id = message.experiment_id();
+        ZMQSendReply(rep, message.SerializeAsString());
+    }
+}
 
-            auto control_message = message.mutable_control_message();
-            auto node = message.mutable_control_message()->mutable_nodes(0);
-
-            std::string ip_address;
-
-            for(int i = 0; i < node->attributes_size(); i++){
-                auto attribute = node->attributes(i);
-                if(attribute.info().name() == "ip_address"){
-                    ip_address = attribute.s(0);
-                }
-            }
-
-            std::cout << experiment_id << ":" << ip_address << std::endl;
-            assert(!ip_address.empty());
-
-            if(environment_->NodeDeployedTo(experiment_id, ip_address)){
-                //Have experiment_id in environment, and ip_addr has component deployed to id
-                std::cout << "populating" << std::endl;
-                std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
-                std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
-
-                auto management_attribute = node->add_attributes();
-                auto management_attribute_info = management_attribute->mutable_info();
-                management_attribute_info->set_name("management_port");
-                management_attribute->set_kind(NodeManager::Attribute::STRING);
-                management_attribute->add_s(management_port);
-
-                auto modellogger_attribute = node->add_attributes();
-                auto modellogger_attribute_info = modellogger_attribute->mutable_info();
-                modellogger_attribute_info->set_name("modellogger_port");
-                modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
-                modellogger_attribute->add_s(model_logger_port);
-
-                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
-            }
-            else if(!environment_->ModelNameExists(experiment_id)){
-                //Dont have an experiment with this id, send back a no_type s.t. client re-trys in a bit
-                std::cout << "no experiment id, probably still parsing" << std::endl;
-                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
-            }
-            else{
-                //At this point, we have an experiment of the same id as ours and we aren't deployed to it.
-                //Therefore terminate
-                std::cout << "terminating" << std::endl;
-                message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                control_message->set_type(NodeManager::ControlMessage::TERMINATE);
-            }
-
-            ZMQSendReply(rep, message.SerializeAsString());
+void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message){
+    switch(message.type()){
+        case NodeManager::EnvironmentMessage::ADD_DEPLOYMENT:{
+            HandleAddDeployment(message);
+            break;
         }
 
-        else{
-            std::cerr << "Recieved unknown request type: " << message.type() << std::endl;
-            message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-            ZMQSendReply(rep, message.SerializeAsString());
+        case NodeManager::EnvironmentMessage::NODE_QUERY:{
+            HandleNodeQuery(message);
+            break;
         }
+
+        default:{
+            throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
+            break;
+        }
+    }
+}
+
+void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& message){
+    //Push work onto new thread with port number promise
+    std::promise<std::string>* port_promise = new std::promise<std::string>();
+    std::future<std::string> port_future = port_promise->get_future();
+    std::string port;
+
+    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.experiment_id());
+    deployments_.push_back(deployment_handler);
+
+    try{
+        //Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
+        port = port_future.get();
+        message.set_update_endpoint(TCPify(ip_addr_, port));
+    }
+    catch(const std::exception& e){
+        std::cerr << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
+        std::string error_msg("Exception thrown by deployment register: ");
+        error_msg += e.what();
+
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& message){
+    std::string experiment_id = message.experiment_id();
+
+    if(message.control_message().nodes_size() < 1){
+        throw std::runtime_error("No nodes supplied in node query.");
+    }
+
+    auto control_message = message.mutable_control_message();
+    auto node = message.mutable_control_message()->mutable_nodes(0);
+
+    std::string ip_address;
+
+    for(int i = 0; i < node->attributes_size(); i++){
+        auto attribute = node->attributes(i);
+        if(attribute.info().name() == "ip_address"){
+            ip_address = attribute.s(0);
+        }
+    }
+
+    if(ip_address.empty()){
+        throw std::runtime_error("No ip_address set in message passed to HandleNodeQuery.");
+    }
+
+    if(environment_->NodeDeployedTo(experiment_id, ip_address)){
+        //Have experiment_id in environment, and ip_addr has component deployed to id
+        std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
+        std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
+
+        auto management_attribute = node->add_attributes();
+        auto management_attribute_info = management_attribute->mutable_info();
+        management_attribute_info->set_name("management_port");
+        management_attribute->set_kind(NodeManager::Attribute::STRING);
+        management_attribute->add_s(management_port);
+
+        auto modellogger_attribute = node->add_attributes();
+        auto modellogger_attribute_info = modellogger_attribute->mutable_info();
+        modellogger_attribute_info->set_name("modellogger_port");
+        modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
+        modellogger_attribute->add_s(model_logger_port);
+
+        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
+    }
+    else if(!environment_->ModelNameExists(experiment_id)){
+        //Dont have an experiment with this id, send back a no_type s.t. client re-trys in a bit
+        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        control_message->set_type(NodeManager::ControlMessage::NO_TYPE);
+    }
+    else{
+        //At this point, we have an experiment of the same id as ours and we aren't deployed to it.
+        //Therefore terminate
+        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        control_message->set_type(NodeManager::ControlMessage::TERMINATE);
     }
 }
 

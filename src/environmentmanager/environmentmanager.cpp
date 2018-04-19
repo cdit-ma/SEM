@@ -32,7 +32,6 @@ int main(int argc, char **argv){
         boost::program_options::notify(vm);
     }
     catch(...){
-        //std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
         std::cout << options << std::endl;
         return 1;
     }
