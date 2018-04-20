@@ -74,6 +74,7 @@
         <file alias="Setter">Resources/EntityIcons/Setter.png</file>
         <file alias="RequestPort">Resources/EntityIcons/RequestPort.png</file>
         <file alias="ReplyPort">Resources/EntityIcons/ReplyPort.png</file>
+        <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>

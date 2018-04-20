@@ -92,10 +92,6 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
                 text_bounding_rect = valid_bounding_rect;
                 break;
             }else{
-                qCritical() << " == " << bounding_rect;
-                qCritical() << " BR: " << bounding_rect;
-                qCritical() << " TBR: " << valid_bounding_rect;
-                qCritical() << " TEXT: " << text << " SIZE: " << current_size;
                 current_size --;
             }
         }
@@ -109,7 +105,6 @@ void StaticTextItem::UpdateText(QPainter* painter, QRectF rect, QString text){
 
         //Center 
         if(Qt::AlignVCenter & text_align){
-            qCritical() << text << ": TEXT IS AlignVCenter ALIGNED";
             offset = QPointF(0, (rect.height() - text_bounding_rect.height()) / 2.0);
         }
 
