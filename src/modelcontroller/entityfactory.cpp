@@ -115,9 +115,27 @@
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
 #include "Entities/InterfaceDefinitions/namespace.h"
+
 #include "Entities/BehaviourDefinitions/class.h"
 #include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
+
+#include "Entities/InterfaceDefinitions/ClientServer/serverinterface.h"
+#include "Entities/InterfaceDefinitions/ClientServer/clientport.h"
+#include "Entities/InterfaceDefinitions/ClientServer/serverport.h"
+
+#include "Entities/BehaviourDefinitions/ClientServer/serverrequest.h"
+#include "Entities/BehaviourDefinitions/ClientServer/serverportimpl.h"
+
+#include "Entities/DeploymentDefinitions/ClientServer/serverportinstance.h"
+#include "Entities/DeploymentDefinitions/ClientServer/clientportinstance.h"
+
+#include "Entities/InterfaceDefinitions/inputparametergroup.h"
+#include "Entities/InterfaceDefinitions/returnparametergroup.h"
+
+#include "Entities/InterfaceDefinitions/voidtype.h"
+
+
 
 
 //QOS Elements
@@ -446,6 +464,22 @@ EntityFactory::EntityFactory()
     IDL(this);
     SharedDatatypes(this);
     Namespace(this);
+
+    MEDEA::ServerInterface(this);
+    MEDEA::ServerPort(this);
+    MEDEA::ClientPort(this);
+
+    MEDEA::ServerPortInstance(this);
+    MEDEA::ClientPortInstance(this);
+
+    MEDEA::ServerPortImpl(this);
+    MEDEA::ServerRequest(this);
+
+
+    MEDEA::InputParameterGroup(this);
+    MEDEA::ReturnParameterGroup(this);
+
+    VoidType(this);
 
     //Edges
     DefinitionEdge(this);

@@ -187,6 +187,7 @@ private:
     Node* construct_for_node(Node* parent);
     Node* construct_component_node(Node* parent);
     Node* construct_periodic_eventport(Node* parent);
+    Node* construct_SERVER_INTERFACE_node(Node* parent);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);

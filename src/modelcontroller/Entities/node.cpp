@@ -1034,15 +1034,7 @@ QSet<Node *> Node::getDependants() const
     for(auto i : instances){
         nodes.insert(i);
     }
-    if(isImpl()){
-        //Get My Definitions Instances
-        auto definition = getDefinition(true);
-        if(definition){
-            for(auto d : definition->getInstances()){
-                nodes.insert(d);
-            }
-        }
-    }
+   
     return nodes;
 }
 

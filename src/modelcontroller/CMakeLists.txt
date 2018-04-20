@@ -150,6 +150,20 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/voidtype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/inputparametergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/returnparametergroup.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ClientServer/clientport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ClientServer/serverport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ClientServer/serverinterface.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ClientServer/serverrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ClientServer/serverportimpl.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/clientportinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/serverportinstance.cpp
 )
 
 set(HEADERS

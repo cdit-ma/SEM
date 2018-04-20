@@ -890,16 +890,28 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+
+            case NODE_KIND::SERVER_PORT_INSTANCE:
+            case NODE_KIND::CLIENT_PORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
-                }else{
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+
+                switch(nodeKind){
+                    case NODE_KIND::INEVENTPORT_INSTANCE:
+                    case NODE_KIND::SERVER_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
+                    case NODE_KIND::OUTEVENTPORT_INSTANCE:
+                    case NODE_KIND::CLIENT_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
                 }
+                
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -1052,6 +1064,25 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::SERVER_REQUEST:
+            case NODE_KIND::SERVER_INTERFACE:{
+                auto stack_item = new StackNodeItem(item, parentNode);
+                nodeItem = stack_item;
+
+                stack_item->setAlignment(Qt::Horizontal);
+                auto parameter_color = stack_item->getHeaderColor().lighter(110);
+                auto text_color = Qt::darkGray;
+
+                //stack_item->SetRenderCellArea(0, -1, true, parameter_color);
+                stack_item->SetRenderCellText(0, -1, true, "REQUEST", text_color);
+                
+                //stack_item->SetRenderCellArea(0, 1, true, parameter_color);
+                stack_item->SetRenderCellText(0, 1, true, "REPLY", text_color);
+                //stack_item->SetCellMargins(0, 1, margin);
+                break;
+            }
             case NODE_KIND::INEVENTPORT:
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -1090,7 +1121,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
              case NODE_KIND::FUNCTION:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-
                 break;
             default:
                 nodeItem = new StackNodeItem(item, parentNode);

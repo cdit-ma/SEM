@@ -63,6 +63,7 @@ class Node : public Entity
         NODE_KIND getImplKind() const;
 
         virtual QList<Node*> getAdoptableNodes(Node* definition);
+        virtual QSet<Node*> getDependants() const;
 
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
@@ -171,7 +172,7 @@ class Node : public Entity
     void addImplementation(Node* impl);
     QList<Node*> getImplementations() const;
     QSet<Node*> getNestedDependants();
-    QSet<Node*> getDependants() const;
+    
 
     void removeImplementation(Node* impl);
 

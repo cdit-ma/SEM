@@ -30,6 +30,8 @@ bool ComponentInstance::canAdoptChild(Node *child)
     case NODE_KIND::OUTEVENTPORT_INSTANCE:
     case NODE_KIND::WORKER_INSTANCE:
     case NODE_KIND::PERIODICEVENT:
+    case NODE_KIND::SERVER_PORT_INSTANCE:
+    case NODE_KIND::CLIENT_PORT_INSTANCE:
         break;
     default:
         return false;

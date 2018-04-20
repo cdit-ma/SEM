@@ -20,6 +20,7 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
     switch(child_kind){
         case NODE_KIND::INEVENTPORT_IMPL:
         case NODE_KIND::OUTEVENTPORT_IMPL:
+        case NODE_KIND::SERVER_REQUEST:
             return false;
         default:
             if(!ContainerNode::canAdoptChild(child)){

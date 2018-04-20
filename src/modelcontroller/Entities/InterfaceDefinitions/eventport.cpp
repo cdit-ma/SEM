@@ -82,7 +82,7 @@ bool EventPort::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     switch(edgeKind){
     case EDGE_KIND::AGGREGATE:{
-        if(isNodeOfType(NODE_TYPE::INSTANCE)){
+        if(getDefinition()){
             //Don't allow Instances to have aggregate.
             return false;
         }

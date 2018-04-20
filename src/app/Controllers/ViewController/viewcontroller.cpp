@@ -582,6 +582,35 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+            
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::SERVER_PORT_IMPL:
+            case NODE_KIND::SERVER_PORT_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "ReplyPort";
+                break;
+            }
+
+            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::SERVER_REQUEST:
+            case NODE_KIND::CLIENT_PORT_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "RequestPort";
+                break;
+            }
+
+            case NODE_KIND::INPUT_PARAMETER:
+            case NODE_KIND::INPUT_PARAMETER_GROUP:{
+                default_icon_prefix = "Icons";
+                default_icon_name = "arrowToLineRight";
+                break;
+            }
+            case NODE_KIND::RETURN_PARAMETER:
+            case NODE_KIND::RETURN_PARAMETER_GROUP:{
+                default_icon_prefix = "Icons";
+                default_icon_name = "arrowLineLeft";
+                break;
+            }
             case NODE_KIND::VARIABLE_PARAMETER:{
                 default_icon_prefix = "EntityIcons";
                 default_icon_name = "Variable";
@@ -603,18 +632,12 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case NODE_KIND::FUNCTION:
             case NODE_KIND::WORKER_FUNCTIONCALL:{
                 default_icon_prefix = "EntityIcons";
-                default_icon_name = "WorkerProcess";
+                default_icon_name = "Workload";
                 break;
             }
             case NODE_KIND::WORKER_INSTANCE:{
                 default_icon_prefix = "EntityIcons";
                 default_icon_name = "ManagementComponent";
-                break;
-            }
-            case NODE_KIND::CLASS:
-            case NODE_KIND::CLASS_INSTANCE:{
-                default_icon_prefix = "Icons";
-                default_icon_name = "circleStarDark";
                 break;
             }
             case NODE_KIND::ENUM_INSTANCE:
