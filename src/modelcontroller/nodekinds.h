@@ -26,9 +26,26 @@ enum class NODE_KIND
         OUTEVENTPORT,
         IDL,
         VECTOR,
+        WORKER_DEFINITION,
         ENUM,
         ENUM_INSTANCE,
         ENUM_MEMBER,
+        NAMESPACE,
+
+        SERVER_INTERFACE,
+        SERVER_PORT,
+        CLIENT_PORT,
+        SERVER_PORT_IMPL,
+        SERVER_PORT_INSTANCE,
+        SERVER_REQUEST,
+        CLIENT_PORT_INSTANCE,
+        INPUT_PARAMETER_GROUP,
+        RETURN_PARAMETER_GROUP,
+        VOID_TYPE,
+
+        
+        
+
 
         COMPONENT_ASSEMBLY,
         MANAGEMENT_COMPONENT,
@@ -41,7 +58,11 @@ enum class NODE_KIND
         OUTEVENTPORT_INSTANCE,
         HARDWARE_CLUSTER,
         HARDWARE_NODE,
+        OPENCL_PLATFORM,
+        OPENCL_DEVICE,
+        WORKER_INSTANCE,
         CLASS,
+        CLASS_INSTANCE,
         FUNCTION,
 
         ATTRIBUTE_IMPL,
@@ -60,6 +81,8 @@ enum class NODE_KIND
         PERIODICEVENT,
         PROCESS,
         WORKER_PROCESS,
+        WORKER_FUNCTION,
+        WORKER_FUNCTIONCALL,
         TERMINATION,
         VARIABLE,
         WHILE_LOOP,
@@ -73,8 +96,8 @@ enum class NODE_KIND
         SETTER,
         LOGGINGSERVER,
         LOGGINGPROFILE,
-        NAMESPACE,
         DEPLOYMENT_ATTRIBUTE,
+        EXTERNAL_TYPE,
 
         QOS_DDS_PROFILE,
         QOS_DDS_POLICY_DEADLINE,
@@ -166,8 +189,8 @@ inline QString getViewAspectName(VIEW_ASPECT aspect){
 
   
 inline uint qHash(VIEW_ASPECT key, uint seed)
-    {
-        return ::qHash(static_cast<uint>(key), seed);
-    }
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 Q_DECLARE_METATYPE(VIEW_ASPECT);
 #endif

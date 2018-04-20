@@ -10,9 +10,10 @@ DataTableModel::DataTableModel(ViewItem *item)
     //Register the table
     entity->registerObject(this);
 
-    multiLineKeys << "processes_to_log" << "code";
+    multiline_keys << "processes_to_log" << "code";
+    icon_keys << "icon" << "icon_prefix";
     ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
-    ignoredKeys << "icon" << "icon_prefix";
+    //ignoredKeys << "icon" << "icon_prefix";
     setupDataBinding();
 }
 
@@ -131,10 +132,16 @@ bool DataTableModel::isRowProtected(int row) const
     return isProtected;
 }
 
-bool DataTableModel::hasPopupEditor(const QModelIndex &index) const
+bool DataTableModel::hasCodeEditor(const QModelIndex &index) const
 {
-    QString keyName = getKey(index);
-    return multiLineKeys.contains(keyName);
+    QString key_name = getKey(index);
+    return multiline_keys.contains(key_name);
+}
+
+bool DataTableModel::hasIconEditor(const QModelIndex &index) const
+{
+    QString key_name = getKey(index);
+    return icon_keys.contains(key_name);
 }
 
 QVariant DataTableModel::getData(const QModelIndex &index) const
@@ -163,14 +170,14 @@ int DataTableModel::columnCount(const QModelIndex&) const
 QVariant DataTableModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::TextAlignmentRole) {
-        if(hasPopupEditor(index)){
+        if(hasCodeEditor(index)){
             return QVariant(Qt::AlignLeft | Qt::AlignTop);
         }else{
             return QVariant(Qt::AlignCenter);
         }
     }
     if (role == Qt::DecorationRole) {
-        if(hasPopupEditor(index)){
+        if(hasCodeEditor(index) || hasIconEditor(index)){
             return  Theme::theme()->getImage("Icons", "popOut", QSize(16,16), Theme::theme()->getMenuIconColor());
         }
     }
@@ -180,7 +187,11 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
     }
 
     if(role == MULTILINE_ROLE) {
-        return hasPopupEditor(index);
+        return hasCodeEditor(index);
+    }
+
+    if(role == ICON_ROLE){
+        return hasIconEditor(index);
     }
 
     if(role == VALID_VALUES_ROLE){

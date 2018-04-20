@@ -12,6 +12,9 @@ Vector::Vector(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR, "V
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true, "Vector");
+    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
+
 };
 
 Vector::Vector(): DataNode(NODE_KIND::VECTOR)
@@ -68,13 +71,36 @@ bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return DataNode::canAcceptEdge(edgeKind, dst);
 }
 
+void Vector::updateVectorIcon(Node* node){
+    auto first_child = node->getFirstChild();
+
+    auto child_kind = first_child ? first_child->getNodeKind() : NODE_KIND::NONE;
+    
+    auto icon = node->getDataValue("kind").toString();
+
+    switch(child_kind){
+        case NODE_KIND::NONE:
+            break;
+        case NODE_KIND::AGGREGATE_INSTANCE:
+            icon += "_AggregateInstance";
+            break;
+        default:
+            icon += "_Member";
+            break;
+    }
+    node->setDataValue("icon_prefix", "EntityIcons");
+    node->setDataValue("icon", icon);
+}
 
 void Vector::childAdded(Node* child){
+    Vector::updateVectorIcon(this);
+
     DataNode::childAdded(child);
     TypeKey::BindInnerAndOuterTypes(child, this, true);
 }
 
 void Vector::childRemoved(Node* child){
+    Vector::updateVectorIcon(this);
     DataNode::childRemoved(child);
     TypeKey::BindInnerAndOuterTypes(child, this, false);
 }

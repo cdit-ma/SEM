@@ -19,9 +19,6 @@ ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
     setAcceptsEdgeKind(EDGE_KIND::QOS);
 
     setDefinitionKind(NODE_KIND::COMPONENT);
-
-    //updateDefaultData("label", QVariant::String, false);
-    //updateDefaultData("type", QVariant::String, true);
 }
 
 bool ComponentInstance::canAdoptChild(Node *child)
@@ -31,7 +28,10 @@ bool ComponentInstance::canAdoptChild(Node *child)
     case NODE_KIND::ATTRIBUTE_INSTANCE:
     case NODE_KIND::INEVENTPORT_INSTANCE:
     case NODE_KIND::OUTEVENTPORT_INSTANCE:
+    case NODE_KIND::WORKER_INSTANCE:
     case NODE_KIND::PERIODICEVENT:
+    case NODE_KIND::SERVER_PORT_INSTANCE:
+    case NODE_KIND::CLIENT_PORT_INSTANCE:
         break;
     default:
         return false;
@@ -63,4 +63,22 @@ bool ComponentInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     return Node::canAcceptEdge(edgeKind, dst);
 
+}
+
+QList<Node*> ComponentInstance::getAdoptableNodes(Node* definition){
+    //Get the base nodes first
+    QList<Node*> adoptable_nodes = Node::getAdoptableNodes(definition);
+
+    //ComponentInstance should adopt from the definitions Implementations
+    if(definition){
+        for(auto impl : definition->getImplementations()){
+            for(auto child : impl->getChildren(0)){
+                if(child->isDefinition()){
+                    adoptable_nodes << child;
+                }
+            }
+        }
+    }
+
+    return adoptable_nodes;
 }

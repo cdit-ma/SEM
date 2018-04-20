@@ -11,6 +11,7 @@
 #include <functional>
 enum class VIEW_ASPECT;
 
+
 class Edge;
 class EntityFactory;
 class Node : public Entity
@@ -18,6 +19,17 @@ class Node : public Entity
     Q_OBJECT
     friend class Edge;
     friend class EntityFactory;
+
+    public:
+        enum class EdgeRule{
+            MIRROR_PARENT_DEFINITION_HIERARCHY,
+            REQUIRE_NO_DEFINITION
+        };
+
+    
+
+    
+    
 
     protected:
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
@@ -53,12 +65,24 @@ class Node : public Entity
         NODE_KIND getDefinitionKind() const;
         NODE_KIND getImplKind() const;
 
+        virtual QList<Node*> getAdoptableNodes(Node* definition);
+        virtual QSet<Node*> getDependants() const;
+
+
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
 
     protected:
         virtual void childAdded(Node* child){};
         virtual void childRemoved(Node* child);
         virtual void parentSet(Node* parent){};
+        virtual void definitionSet(Node* definition){};
+
+    protected:
+        void SetEdgeRuleActive(EdgeRule rule, bool active = true);
+        bool IsEdgeRuleActive(EdgeRule rule);
+    private:
+
+        QSet<EdgeRule> active_edge_rules;
     public:
 
         virtual VIEW_ASPECT getViewAspect() const;
@@ -68,9 +92,13 @@ class Node : public Entity
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();
 
+    
+
     NODE_KIND getNodeKind() const;
 
     bool isAttached() const;
+
+    bool canConstructChildren() const;
 
 
     int getDepthFromAspect();
@@ -147,7 +175,7 @@ class Node : public Entity
     void addImplementation(Node* impl);
     QList<Node*> getImplementations() const;
     QSet<Node*> getNestedDependants();
-    QSet<Node*> getDependants() const;
+    
 
     void removeImplementation(Node* impl);
 
@@ -217,12 +245,17 @@ protected:
 public:
     bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(EDGE_KIND edgeKind) const;
+    bool requiresEdgeKind(EDGE_KIND edge_kind) const;
 
     QSet<EDGE_KIND> getValidEdgeKinds() const;
     QSet<EDGE_KIND> getRequiredEdgeKinds() const;
     
-    bool requiresEdgeKind(EDGE_KIND edge_kind) const;
+    
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);
+};
+
+inline uint qHash(Node::EdgeRule key, uint seed){
+    return ::qHash(static_cast<uint>(key), seed);
 };
 
 #endif // NODE_H

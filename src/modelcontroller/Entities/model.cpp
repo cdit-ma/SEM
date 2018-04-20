@@ -23,6 +23,7 @@ bool Model::canAdoptChild(Node *child)
     case NODE_KIND::INTERFACE_DEFINITIONS:
     case NODE_KIND::DEPLOYMENT_DEFINITIONS:
     case NODE_KIND::BEHAVIOUR_DEFINITIONS:
+    case NODE_KIND::WORKER_DEFINITIONS:
         break;
     default:
         return false;

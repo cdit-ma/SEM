@@ -17,18 +17,20 @@
     <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
-        <node id="n0">
-            <data key="kind">Workload</data>
+        <node id="cpuworker">
+            <data key="kind">WorkerDefinition</data>
+            <data key="version">1.0.0</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>
             <data key="icon_prefix">Icons</data>
             <data key="icon">cpu</data>
-            <graph id="n0:">
-                <node id="n0::n0">
-                    <data key="kind">WorkerProcess</data>
+            <graph id="cpuworker:">
+                <node id="cpuworker::intop">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">IntOp</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -37,9 +39,8 @@
                     <data key="description">Execute requested number of Integer Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n0:">
-                        <node id="n0::n0::n0">
+                    <graph id="cpuworker::intop:">
+                        <node id="cpuworker::intop::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -49,8 +50,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n1">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::floatop">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">FloatOp</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -60,8 +61,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n1:">
-                        <node id="n0::n1::n0">
+                    <graph id="cpuworker::floatop:">
+                        <node id="cpuworker::floatop::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -71,8 +72,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n2">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::whetstone">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">Whetstone</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -82,8 +83,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n2:">
-                        <node id="n0::n2::n0">
+                    <graph id="cpuworker::whetstone:">
+                        <node id="cpuworker::whetstone::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -93,8 +94,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n3">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::mwip">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">MWIP</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -104,8 +105,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n3:">
-                        <node id="n0::n3::n0">
+                    <graph id="cpuworker::mwip:">
+                        <node id="cpuworker::mwip::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -115,8 +116,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n4">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::dhrystone">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">Dhrystone</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -126,8 +127,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n4:">
-                        <node id="n0::n4::n0">
+                    <graph id="cpuworker::dhrystone:">
+                        <node id="cpuworker::dhrystone::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -137,8 +138,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n5">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::dmip">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">DMIP</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -148,8 +149,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n5:">
-                        <node id="n0::n5::n0">
+                    <graph id="cpuworker::dmip:">
+                        <node id="cpuworker::dmip::ops">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="inner_type">Double</data>
@@ -159,8 +160,8 @@
                         </node>
                     </graph>
                 </node>
-                <node id="n0::n6">
-                    <data key="kind">WorkerProcess</data>
+                <node id="cpuworker::matrixmult">
+                    <data key="kind">WorkerFunction</data>
                     <data key="label">MatrixMult</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -170,8 +171,8 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">grid3x3</data>
                     <data key="workerID">cpu_worker</data>
-                    <graph id="n0::n6:">
-                        <node id="n0::n6::n0">
+                    <graph id="cpuworker::matrixmult:">
+                        <node id="cpuworker::matrixmult::matrixa">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
                             <data key="inner_type">Float</data>
@@ -180,7 +181,7 @@
                             <data key="icon">Vector_Member</data>
                             <data key="description">The first of the two matrix operands.</data>
                         </node>
-                        <node id="n0::n6::n1">
+                        <node id="cpuworker::matrixmult::matrixb">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
                             <data key="inner_type">Float</data>
@@ -189,7 +190,7 @@
                             <data key="icon">Vector_Member</data>
                             <data key="description">The second of the two matrix operands.</data>
                         </node>
-                        <node id="n0::n6::n2">
+                        <node id="cpuworker::matrixmult::matrixc">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix C</data>
                             <data key="inner_type">Float</data>

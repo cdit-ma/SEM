@@ -13,6 +13,7 @@ protected:
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+    static void updateVectorIcon(Node* node);
 protected:
     void childAdded(Node* child);
     void childRemoved(Node* child);

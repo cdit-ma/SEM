@@ -13,6 +13,7 @@ protected:
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+    QList<Node*> getAdoptableNodes(Node* definition);
 };
 
 #endif // COMPONENTINSTANCE_H

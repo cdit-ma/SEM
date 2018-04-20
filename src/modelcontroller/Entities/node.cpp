@@ -25,6 +25,9 @@ Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
     definition_kind_ = NODE_KIND::NONE;
     instance_kind_ = NODE_KIND::NONE;
     impl_kind_ = NODE_KIND::NONE;
+    
+    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY);
+    SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION);
 }
 
 
@@ -88,6 +91,19 @@ Node::~Node()
     }
 }
 
+void Node::SetEdgeRuleActive(EdgeRule rule, bool active){
+    if(active){
+        active_edge_rules.insert(rule);
+    }else{
+        active_edge_rules.remove(rule);
+    }
+}
+
+
+bool Node::IsEdgeRuleActive(EdgeRule rule){
+    return active_edge_rules.contains(rule);
+}
+
 /**
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
@@ -116,10 +132,16 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
             return false;
         }
-       
 
-        if(parentNode){
-            if(parentNode->isInstanceImpl()){
+
+        if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
+            /*
+            When this is contained within and instance or impl
+            we should check that the dst we are connecting to (AKA Using as this's definition)
+            is contained within our parent's Definition/Implementations
+            */
+            if(parentNode && parentNode->isInstanceImpl()){
+                
                 QList<Node*> valid_ancestors;
                 auto parent_definition = parentNode->getDefinition();
                 if(parent_definition){
@@ -129,17 +151,25 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
                 
                 bool is_descendant = false;
                 for(auto ancestor : valid_ancestors){
-                    if(ancestor && ancestor->isAncestorOf(dst)){
+                    if(ancestor->isAncestorOf(dst)){
                         is_descendant = true;
                         break;
                     }
                 }
 
-                if(!is_descendant && valid_ancestors.size()){
-                    //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                if(!is_descendant && valid_ancestors.size() > 0){
                     return false;
                 }
-            }else{
+            }
+        }
+
+        if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
+            /*
+            When this isn't contained within and instance or impl
+            we should check that the dst we are connecting to (AKA Using as this's definition)
+            doesn't have a definition set
+            */
+            if(parentNode && !parentNode->isInstanceImpl()){
                 if(dst->getDefinition()){
                     return false;
                 }
@@ -163,6 +193,10 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     case EDGE_KIND::DEPLOYMENT:{
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
+            return false;
+        }
+        //Can only have oen edge kind
+        if(gotEdgeKind(edgeKind)){
             return false;
         }
         break;
@@ -215,7 +249,7 @@ bool Node::requiresEdgeKind(EDGE_KIND edgeKind) const
     if(acceptsEdgeKind(edgeKind)){
         switch(edgeKind){
         case EDGE_KIND::DEFINITION:{
-            if(definition){
+            if(definition && !isInstance()){
                 return false;
             }
 
@@ -892,7 +926,21 @@ void Node::setDefinition(Node *def)
     if(isImpl() || isInstance()){
         definition = def;
         BindDefinitionToInstance(definition, this, true);
-        setAcceptsEdgeKind(EDGE_KIND::DEFINITION, !definition);
+
+        //If have a definition, 
+        bool can_have_definition_edge = false;
+
+        if(definition){
+            if(isInstance()){
+                can_have_definition_edge = true;
+            }
+        }else{
+            can_have_definition_edge = true;
+        }
+
+        setAcceptsEdgeKind(EDGE_KIND::DEFINITION, can_have_definition_edge);
+
+        definitionSet(def);
     }
 }
 
@@ -990,15 +1038,7 @@ QSet<Node *> Node::getDependants() const
     for(auto i : instances){
         nodes.insert(i);
     }
-    if(isImpl()){
-        //Get My Definitions Instances
-        auto definition = getDefinition(true);
-        if(definition){
-            for(auto d : definition->getInstances()){
-                nodes.insert(d);
-            }
-        }
-    }
+   
     return nodes;
 }
 
@@ -1138,13 +1178,26 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     QMultiMap<QString, QString> bind_values;
     bind_values.insert("key", "key");
 
+    bind_values.insert("icon", "icon");
+    bind_values.insert("icon_prefix", "icon_prefix");
+    bind_values.insert("worker", "worker");
+    
+
     bool bind_index = false;
     bool bind_labels = true;
     bool bind_types = true;
+    bool copy_labels = false;
 
-    //The only time we should bind the index is when we are contained in another instance
-    if(instance_parent->isInstance()){
-        bind_index = true;
+    switch(instance_kind){
+        case NODE_KIND::MEMBER_INSTANCE:
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(instance_parent_kind == NODE_KIND::AGGREGATE_INSTANCE || instance_parent_kind == NODE_KIND::VECTOR_INSTANCE){
+                bind_index = true;
+            }
+            break;
+        }
+        default:
+            break;
     }
 
     if(instance->isInstanceImpl()){
@@ -1161,6 +1214,30 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
+            case NODE_KIND::WORKER_INSTANCE:{
+
+            
+                if(definition_kind == NODE_KIND::WORKER_INSTANCE){
+                    bind_labels = true;
+                }else{
+                    bind_labels = false;
+                    copy_labels = true;
+                }
+                break;
+            }
+            case NODE_KIND::WORKER_FUNCTIONCALL:
+                bind_labels = false;
+                copy_labels = true;
+                bind_values.insert("workerID", "workerID");
+                bind_values.insert("operation", "operation");
+                bind_values.insert("description", "description");
+                break;
+            case NODE_KIND::WORKER_FUNCTION:{
+                bind_labels = true;
+                bind_values.insert("operation", "operation");
+                bind_values.insert("description", "description");
+                break;
+            }
             default:
                 break;
         }
@@ -1185,10 +1262,35 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
         bind_values.insert("index", "index");
     }
 
+
+    auto def_icon_prefix = definition->getData("icon_prefix");
+    auto def_icon = definition->getData("icon");
+    if(def_icon && def_icon_prefix){
+        auto key_icon_prefix = def_icon_prefix->getKey();
+        auto key_icon = def_icon->getKey();
+        auto factory = instance->getFactory();
+
+        //Construct Icon Prefix if we don't have one already
+        if(!instance->gotData(key_icon_prefix)){
+            auto data_icon_prefix = factory->CreateData(key_icon_prefix, def_icon_prefix->getValue());
+            instance->addData(data_icon_prefix);
+        }
+        //Construct Icon if we don't have one already
+        if(!instance->gotData(key_icon)){
+            auto data_icon = factory->CreateData(key_icon, def_icon->getValue());
+            instance->addData(data_icon);
+        }
+    }
+
     for(auto definition_key : bind_values.uniqueKeys()){
         for(auto instance_key : bind_values.values(definition_key)){
             LinkData(definition, definition_key, instance, instance_key, setup);
         }
+    }
+
+    if(copy_labels){
+        auto def_label = definition->getDataValue("label");
+        instance->setDataValue("label", def_label);
     }
 }
 
@@ -1197,32 +1299,35 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         auto source_parent = source->getParentNode();
         auto destination_parent = destination->getParentNode();
 
-        //Bind the special vector linking
-        if(destination_parent && destination_parent->getNodeKind() == NODE_KIND::WORKER_PROCESS){
-            auto worker_name = destination_parent->getDataValue("worker").toString();
-            auto parameter_label = destination->getDataValue("label").toString();
+        if(destination_parent){
+            if(destination_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL){
+                auto worker_name = destination_parent->getDataValue("worker").toString();
+                auto parameter_label = destination->getDataValue("label").toString();
 
-            //Check bindings
-            if(worker_name == "Vector_Operations" && parameter_label.contains("Vector")){
-                //Get the child type of the Vector
-
-                //Get the siblings of the parameter
-                for(auto param : destination_parent->getChildren(0)){
-                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
-                        auto param_label = param->getDataValue("label").toString();
-                        Node* bind_src = 0;
-
-                        auto definition_key = "";
-                        
-                        if(param_label.contains("Value")){
-                            definition_key = "inner_type";
-                        }else if(param_label.contains("Vector")){
-                            definition_key = "type";
+                if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
+                    for(auto param : destination_parent->getChildren(0)){
+                        if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                            //Check if we are using generic params
+                            auto is_generic_param = param->getDataValue("is_generic_param").toBool();
+                            if(is_generic_param){
+                                LinkData(source, "inner_type", param, "inner_type", setup);
+                                if(!setup){
+                                    param->setDataValue("inner_type", "");
+                                }
+                            }
                         }
-                        LinkData(source, definition_key, param, "type", setup);
                     }
                 }
             }
+            if(destination_parent->getNodeKind() == NODE_KIND::SETTER){
+                for(auto param : destination_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        LinkData(source, "inner_type", param, "inner_type", setup);
+                        LinkData(source, "outer_type", param, "outer_type", setup);
+                    }
+                }
+            }
+            
         }
         auto bind_source = source;
         auto source_key = "type";
@@ -1242,4 +1347,25 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         LinkData(bind_source, source_key, destination, "value", setup);
         TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
     }
+}
+
+QList<Node*> Node::getAdoptableNodes(Node* definition){
+    QList<Node*> adoptable_nodes;
+
+    if(definition){
+        for(auto child : definition->getChildren(0)){
+            if(child->isDefinition()){
+                adoptable_nodes << child;
+            }
+        }
+    }
+    return adoptable_nodes;
+}
+
+bool Node::canConstructChildren() const{
+    if(isInstance() && getDefinition()){
+        return false;
+    }
+
+    return true;
 }

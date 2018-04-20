@@ -121,6 +121,10 @@ public:
     bool gotImage(const QString&, const QString&);
 
     void setIconSize(int size);
+
+    QStringList getIconPrefixs();
+    QStringList getIcons(const QString& icon_prefix);
+
     QSize getIconSize();
     QSize getSmallIconSize();
     QSize getLargeIconSize();
@@ -229,6 +233,8 @@ private:
     QHash<ColorRole, QColor> menuIconColor;
 
     QHash<QString, QString> icon_alias_lookup;
+
+    QHash<QString, QSet<QString> > icon_prefix_lookup;
 
     QColor highlightColor;
     QColor backgroundColor;

@@ -25,10 +25,13 @@ bool ComponentImpl::canAdoptChild(Node *child)
     switch(child->getNodeKind()){
         case NODE_KIND::ATTRIBUTE_IMPL:
         case NODE_KIND::INEVENTPORT_IMPL:
-        case NODE_KIND::OUTEVENTPORT_IMPL:
         case NODE_KIND::PERIODICEVENT:
         case NODE_KIND::VARIABLE:
         case NODE_KIND::HEADER:
+        case NODE_KIND::WORKER_INSTANCE:
+        case NODE_KIND::FUNCTION:
+        case NODE_KIND::CLASS_INSTANCE:
+        case NODE_KIND::SERVER_PORT_IMPL:
             break;
     default:
         return false;
@@ -56,4 +59,16 @@ bool ComponentImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     return Node::canAcceptEdge(edgeKind, dst);
+}
+
+
+QSet<Node*> ComponentImpl::getDependants() const{
+    auto required_nodes = Node::getDependants();
+    auto definition = getDefinition(true);
+    if(definition){
+        for(auto d : definition->getInstances()){
+            required_nodes.insert(d);
+        }
+    }
+    return required_nodes;
 }

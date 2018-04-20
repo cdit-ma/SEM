@@ -20,8 +20,8 @@ AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
     setDefinitionKind(NODE_KIND::ATTRIBUTE);
 
     setDataProducer(true);
-    setDataReceiver(true);
-    setMultipleDataReceiver(true);
+    setDataReceiver(false);
+    //setMultipleDataReceiver(true);
 }
 
 bool AttributeImpl::canAdoptChild(Node*)
@@ -43,9 +43,6 @@ bool AttributeImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case EDGE_KIND::DATA:{
-        if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
-            return false;
-        }
         break;
     }
     default:

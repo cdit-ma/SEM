@@ -25,9 +25,12 @@ HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
     //setExpandEnabled(false);
 }
 
-bool HardwareNode::canAdoptChild(Node*)
+bool HardwareNode::canAdoptChild(Node* child)
 {
-    return false;
+    if(child->getNodeKind() != NODE_KIND::OPENCL_PLATFORM){
+        return false;
+    }   
+    return Node::canAdoptChild(child);
 }
 
 bool HardwareNode::canAcceptEdge(EDGE_KIND, Node *)

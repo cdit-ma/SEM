@@ -22,8 +22,8 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_s
 Variable::Variable() : DataNode(node_kind)
 {
     setDataProducer(true);
-    setDataReceiver(true);
-    setMultipleDataReceiver(true);
+    //setDataReceiver(true);
+    //setMultipleDataReceiver(true);
 }
 
 
@@ -35,6 +35,7 @@ bool Variable::canAdoptChild(Node* child)
     case NODE_KIND::AGGREGATE_INSTANCE:
     case NODE_KIND::VECTOR:
     case NODE_KIND::ENUM_INSTANCE:
+    case NODE_KIND::EXTERNAL_TYPE:
         break;
     default:
         return false;

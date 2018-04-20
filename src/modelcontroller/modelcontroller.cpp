@@ -318,7 +318,7 @@ bool ModelController::setData_(Entity *entity, QString key_name, QVariant value,
         if(entity->gotData(key_name)){
             //Set the new value
             action.Data.new_value = entity->getDataValue(key_name);
-            addActionToStack(action, true);
+            addActionToStack(action, add_action);
             return true;
         }
     }
@@ -372,7 +372,7 @@ Node* ModelController::construct_temp_node(Node* parent_node, NODE_KIND node_kin
     return node;
 }
 
-Node* ModelController::check_for_existing_node(Node* parent_node, NODE_KIND node_kind){
+Node* ModelController::get_persistent_node(NODE_KIND node_kind){
     switch(node_kind){
         case NODE_KIND::MODEL:{
             return model;
@@ -401,13 +401,12 @@ Node* ModelController::check_for_existing_node(Node* parent_node, NODE_KIND node
 }
 
 Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, int id){
-    Node* node = 0;
-    node = check_for_existing_node(parent_node, node_kind);
-    if(!node){ 
+    auto persistent_node = get_persistent_node(node_kind);
+    if(!persistent_node){
         //Construct node with default data
-        node = entity_factory->CreateNode(node_kind, id);   
+        return entity_factory->CreateNode(node_kind, id);   
     }
-    return node;
+    return persistent_node;
 }
 
 Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_kind, bool notify_view){
@@ -436,21 +435,47 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
     return node;
 }
 
-Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
+void ModelController::addDependantsToDependants(Node* parent_node, Node* source){
+    if(parent_node && source){
+        if(isUserAction() && source->isDefinition()){
+            for(auto dependant : parent_node->getDependants()){
+                auto construct_instance = dependant->isInstance();
+                auto dependant_kind = construct_instance ? source->getInstanceKind() : source->getImplKind();
 
-    Node* source = construct_child_node(parent_node, node_kind, false);
-    if(source){
-        auto edge = construct_edge(edge_kind, source, destination, -1, false);
-        
-        if(!edge){
-            
-            //Free the memory
-            entity_factory->DestructEntity(source);
-            source = 0;
-        }else{
-            storeNode(source);
-            storeEdge(edge);
+                auto dependant_child = construct_connected_node(dependant, dependant_kind, source, EDGE_KIND::DEFINITION);
+            }
         }
+    }
+}
+
+Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
+    auto source = construct_node(parent_node, node_kind);
+    bool success = false;
+    if(source){
+        //Try attach
+        if(!source->getParentNode()){
+            attachChildNode(parent_node, source, false);
+        }
+
+        
+        if(source->getParentNode() == parent_node){
+            auto edge = construct_edge(edge_kind, source, destination, -1, false);
+            if(edge){
+                storeNode(source);
+                storeEdge(edge);
+                success = true;
+            }else{
+                qCritical() << "COULDN'T MAKE EDGE BETWEEN: " << source->toString() << " < - > " << destination->toString();
+            }
+        }
+    }
+
+    //Make sure we add Dependants
+    addDependantsToDependants(parent_node, source);
+
+    if(!success && source){
+        entity_factory->DestructEntity(source);
+        source = 0;
     }
     return source;
 }
@@ -481,10 +506,14 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_component_node(parent_node);
             break;
         }
-        //case NODE_KIND::PERIODICEVENT:{
-            //node = construct_periodic_eventport(parent_node);
-            //break;
-        //}
+        case NODE_KIND::PERIODICEVENT:{
+            node = construct_periodic_eventport(parent_node);
+            break;
+        }
+        case NODE_KIND::SERVER_INTERFACE:{
+            node = construct_SERVER_INTERFACE_node(parent_node);
+            break;
+        }
         default:
             node = construct_child_node(parent_node, kind);
             break;
@@ -494,26 +523,14 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
         //Use position?
         setData_(node, "x", pos.x());
         setData_(node, "y", pos.y());
+
+        //Make sure we add Dependants
+        addDependantsToDependants(parent_node, node);
     }
     emit ActionFinished();
 }
 
-void ModelController::constructWorkerProcess(int parent_id, int dst_id, QPointF pos){
-    //Add undo step
-    triggerAction("Constructing Worker Process");
-    
-    auto parent_node = entity_factory->GetNode(parent_id);
-    auto worker_node = entity_factory->GetNode(dst_id);
-    if(parent_node && worker_node && worker_node->getNodeKind() == NODE_KIND::WORKER_PROCESS){
-        //clone the worker into the parent
-        auto node = cloneNode(worker_node, parent_node);
-        if(node){
-            //Use position?
-            setData_(node, "x", pos.x());
-            setData_(node, "y", pos.y());
-        }
-    }
-}
+
 
 void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND edge_kind)
 {
@@ -614,16 +631,13 @@ Node* ModelController::construct_setter_node(Node* parent)
             auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto value = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
-            setData_(variable, "icon", "Variable");
-            setData_(variable, "icon_prefix", "EntityIcons");
-            setData_(variable, "label", "Variable");
+            setData_(variable, "icon", "Variable", false);
+            setData_(variable, "icon_prefix", "EntityIcons", false);
+            setData_(variable, "label", "Variable", false);
 
-            value->setDataValue("icon", "Variable");
-            value->setDataValue("icon_prefix", "EntityIcons");
-
-            value->setDataValue("icon", "Variable");
-            value->setDataValue("icon_prefix", "EntityIcons");
-            value->setDataValue("label", "value");
+            setData_(value, "icon", "arrowHeadRight", false);
+            setData_(value, "icon_prefix", "Icons", false);
+            setData_(value, "label", "operand", false);
             return node;
         }
     }
@@ -681,19 +695,22 @@ Node* ModelController::construct_for_node(Node* parent)
             auto condition = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto iteration = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
 
-            variable->setDataValue("type", "Integer");
-            variable->setDataValue("label", "i");
-            variable->setDataValue("value", 0);
-            
-            condition->setDataValue("type", "Boolean");
-            condition->setDataValue("label", "Condition");
-            condition->setDataValue("icon", "Condition");
-            condition->setDataValue("icon_prefix", "EntityIcons");
+            setData_(variable, "label", "i", false);
+            setData_(variable, "type", "Integer", false);
+            setData_(variable, "value", 0, false);
 
-            iteration->setDataValue("type", "String");
-            iteration->setDataValue("label", "Iteration");
-            iteration->setDataValue("icon", "reload");
-            iteration->setDataValue("icon_prefix", "Icons");
+            setData_(condition, "label", "Condition", false);
+            setData_(condition, "type", "Integer", false);
+            setData_(condition, "icon", "Condition", false);
+            setData_(condition, "icon_prefix", "EntityIcons", false);
+
+
+            setData_(iteration, "label", "iterator", false);
+            setData_(iteration, "type", "String", false);
+            setData_(iteration, "icon", "reload", false);
+            setData_(iteration, "icon_prefix", "Icons", false);
+            setData_(iteration, "value", "i++", false);
+
             return node;
         }
     }
@@ -705,6 +722,7 @@ Node* ModelController::construct_component_node(Node* parent){
         triggerAction("Constructing Component");
 
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        
         if(node){
             auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
@@ -721,15 +739,37 @@ Node* ModelController::construct_periodic_eventport(Node* parent){
         auto node = construct_child_node(parent, NODE_KIND::PERIODICEVENT);
         if(node){
             auto duration = construct_child_node(node, NODE_KIND::ATTRIBUTE_INSTANCE);
-            duration->setDataValue("label", "frequency");
-            duration->setDataValue("type", "Integer");
-            duration->setDataValue("value", 1);
-            duration->setDataValue("row", 1);
+            if(duration){
+                setData_(duration, "label", "frequency", false);
+                setData_(duration, "type", "Integer", false);
+                setData_(duration, "value", 1, false);
+                setData_(duration, "row", 1, false);
+                setData_(duration, "icon", "clockCycle", false);
+                setData_(duration, "icon_prefix", "Icons", false);
+                
+            }
             return node;
         }
     }
     return 0;
 }
+
+Node* ModelController::construct_SERVER_INTERFACE_node(Node* parent){
+    if(parent){
+        triggerAction("Constructing Request Reply");
+
+        auto node = construct_child_node(parent, NODE_KIND::SERVER_INTERFACE);
+
+        if(node){
+            auto request_type = construct_child_node(node, NODE_KIND::INPUT_PARAMETER_GROUP);
+            auto reply_type = construct_child_node(node, NODE_KIND::RETURN_PARAMETER_GROUP);
+            return node;
+        }
+    }
+    return 0;
+}
+
+
 
 
 void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
@@ -742,8 +782,17 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
 
+
+        auto should_clone = false;
+
+        if(edge_kind == EDGE_KIND::DEFINITION){
+            if(!dst_node->isDefinition()){
+                should_clone = true;
+            }
+        }
         Node* node = 0;
-        if(node_kind == NODE_KIND::WORKER_PROCESS){
+
+        if(should_clone){
             node = cloneNode(dst_node, parent_node);
         }else{
             node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
@@ -844,6 +893,7 @@ void ModelController::remove(QList<int> ids)
     auto selection = getOrderedEntities(ids);
     bool success = false;
     if(canRemove(selection)){
+
         triggerAction("Removing Selection");
         success = destructEntities(selection);
     }
@@ -946,7 +996,6 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_
         nodes = _getConnectableNodes({temp_node}, edge_kind);
         entity_factory->DestructEntity(temp_node);
     }
-    //qCritical() << nodes;
     return getIDs(nodes);
 }
 
@@ -1038,13 +1087,6 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     }
 
     return valid_nodes;
-}
-
-QList<int> ModelController::getWorkerFunctions()
-{
-    QReadLocker lock(&lock_);
-    auto worker_processes = workerDefinitions->getChildrenOfKind(NODE_KIND::WORKER_DEFINITIONS);
-    return getIDs(worker_processes);
 }
 
 QList<Entity*> ModelController::getOrderedEntities(QList<int> ids){
@@ -1301,22 +1343,14 @@ void ModelController::removeEntity(Entity* entity)
 }
 
 
-bool ModelController::attachChildNode(Node *parentNode, Node *node, bool notify_view)
+bool ModelController::attachChildNode(Node *parent_node, Node *node, bool notify_view)
 {
-    if(parentNode->addChild(node)){
+    if(parent_node->addChild(node)){
         if(notify_view){
             storeNode(node);
         }   
 
-        if(isUserAction() && node->isDefinition()){
-            for(auto dependant : parentNode->getDependants()){
-                
-                auto success = constructDependantRelative(dependant, node);
-                if(!success){
-                    qCritical() << "Failed to Construct Dependant Relationship of: " << node->toString() << " Inside: " << dependant->toString();
-                }
-            }
-        }
+        
         return true;
     }
     return false;
@@ -1354,15 +1388,27 @@ QList<Entity *> ModelController::getUnorderedEntities(QList<int> ids){
 
 Node *ModelController::cloneNode(Node *original, Node *parent)
 {
+
     if(original && parent){
-        auto node = construct_child_node(parent, original->getNodeKind());
+        
+        auto node = construct_node(parent, original->getNodeKind());
         
         if(node){
+            QSet<QString> ignore_keys = {"index", "uuid"};
             //Get the data
             for(auto data : original->getData()){
-                if(data->getKeyName() != "index"){
-                    setData_(node, data->getKeyName(), data->getValue());
+                auto key_name = data->getKeyName();
+                    
+                if(!ignore_keys.contains(key_name)){
+                    setData_(node, data->getKeyName(), data->getValue(), false);
                 }
+            }
+            //Attach CLones of the data before we try and adopt
+            auto success = attachChildNode(parent, node, true);
+            if(!success){
+                entity_factory->DestructEntity(node);
+                node = 0;
+                return node;
             }
 
             for(auto child : original->getChildren(0)){
@@ -1375,51 +1421,30 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
 }
 
 
-int ModelController::constructDependantRelative(Node *parent, Node *definition)
-{
-    int nodes_matched = 0;
+
+//Look inside target_node for things which could become a dependant of the the definition
+QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_node, Node* definition){
+    auto dependant_kind = target_node->isInstance() ? definition->getInstanceKind() : definition->getImplKind();
     
-    auto dependant_kind = NODE_KIND::NONE;
+    QList<Node*> matching_nodes;
+    
+    //For each child in parent, check to see if any Nodes match Label/Type
+    for(auto target_child : target_node->getChildrenOfKind(dependant_kind, 0)){
+        if(target_child->getDefinition() == definition){
+            matching_nodes << target_child;
+        }else if(target_child->getDefinition()){
+            
+        }else{
+            auto types_match = target_child->compareData(definition, "type");
 
-    if(parent->isInstance()){
-        dependant_kind = definition->getInstanceKind();
-    }else{
-        dependant_kind = definition->getImplKind();
-    }
-
-    if(dependant_kind != NODE_KIND::NONE){
-        //For each child in parent, check to see if any Nodes match Label/Type
-        for(auto child : parent->getChildrenOfKind(dependant_kind, 0)){
-            if(!child->getDefinition()){
-                auto labels_match = child->compareData(definition, "label");
-                auto types_match = child->compareData(definition, "type");
-
-                //If the labels and types match, we can construct an edge between them
-                if(types_match){
-                    if(definition->isInstance() && !labels_match){
-                        continue;
-                    }
-                    construct_edge(EDGE_KIND::DEFINITION, child, definition);
-                }
-            }
-            if(child->getDefinition() == definition){
-                nodes_matched ++;
-                break;
-            }
-        }
-
-        if(!nodes_matched){
-            //If we didn't find a match, we must create an Instance.
-            auto node = construct_connected_node(parent, dependant_kind, definition, EDGE_KIND::DEFINITION);
-            if(node){
-                nodes_matched ++;
+            if(types_match){
+                matching_nodes << target_child;
             }
         }
     }
-    
-    return nodes_matched;
+
+    return matching_nodes;
 }
-
 
 void ModelController::destructEdge_(Edge *edge){
     if(edge){
@@ -1432,7 +1457,7 @@ void ModelController::destructEdge_(Edge *edge){
 
             switch(edge_kind){
             case EDGE_KIND::DEFINITION:{
-                setupDefinitionRelationship(src, dst, false);
+                setupDefinitionRelationship2(src, dst, false);
                 break;
             }
             case EDGE_KIND::AGGREGATE:{
@@ -1510,7 +1535,6 @@ bool ModelController::destructEntities(QList<Entity*> entities)
 
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
-
         //Create an undo state for each top level item
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.entity_id = entity->getID();
@@ -1558,8 +1582,8 @@ bool ModelController::reverseAction(HistoryAction action)
     }
     case ACTION_TYPE::DESTRUCTED:{
         switch(action.Action.kind){
-        case GRAPHML_KIND::NODE:
-        case GRAPHML_KIND::EDGE:{
+        case GRAPHML_KIND::EDGE:
+        case GRAPHML_KIND::NODE:{
             auto parent_node = entity_factory->GetNode(action.parent_id);
             //Don't pass a MODEL_ACTION
             return importGraphML(action.xml, parent_node);
@@ -1673,8 +1697,16 @@ bool ModelController::canDeleteNode(Node *node)
             return false;
         }
         auto node_kind = node->getNodeKind();
+        auto parent_node = node->getParentNode();
+        auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
         switch(node_kind){
+            case NODE_KIND::ATTRIBUTE_INSTANCE:
+                if(parent_node_kind == NODE_KIND::PERIODICEVENT){
+                    return false;
+                }
+                break;
+            case NODE_KIND::WORKER_DEFINITION:
             case NODE_KIND::INPUT_PARAMETER:
             case NODE_KIND::RETURN_PARAMETER:
                 return false;
@@ -1684,12 +1716,26 @@ bool ModelController::canDeleteNode(Node *node)
 
         if(node->getDefinition()){
             switch(node_kind){
+            case NODE_KIND::WORKER_INSTANCE:{
+                auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
+                 switch(parent_node_kind){
+                    case NODE_KIND::COMPONENT_INSTANCE:
+                        return false;
+                    default:
+                        break;
+                }
+                break;
+            }
+                
+            case NODE_KIND::WORKER_FUNCTIONCALL:
+            case NODE_KIND::SERVER_REQUEST:
             case NODE_KIND::OUTEVENTPORT_IMPL:
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::CLIENT_PORT:
             case NODE_KIND::COMPONENT_INSTANCE:
-                //CompoentInstances/Outeventportimpls can be destroyed at any time
+                // These node kinds can be destroyed at any time
                 break;
             case NODE_KIND::AGGREGATE_INSTANCE:{
-                auto parent_node = node->getParentNode();
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
 
                 switch(parent_node_kind){
@@ -1775,11 +1821,21 @@ void ModelController::setCustomNodeData(Node* node){
             }
             break;
         }
+        case NODE_KIND::CLASS_INSTANCE:
+        case NODE_KIND::WORKER_INSTANCE:{
+            new_data["row"] = 1;
+            new_data["column"] = 2;
+            break;
+        }
+        case NODE_KIND::SERVER_PORT:
+        case NODE_KIND::SERVER_PORT_INSTANCE:
         case NODE_KIND::INEVENTPORT:
         case NODE_KIND::INEVENTPORT_INSTANCE:{
             new_data["row"] = 0;
             break;
         }
+        case NODE_KIND::CLIENT_PORT:
+        case NODE_KIND::CLIENT_PORT_INSTANCE:
         case NODE_KIND::OUTEVENTPORT:
         case NODE_KIND::OUTEVENTPORT_INSTANCE:{
             new_data["row"] = 2;
@@ -1805,6 +1861,16 @@ void ModelController::setCustomNodeData(Node* node){
             new_data["column"] = -1;
             break;
         }
+
+        case NODE_KIND::INPUT_PARAMETER_GROUP:
+            new_data["row"] = 0;
+            new_data["column"] = -1;
+            break;
+        case NODE_KIND::RETURN_PARAMETER_GROUP:
+            new_data["row"] = 0;
+            new_data["column"] = 1;
+            break;
+
         default:
             break;
     }
@@ -1836,6 +1902,8 @@ void ModelController::storeNode(Node *node)
 {
     if(node){
         setCustomNodeData(node);
+
+        //Try do some shit mate
         
         //Construct an ActionItem to reverse Node Construction.
         auto action = getNewAction(GRAPHML_KIND::NODE);
@@ -1854,7 +1922,7 @@ void ModelController::setupModel()
 {
     //Construct the top level parents.
     model = construct_node(0, NODE_KIND::MODEL);
-    workerDefinitions = construct_node(0, NODE_KIND::WORKER_DEFINITIONS);
+    
 
     Data* labelData = model->getData("label");
     if(labelData){
@@ -1869,6 +1937,7 @@ void ModelController::setupModel()
     deploymentDefinitions = construct_child_node(model, NODE_KIND::DEPLOYMENT_DEFINITIONS, false);
     assemblyDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::ASSEMBLY_DEFINITIONS, false);
     hardwareDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::HARDWARE_DEFINITIONS, false);
+    workerDefinitions = construct_child_node(model, NODE_KIND::WORKER_DEFINITIONS, false);
 
     //Construct the localhost node
     auto localhostNode = construct_child_node(hardwareDefinitions, NODE_KIND::HARDWARE_NODE, false);
@@ -1879,9 +1948,10 @@ void ModelController::setupModel()
     localhostNode->setDataValue("architecture", QSysInfo::currentCpuArchitecture());
     localhostNode->setDataValue("uuid", "localhost");
 
+    
     //Protect the nodes
     protected_nodes << model;
-    protected_nodes << workerDefinitions;
+    //protected_nodes << workerDefinitions;
     protected_nodes << interfaceDefinitions;
     protected_nodes << behaviourDefinitions;
     protected_nodes << deploymentDefinitions;
@@ -1893,70 +1963,65 @@ void ModelController::setupModel()
     for(auto node : protected_nodes){
         storeNode(node);
     }
+
+    storeNode(workerDefinitions);
 }
 
 
+bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definition, bool setup){
+    if(!(instance && definition)){
+        return false;
+    }
+    
+
+    auto construct_instance = instance->isInstance();
+    auto construct_implementation = instance->isImpl();
 
 
-/**
- * @brief NewController::setupDefinitionRelationship
- * Attempts to construct/set the provided node as an Instance of the definition provided.
- * Will Adopt Instances of all Definitions contained by Definition provided. Binds relevant Data together.
- * @param definition - The Node which is the Definition of the relationship.
- * @param aggregate - The Node which is to be set as the Instance.
- * @param instance - Is this an Instance or Implementation Relationship.
- * @return true if Definition Relation was setup correctly.
- */
-bool ModelController::setupDefinitionRelationship(Node *src, Node *dst, bool setup)
-{
-    if(src && dst){
-        QSet<NODE_KIND> ignore_dependant_kinds = {NODE_KIND::INEVENTPORT_INSTANCE, NODE_KIND::OUTEVENTPORT_INSTANCE};
-        auto node_kind = src->getNodeKind();
-        auto construct_dependant = setup && isUserAction() && !ignore_dependant_kinds.contains(node_kind);
-        
-        if(construct_dependant){
-            QSet<NODE_KIND> adopt_impl_kinds = {NODE_KIND::COMPONENT};
-            auto dst_kind = dst->getNodeKind();
-
-            //Construct the list of things we need to check to adopt
-            QList<Node*> nodes_to_adopt = dst->getChildren(0);
-
-            //Allow ComponentImpls to adopt Definitions placed in ComponentImpls
-            if(adopt_impl_kinds.contains(dst_kind)){
-                for(auto implementation : dst->getImplementations()){
-                    nodes_to_adopt << implementation->getChildren(0);
-                }
-            }
-            
-
-            for(auto node : nodes_to_adopt){
-                if(node->isDefinition()){
-                    if(!constructDependantRelative(src, node)){
-                        return false;
-                    }
-                }
-            }
-        }
-
-        //Check for an edge between the EventPort and the Aggregate
-        if(src->gotEdgeTo(dst, EDGE_KIND::DEFINITION)){
+    //Construct the Relationship at the Node Level
+    if(instance->gotEdgeTo(definition, EDGE_KIND::DEFINITION)){
+        if(construct_instance){
             if(setup){
-                if(src->isInstance()){
-                    dst->addInstance(src);
-                }else{
-                    dst->addImplementation(src);
-                }
+                definition->addInstance(instance);
             }else{
-                if(src->isInstance()){
-                    dst->removeInstance(src);
-                }else{
-                    dst->removeImplementation(src);
-                }
+                definition->removeInstance(instance);
             }
-            return true;
+        }else if(construct_implementation){
+            if(setup){
+                definition->addImplementation(instance);
+            }else{
+                definition->removeImplementation(instance);
+            }
         }
     }
-    return false;
+
+    if(setup && isUserAction()){
+        //Get our direct children of definitions
+        for(auto def_child : instance->getAdoptableNodes(definition)){
+            if(def_child->isDefinition()){
+                bool construct_dependant = true;
+
+                for(auto matching_dependant : get_matching_dependant_of_definition(instance, def_child)){
+                    construct_edge(EDGE_KIND::DEFINITION, matching_dependant, def_child);
+
+                    if(matching_dependant->getDefinition() == def_child){
+                        construct_dependant = false;
+                        break;
+                    }
+                }
+
+                if(construct_dependant){
+                    auto dependant_kind = construct_instance ? def_child->getInstanceKind() : def_child->getImplKind();
+                    auto dependant_child = construct_connected_node(instance, dependant_kind, def_child, EDGE_KIND::DEFINITION);
+                }
+            }else{
+                //Clone the node if its not a definition
+                cloneNode(def_child, instance);
+            }
+        }
+    }
+    
+    return true;
 }
 
 
@@ -1973,7 +2038,9 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         auto eventport = (EventPort*) src;
         auto aggregate = (Aggregate*) dst;
 
-        bool construct_instance = setup && isUserAction() && (eventport->getNodeKind() == NODE_KIND::INEVENTPORT || eventport->getNodeKind() == NODE_KIND::OUTEVENTPORT);
+        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::INEVENTPORT, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+
+        bool construct_instance = setup && isUserAction() && (instance_kinds.contains(eventport->getNodeKind()));
         //Only auto construct if we are processing a user action.
         if(construct_instance){
             Node* aggregate_instance = 0;
@@ -2065,7 +2132,7 @@ void ModelController::storeEdge(Edge *edge)
         //Do Special GUI related things
         switch(edge->getEdgeKind()){
         case EDGE_KIND::DEFINITION:{
-            setupDefinitionRelationship(src, dst, true);
+            setupDefinitionRelationship2(src, dst, true);
             break;
         }
         case EDGE_KIND::AGGREGATE:{
@@ -2161,9 +2228,7 @@ QSet<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
-        bool can_adopt = !parent->isInstance();
-        
-        if(can_adopt){
+        if(parent->canConstructChildren()){
             for(auto node_kind: getGUINodeKinds()){
                 auto temp_node = entity_factory->CreateTempNode(node_kind);
                 if(temp_node){
@@ -2203,7 +2268,7 @@ void ModelController::setData(int parentID, QString keyName, QVariant dataValue)
 {
     Entity* graphML = entity_factory->GetEntity(parentID);
     if(graphML){
-        qCritical() << "== REQUEST: " << parentID << " KEY: " << keyName << " = " << dataValue;
+        //qCritical() << "== REQUEST: " << parentID << " KEY: " << keyName << " = " << dataValue;
         setData_(graphML, keyName, dataValue, true);
     }
 }
@@ -2272,8 +2337,8 @@ bool ModelController::isKeyNameVisual(QString key_name){
     return visual_keynames.contains(key_name);
 }
 
-double ModelController::compare_medea_version(QString compare_version){
-    auto current_version = APP_VERSION();
+double ModelController::compare_version(QString current_version, QString compare_version){
+    
 
     auto compare_first =  compare_version.indexOf(".") + 1;
     auto compare_second =  compare_version.indexOf(".", compare_first);
@@ -2289,7 +2354,7 @@ double ModelController::compare_medea_version(QString compare_version){
 
     if(!current_v){
         //Should never happen
-        qCritical() << "compare_medea_version(): Can't tokenize version number: " << current_version;
+        qCritical() << "compare_version(): Can't tokenize version number: " << current_version;
     }
     if(!compare_okay){
         compare_v = 0;
@@ -2332,6 +2397,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
     auto current_entity = new TempEntity(GRAPHML_KIND::NODE);
     bool show_progress = !isModelAction(MODEL_ACTION::NONE);
     bool process_uuids = isModelAction(MODEL_ACTION::IMPORT);
+    bool generate_uuid_off_id = (parent == workerDefinitions);
 
     current_entity->setID(parent->getID());
 
@@ -2386,7 +2452,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
                         }else if(key_name == "medea_version"){
-                            auto model_version = compare_medea_version(value);
+                            auto model_version = compare_version(APP_VERSION(), value);
 
                             if(model_version > 0){
                                 QString title = "Loading model from future MEDEA";
@@ -2418,6 +2484,13 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     entity->setIDStr(id);
                     entity->setLineNumber(xml.lineNumber());
 
+                    //If we are meant to generate UUIDS, and our parent has a uuid, set it!
+                    if(generate_uuid_off_id){
+                        auto uuid_id = ExportIDKey::GetUUIDOfValue(id);
+                        entity->addData("uuid", uuid_id);
+                        unique_entity_ids.push_back(id);
+                    }
+
                     if(!entity_hash.contains(id)){
                         //Insert into the hash.
                         entity_hash.insert(id, entity);
@@ -2438,7 +2511,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
                     }
                     //Set the Item as the current Entity.
                     current_entity = entity;
-                    //TODO reset position
                 }
                 default:
                     break;
@@ -2474,6 +2546,18 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 default:
                     break;
             }
+
+            //CHeck if our parent is a WorkerDefinition
+            auto parent = entity;
+            while(parent && parent->isNode()){
+                auto parent_kind_str = parent->getDataValue("kind").toString();
+                auto parent_kind = entity_factory->getNodeKind(parent_kind_str);
+                if(parent_kind == NODE_KIND::WORKER_DEFINITION){
+                    export_uuid = true;
+                    break;
+                }
+                parent = parent->getParent();
+            }
         }
 
 
@@ -2481,23 +2565,32 @@ bool ModelController::importGraphML(QString document, Node *parent)
         if(export_uuid){
             //If we have a uuid, we should set the entity as read-only
             entity->addData("readOnly", true);
-
+            
             //Lookup the entity in the 
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
-            
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
                 
-                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES){
+                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::WORKER_DEFINITION){
                     auto version = entity->getDataValue("version").toString();
                     auto old_version = matched_entity->getDataValue("version").toString();
                     auto old_label = matched_entity->getDataValue("label").toString();
-                    if(!version.isEmpty() && !old_version.isEmpty()){
+                    auto node_kind = matched_node->getDataValue("kind").toString();
 
-                        QString title = "Updated SharedDatatypes '" % old_label % "' to '" % version % "'";
-                        QString description = "Updated from '" % old_version % "'";
-                        emit Notification(MODEL_SEVERITY::INFO, title, description);
+                    if(!version.isEmpty() && !old_version.isEmpty()){
+                        auto version_compare = compare_version(old_version, version);
+
+                        if(version_compare > 0){
+                            QString title = "Model contains a newer " + node_kind + " named '" + old_label + "'";
+                            QString description = "Updated from '" % old_version % "' to '" % version % "'. Please check usage.";
+                            emit Notification(MODEL_SEVERITY::WARNING, title, description);
+                        }else if(version_compare < 0){
+                            QString title = "Model contains an older " + node_kind + " named '" + old_label + "'";
+                            QString description = "Reverted from '" % old_version % "' to '" % version % "'. Please check usage.";
+                            emit Notification(MODEL_SEVERITY::WARNING, title, description);
+                        }else{
+                        }
                     }
                 }
                 //Set the entity to use this.
@@ -2599,29 +2692,41 @@ bool ModelController::importGraphML(QString document, Node *parent)
         }
 
         if(node){
-            //If we aren't the Model, check if we have a parent_node
-            bool got_parent = node->getParentNode() || kind == NODE_KIND::MODEL;
+            bool is_model = kind == NODE_KIND::MODEL;
+            bool got_parent = node->getParentNode();
+            bool requires_parenting = !got_parent && !is_model;
             bool need_to_gui = false;
+
             if(!got_parent){
+                //If we constructed the node, but haven't yet attached it to a parent, set the data ahead of time
+                for(auto key_name : entity->getKeys()){
+                    auto value = entity->getDataValue(key_name);
+                    setData_(node, key_name, value, false);
+                }
+                //Remove the data as we have already adopted it
+                entity->clearData();
+            }
+
+            if(requires_parenting){
                 //If it's not got a parent, set it.
                 got_parent = attachChildNode(parent_node, node, false);
                 need_to_gui = true;
             }
 
-            if(got_parent){
+            if(got_parent || is_model){
                 auto node_id = node->getID();
 
                 if(need_to_gui){
                     storeNode(node);
                 }
+
                 for(auto key_name : entity->getKeys()){
                     auto value = entity->getDataValue(key_name);
                     setData_(node, key_name, value, true);
                 }
 
-                //Set Actual ID
+                //Point the tempEntity to the newly constructed entity
                 entity->setID(node->getID());
-
             }else{
                 //Destroy!
                 entity_factory->DestructEntity(node);
@@ -3013,24 +3118,6 @@ bool ModelController::canRemove(QList<Entity *> selection)
 
             if(!canDeleteNode(node)){
                 return false;
-            }
-
-            if(parent_node){
-                auto definition = node->getDefinition();
-                if(node->isImpl() && definition){
-                    //Only allowed to delete OutEventPortImpls
-                    if(node->getNodeKind() != NODE_KIND::OUTEVENTPORT_IMPL){
-                        return false;
-                    }
-                }
-
-                if(node->isInstance() && definition && parent_node->isInstance()){
-                    return false;
-                }
-
-                if(node->isReadOnly() && parent_node->isReadOnly()){
-                    return false;
-                }
             }
         }else if(entity->isEdge()){
             Edge* edge = (Edge*) entity;

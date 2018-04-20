@@ -51,7 +51,6 @@ public:
     SelectionController* getSelectionController();
     ActionController* getActionController();
 
-    QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
     QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
@@ -157,7 +156,6 @@ signals:
     void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
     
     void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
-    void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
     void vc_importProjects(QStringList fileData);
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
@@ -341,7 +339,6 @@ private:
     bool _controllerReady = false;
 
 
-    bool destructChildItems(ViewItem* parent);
     bool clearVisualItems();
 
 
@@ -368,7 +365,7 @@ private:
     JenkinsManager* jenkins_manager;
 
     ContextMenu* menu = 0;
-    ModelController* controller;
+    ModelController* controller = 0;
     QMutex mutex;
     QTimer* autosave_timer_ = 0;
     int autosave_id_ = 0;

@@ -79,7 +79,7 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
 }
 
 bool NodeViewItem::isInModel(){
-    return getViewAspect() != VIEW_ASPECT::WORKERS && getViewAspect() != VIEW_ASPECT::NONE;
+    return /*getViewAspect() != VIEW_ASPECT::WORKERS &&*/ getViewAspect() != VIEW_ASPECT::NONE;
 }
 
 QList<EdgeViewItem *> NodeViewItem::getEdges() const

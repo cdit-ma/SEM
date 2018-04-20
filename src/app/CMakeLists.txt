@@ -95,6 +95,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/iconpicker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp

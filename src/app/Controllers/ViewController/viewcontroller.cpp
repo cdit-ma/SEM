@@ -58,12 +58,6 @@
 
 
 ViewController::ViewController() : QObject(){
-    //qRegisterMetaType<Notification::Type>("Notification::Type");
-    controller = 0;
-
-    codeViewer = 0;
-
-
     rootItem = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
@@ -144,7 +138,6 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
     connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
-    connect(this, &ViewController::vc_constructWorkerProcess, controller, &ModelController::constructWorkerProcess);
     connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
     connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
     connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
@@ -290,19 +283,6 @@ void ViewController::welcomeScreenToggled(bool visible){
         //Toast the notification
         QTimer::singleShot(100, notification_manager, &NotificationManager::toastLatestNotification);
     }
-}
-
-QList<ViewItem *> ViewController::getWorkerFunctions()
-{
-    QList<ViewItem*> workers;
-
-    foreach(ViewItem* item, getItemsOfKind(NODE_KIND::WORKER_PROCESS)){
-        NodeViewItem* node = (NodeViewItem*)item;
-        if(item && node->getViewAspect() == VIEW_ASPECT::WORKERS){
-            workers << item;
-        }
-    }
-    return workers;
 }
 
 QList<ViewItem *> ViewController::getViewItemParents(QList<ViewItem*> entities)
@@ -508,10 +488,6 @@ QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     QList<EDGE_KIND> edge_kinds;
     if(selectionController && controller){
         edge_kinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
-
-        for(auto edge_kind : edge_kinds){
-            qCritical() << EntityFactory::getEdgeKindString(edge_kind);
-        }
     }
     return edge_kinds;
 }
@@ -544,102 +520,135 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
         EdgeViewItem* edgeViewItem = (EdgeViewItem*)viewItem;
 
-        QString alias = "EntityIcons";
-        QString image = viewItem->getData("kind").toString();
-
+        QString default_icon_prefix = "EntityIcons";
+        QString default_icon_name = viewItem->getData("kind").toString();
+        
+        QString custom_icon_prefix = viewItem->getData("icon_prefix").toString();
+        QString custom_icon_name = viewItem->getData("icon").toString();
+        
         if(isNode){
             auto node_kind = nodeViewItem->getNodeKind();
-
-            auto icon = viewItem->getData("icon").toString();
-            auto icon_prefix = viewItem->getData("icon_prefix").toString();
 
 
             switch(node_kind){
             case NODE_KIND::HARDWARE_NODE:{
-                QString os = viewItem->getData("os").toString();
-                QString arch = viewItem->getData("architecture").toString();
-                QString spec_image = (os % "_" % arch);
-                if(Theme::theme()->gotImage(alias, spec_image)){
-                    image = spec_image;
-                }
+                auto os = viewItem->getData("os").toString();
+                auto arch = viewItem->getData("architecture").toString();
+                custom_icon_prefix = "EntityIcons";
+                custom_icon_name = (os % "_" % arch);
                 break;
             }
-            case NODE_KIND::WORKLOAD:{
-                if(nodeViewItem->getViewAspect() == VIEW_ASPECT::WORKERS){
-                    //If we are
-                    alias = icon_prefix;
-                    image = icon;
+            case NODE_KIND::OPENCL_PLATFORM:{
+                auto vendor = viewItem->getData("vendor").toString();
+                
+                custom_icon_prefix = "Icons";
+                
+                if(vendor == "Advanced Micro Devices, Inc."){
+                    custom_icon_name = "amd";
+                }else if(vendor == "Altera Corporation"){
+                    custom_icon_name = "intel";
+                }else if(vendor == "NVIDIA Corporation"){
+                    custom_icon_name = "nvidia";
+                }
+                
+                break;
+            }
+            case NODE_KIND::OPENCL_DEVICE:{
+                auto type = viewItem->getData("type").toString();
+                
+                custom_icon_prefix = "Icons";
+                if(type == "CL_DEVICE_TYPE_CPU"){
+                    custom_icon_name = "cpu";
+                }else if(type == "CL_DEVICE_TYPE_GPU"){
+                    custom_icon_name = "gpu";
                 }
                 break;
             }
             case NODE_KIND::VARIADIC_PARAMETER:{
-                alias = "Icons";
-                image = "label";
+                default_icon_prefix = "Icons";
+                default_icon_name = "label";
                 break;
             }
             case NODE_KIND::FOR_LOOP:{
-                alias = "EntityIcons";
-                image = "WhileLoop";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "WhileLoop";
                 break;
             }
             case NODE_KIND::IF_CONDITION:
             case NODE_KIND::ELSEIF_CONDITION:
             case NODE_KIND::ELSE_CONDITION:{
-                alias = "EntityIcons";
-                image = "Condition";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Condition";
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+            
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::SERVER_PORT_IMPL:
+            case NODE_KIND::SERVER_PORT_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "ReplyPort";
+                break;
+            }
+
+            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::SERVER_REQUEST:
+            case NODE_KIND::CLIENT_PORT_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "RequestPort";
+                break;
+            }
+
+            case NODE_KIND::INPUT_PARAMETER:
+            case NODE_KIND::INPUT_PARAMETER_GROUP:{
+                default_icon_prefix = "Icons";
+                default_icon_name = "arrowToLineRight";
+                break;
+            }
+            case NODE_KIND::RETURN_PARAMETER:
+            case NODE_KIND::RETURN_PARAMETER_GROUP:{
+                default_icon_prefix = "Icons";
+                default_icon_name = "arrowLineLeft";
+                break;
+            }
             case NODE_KIND::VARIABLE_PARAMETER:{
-                alias = "EntityIcons";
-                image = "Variable";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Variable";
                 break;
             }
             case NODE_KIND::WORKER_DEFINITIONS:{
-                alias = "Icons";
-                image = "medeaLogo";
-                break;
-            }
-            case NODE_KIND::WORKER_PROCESS:
-            case NODE_KIND::INPUT_PARAMETER:
-            case NODE_KIND::RETURN_PARAMETER:{
-                if(icon_prefix.length() > 0 && icon.length() > 0){
-                    alias = icon_prefix;
-                    image = icon;
-                }
-                break;
-            }
-            case NODE_KIND::VECTOR:
-            case NODE_KIND::VECTOR_INSTANCE:{
-                //Check children
-                foreach(ViewItem* child, viewItem->getDirectChildren()){
-                    auto* node = (NodeViewItem*) child;
-                    if(child->isNode()){
-                        auto child_kind = node->getNodeKind();
-
-                        if(child_kind == NODE_KIND::MEMBER || child_kind == NODE_KIND::MEMBER_INSTANCE){
-                            image += "_Member";
-                        }else if(child_kind == NODE_KIND::AGGREGATE_INSTANCE){
-                            image += "_AggregateInstance";
-                        }
-                    }
-                    break;
-                }
+                default_icon_prefix = "Icons";
+                default_icon_name = "medeaLogo";
                 break;
             }
             case NODE_KIND::MODEL:
-                alias = "Icons";
-                image = "medeaLogo";
+                default_icon_prefix = "Icons";
+                default_icon_name = "medeaLogo";
                 break;
+            case NODE_KIND::EXTERNAL_TYPE:
+                default_icon_prefix = "Icons";
+                default_icon_name = "translate";
+                break;
+            case NODE_KIND::FUNCTION:
+            case NODE_KIND::WORKER_FUNCTIONCALL:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Workload";
+                break;
+            }
+            case NODE_KIND::WORKER_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "ManagementComponent";
+                break;
+            }
             case NODE_KIND::ENUM_INSTANCE:
             case NODE_KIND::ENUM:{
-                alias = "Icons";
-                image = "circleCirclesDark";
+                default_icon_prefix = "Icons";
+                default_icon_name = "circleCirclesDark";
                 break;
             }
             case NODE_KIND::ENUM_MEMBER:{
-                alias = "Icons";
-                image = "circleDark";
+                default_icon_prefix = "Icons";
+                default_icon_name = "circleDark";
                 break;
             }
             default:
@@ -648,22 +657,32 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         }else if(isEdge){
             switch(edgeViewItem->getEdgeKind()){
                 case EDGE_KIND::DEFINITION:{
-                    alias = "Icons";
-                    image = "gears";
+                    default_icon_prefix = "Icons";
+                    default_icon_name = "gears";
                 }
                 break;
             default:
                 break;
             }
         }
-        auto i = Theme::theme()->getIcon(alias, image);
-        if(!Theme::theme()->gotImage(alias, image)){
-            alias = "Icons";
-            image = "circleDark";
+
+        ;
+        auto got_icon = false;
+        if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
+            Theme::theme()->getIcon(default_icon_prefix, default_icon_name);
+            viewItem->setIcon(default_icon_prefix, default_icon_name);
+            got_icon = true;
         }
-        //Try and get the image
-        
-        viewItem->setIcon(alias, image);
+
+        if(Theme::theme()->gotImage(custom_icon_prefix, custom_icon_name)){
+            Theme::theme()->getIcon(custom_icon_prefix, custom_icon_name);
+            viewItem->setIcon(custom_icon_prefix, custom_icon_name);
+            got_icon = true;
+        }
+
+        if(!got_icon){
+            viewItem->setIcon("Icons", "circleQuestion");
+        }
     }
 }
 
@@ -871,7 +890,6 @@ void ViewController::setupEntityKindItems()
         QString label = EntityFactory::getNodeKindString(kind);
 
         auto item = new NodeViewItem(this, kind, label);
-        //qCritical() << label;
         setDefaultIcon(item);
         nodeKindItems[kind] = item;
     }
@@ -995,9 +1013,11 @@ bool ViewController::destructViewItem(ViewItem *item)
     if(!item){
         return false;
     }
+
     QList<ViewItem*> children;
     children.append(item);
     children.append(item->getNestedChildren());
+    
     QListIterator<ViewItem*> it(children);
     it.toBack();
     while(it.hasPrevious()){
@@ -1007,6 +1027,7 @@ bool ViewController::destructViewItem(ViewItem *item)
         }
         int ID = viewItem->getID();
 
+        
         if(viewItem->isNode()){
             //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
@@ -1018,24 +1039,6 @@ bool ViewController::destructViewItem(ViewItem *item)
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
-        ViewItem* parentItem = viewItem->getParentItem();
-        if(parentItem){
-            parentItem->removeChild(viewItem);
-
-            NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
-
-            if(parentItem->isNode()){
-                //Update the Icon of Vectors!
-                switch(parentNodeItem->getNodeKind()){
-                case NODE_KIND::VECTOR:
-                case NODE_KIND::VECTOR_INSTANCE:
-                    setDefaultIcon(parentItem);
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
 
         //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
@@ -1043,6 +1046,7 @@ bool ViewController::destructViewItem(ViewItem *item)
 
         //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
+
         viewItem->destruct();
     }
     return true;
@@ -1246,6 +1250,7 @@ void ViewController::TeardownController()
         emit vc_projectPathChanged("");
         emit mc_projectModified(false);
         destructViewItem(rootItem);
+
         nodeKindLookups.clear();
         edgeKindLookups.clear();
 
@@ -1447,7 +1452,7 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
     if(controller){
         data = controller->getEntityDataValue(ID, key_name);
     }
-    //qCritical() << "Data for: " << ID << " KEY : " << key_name << " = " << data;
+    // () << "Data for: " << ID << " KEY : " << key_name << " = " << data;
     return data;
 }
 
@@ -1503,13 +1508,15 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
 
-    //Fill with Data
-    foreach(QString key, getEntityKeys(id)){
+
+    for(const auto& key : getEntityKeys(id)){
         item->changeData(key, getEntityDataValue(id, key));
     }
 
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
+
+
     nodeKindLookups.insertMulti(kind, id);
     //Insert into map
     viewItems[id] = item;
@@ -1526,6 +1533,7 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
     auto view_item = getViewItem(ID);
+    //qCritical() << "DESTRUCT #" << ID << " " <<view_item->getData("kind").toString() << " = " << view_item->getData("label").toString();
     destructViewItem(view_item);
 }
 
@@ -1534,7 +1542,7 @@ void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        qCritical() << "== REPLY: " << ID << " KEY: " << key << " = " << data;
+        //qCritical() << "== REPLY: " << ID << " KEY: " << key << " = " << data;
         viewItem->changeData(key, data);
     }
 }
@@ -1961,16 +1969,6 @@ void ViewController::initializeController()
 }
 
 
-bool ViewController::destructChildItems(ViewItem *parent)
-{
-    QVectorIterator<ViewItem*> it(parent->getDirectChildren());
-    it.toBack();
-    while(it.hasPrevious()){
-        ViewItem* item = it.previous();
-        destructViewItem(item);
-    }
-    return true;
-}
 
 bool ViewController::clearVisualItems()
 {

@@ -10,6 +10,7 @@ class AttributeInstance : public DataNode
 protected:
 	AttributeInstance(EntityFactory* factory);
 	AttributeInstance();
+    void parentSet(Node* parent);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

@@ -3,7 +3,7 @@
 
 #include <QStyledItemDelegate>
 #include "../../Widgets/CodeEditor/codeeditor.h"
-
+#include "../../Widgets/iconpicker.h"
 class DataTableDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
@@ -16,16 +16,20 @@ public:
     void setEditorData(QWidget *editor, const QModelIndex &index) const;
     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
 
+    QPair<QModelIndex, QModelIndex> getModelIconIndex(const QAbstractItemModel* model, int column) const;
+
 private slots:
-    void submitPressed();
-    void closeDialog();
     void themeChanged();
 private:
     void setupLayout();
+    QDialog* get_editor_dialog();
+    QDialog* get_icon_dialog();
 
-    QWidget* parentWidget;
-    QDialog* dialog;
-    CodeEditor* codeEditor;
+    QWidget* parentWidget = 0;
+    QDialog* editor_dialog = 0;
+    QDialog* icon_dialog = 0;
+    IconPicker* icon_picker = 0;
+    CodeEditor* code_editor = 0;
 };
 
 #endif // DATATABLEDELEGATE_H

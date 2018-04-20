@@ -168,3 +168,8 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     }
     return EventPort::canAcceptEdge(edgeKind, dst);
 }
+
+
+QList<Node*> EventPortAssembly::getAdoptableNodes(Node*){
+    return QList<Node*>();
+}

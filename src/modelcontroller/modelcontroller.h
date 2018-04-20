@@ -72,7 +72,6 @@ public:
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
     QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
-    QList<int> getWorkerFunctions();
     
 
     bool isNodeOfType(int ID, NODE_TYPE type);
@@ -118,13 +117,14 @@ public slots:
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
-    void constructWorkerProcess(int parent_id, int dst_id, QPointF centerPoint);
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
 
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void destructAllEdges(QList<int> srcIDs, EDGE_KIND edgeClass);
 
     void triggerAction(QString actionName);
+
+    void addDependantsToDependants(Node* parent_node, Node* dependant);
 private slots:
     void ModelNameChanged();
 signals:
@@ -153,7 +153,7 @@ signals:
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
     void setCustomNodeData(Node* node);
-    double compare_medea_version(QString version);
+    double compare_version(QString current_version, QString version);
     QSet<NODE_KIND> getGUINodeKinds();
     bool canReplicate(QList<Entity*> selection);
     bool canCut(QList<Entity*> selection);
@@ -187,6 +187,7 @@ private:
     Node* construct_for_node(Node* parent);
     Node* construct_component_node(Node* parent);
     Node* construct_periodic_eventport(Node* parent);
+    Node* construct_SERVER_INTERFACE_node(Node* parent);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
@@ -218,11 +219,6 @@ private:
     Node* getImplementation(Node* node);
     Node* getDefinition(Node* node);
     QList<Node*> getInstances(Node* node);
-
-    //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    int constructDependantRelative(Node* parent, Node* definition);
-
-   
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
@@ -260,6 +256,8 @@ private:
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDefinitionRelationship(Node* src, Node* dst, bool setup=true);
+    bool setupDefinitionRelationship2(Node* src, Node* dst, bool setup=true);
+    
     bool setupAggregateRelationship(Node* src, Node* dst, bool setup);
     bool setupDataRelationship(Node *src, Node *dst, bool setup = true);
 
@@ -277,7 +275,8 @@ private:
     void unsetModelAction(MODEL_ACTION action);
     bool isUserAction();
     
-    Node* check_for_existing_node(Node* parent_node, NODE_KIND node_kind);
+    Node* get_persistent_node(NODE_KIND node_kind);
+    QList<Node*> get_matching_dependant_of_definition(Node* parent_node, Node* definition);
     
     QList<Node*> getNodes(QList<int> IDs);
 private:

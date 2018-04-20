@@ -64,7 +64,10 @@
 #include "Entities/BehaviourDefinitions/variableparameter.h"
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
 #include "Entities/BehaviourDefinitions/workerprocess.h"
+#include "Entities/workerfunction.h"
+#include "Entities/workerfunctioncall.h"
 #include "Entities/BehaviourDefinitions/workload.h"
+#include "Entities/BehaviourDefinitions/externaltype.h"
 
 //Instance Elements
 #include "Entities/DeploymentDefinitions/componentinstance.h"
@@ -72,6 +75,7 @@
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
 #include "Entities/DeploymentDefinitions/blackboxinstance.h"
+#include "Entities/DeploymentDefinitions/workerinstance.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
@@ -93,6 +97,8 @@
 #include "Entities/DeploymentDefinitions/outeventportdelegate.h"
 #include "Entities/DeploymentDefinitions/loggingprofile.h"
 #include "Entities/DeploymentDefinitions/loggingserver.h"
+#include "Entities/DeploymentDefinitions/openclplatform.h"
+#include "Entities/DeploymentDefinitions/opencldevice.h"
 
 //Definition Elements
 #include "Entities/InterfaceDefinitions/aggregate.h"
@@ -103,13 +109,33 @@
 #include "Entities/InterfaceDefinitions/member.h"
 #include "Entities/InterfaceDefinitions/outeventport.h"
 #include "Entities/InterfaceDefinitions/vector.h"
+#include "Entities/workerdefinition.h"
 
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
 #include "Entities/InterfaceDefinitions/namespace.h"
+
 #include "Entities/BehaviourDefinitions/class.h"
+#include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
+
+#include "Entities/InterfaceDefinitions/ClientServer/serverinterface.h"
+#include "Entities/InterfaceDefinitions/ClientServer/clientport.h"
+#include "Entities/InterfaceDefinitions/ClientServer/serverport.h"
+
+#include "Entities/BehaviourDefinitions/ClientServer/serverrequest.h"
+#include "Entities/BehaviourDefinitions/ClientServer/serverportimpl.h"
+
+#include "Entities/DeploymentDefinitions/ClientServer/serverportinstance.h"
+#include "Entities/DeploymentDefinitions/ClientServer/clientportinstance.h"
+
+#include "Entities/InterfaceDefinitions/inputparametergroup.h"
+#include "Entities/InterfaceDefinitions/returnparametergroup.h"
+
+#include "Entities/InterfaceDefinitions/voidtype.h"
+
+
 
 
 //QOS Elements
@@ -348,6 +374,7 @@ EntityFactory::EntityFactory()
 
     MEDEA::WhileLoop(this);
     MEDEA::ForLoop(this);
+    MEDEA::ExternalType(this);
 
     Code(this);
     Condition(this);
@@ -364,6 +391,8 @@ EntityFactory::EntityFactory()
     
     
     WorkerProcess(this);
+    WorkerFunction(this);
+    WorkerFunctionCall(this);
     Workload(this);
 
     //Instance Elements
@@ -375,6 +404,7 @@ EntityFactory::EntityFactory()
     AggregateInstance(this);
     MemberInstance(this);
     VectorInstance(this);
+    MEDEA::WorkerInstance(this);
     
     //Deployment Elements
     ComponentAssembly(this);
@@ -385,6 +415,9 @@ EntityFactory::EntityFactory()
     OutEventPortDelegate(this);
     LoggingProfile(this);
     LoggingServer(this);
+    
+    OpenCLDevice(this);
+    OpenCLPlatform(this);
 
     //Definition Elements
     Aggregate(this);
@@ -396,10 +429,13 @@ EntityFactory::EntityFactory()
     OutEventPort(this);
     Vector(this);
 
+    WorkerDefinition(this);
+
     Enum(this);
     EnumMember(this);
     EnumInstance(this);
     MEDEA::Class(this);
+    MEDEA::ClassInstance(this);
     MEDEA::Function(this);
     MEDEA::DeploymentAttribute(this);
 
@@ -432,6 +468,22 @@ EntityFactory::EntityFactory()
     IDL(this);
     SharedDatatypes(this);
     Namespace(this);
+
+    MEDEA::ServerInterface(this);
+    MEDEA::ServerPort(this);
+    MEDEA::ClientPort(this);
+
+    MEDEA::ServerPortInstance(this);
+    MEDEA::ClientPortInstance(this);
+
+    MEDEA::ServerPortImpl(this);
+    MEDEA::ServerRequest(this);
+
+
+    MEDEA::InputParameterGroup(this);
+    MEDEA::ReturnParameterGroup(this);
+
+    VoidType(this);
 
     //Edges
     DefinitionEdge(this);
@@ -776,7 +828,6 @@ void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
 
         if(!uuid.isEmpty()){
             uuid_lookup_.insert(uuid, entity->getID());
-            //qCritical() << "UUID[" << uuid_lookup_.size() << "]: " << uuid << " -> " << entity->toString();
         }
     }
 }
