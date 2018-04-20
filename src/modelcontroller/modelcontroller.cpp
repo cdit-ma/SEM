@@ -440,6 +440,7 @@ void ModelController::addDependantsToDependants(Node* parent_node, Node* source)
             for(auto dependant : parent_node->getDependants()){
                 auto construct_instance = dependant->isInstance();
                 auto dependant_kind = construct_instance ? source->getInstanceKind() : source->getImplKind();
+
                 auto dependant_child = construct_connected_node(dependant, dependant_kind, source, EDGE_KIND::DEFINITION);
             }
         }
@@ -462,6 +463,8 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
                 storeNode(source);
                 storeEdge(edge);
                 success = true;
+            }else{
+                qCritical() << "COULDN'T MAKE EDGE BETWEEN: " << source->toString() << " < - > " << destination->toString();
             }
         }
     }
@@ -504,6 +507,10 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
         }
         case NODE_KIND::PERIODICEVENT:{
             node = construct_periodic_eventport(parent_node);
+            break;
+        }
+        case NODE_KIND::SERVER_INTERFACE:{
+            node = construct_SERVER_INTERFACE_node(parent_node);
             break;
         }
         default:
@@ -714,6 +721,7 @@ Node* ModelController::construct_component_node(Node* parent){
         triggerAction("Constructing Component");
 
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        
         if(node){
             auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
@@ -737,12 +745,30 @@ Node* ModelController::construct_periodic_eventport(Node* parent){
                 setData_(duration, "row", 1, false);
                 setData_(duration, "icon", "clockCycle", false);
                 setData_(duration, "icon_prefix", "Icons", false);
+                
             }
             return node;
         }
     }
     return 0;
 }
+
+Node* ModelController::construct_SERVER_INTERFACE_node(Node* parent){
+    if(parent){
+        triggerAction("Constructing Request Reply");
+
+        auto node = construct_child_node(parent, NODE_KIND::SERVER_INTERFACE);
+
+        if(node){
+            auto request_type = construct_child_node(node, NODE_KIND::INPUT_PARAMETER_GROUP);
+            auto reply_type = construct_child_node(node, NODE_KIND::RETURN_PARAMETER_GROUP);
+            return node;
+        }
+    }
+    return 0;
+}
+
+
 
 
 void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
@@ -1002,25 +1028,22 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> 
 
     //Only itterate if we have nodes
     if(srcs_require_edge && src_nodes.size()){
-        for(auto id : node_ids_){
-            auto dst = entity_factory->GetNode(id);
-            if(dst && dst->acceptsEdgeKind(edge_kind)){
-                bool src2dst_valid = true;
-                bool dst2src_valid = true;
+        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind)){
+            bool src2dst_valid = true;
+            bool dst2src_valid = true;
 
-                
-                for(auto src : src_nodes){
-                    //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
-                    src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
-                    dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
-                }
-                
-                if(src2dst_valid){
-                    node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
-                }
-                if(dst2src_valid){
-                    node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
-                }
+            
+            for(auto src : src_nodes){
+                //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
+                src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
+                dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
+            }
+            
+            if(src2dst_valid){
+                node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
+            }
+            if(dst2src_valid){
+                node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
             }
         }
     }
@@ -1043,25 +1066,25 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     }
     
     if(!src_nodes.empty() && srcs_require_edge){
-        for(auto id : node_ids_){
-            auto dst = entity_factory->GetNode(id);
-            if(dst && dst->acceptsEdgeKind(edge_kind)){
-                bool all_valid = true;
-                for(auto src : src_nodes){
-                    auto src2dst = src->canAcceptEdge(edge_kind, dst);
-                    auto dst2src = try_backwards && dst->canAcceptEdge(edge_kind, src);
-                    auto valid = src2dst || dst2src;
-                    if(!valid){
-                        all_valid = false;
-                        break;
-                    }
+
+        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind)){
+            bool all_valid = true;
+
+            for(auto src : src_nodes){
+                auto src2dst = src->canAcceptEdge(edge_kind, dst);
+                auto dst2src = try_backwards && dst->canAcceptEdge(edge_kind, src);
+                auto valid = src2dst || dst2src;
+                if(!valid){
+                    all_valid = false;
+                    break;
                 }
-                if(all_valid){
-                    valid_nodes.append(dst);
-                }
+            }
+            if(all_valid){
+                valid_nodes.append(dst);
             }
         }
     }
+
     return valid_nodes;
 }
 
@@ -1704,7 +1727,10 @@ bool ModelController::canDeleteNode(Node *node)
             }
                 
             case NODE_KIND::FUNCTION_CALL:
+            case NODE_KIND::SERVER_REQUEST:
             case NODE_KIND::OUTEVENTPORT_IMPL:
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::CLIENT_PORT:
             case NODE_KIND::COMPONENT_INSTANCE:
                 // These node kinds can be destroyed at any time
                 break;
@@ -1753,9 +1779,10 @@ void ModelController::ModelNameChanged()
 
 EDGE_KIND ModelController::getValidEdgeClass(Node *src, Node *dst)
 {
-    foreach(EDGE_KIND edgeClass, entity_factory->getEdgeKinds()){
-        if(src->canAcceptEdge(edgeClass, dst)){
-            return edgeClass;
+
+    for(auto edge_kind : entity_factory->getEdgeKinds()){
+        if(src->canAcceptEdge(edge_kind, dst)){
+            return edge_kind;
         }
     }
     return EDGE_KIND::NONE;
@@ -1763,14 +1790,14 @@ EDGE_KIND ModelController::getValidEdgeClass(Node *src, Node *dst)
 
 QList<EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node *dst)
 {
-    QList<EDGE_KIND> edgeKinds;
+    QList<EDGE_KIND> edge_kinds;
 
-    foreach(EDGE_KIND edgeClass, GetEdgeOrderIndexes()){
-        if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass) && src->requiresEdgeKind(edgeClass)){
-            edgeKinds << edgeClass;
+    for(auto edge_kind : GetEdgeOrderIndexes()){
+        if(src->acceptsEdgeKind(edge_kind) && dst->acceptsEdgeKind(edge_kind) && src->requiresEdgeKind(edge_kind)){
+            edge_kinds << edge_kind;
         }
     }
-    return edgeKinds;
+    return edge_kinds;
 }
 
 QString ModelController::_copy(QList<Entity *> selection)
@@ -1798,11 +1825,15 @@ void ModelController::setCustomNodeData(Node* node){
             new_data["column"] = 2;
             break;
         }
+        case NODE_KIND::SERVER_PORT:
+        case NODE_KIND::SERVER_PORT_INSTANCE:
         case NODE_KIND::INEVENTPORT:
         case NODE_KIND::INEVENTPORT_INSTANCE:{
             new_data["row"] = 0;
             break;
         }
+        case NODE_KIND::CLIENT_PORT:
+        case NODE_KIND::CLIENT_PORT_INSTANCE:
         case NODE_KIND::OUTEVENTPORT:
         case NODE_KIND::OUTEVENTPORT_INSTANCE:{
             new_data["row"] = 2;
@@ -1828,6 +1859,16 @@ void ModelController::setCustomNodeData(Node* node){
             new_data["column"] = -1;
             break;
         }
+
+        case NODE_KIND::INPUT_PARAMETER_GROUP:
+            new_data["row"] = 0;
+            new_data["column"] = -1;
+            break;
+        case NODE_KIND::RETURN_PARAMETER_GROUP:
+            new_data["row"] = 0;
+            new_data["column"] = 1;
+            break;
+
         default:
             break;
     }
@@ -1929,10 +1970,11 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
     if(!(instance && definition)){
         return false;
     }
-    //qCritical() << "Trying to setup Definition Relationship between: " << instance->toString() << " & " << definition->toString();
+    
 
     auto construct_instance = instance->isInstance();
     auto construct_implementation = instance->isImpl();
+
 
     //Construct the Relationship at the Node Level
     if(instance->gotEdgeTo(definition, EDGE_KIND::DEFINITION)){
@@ -1998,7 +2040,9 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         auto eventport = (EventPort*) src;
         auto aggregate = (Aggregate*) dst;
 
-        bool construct_instance = setup && isUserAction() && (eventport->getNodeKind() == NODE_KIND::INEVENTPORT || eventport->getNodeKind() == NODE_KIND::OUTEVENTPORT);
+        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::INEVENTPORT, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+
+        bool construct_instance = setup && isUserAction() && (instance_kinds.contains(eventport->getNodeKind()));
         //Only auto construct if we are processing a user action.
         if(construct_instance){
             Node* aggregate_instance = 0;

@@ -11,8 +11,8 @@
         <file alias="AttributeImpl">Resources/EntityIcons/AttributeImpl.png</file>
         <file alias="AttributeInstance">Resources/EntityIcons/AttributeInstance.png</file>
         <file alias="BehaviourDefinitions">Resources/EntityIcons/BehaviourDefinitions.png</file>
-        <file alias="BlackBox">Resources/EntityIcons/BlackBox.png</file>
-        <file alias="BlackBoxInstance">Resources/EntityIcons/BlackBoxInstance.png</file>
+        <file alias="Class">Resources/EntityIcons/Class.png</file>
+        <file alias="ClassInstance">Resources/EntityIcons/ClassInstance.png</file>
         <file alias="Code">Resources/EntityIcons/Code.png</file>
         <file alias="Component">Resources/EntityIcons/Component.png</file>
         <file alias="ComponentAssembly">Resources/EntityIcons/ComponentAssembly.png</file>
@@ -42,9 +42,6 @@
         <file alias="Linux_amd64">Resources/EntityIcons/Linux_amd64.png</file>
         <file alias="Linux_arm">Resources/EntityIcons/Linux_arm.png</file>
         <file alias="Linux_x86">Resources/EntityIcons/Linux_x86.png</file>
-        <file alias="Localhost">Resources/EntityIcons/Localhost.png</file>
-        <file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
-        <file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
         <file alias="ManagementComponent">Resources/EntityIcons/ManagementComponent.png</file>
         <file alias="Member">Resources/EntityIcons/Member.png</file>
         <file alias="MemberInstance">Resources/EntityIcons/MemberInstance.png</file>
@@ -54,9 +51,7 @@
         <file alias="OutEventPortImpl">Resources/EntityIcons/OutEventPortImpl.png</file>
         <file alias="OutEventPortInstance">Resources/EntityIcons/OutEventPortInstance.png</file>
         <file alias="PeriodicEvent">Resources/EntityIcons/PeriodicEvent.png</file>
-        <file alias="Process">Resources/EntityIcons/Process.png</file>
         <file alias="QOSProfile">Resources/EntityIcons/QOSProfile.png</file>
-        <file alias="Setter">Resources/EntityIcons/Setter.png</file>
         <file alias="SharedDatatypes">Resources/EntityIcons/SharedDatatypes.png</file>
         <file alias="Termination">Resources/EntityIcons/Termination.png</file>
         <file alias="Variable">Resources/EntityIcons/Variable.png</file>
@@ -70,8 +65,13 @@
         <file alias="Windows7_amd64">Resources/EntityIcons/Windows7_amd64.png</file>
         <file alias="Windows7_arm">Resources/EntityIcons/Windows7_arm.png</file>
         <file alias="Windows7_x86">Resources/EntityIcons/Windows7_x86.png</file>
-        <file alias="WorkerProcess">Resources/EntityIcons/WorkerProcess.png</file>
-        
+        <file alias="Workload">Resources/EntityIcons/Workload.png</file>
+        <file alias="LoggingProfile">Resources/EntityIcons/LoggingProfile.png</file>
+        <file alias="LoggingServer">Resources/EntityIcons/LoggingServer.png</file>
+        <file alias="Setter">Resources/EntityIcons/Setter.png</file>
+        <file alias="RequestPort">Resources/EntityIcons/RequestPort.png</file>
+        <file alias="ReplyPort">Resources/EntityIcons/ReplyPort.png</file>
+        <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>

@@ -32,14 +32,14 @@ public:
 
 private:
     QPointF validateMove(QPointF delta);
-
+protected:
     QRectF headerRect() const;
+private:
     QRectF connectRect() const;
     QRectF connectSourceRect() const;
     QRectF connectTargetRect() const;
     QRectF edgeKindRect() const;
     QRectF innerHeaderRect() const;
-
     QRectF headerTextRect() const;
     QRectF tertiaryIconRect() const;
     QRectF iconRect() const;

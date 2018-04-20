@@ -39,6 +39,8 @@ class Node : public Entity
         static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
     public:
         static void BindDataRelationship(Node* source, Node* destination, bool setup);
+    signals:
+        void acceptedEdgeKindsChanged(Node* node);
     protected:
 
         //Constuctor
@@ -57,12 +59,14 @@ class Node : public Entity
         void setInstanceKind(NODE_KIND kind);
         void setDefinitionKind(NODE_KIND kind);
         void setImplKind(NODE_KIND kind);
+        QSet<EDGE_KIND> getAcceptedEdgeKinds() const;
     public:
         NODE_KIND getInstanceKind() const;
         NODE_KIND getDefinitionKind() const;
         NODE_KIND getImplKind() const;
 
         virtual QList<Node*> getAdoptableNodes(Node* definition);
+        virtual QSet<Node*> getDependants() const;
 
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
@@ -171,7 +175,7 @@ class Node : public Entity
     void addImplementation(Node* impl);
     QList<Node*> getImplementations() const;
     QSet<Node*> getNestedDependants();
-    QSet<Node*> getDependants() const;
+    
 
     void removeImplementation(Node* impl);
 
@@ -226,7 +230,7 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QSet<EDGE_KIND> valid_edge_kinds;
+    QSet<EDGE_KIND> accepted_edge_kinds_;
 
     NODE_KIND definition_kind_;
     NODE_KIND instance_kind_;

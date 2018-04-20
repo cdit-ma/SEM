@@ -11,6 +11,7 @@
 
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
+#include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/managementcomponentnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 
@@ -317,14 +318,31 @@ void NodeView::clearSelection()
 
 void NodeView::themeChanged()
 {
-
+    auto theme = Theme::theme();
     if(isAspectView){
-        background_color = Theme::theme()->getAspectBackgroundColor(containedAspect);
+        background_color = theme->getAspectBackgroundColor(containedAspect);
     }else{
-        background_color = Theme::theme()->getAltBackgroundColor();
+        background_color = theme->getAltBackgroundColor();
     }
     background_text_color = background_color.darker(110);
     setBackgroundBrush(background_color);
+
+    auto body_color = theme->getAltBackgroundColor();
+    auto text_color = theme->getTextColor();
+    auto header_color = theme->getBackgroundColor();
+    auto highlight_color = theme->getHighlightColor();
+    QPen pen(theme->getTextColor(ColorRole::DISABLED));
+    pen.setCosmetic(true);
+
+    for(auto entity : guiItems){
+        if(entity){
+            entity->setBaseBodyColor(body_color);
+            entity->setTextColor(text_color);
+            entity->setHeaderColor(header_color);
+            entity->setHighlightColor(highlight_color);
+            entity->setDefaultPen(pen);
+        }
+    }
 }
 
 void NodeView::node_ConnectMode(NodeItem *item)
@@ -890,16 +908,28 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+
+            case NODE_KIND::SERVER_PORT_INSTANCE:
+            case NODE_KIND::CLIENT_PORT_INSTANCE:
             case NODE_KIND::INEVENTPORT_INSTANCE:
             case NODE_KIND::OUTEVENTPORT_INSTANCE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new CompactNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
-                if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
-                }else{
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+
+                switch(nodeKind){
+                    case NODE_KIND::INEVENTPORT_INSTANCE:
+                    case NODE_KIND::SERVER_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
+                    case NODE_KIND::OUTEVENTPORT_INSTANCE:
+                    case NODE_KIND::CLIENT_PORT_INSTANCE:{
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::ASSEMBLY);
+                        break;
+                    }
                 }
+                
                 secondary_icon.second = "tiles";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
@@ -1050,6 +1080,25 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "bracketsAngled";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
+            case NODE_KIND::SERVER_PORT:
+            case NODE_KIND::CLIENT_PORT:
+            case NODE_KIND::SERVER_REQUEST:
+            case NODE_KIND::SERVER_INTERFACE:{
+                auto stack_item = new StackNodeItem(item, parentNode);
+                nodeItem = stack_item;
+
+                stack_item->setAlignment(Qt::Horizontal);
+                auto parameter_color = stack_item->getHeaderColor().lighter(110);
+                auto text_color = Qt::darkGray;
+
+                //stack_item->SetRenderCellArea(0, -1, true, parameter_color);
+                stack_item->SetRenderCellText(0, -1, true, "REQUEST", text_color);
+                
+                //stack_item->SetRenderCellArea(0, 1, true, parameter_color);
+                stack_item->SetRenderCellText(0, 1, true, "REPLY", text_color);
+                //stack_item->SetCellMargins(0, 1, margin);
+                break;
+            }
             case NODE_KIND::INEVENTPORT:
             case NODE_KIND::OUTEVENTPORT:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -1088,7 +1137,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
              case NODE_KIND::FUNCTION:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);
-
                 break;
             default:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -1105,6 +1153,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                     nodeItem->setExpandedHeight(20);
                     nodeItem->setExpandedWidth(20*3);
+
+                    if(nodeKind == NODE_KIND::INEVENTPORT_INSTANCE || nodeKind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+                        nodeItem->setMinimumHeight(20);
+                        nodeItem->setMinimumWidth(40);
+
+                        nodeItem->setExpandedHeight(20);
+                        nodeItem->setExpandedWidth(40);
+                    }
                 }
                 
                 
@@ -1118,14 +1174,22 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
                 }
 
+                auto theme = Theme::theme();
+                nodeItem->setBaseBodyColor(theme->getAltBackgroundColor());
+                nodeItem->setHeaderColor(theme->getBackgroundColor());
+                nodeItem->setTextColor(theme->getTextColor());
+                QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
+                defaultPen.setCosmetic(true);
+                nodeItem->setDefaultPen(defaultPen);
+
+
                 if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
                     if(stack_item){
                    
                         stack_item->setAlignment(Qt::Horizontal);
                         auto header_color = stack_item->getHeaderColor();;
-                        auto parameter_color = stack_item->getHeaderColor().lighter(110);
-                        auto text_color = Qt::darkGray;
-
+                        auto parameter_color = theme->getDisabledBackgroundColor();
+                        auto text_color = stack_item->getTextColor();
                         
 
                         if(nodeKind == NODE_KIND::COMPONENT_IMPL || nodeKind == NODE_KIND::CLASS){

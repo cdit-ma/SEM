@@ -20,6 +20,8 @@ InputParameter::InputParameter(): Parameter(NODE_KIND::INPUT_PARAMETER)
 
 bool InputParameter::canAdoptChild(Node *)
 {
+    
+
     return false;
 }
 

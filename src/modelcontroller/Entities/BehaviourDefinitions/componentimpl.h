@@ -10,6 +10,7 @@ class ComponentImpl: public Node
 protected:
 	ComponentImpl(EntityFactory* factory);
 	ComponentImpl();
+    QSet<Node*> getDependants() const;
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

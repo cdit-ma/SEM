@@ -52,7 +52,17 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const = 0;
     virtual QPointF getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const = 0;
 
+    QColor getTextColor() const;
+    void setTextColor(QColor color);
 
+    virtual QColor getHeaderColor() const;
+    void setHeaderColor(QColor color);
+
+
+    QColor getHighlightColor() const;
+    void setHighlightColor(QColor color);
+   
+    
     QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
     void setBaseBodyColor(QColor color);
@@ -222,7 +232,7 @@ public:
 private:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
-    QPixmap getPixmap(QString imageAlias, QString imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
+    QPixmap getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
     QSize getPixmapSize(QRectF rect, qreal lod) const;
 
     void connectViewItem(ViewItem* viewItem);
@@ -242,6 +252,8 @@ public:
     QPair<QString, QString> notification_icon;
     QColor notification_color;
     bool paint_notification = false;
+protected:
+    StaticTextItem* getTextItem(ELEMENT_RECT rect);
 private:
 
     //QHash<ELEMENT_RECT, ImageMap> imageMap;
@@ -273,6 +285,9 @@ private:
 
     QPen defaultPen;
     QColor bodyColor;
+    QColor text_color;
+    QColor highlight_color;
+    QColor header_color;
 
     KIND kind;
     bool ignorePosition;

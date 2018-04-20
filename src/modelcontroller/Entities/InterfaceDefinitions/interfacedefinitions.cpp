@@ -28,6 +28,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     case NODE_KIND::COMPONENT:
     case NODE_KIND::SHARED_DATATYPES:
     case NODE_KIND::NAMESPACE:
+    case NODE_KIND::SERVER_INTERFACE:
         break;
     default:
         return false;

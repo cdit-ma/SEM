@@ -30,6 +30,22 @@ enum class NODE_KIND
         ENUM,
         ENUM_INSTANCE,
         ENUM_MEMBER,
+        NAMESPACE,
+
+        SERVER_INTERFACE,
+        SERVER_PORT,
+        CLIENT_PORT,
+        SERVER_PORT_IMPL,
+        SERVER_PORT_INSTANCE,
+        SERVER_REQUEST,
+        CLIENT_PORT_INSTANCE,
+        INPUT_PARAMETER_GROUP,
+        RETURN_PARAMETER_GROUP,
+        VOID_TYPE,
+
+        
+        
+
 
         COMPONENT_ASSEMBLY,
         MANAGEMENT_COMPONENT,
@@ -75,7 +91,6 @@ enum class NODE_KIND
         SETTER,
         LOGGINGSERVER,
         LOGGINGPROFILE,
-        NAMESPACE,
         DEPLOYMENT_ATTRIBUTE,
         EXTERNAL_TYPE,
 

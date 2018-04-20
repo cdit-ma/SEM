@@ -109,9 +109,27 @@
 #include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
 #include "Entities/InterfaceDefinitions/namespace.h"
+
 #include "Entities/BehaviourDefinitions/class.h"
 #include "Entities/BehaviourDefinitions/classinstance.h"
 #include "Entities/BehaviourDefinitions/function.h"
+
+#include "Entities/InterfaceDefinitions/ClientServer/serverinterface.h"
+#include "Entities/InterfaceDefinitions/ClientServer/clientport.h"
+#include "Entities/InterfaceDefinitions/ClientServer/serverport.h"
+
+#include "Entities/BehaviourDefinitions/ClientServer/serverrequest.h"
+#include "Entities/BehaviourDefinitions/ClientServer/serverportimpl.h"
+
+#include "Entities/DeploymentDefinitions/ClientServer/serverportinstance.h"
+#include "Entities/DeploymentDefinitions/ClientServer/clientportinstance.h"
+
+#include "Entities/InterfaceDefinitions/inputparametergroup.h"
+#include "Entities/InterfaceDefinitions/returnparametergroup.h"
+
+#include "Entities/InterfaceDefinitions/voidtype.h"
+
+
 
 
 //QOS Elements
@@ -286,6 +304,10 @@ void EntityFactory::RegisterDefaultData(EDGE_KIND kind, QString key_name, QVaria
     }
 }
 
+QSet<Node*> EntityFactory::GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind){
+    return accepted_edge_map.value(edge_kind);
+}
+
 
 void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
     auto node = getNodeStruct(kind);
@@ -435,6 +457,22 @@ EntityFactory::EntityFactory()
     SharedDatatypes(this);
     Namespace(this);
 
+    MEDEA::ServerInterface(this);
+    MEDEA::ServerPort(this);
+    MEDEA::ClientPort(this);
+
+    MEDEA::ServerPortInstance(this);
+    MEDEA::ClientPortInstance(this);
+
+    MEDEA::ServerPortImpl(this);
+    MEDEA::ServerRequest(this);
+
+
+    MEDEA::InputParameterGroup(this);
+    MEDEA::ReturnParameterGroup(this);
+
+    VoidType(this);
+
     //Edges
     DefinitionEdge(this);
     AggregateEdge(this);
@@ -549,6 +587,7 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
 void EntityFactory::StoreEntity(GraphML* graphml, int id){
     if(graphml){
         graphml->setFactory(this);
+        
 
         
         RegisterEntity(graphml, id);
@@ -638,6 +677,10 @@ QList<Key*> EntityFactory::GetKeys(){
 
 void EntityFactory::DestructEntity(GraphML* graphml){
     if(graphml){
+        if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
+            auto node = (Node*) graphml;
+            clearAcceptedEdgeKinds(node);
+        }
         //This will deregister
         delete graphml;
     }
@@ -721,17 +764,46 @@ void EntityFactory::RegisterEntity(GraphML* graphml, int id){
         if(id > -1){
             if(!hash_.contains(id)){
                 hash_.insert(id, graphml);
+
+                if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
+                    auto node = (Node*) graphml;
+                    acceptedEdgeKindsChanged(node);
+                }
             }else{
                 qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
             }
         }
     }
 }
+void EntityFactory::acceptedEdgeKindsChanged(Node* node){
+    auto accepted_edge_kinds = node->getAcceptedEdgeKinds();
+
+    
+    for(auto edge_kind : getEdgeKinds()){
+        auto& edge_map = accepted_edge_map[edge_kind];
+
+        if(accepted_edge_kinds.contains(edge_kind)){
+            edge_map.insert(node);
+        }else{
+            edge_map.remove(node);
+        }
+    }
+}
+
+void EntityFactory::clearAcceptedEdgeKinds(Node* node){
+    for(auto edge_kind : getEdgeKinds()){
+        auto& edge_map = accepted_edge_map[edge_kind];
+        edge_map.remove(node);
+    }
+}
+
 
 void EntityFactory::DeregisterEntity(GraphML* graphml){
     if(graphml){
         auto id = graphml->getID();
         hash_.remove(id);
+
+        
     }
 }
 

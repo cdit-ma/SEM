@@ -324,5 +324,7 @@ public:
     // EntityItemNew interface
 public:
     QPointF getTopLeftOffset() const;
+private:
+    QColor header_color;
 };
 #endif //NODEITEM_H

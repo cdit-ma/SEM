@@ -1515,12 +1515,14 @@ QColor NodeItem::getBodyColor() const
 
 QColor NodeItem::getHeaderColor() const
 {
-    auto color = getBodyColor().darker(120);
+    auto color = EntityItem::getHeaderColor();
     if(!isHighlighted() && paint_notification){
         color = Theme::blendColors(notification_color, color, .60);
     }
     return color;
 }
+
+
 
 QPointF NodeItem::getTopLeftOffset() const
 {
