@@ -1,6 +1,5 @@
 #include "workerdefinitions.h"
 #include "../nodekinds.h"
-#include "BehaviourDefinitions/workload.h"
 
 WorkerDefinitions::WorkerDefinitions(EntityFactory* factory) : Node(factory, NODE_KIND::WORKER_DEFINITIONS, "WorkerDefinitions"){
 	auto node_kind = NODE_KIND::WORKER_DEFINITIONS;
@@ -27,8 +26,7 @@ VIEW_ASPECT WorkerDefinitions::getViewAspect() const
 bool WorkerDefinitions::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
-    case NODE_KIND::WORKLOAD:
-    case NODE_KIND::WORKER_DEFINITION:
+    case NODE_KIND::CLASS:
         break;
     default:
         return false;

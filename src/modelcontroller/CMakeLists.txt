@@ -45,14 +45,12 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/outeventportimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicevent.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/functioncall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinstance.cpp
@@ -97,7 +95,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/edge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/aggregateedge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/assemblyedge.cpp
@@ -141,10 +138,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
@@ -157,9 +151,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.h
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunction.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerfunctioncall.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.h
@@ -234,16 +225,12 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/blackboxinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/workerinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workload.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/workerprocess.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/process.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/outeventportimpl.h
@@ -262,6 +249,8 @@ set(HEADERS
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/functioncall.h
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h

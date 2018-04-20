@@ -28,7 +28,7 @@ bool ComponentInstance::canAdoptChild(Node *child)
     case NODE_KIND::ATTRIBUTE_INSTANCE:
     case NODE_KIND::INEVENTPORT_INSTANCE:
     case NODE_KIND::OUTEVENTPORT_INSTANCE:
-    case NODE_KIND::WORKER_INSTANCE:
+    case NODE_KIND::CLASS_INSTANCE:
     case NODE_KIND::PERIODICEVENT:
         break;
     default:
@@ -62,6 +62,8 @@ bool ComponentInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return Node::canAcceptEdge(edgeKind, dst);
 
 }
+
+#include <QDebug>
 
 QList<Node*> ComponentInstance::getAdoptableNodes(Node* definition){
     //Get the base nodes first

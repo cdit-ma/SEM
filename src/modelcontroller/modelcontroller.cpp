@@ -24,7 +24,6 @@
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/datanode.h"
-#include "Entities/BehaviourDefinitions/workerprocess.h"
 #include "Entities/DeploymentDefinitions/eventportdelegate.h"
 
 inline QPair<bool, QString> readFile(QString filePath)
@@ -1693,7 +1692,7 @@ bool ModelController::canDeleteNode(Node *node)
 
         if(node->getDefinition()){
             switch(node_kind){
-            case NODE_KIND::WORKER_INSTANCE:{
+            case NODE_KIND::CLASS_INSTANCE:{
                 auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
                  switch(parent_node_kind){
                     case NODE_KIND::COMPONENT_INSTANCE:
@@ -1704,7 +1703,7 @@ bool ModelController::canDeleteNode(Node *node)
                 break;
             }
                 
-            case NODE_KIND::WORKER_FUNCTIONCALL:
+            case NODE_KIND::FUNCTION_CALL:
             case NODE_KIND::OUTEVENTPORT_IMPL:
             case NODE_KIND::COMPONENT_INSTANCE:
                 // These node kinds can be destroyed at any time
@@ -1794,8 +1793,7 @@ void ModelController::setCustomNodeData(Node* node){
             }
             break;
         }
-        case NODE_KIND::CLASS_INSTANCE:
-        case NODE_KIND::WORKER_INSTANCE:{
+        case NODE_KIND::CLASS_INSTANCE:{
             new_data["row"] = 1;
             new_data["column"] = 2;
             break;
@@ -1958,6 +1956,10 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
         for(auto def_child : instance->getAdoptableNodes(definition)){
             if(def_child->isDefinition()){
                 bool construct_dependant = true;
+
+                if (def_child->getNodeKind() == NODE_KIND::CLASS_INSTANCE) {
+                    qCritical() << def_child->toString() << "djabdkjakjdsba";
+                }
 
                 for(auto matching_dependant : get_matching_dependant_of_definition(instance, def_child)){
                     construct_edge(EDGE_KIND::DEFINITION, matching_dependant, def_child);
@@ -2170,8 +2172,6 @@ QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     auto node_set = QSet<NODE_KIND>::fromList(entity_factory->getNodeKinds());
     node_set.remove(NODE_KIND::NONE);
     node_set.remove(NODE_KIND::IDL);
-    node_set.remove(NODE_KIND::WORKLOAD);
-    node_set.remove(NODE_KIND::PROCESS);
     return node_set;
 }
 

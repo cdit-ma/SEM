@@ -26,17 +26,9 @@ MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
 bool MEDEA::ClassInstance::ClassInstance::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-        case NODE_KIND::ATTRIBUTE:
-            break;
         case NODE_KIND::ATTRIBUTE_INSTANCE:
-            if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                return false;
-            }
-            break;
         case NODE_KIND::FUNCTION:
-            if(getViewAspect() != VIEW_ASPECT::BEHAVIOUR){
-                return false;
-            }
+        case NODE_KIND::CLASS_INSTANCE:
             break;
     default:
         return false;
@@ -50,14 +42,35 @@ bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Nod
         return false;
     }
 
+    auto parent_node = getParentNode();
+    auto parent_node_kind = parent_node ? parent_node->getNodeKind() : NODE_KIND::NONE;
+
     switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         switch(dst->getNodeKind()){
             case NODE_KIND::CLASS:
             case NODE_KIND::CLASS_INSTANCE:{
-                if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
-                    if(dst->getViewAspect() != VIEW_ASPECT::BEHAVIOUR) {
+                if(parent_node_kind == NODE_KIND::COMPONENT_INSTANCE){
+                    auto parent_node_def = parent_node->getDefinition(true);
+                    bool in_ancestor = false;
+                    for(auto impl : parent_node_def->getImplementations()){
+                        if(impl->isAncestorOf(dst)){
+                            in_ancestor = true;
+                            break;
+                        }
+                    }
+                    
+                    if(!in_ancestor){
                         return false;
+                    }
+                }else{
+                    switch (dst->getParentNode()->getNodeKind()) {
+                        // Should only be able to have top level parents
+                        case NODE_KIND::BEHAVIOUR_DEFINITIONS:
+                        case NODE_KIND::WORKER_DEFINITIONS:
+                            break;
+                        default:
+                            return false;
                     }
                 }
                 break;

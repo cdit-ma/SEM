@@ -24,14 +24,10 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::AGGREGATE_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_IMPL] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::WORKER_PROCESS] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::ENUM_INSTANCE] = EDGE_KIND::DEFINITION;
 
-    connect_node_edge_kinds[NODE_KIND::WORKER_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::CLASS_INSTANCE] = EDGE_KIND::DEFINITION;
-    
-    connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTION] = EDGE_KIND::DEFINITION;
-    connect_node_edge_kinds[NODE_KIND::WORKER_FUNCTIONCALL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::FUNCTION_CALL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::EXTERNAL_TYPE] = EDGE_KIND::DEFINITION;
     
 
@@ -895,7 +891,7 @@ void ContextMenu::setupMenus(){
     dock_add_node_menu->addAction(empty_action);
 
     //LOAD ALL 
-    add_node_action_hash[NODE_KIND::WORKER_PROCESS]->menu()->setProperty("load_all", true);
+    add_node_action_hash[NODE_KIND::FUNCTION_CALL]->menu()->setProperty("load_all", true);
 
    
 

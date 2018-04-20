@@ -805,9 +805,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             QPair<QString, QString> secondary_icon;
             secondary_icon.first = "Icons";
             switch(nodeKind){
-            case NODE_KIND::WORKER_FUNCTION:{
+            /*case NODE_KIND::FUNCTION:{
                 return;
-            }
+            }*/
             case NODE_KIND::HARDWARE_NODE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
@@ -946,9 +946,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "gear";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::WORKER_PROCESS:
-            case NODE_KIND::PROCESS:
-            case NODE_KIND::WORKER_FUNCTIONCALL:
+            case NODE_KIND::FUNCTION_CALL:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("workerID");
                 secondary_icon.second = "spanner";

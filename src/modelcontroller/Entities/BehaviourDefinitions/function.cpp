@@ -12,6 +12,14 @@ MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kin
 MEDEA::Function::Function(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+
+        setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    setNodeType(NODE_TYPE::INSTANCE);
+    setNodeType(NODE_TYPE::DEFINITION);
+
+    setInstanceKind(NODE_KIND::FUNCTION);
+    setImplKind(NODE_KIND::FUNCTION);
+    setDefinitionKind(NODE_KIND::FUNCTION);
 }
 
 bool MEDEA::Function::Function::canAdoptChild(Node* child)
@@ -21,6 +29,11 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
         case NODE_KIND::INEVENTPORT_IMPL:
         case NODE_KIND::OUTEVENTPORT_IMPL:
             return false;
+        // Should be replaced by parameter groups when they're ready
+        case NODE_KIND::INPUT_PARAMETER:
+        case NODE_KIND::RETURN_PARAMETER:
+        case NODE_KIND::VARIABLE_PARAMETER:
+            break;
         default:
             if(!ContainerNode::canAdoptChild(child)){
                 return false;
@@ -30,7 +43,32 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
     return Node::canAdoptChild(child);
 }
 
-bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND, Node *)
+bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
-    return false;
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
+
+    switch(edgeKind){
+        case EDGE_KIND::DEFINITION:{
+            if(dst->getNodeKind() != NODE_KIND::FUNCTION){
+                return false;
+            }
+
+            
+            if(getParentNode()->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
+
+                if(!dst->getDefinition()){
+                    return false;
+                }
+            }
+            
+            //return true;
+            break;
+        }
+        default:
+            break;
+    }
+
+    return Node::canAcceptEdge(edgeKind, dst);
 }

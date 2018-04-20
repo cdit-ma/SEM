@@ -44,14 +44,14 @@ bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             auto container = getTopLevelContainer();
             auto dst_parent = dst->getParentNode();
 
-            if(dst_parent->getNodeKind() != NODE_KIND::WORKER_DEFINITION){
+            if(dst_parent->getNodeKind() != NODE_KIND::CLASS){
                 return false;
             }
 
 
             bool got_instance = false;
             if(container){
-                for(auto child : container->getChildrenOfKind(NODE_KIND::WORKER_INSTANCE)){
+                for(auto child : container->getChildrenOfKind(NODE_KIND::CLASS_INSTANCE)){
                     if(child->getDefinition(true) == dst_parent){
                         got_instance = true;
                         break;

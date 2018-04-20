@@ -57,16 +57,12 @@
 #include "Entities/BehaviourDefinitions/header.h"
 #include "Entities/BehaviourDefinitions/inputparameter.h"
 #include "Entities/BehaviourDefinitions/periodicevent.h"
-#include "Entities/BehaviourDefinitions/process.h"
 #include "Entities/BehaviourDefinitions/returnparameter.h"
 #include "Entities/BehaviourDefinitions/setter.h"
 #include "Entities/BehaviourDefinitions/variable.h"
 #include "Entities/BehaviourDefinitions/variableparameter.h"
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
-#include "Entities/BehaviourDefinitions/workerprocess.h"
-#include "Entities/workerfunction.h"
-#include "Entities/workerfunctioncall.h"
-#include "Entities/BehaviourDefinitions/workload.h"
+#include "Entities/BehaviourDefinitions/functioncall.h"
 #include "Entities/BehaviourDefinitions/externaltype.h"
 
 //Instance Elements
@@ -75,7 +71,6 @@
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
 #include "Entities/DeploymentDefinitions/blackboxinstance.h"
-#include "Entities/DeploymentDefinitions/workerinstance.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
@@ -109,7 +104,6 @@
 #include "Entities/InterfaceDefinitions/member.h"
 #include "Entities/InterfaceDefinitions/outeventport.h"
 #include "Entities/InterfaceDefinitions/vector.h"
-#include "Entities/workerdefinition.h"
 
 //Elements
 #include "Entities/InterfaceDefinitions/idl.h"
@@ -360,7 +354,6 @@ EntityFactory::EntityFactory()
     Header(this);
     InputParameter(this);
     PeriodicEvent(this);
-    Process(this);
     ReturnParameter(this);
     Setter(this);
     Variable(this);
@@ -368,10 +361,7 @@ EntityFactory::EntityFactory()
     VariadicParameter(this);
     
     
-    WorkerProcess(this);
-    WorkerFunction(this);
-    WorkerFunctionCall(this);
-    Workload(this);
+    FunctionCall(this);
 
     //Instance Elements
     ComponentInstance(this);
@@ -382,7 +372,6 @@ EntityFactory::EntityFactory()
     AggregateInstance(this);
     MemberInstance(this);
     VectorInstance(this);
-    MEDEA::WorkerInstance(this);
     
     //Deployment Elements
     ComponentAssembly(this);
@@ -407,7 +396,6 @@ EntityFactory::EntityFactory()
     OutEventPort(this);
     Vector(this);
 
-    WorkerDefinition(this);
 
     Enum(this);
     EnumMember(this);

@@ -1215,10 +1215,10 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             };
-            case NODE_KIND::WORKER_INSTANCE:{
+            case NODE_KIND::CLASS_INSTANCE:{
 
             
-                if(definition_kind == NODE_KIND::WORKER_INSTANCE){
+                if(definition_kind == NODE_KIND::CLASS_INSTANCE){
                     bind_labels = true;
                 }else{
                     bind_labels = false;
@@ -1226,14 +1226,16 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 }
                 break;
             }
-            case NODE_KIND::WORKER_FUNCTIONCALL:
+            case NODE_KIND::FUNCTION_CALL:
                 bind_labels = false;
                 copy_labels = true;
-                bind_values.insert("workerID", "workerID");
-                bind_values.insert("operation", "operation");
+                if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
+                    bind_values.insert("workerID", "workerID");
+                    bind_values.insert("operation", "operation");
+                }
                 bind_values.insert("description", "description");
                 break;
-            case NODE_KIND::WORKER_FUNCTION:{
+            case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values.insert("operation", "operation");
                 bind_values.insert("description", "description");
@@ -1301,7 +1303,7 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
         auto destination_parent = destination->getParentNode();
 
         if(destination_parent){
-            if(destination_parent->getNodeKind() == NODE_KIND::WORKER_FUNCTIONCALL){
+            if(destination_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
                 auto worker_name = destination_parent->getDataValue("worker").toString();
                 auto parameter_label = destination->getDataValue("label").toString();
 

@@ -1,22 +1,24 @@
-#include "workerfunctioncall.h"
+#include "functioncall.h"
 #include <QDebug>
-#include "BehaviourDefinitions/parameter.h"
+#include "parameter.h"
 
-WorkerFunctionCall::WorkerFunctionCall():Node(NODE_KIND::WORKER_FUNCTIONCALL)
+
+const NODE_KIND node_kind = NODE_KIND::FUNCTION_CALL;
+const QString kind_string = "FunctionCall";
+
+FunctionCall::FunctionCall():Node(node_kind)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
     setNodeType(NODE_TYPE::INSTANCE);
-    setDefinitionKind(NODE_KIND::WORKER_FUNCTION);
+    setDefinitionKind(NODE_KIND::FUNCTION);
 
     //Disable rules which break
     SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION, false);
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
-WorkerFunctionCall::WorkerFunctionCall(EntityFactory* factory) : Node(factory, NODE_KIND::WORKER_FUNCTIONCALL, "WorkerFunctionCall"){
-	auto node_kind = NODE_KIND::WORKER_FUNCTIONCALL;
-	QString kind_string = "WorkerFunctionCall";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new WorkerFunctionCall();});
+FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, kind_string){
+	RegisterNodeKind(factory, node_kind, kind_string, [](){return new FunctionCall();});
 
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "file", QVariant::String, true);
@@ -30,7 +32,7 @@ WorkerFunctionCall::WorkerFunctionCall(EntityFactory* factory) : Node(factory, N
 }
 
 
-bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool FunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
@@ -39,13 +41,22 @@ bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     switch(edgeKind){
         case EDGE_KIND::DEFINITION:{
             // Definition edge must link to a WorkerFunction
-            if(dst->getNodeKind() != NODE_KIND::WORKER_FUNCTION){
+            if(dst->getNodeKind() != NODE_KIND::FUNCTION){
                 return false;
             }
-            // The WorkerFunctionCall must exist within a ComponentImpl
+            // The FunctionCall must exist within a ComponentImpl
             auto parent_node = dst->getParentNode();
             if(parent_node){
-                if(parent_node->getNodeKind() != NODE_KIND::WORKER_INSTANCE){
+                //if(parent_node->getNodeKind() != NODE_KIND::WORKER_INSTANCE){
+                if(parent_node->getNodeKind() != NODE_KIND::CLASS_INSTANCE){
+                    return false;
+                }
+
+                auto comm_anc = getCommonAncestor(parent_node);
+                auto common_ancestor_kind = comm_anc ? comm_anc->getNodeKind() : NODE_KIND::NONE;
+                QSet<NODE_KIND> valid_ancestor_kinds = {NODE_KIND::COMPONENT_IMPL, NODE_KIND::CLASS};
+
+                if(!valid_ancestor_kinds.contains(common_ancestor_kind)){
                     return false;
                 }
             }
@@ -58,7 +69,7 @@ bool WorkerFunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     return Node::canAcceptEdge(edgeKind, dst);
 }
 
-bool WorkerFunctionCall::canAdoptChild(Node* node)
+bool FunctionCall::canAdoptChild(Node* node)
 {
     if(!node->isNodeOfType(NODE_TYPE::PARAMETER)){
         return false;
@@ -84,8 +95,8 @@ bool WorkerFunctionCall::canAdoptChild(Node* node)
 }
 
 
-QList<Node*> WorkerFunctionCall::getAdoptableNodes(Node* definition){
-    //The only things we need to adopt in a WorkerFunctionCall is all of the Parameters from the top level definition of the WorkerFunction
+QList<Node*> FunctionCall::getAdoptableNodes(Node* definition){
+    //The only things we need to adopt in a FunctionCall is all of the Parameters from the top level definition of the WorkerFunction
     QList<Node*> adoptable_nodes;
     if(definition){
         auto top_definition = definition->getDefinition(true);

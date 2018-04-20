@@ -26,6 +26,8 @@ bool MEDEA::Class::Class::canAdoptChild(Node* child)
     switch(child->getNodeKind()){
         case NODE_KIND::ATTRIBUTE:
         case NODE_KIND::FUNCTION:
+        case NODE_KIND::EXTERNAL_TYPE:
+        case NODE_KIND::CLASS_INSTANCE:
             break;
     default:
         return false;

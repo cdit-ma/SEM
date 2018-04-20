@@ -601,14 +601,9 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 default_icon_name = "translate";
                 break;
             case NODE_KIND::FUNCTION:
-            case NODE_KIND::WORKER_FUNCTIONCALL:{
+            case NODE_KIND::FUNCTION_CALL:{
                 default_icon_prefix = "EntityIcons";
                 default_icon_name = "WorkerProcess";
-                break;
-            }
-            case NODE_KIND::WORKER_INSTANCE:{
-                default_icon_prefix = "EntityIcons";
-                default_icon_name = "ManagementComponent";
                 break;
             }
             case NODE_KIND::CLASS:
@@ -852,10 +847,8 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::INTERFACE_DEFINITIONS);
     constructableNodes.removeAll(NODE_KIND::MANAGEMENT_COMPONENT);
     constructableNodes.removeAll(NODE_KIND::OUTEVENTPORT_INSTANCE);
-    constructableNodes.removeAll(NODE_KIND::PROCESS);
     constructableNodes.removeAll(NODE_KIND::RETURN_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::INPUT_PARAMETER);
-    constructableNodes.removeAll(NODE_KIND::WORKLOAD);
     constructableNodes.removeAll(NODE_KIND::VECTOR_INSTANCE);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
