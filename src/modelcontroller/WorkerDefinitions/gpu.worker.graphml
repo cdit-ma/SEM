@@ -5,6 +5,10 @@
 
     <key attr.name="value" attr.type="string" for="all" id="value"/>
     <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
+    
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
     <key attr.name="worker" attr.type="string" for="all" id="worker"/>
@@ -18,7 +22,7 @@
 
     <graph id="G">
         <node id="gpuworker">
-            <data key="kind">WorkerDefinition</data>
+            <data key="kind">Class</data>
             <data key="version">1.0.0</data>
             <data key="worker">Gpu_Worker</data>
             <data key="label">GPU Worker</data>
@@ -27,7 +31,7 @@
             <data key="icon">gpu</data>
             <graph id="gpuworker:">
                 <node id="gpuworker::bufferdata">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">BufferData</data>
                     <data key="worker">Gpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
@@ -76,7 +80,7 @@
                     </graph>
                 </node>
                 <node id="gpuworker::releasedata">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">ReleaseData</data>
                     <data key="worker">Gpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
@@ -125,7 +129,7 @@
                     </graph>
                 </node>
                 <node id="gpuworker::runparallel">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">RunParallel</data>
                     <data key="worker">Gpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
@@ -164,7 +168,7 @@
                     </graph>
                 </node>
                 <node id="gpuworker::fft">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">FFT</data>
                     <data key="worker">Gpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
@@ -195,7 +199,7 @@
                     </graph>
                 </node>
                 <node id="gpuworker::matrixmult">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">MatrixMult</data>
                     <data key="worker">Gpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
