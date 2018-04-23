@@ -7,12 +7,16 @@
 #include "openclkernel.hpp"
 #include "openclloadbalancer.h"
 
+
+struct clfftSetupData_;
+
 class OpenCL_Worker : public Worker {
 public:
     OpenCL_Worker(const Component& component, std::string inst_name);
     ~OpenCL_Worker();
 
-    bool HandleConfigure();
+    bool HandleConfigure() override;
+    bool HandleTerminate() override;
     bool IsValid() const;
 
     // Base/Utility functions
@@ -32,9 +36,17 @@ public:
     bool KmeansCluster(const OCLBuffer<float>& points, OCLBuffer<float>& centroids, OCLBuffer<int>& point_classifications, int iterations);
     bool KmeansCluster(const std::vector<float>& points, std::vector<float>& centroids, std::vector<int>& point_classifications, int iterations);
 
+    // FFT function implementation to be conditionally compiled based on the presence of the required FFT libraries
+    bool FFT(std::vector<float> &data);
+    bool FFT(OCLBuffer<float> &data);
+
+
 
 protected:
     virtual void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
+
+    bool InitFFT();
+    bool CleanupFFT();
 
 
 private:
@@ -53,6 +65,8 @@ private:
     std::shared_ptr<Attribute> platform_id_;
     std::shared_ptr<Attribute> device_id_;
 
+    // FFT specific members
+    clfftSetupData_* fftSetupData = 0;
 };
 
 

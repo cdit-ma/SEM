@@ -25,11 +25,11 @@ OpenCLDevice::OpenCLDevice(const Worker& worker, OpenCLManager& manager, cl::Dev
     // /int err;
     //auto command_queue = new cl::CommandQueue(ctx, device, CL_QUEUE_PROFILING_ENABLE, &err);
 
-    if (err_ != CL_SUCCESS) {
+    /*if (err_ != CL_SUCCESS) {
         LogError(worker,
             __func__,
             "Unable to create a command queue for device " + name_);
-    }
+    }*/
 	//name_ = dev_.getInfo<CL_DEVICE_NAME>();
     valid_ = true;
 }

@@ -64,7 +64,15 @@ bool OpenCL_Worker::HandleConfigure() {
 
     load_balancer_ = new OpenCLLoadBalancer(device_ids);
 
+    InitFFT();
+
     is_valid_ = true;
+    return true;
+}
+
+bool OpenCL_Worker::HandleTerminate() {
+    CleanupFFT();
+    delete load_balancer_;
     return true;
 }
 

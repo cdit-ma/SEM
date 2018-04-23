@@ -60,6 +60,11 @@ class OpenCL_WorkerConstructor{
                 device_attr->set_Integer(device.device_id);
             }
         }
+
+        ~OpenCL_WorkerConstructor() {
+            worker_.Terminate();
+        }
+
         Component component_;
         OpenCL_Worker worker_;
 };

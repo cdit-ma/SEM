@@ -1,5 +1,5 @@
 #include "common.h"
-#include <workers/opencl/fft/openclfft_worker.h>
+#include <workers/opencl/opencl_worker.h>
 
 #include <math.h>
 #include <random>
@@ -27,7 +27,7 @@
     size_t columns = 0;
 };*/
 
-class OpenCLFFTWorkerConstructor{
+/*class OpenCLFFTWorkerConstructor{
     public:
         OpenCLFFTWorkerConstructor(DeviceParam device):
             component_("component"),
@@ -43,8 +43,8 @@ class OpenCLFFTWorkerConstructor{
             }
         }
         Component component_;
-        OpenCLFFTWorker worker_;
-};
+        OpenCL_Worker worker_;
+};*/
 
 
 struct FFTParam{
@@ -114,9 +114,9 @@ std::ostream& operator<<(std::ostream& os, const FFTParam& f) {
     return os << f.device << ", length: " << f.data_in.size() << " - input data: " << ::testing::PrintToString(f.data_in) << " , output data: " << ::testing::PrintToString(f.data_out);
 };
 
-class FFTFixture: public ::testing::TestWithParam<FFTParam>, public OpenCLFFTWorkerConstructor{
+class FFTFixture: public ::testing::TestWithParam<FFTParam>, public OpenCL_WorkerConstructor{
     public:
-        FFTFixture() : OpenCLFFTWorkerConstructor(GetParam().device){
+        FFTFixture() : OpenCL_WorkerConstructor(GetParam().device){
             if(!worker_.Configure()){
                 throw std::runtime_error("Failed to configure worker in FFTFixture constructor");
             }

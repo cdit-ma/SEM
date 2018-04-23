@@ -17,31 +17,7 @@ endif()
 # Specify the subprojects that depend on OpenCL
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/fft")
-
-
-# Search for OpenCL FFT libraries
-# set(CLFFT_ROOT $ENV{CLFFT_ROOT})
-# set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
-# find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
-
-# Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
-# if(FPGA_FFT_LIB)
-#     message(STATUS "building OpenCL worker with FPGA FFT library")
-#     set(FFT_LIB FPGA)
-#     set(FFT_SOURCE
-#         ${CMAKE_CURRENT_SOURCE_DIR}/openclfftfpgawrapper.cpp
-#         )
-# elseif (CLFFT_LIB)
-#     message(STATUS "building OpenCL worker with GPU FFT library")
-#     set(FFT_LIB GPU)
-#     set(FFT_SOURCE
-#         ${CMAKE_CURRENT_SOURCE_DIR}/openclfftgpuwrapper.cpp
-#         )
-# else()
-#     message(STATUS "No FFT library found when building OpenCL worker")
-# endif(FPGA_FFT_LIB)
-
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/fft")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
@@ -72,6 +48,35 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/fft/openclfft_worker.h
     )
 
+# Search for OpenCL FFT libraries
+set(CLFFT_ROOT $ENV{CLFFT_ROOT})
+set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
+find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
+
+
+# Add implementations for fft library as necessary
+if(FPGA_FFT_LIB)
+    message(STATUS "building OpenCL worker with FPGA FFT library")
+    # set(FFT_LIB FPGA)
+    set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fpgafft.cpp
+        )
+elseif (CLFFT_LIB)
+    message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
+    set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
+        )
+else()
+    message(STATUS "No FFT library found when building OpenCL worker")
+    set(SOURCE
+    ${SOURCE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
+    )
+endif(FPGA_FFT_LIB)
+
+
 # Mark library dependencies
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 # if(FFT_LIB)
@@ -79,6 +84,34 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 #     target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
 # endif()
 add_executable(${TESTER_NAME} openclmanagertests.cpp)
+
+# Check for whether FFT implementation should use GPU or FPGA (preference FPGA if avaialable)
+if(FPGA_FFT_LIB)
+    message(STATUS "building OpenCL worker with FPGA FFT library")
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='2')
+elseif (CLFFT_LIB)
+    message(STATUS "building OpenCL worker with GPU FFT library (clFFT)")
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
+    target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
+    target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
+
+else()
+    message(STATUS "No FFT library found when building OpenCL worker")
+endif(FPGA_FFT_LIB)
+
+
+
+#target_compile_definitions(${PROJ_NAME} PRIVATE -DFFT_LIBRARY='1')
+
+# if (FFT_LIB)
+#     set(SOURCE
+#         ${CMAKE_CURRENT_SOURCE_DIR}/openclfft_worker.cpp
+#         )
+
+#     set(HEADERS
+#         ${CMAKE_CURRENT_SOURCE_DIR}/openclfft_worker.h
+#         )
+# endif(FFT_LIB)
 
 # Specify the location of kernels - consider moving kernels to be exported alongside binaries?
 get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)

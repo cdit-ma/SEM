@@ -35,5 +35,5 @@ if(UNIX)
 endif(UNIX)
 
 target_link_libraries(${PROJ_NAME} opencl_worker)
-target_link_libraries(${PROJ_NAME} opencl_fft_worker)
+#target_link_libraries(${PROJ_NAME} opencl_fft_worker)
 target_link_libraries(${PROJ_NAME} gtest)
