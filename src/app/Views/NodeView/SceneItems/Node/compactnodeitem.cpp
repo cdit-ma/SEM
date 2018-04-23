@@ -17,19 +17,19 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem):B
     setMargin(QMarginsF(s,s,s,s));
 
 
-    auto text = getTextItem(ELEMENT_RECT::ER_PRIMARY_TEXT);
+    auto text = getTextItem(EntityRect::PRIMARY_TEXT);
     text->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 }
 
-QRectF CompactNodeItem::getElementRect(ELEMENT_RECT rect) const{
+QRectF CompactNodeItem::getElementRect(EntityRect rect) const{
     switch(rect){
-    case ER_MAIN_ICON:
+    case EntityRect::MAIN_ICON:
         return iconRect_Top();
-    case ER_SECONDARY_ICON:
+    case EntityRect::SECONDARY_ICON:
         return iconRect_Bottom();
-    case ER_PRIMARY_TEXT:
+    case EntityRect::PRIMARY_TEXT:
         return textRect_Top();
-    case ER_SECONDARY_TEXT:
+    case EntityRect::SECONDARY_TEXT:
         return textRect_Bottom();
     default:
         break;

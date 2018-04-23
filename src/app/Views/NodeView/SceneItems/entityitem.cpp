@@ -161,15 +161,15 @@ int EntityItem::getID()
     return viewItem->getID();
 }
 
-QRectF EntityItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
+QRectF EntityItem::getElementRect(EntityRect rect) const
 {
     QRectF r;
 
     switch(rect){
-        case ER_SELECTION:
+        case EntityRect::SHAPE:
             r = currentRect();
             break;
-        case ER_MOVE:
+        case EntityRect::MOVE:
             r = currentRect();
             break;
         default:
@@ -178,14 +178,14 @@ QRectF EntityItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
     return r;
 }
 
-QPainterPath EntityItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
+QPainterPath EntityItem::getElementPath(EntityRect rect) const
 {
     QPainterPath region;
     region.addRect(getElementRect(rect));
     return region;
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, const QString& imagePath, const QString& imageName, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QString& imagePath, const QString& imageName, QColor tintColor)
 {
     QRectF imageRect = getElementRect(pos);
 
@@ -195,9 +195,8 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_R
         if(state == RENDER_STATE::BLOCK){
             //Only allow the Main Icon/Secondary Icon and Edge Kind Icon to be drawn in block state.
             switch(pos){
-            case ER_MAIN_ICON:
-            case ER_SECONDARY_ICON:
-            case ER_EDGE_KIND_ICON:
+            case EntityRect::MAIN_ICON:
+            case EntityRect::SECONDARY_ICON:
                 break;
             default:
                 return;
@@ -221,12 +220,12 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, const QRectF& image_r
     }
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, const QPair<QString, QString>& image, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QPair<QString, QString>& image, QColor tintColor)
 {
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
 }
 
-StaticTextItem* EntityItem::getTextItem(ELEMENT_RECT pos){
+StaticTextItem* EntityItem::getTextItem(EntityRect pos){
     auto text_item = textMap.value(pos, 0);
     if(!text_item){
         //If we haven't got one, construct a text tiem
@@ -236,7 +235,7 @@ StaticTextItem* EntityItem::getTextItem(ELEMENT_RECT pos){
     return text_item;
 }
 
-void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
+void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QString text, int textOptions)
 {
     painter->save();
     
@@ -248,7 +247,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RE
     painter->restore();
 }
 
-void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
+void EntityItem::setTooltip(EntityRect rect, QString tooltip, QCursor cursor)
 {
     tooltipMap[rect] = tooltip;
     tooltipCursorMap[rect] = cursor;
@@ -388,7 +387,7 @@ QSize EntityItem::smallIconSize() const
 
 QPainterPath EntityItem::shape() const
 {
-    return getElementPath(ER_SELECTION);
+    return getElementPath(EntityRect::SHAPE);
 }
 
 QPainterPath EntityItem::sceneShape() const
@@ -627,7 +626,7 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
 
-    if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
+    if(event->button() == Qt::LeftButton && getElementPath(EntityRect::SHAPE).contains(event->pos())){
         handleSelection(controlDown);
     }
 
@@ -635,7 +634,7 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         emit req_centerItem(this);
     }
 
-    if(isMoveEnabled() && event->button() == Qt::LeftButton && getElementPath(ER_MOVE).contains(event->pos())){
+    if(isMoveEnabled() && event->button() == Qt::LeftButton && getElementPath(EntityRect::MOVE).contains(event->pos())){
         //Check for movement.
         _isMouseMoving = true;
         _hasMouseMoved = false;
@@ -675,7 +674,7 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *)
 
 void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
+    bool inItem = getElementPath(EntityRect::SHAPE).contains(event->pos());
     if(isHovered() && !inItem){
         handleHover(false);
     }else if(!isHovered() && inItem){
@@ -685,7 +684,7 @@ void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
+    bool inItem = getElementPath(EntityRect::SHAPE).contains(event->pos());
     if(isHovered() && !inItem){
         handleHover(false);
     }else if(!isHovered() && inItem){
@@ -718,7 +717,7 @@ void EntityItem::setExpanded(bool expand)
 void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(isExpandEnabled()){
-        if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
+        if(event->button() == Qt::LeftButton && getElementPath(EntityRect::EXPAND_CONTRACT).contains(event->pos())){
             handleExpand(!isExpanded());
         }
     }
@@ -738,25 +737,23 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(isSelected()){
             brush.setColor(getPen().color());
             painter->setBrush(brush);
-            painter->drawPath(getElementPath(ER_SELECTION));
+            painter->drawPath(getElementPath(EntityRect::SHAPE));
         }else{
             brush.setColor(getBodyColor());
         }
-
-        //Paint the pixmap!
     }
       
-    paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
+    paintPixmap(painter, lod, EntityRect::MAIN_ICON, getIconPath());
 
     if(state > RENDER_STATE::BLOCK){
         if(paintIconOverlay){
-            paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath);
+            paintPixmap(painter, lod, EntityRect::MAIN_ICON_OVERLAY, iconOverlayIconPath);
         }
         if(paintTertiaryIcon){
-            paintPixmap(painter, lod, ER_TERTIARY_ICON, tertiaryIconPath);
+            paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, tertiaryIconPath);
         }
         if(isReadOnly()){
-            paintPixmap(painter, lod, ER_LOCKED_STATE, "Icons", "lockClosed");
+            paintPixmap(painter, lod, EntityRect::LOCKED_STATE_ICON, "Icons", "lockClosed");
         }
         if(paint_notification){
             painter->save();
@@ -764,8 +761,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             //painter->setPen(Qt::NoPen);
             //brush.setColor(getBodyColor());
             //painter->setBrush(brush);
-            //painter->drawRect(getElementRect(ER_NOTIFICATION));
-            //paintPixmap(painter, lod, ER_NOTIFICATION, notification_icon, notification_color);
+            //painter->drawRect(getElementRectEntityRect::ER_NOTIFICATION));
+            //paintPixmap(painter, lod, EntityRect::NOTIFICATION, notification_icon, notification_color);
             painter->restore();
         }
     }
@@ -919,6 +916,17 @@ void EntityItem::paintPixmapRect(QPainter* painter, QString imageAlias, QString 
     painter->drawRect(rect);
     painter->restore();
 }
+
+void EntityItem::paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect)
+{
+    painter->save();
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Theme::theme()->getMainImageColor(imageAlias, imageName));
+    painter->drawEllipse(rect);
+    painter->restore();
+}
+
+
 
 QColor EntityItem::getBaseBodyColor() const
 {

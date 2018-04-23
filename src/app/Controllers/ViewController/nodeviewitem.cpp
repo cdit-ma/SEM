@@ -58,9 +58,13 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
     if(edge){
         EDGE_KIND kind = edge->getEdgeKind();
         if(!edges.contains(kind, edge)){
-            //this->registerObject(edge);
             edges.insertMulti(kind, edge);
-            emit edgeAdded(kind);
+
+            //Get the direction
+            auto is_source = edge->getSource() == this;
+            auto direction = !is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+
+            emit edgeAdded(direction, kind, edge->getID());
         }
     }
 }
@@ -71,9 +75,12 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
         EDGE_KIND kind = edge->getEdgeKind();
         if(edges.contains(kind, edge)){
             edges.remove(kind, edge);
-            //this->unregisterObject(edge);
-            emit edgeRemoved(kind);
-            //edge-edge->registerObject(this);
+
+            //Get the direction
+            auto is_source = edge->getSource() == this;
+            auto direction = !is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+
+            emit edgeRemoved(direction, kind, edge->getID());
         }
     }
 }

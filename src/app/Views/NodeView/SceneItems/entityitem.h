@@ -29,7 +29,29 @@ public:
         EDGE,
         NODE,
     };
-    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW, ER_TERTIARY_ICON, ER_CONNECT_SOURCE, ER_CONNECT_TARGET};
+    enum class EntityRect{
+        SHAPE,
+        MOVE,
+        EXPAND_CONTRACT,
+
+        PRIMARY_TEXT,
+        SECONDARY_TEXT,
+        
+        MAIN_ICON,
+        MAIN_ICON_OVERLAY,
+        SECONDARY_ICON,
+        TERTIARY_ICON,
+        
+
+        EXPANDED_STATE_ICON,
+        LOCKED_STATE_ICON,
+        NOTIFICATION_ICON,
+        RESIZE_ARROW_ICON,
+
+        CONNECT_SOURCE,
+        CONNECT_TARGET
+    };
+
     
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
@@ -70,20 +92,20 @@ public:
     virtual void setPos(const QPointF &pos);
     int getID();
 
-    virtual QRectF getElementRect(ELEMENT_RECT rect) const;
-    virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
+    virtual QRectF getElementRect(EntityRect rect) const;
+    virtual QPainterPath getElementPath(EntityRect rect) const;
 
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, EntityRect pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
 
 private:
 public:
     void AddNotification(QString image_path, QString image_name, QColor color);
     void ClearNotification();
-    void renderText(QPainter* painter, qreal lod, ELEMENT_RECT pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
+    void renderText(QPainter* painter, qreal lod, EntityRect pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
 
-    void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
+    void setTooltip(EntityRect rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
     QRectF translatedBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
@@ -229,8 +251,11 @@ public:
     void setSelected(bool selected);
     void setActiveSelected(bool active);
     virtual void updateZValue(bool childSelected = true, bool childActive = false);
-private:
+
+protected:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
+    void paintPixmapEllipse(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
+    private:
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
     QPixmap getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
     QSize getPixmapSize(QRectF rect, qreal lod) const;
@@ -253,14 +278,14 @@ public:
     QColor notification_color;
     bool paint_notification = false;
 protected:
-    StaticTextItem* getTextItem(ELEMENT_RECT rect);
+    StaticTextItem* getTextItem(EntityRect rect);
 private:
 
-    //QHash<ELEMENT_RECT, ImageMap> imageMap;
-    QHash<ELEMENT_RECT, StaticTextItem*> textMap;
+    //QHash<EntityRect, ImageMap> imageMap;
+    QHash<EntityRect, StaticTextItem*> textMap;
 
-    QHash<ELEMENT_RECT, QString> tooltipMap;
-    QHash<ELEMENT_RECT, QCursor> tooltipCursorMap;
+    QHash<EntityRect, QString> tooltipMap;
+    QHash<EntityRect, QCursor> tooltipCursorMap;
 
 
 
@@ -308,6 +333,10 @@ protected:
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+};
+
+inline uint qHash(EntityItem::EntityRect key, uint seed){
+    return ::qHash(static_cast<uint>(key), seed);
 };
 
 #endif // ENTITYITEM_H

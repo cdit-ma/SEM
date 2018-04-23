@@ -31,8 +31,8 @@ public:
     
     bool isAncestorOf(NodeViewItem* item);
 signals:
-    void edgeAdded(EDGE_KIND edgeKind);
-    void edgeRemoved(EDGE_KIND edgeKind);
+    void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
+    void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
 
 private:
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> required_edge_kinds;

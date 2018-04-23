@@ -69,12 +69,17 @@ void ArrowLine::update_head(){
 
 void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     auto pen_ = pen();
-    painter->setPen(pen_);
-    painter->drawLine(line);
-    pen_.setStyle(Qt::SolidLine);
-    painter->setPen(pen_);
-    painter->setBrush(pen_.color());
-    painter->drawPolygon(arrow_head);
+    if(!line.isNull()){
+        painter->setPen(pen_);
+        painter->drawLine(line);
+        pen_.setStyle(Qt::SolidLine);
+        painter->setPen(pen_);
+        painter->setBrush(pen_.color());
+
+        if(line.length() > 5){
+            painter->drawPolygon(arrow_head);
+        }
+    }
 }
 
 

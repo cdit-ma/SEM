@@ -5,14 +5,15 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
     setMoveEnabled(true);
     setExpandEnabled(true);
     setResizeEnabled(true);
-    _isSortOrdered = false;
 
     parentContainer = qobject_cast<BasicNodeItem*>(parentItem);
 
-    headerMargin = QMarginsF(2,2,2,2);
-    int s = getGridSize();
-    setBodyPadding(QMarginsF(s,s,s,s));
-    setMargin(QMarginsF(s,s,s,s));
+    header_margins = QMarginsF(4,2,4,2);
+    auto g_s = getGridSize();
+    auto margins = QMarginsF(g_s, g_s, g_s, g_s);
+    
+    setBodyPadding(margins);
+    setMargin(margins);
 
     qreal height = DEFAULT_SIZE / 2.0;
     qreal width = DEFAULT_SIZE / 2.0;
@@ -22,8 +23,6 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
 
     setExpandedWidth(width*2);
     setExpandedHeight(height);
-
-   
 
     setPrimaryTextKey("label");
 
@@ -44,8 +43,6 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
         addRequiredData("column");
     }
 
-
-
     if(viewItem->getNodeKind() == NODE_KIND::MEMBER){
         addRequiredData("key");
     }
@@ -54,12 +51,12 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :Node
 
 bool BasicNodeItem::isSortOrdered() const
 {
-    return _isSortOrdered;
+    return is_sorted_ordered;
 }
 
 void BasicNodeItem::setSortOrdered(bool ordered)
 {
-    _isSortOrdered = ordered;
+    is_sorted_ordered = ordered;
 }
 
 QRectF BasicNodeItem::bodyRect() const
@@ -106,41 +103,74 @@ QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
     return NodeItem::getNearestGridPoint(newPos);
 }
 
-QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
+QPainterPath BasicNodeItem::getElementPath(EntityRect rect) const
 {
     switch(rect){
-    case ER_EXPANDCONTRACT:
-        return iconRect();
-    case ER_EXPANDED_STATE:
-        return expandStateRect();
-    case ER_MAIN_ICON:
-        return iconRect();
-    case ER_MAIN_ICON_OVERLAY:
-    case ER_NOTIFICATION:
-        return iconOverlayRect();
-    case ER_SECONDARY_ICON:
-        return bottomIconRect();
-    case ER_PRIMARY_TEXT:
-        return topTextRect();
-    case ER_SECONDARY_TEXT:
-        return bottomTextRect();
-    case ER_DEPLOYED:
-        return deployedRect();
-    case ER_QOS:
-        return qosRect();
-    case ER_LOCKED_STATE:
-        return lockedRect();
-    case ER_EDGE_KIND_ICON:
-        return edgeKindRect();
-    case ER_CONNECT_ICON:
-        return deployedRect();
-    case ER_CONNECT:
-        return connectRect();
-    case ER_TERTIARY_ICON:
-        return tertiaryIconRect();
-    case ER_CONNECT_TARGET:
+        case EntityRect::MOVE:{
+            //Selection Area is the Center Circle and Arrow Heads
+            QPainterPath path = NodeItem::getElementPath(EntityRect::MOVE);
+            path.setFillRule(Qt::WindingFill);
+            auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+
+            for(auto edge_direction : map.uniqueKeys()){
+                for(auto edge_kind : map.values(edge_direction)){
+                    if(edge_kind != EDGE_KIND::NONE){
+                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+                        path.addEllipse(icon_rect);
+                    }
+                }
+            }
+
+            return path.simplified();
+        }
+        case EntityRect::SHAPE:{
+            //Selection Area is the Center Circle and Arrow Heads
+            QPainterPath path = NodeItem::getElementPath(EntityRect::SHAPE);
+            path.setFillRule(Qt::WindingFill);
+            auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+
+            
+
+            for(auto edge_direction : map.uniqueKeys()){
+                for(auto edge_kind : map.values(edge_direction)){
+                    if(edge_kind != EDGE_KIND::NONE){
+                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+                        path.addEllipse(icon_rect);
+                    }
+                }
+            }
+
+            return path.simplified();
+        }
+    default:
+        break;
+    }
+    return NodeItem::getElementPath(rect);
+}
+
+
+QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
+{
+    switch(rect){
+    case EntityRect::EXPANDED_STATE_ICON:
+        return expandedStateRect();
+    case EntityRect::EXPAND_CONTRACT:
+    case EntityRect::MAIN_ICON:
+        return headerContent_Icon();
+    case EntityRect::MAIN_ICON_OVERLAY:
+    case EntityRect::NOTIFICATION_ICON:
+        return headerContent_Icon_Overlay();
+    case EntityRect::SECONDARY_ICON:
+        return headerContent_Data_Secondary_Icon();
+    case EntityRect::PRIMARY_TEXT:
+        return headerContent_Data_Primary_Text();
+    case EntityRect::SECONDARY_TEXT:
+        return headerContent_Data_Secondary_Text();
+    case EntityRect::LOCKED_STATE_ICON:
+        return headerContent_Data_Primary_Icon();
+    case EntityRect::CONNECT_TARGET:
         return connectTargetRect();
-    case ER_CONNECT_SOURCE:
+    case EntityRect::CONNECT_SOURCE:
         return connectSourceRect();
     default:
         break;
@@ -153,203 +183,209 @@ void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphic
     RENDER_STATE state = getRenderState(lod);
 
     painter->setClipRect(option->exposedRect);
+    painter->setPen(Qt::NoPen);
+
+    auto IS_BLOCK = state == RENDER_STATE::BLOCK;
 
     if(state >= RENDER_STATE::BLOCK){
-        painter->setPen(Qt::NoPen);
-
-        //Paint the Body
         if(isExpanded()){
+            //Paint the Body
             painter->setBrush(getBodyColor());
-            painter->drawRect(currentRect());
-        }
-
-        painter->setBrush(getHeaderColor());
-        painter->drawRect(headerRect());
-
-        if(state > RENDER_STATE::BLOCK){
-            //Paint the White Background for the text
-            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
-                painter->setBrush(getBodyColor());
-                painter->drawRect(bottomTextOutlineRect());
+            if(IS_BLOCK){
+                painter->drawRect(getElementRect(EntityRect::SHAPE));
+            }else{
+                painter->drawPath(getElementPath(EntityRect::SHAPE));
             }
         }
 
+        //Paint the Header
+        painter->setBrush(getHeaderColor());
+        if(IS_BLOCK){
+            painter->drawRect(getElementRect(EntityRect::MOVE));
+        }else{
+            painter->drawPath(getElementPath(EntityRect::MOVE));
+        }
+    
+
+        if(state > RENDER_STATE::BLOCK){
+            //Paint the Text Background
+            if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
+                painter->setBrush(getBodyColor());
+                //painter->drawRect(bottomTextOutlineRect());
+            }
+        }
     }
+    /*
+    painter->setBrush(QColor(255,0,0,100));
+    painter->drawRect(headerContent_Icon());
+    painter->setBrush(QColor(0,255,0,100));
+    painter->drawRect(headerContent_Data());
+    painter->setBrush(QColor(0, 255, 255,100));
+    painter->drawRect(headerContent_Data_Primary());
+    painter->setBrush(QColor(0, 0 ,255,100));
+    painter->drawRect(headerContent_Data_Secondary());
+
+    painter->setBrush(QColor(255, 0 ,255,100));
+    painter->drawRect(headerContent_Data_Secondary_Icon());
+
+    painter->setBrush(QColor(255, 255 ,255,100));
+    painter->drawRect(headerContent_Data_Primary_Icon());
+    */
 }
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    
+
     paintBackground(painter, option, widget);
     NodeItem::paint(painter, option, widget);
+
+    
 }
 
 QRectF BasicNodeItem::headerRect() const
 {
-    QRectF rect(getMarginOffset(),QSize(getWidth(), getMinimumHeight()));
+    QRectF rect(getMarginOffset(), QSize(getWidth(), getMinimumHeight()));
     return rect;
 }
 
-QRectF BasicNodeItem::connectRect() const
-{
-    QRectF r = headerRect();
-    r.setLeft(r.right() - (smallIconSize().width() * 2));
-    return r;
-}
+
 
 QRectF BasicNodeItem::connectSourceRect() const
 {
     QRectF r = headerRect();
-    r.setRight(r.left() + (smallIconSize().width() * 2));
+    auto right = r.left();
+    r.setWidth(smallIconSize().width());
+
+    auto h_offset = r.width() / 2;
+    r.moveRight(right + h_offset);
     return r;
 }
 
 QRectF BasicNodeItem::connectTargetRect() const
 {
     QRectF r = headerRect();
-    r.setLeft(r.right() - (smallIconSize().width() * 2));
+    auto left = r.right();
+    r.setWidth(smallIconSize().width());
+
+    auto h_offset = r.width() / 2;
+    r.moveLeft(left - h_offset);
     return r;
 }
 
-QRectF BasicNodeItem::edgeKindRect() const
-{
-    QRectF r2 = connectRect();
-    QRectF r;
-    r.setSize(QSizeF(r2.width(), r2.width()));
-    r.moveCenter(r2.center());
-    return r;
 
+
+QRectF BasicNodeItem::headerContent() const
+{
+    return headerRect().marginsRemoved(header_margins);
 }
 
-QRectF BasicNodeItem::innerHeaderRect() const
-{
-    return headerRect().marginsRemoved(headerMargin);
-}
 
-QRectF BasicNodeItem::headerTextRect() const
+QRectF BasicNodeItem::headerContent_Data() const
 {
-    QRectF rect(innerHeaderRect());
+    QRectF rect(headerContent());
+    auto icon_rect = headerContent_Icon();
+
+    auto x_padding = 2;
+
     if(isRightJustified()){
-        rect.setRight((rect.right() - iconRect().width()) -2);
+        rect.setRight(icon_rect.left() - x_padding);
     }else{
-        rect.setLeft(rect.left() + iconRect().width() + 2);
+        rect.setLeft(icon_rect.right() + x_padding);
     }
     return rect;
 }
 
-QRectF BasicNodeItem::tertiaryIconRect() const
-{
-    QRectF rect;
-    rect.setSize(smallIconSize());
-    rect.moveTopLeft(iconRect().topRight());
+QRectF BasicNodeItem::headerContent_Data_Primary() const{
+    QRectF rect(headerContent_Data());
+
+    if(gotSecondaryTextKey()){
+        rect.setHeight(rect.height() * ratio);
+    }
     return rect;
 }
 
-QRectF BasicNodeItem::iconRect() const
+QRectF BasicNodeItem::headerContent_Data_Secondary() const{
+    auto header_content = headerContent_Data();
+
+    QRectF rect;
+    if(gotSecondaryTextKey()){
+        rect = header_content;
+        rect.setHeight(rect.height() *  (1 - ratio));
+        rect.moveBottomRight(header_content.bottomRight());
+    }
+    return rect;
+}
+
+
+QRectF BasicNodeItem::headerContent_Icon() const
 {
-    QRectF rect = innerHeaderRect();
+    const auto header_rect = headerContent();
+    QRectF rect(header_rect);
+    
+    //Make it a square
     rect.setWidth(rect.height());
+
     if(isRightJustified()){
-        rect.moveTopRight(innerHeaderRect().topRight());
+        rect.moveTopRight(header_rect.topRight());
     }else{
-        rect.moveTopLeft(innerHeaderRect().topLeft());
+        rect.moveTopLeft(header_rect.topLeft());
     }
    return rect;
 }
 
-QRectF BasicNodeItem::iconOverlayRect() const
+QRectF BasicNodeItem::headerContent_Icon_Overlay() const
 {
     QRectF rect;
     rect.setSize(smallIconSize());
-    rect.moveCenter(iconRect().center());
+    rect.moveCenter(headerContent_Icon().center());
     return rect;
 }
 
-QRectF BasicNodeItem::topTextRect() const
-{
-    QRectF rect(headerTextRect());
-    if(gotSecondaryTextKey()){
-        rect.setHeight(rect.height() * (4.0 / 7.0));
-    }
-    rect.setWidth(rect.width());
-    return rect;
-}
-
-QRectF BasicNodeItem::bottomTextRect() const
-{
-    QRectF rect;
-    if(bottomTextOutlineRect().isValid()){
-        rect = bottomTextOutlineRect();
-        rect.adjust(1,0,-1,0);
+QRectF BasicNodeItem::headerContent_Data_Primary_Text() const{
+    QRectF rect = headerContent_Data_Primary();
+    if(isReadOnly()){
+        rect.setRight(headerContent_Data_Primary_Icon().left());
     }
     return rect;
 }
 
-QRectF BasicNodeItem::bottomTextOutlineRect() const
-{
+QRectF BasicNodeItem::headerContent_Data_Primary_Icon() const{
+    auto header_content = headerContent_Data_Primary();
     QRectF rect;
-    if(bottomRect().isValid()){
-        rect = bottomRect();
-        rect.setLeft(rect.left() + 10);
-    }
-    return rect;
-
-}
-
-QRectF BasicNodeItem::bottomIconRect() const
-{
-    QRectF rect;
-    if(bottomRect().isValid()){
+    if(isReadOnly()){
         rect.setSize(smallIconSize());
-        //Offset
-        qreal yOffset = (bottomRect().height() - rect.height()) / 2;
-        rect.moveTopLeft(bottomRect().topLeft() + QPointF(0, yOffset));
+        rect.moveTopRight(header_content.topRight() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }
     return rect;
-
 }
 
-QRectF BasicNodeItem::bottomRect() const
-{
-    if(!gotSecondaryTextKey()){
-        return QRectF();
+QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const{
+
+    QRectF rect;
+    if(gotSecondaryTextKey()){
+        rect = headerContent_Data_Secondary();
+        rect.setLeft(headerContent_Data_Secondary_Icon().right() + 2);
     }
-    auto header_rect = headerTextRect();
-    QRectF rect(header_rect);
-    rect.setHeight(header_rect.height() * (3.0 / 7.0));
-    rect.moveBottom(header_rect.bottom());
     return rect;
 }
 
-QRectF BasicNodeItem::deployedRect() const
-{
+QRectF BasicNodeItem::headerContent_Data_Secondary_Icon() const{
+    auto header_content = headerContent_Data_Secondary();
     QRectF rect;
-    rect.setSize(smallIconSize());
-    rect.moveTopRight(headerTextRect().topRight());
+    if(gotSecondaryTextKey()){
+        rect.setSize(smallIconSize() * 0.75);
+        rect.moveTopLeft(header_content.topLeft() + QPointF(0, (header_content.height() - rect.height()) / 2));
+    }
     return rect;
 }
 
-QRectF BasicNodeItem::lockedRect() const
-{
-    QRectF rect;
-    rect.setSize(smallIconSize());
-    rect.moveTopLeft(innerHeaderRect().topLeft());
-    return rect;
-}
-
-QRectF BasicNodeItem::qosRect() const
-{
-    QRectF rect;
-    rect.setSize(smallIconSize());
-    rect.moveBottomRight(headerTextRect().bottomRight());
-    return rect;
-
-}
-
-QRectF BasicNodeItem::expandStateRect() const
+QRectF BasicNodeItem::expandedStateRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() / 2);
-    QRectF cr = currentRect().marginsRemoved(QMarginsF(1,1,1,1));
-    rect.moveBottomRight(cr.bottomRight());
+    auto bottom_right = currentRect().bottomRight();
+
+    rect.moveBottomRight(bottom_right - QPointF(1, 1));
     return rect;
 }

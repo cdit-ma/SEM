@@ -9,7 +9,7 @@ class CompactNodeItem : public BasicNodeItem
 public:
     CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
 public:
-    QRectF getElementRect(ELEMENT_RECT rect) const;
+    QRectF getElementRect(EntityRect rect) const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 private:
     QRectF innerHeaderRect() const;

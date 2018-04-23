@@ -102,11 +102,9 @@ private slots:
     void notification_Added(QSharedPointer<NotificationObject> obj);
     void notification_Destructed(QSharedPointer<NotificationObject> obj);
     
-    void node_ConnectMode(NodeItem* item);
     void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
-
-    void node_PopOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
+    
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);

@@ -79,6 +79,7 @@ public:
     ModelController* getModelController();
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection();
+    
 
     QList<EDGE_KIND> getExistingEdgeKindsForSelection();
     QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);

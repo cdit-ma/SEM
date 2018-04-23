@@ -23,8 +23,8 @@ public:
     QRectF currentRect() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QRectF getElementRect(ELEMENT_RECT rect) const;
-    QPainterPath getElementPath(ELEMENT_RECT rect) const;
+    QRectF getElementRect(EntityRect rect) const;
+    QPainterPath getElementPath(EntityRect rect) const;
 
     void setMoveStarted();
     bool setMoveFinished();

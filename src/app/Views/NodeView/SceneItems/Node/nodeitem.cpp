@@ -149,9 +149,6 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
 
         
         childNodes[ID] = nodeItem;
-        if(childNodes.count() == 1){
-            emit gotChildNodes(true);
-        }
         nodeItem->setBaseBodyColor(getBaseBodyColor());
 
         nodeItem->setVisible(isExpanded());
@@ -166,9 +163,6 @@ void NodeItem::removeChildNode(NodeItem* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
     if(childNodes.remove(nodeItem->getID()) > 0){
-        if(childNodes.count() == 0){
-            emit gotChildNodes(false);
-        }
         //Unset child moving.
         nodeItem->unsetParent();
 
@@ -708,39 +702,6 @@ void NodeItem::addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind)
     }
 }
 
-void NodeItem::setVisualNodeKind(NODE_KIND kind)
-{
-    visualNodeKind = kind;
-    visualEntityIcon = "ComponentImpl";
-    update();
-}
-
-EDGE_KIND NodeItem::getVisualEdgeKind() const
-{
-    return visualEdgeKind;
-}
-
-NODE_KIND NodeItem::getVisualNodeKind() const
-{
-    return visualNodeKind;
-}
-
-bool NodeItem::gotVisualNodeKind() const
-{
-    return visualNodeKind != NODE_KIND::NONE;
-}
-
-bool NodeItem::gotVisualEdgeKind() const
-{
-    return visualEdgeKind != EDGE_KIND::NONE;
-}
-
-bool NodeItem::gotVisualButton() const
-{
-    return gotVisualNodeKind() || gotVisualEdgeKind();
-}
-
-
 QString NodeItem::getPrimaryTextKey() const
 {
     return primaryTextKey;
@@ -857,9 +818,10 @@ void NodeItem::childPosChanged(EntityItem*)
     resizeToChildren();
 }
 
-void NodeItem::edgeAdded(EDGE_KIND kind)
+void NodeItem::edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID)
 {
-    switch(kind){
+    attached_edges.insert({direction, edge_kind}, ID);
+    switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
             update();
@@ -869,9 +831,11 @@ void NodeItem::edgeAdded(EDGE_KIND kind)
     }
 }
 
-void NodeItem::edgeRemoved(EDGE_KIND kind)
+void NodeItem::edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID)
 {
-    switch(kind){
+    attached_edges.remove({direction, edge_kind}, ID);
+
+    switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
             update();
@@ -879,7 +843,6 @@ void NodeItem::edgeRemoved(EDGE_KIND kind)
     default:
         return;
     }
-
 }
 
 QSizeF NodeItem::getGridAlignedSize(QSizeF size) const
@@ -1051,28 +1014,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     if(state > RENDER_STATE::MINIMAL){
-        if(gotVisualButton()){
-            if(isSelected() && gotVisualEdgeKind()){
-                paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "connect");
-            }else if(isSelected() && gotVisualNodeKind()){
-                paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "popOut");
-            }
-        }
-
-        if(getNodeViewItem()->gotEdge(EDGE_KIND::DEPLOYMENT)){
-            paintPixmap(painter, lod, ER_DEPLOYED, "Icons", "screen");
-        }
-
-        if(getNodeViewItem()->gotEdge(EDGE_KIND::QOS)){
-            paintPixmap(painter, lod, ER_QOS, "Icons", "speedGauge");
-        }
-
         if(isExpandEnabled() && hasChildNodes()){
-            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Icons", isExpanded() ? "triangleNorthWest" : "triangleSouthEast");
+            paintPixmap(painter, lod,EntityRect::EXPANDED_STATE_ICON, "Icons", isExpanded() ? "triangleNorthWest" : "triangleSouthEast");
         }
 
         if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
+            paintPixmap(painter, lod,EntityRect::SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
         }
     }
 
@@ -1081,10 +1028,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(state > RENDER_STATE::BLOCK){
         painter->save();
 
-        //Paint the selection path.
+        //Paint the Outline path.
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
-        painter->drawPath(getElementPath(ER_SELECTION));
+        painter->drawPath(getElementPath(EntityRect::SHAPE));
 
         //Paint the selected section.
         if(selectedResizeVertex != NodeItem::RectVertex::NONE){
@@ -1102,7 +1049,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             if(hoveredResizeVertex != NodeItem::RectVertex::NONE){
                 //Rotate
                 painter->save();
-                QRectF arrowRect = getElementRect(ER_RESIZE_ARROW);
+                QRectF arrowRect = getElementRect(EntityRect::RESIZE_ARROW_ICON);
                 //Move to Center.
                 painter->translate(arrowRect.center());
                 //Rotate the Image
@@ -1111,7 +1058,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->translate(-arrowRect.center());
 
                 //Paint the resize section
-                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Icons", "triangleDown");
+                paintPixmap(painter, lod,EntityRect::RESIZE_ARROW_ICON, "Icons", "triangleDown");
                 painter->restore();
             }
         }
@@ -1124,68 +1071,51 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setPen(getDefaultPen());
 
         if(gotPrimaryTextKey()){
-            renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
+            renderText(painter, lod,EntityRect::PRIMARY_TEXT, getPrimaryText());
         }
 
         if(gotSecondaryTextKey()){
-            renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
+            renderText(painter, lod,EntityRect::SECONDARY_TEXT, getSecondaryText());
         }
         painter->restore();
     }
 
     if(state > RENDER_STATE::BLOCK){
         painter->save();
-
-        QColor resizeColor(255, 255, 255, 130);
-
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(resizeColor);
-        
-        
-        for(auto pair : hovered_edge_kinds){
-            auto edge_direction = pair.first;
-            auto edge_kind = pair.second;
-            auto rect = getEdgeConnectRect(edge_direction, edge_kind);
-            painter->drawRect(rect);
-        }
-
-        painter->setBrush(QColor(255, 165, 70, 150));
-
         auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
-
         for(auto edge_direction : map.uniqueKeys()){
-            bool is_direction_hovered = hovered_edge_kinds.contains({edge_direction, EDGE_KIND::NONE});
-            if(is_direction_hovered){
-                for(auto edge_kind : map.values(edge_direction)){
-                    if(edge_kind != EDGE_KIND::NONE){
-                        auto rect = getEdgeConnectRect(edge_direction, edge_kind);
-                        auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-
-                        if(hovered_edge_kinds.contains({edge_direction, edge_kind})){
-                            painter->drawRect(rect);
-                        }
-                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
+            for(auto edge_kind : map.values(edge_direction)){
+                if(edge_kind != EDGE_KIND::NONE){
+                    auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+                    bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
+                    bool got_edge = attached_edges.contains({edge_direction, edge_kind});
+                    
+                    if(is_hovered){
+                        painter->setPen(getPen());
+                        painter->setBrush(Qt::NoBrush);
+                        painter->drawEllipse(icon_rect);
                     }
+
+                    if(got_edge || is_hovered){
+                        painter->setOpacity(1);
+                    }else{
+                        painter->setOpacity(.35);   
+                    }
+                    paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
                 }
             }
         }
-        
-        //painter->drawRect(getElementRect(ER_CONNECT));
-
-        /*if(gotVisualButton()){
-            paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "EntityIcons", visualEntityIcon);
-        }*/
         painter->restore();
     }
 }
 
-QRectF NodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
+QRectF NodeItem::getElementRect(EntityRect rect) const
 {
     switch(rect){
-        case ER_MOVE:{
+        case EntityRect::MOVE:{
             return headerRect();
         }
-        case ER_RESIZE_ARROW:{
+        case EntityRect::RESIZE_ARROW_ICON:{
             return getResizeArrowRect();
         }
         default:
@@ -1195,7 +1125,7 @@ QRectF NodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
     return EntityItem::getElementRect(rect);
 }
 
-QPainterPath NodeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
+QPainterPath NodeItem::getElementPath(EntityRect rect) const
 {
     return EntityItem::getElementPath(rect);
 }
@@ -1323,10 +1253,10 @@ QPointF NodeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND ki
 QRectF NodeItem::getEdgeDirectionRect(EDGE_DIRECTION direction) const{
     switch(direction){
         case EDGE_DIRECTION::SOURCE:{
-            return getElementRect(ER_CONNECT_SOURCE);
+            return getElementRect(EntityRect::CONNECT_SOURCE);
         }
         case EDGE_DIRECTION::TARGET:{
-            return getElementRect(ER_CONNECT_TARGET);
+            return getElementRect(EntityRect::CONNECT_TARGET);
         }
     }
     return QRectF();
@@ -1480,19 +1410,13 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(getVisualNodeKind() != NODE_KIND::NONE && event->button() == Qt::LeftButton){
-        if(getElementPath(ER_CONNECT).contains(event->pos())){
-            emit req_popOutRelatedNode(getNodeViewItem(), visualNodeKind);
-        }
-    }
-
     if(!getPrimaryTextKey().isEmpty()){
-        if(event->button() == Qt::LeftButton && getElementPath(ER_PRIMARY_TEXT).contains(event->pos())){
+        if(event->button() == Qt::LeftButton && getElementPath(EntityRect::PRIMARY_TEXT).contains(event->pos())){
             emit req_editData(getViewItem(), getPrimaryTextKey());
         }
     }
     if(!getSecondaryTextKey().isEmpty()){
-        if(event->button() == Qt::LeftButton && getElementPath(ER_SECONDARY_TEXT).contains(event->pos())){
+        if(event->button() == Qt::LeftButton && getElementPath(EntityRect::SECONDARY_TEXT).contains(event->pos())){
             emit req_editData(getViewItem(), getSecondaryTextKey());
         }
     }

@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <math.h>
 
-#define ARROW_SIZE 8
+#define ARROW_SIZE 4
 EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination):EntityItem(edgeViewItem, parent, EDGE)
 {
     //Set the margins
@@ -37,7 +37,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
 
     //Set the Pen
     QPen pen;
-    pen.setWidthF(1);
+    pen.setWidthF(.5);
     pen.setCapStyle(Qt::FlatCap);
 
     //Add the edge to the parent
@@ -208,22 +208,22 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     
         //Draw the icons.
         if(state == RENDER_STATE::BLOCK){
-            painter->setClipPath(getElementPath(ER_SELECTION));
+            painter->setClipPath(getElementPath(EntityRect::SHAPE));
         }
-        paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
+        paintPixmap(painter, lod, EntityRect::MAIN_ICON, getIconPath());
         if(state > RENDER_STATE::BLOCK && isSelected()){
-            paintPixmap(painter, lod, ER_MAIN_ICON, src->getIconPath());
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, dst->getIconPath());
+            paintPixmap(painter, lod, EntityRect::SECONDARY_ICON, src->getIconPath());
+            paintPixmap(painter, lod, EntityRect::TERTIARY_ICON, dst->getIconPath());
         }
     //}
 }
 
-QPainterPath EdgeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
+QPainterPath EdgeItem::getElementPath(EntityRect rect) const
 {
     switch(rect){
-        case ER_SELECTION:{
+        case EntityRect::SHAPE:{
             //Selection Area is the Center Circle and Arrow Heads
-            QPainterPath path = getElementPath(ER_MOVE);
+            QPainterPath path = getElementPath(EntityRect::MOVE);
             if(isSelected()){
                 path.addEllipse(srcIconCircle());
                 path.addEllipse(dstIconCircle());
@@ -232,7 +232,7 @@ QPainterPath EdgeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
             path.addPath(dstArrow);
             return path;
         }
-        case ER_MOVE:{
+        case EntityRect::MOVE:{
             //Move Area is the Center Circle
             QPainterPath path;
             path.setFillRule(Qt::WindingFill);
@@ -246,16 +246,16 @@ QPainterPath EdgeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 }
 
 
-QRectF EdgeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
+QRectF EdgeItem::getElementRect(EntityRect rect) const
 {
     switch(rect){
-        case ER_EDGE_KIND_ICON:{
+        case EntityRect::MAIN_ICON:{
             return centerIconRect();
         }
-        case ER_MAIN_ICON:{
+        case EntityRect::SECONDARY_ICON:{
             return srcIconRect();
         }
-        case ER_SECONDARY_ICON:{
+        case EntityRect::TERTIARY_ICON:{
             return dstIconRect();
         }
         default:
@@ -333,7 +333,7 @@ QRectF EdgeItem::srcIconRect() const
 QRectF EdgeItem::centerIconRect() const
 {
     QRectF  r;
-    r.setSize(smallIconSize() * 2);
+    r.setSize(smallIconSize());
     r.moveCenter(translatedCenterCircleRect().center());
     return r;
 }
@@ -380,11 +380,11 @@ QPolygonF EdgeItem::getTriangle() const{
     QPolygonF poly;
 
     auto center = cr.center();
-    cr.setHeight(28);
-    cr.setWidth(15);
+    cr.setHeight(1);
+    cr.setWidth(1);
     cr.moveCenter(center);
 
-    auto delta = 14;
+    auto delta = 0;
 
     
     if(srcCurveEntersCenterLeft){
@@ -444,9 +444,9 @@ QRectF EdgeItem::centerCircleRect() const
 {
     QRectF  r;
     if(_isCentered){
-        r.setSize(QSizeF(16,16));
+        r.setSize(QSizeF(8, 8));
     }else{
-        r.setSize(QSizeF(20,20));
+        r.setSize(QSizeF(10, 10));
     }
     return r;
 }

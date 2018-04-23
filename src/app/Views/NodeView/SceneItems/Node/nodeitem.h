@@ -159,14 +159,9 @@ public:
 
 
     void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind);
-
-    void setVisualNodeKind(NODE_KIND kind);
     EDGE_KIND getVisualEdgeKind() const;
-    NODE_KIND getVisualNodeKind() const;
 
-    bool gotVisualNodeKind() const;
-    bool gotVisualEdgeKind() const;
-    bool gotVisualButton() const;
+    
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
@@ -192,27 +187,21 @@ signals:
     void childCountChanged();
 
     void indexChanged();
-    //Request changes
-    void req_connectMode(NodeItem* item);
     
     void req_connectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void req_connectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
-    void req_popOutRelatedNode(NodeViewItem* item, NODE_KIND kind);
 
     void req_StartResize();
     void req_Resize(NodeItem* item, QSizeF delta, NodeItem::RectVertex vert);
     void req_FinishResize();
 
-    //Inform of Changes
-    void gotChildNodes(bool);
-    void gotChildProxyEdges(bool);
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void propertyChanged(QString propertyName, QVariant data);
     virtual void dataRemoved(QString keyName);
 private:
-    void edgeAdded(EDGE_KIND kind);
-    void edgeRemoved(EDGE_KIND kind);
+    void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
+    void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
 
 
     void updateReadState();
@@ -229,9 +218,9 @@ private:
 
     QMultiMap<EDGE_DIRECTION, EDGE_KIND> visual_edge_kinds;
     QSet< QPair<EDGE_DIRECTION, EDGE_KIND> > hovered_edge_kinds;
+    QMultiMap<QPair<EDGE_DIRECTION, EDGE_KIND>, int> attached_edges;
 
 
-    NODE_KIND visualNodeKind = NODE_KIND::NONE;
     EDGE_KIND visualEdgeKind = EDGE_KIND::NONE;
     QString visualEntityIcon;
 
@@ -299,8 +288,8 @@ public:
 
     // EntityItemNew interface
 public:
-    virtual QRectF getElementRect(ELEMENT_RECT rect) const;
-    virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
+    virtual QRectF getElementRect(EntityRect rect) const;
+    virtual QPainterPath getElementPath(EntityRect rect) const;
     virtual QRectF getResizeRect(NodeItem::RectVertex vert) const;
     virtual QRectF getResizeArrowRect() const;
 
