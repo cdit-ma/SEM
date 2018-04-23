@@ -7,6 +7,7 @@
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
 
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
@@ -18,12 +19,11 @@
 
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
-    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
     <key attr.name="version" attr.type="string" for="all" id="version"/>
 
     <graph id="G">
         <node id="vectorworker">
-            <data key="kind">WorkerDefinition</data>
+            <data key="kind">Class</data>
             <data key="version">1.0.0</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
@@ -32,7 +32,7 @@
             <data key="description">Provides Vector handling functionality.</data>
             <graph id="vectorworker:">
                 <node id="vectorworker::get">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Get</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Get</data>
@@ -70,7 +70,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::remove">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Remove</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Remove</data>
@@ -107,7 +107,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::insert">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Insert</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Insert</data>
@@ -144,7 +144,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::set">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Set</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Set</data>
@@ -181,7 +181,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::length">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Length</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Length</data>
@@ -210,7 +210,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::clear">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Clear</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Clear</data>
@@ -231,7 +231,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::resize">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Resize</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Resize</data>
@@ -269,7 +269,7 @@
                     </graph>
                 </node>
                 <node id="vectorworker::swap">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Swap</data>
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Swap</data>

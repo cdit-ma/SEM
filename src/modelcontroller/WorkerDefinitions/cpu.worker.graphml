@@ -7,6 +7,7 @@
     <key attr.name="type" attr.type="string" for="all" id="type"/>
     <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
     <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="bool" for="all" id="is_generic_param"/>
 
     <key attr.name="description" attr.type="string" for="all" id="description"/>
 
@@ -21,7 +22,7 @@
 
     <graph id="G">
         <node id="cpuworker">
-            <data key="kind">WorkerDefinition</data>
+            <data key="kind">Class</data>
             <data key="version">1.0.0</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
@@ -30,7 +31,7 @@
             <data key="icon">cpu</data>
             <graph id="cpuworker:">
                 <node id="cpuworker::intop">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">IntOp</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -51,7 +52,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::floatop">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">FloatOp</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -73,7 +74,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::whetstone">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Whetstone</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -95,7 +96,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::mwip">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">MWIP</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -117,7 +118,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::dhrystone">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">Dhrystone</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -139,7 +140,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::dmip">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">DMIP</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
@@ -161,7 +162,7 @@
                     </graph>
                 </node>
                 <node id="cpuworker::matrixmult">
-                    <data key="kind">WorkerFunction</data>
+                    <data key="kind">Function</data>
                     <data key="label">MatrixMult</data>
                     <data key="worker">Cpu_Worker</data>
                     <data key="folder">${RE_PATH}/src/workers/cpu</data>
