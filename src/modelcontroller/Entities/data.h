@@ -48,7 +48,7 @@ public:
     QVariant getValue() const;
 
     QString toGraphML(int indentDepth = 0, bool functional_export = false);
-    QString toString();
+    QString toString() const;
 protected:
 
     void store_value();

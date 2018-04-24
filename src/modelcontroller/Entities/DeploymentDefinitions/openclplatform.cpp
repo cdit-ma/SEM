@@ -14,8 +14,8 @@ OpenCLPlatform::OpenCLPlatform(EntityFactory* factory) : Node(factory, NODE_KIND
 
 OpenCLPlatform::OpenCLPlatform():Node(NODE_KIND::OPENCL_PLATFORM)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
     setNodeType(NODE_TYPE::HARDWARE);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 }
 
 bool OpenCLPlatform::canAdoptChild(Node* child)

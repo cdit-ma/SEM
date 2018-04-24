@@ -14,16 +14,8 @@ AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory,
 
 AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setNodeType(NODE_TYPE::DEFINITION);
-
-    setInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
-    setDefinitionKind(NODE_KIND::AGGREGATE);
-    setImplKind(NODE_KIND::AGGREGATE_INSTANCE);
-
-    //Only allow data binding for particular cases based on ancestor
-    removeEdgeKind(EDGE_KIND::DATA);
+    addInstancesDefinitionKind(NODE_KIND::AGGREGATE);
+    setChainableDefinition();
 }
 
 bool AggregateInstance::canAdoptChild(Node *child)
@@ -40,12 +32,12 @@ bool AggregateInstance::canAdoptChild(Node *child)
     return DataNode::canAdoptChild(child);
 }
 
-bool AggregateInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-    switch(edgeKind){
+    switch(edge_kind){
     case EDGE_KIND::DATA:{        //Can only connect to an AggregateInstance.
         if(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
             //Can only connect to an AggregateInstance with the same definition.
@@ -56,18 +48,12 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
 
         break;
     }
-    case EDGE_KIND::DEFINITION:{
-        //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(!(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE || dst->getNodeKind() == NODE_KIND::AGGREGATE)){
-            return false;
-        }
-        break;
-    }
+    
     default:
         break;
 
     }
-    return DataNode::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edge_kind, dst);
 }
 
 

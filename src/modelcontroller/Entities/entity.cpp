@@ -304,7 +304,7 @@ bool Entity::removeData(QString keyName)
     return removeData(getData(keyName));
 }
 
-QString Entity::toString()
+QString Entity::toString() const
 {
     return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue("kind").toString() ,getDataValue("label").toString());
 }

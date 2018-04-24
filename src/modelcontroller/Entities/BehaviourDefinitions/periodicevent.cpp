@@ -10,12 +10,7 @@ PeriodicEvent::PeriodicEvent(EntityFactory* factory) : Node(factory, NODE_KIND::
 
 PeriodicEvent::PeriodicEvent():Node(NODE_KIND::PERIODICEVENT){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-    setNodeType(NODE_TYPE::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    setDefinitionKind(NODE_KIND::PERIODICEVENT);
-    setInstanceKind(NODE_KIND::PERIODICEVENT);
+    setChainableDefinition();
 }
 
 #include <QDebug>
@@ -60,6 +55,8 @@ bool PeriodicEvent::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 return false;
         }
     }
+    default:
+        break;
     }
 
     return Node::canAcceptEdge(edge_kind, dst);

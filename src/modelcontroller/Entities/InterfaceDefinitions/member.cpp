@@ -24,10 +24,7 @@ Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Membe
 
 Member::Member(): Node(NODE_KIND::MEMBER)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    setInstanceKind(NODE_KIND::MEMBER_INSTANCE);
+    addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 }
 
 

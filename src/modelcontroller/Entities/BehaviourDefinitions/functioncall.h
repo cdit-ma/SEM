@@ -1,7 +1,7 @@
 #ifndef FUNCTIONCALL_H
 #define FUNCTIONCALL_H
 
-#include "../Node.h"
+#include "../node.h"
 
 class EntityFactory;
 class FunctionCall: public Node

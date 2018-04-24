@@ -9,9 +9,8 @@ MEDEA::ServerInterface::ServerInterface(EntityFactory* factory) : Node(factory, 
 
 MEDEA::ServerInterface::ServerInterface(): Node(node_kind)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    addInstanceKind(NODE_KIND::SERVER_PORT);
+    addInstanceKind(NODE_KIND::CLIENT_PORT);
 }
 
 bool MEDEA::ServerInterface::canAdoptChild(Node* child)
@@ -28,9 +27,4 @@ bool MEDEA::ServerInterface::canAdoptChild(Node* child)
         return false;
     };
     return Node::canAdoptChild(child);
-}
-
-bool MEDEA::ServerInterface::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
-{
-    return Node::canAcceptEdge(edge_kind, dst);
 }

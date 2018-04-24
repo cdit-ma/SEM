@@ -17,6 +17,8 @@ public:
 
     void setPromiscuousDataLinker(bool set);
     void setMultipleDataReceiver(bool receiver);
+    void setMultipleDataProducer(bool receiver);
+
     void setDataProducer(bool producer);
     void setDataReceiver(bool receiver);
     bool isDataProducer() const;
@@ -24,9 +26,10 @@ public:
 
     bool isPromiscuousDataLinker() const;
     bool isMultipleDataReceiver() const;
+    bool isMultipleDataProducer() const;
 
     bool comparableTypes(DataNode* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst) = 0;
+    virtual bool canAcceptEdge(EDGE_KIND edge_kind, Node *dst);
 
     bool isContainedInVector();
     bool isContainedInVariable();
@@ -47,6 +50,7 @@ private:
     bool is_producer_ = false;
     bool is_receiver_ = false;
     bool is_multiple_data_receiver_ = false;
+    bool is_multiple_data_producer_ = true;
 
 };
 

@@ -13,22 +13,17 @@ MEDEA::ClientPort::ClientPort(EntityFactory* factory) : Node(factory, node_kind,
 
 MEDEA::ClientPort::ClientPort(): Node(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setNodeType(NODE_TYPE::DEFINITION);
-
-    setDefinitionKind(NODE_KIND::SERVER_INTERFACE);
-    
-    setImplKind(NODE_KIND::SERVER_REQUEST);
-    setInstanceKind(NODE_KIND::CLIENT_PORT_INSTANCE);
+    addInstancesDefinitionKind(NODE_KIND::SERVER_INTERFACE);
+    addInstanceKind(NODE_KIND::CLIENT_PORT_INSTANCE);
+    addImplKind(NODE_KIND::SERVER_REQUEST);
 }
 
 
 bool MEDEA::ClientPort::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-    case NODE_KIND::INPUT_PARAMETER_GROUP:
-    case NODE_KIND::RETURN_PARAMETER_GROUP:{
+    case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+    case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
         if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
             return false;
         }
@@ -38,24 +33,4 @@ bool MEDEA::ClientPort::canAdoptChild(Node* child)
         return false;
     };
     return Node::canAdoptChild(child);
-}
-
-bool MEDEA::ClientPort::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
-{
-    if(!acceptsEdgeKind(edge_kind)){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(dst->getNodeKind() != NODE_KIND::SERVER_INTERFACE){//} || dst->getNodeKind() == NODE_KIND::SERVER_REQUEST)){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return Node::canAcceptEdge(edge_kind, dst);
 }

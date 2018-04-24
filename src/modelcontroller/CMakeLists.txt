@@ -54,7 +54,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinstance.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/blackboxinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.cpp
@@ -67,7 +66,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ineventportinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingprofile.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/managementcomponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/opencldevice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportdelegate.cpp
@@ -107,14 +105,12 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregateinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/attribute.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/blackbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/component.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/datanode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/eventport.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/idl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ineventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.cpp
@@ -148,6 +144,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/voidtype.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/inputparametergroup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/returnparametergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/inputparametergroupinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/returnparametergroupinstance.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ClientServer/clientport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ClientServer/serverport.cpp
@@ -179,14 +177,12 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/ineventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/idl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/eventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/datanode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/component.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/blackbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregateinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.h
@@ -224,7 +220,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/outeventportdelegate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/managementcomponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingprofile.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ineventportinstance.h
@@ -236,7 +231,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/blackboxinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h

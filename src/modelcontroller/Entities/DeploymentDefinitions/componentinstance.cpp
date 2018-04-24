@@ -13,12 +13,10 @@ ComponentInstance::ComponentInstance(EntityFactory* factory) : Node(factory, NOD
 
 ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
 {
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
-    setAcceptsEdgeKind(EDGE_KIND::QOS);
+    addInstancesDefinitionKind(NODE_KIND::COMPONENT);
 
-    setDefinitionKind(NODE_KIND::COMPONENT);
+    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
 }
 
 bool ComponentInstance::canAdoptChild(Node *child)
@@ -37,32 +35,6 @@ bool ComponentInstance::canAdoptChild(Node *child)
         return false;
     }
     return Node::canAdoptChild(child);
-}
-
-bool ComponentInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    if(!acceptsEdgeKind(edgeKind)){
-        return false;
-    }
-
-    switch(edgeKind){
-    case EDGE_KIND::DEFINITION:{
-        if(dst->getNodeKind() != NODE_KIND::COMPONENT){
-            return false;
-        }
-        break;
-    }
-    case EDGE_KIND::DEPLOYMENT:{
-        if(gotEdgeKind(edgeKind)){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return Node::canAcceptEdge(edgeKind, dst);
-
 }
 
 #include <QDebug>

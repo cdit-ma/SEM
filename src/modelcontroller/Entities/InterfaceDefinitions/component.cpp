@@ -14,11 +14,8 @@ Component::Component(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONEN
 
 Component::Component():Node(NODE_KIND::COMPONENT)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    setInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
-    setImplKind(NODE_KIND::COMPONENT_IMPL);
+    addInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
+    addImplKind(NODE_KIND::COMPONENT_IMPL);
 }
 
 bool Component::canAdoptChild(Node *child)

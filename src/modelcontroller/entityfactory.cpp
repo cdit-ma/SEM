@@ -70,7 +70,6 @@
 #include "Entities/DeploymentDefinitions/attributeinstance.h"
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
-#include "Entities/DeploymentDefinitions/blackboxinstance.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
@@ -87,7 +86,6 @@
 #include "Entities/DeploymentDefinitions/componentassembly.h"
 #include "Entities/DeploymentDefinitions/hardwarecluster.h"
 #include "Entities/DeploymentDefinitions/hardwarenode.h"
-#include "Entities/DeploymentDefinitions/managementcomponent.h"
 #include "Entities/DeploymentDefinitions/ineventportdelegate.h"
 #include "Entities/DeploymentDefinitions/outeventportdelegate.h"
 #include "Entities/DeploymentDefinitions/loggingprofile.h"
@@ -98,7 +96,6 @@
 //Definition Elements
 #include "Entities/InterfaceDefinitions/aggregate.h"
 #include "Entities/InterfaceDefinitions/attribute.h"
-#include "Entities/InterfaceDefinitions/blackbox.h"
 #include "Entities/InterfaceDefinitions/component.h"
 #include "Entities/InterfaceDefinitions/ineventport.h"
 #include "Entities/InterfaceDefinitions/member.h"
@@ -106,7 +103,6 @@
 #include "Entities/InterfaceDefinitions/vector.h"
 
 //Elements
-#include "Entities/InterfaceDefinitions/idl.h"
 #include "Entities/InterfaceDefinitions/shareddatatypes.h"
 #include "Entities/InterfaceDefinitions/namespace.h"
 
@@ -126,6 +122,9 @@
 
 #include "Entities/InterfaceDefinitions/inputparametergroup.h"
 #include "Entities/InterfaceDefinitions/returnparametergroup.h"
+
+#include "Entities/InterfaceDefinitions/inputparametergroupinstance.h"
+#include "Entities/InterfaceDefinitions/returnparametergroupinstance.h"
 
 #include "Entities/InterfaceDefinitions/voidtype.h"
 
@@ -304,8 +303,9 @@ void EntityFactory::RegisterDefaultData(EDGE_KIND kind, QString key_name, QVaria
     }
 }
 
-QSet<Node*> EntityFactory::GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind){
-    return accepted_edge_map.value(edge_kind);
+QSet<Node*> EntityFactory::GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind, EDGE_DIRECTION direction){
+    auto& map = direction == EDGE_DIRECTION::SOURCE ? accepted_source_edge_map : accepted_target_edge_map;
+    return map.value(edge_kind);
 }
 
 
@@ -390,7 +390,6 @@ EntityFactory::EntityFactory()
     AttributeInstance(this);
     InEventPortInstance(this);
     OutEventPortInstance(this);
-    BlackBoxInstance(this);
     AggregateInstance(this);
     MemberInstance(this);
     VectorInstance(this);
@@ -399,7 +398,6 @@ EntityFactory::EntityFactory()
     ComponentAssembly(this);
     HardwareNode(this);
     HardwareCluster(this);
-    ManagementComponent(this);
     InEventPortDelegate(this);
     OutEventPortDelegate(this);
     LoggingProfile(this);
@@ -411,7 +409,6 @@ EntityFactory::EntityFactory()
     //Definition Elements
     Aggregate(this);
     Attribute(this);
-    BlackBox(this);
     Component(this);
     InEventPort(this);
     Member(this);
@@ -453,7 +450,6 @@ EntityFactory::EntityFactory()
     DDS_WriterDataLifecycleQosPolicy(this);
 
     //Elements
-    IDL(this);
     SharedDatatypes(this);
     Namespace(this);
 
@@ -470,6 +466,9 @@ EntityFactory::EntityFactory()
 
     MEDEA::InputParameterGroup(this);
     MEDEA::ReturnParameterGroup(this);
+
+    MEDEA::InputParameterGroupInstance(this);
+    MEDEA::ReturnParameterGroupInstance(this);
 
     VoidType(this);
 
@@ -776,24 +775,34 @@ void EntityFactory::RegisterEntity(GraphML* graphml, int id){
     }
 }
 void EntityFactory::acceptedEdgeKindsChanged(Node* node){
-    auto accepted_edge_kinds = node->getAcceptedEdgeKinds();
+    auto source_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
+    auto target_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
 
     
     for(auto edge_kind : getEdgeKinds()){
-        auto& edge_map = accepted_edge_map[edge_kind];
+        auto& source_edge_map = accepted_source_edge_map[edge_kind];
+        auto& target_edge_map = accepted_target_edge_map[edge_kind];
 
-        if(accepted_edge_kinds.contains(edge_kind)){
-            edge_map.insert(node);
+        if(source_accepted_edge_kinds.contains(edge_kind)){
+            source_edge_map.insert(node);
         }else{
-            edge_map.remove(node);
+            source_edge_map.remove(node);
+        }
+
+        if(target_accepted_edge_kinds.contains(edge_kind)){
+            target_edge_map.insert(node);
+        }else{
+            target_edge_map.remove(node);
         }
     }
 }
 
 void EntityFactory::clearAcceptedEdgeKinds(Node* node){
     for(auto edge_kind : getEdgeKinds()){
-        auto& edge_map = accepted_edge_map[edge_kind];
-        edge_map.remove(node);
+        auto& source_edge_map = accepted_source_edge_map[edge_kind];
+        auto& target_edge_map = accepted_target_edge_map[edge_kind];
+        source_edge_map.remove(node);
+        target_edge_map.remove(node);
     }
 }
 

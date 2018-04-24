@@ -23,13 +23,7 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
     setDataProducer(true);
     setDataReceiver(true);
 
-   
-	setInstanceKind(NODE_KIND::VECTOR_INSTANCE);
-
-    
-
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    addInstanceKind(NODE_KIND::VECTOR_INSTANCE);   
 }
 
 
@@ -50,12 +44,13 @@ bool Vector::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool Vector::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-    switch(edgeKind){
+
+    switch(edge_kind){
     case EDGE_KIND::AGGREGATE:{
         if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
@@ -68,7 +63,7 @@ bool Vector::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     default:
         break;
     }
-    return DataNode::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edge_kind, dst);
 }
 
 void Vector::updateVectorIcon(Node* node){

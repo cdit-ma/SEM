@@ -24,7 +24,7 @@ public:
 
     //Pure Virtual
     virtual QString toGraphML(int indentDepth=0, bool functional_export = false)=0;
-    virtual QString toString()=0;
+    virtual QString toString() const = 0;
 private:
     int id = -1;
     GRAPHML_KIND kind = GRAPHML_KIND::NONE;

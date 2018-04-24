@@ -18,7 +18,7 @@ MEDEA::ExternalType::ExternalType(EntityFactory* factory) : Node(factory, node_k
 
 MEDEA::ExternalType::ExternalType() : Node(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
+    setChainableDefinition();
 }
 
 
@@ -29,13 +29,13 @@ bool MEDEA::ExternalType::canAdoptChild(Node* child)
 }
 
 
-bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
+    switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
             if(dst->getNodeKind() != NODE_KIND::EXTERNAL_TYPE){
                 return false;
@@ -70,7 +70,7 @@ bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             break;
     }
 
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }
 
 Node* MEDEA::ExternalType::getTopLevelContainer(){

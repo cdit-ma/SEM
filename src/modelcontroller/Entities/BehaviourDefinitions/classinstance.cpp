@@ -13,13 +13,9 @@ MEDEA::ClassInstance::ClassInstance(EntityFactory* factory) : Node(factory, node
 
 MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setNodeType(NODE_TYPE::DEFINITION);
-
-    setDefinitionKind(NODE_KIND::CLASS);
-    setInstanceKind(NODE_KIND::CLASS_INSTANCE);
-
+    addInstancesDefinitionKind(NODE_KIND::CLASS);
+    setChainableDefinition();
+    
     SetEdgeRuleActive(Node::EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
@@ -38,7 +34,7 @@ bool MEDEA::ClassInstance::ClassInstance::canAdoptChild(Node* child)
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
 {
-    if(!requiresEdgeKind(edge_kind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 

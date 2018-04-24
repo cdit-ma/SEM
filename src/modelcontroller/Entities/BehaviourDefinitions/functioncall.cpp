@@ -8,9 +8,7 @@ const QString kind_string = "FunctionCall";
 
 FunctionCall::FunctionCall():Node(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setDefinitionKind(NODE_KIND::FUNCTION);
+    addInstancesDefinitionKind(NODE_KIND::FUNCTION);
 
     //Disable rules which break
     SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION, false);
@@ -32,13 +30,13 @@ FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, ki
 }
 
 
-bool FunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool FunctionCall::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
+    switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
             // Definition edge must link to a WorkerFunction
             if(dst->getNodeKind() != NODE_KIND::FUNCTION){
@@ -47,8 +45,11 @@ bool FunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             // The FunctionCall must exist within a ComponentImpl
             auto parent_node = dst->getParentNode();
             if(parent_node){
-                //if(parent_node->getNodeKind() != NODE_KIND::WORKER_INSTANCE){
-                if(parent_node->getNodeKind() != NODE_KIND::CLASS_INSTANCE){
+                auto parent_node_kind = parent_node->getNodeKind();
+
+                QSet<NODE_KIND> valid_parent_kinds = {NODE_KIND::COMPONENT_IMPL, NODE_KIND::CLASS_INSTANCE};
+
+                if(!valid_parent_kinds.contains(parent_node_kind)){
                     return false;
                 }
 
@@ -66,32 +67,29 @@ bool FunctionCall::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         default:
             break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }
 
-bool FunctionCall::canAdoptChild(Node* node)
+bool FunctionCall::canAdoptChild(Node* child)
 {
-    if(!node->isNodeOfType(NODE_TYPE::PARAMETER)){
-        return false;
-    }
-
-    Parameter* parameter = (Parameter*)node;
-
-    if(parameter->isReturnParameter()){
-        if(!getChildrenOfKind(NODE_KIND::RETURN_PARAMETER, 0).isEmpty()){
-            return false;
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
+        // Should be replaced by parameter groups when they're ready
+        case NODE_KIND::INPUT_PARAMETER:
+        case NODE_KIND::RETURN_PARAMETER:
+        case NODE_KIND::VARIABLE_PARAMETER:
+            break;
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
+            if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+                return false;
+            }
+            break;
         }
-    }
-
-    if(parameter->isVariadicParameter()){
-        //Check to see if worker function is variadic
-        auto d = gotData("is_variadic");
-        if(!d){
+        default:
             return false;
-        }
     }
-
-    return Node::canAdoptChild(node);
+    return Node::canAdoptChild(child);
 }
 
 

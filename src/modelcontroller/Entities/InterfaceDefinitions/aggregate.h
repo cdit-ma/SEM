@@ -14,10 +14,6 @@ protected:
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-private:
-    //QString getType();
-private slots:
-    //void updateType(int ID, QString keyName);
 };
 
 

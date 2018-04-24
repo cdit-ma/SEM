@@ -22,8 +22,6 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_s
 Variable::Variable() : DataNode(node_kind)
 {
     setDataProducer(true);
-    //setDataReceiver(true);
-    //setMultipleDataReceiver(true);
 }
 
 
@@ -55,23 +53,4 @@ void Variable::childAdded(Node* child){
 void Variable::childRemoved(Node* child){
     DataNode::childRemoved(child);
     TypeKey::BindInnerAndOuterTypes(child, this, false);
-}
-
-bool Variable::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    if(!acceptsEdgeKind(edgeKind)){ 
-        return false;
-    }
-
-    switch(edgeKind){
-    case EDGE_KIND::DATA:{
-        if(dst->getNodeKind() == NODE_KIND::VARIABLE || dst->getNodeKind() == NODE_KIND::ATTRIBUTE_IMPL){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return DataNode::canAcceptEdge(edgeKind, dst);
 }

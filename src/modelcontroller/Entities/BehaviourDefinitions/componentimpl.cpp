@@ -14,10 +14,9 @@ ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::
 };
 
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
-    setNodeType(NODE_TYPE::IMPLEMENTATION);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(NODE_KIND::COMPONENT);
+    
+    addImplsDefinitionKind(NODE_KIND::COMPONENT);
 }
 
 bool ComponentImpl::canAdoptChild(Node *child)
@@ -38,13 +37,13 @@ bool ComponentImpl::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool ComponentImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool ComponentImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
+    switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         if(!dst->getImplementations().isEmpty()){
             return false;
@@ -57,7 +56,7 @@ bool ComponentImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     default:
         break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }
 
 

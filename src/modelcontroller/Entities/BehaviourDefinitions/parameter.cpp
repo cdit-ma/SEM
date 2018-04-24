@@ -17,10 +17,7 @@ Parameter::Parameter(EntityFactory* factory, NODE_KIND node_kind, QString kind_s
 Parameter::Parameter(NODE_KIND kind):DataNode(kind)
 {
     setNodeType(NODE_TYPE::PARAMETER);
-    setAcceptsEdgeKind(EDGE_KIND::DATA);
-
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
+    
 }
 
 bool Parameter::isInputParameter() const
@@ -48,10 +45,11 @@ bool Parameter::canAdoptChild(Node*)
     return false;
 }
 
-bool Parameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool Parameter::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-    return DataNode::canAcceptEdge(edgeKind, dst);
+
+    return DataNode::canAcceptEdge(edge_kind, dst);
 }

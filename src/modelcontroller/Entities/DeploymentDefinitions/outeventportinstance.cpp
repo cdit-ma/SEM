@@ -11,34 +11,13 @@ OutEventPortInstance::OutEventPortInstance(EntityFactory* factory) : EventPortAs
 
 OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NODE_KIND::OUTEVENTPORT_INSTANCE)
 {
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::QOS);
-    removeEdgeKind(EDGE_KIND::AGGREGATE);
-    setDefinitionKind(NODE_KIND::OUTEVENTPORT);
+    addInstancesDefinitionKind(NODE_KIND::OUTEVENTPORT);
+
+    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 }
 
 bool OutEventPortInstance::canAdoptChild(Node*)
 {
     return false;
-}
-
-bool OutEventPortInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    if(!acceptsEdgeKind(edgeKind)){
-        return false;
-    }
-
-    switch(edgeKind){
-    case EDGE_KIND::DEFINITION:{
-        //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(dst->getNodeKind() != NODE_KIND::OUTEVENTPORT){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }

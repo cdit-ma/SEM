@@ -175,7 +175,7 @@ QString Data::toGraphML(int indentDepth, bool functional_export)
     return xml;
 }
 
-QString Data::toString()
+QString Data::toString() const
 {
     return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }

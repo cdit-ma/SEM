@@ -12,18 +12,12 @@ EnumInstance::EnumInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND
 
 EnumInstance::EnumInstance():DataNode(NODE_KIND::ENUM_INSTANCE)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DATA);
-    setNodeType(NODE_TYPE::DATA);
     setDataReceiver(true);
     setDataProducer(true);
 
 
-    setDefinitionKind(NODE_KIND::ENUM);
-    setInstanceKind(NODE_KIND::ENUM_INSTANCE);
-    setImplKind(NODE_KIND::ENUM_INSTANCE);
+    addInstancesDefinitionKind(NODE_KIND::ENUM);
+    setChainableDefinition();
 }
 
 bool EnumInstance::canAdoptChild(Node* child)
@@ -31,12 +25,12 @@ bool EnumInstance::canAdoptChild(Node* child)
     return false;
 }
 
-bool EnumInstance::canAcceptEdge(EDGE_KIND edgeKind, Node * dst)
+bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-    switch(edgeKind){
+    switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
             if(!(dst->getNodeKind() == NODE_KIND::ENUM || dst->getNodeKind() == NODE_KIND::ENUM_INSTANCE)){
                 return false;
@@ -59,5 +53,5 @@ bool EnumInstance::canAcceptEdge(EDGE_KIND edgeKind, Node * dst)
     default:
         break;
     }
-    return DataNode::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edge_kind, dst);
 }

@@ -18,11 +18,8 @@ HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HA
 
 HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
     setNodeType(NODE_TYPE::HARDWARE);
-
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 }
 
 bool HardwareNode::canAdoptChild(Node* child)

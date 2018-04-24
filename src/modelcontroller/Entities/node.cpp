@@ -9,6 +9,8 @@
 #include <QStack>
 #include "../entityfactory.h"
 
+#include "InterfaceDefinitions/datanode.h"
+
 #include "../nodekinds.h"
 #include "../edgekinds.h"
 #include "Keys/indexkey.h"
@@ -22,9 +24,6 @@ Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
     definition = 0;
     aspect = VIEW_ASPECT::NONE;
 
-    definition_kind_ = NODE_KIND::NONE;
-    instance_kind_ = NODE_KIND::NONE;
-    impl_kind_ = NODE_KIND::NONE;
     
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY);
     SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION);
@@ -104,37 +103,52 @@ bool Node::IsEdgeRuleActive(EdgeRule rule){
     return active_edge_rules.contains(rule);
 }
 
+bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, Node* dst) const{
+    if(canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE) == false){
+        qCritical() << this->toString() << " CANNOT BE SOURCE FOR: " << EntityFactory::getEdgeKindString(edge_kind);
+        return false;
+    }
+
+    if(dst->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET) == false){
+        qCritical() << dst->toString() << " CANNOT BE TARGET FOR: " << EntityFactory::getEdgeKindString(edge_kind);
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
  */
-bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!requiresEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
+
     
-    switch(edgeKind){
+    switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
 
-        //This must be an Instance/Impl Node Type
-        if(!(isInstanceImpl())){
-            return false;
-        }
-
-        //Node cannot already have a Definition.
-        if(getDefinition()){
-            return false;
-        }
-
-  
-        //Node must be a Definition Node Type.
-        if(!dst->isNodeOfType(NODE_TYPE::DEFINITION)){
-            return false;
-        }
-
-
         if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
+            auto node_kind = getNodeKind();
+            auto dst_node_kind = dst->getNodeKind();
+            
+            if(isValidDefinitionKind(dst_node_kind) == false){
+                return false;
+            }
+
+            if(isInstance()){
+                if(dst->isValidInstanceKind(node_kind) == false){
+                    return false;
+                }
+            }else if(isImpl()){
+                if(dst->isValidImplKind(node_kind) == false){
+                    return false;
+                }
+            }
+            
             /*
             When this is contained within and instance or impl
             we should check that the dst we are connecting to (AKA Using as this's definition)
@@ -163,18 +177,13 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
             }
         }
 
-        if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
+        /*if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
             /*
             When this isn't contained within and instance or impl
             we should check that the dst we are connecting to (AKA Using as this's definition)
             doesn't have a definition set
             */
-            if(parentNode && !parentNode->isInstanceImpl()){
-                if(dst->getDefinition()){
-                    return false;
-                }
-            }
-        }
+        //}*
 
         if(indirectlyConnectedTo(dst)){
             return false;
@@ -195,10 +204,6 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
             return false;
         }
-        //Can only have oen edge kind
-        if(gotEdgeKind(edgeKind)){
-            return false;
-        }
         break;
     }
     default:
@@ -216,7 +221,7 @@ bool Node::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         return false;
     }
 
-    if(gotEdgeTo(dst, edgeKind)){
+    if(gotEdgeTo(dst, edge_kind)){
         //Don't allow multi edges of the same kind.
         return false;
     }
@@ -228,64 +233,6 @@ bool Node::isNodeOfType(NODE_TYPE type) const
     return types.contains(type);
 }
 
-bool Node::acceptsEdgeKind(EDGE_KIND edge_kind) const
-{
-    return accepted_edge_kinds_.contains(edge_kind);
-}
-
-QSet<EDGE_KIND> Node::getRequiredEdgeKinds() const{
-    QSet<EDGE_KIND> required_edge_kinds;
-    for(auto edge_kind: accepted_edge_kinds_){
-        if(requiresEdgeKind(edge_kind)){
-            required_edge_kinds.insert(edge_kind);
-        }
-    }
-    return required_edge_kinds;
-}
-
-
-bool Node::requiresEdgeKind(EDGE_KIND edgeKind) const
-{
-    if(acceptsEdgeKind(edgeKind)){
-        switch(edgeKind){
-        case EDGE_KIND::DEFINITION:{
-            if(definition && !isInstance()){
-                return false;
-            }
-
-            if(isDefinition() && !isInstanceImpl()){
-               return false;
-            }
-            break;
-        }
-        case EDGE_KIND::ASSEMBLY:
-            //Can always have more assembly edges
-            return true;
-        case EDGE_KIND::DEPLOYMENT:
-            return true;
-        case EDGE_KIND::AGGREGATE:
-        case EDGE_KIND::QOS:{
-            for(auto edge : edges.values(edgeKind)){
-                if(edge->getSource() == this){
-                    return false;
-                }
-            }
-            break;
-        }
-        case EDGE_KIND::DATA:{
-            break;
-        }
-        default:
-            return false;
-        }
-        return true;
-    }
-    return false;
-}
-
-QSet<EDGE_KIND> Node::getValidEdgeKinds() const{
-    return accepted_edge_kinds_;
-}
 
 void Node::setNodeType(NODE_TYPE type)
 {
@@ -297,23 +244,7 @@ void Node::removeNodeType(NODE_TYPE type)
     types.remove(type);
 }
 
-void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, bool accept)
-{
-    if(accept){
-        accepted_edge_kinds_.insert(edge_kind);
-    }else{
-        accepted_edge_kinds_.remove(edge_kind);
-    }
-    auto factory = getFactory();
-    if(factory){
-        factory->acceptedEdgeKindsChanged(this);
-    }
-}
 
-void Node::removeEdgeKind(EDGE_KIND edge_kind)
-{
-    setAcceptsEdgeKind(edge_kind, false);
-}
 
 int Node::getDepthFromAspect()
 {
@@ -645,15 +576,20 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
-QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
-{
+QList<Node *> Node::getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth){
     QList<Node*> returnableList;
-    foreach(Node* childNode, getChildren(depth)){
-        if(childNode->getNodeKind() == kind){
-            returnableList.append(childNode);
+
+    for(auto child : getChildren(depth)){
+        if(kinds.contains(child->getNodeKind())){
+            returnableList.append(child);
         }
     }
     return returnableList;
+}
+
+QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
+{
+    return getChildrenOfKinds({kind}, depth);
 }
 
 QList<int> Node::getEdgeIDs(EDGE_KIND edgeClass)
@@ -938,8 +874,6 @@ void Node::setDefinition(Node *def)
             can_have_definition_edge = true;
         }
 
-        setAcceptsEdgeKind(EDGE_KIND::DEFINITION, can_have_definition_edge);
-
         definitionSet(def);
     }
 }
@@ -1051,9 +985,6 @@ void Node::removeImplementation(Node *impl)
 
 }
 
-QSet<EDGE_KIND> Node::getAcceptedEdgeKinds() const{
-    return accepted_edge_kinds_;
-}
 
 
 
@@ -1130,27 +1061,58 @@ QList<Node *> Node::getOrderedChildNodes()
     return children;
 }
 
-void Node::setInstanceKind(NODE_KIND kind){
-    instance_kind_ = kind;
+void Node::setChainableDefinition(){
+    addInstanceKind(getNodeKind());
+    addInstancesDefinitionKind(getNodeKind());
 }
 
-void Node::setDefinitionKind(NODE_KIND kind){
-    definition_kind_ = kind;
-}
-void Node::setImplKind(NODE_KIND kind){
-    impl_kind_ = kind;
-}
-
-NODE_KIND Node::getInstanceKind() const{
-    return instance_kind_;
+void Node::addInstanceKind(NODE_KIND kind){
+    instance_kinds_.insert(kind);
+    setNodeType(NODE_TYPE::DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION, EDGE_DIRECTION::TARGET);
 }
 
-NODE_KIND Node::getDefinitionKind() const{
-    return definition_kind_;
+void Node::addImplKind(NODE_KIND kind){
+    impl_kinds_.insert(kind);
+    setNodeType(NODE_TYPE::DEFINITION);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION, EDGE_DIRECTION::TARGET);
 }
 
-NODE_KIND Node::getImplKind() const{
-    return impl_kind_;
+void Node::addImplsDefinitionKind(NODE_KIND kind){
+    setNodeType(NODE_TYPE::IMPLEMENTATION);
+    definition_kinds_.insert(kind);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION, EDGE_DIRECTION::SOURCE);
+}
+
+void Node::addInstancesDefinitionKind(NODE_KIND kind){
+    setNodeType(NODE_TYPE::INSTANCE);
+    definition_kinds_.insert(kind);
+    setAcceptsEdgeKind(EDGE_KIND::DEFINITION, EDGE_DIRECTION::SOURCE);
+}
+
+
+bool Node::isValidInstanceKind(NODE_KIND kind) const{
+    return instance_kinds_.contains(kind);
+}
+
+bool Node::isValidImplKind(NODE_KIND kind) const{
+    return impl_kinds_.contains(kind);
+}
+
+bool Node::isValidDefinitionKind(NODE_KIND kind) const{
+    return definition_kinds_.contains(kind);
+}
+
+QSet<NODE_KIND> Node::getInstanceKinds() const{
+    return instance_kinds_;
+}
+
+QSet<NODE_KIND> Node::getDefinitionKinds() const{
+    return definition_kinds_;
+}
+
+QSet<NODE_KIND> Node::getImplKinds() const{
+    return impl_kinds_;
 }
 
 void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup){
@@ -1370,4 +1332,180 @@ bool Node::canConstructChildren() const{
     }
 
     return true;
+}
+
+void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept){
+    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
+    
+    if(accept){
+        direction_set.insert(edge_kind);
+    }else{
+        direction_set.remove(edge_kind);
+    }
+
+    auto factory = getFactory();
+    if(factory){
+        factory->acceptedEdgeKindsChanged(this);
+    }
+}
+
+bool Node::canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const{
+    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
+    return direction_set.contains(edge_kind);
+}
+
+
+
+bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const{
+    //qCritical() << "canCurrentlyAcceptEdgeKind(): " << this->toString() << (direction == EDGE_DIRECTION::SOURCE ? " SOURCE: " : " TARGET: ") << EntityFactory::getEdgeKindString(edge_kind);
+
+    if(canAcceptEdgeKind(edge_kind, direction) == false){
+        qCritical() << "1";
+        return false;
+    }
+
+    if(direction == EDGE_DIRECTION::SOURCE){
+        //Source
+        switch(edge_kind){
+        case EDGE_KIND::DEFINITION:{
+            //If we are not an instance or impl, we can never have a definition edge
+            if(isInstanceImpl() == false){
+                qCritical() << "2";
+                return false;
+            }
+
+            //Can have another definition if we already have one
+            if(getDefinition()){
+                qCritical() << "3";
+                return false;
+            }
+            break;
+        }
+        case EDGE_KIND::DATA:{
+            //Call into the subclass
+            if(isNodeOfType(NODE_TYPE::DATA)){
+                auto data_node = (DataNode*) this;
+
+                // A Non producer cannot have an Edge out of it
+                if(!data_node->isDataProducer()){
+                    qCritical() << "4";
+                    return false;
+                }
+                auto got_data_edge = false;
+
+                for(auto edge : edges.values(edge_kind)){
+                    if(edge->getSource() == this){
+                        got_data_edge = true;
+                        break;
+                    }
+                }
+
+                //Allow Linking if we don't have a data edge, or we are a MultipleData Sender
+                if(got_data_edge && !data_node->isMultipleDataProducer()){
+                    qCritical() << "5";
+                    return false;
+                }
+                return true;
+            }else{
+                return false;
+            }
+        }
+        case EDGE_KIND::ASSEMBLY:{
+            //Can always have more assembly edges
+            //TODO: SUBCLASS FOR THAT ONE TO ONE RELATIONSHIP
+            return true;
+        }
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::AGGREGATE:
+        case EDGE_KIND::QOS:{
+            //Can only have 1 Edge is Source
+            for(auto edge : edges.values(edge_kind)){
+                if(edge->getSource() == this){
+                    qCritical() << "6";
+                    return false;
+                }
+            }
+            break;
+        }
+        default:
+            qCritical() << "NOT IMPLEMENTED";
+            return false;
+        }
+    }else{
+        //Destination
+        switch(edge_kind){
+        case EDGE_KIND::DEFINITION:{
+            //If we are not a definition, we can never have a definition edge
+            if(isDefinition() == false){
+                qCritical() << "7";
+                return false;
+            }
+
+            return true;
+            break;
+        }
+        case EDGE_KIND::DATA:{
+            //Call into the subclass
+            if(isNodeOfType(NODE_TYPE::DATA)){
+                auto data_node = (DataNode*)this;
+
+                // A Non producer cannot have an Edge out of it
+                if(data_node->isDataReceiver() == false){
+                    qCritical() << "9"; 
+                    return false;
+                }
+
+                auto got_data_edge = false;
+
+                for(auto edge : edges.values(edge_kind)){
+                    if(edge->getDestination() == this){
+                        got_data_edge = true;
+                        break;
+                    }
+                }
+
+                //Allow Linking if we don't have a data edge, or we are a MultipleData Sender
+                if(got_data_edge && !data_node->isMultipleDataReceiver()){
+                    qCritical() << "10";
+                    return false;
+                }
+                return true;
+            }else{
+                return false;
+            }
+        }
+        case EDGE_KIND::ASSEMBLY:{
+            //Can always have more assembly edges
+            //TODO: SUBCLASS FOR THAT ONE TO ONE RELATIONSHIP
+            return true;
+        }
+        case EDGE_KIND::DEPLOYMENT:
+        case EDGE_KIND::AGGREGATE:
+        case EDGE_KIND::QOS:{
+            return true;
+        }
+        default:
+            qCritical() << "NOT IMPLEMENTED";
+            return false;
+        }
+    }
+    return true;
+}
+
+QSet<EDGE_KIND> Node::getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const{
+    QSet<EDGE_KIND> accepted_kinds;
+
+    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
+
+    for(auto edge_kind : direction_set){
+        if(canCurrentlyAcceptEdgeKind(edge_kind, direction)){
+            accepted_kinds.insert(edge_kind);
+        }
+    }
+    return accepted_kinds;
+}
+
+QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
+    auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
+    return direction_set;
 }

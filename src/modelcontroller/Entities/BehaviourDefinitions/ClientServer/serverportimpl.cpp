@@ -14,9 +14,7 @@ MEDEA::ServerPortImpl::ServerPortImpl(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
-    setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(NODE_KIND::SERVER_PORT);
+    addImplsDefinitionKind(NODE_KIND::SERVER_PORT);
 }
 
 
@@ -25,8 +23,8 @@ bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
     auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
-        case NODE_KIND::INPUT_PARAMETER_GROUP:
-        case NODE_KIND::RETURN_PARAMETER_GROUP:{
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
             if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
                 return false;
             }
@@ -42,7 +40,7 @@ bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
 
 bool MEDEA::ServerPortImpl::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
-    if(!acceptsEdgeKind(edge_kind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 

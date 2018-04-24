@@ -12,7 +12,6 @@ protected:
 	ComponentAssembly();
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // COMPONENTASSEMBLY_H

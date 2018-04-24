@@ -12,7 +12,6 @@ protected:
 	Variable();
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 protected:
     void childAdded(Node* child);
     void childRemoved(Node* child);

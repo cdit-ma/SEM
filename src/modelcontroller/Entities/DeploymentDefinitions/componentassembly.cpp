@@ -13,15 +13,14 @@ ComponentAssembly::ComponentAssembly(EntityFactory* factory) : Node(factory, NOD
 
 ComponentAssembly::ComponentAssembly():Node(NODE_KIND::COMPONENT_ASSEMBLY)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
-    setAcceptsEdgeKind(EDGE_KIND::QOS);
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
+    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
 }
 
 bool ComponentAssembly::canAdoptChild(Node *child)
 {
     //Can Only adopt EventPort Instances
     switch(child->getNodeKind()){
-    case NODE_KIND::BLACKBOX_INSTANCE:
     case NODE_KIND::COMPONENT_ASSEMBLY:
     case NODE_KIND::COMPONENT_INSTANCE:
     case NODE_KIND::INEVENTPORT_DELEGATE:
@@ -33,20 +32,4 @@ bool ComponentAssembly::canAdoptChild(Node *child)
     }
 
     return Node::canAdoptChild(child);
-}
-
-bool ComponentAssembly::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    if(!acceptsEdgeKind(edgeKind)){
-        return false;
-    }
-
-    //Can only have one Deployed Node
-    if(edgeKind == EDGE_KIND::DEPLOYMENT){
-        if(gotEdgeKind(edgeKind)){
-            return false;
-        }
-    }
-
-    return Node::canAcceptEdge(edgeKind, dst);
 }

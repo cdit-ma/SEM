@@ -438,11 +438,36 @@ void ModelController::addDependantsToDependants(Node* parent_node, Node* source)
     if(parent_node && source){
         if(isUserAction() && source->isDefinition()){
             for(auto dependant : parent_node->getDependants()){
-                auto construct_instance = dependant->isInstance();
-                auto dependant_kind = construct_instance ? source->getInstanceKind() : source->getImplKind();
+                QList<QSet<NODE_KIND> > dependant_kind_list;
+                
+                if(dependant->isInstance()){
+                    dependant_kind_list.append(source->getInstanceKinds());
+                }else{
+                    dependant_kind_list.append(source->getImplKinds());
+                    dependant_kind_list.append(source->getInstanceKinds());
+                }
 
-                auto dependant_child = construct_connected_node(dependant, dependant_kind, source, EDGE_KIND::DEFINITION);
+
+                
+
+                for(auto &dependant_kinds : dependant_kind_list){
+                    bool constructed_dependant = false;
+                    //Try Either
+                    for(auto kind : dependant_kinds){
+                        auto dependant_child = construct_connected_node(dependant, kind, source, EDGE_KIND::DEFINITION);
+                        if(dependant_child){
+                            constructed_dependant = true;
+                            break;
+                        }
+                    }
+                    if(constructed_dependant){
+                        break;
+                    }
+                }
             }
+        }else{
+            qCritical() << "SOURCE ISN'T A DEFINITION MATE" << source->toString();
+            qCritical() << "SOURCE ISN'T A DEFINITION MATE" << parent_node->toString();
         }
     }
 }
@@ -723,7 +748,7 @@ Node* ModelController::construct_component_node(Node* parent){
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
         
         if(node){
-            auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
+            //auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
         }
     }
@@ -1019,8 +1044,7 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> 
     
     //Check if they can all accept edges of the kind we care about.
     for(auto src : src_nodes){
-        //Check to see if the src Node requires an edge of edge_kind
-        if(!src->requiresEdgeKind(edge_kind)){
+        if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
             srcs_require_edge = false;
             break;
         }
@@ -1028,7 +1052,7 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> 
 
     //Only itterate if we have nodes
     if(srcs_require_edge && src_nodes.size()){
-        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind)){
+        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
             bool src2dst_valid = true;
             bool dst2src_valid = true;
 
@@ -1059,7 +1083,7 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     //Check if they can all accept edges of the kind we care about.
     for(auto src : src_nodes){
         //Check to see if the src Node requires an edge of edge_kind
-        if(!src->requiresEdgeKind(edge_kind)){
+        if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
             srcs_require_edge = false;
             break;
         }
@@ -1067,7 +1091,7 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     
     if(!src_nodes.empty() && srcs_require_edge){
 
-        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind)){
+        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
             bool all_valid = true;
 
             for(auto src : src_nodes){
@@ -1423,21 +1447,30 @@ Node *ModelController::cloneNode(Node *original, Node *parent)
 
 //Look inside target_node for things which could become a dependant of the the definition
 QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_node, Node* definition){
-    auto dependant_kind = target_node->isInstance() ? definition->getInstanceKind() : definition->getImplKind();
+    QList<QSet<NODE_KIND> > dependant_kind_list;
+    
+    if(target_node->isInstance()){
+        dependant_kind_list.append(definition->getInstanceKinds());
+    }else{
+        dependant_kind_list.append(definition->getImplKinds());
+        dependant_kind_list.append(definition->getInstanceKinds());
+    }
     
     QList<Node*> matching_nodes;
     
-    //For each child in parent, check to see if any Nodes match Label/Type
-    for(auto target_child : target_node->getChildrenOfKind(dependant_kind, 0)){
-        if(target_child->getDefinition() == definition){
-            matching_nodes << target_child;
-        }else if(target_child->getDefinition()){
-            
-        }else{
-            auto types_match = target_child->compareData(definition, "type");
-
-            if(types_match){
+    for(auto &dependant_kinds : dependant_kind_list){
+        //For each child in parent, check to see if any Nodes match Label/Type
+        for(auto target_child : target_node->getChildrenOfKinds(dependant_kinds, 0)){
+            if(target_child->getDefinition() == definition){
                 matching_nodes << target_child;
+            }else if(target_child->getDefinition()){
+                
+            }else{
+                auto types_match = target_child->compareData(definition, "type");
+
+                if(types_match){
+                    matching_nodes << target_child;
+                }
             }
         }
     }
@@ -1793,7 +1826,7 @@ QList<EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node *dst)
     QList<EDGE_KIND> edge_kinds;
 
     for(auto edge_kind : GetEdgeOrderIndexes()){
-        if(src->acceptsEdgeKind(edge_kind) && dst->acceptsEdgeKind(edge_kind) && src->requiresEdgeKind(edge_kind)){
+        if(src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE) && dst->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET)){
             edge_kinds << edge_kind;
         }
     }
@@ -1999,9 +2032,6 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
             if(def_child->isDefinition()){
                 bool construct_dependant = true;
 
-                if (def_child->getNodeKind() == NODE_KIND::CLASS_INSTANCE) {
-                    qCritical() << def_child->toString() << "djabdkjakjdsba";
-                }
 
                 for(auto matching_dependant : get_matching_dependant_of_definition(instance, def_child)){
                     construct_edge(EDGE_KIND::DEFINITION, matching_dependant, def_child);
@@ -2013,8 +2043,30 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
                 }
 
                 if(construct_dependant){
-                    auto dependant_kind = construct_instance ? def_child->getInstanceKind() : def_child->getImplKind();
-                    auto dependant_child = construct_connected_node(instance, dependant_kind, def_child, EDGE_KIND::DEFINITION);
+                    QList<QSet<NODE_KIND> > dependant_kind_list;
+    
+                    if(construct_instance){
+                        dependant_kind_list.append(def_child->getInstanceKinds());
+                    }else{
+                        dependant_kind_list.append(def_child->getImplKinds());
+                        dependant_kind_list.append(def_child->getInstanceKinds());
+                    }
+
+                    
+                    for(auto &dependant_kinds : dependant_kind_list){
+                        bool got_node = false;    
+                        //Try Either
+                        for(auto kind : dependant_kinds){
+                            auto dependant_child = construct_connected_node(instance, kind, def_child, EDGE_KIND::DEFINITION);
+                            if(dependant_child){
+                                got_node = true;
+                                break;
+                            }
+                        }
+                        if(got_node){
+                            break;
+                        }
+                    }
                 }
             }else{
                 //Clone the node if its not a definition
@@ -2040,7 +2092,7 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         auto eventport = (EventPort*) src;
         auto aggregate = (Aggregate*) dst;
 
-        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::INEVENTPORT, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
+        QSet<NODE_KIND> instance_kinds = {NODE_KIND::INEVENTPORT, NODE_KIND::OUTEVENTPORT, NODE_KIND::INPUT_PARAMETER_GROUP, NODE_KIND::RETURN_PARAMETER_GROUP};
 
         bool construct_instance = setup && isUserAction() && (instance_kinds.contains(eventport->getNodeKind()));
         //Only auto construct if we are processing a user action.
@@ -2178,7 +2230,7 @@ QList<EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
         
         if(entity->isNode()){
             auto node = (Node*) entity;
-            required_edge_kinds = node->getRequiredEdgeKinds();
+            required_edge_kinds = node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
         }
 
         edge_kinds &= required_edge_kinds;

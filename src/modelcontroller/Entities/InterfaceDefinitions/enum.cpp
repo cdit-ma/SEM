@@ -15,11 +15,7 @@ Enum::Enum(EntityFactory* factory) : Node(factory, NODE_KIND::ENUM, "Enum"){
 
 Enum::Enum():Node(NODE_KIND::ENUM)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    
-    setInstanceKind(NODE_KIND::ENUM_INSTANCE);
-    
+    addInstanceKind(NODE_KIND::ENUM_INSTANCE);
 }
 
 bool Enum::canAdoptChild(Node* child)

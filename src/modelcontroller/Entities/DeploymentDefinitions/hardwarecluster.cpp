@@ -12,8 +12,9 @@ HardwareCluster::HardwareCluster(EntityFactory* factory) : Node(factory, NODE_KI
 
 HardwareCluster::HardwareCluster():Node(NODE_KIND::HARDWARE_CLUSTER)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT);
     setNodeType(NODE_TYPE::HARDWARE);
+    
+    setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 }
 
 bool HardwareCluster::canAdoptChild(Node *child)

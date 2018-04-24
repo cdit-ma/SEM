@@ -14,10 +14,8 @@ OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : Node(factory, node_
 };
 
 OutEventPortImpl::OutEventPortImpl():Node(node_kind){
-    setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(NODE_KIND::OUTEVENTPORT);
-
+    addImplsDefinitionKind(NODE_KIND::OUTEVENTPORT);
+    
     //Allow links from within things like InEventPortImpls back to the
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
@@ -37,13 +35,13 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool OutEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool OutEventPortImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
+    switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         if(dst->getNodeKind() != NODE_KIND::OUTEVENTPORT){
             return false;
@@ -54,5 +52,5 @@ bool OutEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
 
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }

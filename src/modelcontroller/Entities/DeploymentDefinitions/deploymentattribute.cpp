@@ -24,9 +24,7 @@ bool MEDEA::DeploymentAttribute::canAdoptChild(Node*)
 
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    qCritical() << "MEDEA::DeploymentAttribute::canAcceptEdge";
-    if(!acceptsEdgeKind(edge_kind)){
-        qCritical() << "MEDEA::DeploymentAttribute::canAcceptEdge" << 1;
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
@@ -35,7 +33,6 @@ bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     switch(edge_kind){
     case EDGE_KIND::DATA:{
         if(!valid_data_kinds.contains(dst->getNodeKind())){
-            qCritical() << "MEDEA::DeploymentAttribute::canAcceptEdge" << 2;
             return false;
         }
         break;

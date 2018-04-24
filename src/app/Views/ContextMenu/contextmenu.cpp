@@ -18,7 +18,6 @@ ContextMenu::ContextMenu(ViewController *vc){
     Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getNodeKindString(NODE_KIND::NONE) , "Icons", "circleInfoDark");
 
     //Setup the complex relationship nodes
-    connect_node_edge_kinds[NODE_KIND::BLACKBOX_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::VECTOR_INSTANCE] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::COMPONENT_IMPL] = EDGE_KIND::DEFINITION;
@@ -36,9 +35,6 @@ ContextMenu::ContextMenu(ViewController *vc){
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::INEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
     connect_node_edge_kinds[NODE_KIND::OUTEVENTPORT_DELEGATE] = EDGE_KIND::AGGREGATE;
-
-    connect_node_edge_kinds[NODE_KIND::INPUT_PARAMETER_GROUP] = EDGE_KIND::AGGREGATE;
-    connect_node_edge_kinds[NODE_KIND::RETURN_PARAMETER_GROUP] = EDGE_KIND::AGGREGATE;
 
     connect_node_edge_kinds[NODE_KIND::SERVER_PORT] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::CLIENT_PORT] = EDGE_KIND::DEFINITION;

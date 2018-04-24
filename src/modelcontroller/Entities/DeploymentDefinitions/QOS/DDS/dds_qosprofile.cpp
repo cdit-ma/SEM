@@ -13,7 +13,8 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
     setNodeType(NODE_TYPE::QOS_PROFILE);
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
-    setAcceptsEdgeKind(EDGE_KIND::QOS);
+
+    setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::TARGET);
 }
 
 bool DDS_QOSProfile::canAdoptChild(Node *node)

@@ -12,41 +12,14 @@ MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_
 
 MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
 {
-    setNodeType(NODE_TYPE::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    removeEdgeKind(EDGE_KIND::DATA);
-
-    
-
-    setDefinitionKind(NODE_KIND::MEMBER);
-    setInstanceKind(NODE_KIND::MEMBER_INSTANCE);
-    setImplKind(NODE_KIND::MEMBER_INSTANCE);
+    addInstancesDefinitionKind(NODE_KIND::MEMBER);
+    setChainableDefinition();
 }
 
 
 bool MemberInstance::canAdoptChild(Node*)
 {
     return false;
-}
-
-bool MemberInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    if(!acceptsEdgeKind(edgeKind)){
-        return false;
-    }
-    switch(edgeKind){
-        case EDGE_KIND::DEFINITION:{
-            if(!(dst->getNodeKind() == NODE_KIND::MEMBER || dst->getNodeKind() == NODE_KIND::MEMBER_INSTANCE)){
-                return false;
-            }
-            break;
-        }
-    default:
-        break;
-    }
-    return DataNode::canAcceptEdge(edgeKind, dst);
 }
 
 void MemberInstance::parentSet(Node* parent){

@@ -13,10 +13,7 @@ InEventPortImpl::InEventPortImpl(EntityFactory* factory) : Node(factory, node_ki
 
 InEventPortImpl::InEventPortImpl() : Node(node_kind){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-    setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    
-    setDefinitionKind(NODE_KIND::INEVENTPORT);
+    addImplsDefinitionKind(NODE_KIND::INEVENTPORT);
 }
 
 
@@ -39,13 +36,13 @@ bool InEventPortImpl::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool InEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool InEventPortImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
+    switch(edge_kind){
     case EDGE_KIND::DEFINITION:{
         if(!dst->getImplementations().isEmpty()){
             return false;
@@ -59,6 +56,6 @@ bool InEventPortImpl::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
         break;
     }
 
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }
 

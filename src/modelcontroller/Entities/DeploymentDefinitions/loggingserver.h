@@ -12,7 +12,6 @@ protected:
 	LoggingServer();
 public:
     bool canAdoptChild(Node*);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // LOGGINGSERVER_H

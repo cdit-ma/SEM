@@ -13,9 +13,7 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
 {
     aggregate = 0;
     setNodeType(NODE_TYPE::EVENTPORT);
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE);
+    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
 }
 
 bool EventPort::isInPort() const
@@ -35,8 +33,6 @@ void EventPort::setAggregate(Aggregate *aggregate)
         //Do binding!
         TypeKey::BindTypes(aggregate, this, true);
     }
-
-    setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, !this->aggregate);
 }
 
 Aggregate *EventPort::getAggregate()
@@ -75,12 +71,13 @@ bool EventPort::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool EventPort::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool EventPort::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-    switch(edgeKind){
+
+    switch(edge_kind){
     case EDGE_KIND::AGGREGATE:{
         if(getDefinition()){
             //Don't allow Instances to have aggregate.
@@ -101,5 +98,5 @@ bool EventPort::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     default:
         break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }

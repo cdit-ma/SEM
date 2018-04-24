@@ -43,6 +43,9 @@ class Node : public Entity
         void acceptedEdgeKindsChanged(Node* node);
     protected:
 
+        void setInstanceOf(NODE_KIND node_kind);
+
+
         //Constuctor
         Node(NODE_KIND kind);
         ~Node();
@@ -56,14 +59,22 @@ class Node : public Entity
         QStringList getValidValueKeys();
         QList<QVariant> getValidValues(QString key_name);
 
-        void setInstanceKind(NODE_KIND kind);
-        void setDefinitionKind(NODE_KIND kind);
-        void setImplKind(NODE_KIND kind);
-        QSet<EDGE_KIND> getAcceptedEdgeKinds() const;
+        void addInstanceKind(NODE_KIND kind);
+        void addImplsDefinitionKind(NODE_KIND kind);
+        void addInstancesDefinitionKind(NODE_KIND kind);
+        
+        void addImplKind(NODE_KIND kind);
+        void setChainableDefinition();
+        
     public:
-        NODE_KIND getInstanceKind() const;
-        NODE_KIND getDefinitionKind() const;
-        NODE_KIND getImplKind() const;
+        bool isValidInstanceKind(NODE_KIND kind) const;
+        bool isValidImplKind(NODE_KIND kind) const;
+        bool isValidDefinitionKind(NODE_KIND kind) const;
+
+    
+        QSet<NODE_KIND> getInstanceKinds() const;
+        QSet<NODE_KIND> getDefinitionKinds() const;
+        QSet<NODE_KIND> getImplKinds() const;
 
         virtual QList<Node*> getAdoptableNodes(Node* definition);
         virtual QSet<Node*> getDependants() const;
@@ -125,6 +136,7 @@ class Node : public Entity
     QList<int> getChildrenIDs(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
     QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
+    QList<Node *> getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth =-1);
 
 
     QList<int> getEdgeIDs(EDGE_KIND edgeClass);
@@ -230,25 +242,36 @@ private:
 
 
     QSet<NODE_TYPE> types;
-    QSet<EDGE_KIND> accepted_edge_kinds_;
+    
+    QSet<EDGE_KIND> accepted_edge_kinds_as_source_;
+    QSet<EDGE_KIND> accepted_edge_kinds_as_target_;
 
-    NODE_KIND definition_kind_;
-    NODE_KIND instance_kind_;
-    NODE_KIND impl_kind_;
+
+    QSet<NODE_KIND> definition_kinds_;
+    QSet<NODE_KIND> instance_kinds_;
+    QSet<NODE_KIND> impl_kinds_;
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
     void removeNodeType(NODE_TYPE type);
-    void setAcceptsEdgeKind(EDGE_KIND edgeKind, bool accept = true);
-    void removeEdgeKind(EDGE_KIND edgeKind);
+
+    
+    
+    void setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept = true);
+    bool canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
+
 
 public:
-    bool isNodeOfType(NODE_TYPE type) const;
-    bool acceptsEdgeKind(EDGE_KIND edgeKind) const;
-    bool requiresEdgeKind(EDGE_KIND edge_kind) const;
+    QSet<EDGE_KIND> getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const;
+    QSet<EDGE_KIND> getAcceptedEdgeKind(EDGE_DIRECTION direction) const;
 
-    QSet<EDGE_KIND> getValidEdgeKinds() const;
-    QSet<EDGE_KIND> getRequiredEdgeKinds() const;
+public:
+    bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
+    bool canCurrentlyAcceptEdgeKind(EDGE_KIND edgeKind, Node* dst) const;
+public:
+    bool isNodeOfType(NODE_TYPE type) const;
+
+
     
     
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node* dst);

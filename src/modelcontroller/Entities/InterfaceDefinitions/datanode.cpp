@@ -53,16 +53,24 @@ void DataNode::setMultipleDataReceiver(bool receiver)
     }
 }
 
+void DataNode::setMultipleDataProducer(bool producer)
+{
+    is_multiple_data_producer_ = producer;
+    if(producer){
+        setDataProducer(true);
+    }
+}
+
 void DataNode::setDataProducer(bool producer)
 {
     is_producer_ = producer;
-    setAcceptsEdgeKind(EDGE_KIND::DATA, isDataReceiver() || isDataProducer());
+    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::SOURCE, isDataReceiver() || isDataProducer());
 }
 
 void DataNode::setDataReceiver(bool receiver)
 {
     is_receiver_ = receiver;
-    setAcceptsEdgeKind(EDGE_KIND::DATA, isDataReceiver() || isDataProducer());
+    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::TARGET, isDataReceiver() || isDataProducer());
 }
 
 bool DataNode::isDataProducer() const
@@ -79,6 +87,12 @@ bool DataNode::isMultipleDataReceiver() const
 {
     return is_multiple_data_receiver_;
 }
+
+bool DataNode::isMultipleDataProducer() const
+{
+    return is_multiple_data_producer_;
+}
+
 
 bool DataNode::comparableTypes(DataNode *node)
 {
@@ -125,13 +139,13 @@ bool DataNode::comparableTypes(DataNode *node)
 
 }
 
-bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool DataNode::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
     
-    switch(edgeKind){
+    switch(edge_kind){
     case EDGE_KIND::DATA:{
         if(dst->isNodeOfType(NODE_TYPE::DATA) == false){
             //Cannot connect to a non DataNode type.
@@ -220,7 +234,7 @@ bool DataNode::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
     default:
         break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return Node::canAcceptEdge(edge_kind, dst);
 }
 
 bool DataNode::isContainedInVector(){

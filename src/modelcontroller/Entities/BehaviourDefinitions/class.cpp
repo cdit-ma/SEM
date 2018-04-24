@@ -13,12 +13,7 @@ MEDEA::Class::Class(EntityFactory* factory) : Node(factory, node_kind, kind_stri
 MEDEA::Class::Class(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-    
-    setNodeType(NODE_TYPE::DEFINITION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    setInstanceKind(NODE_KIND::CLASS_INSTANCE);
-    setImplKind(NODE_KIND::CLASS_INSTANCE);
+    addInstanceKind(NODE_KIND::CLASS_INSTANCE);
 }
 
 bool MEDEA::Class::Class::canAdoptChild(Node* child)

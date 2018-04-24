@@ -10,17 +10,9 @@ OutEventPortDelegate::OutEventPortDelegate(EntityFactory* factory) : EventPortAs
 
 OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NODE_KIND::OUTEVENTPORT_DELEGATE)
 {
-    removeEdgeKind(EDGE_KIND::DEFINITION);
-    removeNodeType(NODE_TYPE::DEFINITION);
 }
 
 bool OutEventPortDelegate::canAdoptChild(Node*)
 {
     return false;
 }
-
-bool OutEventPortDelegate::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
-}
-

@@ -790,6 +790,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             /*case NODE_KIND::FUNCTION:{
                 return;
             }*/
+            case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
+            case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:{
+                return;
+            }
             case NODE_KIND::HARDWARE_NODE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
@@ -853,10 +857,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT);
                 nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, EDGE_KIND::QOS);
-                break;
-            case NODE_KIND::BLACKBOX:
-            case NODE_KIND::BLACKBOX_INSTANCE:
-                nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
                 nodeItem = new StackNodeItem(item, parentNode);

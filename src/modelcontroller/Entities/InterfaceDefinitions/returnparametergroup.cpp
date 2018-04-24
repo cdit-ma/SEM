@@ -13,13 +13,7 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory* factory) : Node
 
 MEDEA::ReturnParameterGroup::ReturnParameterGroup(): Node(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(node_kind);
-    setInstanceKind(node_kind);
-    setImplKind(node_kind);
-    
-    setNodeType(NODE_TYPE::INSTANCE);
-    setNodeType(NODE_TYPE::DEFINITION);
+    addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 }
 
 
@@ -37,30 +31,4 @@ bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)
         return false;
     }
     return Node::canAdoptChild(child);
-}
-
-bool MEDEA::ReturnParameterGroup::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(!acceptsEdgeKind(edge_kind)){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(dst->getNodeKind() != node_kind){
-            return false;
-        }
-        auto parent_node = getParentNode();
-        if(parent_node && parent_node->getNodeKind() == NODE_KIND::SERVER_INTERFACE){
-            return false;
-        }
-        
-        break;
-    }
-    default:
-        break;
-    }
-
-    return Node::canAcceptEdge(edge_kind, dst);
 }

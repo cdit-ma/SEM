@@ -876,8 +876,6 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
 
-    constructableNodes.removeAll(NODE_KIND::BLACKBOX);
-    constructableNodes.removeAll(NODE_KIND::BLACKBOX_INSTANCE);
 
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getNodeKindString(kind);

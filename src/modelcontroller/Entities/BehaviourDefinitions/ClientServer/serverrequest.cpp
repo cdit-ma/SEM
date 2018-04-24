@@ -12,11 +12,7 @@ MEDEA::ServerRequest::ServerRequest(EntityFactory* factory) : Node(factory, node
 
 MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
 {
-    
-    setNodeType(NODE_TYPE::IMPLEMENTATION);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-
-    setDefinitionKind(NODE_KIND::CLIENT_PORT);
+    addImplsDefinitionKind(NODE_KIND::CLIENT_PORT);
 
     //Allow links from within things like InEventPortImpls back to the
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
@@ -28,8 +24,8 @@ bool MEDEA::ServerRequest::canAdoptChild(Node* child)
     auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
-        case NODE_KIND::INPUT_PARAMETER_GROUP:
-        case NODE_KIND::RETURN_PARAMETER_GROUP:{
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
             if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
                 return false;
             }
@@ -43,7 +39,7 @@ bool MEDEA::ServerRequest::canAdoptChild(Node* child)
 
 bool MEDEA::ServerRequest::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
-    if(!acceptsEdgeKind(edge_kind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 

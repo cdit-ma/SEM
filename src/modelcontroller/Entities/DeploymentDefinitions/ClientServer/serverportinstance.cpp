@@ -12,11 +12,8 @@ MEDEA::ServerPortInstance::ServerPortInstance(EntityFactory* factory) : Node(fac
 
 MEDEA::ServerPortInstance::ServerPortInstance(): Node(node_kind)
 {
-    setNodeType(NODE_TYPE::INSTANCE);
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    setDefinitionKind(NODE_KIND::SERVER_PORT);
-
-    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY);
+    addInstancesDefinitionKind(NODE_KIND::SERVER_PORT);
+    setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
 }
 
 
@@ -27,7 +24,7 @@ bool MEDEA::ServerPortInstance::canAdoptChild(Node* child)
 
 bool MEDEA::ServerPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
-    if(!acceptsEdgeKind(edge_kind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
@@ -38,13 +35,6 @@ bool MEDEA::ServerPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
             return false;
         }
         if(!getDefinition()){
-            return false;
-        }
-        break;
-    }
-    case EDGE_KIND::DEFINITION:{
-        //Can only connect a definition edge to an Aggregate/AggregateInstance..
-        if(dst->getNodeKind() != NODE_KIND::SERVER_PORT){
             return false;
         }
         break;

@@ -155,7 +155,7 @@ QString Key::toGraphML(int indent_depth, bool functional_export)
     return xml;
 }
 
-QString Key::toString()
+QString Key::toString() const
 {
     QString str;
     QTextStream stream(&str); 

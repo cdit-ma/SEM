@@ -12,7 +12,6 @@ protected:
 	OutEventPortInstance();
 public:
     bool canAdoptChild(Node*);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

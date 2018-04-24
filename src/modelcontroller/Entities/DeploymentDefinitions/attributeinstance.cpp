@@ -16,17 +16,9 @@ AttributeInstance::AttributeInstance(EntityFactory* factory) : DataNode(factory,
 
 AttributeInstance::AttributeInstance() : DataNode(node_kind)
 {
-    setAcceptsEdgeKind(EDGE_KIND::DEFINITION);
-    
-    setNodeType(NODE_TYPE::DEFINITION);
-    setNodeType(NODE_TYPE::INSTANCE);
-    
-    setDefinitionKind(NODE_KIND::ATTRIBUTE);
-    setInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
-    
-
+    addInstancesDefinitionKind(NODE_KIND::ATTRIBUTE);
+    setChainableDefinition();
     setDataProducer(true);
-    
 }
 
 bool AttributeInstance::canAdoptChild(Node*)
@@ -34,28 +26,13 @@ bool AttributeInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool AttributeInstance::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
+bool AttributeInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
-    if(!acceptsEdgeKind(edgeKind)){
+    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
 
-    switch(edgeKind){
-    case EDGE_KIND::DEFINITION:{
-        switch(dst->getNodeKind()){
-            case NODE_KIND::ATTRIBUTE:
-            case NODE_KIND::ATTRIBUTE_INSTANCE:
-                break;
-            default:
-                return false;
-        }
-        break;
-    }
-    
-    default:
-        break;
-    }
-    return DataNode::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edge_kind, dst);
 }
 
 void AttributeInstance::parentSet(Node* parent){

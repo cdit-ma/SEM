@@ -62,7 +62,7 @@ public:
     QStringList getProtectedKeys();
 
     virtual QString toGraphML(int indentDepth=0, bool function_only = false) = 0;
-    QString toString();
+    QString toString() const;
     
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);

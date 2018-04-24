@@ -12,7 +12,6 @@ namespace MEDEA{
         ServerPort();
     public:
         bool canAdoptChild(Node* child);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 
