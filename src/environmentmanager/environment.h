@@ -85,7 +85,7 @@ class Environment{
                     std::unique_lock<std::mutex> lock(port_mutex);
                     int port_number = std::stoi(port);
                     available_ports.insert(port_number);
-                    std::cout << "ip: " << ip << " free port count:" << available_ports.size() << std::endl;
+                    std::cout << "ip: " << ip << ":" << port_number << " free port count:" << available_ports.size() << std::endl;
                 }
                 std::string name;
                 std::string ip;
