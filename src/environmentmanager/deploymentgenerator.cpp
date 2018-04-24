@@ -29,6 +29,7 @@ void DeploymentGenerator::PopulateDeployment(NodeManager::ControlMessage& contro
     master_publisher_port_attribute_info->set_name("master_publisher_port");
     master_publisher_port_attribute->set_kind(NodeManager::Attribute::STRING);
     master_publisher_port_attribute->add_s(environment_.GetMasterPublisherPort(control_message.experiment_id(), master_ip_address));
+    environment_.StoreControlMessage(control_message);
 }
 
 void DeploymentGenerator::PopulateNode(const NodeManager::ControlMessage& control_message, NodeManager::Node& node){

@@ -36,7 +36,6 @@ class ExecutionManager{
         const NodeManager::Startup GetSlaveStartupMessage(const std::string& slave_address);
         bool HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response);
         
-        std::vector<NodeManager::ControlMessage*> getNodeStartupMessage();
         bool IsValid();
     private:
         void ExecutionLoop(double duration_sec) noexcept;
@@ -82,7 +81,6 @@ class ExecutionManager{
         Graphml::ModelParser* model_parser_;
         ProtobufModelParser* protobuf_model_parser_;
 
-        
         std::unordered_map<std::string, SlaveState> slave_states_;
 };
 

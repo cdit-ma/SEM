@@ -6,7 +6,6 @@
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
-
 #include "controlmessage/controlmessage.pb.h"
 #include "execution.hpp"
 #include "zmq/registrant.h"
@@ -32,10 +31,14 @@ int main(int argc, char **argv){
         return 1;
     }
 
+    ProtobufModelParser parser(graphml_path, "experiment_id");
 
-    ExecutionManager em("", graphml_path, 0, 0, "experiment_id", "endpoint");
-    for(auto message : em.getNodeStartupMessage()){
-        std::cout << message->DebugString() << std::endl;
-    }
+    std::cout << parser.GetDeploymentJSON() << std::endl;
+
+
+    // ExecutionManager em("", graphml_path, 0, 0, "experiment_id", "endpoint");
+    // for(auto message : em.getNodeStartupMessage()){
+    //     std::cout << message->DebugString() << std::endl;
+    // }
     return 0;
 }

@@ -148,14 +148,6 @@ bool ExecutionManager::IsValid(){
     return parse_succeed_;
 }
 
-std::vector<NodeManager::ControlMessage*> ExecutionManager::getNodeStartupMessage(){
-    std::vector<NodeManager::ControlMessage*> messages;
-    // for(auto a : deployment_map_){
-    //     messages.push_back(a.second);
-    // }
-    return messages;
-}
-
 bool ExecutionManager::HandleSlaveResponseMessage(const std::string& slave_address, const NodeManager::StartupResponse& response){
     auto slave_state = SlaveState::ERROR_;
     auto slave_host_name = "";//GetSlaveNameFromAddress(slave_address);

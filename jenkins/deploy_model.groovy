@@ -11,6 +11,7 @@ def utils = new Utils(this);
 def runScriptPid(String script){
     def out = ""
     if(isUnix()){
+        //Evil bash magic to supress output and scrape the pid of the last command run
         def command = script + " > /dev/null 2>&1 & echo \$!"
         withEnv(['JENKINS_NODE_COOKIE=do_not_kill']){
             out = sh(returnStdout: true, script: command)
@@ -44,8 +45,17 @@ def blockingKill(String pid){
 
 def masterNode = "${MASTER_NODE}"
 def executionTime = "${EXECUTION_TIME}"
+def experimentNameArg = "${EXPERIMENT_NAME}"
 def experimentID = env.BUILD_ID
 def buildDir = "run" + experimentID
+def experimentName = experimentID
+def environmentManagerAddress = env.ENVIRONMENT_MANAGER_ADDRESS
+
+if(!experimentNameArg.isEmpty()){
+    experimentName = experimentNameArg
+}
+
+//TODO: Add this as parameter to job.
 
 //Deployment plans
 def loganServers = [:]
@@ -73,9 +83,6 @@ for(def i = 0; i < reNodes.size(); i++){
     addrMap[nodeName] = ip_addr_list[0]
 }
 
-//TODO: Add this as parameter to job.
-def environmentManagerIp = "192.168.224.100"
-def environmentManangerPort = "20000"
 
 withEnv(["model=''"]){
     node(masterNode){
@@ -161,8 +168,8 @@ withEnv(["model=''"]){
                     def shared_args = ""
                     def command = "${RE_PATH}" + "/bin/re_node_manager"
 
-                    shared_args += " -n " + experimentID
-                    shared_args += " -e tcp://" + environmentManagerIp + ":" + environmentManangerPort
+                    shared_args += " -n " + experimentName
+                    shared_args += " -e " + environmentManagerAddress
 
                     slave_args += " -s " + ipAddr
                     slave_args += " -l . "

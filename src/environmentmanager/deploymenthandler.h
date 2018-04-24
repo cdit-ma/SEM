@@ -31,6 +31,7 @@ class DeploymentHandler{
 
         //Reply Helpers
         void HandleRequest(std::pair<uint64_t, std::string> request);
+        void HandleDirtyExperiment(NodeManager::EnvironmentMessage& message);
 
         
         //Environment Helpers

@@ -41,6 +41,7 @@ std::string Environment::AddExperiment(const std::string& model_name){
     return experiment->manager_port_;
 }
 
+
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
     try{
@@ -72,6 +73,20 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
     catch(...){
         std::cout << "Could not delete deployment :" << model_name << std::endl;
     }
+}
+
+void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
+    std::string experiment_name = control_message.experiment_id();
+    if(experiment_name.empty()){
+        return;
+    }
+
+    if(!experiment_map_.count(experiment_name)){
+        return;
+    }
+
+    experiment_map_.at(experiment_name)->deployment_message_ = control_message;
+
 }
 
 void Environment::DeclusterExperiment(NodeManager::ControlMessage& message){
@@ -113,7 +128,7 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
         experiment = experiment_map_[model_name];
     }
     else{
-        throw std::invalid_argument("no experiment called: " + model_name);
+        throw std::invalid_argument("No experiment called: " + model_name);
     }
 
     AddNodeToEnvironment(node);
@@ -140,6 +155,9 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
             event_port.port_number = GetPort(node.info().name());
             event_port.node_id = node.info().id();
 
+            //TODO: Fix this when namespace/scoping is into medea, also need to fix in protobufmodelparser
+            event_port.type = port.namespace_name() + ":" + port.info().type();
+
             for(int a = 0; a < port.attributes_size(); a++){
                 auto attribute = port.attributes(a);
                 if(attribute.info().name() == "topic"){
@@ -153,6 +171,11 @@ void Environment::AddNodeToExperiment(const std::string& model_name, const NodeM
                 auto id = port.connected_ports(k);
                 experiment->connection_map_[id].push_back(event_port.id);
             }
+
+            if(port.visibility() == NodeManager::EventPort::PUBLIC){
+                public_event_port_map_[port.port_guid()] = EventPort(event_port);
+            }
+
             experiment->port_map_[event_port.id] = event_port;
         }
         experiment->deployment_map_[experiment->node_address_map_[node.info().id()]]++;
@@ -166,6 +189,7 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
     if(node.components_size() > 0){
         //set modellogger port
         auto logger_port = GetPort(node_name);
+
         auto logger_attribute = node.add_attributes();
         auto logger_attribute_info = logger_attribute->mutable_info();
         logger_attribute->set_kind(NodeManager::Attribute::STRING);
@@ -174,6 +198,7 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
 
         //set master/slave port
         auto management_port = GetPort(node_name);
+
         auto management_endpoint_attribute = node.add_attributes();
         auto management_endpoint_attribute_info = management_endpoint_attribute->mutable_info();
         management_endpoint_attribute->set_kind(NodeManager::Attribute::STRING);
@@ -190,28 +215,74 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
 std::vector<std::string> Environment::GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port){
     std::vector<std::string> publisher_addresses;
 
-    //TODO:Check that experiment exists.
-    auto experiment = experiment_map_[model_name];
+    Experiment* experiment;
 
-    //check to see if port exists in connection map. In case it does, return list of publishers
+    if(experiment_map_.count(model_name)){
+        experiment = experiment_map_[model_name];
+    }else{
+        throw std::invalid_argument("Model named :" + model_name + " not found.");
+    }
+
+    std::unique_lock<std::mutex> lock(experiment->mutex_);
+    
+
     if(port.kind() == NodeManager::EventPort::IN_PORT){
 
-        auto publisher_port_ids = experiment->connection_map_[port.info().id()];
         //Get list of connected ports
+        auto publisher_port_ids = experiment->connection_map_[port.info().id()];
 
         //Get those ports addresses
         for(auto id : publisher_port_ids){
-            auto node_id = experiment->port_map_[id].node_id;
-            auto port_assigned_port = experiment->port_map_[id].port_number;
-            publisher_addresses.push_back("tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port);
+
+            //XXX: Ugly hack to differentiate between local connected ports and public connected ports.
+            //ID of public connected ports is set to be port guid, which is not parseable as int
+            bool local_port = true;
+            try{
+                std::stoi(id);
+            }
+            catch(const std::invalid_argument& ex){
+                local_port = false;
+            }
+
+            if(local_port){
+                auto node_id = experiment->port_map_[id].node_id;
+                auto port_assigned_port = experiment->port_map_[id].port_number;
+                publisher_addresses.push_back("tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port);
+            }
+            else{
+                if(public_event_port_map_.count(id)){
+                    publisher_addresses.push_back(public_event_port_map_.at(id).endpoint);
+                }
+                //We don't have this public port's address yet. The experiment it orinates from is most likely not started yet.
+                //We need to keep track of the fact that this experiment is waiting for this port to become live so we can notify it of the environment change.
+                else{
+                    pending_port_map_[id].insert(model_name);
+                }
+            }
         }
     }
 
-    //In case port id does not exist in connection list, we must be a publisher. Therefore return port's deployment address.
     else if(port.kind() == NodeManager::EventPort::OUT_PORT){
         auto node_id = experiment->port_map_[port.info().id()].node_id;
         auto port_assigned_port = experiment->port_map_[port.info().id()].port_number;
-        publisher_addresses.push_back("tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port);
+
+        std::string addr_string = "tcp://" + experiment->node_address_map_[node_id] + ":" + port_assigned_port;
+
+        publisher_addresses.push_back(addr_string);
+
+        if(port.visibility() == NodeManager::EventPort::PUBLIC){
+            public_event_port_map_[port.port_guid()].endpoint = addr_string;
+
+            if(pending_port_map_.count(port.port_guid())){
+                auto set = pending_port_map_.at(port.port_guid());
+
+                for(auto experiment_id : set){
+                    experiment_map_[experiment_id]->dirty_flag = true;
+                    experiment_map_[experiment_id]->updated_port_ids_.insert(port.port_guid());
+                }
+                pending_port_map_.erase(port.port_guid());
+            }
+        }
     }
     return publisher_addresses;
 }
@@ -220,6 +291,7 @@ std::string Environment::GetTopic(const std::string& model_name, const std::stri
     auto port = experiment_map_[model_name]->port_map_[port_id];
 }
 
+//Return list of experiments using the topic name provided
 std::vector<std::string> Environment::CheckTopic(const std::string& model_name, const std::string& topic){
     std::vector<std::string> out;
     for(auto experiment_pair : experiment_map_){
@@ -249,14 +321,29 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     node_map_[new_node->name] = new_node;
 }
 
+//Get port from node specified.
 std::string Environment::GetPort(const std::string& node_name){
     //Get first available port, store then erase it
-    auto node = node_map_[node_name];
+    Node* node;
+    if(node_map_.count(node_name)){
+        node = node_map_[node_name];
+    }
+    else{
+        throw std::invalid_argument("No node found with name: " + node_name);
+    }
     return node->GetPort();
 }
 
+//Free port specified from node specified
 void Environment::FreePort(const std::string& node_name, const std::string& port_number){
-    auto node = node_map_[node_name];
+
+    Node* node;
+    if(node_map_.count(node_name)){
+        node = node_map_[node_name];
+    }
+    else{
+        throw std::invalid_argument("No node found with name: " + node_name);
+    }
     node->FreePort(port_number);
 }
 
@@ -274,12 +361,12 @@ std::string Environment::GetManagerPort(){
 }
 
 void Environment::FreeManagerPort(const std::string& port){
-     std::unique_lock<std::mutex> lock(port_mutex_);
+    std::unique_lock<std::mutex> lock(port_mutex_);
     int port_number = std::stoi(port);
     available_node_manager_ports_.insert(port_number);
 }
 
-bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address){
+bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const{
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         try{
@@ -292,7 +379,7 @@ bool Environment::NodeDeployedTo(const std::string& model_name, const std::strin
     return false;
 }
 
-bool Environment::ModelNameExists(const std::string& model_name){
+bool Environment::ModelNameExists(const std::string& model_name) const{
     return experiment_map_.count(model_name);
 }
 
@@ -323,6 +410,62 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
     return "";
 }
 
+bool Environment::ExperimentIsDirty(const std::string& model_name){
+    try{
+        return experiment_map_.at(model_name)->dirty_flag;
+    }catch(const std::out_of_range& ex){
+        throw std::invalid_argument("Model named " + model_name + " not found in Environment::ExperimentIsDirty.");
+    }
+}
+
+void Environment::GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message){
+    try{
+        auto experiment = experiment_map_.at(model_name);
+        std::unique_lock<std::mutex> lock(experiment->mutex_);
+        experiment->dirty_flag = false;
+
+        auto updated_ports = experiment->updated_port_ids_;
+
+        while(!experiment->updated_port_ids_.empty()){
+            auto port_it = experiment->updated_port_ids_.begin();
+            auto port_id = *port_it;
+            experiment->updated_port_ids_.erase(port_it);
+
+            //XXX: Jeez, this is pretty terrible...
+            for(int i = 0; i < control_message.nodes_size(); i++){
+                auto node = control_message.nodes(i);
+                for(int j = 0; j < node.components_size(); j++){
+                    auto component = node.components(j);
+                    for(int k = 0; k < component.ports_size(); k++){
+                        auto port = component.mutable_ports(k);
+                        for(int l = 0; l < port->connected_ports_size(); l++){
+                            auto connected_port = port->connected_ports(l);
+                            if(port_id == connected_port){
+                                try{
+                                    std::string endpoint = public_event_port_map_.at(port_id).endpoint;
+
+                                    for(int m = 0; m < port->attributes_size(); m++){
+                                        auto attribute = port->mutable_attributes(i);
+                                        if(attribute->info().name() == "publisher_address"){
+                                            attribute->add_s(endpoint);
+                                        }
+                                    }
+                                }
+                                catch(const std::out_of_range& ex){
+                                    throw std::runtime_error("Updated public ports + master public ports map mismatch.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }catch(const std::out_of_range& ex){
+        throw std::invalid_argument("Model named " + model_name + " not found in Environment::GetExperimentUpdate.");
+    }
+}
+
 void Environment::ExperimentLive(const std::string& model_name, uint64_t time_called){
     try{
         auto experiment = experiment_map_.at(model_name);
@@ -336,7 +479,6 @@ void Environment::ExperimentLive(const std::string& model_name, uint64_t time_ca
 }
 
 void Environment::ExperimentTimeout(const std::string& model_name, uint64_t time_called){
-
     try{
         auto experiment = experiment_map_.at(model_name);
         if(time_called >= experiment->time_added){

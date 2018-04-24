@@ -36,6 +36,7 @@ message EnvironmentMessage{
         HEARTBEAT_ACK = 10;
         SUCCESS = 11;
         NODE_QUERY = 12;
+        UPDATE_DEPLOYMENT = 13;
     }
 
     Type type = 1;

@@ -17,6 +17,7 @@ class Environment{
 
         std::string AddExperiment(const std::string& model_name);
         void RemoveExperiment(const std::string& model_name, uint64_t time);
+        void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
         void DeclusterNode(NodeManager::Node& message);
@@ -24,8 +25,11 @@ class Environment{
         void AddNodeToEnvironment(const NodeManager::Node& node);
         void ConfigureNode(const std::string& model_name, NodeManager::Node& node);
 
-        bool ModelNameExists(const std::string& model_name);
-        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address);
+        bool ExperimentIsDirty(const std::string& model_name);
+        void GetExperimentUpdate(const std::string& model_name, NodeManager::ControlMessage& control_message);
+
+        bool ModelNameExists(const std::string& model_name) const;
+        bool NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const;
         std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
@@ -97,13 +101,17 @@ class Environment{
 
         struct EventPort{
             std::string id;
+            std::string guid;
+            std::string type;
             std::string node_id;
             std::string port_number;
-            std::string guid;
             std::string topic;
 
             //list of publisher ids
             std::vector<std::string> connected_ports;
+
+            std::string endpoint;
+
         };
 
         enum class ExperimentState{
@@ -114,6 +122,9 @@ class Environment{
 
         struct Experiment{
             Experiment(std::string name){model_name_ = name;};
+
+            std::mutex mutex_;
+
             NodeManager::ControlMessage deployment_message_;
             std::string model_name_;
             std::string master_port_;
@@ -150,6 +161,12 @@ class Environment{
             uint64_t time_added;
             ExperimentState state;
 
+            //Set dirty flag when we've added a public port to the environment that this experiment cares about.
+            //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to
+            bool dirty_flag = false;
+
+            std::set<std::string> updated_port_ids_;
+
         };
 
         //model_name -> experiment data structure
@@ -158,6 +175,13 @@ class Environment{
         //node_ip -> node data structure
         std::unordered_map<std::string, Node*> node_map_;
 
+        //event port guid -> event port data structure
+        //event port guid takes form "experiment_id.{component_assembly_label}*n.component_instance_label.event_port_label"
+        std::unordered_map<std::string, EventPort> public_event_port_map_;
+
+        //event port guid -> set of experiment ids
+        //keeps track of experiments waiting for port of this guid to become live.
+        std::unordered_map<std::string, std::set<std::string> > pending_port_map_;
 
         std::mutex port_mutex_;
         //initially allocated set of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct

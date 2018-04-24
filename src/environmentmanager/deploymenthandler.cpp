@@ -159,34 +159,45 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Zmq::DeploymentRule(*environment_)));
                 generator.AddDeploymentRule(std::unique_ptr<DeploymentRule>(new Dds::DeploymentRule(*environment_)));
                 generator.PopulateDeployment(*(message.mutable_control_message()));
-                
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                ZMQSendReply(handler_socket_, message.SerializeAsString());
                 break;
             }
 
             case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
                 RemoveExperiment(message_time);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
-                ZMQSendReply(handler_socket_, message.SerializeAsString());
                 break;
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
-                message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
-                ZMQSendReply(handler_socket_, message.SerializeAsString());
+                if(environment_->ExperimentIsDirty(experiment_id_)){
+                    HandleDirtyExperiment(message);
+                }else{
+                    message.set_type(NodeManager::EnvironmentMessage::HEARTBEAT_ACK);
+                }
                 break;
             }
 
             default:{
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-                ZMQSendReply(handler_socket_, message.SerializeAsString());
                 break;
             }
         }
     }
     catch(std::exception& ex){
+        //TODO: Add ex.what() as error message.
         message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
-        ZMQSendReply(handler_socket_, message.SerializeAsString());
     }
+
+    ZMQSendReply(handler_socket_, message.SerializeAsString());
+}
+
+void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& message){
+    
+    message.set_type(NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT);
+
+    auto update_message = message.mutable_control_message();
+
+    environment_->GetExperimentUpdate(experiment_id_, *update_message);
+
 }
