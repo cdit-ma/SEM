@@ -16,6 +16,7 @@
 ContextMenu::ContextMenu(ViewController *vc){
     view_controller = vc;
     Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getNodeKindString(NODE_KIND::NONE) , "Icons", "circleInfoDark");
+    
 
     //Setup the complex relationship nodes
     connect_node_edge_kinds[NODE_KIND::COMPONENT_INSTANCE] = EDGE_KIND::DEFINITION;
@@ -313,6 +314,8 @@ void ContextMenu::populate_dynamic_add_edge_menu(QMenu* menu){
         if(src_menu){
             src_menu->setProperty("filter", menu->property("filter"));
             ClearMenu(src_menu);
+
+            
             
             auto valid_sources = item_map.values(EDGE_DIRECTION::SOURCE);
             construct_view_item_menus(src_menu, valid_sources);
@@ -502,8 +505,10 @@ QAction* ContextMenu::get_no_valid_items_action(QMenu* menu, QString label){
 
 void ContextMenu::update_add_edge_menu(){
     if(menu_requires_update(add_edge_menu)){
-
-        auto visible_edge_kinds = view_controller->getValidEdgeKindsForSelection().toSet();
+        auto selected_ids = view_controller->getSelectionController()->getSelectionIDs();
+        auto v_e = view_controller->getAcceptedEdgeKinds(selected_ids);
+        
+        auto visible_edge_kinds = v_e.first + v_e.second;
         
         for(auto edge_menu : add_edge_menu_hash.values()){
             auto edge_kind = edge_menu->property("edge_kind").value<EDGE_KIND>();

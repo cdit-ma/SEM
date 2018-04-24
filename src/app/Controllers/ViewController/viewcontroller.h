@@ -79,6 +79,8 @@ public:
     ModelController* getModelController();
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection();
+
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKinds(QList<int> ids);
     
 
     QList<EDGE_KIND> getExistingEdgeKindsForSelection();

@@ -93,6 +93,9 @@ ViewController::ViewController() : QObject(){
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
+
+    Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getEdgeKindString(EDGE_KIND::DEFINITION) , "Icons", "gears");
+
 }
 
 QList<ViewItem*> ViewController::ToViewItemList(QList<NodeViewItem*> &items){
@@ -483,6 +486,14 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
     }
 }
 
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ViewController::getAcceptedEdgeKinds(QList<int> ids){
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > edge_kinds;
+    if(selectionController && controller){
+        edge_kinds = controller->getAcceptedEdgeKindsForSelection(ids);
+    }
+    return edge_kinds;
+}
+
 QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
     QList<EDGE_KIND> edge_kinds;
@@ -649,19 +660,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             default:
                 break;
             }
-        }else if(isEdge){
-            switch(edgeViewItem->getEdgeKind()){
-                case EDGE_KIND::DEFINITION:{
-                    default_icon_prefix = "Icons";
-                    default_icon_name = "gears";
-                }
-                break;
-            default:
-                break;
-            }
         }
-
-        ;
+        
         auto got_icon = false;
         if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
             Theme::theme()->getIcon(default_icon_prefix, default_icon_name);

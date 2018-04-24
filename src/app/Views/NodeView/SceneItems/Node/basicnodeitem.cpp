@@ -254,22 +254,22 @@ QRectF BasicNodeItem::headerRect() const
 QRectF BasicNodeItem::connectSourceRect() const
 {
     QRectF r = headerRect();
-    auto right = r.left();
+    auto left = r.right();
     r.setWidth(smallIconSize().width());
 
     auto h_offset = r.width() / 2;
-    r.moveRight(right + h_offset);
+    r.moveLeft(left - h_offset);
     return r;
 }
 
 QRectF BasicNodeItem::connectTargetRect() const
 {
     QRectF r = headerRect();
-    auto left = r.right();
+    auto right = r.left();
     r.setWidth(smallIconSize().width());
 
     auto h_offset = r.width() / 2;
-    r.moveLeft(left - h_offset);
+    r.moveRight(right + h_offset);
     return r;
 }
 

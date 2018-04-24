@@ -1040,34 +1040,48 @@ QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodeIds2(QList<int> src
 QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> src_nodes, EDGE_KIND edge_kind){
     QMap<EDGE_DIRECTION, Node*> node_map;
     
-    bool srcs_require_edge = true;
+    bool srcs_accept_source_edge = true;
+    bool srcs_accept_target_edge = true;
     
     //Check if they can all accept edges of the kind we care about.
     for(auto src : src_nodes){
         if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
-            srcs_require_edge = false;
+            srcs_accept_source_edge = false;
             break;
+        }
+        if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET)){
+            srcs_accept_target_edge = false;
         }
     }
 
     //Only itterate if we have nodes
-    if(srcs_require_edge && src_nodes.size()){
-        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
-            bool src2dst_valid = true;
-            bool dst2src_valid = true;
+    if((srcs_accept_source_edge || srcs_accept_target_edge) && src_nodes.size()){
+        if(srcs_accept_source_edge){
+            for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
+                bool src2dst_valid = true;
 
-            
-            for(auto src : src_nodes){
-                //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
-                src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
-                dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
+                for(auto src : src_nodes){
+                    //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
+                    src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
+                }
+                
+                if(src2dst_valid){
+                    node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
+                }
             }
-            
-            if(src2dst_valid){
-                node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
-            }
-            if(dst2src_valid){
-                node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
+        }
+        if(srcs_accept_target_edge){
+            for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::SOURCE)){
+                bool dst2src_valid = true;
+
+                for(auto src : src_nodes){
+                    //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
+                    dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
+                }
+                
+                if(dst2src_valid){
+                    node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
+                }
             }
         }
     }
@@ -2211,6 +2225,36 @@ QString ModelController::getProjectAsGraphML(bool functional_export)
     QString data = exportGraphML(QList<Entity*>{model}, true, functional_export);
     lock_.unlock();
     return data;
+}
+
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsForSelection(QList<int> IDs){
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > valid_pairs;
+
+    lock_.lockForRead();
+
+    auto entities = getOrderedEntities(IDs);
+
+    if(!entities.isEmpty()){
+        valid_pairs.first = entity_factory->getEdgeKinds().toSet();
+        valid_pairs.second = entity_factory->getEdgeKinds().toSet();
+    }
+
+    for(auto entity : entities){
+        if(entity->isNode()){
+            auto node = (Node*) entity;
+            valid_pairs.first &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
+            valid_pairs.second &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
+        }else{
+            valid_pairs.first.clear();
+            valid_pairs.second.clear();
+        }
+        if(valid_pairs.first.isEmpty() && valid_pairs.second.isEmpty()){
+            break;
+        }
+    }
+
+    lock_.unlock();
+    return valid_pairs;
 }
 
 

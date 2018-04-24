@@ -1246,7 +1246,7 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) co
 QPointF NodeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const{
     auto rect = getEdgeConnectRect(direction, kind);
     qreal y = rect.center().y();
-    qreal x = direction == EDGE_DIRECTION::SOURCE ? rect.left() : rect.right();
+    qreal x = direction == EDGE_DIRECTION::SOURCE ? rect.right() : rect.left();
     return mapToScene(x,y);
 }
 

@@ -629,8 +629,8 @@ void EdgeItem::updateEdge()
     bool useDstLeft = true;//dstExitsLeft();
 
     //Get the entry/exit points into the source/destinatino based off the above variables.
-    QPointF sP1 = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
-    QPointF dP2 = vDst->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+    QPointF sP1 = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
+    QPointF dP2 = vDst->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
 
 
 
