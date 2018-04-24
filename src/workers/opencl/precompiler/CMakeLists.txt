@@ -6,6 +6,7 @@ set(PROJ_NAME precompile_opencl)
 
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})
 set(OPENCL_LIB_PATH $ENV{OPENCL_LIB_PATH})
+set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
 
 project(${PROJ_NAME})
 
@@ -14,6 +15,10 @@ find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_PATH})
 if(NOT OPENCL_LIB)
     message(STATUS "Not Found OpenCL - Not building precompile_opencl")
     return()
+endif()
+
+if(NOT OPENCL_INCLUDE_PATH)
+    set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
 endif()
 
 find_package(Boost 1.30.0 COMPONENTS filesystem REQUIRED)
@@ -31,7 +36,7 @@ set(HEADERS
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
 #Include OpenCL Includes
-target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_ROOT}/include)
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
 

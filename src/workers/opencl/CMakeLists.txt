@@ -19,6 +19,20 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/fft")
 
+set(OPENCL_INCLUDE_PATH $ENV{OPENCL_INCLUDE_PATH})
+if (NOT OPENCL_INCLUDE_PATH)
+    message("setting opencl include directory to default ($ROOT/include)")
+    set(OPENCL_INCLUDE_PATH "${OPENCL_ROOT}/include")
+endif()
+message("${OPENCL_INCLUDE_PATH}")
+
+#if(NOT CLFFT_LIB)
+#    message(STATUS "Not Found CLFFT - Not building GPU worker")
+#    return()
+#endif(NOT CLFFT_LIB)
+#add_definitions(-DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
+
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclutilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclmanager.cpp
@@ -119,10 +133,11 @@ target_compile_definitions(${PROJ_NAME} PRIVATE -DKERNEL_FILEPATH="${KERNEL_FILE
 
 #Add RE_PATH to include directories
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE "${OPENCL_ROOT}/include")
+target_include_directories(${PROJ_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
+#target_include_directories(${PROJ_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 target_include_directories(${TESTER_NAME} PRIVATE ${RE_SRC_PATH})
-target_include_directories(${TESTER_NAME} PRIVATE "${OPENCL_ROOT}/include")
+target_include_directories(${TESTER_NAME} PRIVATE ${OPENCL_INCLUDE_PATH})
 #target_include_directories(${TESTER_NAME} PRIVATE "${CLFFT_ROOT}/include")
 
 if (MSVC)
