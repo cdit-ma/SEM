@@ -41,7 +41,6 @@ std::string Environment::AddExperiment(const std::string& model_name){
     return experiment->manager_port_;
 }
 
-
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
     //go through experiment and free all ports used.
     try{

@@ -1,6 +1,12 @@
 //This script requires the following Jenkins plugins:
 //-Pipeline: Utility Steps
 
+//Requires following parameters in jenkins job:
+// -String parameter: MASTER_NODE
+// -String parameter: EXECUTION_TIME
+// -String parameter: EXPERIMENT_NAME
+// -String parameter: ENVIRONMENT_MANAGER_ADDRESS
+
 //Load shared pipeline utility library
 @Library('cditma-utils')
 import cditma.Utils
@@ -55,8 +61,6 @@ if(!experimentNameArg.isEmpty()){
     experimentName = experimentNameArg
 }
 
-//TODO: Add this as parameter to job.
-
 //Deployment plans
 def loganServers = [:]
 def loganClients = [:]
@@ -72,6 +76,7 @@ def failureList = []
 
 def file = "model.graphml"
 
+//TODO: Change this back to 're'
 def reNodes = utils.getLabelledNodes("envmanager_test")
 
 //XXX: Problems ahoy here
@@ -82,7 +87,6 @@ for(def i = 0; i < reNodes.size(); i++){
     def ip_addr_list = nodeIPLookup.computer.getChannel().call(new ListPossibleNames())
     addrMap[nodeName] = ip_addr_list[0]
 }
-
 
 withEnv(["model=''"]){
     node(masterNode){
@@ -100,6 +104,7 @@ withEnv(["model=''"]){
         stash includes: file, name: 'model'
 
         //TODO: Fix this to actually get middlewares from somewhere
+        //code gen may actually handle this automatically without args now days, ask dan
         middlewareString += "zmq,proto,rti,ospl"
         //Generate C++ code
         stage('CodeGen'){

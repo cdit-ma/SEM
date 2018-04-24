@@ -189,6 +189,12 @@ void EnvironmentRequester::HeartbeatLoop(){
                 if(reply.empty()){
                     std::cerr << "Heartbeat response from environment manager timed out!" << std::endl;
                 }
+                NodeManager::EnvironmentMessage reply_message;
+                reply_message.ParseFromString(reply);
+
+                HandleReply(reply_message);
+
+
             }
             //CV got wakeup, take from request queue
             else if(trigger == std::cv_status::no_timeout){
@@ -332,3 +338,21 @@ std::string EnvironmentRequester::ZMQReceiveReply(zmq::socket_t* socket){
     }
 }
 
+void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
+    switch(message.type()){
+        case NodeManager::EnvironmentMessage::HEARTBEAT_ACK:{
+            //NO-OP
+            break;
+        }
+        case NodeManager::EnvironmentMessage::UPDATE_DEPLOYMENT:{
+            //Parse control message and give to node manager to update it's endpoint
+            
+            break;
+        }
+        default:{
+            throw std::runtime_error("Got invalid reply type from environment manager.");
+        }
+
+    }
+    return;
+}
