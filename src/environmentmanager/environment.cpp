@@ -66,6 +66,7 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
             }
         }
         FreeManagerPort(experiment->manager_port_);
+        FreePort(experiment->master_ip_address_, experiment->master_port_);
         delete experiment;
         experiment_map_.erase(model_name);
     }
@@ -385,6 +386,7 @@ bool Environment::ModelNameExists(const std::string& model_name) const{
 std::string Environment::GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address){
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
+        experiment->master_ip_address_ = master_ip_address;
         std::string node_name = experiment->node_map_[experiment->node_id_map_[master_ip_address]]->info().name();
         experiment->master_port_ = GetPort(node_name);
         return experiment->master_port_;
