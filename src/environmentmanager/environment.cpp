@@ -203,6 +203,15 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         logger_attribute_info->set_name("modellogger_port");
         logger_attribute->add_s(logger_port);
 
+
+        auto hardwarelogger_port = GetPort(node_name);
+
+        auto hardwarelogger_attribute = node.add_attributes();
+        auto hardwarelogger_attribute_info = hardwarelogger_attribute->mutable_info();
+        hardwarelogger_attribute->set_kind(NodeManager::Attribute::STRING);
+        hardwarelogger_attribute_info->set_name("hardwarelogger_port");
+        hardwarelogger_attribute->add_s(hardwarelogger_port);
+
         //set master/slave port
         auto management_port = GetPort(node_name);
 
@@ -213,6 +222,7 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         management_endpoint_attribute->add_s(management_port);
 
         experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
+        experiment_map_[model_name]->hardwarelogger_port_map_[node.info().id()] = hardwarelogger_port;
         experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
     }
 
@@ -414,6 +424,14 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
         auto experiment = experiment_map_.at(model_name);
         std::string node_id = experiment->node_id_map_.at(ip_address);
         return experiment->modellogger_port_map_.at(node_id);
+    }
+    return "";
+}
+std::string Environment::GetNodeHardwareLoggerPort(const std::string& model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name)){
+        auto experiment = experiment_map_.at(model_name);
+        std::string node_id = experiment->node_id_map_.at(ip_address);
+        return experiment->hardwarelogger_port_map_.at(node_id);
     }
     return "";
 }

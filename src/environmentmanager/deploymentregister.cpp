@@ -125,6 +125,7 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         //Have experiment_id in environment, and ip_addr has component deployed to id
         std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
         std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
+        std::string hardware_logger_port = environment_->GetNodeHardwareLoggerPort(experiment_id, ip_address);
 
         auto management_attribute = node->add_attributes();
         auto management_attribute_info = management_attribute->mutable_info();
@@ -137,6 +138,12 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         modellogger_attribute_info->set_name("modellogger_port");
         modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
         modellogger_attribute->add_s(model_logger_port);
+
+        auto hardwarelogger_attribute = node->add_attributes();
+        auto hardwarelogger_attribute_info = hardwarelogger_attribute->mutable_info();
+        hardwarelogger_attribute_info->set_name("hardwarelogger_port");
+        hardwarelogger_attribute->set_kind(NodeManager::Attribute::STRING);
+        hardwarelogger_attribute->add_s(hardware_logger_port);
 
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);

@@ -33,12 +33,13 @@ class Environment{
         std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
+        std::string GetNodeHardwareLoggerPort(const std::string& model_name, const std::string& ip_address);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
-        
+
         std::string GetPort(const std::string& node_ip);
         void FreePort(const std::string& node_ip, const std::string& port_number);
         void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
@@ -161,6 +162,9 @@ class Environment{
 
             //node_id -> model_logger_port
             std::unordered_map<std::string, std::string> modellogger_port_map_;
+
+            //node_id -> hardware_logger_port
+            std::unordered_map<std::string, std::string> hardwarelogger_port_map_;
 
             //list of topics used in this experiment
             std::set<std::string> topic_set_;
