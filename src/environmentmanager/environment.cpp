@@ -66,7 +66,8 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
             }
         }
         FreeManagerPort(experiment->manager_port_);
-        FreePort(experiment->master_ip_address_, experiment->master_port_);
+        std::string master_node_name = experiment->node_map_[experiment->node_id_map_[experiment->master_ip_address_]]->info().name();
+        FreePort(master_node_name, experiment->master_port_);
         delete experiment;
         experiment_map_.erase(model_name);
     }
