@@ -83,9 +83,19 @@ class Environment{
 
                 void FreePort(const std::string& port){
                     std::unique_lock<std::mutex> lock(port_mutex);
-                    int port_number = std::stoi(port);
-                    available_ports.insert(port_number);
-                    std::cout << "ip: " << ip << ":" << port_number << " free port count:" << available_ports.size() << std::endl;
+                    int port_number;
+                    try{
+                        port_number = std::stoi(port);
+                        available_ports.insert(port_number);
+                    }
+                    catch(const std::invalid_argument& ex){
+                        std::cerr << "Could not free port, port string could not be converted to int." << std::endl;
+                        std::cerr << ex.what() << std::endl;
+                    }
+                    catch(const std::out_of_range& ex){
+                        std::cerr << "Could not free port, port # out of range for int." << std::endl;
+                        std::cerr << ex.what() << std::endl;
+                    }
                 }
                 std::string name;
                 std::string ip;

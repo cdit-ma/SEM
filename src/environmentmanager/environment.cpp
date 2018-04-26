@@ -38,6 +38,9 @@ std::string Environment::AddExperiment(const std::string& model_name){
 
     experiment->manager_port_ = GetManagerPort();
 
+    std::cout << "Added experiment: " << model_name << std::endl;
+    std::cout << "Registered experiments: " << experiment_map_.size() << std::endl;
+
     return experiment->manager_port_;
 }
 
@@ -70,10 +73,13 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
         FreePort(master_node_name, experiment->master_port_);
         delete experiment;
         experiment_map_.erase(model_name);
+        std::cout << "Removed experiment: " << model_name << std::endl;
     }
     catch(...){
         std::cout << "Could not delete deployment :" << model_name << std::endl;
     }
+
+    std::cout << "Registered experiments: " << experiment_map_.size() << std::endl;
 }
 
 void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
