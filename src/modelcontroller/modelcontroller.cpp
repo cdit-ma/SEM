@@ -70,6 +70,7 @@ ModelController::ModelController():QObject(0)
     qRegisterMetaType<NODE_KIND>("NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
+    qRegisterMetaType<QSet<EDGE_DIRECTION> >("QSet<EDGE_DIRECTION>");
 }
 
 bool ModelController::SetupController(QString file_path)
@@ -584,11 +585,11 @@ void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDG
     auto src_nodes = getNodes(src_ids);
     auto dst_nodes = getNodes(dst_ids);
     bool success = true;
-    
     //Have to go all to one
     if(src_nodes.count() == 1 || dst_nodes.count() == 1){
         for(auto src : src_nodes){
             for(auto dst : dst_nodes){
+
                 auto edge = construct_edge(edge_kind, src, dst);
                 if(!edge){
                     success = false;
@@ -621,7 +622,7 @@ void ModelController::destructEdges(QList<int> src_ids, int dst_id, EDGE_KIND ed
     emit ActionFinished();
 }
 
-void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
+void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, QSet<EDGE_DIRECTION> edge_directions)
 {
     QWriteLocker lock(&lock_);
 
@@ -633,12 +634,14 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind)
         auto src = entity_factory->GetNode(src_id);
         for(auto edge: src->getEdges(0, edge_kind)){
             if(edge){
-                edges << edge;
+                auto is_source = edge->getSource() == src;
+                
+                auto direction_to_delete = is_source ? EDGE_DIRECTION::TARGET : EDGE_DIRECTION::SOURCE;
+
+                if(edge_directions.contains(direction_to_delete)){
+                    edges << edge;
+                }
             }
-
-
-
-            
         }
     }
     destructEntities(edges);
@@ -874,6 +877,7 @@ void ModelController::undo()
         unsetModelAction(MODEL_ACTION::UNDO);
         emit ShowProgress(false);
     }
+    
     emit ActionFinished();
 }
 
@@ -2286,25 +2290,21 @@ QList<EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
     return edge_kinds.toList();
 }
 
-QList<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs)
+QSet<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs)
 {
     lock_.lockForRead();
 
-    QList<Entity*> entities = getOrderedEntities(IDs);
-    QList<EDGE_KIND> edgeKinds;
+    QSet<EDGE_KIND> edge_kinds;
 
-    foreach(Entity* entity, entities){
+    for(auto entity : getOrderedEntities(IDs)){
         if(entity->isNode()){
-            Node* node = (Node*) entity;
-            foreach(Edge* edge, node->getAllEdges()){
-                if(!edgeKinds.contains(edge->getEdgeKind())){
-                    edgeKinds.append(edge->getEdgeKind());
-                }
+            for(auto edge : ((Node*)entity)->getAllEdges()){
+                edge_kinds.insert(edge->getEdgeKind());
             }
         }
     }
     lock_.unlock();
-    return edgeKinds;
+    return edge_kinds;
 
 }
 

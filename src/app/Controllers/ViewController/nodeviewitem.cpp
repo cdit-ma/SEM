@@ -62,7 +62,7 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
 
             //Get the direction
             auto is_source = edge->getSource() == this;
-            auto direction = !is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+            auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
 
             emit edgeAdded(direction, kind, edge->getID());
         }
@@ -78,7 +78,7 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
 
             //Get the direction
             auto is_source = edge->getSource() == this;
-            auto direction = !is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+            auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
 
             emit edgeRemoved(direction, kind, edge->getID());
         }

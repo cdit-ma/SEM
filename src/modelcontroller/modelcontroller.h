@@ -64,7 +64,7 @@ public:
     QString getProjectAsGraphML(bool functional_export = false);
 
     QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
-    QList<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
+    QSet<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
     QSet<NODE_KIND> getAdoptableNodeKinds(int ID);
 
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKindsForSelection(QList<int> IDs);
@@ -122,7 +122,7 @@ public slots:
     void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
 
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
-    void destructAllEdges(QList<int> srcIDs, EDGE_KIND edgeClass);
+    void destructAllEdges(QList<int> srcIDs, EDGE_KIND edge_kind, QSet<EDGE_DIRECTION> edge_direction);
 
     void triggerAction(QString actionName);
 

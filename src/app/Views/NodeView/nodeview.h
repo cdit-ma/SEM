@@ -121,6 +121,17 @@ private slots:
     void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
+    void themeItem(EntityItem* item);
+
+    QColor body_color;
+    QColor alt_body_color;
+    QColor text_color;
+    QColor alt_text_color;
+    QColor header_color;
+    QColor highlight_color;
+    QPen default_pen;
+
+
     void showItem(EntityItem* item);
     void setupConnections(EntityItem* item);
 

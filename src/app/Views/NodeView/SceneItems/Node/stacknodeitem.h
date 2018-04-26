@@ -19,8 +19,8 @@ public:
 
     QPointF GetGridAlignedTopLeft() const;
 
-    void SetRenderCellArea(int row, int col, bool render, QColor color = QColor());
-    void SetRenderCellText(int row, int col, bool render, QString label = "", QColor color = QColor());
+    void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
+    void SetRenderCellText(int row, int col, bool render, QString label = "");
     void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
@@ -67,9 +67,8 @@ private:
         bool render_icons = false;
         Qt::Orientation orientation;
         
-        QColor rect_color;
+        bool use_alt_color = false;
         StaticTextItem* text_item = 0;
-        QColor text_color;
         QPair<QString, QString> icon;
         QSize icon_size;
 

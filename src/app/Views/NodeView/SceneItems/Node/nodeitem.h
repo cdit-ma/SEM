@@ -30,6 +30,7 @@ public:
 
     virtual void addChildNode(NodeItem* nodeItem);
 
+    QColor getHeaderColor() const;
 
 
     void removeChildNode(NodeItem *nodeItem);
@@ -240,6 +241,15 @@ private:
     bool gridVisible;
     bool ignorePosition;
 
+    void clearEdgeKnobPressedState();
+
+    bool edge_knob_pressed = false;
+    bool edge_knob_dragged = false;
+    QRectF pressed_edge_knob_rect;
+    EDGE_DIRECTION pressed_edge_knob_direction = EDGE_DIRECTION::SOURCE;
+    EDGE_KIND pressed_edge_knob_kind = EDGE_KIND::NONE;
+
+
 
     bool _isResizing;
     QSizeF sizePreResize;
@@ -306,9 +316,6 @@ protected:
 
 
     // EntityItemNew interface
-public:
-    QColor getBodyColor() const;
-    QColor getHeaderColor() const;
 
     // EntityItemNew interface
 public:

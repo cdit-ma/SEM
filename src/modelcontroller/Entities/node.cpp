@@ -105,12 +105,10 @@ bool Node::IsEdgeRuleActive(EdgeRule rule){
 
 bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, Node* dst) const{
     if(canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE) == false){
-        qCritical() << this->toString() << " CANNOT BE SOURCE FOR: " << EntityFactory::getEdgeKindString(edge_kind);
         return false;
     }
 
     if(dst->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET) == false){
-        qCritical() << dst->toString() << " CANNOT BE TARGET FOR: " << EntityFactory::getEdgeKindString(edge_kind);
         return false;
     }
 
@@ -1360,7 +1358,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
     //qCritical() << "canCurrentlyAcceptEdgeKind(): " << this->toString() << (direction == EDGE_DIRECTION::SOURCE ? " SOURCE: " : " TARGET: ") << EntityFactory::getEdgeKindString(edge_kind);
 
     if(canAcceptEdgeKind(edge_kind, direction) == false){
-        qCritical() << "1";
+        //qCritical() << "1";
         return false;
     }
 
@@ -1370,13 +1368,13 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::DEFINITION:{
             //If we are not an instance or impl, we can never have a definition edge
             if(isInstanceImpl() == false){
-                qCritical() << "2";
+                //qCritical() << "2";
                 return false;
             }
 
             //Can have another definition if we already have one
             if(getDefinition()){
-                qCritical() << "3";
+                //qCritical() << "3";
                 return false;
             }
             break;
@@ -1388,7 +1386,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 // A Non producer cannot have an Edge out of it
                 if(!data_node->isDataProducer()){
-                    qCritical() << "4";
+                    //qCritical() << "4";
                     return false;
                 }
                 auto got_data_edge = false;
@@ -1402,7 +1400,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 //Allow Linking if we don't have a data edge, or we are a MultipleData Sender
                 if(got_data_edge && !data_node->isMultipleDataProducer()){
-                    qCritical() << "5";
+                    //qCritical() << "5";
                     return false;
                 }
                 return true;
@@ -1421,7 +1419,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
             //Can only have 1 Edge is Source
             for(auto edge : edges.values(edge_kind)){
                 if(edge->getSource() == this){
-                    qCritical() << "6";
+                    //qCritical() << "6";
                     return false;
                 }
             }
@@ -1437,7 +1435,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::DEFINITION:{
             //If we are not a definition, we can never have a definition edge
             if(isDefinition() == false){
-                qCritical() << "7";
+                //qCritical() << "7";
                 return false;
             }
 
@@ -1451,7 +1449,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 // A Non producer cannot have an Edge out of it
                 if(data_node->isDataReceiver() == false){
-                    qCritical() << "9"; 
+                    //qCritical() << "9"; 
                     return false;
                 }
 
@@ -1466,7 +1464,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 //Allow Linking if we don't have a data edge, or we are a MultipleData Sender
                 if(got_data_edge && !data_node->isMultipleDataReceiver()){
-                    qCritical() << "10";
+                    //qCritical() << "10";
                     return false;
                 }
                 return true;

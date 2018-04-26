@@ -130,8 +130,9 @@ void NodeView::scale(qreal sx, qreal sy)
         auto zoom = t.m11() * sx;
 
         //Limit to zoom 25% between 400%
+
         zoom = qMax(0.25, zoom);
-        zoom = qMin(zoom, 4.0);
+        zoom = qMin(zoom, 100.0);
 
         //m11 and m22 are x/y scaling respectively
         t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
@@ -314,6 +315,19 @@ void NodeView::clearSelection()
     _clearSelection();
 }
 
+void NodeView::themeItem(EntityItem* entity){
+    if(entity){
+        entity->setBaseBodyColor(body_color);
+        entity->setAltBodyColor(alt_body_color);
+        
+        entity->setTextColor(text_color);
+        entity->setAltTextColor(alt_text_color);
+        entity->setHeaderColor(header_color);
+        entity->setHighlightColor(highlight_color);
+        entity->setDefaultPen(default_pen);
+    }
+}
+
 void NodeView::themeChanged()
 {
     auto theme = Theme::theme();
@@ -325,21 +339,18 @@ void NodeView::themeChanged()
     background_text_color = background_color.darker(110);
     setBackgroundBrush(background_color);
 
-    auto body_color = theme->getAltBackgroundColor();
-    auto text_color = theme->getTextColor();
-    auto header_color = theme->getBackgroundColor();
-    auto highlight_color = theme->getHighlightColor();
-    QPen pen(theme->getTextColor(ColorRole::DISABLED));
-    pen.setCosmetic(true);
+
+    body_color = theme->getAltBackgroundColor();
+    text_color = theme->getTextColor();
+    alt_text_color = theme->getAltTextColor();
+    header_color = theme->getBackgroundColor();
+    highlight_color = theme->getHighlightColor();
+    alt_body_color = theme->getDisabledBackgroundColor();
+    default_pen = QPen(theme->getTextColor(ColorRole::DISABLED));
+    default_pen.setCosmetic(true);
 
     for(auto entity : guiItems){
-        if(entity){
-            entity->setBaseBodyColor(body_color);
-            entity->setTextColor(text_color);
-            entity->setHeaderColor(header_color);
-            entity->setHighlightColor(highlight_color);
-            entity->setDefaultPen(pen);
-        }
+        themeItem(entity);
     }
 }
 
@@ -591,6 +602,8 @@ void NodeView::highlightItem(int ID, bool highlighted)
 
 void NodeView::setupConnections(EntityItem *item)
 {
+    themeItem(item);
+    
     connect(item, &EntityItem::req_activeSelected, this, &NodeView::item_ActiveSelected);
     connect(item, &EntityItem::req_selected, this, &NodeView::item_Selected);
     connect(item, &EntityItem::req_expanded, this, &NodeView::item_SetExpanded);
@@ -1091,12 +1104,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 auto parameter_color = stack_item->getHeaderColor().lighter(110);
                 auto text_color = Qt::darkGray;
 
-                //stack_item->SetRenderCellArea(0, -1, true, parameter_color);
-                stack_item->SetRenderCellText(0, -1, true, "REQUEST", text_color);
-                
-                //stack_item->SetRenderCellArea(0, 1, true, parameter_color);
-                stack_item->SetRenderCellText(0, 1, true, "REPLY", text_color);
-                //stack_item->SetCellMargins(0, 1, margin);
+                stack_item->SetRenderCellText(0, -1, true, "REQUEST");
+                stack_item->SetRenderCellText(0, 1, true, "REPLY");
                 break;
             }
             case NODE_KIND::INEVENTPORT:
@@ -1152,12 +1161,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             if(nodeItem){
                 //Reqeust what can be done by the viewcontroller
                 auto valid_edges = viewController->getAcceptedEdgeKinds({item->getID()});
+                QSet<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA, EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS};
 
                 for(auto edge_kind : valid_edges.first){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, edge_kind);
+                    if(valid_edge_kinds.contains(edge_kind)){
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::SOURCE, edge_kind);
+                    }
                 }
                 for(auto edge_kind : valid_edges.second){
-                    nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, edge_kind);
+                    if(valid_edge_kinds.contains(edge_kind)){
+                        nodeItem->addVisualEdgeKind(EDGE_DIRECTION::TARGET, edge_kind);
+                    }
                 }
 
                 bool small_style = true;
@@ -1189,46 +1203,33 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     stack_item->setDefaultCellSpacing(stack_item->getGridSize() / 2);
                 }
 
-                auto theme = Theme::theme();
-                nodeItem->setBaseBodyColor(theme->getAltBackgroundColor());
-                nodeItem->setHeaderColor(theme->getBackgroundColor());
-                nodeItem->setTextColor(theme->getTextColor());
-                QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
-                defaultPen.setCosmetic(true);
-                nodeItem->setDefaultPen(defaultPen);
-
 
                 if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
                     if(stack_item){
-                   
                         stack_item->setAlignment(Qt::Horizontal);
-                        auto header_color = stack_item->getHeaderColor();;
-                        auto parameter_color = theme->getDisabledBackgroundColor();
-                        auto text_color = stack_item->getTextColor();
-                        
 
                         if(nodeKind == NODE_KIND::COMPONENT_IMPL || nodeKind == NODE_KIND::CLASS){
-                            stack_item->SetRenderCellText(0, 0, true, "Functions", text_color);
+                            stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                         }else{
                             auto margin = stack_item->getDefaultCellMargin();
                             margin.setRight(margin.right() * 2);
                             margin.setLeft(margin.left() * 2);
 
-                            stack_item->SetRenderCellArea(0, -1, true, parameter_color);
-                            stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS", text_color);
+                            stack_item->SetRenderCellArea(0, -1, true, true);
+                            stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS");
                             stack_item->SetRenderCellIcons(0, -1, true, "Icons", "lineHorizontal", QSize(8,8));
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);
                             stack_item->SetCellMargins(0, -1, margin);
                             
 
-                            stack_item->SetRenderCellArea(0, 1, true, parameter_color);
-                            stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS", text_color);
+                            stack_item->SetRenderCellArea(0, 1, true, true);
+                            stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS");
                             stack_item->SetRenderCellIcons(0, 1, true, "Icons", "lineHorizontal", QSize(8,8));
                             stack_item->SetCellOrientation(0, 1, Qt::Vertical);
                             stack_item->SetCellMargins(0, 1, margin);
 
-                            stack_item->SetRenderCellText(0, 0, true, "WORKFLOW", text_color);
+                            stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
 
                             if(small_style){
                                 stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(16,16));
@@ -1240,21 +1241,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             }
                         }
 
-                        stack_item->SetRenderCellArea(1, 0, true, header_color);
-                        stack_item->SetRenderCellText(1, 0, true, "Attributes", text_color);
+                        stack_item->SetRenderCellArea(1, 0, true, true);
+                        stack_item->SetRenderCellText(1, 0, true, "Attributes");
                         stack_item->SetCellSpacing(1, 0, 10);
 
-                        stack_item->SetRenderCellArea(1, 1, true, header_color);
-                        stack_item->SetRenderCellText(1, 1, true, "Variables", text_color);
+                        stack_item->SetRenderCellArea(1, 1, true, true);
+                        stack_item->SetRenderCellText(1, 1, true, "Variables");
                         stack_item->SetCellSpacing(1, 1, 10);
 
 
-                        stack_item->SetRenderCellArea(1, -1, true, header_color);
-                        stack_item->SetRenderCellText(1, -1, true, "Headers", text_color);
+                        stack_item->SetRenderCellArea(1, -1, true, true);
+                        stack_item->SetRenderCellText(1, -1, true, "Headers");
                         stack_item->SetCellOrientation(1, -1, Qt::Vertical);
 
-                        stack_item->SetRenderCellArea(1, 2, true, header_color);
-                        stack_item->SetRenderCellText(1, 2, true, "Workers", text_color);
+                        stack_item->SetRenderCellArea(1, 2, true, true);
+                        stack_item->SetRenderCellText(1, 2, true, "Workers");
                         stack_item->SetCellSpacing(1, 2, 10);
                     }
                 }
@@ -1263,6 +1264,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 guiItems[ID] = nodeItem;
 
                 setupConnections(nodeItem);
+                
 
 
 
@@ -1421,7 +1423,7 @@ void NodeView::zoom(int delta, QPoint anchorScreenPos)
                 QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
                 translate(delta);
             }
-        }
+       }
     }
 }
 

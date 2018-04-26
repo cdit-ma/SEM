@@ -42,8 +42,6 @@ public:
         SECONDARY_ICON,
         TERTIARY_ICON,
         
-
-        EXPANDED_STATE_ICON,
         LOCKED_STATE_ICON,
         NOTIFICATION_ICON,
         RESIZE_ARROW_ICON,
@@ -88,6 +86,12 @@ public:
     QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
     void setBaseBodyColor(QColor color);
+
+    QColor getAltBodyColor() const;
+    void setAltBodyColor(QColor color);
+
+    QColor getAltTextColor() const;
+    void setAltTextColor(QColor color);
 
     virtual void setPos(const QPointF &pos);
     int getID();
@@ -311,8 +315,10 @@ private:
     QPen defaultPen;
     QColor bodyColor;
     QColor text_color;
+    QColor alt_text_color;
     QColor highlight_color;
     QColor header_color;
+    QColor alt_body_color;
 
     KIND kind;
     bool ignorePosition;

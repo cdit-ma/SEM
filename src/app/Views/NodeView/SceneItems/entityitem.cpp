@@ -302,7 +302,9 @@ QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
 QPixmap EntityItem::getPixmap(const QString& imageAlias, const QString& imageName, QSize requiredSize, QColor tintColor) const
 {
     Theme* theme = Theme::theme();
-    tintColor = Theme::theme()->getMenuIconColor();
+    if(!tintColor.isValid()){
+        tintColor = Theme::theme()->getMenuIconColor();
+    }
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
     return image;
 }
@@ -755,16 +757,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(isReadOnly()){
             paintPixmap(painter, lod, EntityRect::LOCKED_STATE_ICON, "Icons", "lockClosed");
         }
-        if(paint_notification){
-            painter->save();
-            //QBrush brush(Qt::SolidPattern);
-            //painter->setPen(Qt::NoPen);
-            //brush.setColor(getBodyColor());
-            //painter->setBrush(brush);
-            //painter->drawRect(getElementRectEntityRect::ER_NOTIFICATION));
-            //paintPixmap(painter, lod, EntityRect::NOTIFICATION, notification_icon, notification_color);
-            painter->restore();
-        }
     }
 }
 
@@ -926,7 +918,22 @@ void EntityItem::paintPixmapEllipse(QPainter* painter, QString imageAlias, QStri
     painter->restore();
 }
 
+QColor EntityItem::getAltBodyColor() const{
+    return alt_body_color;
+}
+void EntityItem::setAltBodyColor(QColor color){
+    alt_body_color = color;
+    update();
+}
 
+QColor EntityItem::getAltTextColor() const{
+    return alt_text_color;
+}
+
+void EntityItem::setAltTextColor(QColor color){
+    alt_text_color = color;
+    update();
+}
 
 QColor EntityItem::getBaseBodyColor() const
 {
@@ -948,7 +955,11 @@ void EntityItem::setHeaderColor(QColor color){
 }
 
 QColor EntityItem::getHeaderColor() const{
-    return header_color;
+    if(isHighlighted()){
+        return highlight_color;
+    }else{
+        return header_color;
+    }
 }
 
 

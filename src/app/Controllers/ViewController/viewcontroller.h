@@ -66,6 +66,7 @@ public:
     }
 
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges2(EDGE_KIND kind);
+    QMultiMap<EDGE_DIRECTION, ViewItem*> getExistingEndPointsOfSelection(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
     QSet<NODE_KIND> getAdoptableNodeKinds();
@@ -83,7 +84,7 @@ public:
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKinds(QList<int> ids);
     
 
-    QList<EDGE_KIND> getExistingEdgeKindsForSelection();
+    QSet<EDGE_KIND> getExistingEdgeKindsForSelection();
     QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
@@ -156,7 +157,7 @@ signals:
 
     void vc_constructEdge(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
     void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
-    void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edgeKind);
+    void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edge_kinds, QSet<EDGE_DIRECTION> edge_directions);
     
     void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
     void vc_importProjects(QStringList fileData);

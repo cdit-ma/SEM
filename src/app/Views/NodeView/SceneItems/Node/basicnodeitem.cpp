@@ -139,7 +139,6 @@ QPainterPath BasicNodeItem::getElementPath(EntityRect rect) const
                     }
                 }
             }
-
             return path.simplified();
         }
     default:
@@ -152,8 +151,6 @@ QPainterPath BasicNodeItem::getElementPath(EntityRect rect) const
 QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
 {
     switch(rect){
-    case EntityRect::EXPANDED_STATE_ICON:
-        return expandedStateRect();
     case EntityRect::EXPAND_CONTRACT:
     case EntityRect::MAIN_ICON:
         return headerContent_Icon();
@@ -188,6 +185,7 @@ void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphic
     auto IS_BLOCK = state == RENDER_STATE::BLOCK;
 
     if(state >= RENDER_STATE::BLOCK){
+        
         if(isExpanded()){
             //Paint the Body
             painter->setBrush(getBodyColor());
@@ -205,6 +203,7 @@ void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphic
         }else{
             painter->drawPath(getElementPath(EntityRect::MOVE));
         }
+        
     
 
         if(state > RENDER_STATE::BLOCK){
@@ -215,22 +214,6 @@ void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphic
             }
         }
     }
-    /*
-    painter->setBrush(QColor(255,0,0,100));
-    painter->drawRect(headerContent_Icon());
-    painter->setBrush(QColor(0,255,0,100));
-    painter->drawRect(headerContent_Data());
-    painter->setBrush(QColor(0, 255, 255,100));
-    painter->drawRect(headerContent_Data_Primary());
-    painter->setBrush(QColor(0, 0 ,255,100));
-    painter->drawRect(headerContent_Data_Secondary());
-
-    painter->setBrush(QColor(255, 0 ,255,100));
-    painter->drawRect(headerContent_Data_Secondary_Icon());
-
-    painter->setBrush(QColor(255, 255 ,255,100));
-    painter->drawRect(headerContent_Data_Primary_Icon());
-    */
 }
 
 void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -354,7 +337,7 @@ QRectF BasicNodeItem::headerContent_Data_Primary_Icon() const{
     auto header_content = headerContent_Data_Primary();
     QRectF rect;
     if(isReadOnly()){
-        rect.setSize(smallIconSize());
+        rect.setSize(smallIconSize() / 2);
         rect.moveTopRight(header_content.topRight() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }
     return rect;

@@ -106,7 +106,7 @@ qreal StackNodeItem::getCellSpacing(const CellIndex& index) const{
     return getDefaultCellSpacing();
 }
 
-void StackNodeItem::SetRenderCellText(int row, int col, bool render, QString label, QColor color){
+void StackNodeItem::SetRenderCellText(int row, int col, bool render, QString label){
     auto& cell_info = SetupCellInfo(row, col);
 
     cell_info.render_text = render && label.length();
@@ -122,16 +122,15 @@ void StackNodeItem::SetRenderCellText(int row, int col, bool render, QString lab
         }
     }
     cell_info.text_item->setText(label);
-    cell_info.text_color = color;
 }
 
-void StackNodeItem::SetRenderCellArea(int row, int col, bool render, QColor color){
+void StackNodeItem::SetRenderCellArea(int row, int col, bool render, bool use_alt_color){
     auto& cell_info = SetupCellInfo(row, col);
 
     cell_info.render_rect = render;
 
     if(cell_info.render_rect){
-        cell_info.rect_color = color;
+        cell_info.use_alt_color = use_alt_color;
     }
 }
 
@@ -451,15 +450,26 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             if(cells.contains(index)){
                 const auto& cell = cells[index];
                 if(p_cell.render_rect){
-                    painter->setPen(Qt::NoPen);
-                    painter->setBrush(p_cell.rect_color);
+                    
+                    if(p_cell.use_alt_color){
+                        painter->setBrush(getAltBodyColor());
+                        painter->setPen(painter->brush().color());
+                    }else{
+                        painter->setBrush(Qt::NoBrush);
+                    }
+                    
                     painter->drawRect(cell.bounding_rect);
                 }
                 if(p_cell.render_text && p_cell.text_item){
                     auto text_rect = cell.bounding_rect;
                     text_rect.setHeight(p_cell.margin.top());
                     if(text_rect.height()){
-                        painter->setPen(p_cell.text_color);
+                        if(p_cell.use_alt_color){
+                            painter->setPen(getAltTextColor());
+                        }else{
+                            painter->setPen(getTextColor());    
+                        }
+                        
                         p_cell.text_item->RenderText(painter, getRenderState(lod), text_rect);
                     }
                 }

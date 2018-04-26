@@ -51,7 +51,7 @@ void DockTabWidget::themeChanged()
     deploy_menu->setStyle(menu_style);
 
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
-    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}");// QMenu::item{padding: 4px 8px 4px " + QString::number(MENU_ICON_SIZE + 8)  + "px; }"
+    deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
 
     QIcon partIcon;
     partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
@@ -67,8 +67,8 @@ void DockTabWidget::themeChanged()
     setStyleSheet(
         theme->getToolBarStyleSheet() +
         "QScrollArea {"
-        "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-        "background: rgba(0,0,0,0);"
+        "border: 1px solid " + theme->getAltBackgroundColorHex() + ";"
+        "background: transparent;"
         "}"
         "QToolButton {"
         "border-radius: " + theme->getCornerRadius() + ";"

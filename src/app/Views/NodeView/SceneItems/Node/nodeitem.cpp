@@ -470,6 +470,18 @@ void NodeItem::setExpandedWidth(qreal width)
     }
 }
 
+QColor NodeItem::getHeaderColor() const{
+    auto header_color = EntityItem::getHeaderColor();
+    if(!hasChildNodes()){
+        if(getParentNodeItem()){
+            header_color = Qt::transparent;
+        }else{
+            header_color = EntityItem::getBodyColor();
+        }
+    }
+    return header_color;
+}
+
 void NodeItem::setExpandedHeight(qreal height)
 {
     //Limit by the size of all contained children.
@@ -1014,10 +1026,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     if(state > RENDER_STATE::MINIMAL){
-        if(isExpandEnabled() && hasChildNodes()){
-            paintPixmap(painter, lod,EntityRect::EXPANDED_STATE_ICON, "Icons", isExpanded() ? "triangleNorthWest" : "triangleSouthEast");
-        }
-
         if(gotSecondaryTextKey()){
             paintPixmap(painter, lod,EntityRect::SECONDARY_ICON, secondary_icon.first, secondary_icon.second);
         }
@@ -1027,11 +1035,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state > RENDER_STATE::BLOCK){
         painter->save();
-
-        //Paint the Outline path.
-        painter->setPen(getPen());
-        painter->setBrush(Qt::NoBrush);
-        painter->drawPath(getElementPath(EntityRect::SHAPE));
 
         //Paint the selected section.
         if(selectedResizeVertex != NodeItem::RectVertex::NONE){
@@ -1082,30 +1085,59 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state > RENDER_STATE::BLOCK){
         painter->save();
-        auto map = isExpanded() ? getVisualEdgeKinds() : getAllVisualEdgeKinds();
+        auto my_edges = getVisualEdgeKinds();
+        auto map = isExpanded() ? my_edges : getAllVisualEdgeKinds();
         for(auto edge_direction : map.uniqueKeys()){
             for(auto edge_kind : map.values(edge_direction)){
                 if(edge_kind != EDGE_KIND::NONE){
                     auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+
                     bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
                     bool got_edge = attached_edges.contains({edge_direction, edge_kind});
+                    bool my_edge = my_edges.contains(edge_direction, edge_kind);
                     
-                    if(is_hovered){
-                        painter->setPen(getPen());
-                        painter->setBrush(Qt::NoBrush);
+                    if(is_hovered || got_edge){
+                        QColor brush_color;
+                        if(is_hovered){
+                            brush_color = getPen().color();
+                        }else{
+                            if(got_edge){
+                                brush_color = getBodyColor();
+                            }else{
+                                brush_color = Qt::transparent;
+                            }
+                        }
+
+                        painter->setBrush(brush_color);
                         painter->drawEllipse(icon_rect);
                     }
 
                     if(got_edge || is_hovered){
                         painter->setOpacity(1);
                     }else{
-                        painter->setOpacity(.35);   
+                        if(!my_edge){
+                            painter->setOpacity(.40);   
+                        }else{
+                            painter->setOpacity(.60);   
+                        }
                     }
+
                     paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
                 }
             }
         }
         painter->restore();
+    }
+
+    if(state > RENDER_STATE::BLOCK){
+        painter->save();
+
+        //Paint the Outline path.
+        painter->setPen(getPen());
+        painter->setBrush(Qt::NoBrush);
+        painter->drawPath(getElementPath(EntityRect::SHAPE));
+        painter->restore();
+
     }
 }
 
@@ -1279,25 +1311,42 @@ std::list<NodeItem::RectVertex> NodeItem::getRectVertex(){
     return {NodeItem::RectVertex::LEFT, NodeItem::RectVertex::TOP_LEFT, NodeItem::RectVertex::TOP, NodeItem::RectVertex::TOP_RIGHT, NodeItem::RectVertex::RIGHT, NodeItem::RectVertex::BOTTOM_RIGHT, NodeItem::RectVertex::BOTTOM, NodeItem::RectVertex::BOTTOM_LEFT};
 }
 
+void NodeItem::clearEdgeKnobPressedState(){
+    //Clear the Knob Edge data
+    edge_knob_pressed = false;
+    edge_knob_dragged = false;
+    pressed_edge_knob_rect = QRectF();
+    pressed_edge_knob_direction = EDGE_DIRECTION::SOURCE;
+    pressed_edge_knob_kind = EDGE_KIND::NONE;
+}
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     EntityItem::mousePressEvent(event);
     bool caughtResize = false;
+    bool caughtEdge = false;
+
+    clearEdgeKnobPressedState();
 
     for(auto direction : visual_edge_kinds.uniqueKeys()){
         auto edge_kinds = visual_edge_kinds.values(direction);
         for(auto edge_kind : edge_kinds){
             auto rect = getEdgeConnectRect(direction, edge_kind);
             if(rect.contains(event->pos())){
-                auto pos = mapToScene(rect.center());
-                emit req_connectEdgeMode(pos, edge_kind, direction);
-                caughtResize = true;
+                edge_knob_pressed = true;
+                pressed_edge_knob_rect = rect;
+                pressed_edge_knob_direction = direction;
+                pressed_edge_knob_kind = edge_kind;
+                caughtEdge = true;
+                break;
             }
+        }
+        if(caughtEdge){
+            break;
         }
     }
 
-    if(isSelected() && !caughtResize && isResizeEnabled() && isExpanded()){
+    if(isSelected() && !caughtEdge && isResizeEnabled() && isExpanded()){
         NodeItem::RectVertex vertex = NodeItem::RectVertex::NONE;
 
         for(auto vert : getRectVertex()){
@@ -1325,20 +1374,24 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
        update();
    }
 
-   for(auto direction : visual_edge_kinds.uniqueKeys()){
-        auto edge_kinds = visual_edge_kinds.values(direction);
-        for(auto edge_kind : edge_kinds){
-            if(getEdgeConnectRect(direction, edge_kind).contains(event->pos())){
-                emit req_connectEdgeMenu(event->scenePos(), edge_kind, direction);
-            }
-        }
-    }
+   if(edge_knob_pressed && !edge_knob_dragged){
+       emit req_connectEdgeMenu(event->scenePos(), pressed_edge_knob_kind, pressed_edge_knob_direction);
+       clearEdgeKnobPressedState();
+   }
+
     EntityItem::mouseReleaseEvent(event);
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(selectedResizeVertex != NodeItem::RectVertex::NONE){
+    if(edge_knob_pressed){
+        //If we have moved out of the rect we pressed, start edge drawing
+        if(!edge_knob_dragged && !pressed_edge_knob_rect.contains(event->pos())){
+            auto pos = mapToScene(pressed_edge_knob_rect.center());
+            emit req_connectEdgeMode(pos, pressed_edge_knob_kind, pressed_edge_knob_direction);
+            clearEdgeKnobPressedState();
+        }
+    }else if(selectedResizeVertex != NodeItem::RectVertex::NONE){
         QPointF deltaPos = event->scenePos() - previousResizePoint;
         previousResizePoint = event->scenePos();
         setManuallyAdjusted(selectedResizeVertex);
@@ -1423,27 +1476,6 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 
     EntityItem::mouseDoubleClickEvent(event);
-}
-
-QColor NodeItem::getBodyColor() const
-{
-    if(isHighlighted()){
-        //Do nothing
-    }else if(getReadState() == READ_ONLY_DEFINITION){
-        return readOnlyDefinitionColor;
-    }else if(getReadState() == READ_ONLY_INSTANCE){
-        return readOnlyInstanceColor;
-    }
-    return EntityItem::getBodyColor();
-}
-
-QColor NodeItem::getHeaderColor() const
-{
-    auto color = EntityItem::getHeaderColor();
-    if(!isHighlighted() && paint_notification){
-        color = Theme::blendColors(notification_color, color, .60);
-    }
-    return color;
 }
 
 

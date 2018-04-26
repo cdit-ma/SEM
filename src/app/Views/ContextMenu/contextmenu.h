@@ -44,7 +44,6 @@ private:
 
     void update_main_menu();
     void update_add_edge_menu();
-    void update_remove_edge_menu();
 
     void update_add_node_menu();
     void update_deploy_menu();
@@ -52,13 +51,14 @@ private:
 
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
-    void populate_dynamic_remove_edge_menu(QMenu* menu);
 
     QMenu* construct_menu(QString label, QMenu* parent_menu, int icon_size=0);
 private:
     void popup_menu(QMenu* menu, QPoint pos);
-    void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
-    void construct_view_item_menus2(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, QString empty_label="No Valid Entities");
+    void construct_view_item_menus(QMenu* menu, QList<ViewItem*> view_items, bool flatten_menu = false, bool add_empty = true);
+
+    //void update_edge_menu(QMenu* parent_menu, QMenu* menu, QList<ViewItem*> connect_items, QList<ViewItem*> disconnect_items);
+    void update_edge_menu(QMenu* parent_menu, QMenu* menu, QList<ViewItem*> connect_source_items, QList<ViewItem*> connect_target_items, QList<ViewItem*> disconnect_items);
 
     QWidgetAction* construct_menu_search(QMenu* parent);
     QWidgetAction* get_load_more_action(QMenu* parent);
@@ -89,7 +89,7 @@ private:
     QMenu* main_menu = 0;
     QMenu* add_node_menu = 0;
     QMenu* add_edge_menu = 0;
-    QMenu* remove_edge_menu = 0;
+    //QMenu* remove_edge_menu = 0;
     QMenu* deploy_menu = 0;
 
     QMenu* dock_add_node_menu = 0;
@@ -105,14 +105,14 @@ private:
 
     QSet<QMenu*> valid_menus;
 
-    struct DeployLabels{
-        QWidgetAction* deployed_nodes_action = 0;
-        QWidgetAction* available_nodes_action = 0;
+    struct DeployTitles{
+        QAction* disconnect_title = 0;
+        QAction* connect_title = 0;
     };
 
     QHash<QMenu*, QWidgetAction*> load_more_actions_;
     QHash<QMenu*, QWidgetAction*> search_actions_;
-    QHash <QMenu*, DeployLabels*> deploy_labels;
+    QHash <QMenu*, DeployTitles*> title_actions;
     QHash <QMenu*, QWidgetAction*> add_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;

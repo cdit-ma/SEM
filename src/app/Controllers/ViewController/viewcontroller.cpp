@@ -342,6 +342,30 @@ QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges2(EDGE_KIND kind){
     return items;
 }
 
+QMultiMap<EDGE_DIRECTION, ViewItem*> ViewController::getExistingEndPointsOfSelection(EDGE_KIND kind){
+    QMultiMap<EDGE_DIRECTION, ViewItem*>  items;
+
+    for(auto view_item : selectionController->getSelection()){
+        if(view_item->isNode()){
+            auto node_item = (NodeViewItem*) view_item;
+
+            for(auto edge_item : node_item->getEdges(kind)){
+                auto src = edge_item->getSource();
+                auto dst = edge_item->getDestination();
+                auto is_source = src == view_item;
+
+                auto key = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
+                auto value = is_source ? dst : src;
+
+                if(!items.contains(key, value)){
+                    items.insert(key, value);
+                }
+            }
+        }
+    }
+    return items;
+}
+
 QStringList getSearchableKeys(){
     return {"label", "description", "kind", "namespace", "type", "value", "ID"};
 };
@@ -475,7 +499,6 @@ QList<EdgeViewItem *> ViewController::getEdgeKindItems()
 }
 
 void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
-
     auto selection = getSelectionController()->getSelectionIDs();
     
     if(!selection.isEmpty()){
@@ -503,9 +526,9 @@ QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     return edge_kinds;
 }
 
-QList<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+QSet<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
 {
-    QList<EDGE_KIND> edgeKinds;
+    QSet<EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
@@ -1457,7 +1480,6 @@ void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, i
         
         //Fill with Data
         foreach(QString key, getEntityKeys(id)){
-            //qCritical() << "Updating Data: " << key;
             edge->changeData(key, getEntityDataValue(id, key));
         }
 
