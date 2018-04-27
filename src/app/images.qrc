@@ -27,6 +27,17 @@
         <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
         <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
+
+        <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
+
+        <file alias="Edge_Aggregate_Gray">Resources/EntityIcons/Edge_Aggregate_Gray.png</file>
+        <file alias="Edge_Definition_Gray">Resources/EntityIcons/Edge_Definition_Gray.png</file>
+        <file alias="Edge_Assembly_Gray">Resources/EntityIcons/Edge_Assembly_Gray.png</file>
+        <file alias="Edge_Data_Gray">Resources/EntityIcons/Edge_Data_Gray.png</file>
+        <file alias="Edge_Deployment_Gray">Resources/EntityIcons/Edge_Deployment_Gray.png</file>
+        <file alias="Edge_Qos_Gray">Resources/EntityIcons/Edge_Qos_Gray.png</file>
+
+
         <file alias="ForCondition">Resources/EntityIcons/ForCondition.png</file>
         <file alias="HardwareCluster">Resources/EntityIcons/HardwareCluster.png</file>
         <file alias="HardwareDefinitions">Resources/EntityIcons/HardwareDefinitions.png</file>

@@ -241,7 +241,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QStrin
     
     auto text_item = getTextItem(pos);
 
-    painter->setPen(text_color);
+    painter->setPen(getTextColor());
     
     text_item->RenderText(painter, getRenderState(lod), getElementRect(pos), text);
     painter->restore();
@@ -303,7 +303,7 @@ QPixmap EntityItem::getPixmap(const QString& imageAlias, const QString& imageNam
 {
     Theme* theme = Theme::theme();
     if(!tintColor.isValid()){
-        tintColor = Theme::theme()->getMenuIconColor();
+        tintColor = getTextColor();
     }
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
     return image;
@@ -940,7 +940,19 @@ QColor EntityItem::getBaseBodyColor() const
     return bodyColor;
 }
 
+QColor EntityItem::getHighlightTextColor() const{
+    return highlight_text_color;
+}
+
+void EntityItem::setHighlightTextColor(QColor color){
+    highlight_text_color = color;
+    update();
+}
+
 QColor EntityItem::getTextColor() const{
+    if(isHighlighted()){
+        return getHighlightTextColor();
+    }
     return text_color;
 }
 

@@ -324,6 +324,7 @@ void NodeView::themeItem(EntityItem* entity){
         entity->setAltTextColor(alt_text_color);
         entity->setHeaderColor(header_color);
         entity->setHighlightColor(highlight_color);
+        entity->setHighlightTextColor(highlight_text_color);
         entity->setDefaultPen(default_pen);
     }
 }
@@ -345,6 +346,7 @@ void NodeView::themeChanged()
     alt_text_color = theme->getAltTextColor();
     header_color = theme->getBackgroundColor();
     highlight_color = theme->getHighlightColor();
+    highlight_text_color = theme->getTextColor(ColorRole::SELECTED);
     alt_body_color = theme->getDisabledBackgroundColor();
     default_pen = QPen(theme->getTextColor(ColorRole::DISABLED));
     default_pen.setCosmetic(true);
@@ -1161,7 +1163,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             if(nodeItem){
                 //Reqeust what can be done by the viewcontroller
                 auto valid_edges = viewController->getAcceptedEdgeKinds({item->getID()});
-                QSet<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA, EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS};
+                QSet<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA, EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::AGGREGATE};//, EDGE_KIND::DEFINITION};
 
                 for(auto edge_kind : valid_edges.first){
                     if(valid_edge_kinds.contains(edge_kind)){

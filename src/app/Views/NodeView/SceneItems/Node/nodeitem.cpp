@@ -474,7 +474,9 @@ QColor NodeItem::getHeaderColor() const{
     auto header_color = EntityItem::getHeaderColor();
     if(!hasChildNodes()){
         if(getParentNodeItem()){
-            header_color = Qt::transparent;
+            if(!isHighlighted()){
+                header_color = Qt::transparent;
+            }
         }else{
             header_color = EntityItem::getBodyColor();
         }
@@ -1058,7 +1060,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 //Rotate the Image
                 painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
                 //Move back to top left.
-                painter->translate(-arrowRect.center());
+            painter->translate(-arrowRect.center());
 
                 //Paint the resize section
                 paintPixmap(painter, lod,EntityRect::RESIZE_ARROW_ICON, "Icons", "triangleDown");
@@ -1091,7 +1093,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             for(auto edge_kind : map.values(edge_direction)){
                 if(edge_kind != EDGE_KIND::NONE){
                     auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-
+                    auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
                     bool is_hovered = hovered_edge_kinds.contains({edge_direction, edge_kind});
                     bool got_edge = attached_edges.contains({edge_direction, edge_kind});
                     bool my_edge = my_edges.contains(edge_direction, edge_kind);
@@ -1112,17 +1114,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                         painter->drawEllipse(icon_rect);
                     }
 
+                    painter->setBrush(getBodyColor());
+                    painter->drawEllipse(inner_rect);
+
                     if(got_edge || is_hovered){
                         painter->setOpacity(1);
                     }else{
-                        if(!my_edge){
-                            painter->setOpacity(.40);   
-                        }else{
-                            painter->setOpacity(.60);   
-                        }
+                        painter->setOpacity(.60);   
                     }
 
-                    paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
+                    
+                    if(!my_edge){
+                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind) + "_Gray");
+
+                    }else{
+                        paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
+                    }
+                    painter->setOpacity(1);
                 }
             }
         }

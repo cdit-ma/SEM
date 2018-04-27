@@ -75,6 +75,9 @@ public:
     QColor getTextColor() const;
     void setTextColor(QColor color);
 
+    QColor getHighlightTextColor() const;
+    void setHighlightTextColor(QColor color);
+
     virtual QColor getHeaderColor() const;
     void setHeaderColor(QColor color);
 
@@ -319,6 +322,7 @@ private:
     QColor highlight_color;
     QColor header_color;
     QColor alt_body_color;
+    QColor highlight_text_color;
 
     KIND kind;
     bool ignorePosition;

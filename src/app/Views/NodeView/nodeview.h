@@ -129,6 +129,7 @@ private:
     QColor alt_text_color;
     QColor header_color;
     QColor highlight_color;
+    QColor highlight_text_color;
     QPen default_pen;
 
 

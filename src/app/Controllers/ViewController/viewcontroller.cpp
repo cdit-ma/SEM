@@ -93,9 +93,6 @@ ViewController::ViewController() : QObject(){
     autosave_timer_->setInterval(60000);
     autosave_timer_->start();
     connect(autosave_timer_, &QTimer::timeout, this, &ViewController::autoSaveProject);
-
-    Theme::theme()->setIconAlias("EntityIcons", EntityFactory::getEdgeKindString(EDGE_KIND::DEFINITION) , "Icons", "gears");
-
 }
 
 QList<ViewItem*> ViewController::ToViewItemList(QList<NodeViewItem*> &items){
