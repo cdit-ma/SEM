@@ -505,14 +505,10 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
     return source;
 }
 
-//SIGNAL
-void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
-{
+Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind){
     //Add undo step
     triggerAction("Constructing Child Node");
     
-    auto parent_node = entity_factory->GetNode(parent_id);
-
     Node* node = 0;
     switch(kind){
         case NODE_KIND::SETTER:{
@@ -543,17 +539,38 @@ void ModelController::constructNode(int parent_id, NODE_KIND kind, QPointF pos)
             node = construct_child_node(parent_node, kind);
             break;
     }
-
     if(node){
-        //Use position?
+        addDependantsToDependants(parent_node, node);
+    }
+    return node;
+}
+
+//SIGNAL
+void ModelController::constructNodeAtPos(int parent_id, NODE_KIND kind, QPointF pos)
+{
+    QWriteLocker lock(&lock_);
+    auto parent_node = entity_factory->GetNode(parent_id);
+    auto node = constructNode(parent_node, kind);
+
+    if(node && !pos.isNull()){
         setData_(node, "x", pos.x());
         setData_(node, "y", pos.y());
-
-        //Make sure we add Dependants
-        addDependantsToDependants(parent_node, node);
     }
     emit ActionFinished();
 }
+
+void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int index)
+{
+    QWriteLocker lock(&lock_);
+    auto parent_node = entity_factory->GetNode(parent_id);
+    auto node = constructNode(parent_node, kind);
+
+    if(node && index >= 0){
+        setData_(node, "index", index);
+    }
+    emit ActionFinished();
+}
+
 
 
 
@@ -797,15 +814,32 @@ Node* ModelController::construct_SERVER_INTERFACE_node(Node* parent){
 }
 
 
-
-
-void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
-{
+void ModelController::constructConnectedNodeAtPos(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos){
     QWriteLocker lock(&lock_);
-
-    auto parent_node = entity_factory->GetNode(id);
+    auto parent_node = entity_factory->GetNode(parent_id);
     auto dst_node = entity_factory->GetNode(dst_id);
+    auto node = constructConnectedNode(parent_node, node_kind, dst_node, edge_kind);
 
+    if(node && !pos.isNull()){
+        setData_(node, "x", pos.x());
+        setData_(node, "y", pos.y());
+    }
+    emit ActionFinished();
+}
+void ModelController::constructConnectedNodeAtIndex(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, int index){
+    QWriteLocker lock(&lock_);
+    auto parent_node = entity_factory->GetNode(parent_id);
+    auto dst_node = entity_factory->GetNode(dst_id);
+    auto node = constructConnectedNode(parent_node, node_kind, dst_node, edge_kind);
+
+    if(node && index >= 0){
+        setData_(node, "index", index);
+    }
+    emit ActionFinished();
+}
+
+Node* ModelController::constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind){
+    Node* node = 0;
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
 
@@ -817,22 +851,14 @@ void ModelController::constructConnectedNode(int id, NODE_KIND node_kind, int ds
                 should_clone = true;
             }
         }
-        Node* node = 0;
 
         if(should_clone){
             node = cloneNode(dst_node, parent_node);
         }else{
             node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
         }
-
-        if(node){
-            //Use position?
-            setData_(node, "x", pos.x());
-            setData_(node, "y", pos.y());
-        }
-
     }
-    emit ActionFinished();
+    return node;
 }
 
 
@@ -1756,7 +1782,6 @@ bool ModelController::canDeleteNode(Node *node)
                     return false;
                 }
                 break;
-            case NODE_KIND::WORKER_DEFINITION:
             case NODE_KIND::INPUT_PARAMETER:
             case NODE_KIND::RETURN_PARAMETER:
                 return false;
@@ -2648,7 +2673,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
             while(parent && parent->isNode()){
                 auto parent_kind_str = parent->getDataValue("kind").toString();
                 auto parent_kind = entity_factory->getNodeKind(parent_kind_str);
-                if(parent_kind == NODE_KIND::WORKER_DEFINITION){
+                if(parent_kind == NODE_KIND::CLASS){
                     export_uuid = true;
                     break;
                 }
@@ -2668,7 +2693,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
                 
-                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::WORKER_DEFINITION){
+                if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::CLASS){
                     auto version = entity->getDataValue("version").toString();
                     auto old_version = matched_entity->getDataValue("version").toString();
                     auto old_label = matched_entity->getDataValue("label").toString();

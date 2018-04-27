@@ -19,12 +19,17 @@ inline uint qHash(ACTION_KIND key, uint seed)
 }
 Q_DECLARE_METATYPE(ACTION_KIND);
 
+enum class NodePosition{
+    INDEX,
+    POSITION
+};
 
 class ContextMenu : public QObject{
     Q_OBJECT
 public:
     ContextMenu(ViewController *vc);
     void popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
+    void popup_add_menu(QPoint global_pos, int index);
     void popup(QPoint global_pos, QPointF item_pos);
 
     QMenu* getAddMenu();
@@ -116,7 +121,10 @@ private:
     QHash <QMenu*, QWidgetAction*> add_labels;
 
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
+
+    NodePosition node_position = NodePosition::INDEX;
     QPointF model_point;
+    int node_index = -1;
 
     int current_hovered_id = 0;
 };

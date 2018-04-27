@@ -22,13 +22,18 @@ public:
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
     void SetRenderCellText(int row, int col, bool render, QString label = "");
     void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
+    void SetRenderCellHoverIcons(int row, int col, QString icon_path, QString icon_name);
+    
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
     void SetCellMargins(int row, int col, QMarginsF margins);
 
     void childPosChanged(EntityItem* child);
 
-
+protected:
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 public:
     QMarginsF getDefaultCellMargin() const;
     void setDefaultCellSpacing(qreal spacing);
@@ -65,16 +70,25 @@ private:
         bool render_rect = false;
         bool render_text = false;
         bool render_icons = false;
+
         Qt::Orientation orientation;
         
         bool use_alt_color = false;
         StaticTextItem* text_item = 0;
         QPair<QString, QString> icon;
+        QPair<QString, QString> hovered_icon;
         QSize icon_size;
 
 
         QMarginsF margin;
         qreal spacing;
+    };
+
+    struct CellIconRect{
+        QRectF gap_rect;
+        QRectF icon_rect;
+        bool hovered = false;
+        int index = -1;
     };
 
     struct Cell{
@@ -84,7 +98,7 @@ private:
         QRectF bounding_rect;
         QRectF child_rect;
 
-        QList<QRectF> child_gap_rects;
+        QList<CellIconRect> child_gap_rects;
         QMap<NodeItem*, QPointF> child_offsets;
         QList<NodeItem*> children;
     };

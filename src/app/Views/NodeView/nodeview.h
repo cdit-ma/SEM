@@ -104,6 +104,8 @@ private slots:
     
     void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
+    void node_AddMenu(QPointF scene_pos, int index);
+    
     
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);

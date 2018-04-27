@@ -115,11 +115,19 @@ public slots:
     void removeData(int id, QString key_name);
 
     //Node/Edge Functionality    
-    void constructNode(int parentID, NODE_KIND kind, QPointF centerPoint);
+    void constructNodeAtPos(int parentID, NODE_KIND kind, QPointF centerPoint);
+    void constructNodeAtIndex(int parentID, NODE_KIND kind, int index);
+
+    void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
+    void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
+    
+
+
+
     void constructEdge(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
-    void constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+    
 
     void destructEdges(QList<int> srcIDs, int dstID, EDGE_KIND edgeClass);
     void destructAllEdges(QList<int> srcIDs, EDGE_KIND edge_kind, QSet<EDGE_DIRECTION> edge_direction);
@@ -154,6 +162,9 @@ signals:
     void SetClipboardData(QString);
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
+    Node* constructNode(Node* parent_node, NODE_KIND kind);
+    Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind);
+
     void setCustomNodeData(Node* node);
     double compare_version(QString current_version, QString version);
     QSet<NODE_KIND> getGUINodeKinds();

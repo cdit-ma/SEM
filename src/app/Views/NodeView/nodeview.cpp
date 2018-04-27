@@ -364,6 +364,14 @@ void NodeView::node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRE
     viewController->getContextMenu()->popup_edge_menu(global_pos, kind, edge_direction);
 }
 
+void NodeView::node_AddMenu(QPointF scene_pos, int index){
+    auto global_pos = mapToGlobal(mapFromScene(scene_pos));
+    //Flip the direction
+    viewController->getContextMenu()->popup_add_menu(global_pos, index);
+}
+
+
+
 void NodeView::node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_DIRECTION direction){
     emit trans_InActive2Connecting();
     if(state_Active_Connecting->active()){
@@ -632,6 +640,9 @@ void NodeView::setupConnections(EntityItem *item)
         
         connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::node_ConnectEdgeMode);
         connect(node, &NodeItem::req_connectEdgeMenu, this, &NodeView::node_ConnectEdgeMenu);
+        connect(node, &NodeItem::req_addNodeMenu, this, &NodeView::node_AddMenu);
+
+        
     }
 }
 void NodeView::showItem(EntityItem* item){
@@ -1234,7 +1245,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
 
                             if(small_style){
-                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(16,16));
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(8,8));
+                                stack_item->SetRenderCellHoverIcons(0, 0, "Icons", "plus");
+                                
                                 stack_item->SetCellSpacing(0, 0, 20);
                             }else{
                                 stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowHeadRight", QSize(32,32));

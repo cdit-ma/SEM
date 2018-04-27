@@ -240,10 +240,16 @@ void ContextMenu::popup_menu(QMenu* menu, QPoint pos){
 void ContextMenu::popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
     popup_menu(add_edge_menu_direct_hash.value({edge_direction, edge_kind}, 0), global_pos);
 }
+void ContextMenu::popup_add_menu(QPoint global_pos, int index){
+    node_position = NodePosition::INDEX;
+    node_index = index;
+    popup_menu(add_node_menu, global_pos);
+}
 
 void ContextMenu::popup(QPoint global_pos, QPointF item_pos){
-    popup_menu(main_menu, global_pos);
+    node_position = NodePosition::POSITION;
     model_point = item_pos;
+    popup_menu(main_menu, global_pos);
 }
 
 QMenu* ContextMenu::construct_menu(QString label, QMenu* parent_menu, int icon_size){
@@ -328,7 +334,18 @@ void ContextMenu::action_triggered(QAction* action){
                 auto parent_id = item->getID();
                 //Expand!
                 emit view_controller->vc_setData(parent_id, "isExpanded", true);
-                emit view_controller->vc_constructNode(parent_id, node_kind, model_point);
+
+                switch(node_position){
+                    case NodePosition::INDEX:{
+                        emit view_controller->vc_constructNodeAtIndex(parent_id, node_kind, node_index);
+                        node_index = -1;
+                        break;
+                    }
+                    case NodePosition::POSITION:{
+                        emit view_controller->vc_constructNodeAtPos(parent_id, node_kind, model_point);
+                        break;
+                    }
+                }
             }
             break;
         }
@@ -337,7 +354,19 @@ void ContextMenu::action_triggered(QAction* action){
             if(item){
                 auto parent_id = item->getID();
                 emit view_controller->vc_setData(parent_id, "isExpanded", true);
-                emit view_controller->vc_constructConnectedNode(parent_id, node_kind, id, edge_kind, model_point);
+
+                switch(node_position){
+                    case NodePosition::INDEX:{
+                        emit view_controller->vc_constructConnectedNodeAtIndex(parent_id, node_kind, id, edge_kind, node_index);
+                        node_index = -1;
+                        break;
+                    }
+                    case NodePosition::POSITION:{
+                        emit view_controller->vc_constructConnectedNodeAtPos(parent_id, node_kind, id, edge_kind, model_point);
+                        break;
+                    }
+                }
+                
             }
             break;
         }

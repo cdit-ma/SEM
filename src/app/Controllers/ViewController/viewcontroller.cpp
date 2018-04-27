@@ -131,13 +131,18 @@ void ViewController::connectModelController(ModelController* c){
     connect(this, &ViewController::vc_importProjects, controller, &ModelController::importProjects);
     connect(this, &ViewController::vc_setData, controller, &ModelController::setData);
     connect(this, &ViewController::vc_removeData, controller, &ModelController::removeData);
-    connect(this, &ViewController::vc_constructNode, controller, &ModelController::constructNode);
+    connect(this, &ViewController::vc_constructNodeAtIndex, controller, &ModelController::constructNodeAtIndex);
+    connect(this, &ViewController::vc_constructNodeAtPos, controller, &ModelController::constructNodeAtPos);
+
+    connect(this, &ViewController::vc_constructConnectedNodeAtIndex, controller, &ModelController::constructConnectedNodeAtIndex);
+    connect(this, &ViewController::vc_constructConnectedNodeAtPos, controller, &ModelController::constructConnectedNodeAtPos);
+
+
     connect(this, &ViewController::vc_constructEdge, controller, &ModelController::constructEdge);
     connect(this, &ViewController::vc_constructEdges, controller, &ModelController::constructEdges);
     
     connect(this, &ViewController::vc_destructEdges, controller, &ModelController::destructEdges);
     connect(this, &ViewController::vc_destructAllEdges, controller, &ModelController::destructAllEdges);
-    connect(this, &ViewController::vc_constructConnectedNode, controller, &ModelController::constructConnectedNode);
     connect(this, &ViewController::vc_projectSaved, controller, &ModelController::setProjectSaved);
     connect(this, &ViewController::vc_undo, controller, &ModelController::undo);
     connect(this, &ViewController::vc_redo, controller, &ModelController::redo);
@@ -1245,7 +1250,7 @@ void ViewController::constructDDSQOSProfile()
 {
     foreach(ViewItem* item, getItemsOfKind(NODE_KIND::ASSEMBLY_DEFINITIONS)){
         if(item){
-            emit vc_constructNode(item->getID(), NODE_KIND::QOS_DDS_PROFILE);
+            emit vc_constructNodeAtIndex(item->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
         }
     }
 }

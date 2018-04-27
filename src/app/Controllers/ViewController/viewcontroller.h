@@ -151,7 +151,8 @@ signals:
     void vc_copyEntities(QList<int> IDs);
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
-    void vc_constructNode(int parentID, NODE_KIND nodeKind, QPointF pos = QPointF());
+    void vc_constructNodeAtIndex(int parentID, NODE_KIND nodeKind, int index);
+    void vc_constructNodeAtPos(int parentID, NODE_KIND nodeKind, QPointF pos);
 
     void vc_constructEdges(QList<int> sourceIDs, QList<int> dstID, EDGE_KIND edgeKind);
 
@@ -159,7 +160,8 @@ signals:
     void vc_destructEdges(QList<int> sourceIDs, int dstID, EDGE_KIND edgeKind);
     void vc_destructAllEdges(QList<int> sourceIDs, EDGE_KIND edge_kinds, QSet<EDGE_DIRECTION> edge_directions);
     
-    void vc_constructConnectedNode(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos=QPointF());
+    void vc_constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
+    void vc_constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void vc_importProjects(QStringList fileData);
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
