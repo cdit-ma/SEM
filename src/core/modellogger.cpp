@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "../re_common/zmq/protowriter/cachedprotowriter.h"
-#include "../re_common/proto/modelevent/modelevent.pb.h"
+#include <src/re_common/proto/modelevent/modelevent.pb.h>
 
 #include "worker.h"
 

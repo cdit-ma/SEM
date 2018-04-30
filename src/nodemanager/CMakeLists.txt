@@ -11,7 +11,6 @@ find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
 #Build Supporting libraries
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/executionparser")
 
 set(SOURCE
@@ -21,7 +20,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.cpp
     )
 
 set(HEADERS
@@ -31,7 +29,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/environmentrequester.h
     )
 
 #Pass Version info into cmakevars.h
@@ -51,15 +48,13 @@ target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIR
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${RE_NODE_MANAGER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-# Include the RE_SRC
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${RE_SRC_PATH})
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
-
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${RE_NODE_MANAGER} PRIVATE ${Boost_INCLUDE_DIRS})
 
+target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${RE_SRC_PATH})
+target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${RE_EXECUTION_TESTER} PRIVATE ${Boost_INCLUDE_DIRS})
 
@@ -80,8 +75,9 @@ target_link_libraries(${RE_NODE_MANAGER_LIB} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_core)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protoreceiver)
 target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_protowriter)
+target_link_libraries(${RE_NODE_MANAGER_LIB} zmq_environmentrequester)
 target_link_libraries(${RE_NODE_MANAGER_LIB} re_execution_parser_lib)
-target_link_libraries(${RE_NODE_MANAGER_LIB} re_proto_control)
+target_link_libraries(${RE_NODE_MANAGER_LIB} re_common_proto_control)
 target_link_libraries(${RE_NODE_MANAGER_LIB} environment_manager_lib)
 
 target_link_libraries(${RE_NODE_MANAGER} ${Boost_PROGRAM_OPTIONS_LIBRARY})

@@ -1,7 +1,6 @@
 #ifndef DEPLOYMENTRULE_H
 #define DEPLOYMENTRULE_H
 
-#include "controlmessage.pb.h"
 #include "environment.h"
 
 class DeploymentRule{

@@ -8,27 +8,37 @@ project(${PROJ_NAME})
 set(PUGIXML_ROOT $ENV{PUGIXML_ROOT})
 find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/lib)
 
+find_package(Protobuf REQUIRED)
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.cpp
-	)
+)
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/modelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/protobufmodelparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/datatypes.h
-    )
+)
 
 add_library(${EXECUTION_PARSER_LIB} STATIC ${SOURCE} ${HEADERS})
 add_executable(${EXECUTION_PARSER} "${CMAKE_CURRENT_SOURCE_DIR}/executionparser.cpp")
 
 target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
-target_include_directories(${EXECUTION_PARSER_LIB} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../controlmessage/)
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${RE_SRC_PATH})
+
+
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${PUGIXML_ROOT}/include)
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${EXECUTION_PARSER} PRIVATE ${RE_SRC_PATH})
+
 
 # Remove the need for _lib extensions
-set_target_properties(${EXECUTION_PARSER_LIB} PROPERTIES OUTPUT_NAME ${EXECUTION_PARSER})
-target_link_libraries(${EXECUTION_PARSER_LIB} re_proto_control)
+target_link_libraries(${EXECUTION_PARSER_LIB} re_common_proto_control)
 target_link_libraries(${EXECUTION_PARSER_LIB} ${PUGIXML_LIBRARIES})
 target_link_libraries(${EXECUTION_PARSER} ${EXECUTION_PARSER_LIB})

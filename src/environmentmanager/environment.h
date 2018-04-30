@@ -7,8 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-
-#include "controlmessage.pb.h"
+#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
 
 class Environment{
 

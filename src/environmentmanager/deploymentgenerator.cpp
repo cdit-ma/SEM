@@ -1,6 +1,5 @@
 #include "deploymentgenerator.h"
 #include "deploymentrule.h"
-#include "deploymentrules/zmq/zmqrule.h"
 #include <iostream>
 DeploymentGenerator::DeploymentGenerator(Environment& environment) : environment_(environment){
 }

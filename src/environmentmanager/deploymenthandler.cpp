@@ -5,8 +5,6 @@
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
 
-#include "controlmessage.pb.h"
-
 DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
                                     std::promise<std::string>* port_promise, const std::string& experiment_id){
 

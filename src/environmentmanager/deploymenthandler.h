@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include "environment.h"
-
+#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
 
 namespace NodeManager{
     class EnvironmentMessage;

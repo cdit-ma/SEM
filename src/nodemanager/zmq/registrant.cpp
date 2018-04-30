@@ -5,7 +5,6 @@
 #include <iostream>
 #include <chrono>
 #include "../../re_common/zmq/zmqutils.hpp"
-#include "controlmessage/controlmessage.pb.h"
 
 
 zmq::Registrant::Registrant(DeploymentManager* manager){

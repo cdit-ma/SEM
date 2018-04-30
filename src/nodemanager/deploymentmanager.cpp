@@ -5,9 +5,7 @@
 #include "execution.hpp"
 
 #include <re_common/zmq/protoreceiver/protoreceiver.h>
-#include "controlmessage/controlmessage.pb.h"
-#include "controlmessage/translate.h"
-#include "environmentrequester.h"
+#include <re_common/zmq/environmentrequester/environmentrequester.h>
 
 DeploymentManager::DeploymentManager(bool on_master_node,
                                     const std::string& library_path,

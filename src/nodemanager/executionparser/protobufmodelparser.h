@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include <google/protobuf/message_lite.h>
-#include "controlmessage.pb.h"
+#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
 
 class ProtobufModelParser{
     public:

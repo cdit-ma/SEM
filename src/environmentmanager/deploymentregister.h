@@ -10,6 +10,9 @@
 #include "environment.h"
 #include "deploymenthandler.h"
 
+#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+
+
 class DeploymentRegister{
     public:
         DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 

@@ -3,8 +3,6 @@
 #include <chrono>
 #include <exception>
 
-#include "controlmessage.pb.h"
-
 DeploymentRegister::DeploymentRegister(const std::string& ip_addr, const std::string& registration_port, 
                                         int portrange_min, int portrange_max){
 

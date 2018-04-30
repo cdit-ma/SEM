@@ -4,8 +4,7 @@
 #include <core/modellogger.h>
 #include <core/eventports/periodiceventport.h>
 
-#include "controlmessage/controlmessage.pb.h"
-#include "controlmessage/translate.h"
+#include "../re_common/proto/controlmessage/translate.h"
 
 #include <iostream>
 #include <algorithm>

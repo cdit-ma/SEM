@@ -8,7 +8,9 @@
 #include <chrono>
 #include <algorithm>
 #include <unordered_map>
-#include "controlmessage/controlmessage.pb.h"
+
+#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+
 
 #include <re_common/zmq/protowriter/protowriter.h>
 #include "execution.hpp"

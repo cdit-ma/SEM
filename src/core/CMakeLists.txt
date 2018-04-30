@@ -53,4 +53,3 @@ target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #Link against other libraries
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
-target_link_libraries(${PROJ_NAME} re_proto_control)

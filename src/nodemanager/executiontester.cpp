@@ -6,7 +6,6 @@
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
-#include "controlmessage/controlmessage.pb.h"
 #include "execution.hpp"
 #include "zmq/registrant.h"
 #include "zmq/registrar.h"

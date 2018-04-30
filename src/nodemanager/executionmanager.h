@@ -11,10 +11,7 @@
 #include <google/protobuf/message_lite.h>
 #include "executionparser/protobufmodelparser.h"
 #include "environmentmanager/environment.h"
-#include "environmentrequester.h"
-
-#include "controlmessage/controlmessage.pb.h"
-
+#include <re_common/zmq/environmentrequester/environmentrequester.h>
 
 namespace zmq{class ProtoWriter;};
 namespace Graphml{class ModelParser;};
