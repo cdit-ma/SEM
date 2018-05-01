@@ -30,7 +30,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/eventports/eventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/eventports/periodiceventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h   
+    ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
@@ -50,7 +50,9 @@ endif(MSVC)
 #Include the directories
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/)
+
+#target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 #Link against other libraries
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
