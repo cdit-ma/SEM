@@ -355,3 +355,9 @@ void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
     }
     return;
 }
+
+std::string EnvironmentRequester::GetPort(const std::string& node_ip_address, const std::string& port_name){
+    std::string port_string;
+
+    return port_string;
+}

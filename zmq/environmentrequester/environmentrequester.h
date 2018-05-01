@@ -24,6 +24,8 @@ class EnvironmentRequester{
 
         void RegisterResponseHandler(NodeManager::EnvironmentMessage::Type type, std::function<void(const NodeManager::EnvironmentMessage&)> fn);
 
+        std::string GetPort(const std::string& node_ip_address, const std::string& port_name);
+
     private:
         struct Request{
             std::string request_data_;

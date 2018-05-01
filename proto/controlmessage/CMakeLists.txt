@@ -13,14 +13,6 @@ if(NOT PROTOBUF_FOUND)
 	find_package(Protobuf REQUIRED)
 endif()
 
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
-	)
-
-set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
-	)
-
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
