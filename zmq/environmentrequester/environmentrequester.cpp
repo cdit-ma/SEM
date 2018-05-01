@@ -1,5 +1,5 @@
 #include "environmentrequester.h"
-
+#include <controlmessage.pb.h>
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
                                             const std::string& experiment_id){
     manager_address_ = manager_address;

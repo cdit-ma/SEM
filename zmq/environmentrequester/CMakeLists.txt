@@ -25,7 +25,7 @@ if (MSVC)
 endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../../proto/controlmessage)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
 
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})

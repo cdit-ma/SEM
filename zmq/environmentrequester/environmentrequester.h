@@ -8,7 +8,11 @@
 #include <future>
 #include <zmq.hpp>
 
-#include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+namespace NodeManager{
+    class ControlMessage;
+    class EnvironmentMessage;
+};
+
 
 class EnvironmentRequester{
     public:
@@ -21,8 +25,6 @@ class EnvironmentRequester{
         NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
         void RemoveDeployment();
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
-
-        void RegisterResponseHandler(NodeManager::EnvironmentMessage::Type type, std::function<void(const NodeManager::EnvironmentMessage&)> fn);
 
         std::string GetPort(const std::string& node_ip_address, const std::string& port_name);
 
