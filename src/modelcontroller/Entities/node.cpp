@@ -1009,6 +1009,7 @@ void Node::setParentNode(Node *parent, int index)
         treeIndexString = parent->getTreeIndexAlpha() % QChar('A' + index);
         parentNode = parent;
 
+        parent_node_kind = parent->getNodeKind();
         //Set the view Aspect.
         setViewAspect(parent->getViewAspect());
 
@@ -1019,6 +1020,7 @@ void Node::setParentNode(Node *parent, int index)
         parentSet(parent);
     }else{
         setViewAspect(VIEW_ASPECT::NONE);
+        parent_node_kind = NODE_KIND::NONE;
     }
 }
 
@@ -1186,18 +1188,18 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 break;
             }
             case NODE_KIND::FUNCTION_CALL:
-                bind_labels = false;
-                copy_labels = true;
                 if (definition->getViewAspect() == VIEW_ASPECT::WORKERS) {
                     bind_values.insert("workerID", "workerID");
                     bind_values.insert("operation", "operation");
                 }
                 bind_values.insert("description", "description");
+                bind_values.insert("class", "class");
                 break;
             case NODE_KIND::FUNCTION:{
                 bind_labels = true;
                 bind_values.insert("operation", "operation");
                 bind_values.insert("description", "description");
+                bind_values.insert("class", "class");
                 break;
             }
             default:
@@ -1506,4 +1508,8 @@ QSet<EDGE_KIND> Node::getCurrentAcceptedEdgeKind(EDGE_DIRECTION direction) const
 QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
     return direction_set;
+}
+
+NODE_KIND Node::getParentNodeKind() const{
+    return parent_node_kind;
 }

@@ -58,6 +58,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     if(nodeViewItem){
         connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
+        connect(nodeViewItem, &NodeViewItem::visualEdgeKindsChanged, this, &NodeItem::updateVisualEdgeKinds);
     }
 
     if(parentItem){
@@ -75,7 +76,28 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     gridLinePen.setColor(getBaseBodyColor().darker(150));
     gridLinePen.setStyle(Qt::DotLine);
     gridLinePen.setWidthF(.5);
+
+    updateVisualEdgeKinds();
 }
+
+void NodeItem::updateVisualEdgeKinds(){
+    visual_edge_kinds.clear();
+
+    QList<EDGE_KIND> valid_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};//, EDGE_KIND::AGGREGATE};
+
+    auto node_view_item = getNodeViewItem();
+
+    if(node_view_item){
+        for(auto edge_kind : valid_edge_kinds){
+            for(auto edge_direction : node_view_item->getVisualEdgeKindDirections(edge_kind)){
+                addVisualEdgeKind(edge_direction, edge_kind, false);
+            }
+        }
+    }
+    update();
+}
+
+
 
 NodeItem::~NodeItem()
 {
@@ -708,11 +730,13 @@ void NodeItem::setSecondaryTextKey(QString key)
 
 
 
-void NodeItem::addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind)
+void NodeItem::addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind, bool update_)
 {
     if(!visual_edge_kinds.contains(direction, kind)){
         visual_edge_kinds.insert(direction, kind);
-        update();
+        if(update_){
+            update();
+        }
     }
 }
 

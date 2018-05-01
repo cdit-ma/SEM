@@ -64,7 +64,13 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
             auto is_source = edge->getSource() == this;
             auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
 
+
             emit edgeAdded(direction, kind, edge->getID());
+
+            if(!owned_edge_kinds.contains(kind, direction)){
+                owned_edge_kinds.insert(kind, direction);
+                emit visualEdgeKindsChanged();
+            }
         }
     }
 }
@@ -81,6 +87,11 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
             auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
 
             emit edgeRemoved(direction, kind, edge->getID());
+
+            if(owned_edge_kinds.contains(kind, direction)){
+                owned_edge_kinds.remove(kind, direction);
+                emit visualEdgeKindsChanged();
+            }
         }
     }
 }
@@ -115,3 +126,23 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
     return is_ancestor;
 }
 
+void NodeViewItem::addVisualEdgeKind(EDGE_KIND kind, EDGE_DIRECTION direction){
+    if(!visual_edge_kinds.contains(kind, direction)){
+        visual_edge_kinds.insert(kind, direction);
+    }
+
+}
+
+void NodeViewItem::clearVisualEdgeKinds(){
+    visual_edge_kinds.clear();
+}
+
+QSet<EDGE_KIND> NodeViewItem::getVisualEdgeKinds(){
+    auto kinds = visual_edge_kinds.keys().toSet() + owned_edge_kinds.keys().toSet();
+    return kinds;
+}
+
+QSet<EDGE_DIRECTION> NodeViewItem::getVisualEdgeKindDirections(EDGE_KIND kind){
+    auto values = visual_edge_kinds.values(kind).toSet() + owned_edge_kinds.values(kind).toSet();
+    return values;
+}

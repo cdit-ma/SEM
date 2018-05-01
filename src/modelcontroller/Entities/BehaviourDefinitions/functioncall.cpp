@@ -19,14 +19,10 @@ FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, ki
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new FunctionCall();});
 
     //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "file", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "folder", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "operation", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "worker", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "workerID", QVariant::String, false);
-    RegisterDefaultData(factory, node_kind, "description", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
 }
 
 
@@ -100,7 +96,7 @@ QList<Node*> FunctionCall::getAdoptableNodes(Node* definition){
         auto top_definition = definition->getDefinition(true);
         if(top_definition){
             for(auto child : top_definition->getChildren(0)){
-                if(child->isNodeOfType(NODE_TYPE::PARAMETER)){
+                if(child->isDefinition()){
                     adoptable_nodes << child;
                 }
             }

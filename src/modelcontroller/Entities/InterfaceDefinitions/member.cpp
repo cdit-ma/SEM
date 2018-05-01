@@ -1,7 +1,7 @@
 #include "member.h"
+#include "aggregateinstance.h"
 
-
-Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Member"){
+Member::Member(EntityFactory* factory) : DataNode(factory, NODE_KIND::MEMBER, "Member"){
 	auto node_kind = NODE_KIND::MEMBER;
 	QString kind_string = "Member";
     
@@ -22,7 +22,7 @@ Member::Member(EntityFactory* factory) : Node(factory, NODE_KIND::MEMBER, "Membe
     RegisterDefaultData(factory, node_kind, "key", QVariant::Bool, false, false);
 };
 
-Member::Member(): Node(NODE_KIND::MEMBER)
+Member::Member(): DataNode(NODE_KIND::MEMBER)
 {
     addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 }
@@ -33,7 +33,7 @@ bool Member::canAdoptChild(Node*)
     return false;
 }
 
-bool Member::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
+void Member::parentSet(Node* parent){
+    AggregateInstance::ParentSet(this);
+    DataNode::parentSet(parent);
 }

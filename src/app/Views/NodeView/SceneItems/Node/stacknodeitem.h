@@ -22,6 +22,10 @@ public:
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
     void SetRenderCellText(int row, int col, bool render, QString label = "");
     void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
+
+    void SetRenderCellFirstIcon(int row, int col, QString icon_path, QString icon_name);
+    void SetRenderCellLastIcon(int row, int col, QString icon_path, QString icon_name);
+    
     void SetRenderCellHoverIcons(int row, int col, QString icon_path, QString icon_name);
     
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
@@ -75,6 +79,8 @@ private:
         
         bool use_alt_color = false;
         StaticTextItem* text_item = 0;
+        QPair<QString, QString> first_icon;
+        QPair<QString, QString> last_icon;
         QPair<QString, QString> icon;
         QPair<QString, QString> hovered_icon;
         QSize icon_size;

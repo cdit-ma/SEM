@@ -68,6 +68,7 @@ public:
     QSet<NODE_KIND> getAdoptableNodeKinds(int ID);
 
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKindsForSelection(QList<int> IDs);
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getCurrentlyAcceptedEdgeKindsForSelection(QList<int> IDs);
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
@@ -150,6 +151,7 @@ signals:
 
     void DataChanged(int ID, QString keyName, QVariant data);
     void DataRemoved(int ID, QString keyName);
+    void NodeEdgeKindsChanged(int ID);
     
     void ProjectFileChanged(QString);
     void ProjectNameChanged(QString);
@@ -162,8 +164,8 @@ signals:
     void SetClipboardData(QString);
     void Notification(MODEL_SEVERITY severity, QString title, QString description="", int entity_id = -1);
 private:
-    Node* constructNode(Node* parent_node, NODE_KIND kind);
-    Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind);
+    Node* constructNode(Node* parent_node, NODE_KIND kind, int index = -1);
+    Node* constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index = -1);
 
     void setCustomNodeData(Node* node);
     double compare_version(QString current_version, QString version);
@@ -184,9 +186,9 @@ private:
     QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
 
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
-    Node* construct_node(Node* parent_node, NODE_KIND kind, int id = -1);
-    Node* construct_child_node(Node* parent_node, NODE_KIND kind, bool notify_view = true);
-    Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind);
+    Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1, int id = -1);
+    Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
+    Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);
     Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, int id = -1, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
@@ -195,12 +197,12 @@ private:
     bool isDataVisual(Data* data);
     static bool isKeyNameVisual(QString key_name);
 
-    Node* construct_setter_node(Node* parent);
-    Node* construct_dds_profile_node(Node* parent);
-    Node* construct_for_node(Node* parent);
-    Node* construct_component_node(Node* parent);
-    Node* construct_periodic_eventport(Node* parent);
-    Node* construct_SERVER_INTERFACE_node(Node* parent);
+    Node* construct_setter_node(Node* parent, int index);
+    Node* construct_dds_profile_node(Node* parent, int index);
+    Node* construct_for_node(Node* parent, int index);
+    Node* construct_component_node(Node* parent, int index);
+    Node* construct_periodic_eventport(Node* parent, int index);
+    Node* construct_SERVER_INTERFACE_node(Node* parent, int index);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);

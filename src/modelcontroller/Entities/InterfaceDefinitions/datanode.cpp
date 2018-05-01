@@ -64,13 +64,13 @@ void DataNode::setMultipleDataProducer(bool producer)
 void DataNode::setDataProducer(bool producer)
 {
     is_producer_ = producer;
-    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::SOURCE, isDataReceiver() || isDataProducer());
+    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::SOURCE, is_producer_);
 }
 
 void DataNode::setDataReceiver(bool receiver)
 {
     is_receiver_ = receiver;
-    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::TARGET, isDataReceiver() || isDataProducer());
+    setAcceptsEdgeKind(EDGE_KIND::DATA, EDGE_DIRECTION::TARGET, is_receiver_);
 }
 
 bool DataNode::isDataProducer() const

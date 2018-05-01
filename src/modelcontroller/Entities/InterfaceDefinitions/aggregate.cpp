@@ -33,29 +33,10 @@ bool Aggregate::canAdoptChild(Node *child)
 
     switch(kind){
     case NODE_KIND::ENUM_INSTANCE:
-        break;
     case NODE_KIND::AGGREGATE_INSTANCE:
-        break;
     case NODE_KIND::MEMBER:
-        break;
     case NODE_KIND::VECTOR:
         break;
-    case NODE_KIND::VECTOR_INSTANCE:{
-        Node* vector = child->getDefinition();
-        if(vector && vector->hasChildren()){
-            //Check first child of vector.
-            Node* vectorChild = vector->getChildren(0)[0];
-
-            //If first child has a definition.
-            if(vectorChild && vectorChild->getDefinition()){
-               Node* aggregate = vectorChild->getDefinition();
-               if(this == aggregate || isAncestorOf(aggregate)){
-                   return false;
-               }
-            }
-        }
-        break;
-    }
     default:
         return false;
     }

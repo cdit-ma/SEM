@@ -114,6 +114,8 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::ModelReady, this, &ViewController::ModelControllerReady);
     connect(controller, &ModelController::DataChanged, this, &ViewController::controller_dataChanged);
     connect(controller, &ModelController::DataRemoved, this, &ViewController::controller_dataRemoved);
+    connect(controller, &ModelController::NodeEdgeKindsChanged, this, &ViewController::controller_nodeEdgeChanged);
+
     connect(controller, &ModelController::ProjectModified, this, &ViewController::mc_projectModified);
     connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
 
@@ -1528,21 +1530,23 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
         item->changeData(key, getEntityDataValue(id, key));
     }
 
+    
+
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
-
-
     nodeKindLookups.insertMulti(kind, id);
     //Insert into map
     viewItems[id] = item;
     setDefaultIcon(item);
     connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
     
+    
 
     SetParentNode(parent, item);
-
+    controller_nodeEdgeChanged(id);
     //Tell Views
     emit vc_viewItemConstructed(item);
+    
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
@@ -1568,6 +1572,26 @@ void ViewController::controller_dataRemoved(int ID, QString key)
 
     if(viewItem){
         viewItem->removeData(key);
+    }
+}
+
+void ViewController::controller_nodeEdgeChanged(int ID)
+{
+    auto node_item = getNodeViewItem(ID);
+    if(node_item){
+        if(controller){
+            auto edge_kinds = controller->getAcceptedEdgeKindsForSelection({ID});
+
+            node_item->clearVisualEdgeKinds();
+            for(auto edge_kind : edge_kinds.first){
+                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);
+            }
+            for(auto edge_kind : edge_kinds.second){
+                node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::TARGET);
+            }
+            
+            emit node_item->visualEdgeKindsChanged();
+        }
     }
 }
 

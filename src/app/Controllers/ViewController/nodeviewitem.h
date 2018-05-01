@@ -30,12 +30,20 @@ public:
     bool gotEdge(EDGE_KIND edgeKind) const;
     
     bool isAncestorOf(NodeViewItem* item);
+
+    void clearVisualEdgeKinds();
+    void addVisualEdgeKind(EDGE_KIND kind, EDGE_DIRECTION direction);
+
+    QSet<EDGE_KIND> getVisualEdgeKinds();
+    QSet<EDGE_DIRECTION> getVisualEdgeKindDirections(EDGE_KIND kind);
+    
 signals:
     void edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
-
+    void visualEdgeKindsChanged();
 private:
-    QMultiMap<EDGE_DIRECTION, EDGE_KIND> required_edge_kinds;
+    QMultiMap<EDGE_KIND, EDGE_DIRECTION> visual_edge_kinds;
+    QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;
 
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
     NODE_KIND nodeKind;

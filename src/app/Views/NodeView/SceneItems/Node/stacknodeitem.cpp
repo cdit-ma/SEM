@@ -167,6 +167,16 @@ void StackNodeItem::SetRenderCellHoverIcons(int row, int col, QString icon_path,
     cell_info.hovered_icon = qMakePair(icon_path, icon_name);
 }
 
+void StackNodeItem::SetRenderCellFirstIcon(int row, int col, QString icon_path, QString icon_name){
+    auto& cell_info = SetupCellInfo(row, col);
+    cell_info.first_icon = qMakePair(icon_path, icon_name);
+}
+
+void StackNodeItem::SetRenderCellLastIcon(int row, int col, QString icon_path, QString icon_name){
+    auto& cell_info = SetupCellInfo(row, col);
+    cell_info.last_icon = qMakePair(icon_path, icon_name);
+}
+
 QPointF StackNodeItem::getStemAnchorPoint() const
 {
     //QPointF offset;
@@ -341,13 +351,38 @@ void StackNodeItem::updateCells(){
 
                 //Calculate the gap rectangles
                 QRectF prev_header_rect;
-                for(auto child : cell.children){
-                    auto header_rect = child->headerRect();
-                    auto child_pos = cell.child_offsets[child];
-                    header_rect.moveTopLeft(child_pos);
-                    //header_rect.setTopRight(child_pos - header_rect.topRight());
-                    
-                    if(prev_header_rect.isValid()){
+
+                if(cell.orientation == Qt::Horizontal){
+                    prev_header_rect.setLeft(cell.bounding_rect.left());
+                    prev_header_rect.setRight(cell.bounding_rect.left());
+                }else if(cell.orientation == Qt::Vertical){
+                    prev_header_rect.setTop(cell.bounding_rect.top());
+                    prev_header_rect.setBottom(cell.bounding_rect.top());
+                }
+
+                
+
+                if(cell_info.render_icons){
+                    auto cell_count = cell.children.count();
+
+                    for(int i = 0; i < cell_count ; i++){
+                        auto child = cell.children[i];
+                        auto is_first = i == 0;
+                        
+                        auto header_rect = child->headerRect();
+                        auto child_pos = cell.child_offsets[child];
+                        header_rect.moveTopLeft(child_pos);
+
+                        if(is_first){
+                            if(cell.orientation == Qt::Horizontal){
+                                prev_header_rect.setTop(header_rect.top());
+                                prev_header_rect.setBottom(header_rect.bottom());
+                            }else if(cell.orientation == Qt::Vertical){
+                                prev_header_rect.setLeft(header_rect.left());
+                                prev_header_rect.setRight(header_rect.right());
+                            }
+                        }
+                        
                         CellIconRect cell_icon_rect;
                         cell_icon_rect.index = child->getSortOrder();
                         auto& gap_rect = cell_icon_rect.gap_rect;
@@ -368,8 +403,33 @@ void StackNodeItem::updateCells(){
 
                             cell.child_gap_rects.append(cell_icon_rect);
                         }
+                        prev_header_rect = header_rect;
                     }
-                    prev_header_rect = header_rect;
+
+                    CellIconRect final_icon_rect;
+                    final_icon_rect.index = -1;
+                    auto& gap_rect = final_icon_rect.gap_rect;
+
+                    if(cell.orientation == Qt::Horizontal){
+                        gap_rect.setLeft(prev_header_rect.right());
+                        gap_rect.setRight(cell.bounding_rect.right());
+                        gap_rect.setTop(prev_header_rect.top());
+                        gap_rect.setBottom(prev_header_rect.bottom());
+                    }else if(cell.orientation == Qt::Vertical){
+                        gap_rect.setLeft(prev_header_rect.left());
+                        gap_rect.setRight(prev_header_rect.right());
+                        gap_rect.setTop(prev_header_rect.bottom());
+                        gap_rect.setBottom(cell.bounding_rect.bottom());
+                    }
+                    gap_rect = gap_rect.normalized();
+
+                    if(gap_rect.isValid()){
+                        auto& icon_rect = final_icon_rect.icon_rect;
+                        icon_rect.setSize(cell_info.icon_size);
+                        icon_rect.moveCenter(gap_rect.center());
+
+                        cell.child_gap_rects.append(final_icon_rect);
+                    }
                 }
             }
         }
@@ -488,17 +548,28 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         p_cell.text_item->RenderText(painter, getRenderState(lod), text_rect);
                     }
                 }
-                for(const auto& cell_icon_rect : cell.child_gap_rects){
-                    auto& icon_rect = cell_icon_rect.icon_rect;
-                    auto& is_hovered = cell_icon_rect.hovered;
-                    auto& icon_path = is_hovered ? p_cell.hovered_icon : p_cell.icon;
-                    
-                    auto icon_color = is_hovered ? getHighlightTextColor() : getTextColor();
-                    painter->setBrush(is_hovered ? getHighlightColor() :  Qt::transparent);
-                    painter->setPen(getDefaultPen());
-                    painter->drawEllipse(icon_rect);
 
-                    paintPixmap(painter, lod, icon_rect, icon_path.first, icon_path.second, icon_color);
+                if(p_cell.render_icons){
+                    auto cell_icon_count = cell.child_gap_rects.count();
+                    for(int i = 0; i < cell_icon_count; i ++){
+                        const auto& cell_icon_rect = cell.child_gap_rects[i];
+                        auto is_first = i == 0;
+                        auto is_last = (i + 1) == cell_icon_count;
+                        auto& icon_rect = cell_icon_rect.icon_rect;
+                        auto& is_hovered = cell_icon_rect.hovered;
+                        auto& icon = is_first ? p_cell.first_icon : is_last ? p_cell.last_icon : p_cell.icon;
+                        auto& icon_path = is_hovered ? p_cell.hovered_icon : icon;
+                        
+                        auto icon_color = is_hovered ? getHighlightTextColor() : getTextColor();
+                        painter->setBrush(is_hovered ? getHighlightColor() :  Qt::transparent);
+                        painter->setPen(is_hovered ? getPen() : getDefaultPen());
+                        painter->drawEllipse(icon_rect);
+
+                        paintPixmap(painter, lod, icon_rect, icon_path.first, icon_path.second, icon_color);
+                        if(is_first){
+                            is_first = false;
+                        }
+                    }
                 }
             }
         }
@@ -509,22 +580,23 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
 void StackNodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event){
     bool need_update = false;
-
+    const auto& mouse_pos = event->pos();
     for(auto& p_cell : cell_info.values()){
-        const auto& index = p_cell.index;
-        if(cells.contains(index) && p_cell.render_icons){
-            auto& cell = cells[index];
-
-            for (auto& cell_icon_rect : cell.child_gap_rects){
-                auto is_hovered = cell_icon_rect.icon_rect.contains(event->pos());
-                if(cell_icon_rect.hovered != is_hovered){
-                    cell_icon_rect.hovered = is_hovered;
-                    need_update = true;
+        if(p_cell.render_icons){
+            const auto& index = p_cell.index;
+            if(cells.contains(index)){
+                auto& cell = cells[index];
+                
+                for (auto& cell_icon_rect : cell.child_gap_rects){
+                    auto is_hovered = cell_icon_rect.icon_rect.contains(mouse_pos);
+                    if(cell_icon_rect.hovered != is_hovered){
+                        cell_icon_rect.hovered = is_hovered;
+                        need_update = true;
+                    }
                 }
             }
         }
     }
-
 
     if(need_update){
         update();
@@ -537,15 +609,13 @@ void StackNodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
 }
 
 void StackNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
-
-    qCritical() << "MOUSE RELEASED?";
+    
     for(auto& p_cell : cell_info.values()){
         const auto& index = p_cell.index;
         if(cells.contains(index) && p_cell.render_icons){
             auto& cell = cells[index];
 
             for (auto& cell_icon_rect : cell.child_gap_rects){
-                
                 if(cell_icon_rect.hovered){
                     auto is_contained = cell_icon_rect.icon_rect.contains(event->pos());
                     if(is_contained){

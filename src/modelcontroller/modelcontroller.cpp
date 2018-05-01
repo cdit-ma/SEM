@@ -400,20 +400,24 @@ Node* ModelController::get_persistent_node(NODE_KIND node_kind){
     }
 }
 
-Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, int id){
+Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, int index, int id){
     auto persistent_node = get_persistent_node(node_kind);
     if(!persistent_node){
         //Construct node with default data
-        return entity_factory->CreateNode(node_kind, id);   
+        auto node = entity_factory->CreateNode(node_kind, id); 
+        if(index != -1){
+            node->setDataValue("index", index);
+        }
+        return node;
     }
     return persistent_node;
 }
 
-Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_kind, bool notify_view){
+Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_kind, int index, bool notify_view){
     Node* node = 0;
     if(parent_node){
         //Don't construct nodes:
-        node = construct_node(parent_node, node_kind);
+        node = construct_node(parent_node, node_kind, index);
         if(node){
             auto current_parent = node->getParentNode();
 
@@ -466,15 +470,12 @@ void ModelController::addDependantsToDependants(Node* parent_node, Node* source)
                     }
                 }
             }
-        }else{
-            qCritical() << "SOURCE ISN'T A DEFINITION MATE" << source->toString();
-            qCritical() << "SOURCE ISN'T A DEFINITION MATE" << parent_node->toString();
         }
     }
 }
 
-Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind){
-    auto source = construct_node(parent_node, node_kind);
+Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* destination, EDGE_KIND edge_kind, int index){
+    auto source = construct_node(parent_node, node_kind, index);
     bool success = false;
     if(source){
         //Try attach
@@ -505,38 +506,38 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
     return source;
 }
 
-Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind){
+Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int index){
     //Add undo step
     triggerAction("Constructing Child Node");
     
     Node* node = 0;
     switch(kind){
         case NODE_KIND::SETTER:{
-            node = construct_setter_node(parent_node);
+            node = construct_setter_node(parent_node, index);
             break;
         }
         case NODE_KIND::QOS_DDS_PROFILE:{
-            node = construct_dds_profile_node(parent_node);
+            node = construct_dds_profile_node(parent_node, index);
             break;
         }
         case NODE_KIND::FOR_LOOP:{
-            node = construct_for_node(parent_node);
+            node = construct_for_node(parent_node, index);
             break;
         }
         case NODE_KIND::COMPONENT:{
-            node = construct_component_node(parent_node);
+            node = construct_component_node(parent_node, index);
             break;
         }
         case NODE_KIND::PERIODICEVENT:{
-            node = construct_periodic_eventport(parent_node);
+            node = construct_periodic_eventport(parent_node, index);
             break;
         }
         case NODE_KIND::SERVER_INTERFACE:{
-            node = construct_SERVER_INTERFACE_node(parent_node);
+            node = construct_SERVER_INTERFACE_node(parent_node, index);
             break;
         }
         default:
-            node = construct_child_node(parent_node, kind);
+            node = construct_child_node(parent_node, kind, index);
             break;
     }
     if(node){
@@ -563,7 +564,7 @@ void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int in
 {
     QWriteLocker lock(&lock_);
     auto parent_node = entity_factory->GetNode(parent_id);
-    auto node = constructNode(parent_node, kind);
+    auto node = constructNode(parent_node, kind, index);
 
     if(node && index >= 0){
         setData_(node, "index", index);
@@ -667,10 +668,10 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, 
 
 
 
-Node* ModelController::construct_setter_node(Node* parent)
+Node* ModelController::construct_setter_node(Node* parent, int index)
 {
     if(parent){
-        auto node = construct_child_node(parent, NODE_KIND::SETTER);
+        auto node = construct_child_node(parent, NODE_KIND::SETTER, index);
         if(node){
             auto variable = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
             auto value = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
@@ -690,10 +691,10 @@ Node* ModelController::construct_setter_node(Node* parent)
 
 
  
-Node* ModelController::construct_dds_profile_node(Node* parent)
+Node* ModelController::construct_dds_profile_node(Node* parent, int index)
 {
     if(parent){
-        auto profile = construct_child_node(parent, NODE_KIND::QOS_DDS_PROFILE);
+        auto profile = construct_child_node(parent, NODE_KIND::QOS_DDS_PROFILE, index);
         
         if(profile){
             construct_child_node(profile, NODE_KIND::QOS_DDS_POLICY_DEADLINE);
@@ -727,13 +728,13 @@ Node* ModelController::construct_dds_profile_node(Node* parent)
 
 
 
-Node* ModelController::construct_for_node(Node* parent)
+Node* ModelController::construct_for_node(Node* parent, int index)
 {
     if(parent){
         triggerAction("Constructing For Condition");
 
 
-        auto node = construct_child_node(parent, NODE_KIND::FOR_LOOP);
+        auto node = construct_child_node(parent, NODE_KIND::FOR_LOOP, index);
         if(node){
             auto variable = construct_child_node(node, NODE_KIND::VARIABLE_PARAMETER);
             auto condition = construct_child_node(node, NODE_KIND::INPUT_PARAMETER);
@@ -761,26 +762,26 @@ Node* ModelController::construct_for_node(Node* parent)
     return 0;
 }
 
-Node* ModelController::construct_component_node(Node* parent){
+Node* ModelController::construct_component_node(Node* parent, int index){
     if(parent){
         triggerAction("Constructing Component");
 
-        auto node = construct_child_node(parent, NODE_KIND::COMPONENT);
+        auto node = construct_child_node(parent, NODE_KIND::COMPONENT, index);
         
         if(node){
-            //auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
+            auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
         }
     }
     return 0;
 }
 
-Node* ModelController::construct_periodic_eventport(Node* parent){
+Node* ModelController::construct_periodic_eventport(Node* parent, int index){
     if(parent){
         triggerAction("Constructing PeriodicEvent Port");
 
 
-        auto node = construct_child_node(parent, NODE_KIND::PERIODICEVENT);
+        auto node = construct_child_node(parent, NODE_KIND::PERIODICEVENT, index);
         if(node){
             auto duration = construct_child_node(node, NODE_KIND::ATTRIBUTE_INSTANCE);
             if(duration){
@@ -798,11 +799,11 @@ Node* ModelController::construct_periodic_eventport(Node* parent){
     return 0;
 }
 
-Node* ModelController::construct_SERVER_INTERFACE_node(Node* parent){
+Node* ModelController::construct_SERVER_INTERFACE_node(Node* parent, int index){
     if(parent){
         triggerAction("Constructing Request Reply");
 
-        auto node = construct_child_node(parent, NODE_KIND::SERVER_INTERFACE);
+        auto node = construct_child_node(parent, NODE_KIND::SERVER_INTERFACE, index);
 
         if(node){
             auto request_type = construct_child_node(node, NODE_KIND::INPUT_PARAMETER_GROUP);
@@ -838,7 +839,7 @@ void ModelController::constructConnectedNodeAtIndex(int parent_id, NODE_KIND nod
     emit ActionFinished();
 }
 
-Node* ModelController::constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind){
+Node* ModelController::constructConnectedNode(Node* parent_node, NODE_KIND node_kind, Node* dst_node, EDGE_KIND edge_kind, int index){
     Node* node = 0;
     if(parent_node && dst_node){
         triggerAction("Constructed Connected Node");
@@ -853,9 +854,10 @@ Node* ModelController::constructConnectedNode(Node* parent_node, NODE_KIND node_
         }
 
         if(should_clone){
+            qCritical() << "CLONING NODE: " << dst_node->toString();
             node = cloneNode(dst_node, parent_node);
         }else{
-            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind);
+            node = construct_connected_node(parent_node, node_kind, dst_node, edge_kind, index);
         }
     }
     return node;
@@ -1376,11 +1378,16 @@ void ModelController::storeEntity(Entity* item)
         //Connect things!
         connect(item, &Entity::dataChanged, this, &ModelController::DataChanged, Qt::UniqueConnection);
         connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
+        
+
+        
     
         switch(kind){
         case GRAPHML_KIND::NODE:{
             node_ids_.insert(id);
             auto node = (Node*) item;
+            connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
+
             emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
             break;
         }
@@ -1935,11 +1942,12 @@ void ModelController::setCustomNodeData(Node* node){
             new_data["column"] = -1;
             break;
         }
-
+        case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
             new_data["row"] = 0;
             new_data["column"] = -1;
             break;
+        case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::RETURN_PARAMETER_GROUP:
             new_data["row"] = 0;
             new_data["column"] = 1;
@@ -2006,15 +2014,15 @@ void ModelController::setupModel()
     }
 
     //Construct the aspects
-    interfaceDefinitions = construct_child_node(model, NODE_KIND::INTERFACE_DEFINITIONS, false);
-    behaviourDefinitions = construct_child_node(model, NODE_KIND::BEHAVIOUR_DEFINITIONS, false);
-    deploymentDefinitions = construct_child_node(model, NODE_KIND::DEPLOYMENT_DEFINITIONS, false);
-    assemblyDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::ASSEMBLY_DEFINITIONS, false);
-    hardwareDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::HARDWARE_DEFINITIONS, false);
-    workerDefinitions = construct_child_node(model, NODE_KIND::WORKER_DEFINITIONS, false);
+    interfaceDefinitions = construct_child_node(model, NODE_KIND::INTERFACE_DEFINITIONS, -1, false);
+    behaviourDefinitions = construct_child_node(model, NODE_KIND::BEHAVIOUR_DEFINITIONS, -1, false);
+    deploymentDefinitions = construct_child_node(model, NODE_KIND::DEPLOYMENT_DEFINITIONS, -1, false);
+    assemblyDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::ASSEMBLY_DEFINITIONS, -1, false);
+    hardwareDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::HARDWARE_DEFINITIONS, -1, false);
+    workerDefinitions = construct_child_node(model, NODE_KIND::WORKER_DEFINITIONS, -1, false);
 
     //Construct the localhost node
-    auto localhostNode = construct_child_node(hardwareDefinitions, NODE_KIND::HARDWARE_NODE, false);
+    auto localhostNode = construct_child_node(hardwareDefinitions, NODE_KIND::HARDWARE_NODE, -1, false);
     localhostNode->setDataValue("label", "localhost");
     localhostNode->setDataValue("ip_address", "127.0.0.1");
     localhostNode->setDataValue("os", QSysInfo::productType());
@@ -2255,8 +2263,7 @@ QString ModelController::getProjectAsGraphML(bool functional_export)
     lock_.unlock();
     return data;
 }
-
-QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsForSelection(QList<int> IDs){
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getCurrentlyAcceptedEdgeKindsForSelection(QList<int> IDs){
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > valid_pairs;
 
     lock_.lockForRead();
@@ -2273,6 +2280,36 @@ QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsFo
             auto node = (Node*) entity;
             valid_pairs.first &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
             valid_pairs.second &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
+        }else{
+            valid_pairs.first.clear();
+            valid_pairs.second.clear();
+        }
+        if(valid_pairs.first.isEmpty() && valid_pairs.second.isEmpty()){
+            break;
+        }
+    }
+
+    lock_.unlock();
+    return valid_pairs;
+}
+
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsForSelection(QList<int> IDs){
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > valid_pairs;
+
+    lock_.lockForRead();
+
+    auto entities = getOrderedEntities(IDs);
+
+    if(!entities.isEmpty()){
+        valid_pairs.first = entity_factory->getEdgeKinds().toSet();
+        valid_pairs.second = entity_factory->getEdgeKinds().toSet();
+    }
+
+    for(auto entity : entities){
+        if(entity->isNode()){
+            auto node = (Node*) entity;
+            valid_pairs.first &= node->getAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
+            valid_pairs.second &= node->getAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
         }else{
             valid_pairs.first.clear();
             valid_pairs.second.clear();
@@ -2800,7 +2837,7 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
             //Construct a new node if we haven't got one yet, this can return nodes which are already constructed.
             if(link_id && entity->gotPreviousID()){
-                node = construct_node(parent_node, kind, entity->getPreviousID());
+                node = construct_node(parent_node, kind, -1, entity->getPreviousID());
             }else{
                 node = construct_node(parent_node, kind);
             }

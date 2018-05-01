@@ -141,10 +141,6 @@ public:
 
     virtual QPointF getSceneEdgeTermination(bool left) const;
 
-
-    //virtual void setPos(const QPointF &pos);
-
-
     void setAspect(VIEW_ASPECT aspect);
     VIEW_ASPECT getAspect();
 
@@ -159,7 +155,8 @@ public:
     void setSecondaryTextKey(QString key);
 
 
-    void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind);
+    void addVisualEdgeKind(EDGE_DIRECTION direction, EDGE_KIND kind, bool update = true);
+    void updateVisualEdgeKinds();
     EDGE_KIND getVisualEdgeKind() const;
 
     

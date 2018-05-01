@@ -90,6 +90,10 @@
         <file alias="amd">Resources/Icons/amd.png</file>
         <file alias="arrowCombo">Resources/Icons/arrowCombo.png</file>
         <file alias="arrowDown">Resources/Icons/arrowDown.png</file>
+        <file alias="arrowDownRightLong">Resources/Icons/arrowDownRightLong.png</file>
+        <file alias="arrowRightLong">Resources/Icons/arrowRightLong.png</file>
+        <file alias="arrowRightLineLong">Resources/Icons/arrowRightLineLong.png</file>
+
         <file alias="arrowFork">Resources/Icons/arrowFork.png</file>
         <file alias="arrowHeadDown">Resources/Icons/arrowHeadDown.png</file>
         <file alias="arrowHeadLeft">Resources/Icons/arrowHeadLeft.png</file>

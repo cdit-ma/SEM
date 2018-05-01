@@ -21,13 +21,14 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(): Node(node_k
 bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
-        case NODE_KIND::INPUT_PARAMETER:
-        case NODE_KIND::AGGREGATE_INSTANCE:
-            break;
+    case NODE_KIND::ENUM_INSTANCE:
+    case NODE_KIND::AGGREGATE_INSTANCE:
+    case NODE_KIND::MEMBER_INSTANCE:
+    case NODE_KIND::VECTOR_INSTANCE:
+        break;
     default:
         return false;
     }
-
     if(childrenCount() > 0 ){
         return false;
     }

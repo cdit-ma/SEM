@@ -764,7 +764,9 @@ void ActionController::setupActions()
     view_zoomOut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
 
     edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Icons", "triangleSouthEast");
+    edit_expand->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
     edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Icons", "triangleNorthWest");
+    edit_contract->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_C));
 
     view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Icons", "bracketsCurly");
     view_centerOnDefn->setToolTip("Center selected entity's Definition.");
@@ -785,7 +787,7 @@ void ActionController::setupActions()
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
-    view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
+    view_viewConnections->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
 
 
     view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Icons", "popOut");

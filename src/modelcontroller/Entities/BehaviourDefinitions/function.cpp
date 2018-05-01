@@ -1,5 +1,5 @@
 #include "function.h"
-
+#include "../data.h"
 const NODE_KIND node_kind = NODE_KIND::FUNCTION;
 const QString kind_string = "Function";
 
@@ -7,6 +7,7 @@ MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kin
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Function();});
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
+    RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
 };
 
 MEDEA::Function::Function(): Node(node_kind)
@@ -74,4 +75,14 @@ bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     }
 
     return Node::canAcceptEdge(edge_kind, dst);
+}
+
+void MEDEA::Function::parentSet(Node* parent){
+
+    auto src_data = parent->getData("type");
+    auto dst_data = getData("class");
+    if(src_data && dst_data){
+        src_data->linkData(dst_data, true);
+    }
+    Node::parentSet(parent);
 }

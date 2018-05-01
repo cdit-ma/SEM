@@ -106,6 +106,7 @@ class Node : public Entity
     
 
     NODE_KIND getNodeKind() const;
+    NODE_KIND getParentNodeKind() const;
 
     bool isAttached() const;
 
@@ -219,6 +220,7 @@ private:
     Node* definition = 0;;
 
     NODE_KIND nodeKind;
+    NODE_KIND parent_node_kind = NODE_KIND::NONE;
     NODE_TYPE nodeType;
 
     QList<Node*> instances;

@@ -228,6 +228,7 @@ public slots:
     void controller_entityDestructed(int ID, GRAPHML_KIND kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
     void controller_dataRemoved(int ID, QString key);
+    void controller_nodeEdgeChanged(int ID);
 
     void setClipboardData(QString data);
 

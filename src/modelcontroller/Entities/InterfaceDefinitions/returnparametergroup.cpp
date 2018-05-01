@@ -19,14 +19,24 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(): Node(node_kind)
 
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
-        case NODE_KIND::INPUT_PARAMETER:
-        case NODE_KIND::AGGREGATE_INSTANCE:
-            break;
+    NODE_KIND kind = child->getNodeKind();
+    auto parent_kind = getParentNodeKind();
+    auto is_in_interface = parent_kind == NODE_KIND::SERVER_INTERFACE;
+
+    switch(kind){
+    case NODE_KIND::AGGREGATE_INSTANCE:
+        break;
+    case NODE_KIND::ENUM_INSTANCE:
+    case NODE_KIND::MEMBER:
+    case NODE_KIND::VECTOR:
+        if(is_in_interface){
+            return false;
+        }
+        break;
     default:
         return false;
     }
-
+    
     if(childrenCount() > 0 ){
         return false;
     }

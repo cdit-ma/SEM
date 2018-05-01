@@ -5,9 +5,9 @@ enum class EDGE_KIND{
     NONE,
     DEFINITION,
     AGGREGATE,
-    ASSEMBLY,
-    DATA,
     DEPLOYMENT,
+    DATA,
+    ASSEMBLY,
     QOS
 };
 

@@ -18,7 +18,6 @@ AttributeInstance::AttributeInstance() : DataNode(node_kind)
 {
     addInstancesDefinitionKind(NODE_KIND::ATTRIBUTE);
     setChainableDefinition();
-    setDataProducer(true);
 }
 
 bool AttributeInstance::canAdoptChild(Node*)
@@ -38,6 +37,8 @@ bool AttributeInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 void AttributeInstance::parentSet(Node* parent){
     if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
         setDataReceiver(true);
+    }else if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
+        setDataProducer(true);
     }
     DataNode::parentSet(parent);
 }

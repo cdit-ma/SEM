@@ -10,6 +10,7 @@ namespace MEDEA{
     protected:
         Function(EntityFactory* factory);
         Function();
+        void parentSet(Node* parent);
     public:
         bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
