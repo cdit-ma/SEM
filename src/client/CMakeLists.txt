@@ -53,10 +53,13 @@ target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../)
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../re_common/proto/controlmessage)
 
-target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
+target_link_libraries(${PROJ_NAME} re_common_proto_control)
+target_link_libraries(${PROJ_NAME} zmq_protowriter)
+target_link_libraries(${PROJ_NAME} zmq_environmentrequester)
 
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})
