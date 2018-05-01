@@ -26,7 +26,7 @@ class EnvironmentRequester{
         void RemoveDeployment();
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
 
-        std::string GetPort(const std::string& node_ip_address, const std::string& port_name);
+        std::string GetLoganPort(const std::string& experiment_id, const std::string& node_ip_address);
 
     private:
         struct Request{

@@ -356,8 +356,48 @@ void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
     return;
 }
 
-std::string EnvironmentRequester::GetPort(const std::string& node_ip_address, const std::string& port_name){
+std::string EnvironmentRequester::GetLoganPort(const std::string& experiment_id, const std::string& node_ip_address){
     std::string port_string;
 
-    return port_string;
+    NodeManager::EnvironmentMessage message;
+
+    message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+    message.set_experiment_id(experiment_id);
+
+    auto logger = message.mutable_logger();
+
+    logger->set_publisher_address(node_ip_address);
+
+    //Get update endpoint
+    zmq::socket_t* initial_request_socket;
+
+    if(context_){
+        initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
+    }
+    else{
+        std::cerr << "Context in EnvironmentRequester::GetPort not initialised." << std::endl;
+    }
+    
+    try{
+        initial_request_socket->connect(manager_address_);
+    }
+    catch(std::exception& ex){
+        std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
+    }
+
+    ZMQSendRequest(initial_request_socket, message.SerializeAsString());
+    auto reply = ZMQReceiveReply(initial_request_socket);
+
+    if(reply.empty()){
+        throw std::runtime_error("Environment manager request timed out.");
+    }
+
+    NodeManager::EnvironmentMessage reply_message;
+
+    reply_message.ParseFromString(reply);
+
+    auto reply_logger_message = reply_message.logger();
+
+
+    return reply_logger_message.publisher_port();
 }

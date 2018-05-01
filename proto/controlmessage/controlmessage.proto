@@ -37,6 +37,8 @@ message EnvironmentMessage{
         SUCCESS = 11;
         NODE_QUERY = 12;
         UPDATE_DEPLOYMENT = 13;
+        LOGAN_QUERY = 14;
+        LOGAN_RESPONSE = 15;
     }
 
     Type type = 1;
@@ -44,6 +46,7 @@ message EnvironmentMessage{
 
     string experiment_id = 3;
     ControlMessage control_message = 4;
+    Logger logger = 5;
 
 }
 
@@ -141,7 +144,8 @@ message Logger{
     }
     
     string publisher_address = 1;
-    Mode mode = 2;
+    string publisher_port = 2;
+    Mode mode = 3;
 }
 
 message Startup{
