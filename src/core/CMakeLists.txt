@@ -21,6 +21,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
 	)
 
 set(HEADERS
@@ -32,6 +33,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h   
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
     ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
 	)
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
@@ -53,3 +55,4 @@ target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 #Link against other libraries
 target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
+target_link_libraries(${PROJ_NAME} re_common_proto_control)
