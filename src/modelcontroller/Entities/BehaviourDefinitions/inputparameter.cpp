@@ -17,15 +17,3 @@ InputParameter::InputParameter(): Parameter(NODE_KIND::INPUT_PARAMETER)
     setDataReceiver(true);
     setDataProducer(false);
 }
-
-bool InputParameter::canAdoptChild(Node *)
-{
-    
-
-    return false;
-}
-
-bool InputParameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return Parameter::canAcceptEdge(edgeKind, dst);
-}

@@ -10,8 +10,5 @@ class DDS_ReaderDataLifecycleQosPolicy: public Node
 protected:
 	DDS_ReaderDataLifecycleQosPolicy(EntityFactory* factory);
 	DDS_ReaderDataLifecycleQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_READERDATALIFECYCLEQOSPOLICY_H

@@ -11,45 +11,36 @@ MEDEA::ForLoop::ForLoop(EntityFactory* factory) : Node(factory, node_kind, kind_
 
 MEDEA::ForLoop::ForLoop():Node(node_kind){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+
+    setAcceptsNodeKind(NODE_KIND::VARIABLE_PARAMETER);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
+
 }
 
 bool MEDEA::ForLoop::canAdoptChild(Node *child)
 {
-    auto condition_can_adopt = ContainerNode::canAdoptChild(child);
-
-    if(!condition_can_adopt){
-        auto child_kind = child->getNodeKind();
-        
-        switch(child_kind){
-            case NODE_KIND::VARIABLE_PARAMETER:{
-                if(getChildrenOfKind(child_kind, 0).size() >= 1){
-                    return false;
-                }
-
+    auto child_kind = child->getNodeKind();
+    
+    switch(child_kind){
+        case NODE_KIND::VARIABLE_PARAMETER:{
+            if(getChildrenOfKind(child_kind, 0).size() >= 1){
+                return false;
             }
-            case NODE_KIND::INPUT_PARAMETER:
-                if(getChildrenOfKind(child_kind, 0).size() >= 2){
-                    return false;
-                }
-                break;
-        default:
-            return false;
+
         }
+        case NODE_KIND::INPUT_PARAMETER:
+            if(getChildrenOfKind(child_kind, 0).size() >= 2){
+                return false;
+            }
+            break;
+    default:
+        break;
     }
     
     //Ignore the can adopt child from condition
     return Node::canAdoptChild(child);
-
-
-    if(ContainerNode::canAdoptChild(child)){
-        return Node::canAdoptChild(child);
-    }
-    return false;
 }
-
-bool MEDEA::ForLoop::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return Node::canAcceptEdge(edgeKind, dst);
-}
-  
-

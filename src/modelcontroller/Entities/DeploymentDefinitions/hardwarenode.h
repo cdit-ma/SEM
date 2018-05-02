@@ -10,9 +10,6 @@ class HardwareNode : public Node
 protected:
 	HardwareNode(EntityFactory* factory);
 	HardwareNode();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // HARDWARENODE_H

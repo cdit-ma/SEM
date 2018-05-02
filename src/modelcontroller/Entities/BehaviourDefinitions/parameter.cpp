@@ -40,11 +40,6 @@ bool Parameter::isVariableParameter() const
     return getNodeKind() == NODE_KIND::VARIABLE_PARAMETER;
 }
 
-bool Parameter::canAdoptChild(Node*)
-{
-    return false;
-}
-
 bool Parameter::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

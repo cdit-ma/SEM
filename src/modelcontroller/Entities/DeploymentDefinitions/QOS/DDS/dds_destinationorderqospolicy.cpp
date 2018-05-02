@@ -19,15 +19,3 @@ DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy():Node(NODE_KIND::Q
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_DestinationOrderQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_DestinationOrderQosPolicy::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    Q_UNUSED(edgeKind);
-    Q_UNUSED(dst);
-    return false;
-}

@@ -17,12 +17,6 @@ MEDEA::ServerPortInstance::ServerPortInstance(): Node(node_kind)
     
 }
 
-
-bool MEDEA::ServerPortInstance::canAdoptChild(Node* child)
-{
-    return false;
-}
-
 bool MEDEA::ServerPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

@@ -14,13 +14,3 @@ DDS_TimeBasedFilterQosPolicy::DDS_TimeBasedFilterQosPolicy():Node(NODE_KIND::QOS
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_TimeBasedFilterQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_TimeBasedFilterQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

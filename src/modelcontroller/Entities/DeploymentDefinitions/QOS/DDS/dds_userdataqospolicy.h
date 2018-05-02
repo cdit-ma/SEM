@@ -10,9 +10,6 @@ class DDS_UserDataQosPolicy: public Node
 protected:
 	DDS_UserDataQosPolicy(EntityFactory* factory);
 	DDS_UserDataQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_USERDATAQOSPOLICY_H
 

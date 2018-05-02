@@ -23,6 +23,9 @@ FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, ki
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
+
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 }
 
 
@@ -38,6 +41,7 @@ bool FunctionCall::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             if(dst->getNodeKind() != NODE_KIND::FUNCTION){
                 return false;
             }
+            
             // The FunctionCall must exist within a ComponentImpl
             auto parent_node = dst->getParentNode();
             if(parent_node){
@@ -70,11 +74,6 @@ bool FunctionCall::canAdoptChild(Node* child)
 {
     auto child_kind = child->getNodeKind();
     switch(child_kind){
-        // Should be replaced by parameter groups when they're ready
-        case NODE_KIND::INPUT_PARAMETER:
-        case NODE_KIND::RETURN_PARAMETER:
-        case NODE_KIND::VARIABLE_PARAMETER:
-            break;
         case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
             if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
@@ -83,7 +82,7 @@ bool FunctionCall::canAdoptChild(Node* child)
             break;
         }
         default:
-            return false;
+            break;
     }
     return Node::canAdoptChild(child);
 }

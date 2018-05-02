@@ -10,9 +10,6 @@ class DDS_TopicDataQosPolicy: public Node
 protected:
 	DDS_TopicDataQosPolicy(EntityFactory* factory);
 	DDS_TopicDataQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_TOPICDATAQOSPOLICY_H
 

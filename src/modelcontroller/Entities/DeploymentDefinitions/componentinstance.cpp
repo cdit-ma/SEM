@@ -17,26 +17,15 @@ ComponentInstance::ComponentInstance():Node(NODE_KIND::COMPONENT_INSTANCE)
 
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
+
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::INEVENTPORT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::PERIODICEVENT);
+    setAcceptsNodeKind(NODE_KIND::SERVER_PORT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::CLIENT_PORT_INSTANCE);
 }
-
-bool ComponentInstance::canAdoptChild(Node *child)
-{
-
-    switch(child->getNodeKind()){
-    case NODE_KIND::ATTRIBUTE_INSTANCE:
-    case NODE_KIND::INEVENTPORT_INSTANCE:
-    case NODE_KIND::OUTEVENTPORT_INSTANCE:
-    case NODE_KIND::CLASS_INSTANCE:
-    case NODE_KIND::PERIODICEVENT:
-    case NODE_KIND::SERVER_PORT_INSTANCE:
-    case NODE_KIND::CLIENT_PORT_INSTANCE:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
 
 QSet<Node*> ComponentInstance::getListOfValidAncestorsForChildrenDefinitions(){
     QSet<Node*> valid_ancestors = Node::getListOfValidAncestorsForChildrenDefinitions();

@@ -10,19 +10,30 @@ MEDEA::WhileLoop::WhileLoop(EntityFactory* factory) : Node(factory, node_kind, k
 
 MEDEA::WhileLoop::WhileLoop():Node(NODE_KIND::WHILE_LOOP){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+
+    setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
+    
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
 }
 
 bool MEDEA::WhileLoop::canAdoptChild(Node *child)
 {
-    if(ContainerNode::canAdoptChild(child)){
-        return Node::canAdoptChild(child);
+    auto child_kind = child->getNodeKind();
+    
+    switch(child_kind){
+        case NODE_KIND::IF_CONDITION:{
+            if(getChildrenOfKind(child_kind, 0).size() > 0){
+                return false;
+            }
+            break;
+        }
+    default:
+        break;
     }
-    return false;
+    
+    //Ignore the can adopt child from condition
+    return Node::canAdoptChild(child);
 }
-
-bool MEDEA::WhileLoop::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return Node::canAcceptEdge(edgeKind, dst);
-}
-
 

@@ -25,11 +25,6 @@ LoggingProfile::LoggingProfile():Node(NODE_KIND::LOGGINGPROFILE)
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
 }
 
-bool LoggingProfile::canAdoptChild(Node*)
-{
-    return false;
-}
-
 bool LoggingProfile::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

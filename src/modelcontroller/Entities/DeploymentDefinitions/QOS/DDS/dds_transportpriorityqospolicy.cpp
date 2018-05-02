@@ -13,13 +13,3 @@ DDS_TransportPriorityQosPolicy::DDS_TransportPriorityQosPolicy():Node(NODE_KIND:
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_TransportPriorityQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_TransportPriorityQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

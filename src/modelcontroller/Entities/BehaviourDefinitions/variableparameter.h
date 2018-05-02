@@ -12,9 +12,6 @@ class VariableParameter : public Parameter
 protected:
 	VariableParameter(EntityFactory* factory);
 	VariableParameter();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // VARIABLE_PARAMETER_H

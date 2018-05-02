@@ -22,22 +22,18 @@ Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_s
 Variable::Variable() : DataNode(node_kind)
 {
     setDataProducer(true);
+
+    setAcceptsNodeKind(NODE_KIND::MEMBER);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
 }
 
 
 
 bool Variable::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
-    case NODE_KIND::MEMBER:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::VECTOR:
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::EXTERNAL_TYPE:
-        break;
-    default:
-        return false;
-    }
     if(hasChildren()){
         return false;
     }

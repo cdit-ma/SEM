@@ -17,11 +17,6 @@ MEDEA::DeploymentAttribute::DeploymentAttribute() : DataNode(node_kind)
     setDataReceiver(true);
 }
 
-bool MEDEA::DeploymentAttribute::canAdoptChild(Node*)
-{
-    return false;
-}
-
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

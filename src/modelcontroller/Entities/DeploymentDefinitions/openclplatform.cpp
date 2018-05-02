@@ -16,17 +16,5 @@ OpenCLPlatform::OpenCLPlatform():Node(NODE_KIND::OPENCL_PLATFORM)
 {
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
-}
-
-bool OpenCLPlatform::canAdoptChild(Node* child)
-{
-    if(child->getNodeKind() != NODE_KIND::OPENCL_DEVICE){
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool OpenCLPlatform::canAcceptEdge(EDGE_KIND, Node *)
-{ 
-    return false;
+    setAcceptsNodeKind(NODE_KIND::OPENCL_DEVICE);
 }

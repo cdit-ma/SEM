@@ -21,14 +21,6 @@ MEDEA::ExternalType::ExternalType() : Node(node_kind)
     setChainableDefinition();
 }
 
-
-
-bool MEDEA::ExternalType::canAdoptChild(Node* child)
-{
-    return false;
-}
-
-
 bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

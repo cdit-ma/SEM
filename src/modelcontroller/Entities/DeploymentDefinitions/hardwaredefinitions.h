@@ -13,7 +13,5 @@ protected:
 	HardwareDefinitions();
 public:
     VIEW_ASPECT getViewAspect() const;
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // HARDWAREDEFINITIONC_H

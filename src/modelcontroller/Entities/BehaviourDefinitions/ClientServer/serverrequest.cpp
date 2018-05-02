@@ -16,12 +16,15 @@ MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
 
     //Allow links from within things like InEventPortImpls back to the
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
+
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 }
 
 
 bool MEDEA::ServerRequest::canAdoptChild(Node* child)
 {
-    auto child_node_kind = child->getNodeKind();
+   auto child_node_kind = child->getNodeKind();
 
     switch(child_node_kind){
         case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
@@ -32,7 +35,7 @@ bool MEDEA::ServerRequest::canAdoptChild(Node* child)
             break;
         }
         default:
-            return false;
+            break;
     }
     return Node::canAdoptChild(child);
 }

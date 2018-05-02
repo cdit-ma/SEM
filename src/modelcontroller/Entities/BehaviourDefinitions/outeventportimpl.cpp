@@ -18,39 +18,23 @@ OutEventPortImpl::OutEventPortImpl():Node(node_kind){
     
     //Allow links from within things like InEventPortImpls back to the
     SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
+
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
 {
-    //Can Only accept 1 child.
-    if(hasChildren()){
-        return false;
-    }
-
-    //Can only adopt AggregateInstances
-    if(child->getNodeKind() != NODE_KIND::AGGREGATE_INSTANCE){
-        return false;
-    }
-
-    return Node::canAdoptChild(child);
-}
-
-bool OutEventPortImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        if(dst->getNodeKind() != NODE_KIND::OUTEVENTPORT){
-            return false;
+    auto child_node_kind = child->getNodeKind();
+    
+    switch(child_node_kind){
+        case NODE_KIND::AGGREGATE_INSTANCE:{
+            if(getChildrenOfKind(child_node_kind, 0).size() > 0){
+                return false;
+            }
+            break;
+        default:
+            break;
         }
-        break;
     }
-    default:
-        break;
-    }
-
-    return Node::canAcceptEdge(edge_kind, dst);
+    return Node::canAdoptChild(child);
 }

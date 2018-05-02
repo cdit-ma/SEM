@@ -10,9 +10,6 @@ class DDS_TransportPriorityQosPolicy: public Node
 protected:
 	DDS_TransportPriorityQosPolicy(EntityFactory* factory);
 	DDS_TransportPriorityQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_TRANSPORTPRIORITYQOSPOLICY_H
 

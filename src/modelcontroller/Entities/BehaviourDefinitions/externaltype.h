@@ -13,7 +13,6 @@ namespace MEDEA{
         ExternalType(EntityFactory* factory);
         ExternalType();
     public:
-        bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 
     private:

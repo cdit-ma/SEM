@@ -17,19 +17,10 @@ MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
     setChainableDefinition();
     
     SetEdgeRuleActive(Node::EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
-}
 
-bool MEDEA::ClassInstance::ClassInstance::canAdoptChild(Node* child)
-{
-    switch(child->getNodeKind()){
-        case NODE_KIND::ATTRIBUTE_INSTANCE:
-        case NODE_KIND::FUNCTION:
-        case NODE_KIND::CLASS_INSTANCE:
-            break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
 }
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)

@@ -17,13 +17,3 @@ ReturnParameter::ReturnParameter(): Parameter(NODE_KIND::RETURN_PARAMETER)
     setDataProducer(true);
     setDataReceiver(false);
 }
-
-bool ReturnParameter::canAdoptChild(Node *)
-{
-    return false;
-}
-
-bool ReturnParameter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return Parameter::canAcceptEdge(edgeKind, dst);
-}

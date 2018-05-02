@@ -22,13 +22,3 @@ DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy():Node(NODE_KIND::QOS_DDS_POLIC
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_LivelinessQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_LivelinessQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

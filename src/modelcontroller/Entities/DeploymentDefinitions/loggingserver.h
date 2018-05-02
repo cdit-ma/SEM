@@ -10,8 +10,6 @@ class LoggingServer : public Node
 protected:
 	LoggingServer(EntityFactory* factory);
 	LoggingServer();
-public:
-    bool canAdoptChild(Node*);
 };
 
 #endif // LOGGINGSERVER_H

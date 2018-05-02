@@ -13,13 +13,3 @@ DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy():Node(NODE_K
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_WriterDataLifecycleQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_WriterDataLifecycleQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

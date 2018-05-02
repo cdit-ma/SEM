@@ -11,7 +11,6 @@ protected:
 	EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     EventPortAssembly(NODE_KIND kind);
 public:
-
     bool isPortDelegate() const;
 
     bool isInPortDelegate() const;
@@ -20,13 +19,16 @@ public:
     bool isInPortAssembly() const;
     bool isOutPortAssembly() const;
 
+    
+    bool isServerPortInstance() const;
+    bool isClientPortInstance() const;
 
+    
     bool isPortInstance() const;
 
     bool isInPortInstance() const;
     bool isOutPortInstance() const;
 
-    virtual bool canAdoptChild(Node*);
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

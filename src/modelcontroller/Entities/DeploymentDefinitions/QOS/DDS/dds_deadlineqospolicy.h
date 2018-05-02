@@ -10,9 +10,6 @@ class DDS_DeadlineQosPolicy: public Node
 protected:
 	DDS_DeadlineQosPolicy(EntityFactory* factory);
 	DDS_DeadlineQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_DEADLINEQOSPOLICY_H
 

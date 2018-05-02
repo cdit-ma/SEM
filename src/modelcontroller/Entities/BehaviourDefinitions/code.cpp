@@ -12,14 +12,5 @@ Code::Code(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 };
 
 Code::Code() : Node(node_kind){
-}
-
-bool Code::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool Code::canAcceptEdge(EDGE_KIND, Node*)
-{
-    return false;
+    
 }

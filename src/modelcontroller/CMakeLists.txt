@@ -23,15 +23,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/../../)
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/class.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/classinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/containernode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/externaltype.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.cpp
@@ -245,8 +242,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/inputparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/ineventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/forcondition.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/condition.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h
 
@@ -260,7 +255,6 @@ set(HEADERS
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/functioncall.h
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/branch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.h

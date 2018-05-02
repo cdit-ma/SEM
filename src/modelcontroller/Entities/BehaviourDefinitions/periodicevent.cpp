@@ -11,6 +11,13 @@ PeriodicEvent::PeriodicEvent(EntityFactory* factory) : Node(factory, NODE_KIND::
 PeriodicEvent::PeriodicEvent():Node(NODE_KIND::PERIODICEVENT){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
+
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
+    
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
+
 }
 
 #include <QDebug>
@@ -26,11 +33,7 @@ bool PeriodicEvent::canAdoptChild(Node* child)
             }
             break;
         }
-            
         default:
-            if(!ContainerNode::canAdoptChild(child)){
-                return false;
-            }
             break;
     }
     return Node::canAdoptChild(child);

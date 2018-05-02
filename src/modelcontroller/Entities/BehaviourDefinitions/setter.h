@@ -13,7 +13,6 @@ protected:
     void childAdded(Node* child);
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif //SETFUNCTION_H

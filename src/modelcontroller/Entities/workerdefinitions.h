@@ -13,9 +13,6 @@ protected:
 	WorkerDefinitions();
 public:
     VIEW_ASPECT getViewAspect() const;
-
-    bool canAdoptChild(Node *node);
-    virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // WORKERDEFINITIONC_H

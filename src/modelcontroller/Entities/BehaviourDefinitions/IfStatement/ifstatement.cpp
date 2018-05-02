@@ -9,6 +9,10 @@ MEDEA::IfStatement::IfStatement(EntityFactory* factory) : Node(factory, node_kin
 };
 
 MEDEA::IfStatement::IfStatement() : Node(node_kind){
+
+    setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
+    setAcceptsNodeKind(NODE_KIND::ELSE_CONDITION);
+    setAcceptsNodeKind(NODE_KIND::ELSEIF_CONDITION);
 }
 
 
@@ -22,11 +26,8 @@ bool MEDEA::IfStatement::canAdoptChild(Node *child)
                 return false;
             }
             break;
-        case NODE_KIND::ELSEIF_CONDITION:{
-            break;
-        }
         default:
-            return false;
+            break;
     }
     
     return Node::canAdoptChild(child);

@@ -20,13 +20,3 @@ DDS_HistoryQosPolicy::DDS_HistoryQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_HIST
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_HistoryQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_HistoryQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

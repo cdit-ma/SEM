@@ -12,7 +12,6 @@ protected:
 	DDS_QOSProfile();
 public:
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_QOSPROFILE_H
 

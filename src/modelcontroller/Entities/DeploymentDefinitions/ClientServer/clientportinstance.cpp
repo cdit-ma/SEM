@@ -18,12 +18,6 @@ MEDEA::ClientPortInstance::ClientPortInstance(): Node(node_kind)
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
 }
 
-
-bool MEDEA::ClientPortInstance::canAdoptChild(Node* child)
-{
-    return false;
-}
-
 bool MEDEA::ClientPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

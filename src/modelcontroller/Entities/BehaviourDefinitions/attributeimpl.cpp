@@ -21,11 +21,6 @@ AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
     setDataReceiver(false);
 }
 
-bool AttributeImpl::canAdoptChild(Node*)
-{
-    return false;
-}
-
 bool AttributeImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

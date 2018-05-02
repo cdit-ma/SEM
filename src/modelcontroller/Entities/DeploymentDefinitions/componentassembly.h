@@ -10,8 +10,6 @@ class ComponentAssembly : public Node
 protected:
 	ComponentAssembly(EntityFactory* factory);
 	ComponentAssembly();
-public:
-    bool canAdoptChild(Node* child);
 };
 
 #endif // COMPONENTASSEMBLY_H

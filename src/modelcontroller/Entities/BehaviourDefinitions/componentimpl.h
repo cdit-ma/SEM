@@ -11,9 +11,6 @@ protected:
 	ComponentImpl(EntityFactory* factory);
 	ComponentImpl();
     QSet<Node*> getDependants() const;
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // COMPONENTBEHAVIOUR_H

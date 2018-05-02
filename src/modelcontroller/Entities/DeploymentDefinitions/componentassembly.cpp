@@ -15,21 +15,10 @@ ComponentAssembly::ComponentAssembly():Node(NODE_KIND::COMPONENT_ASSEMBLY)
 {
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
-}
 
-bool ComponentAssembly::canAdoptChild(Node *child)
-{
-    //Can Only adopt EventPort Instances
-    switch(child->getNodeKind()){
-    case NODE_KIND::COMPONENT_ASSEMBLY:
-    case NODE_KIND::COMPONENT_INSTANCE:
-    case NODE_KIND::INEVENTPORT_DELEGATE:
-    case NODE_KIND::OUTEVENTPORT_DELEGATE:
-    case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-        break;
-    default:
-        return false;
-    }
-
-    return Node::canAdoptChild(child);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::INEVENTPORT_DELEGATE);
+    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_DELEGATE);
+    setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
 }

@@ -9,9 +9,6 @@ class HardwareCluster : public Node
 protected:
 	HardwareCluster(EntityFactory* factory);
 	HardwareCluster();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // HARDWARECLUSTER_H

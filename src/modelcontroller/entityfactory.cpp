@@ -52,8 +52,6 @@
 
 
 #include "Entities/BehaviourDefinitions/code.h"
-#include "Entities/BehaviourDefinitions/condition.h"
-#include "Entities/BehaviourDefinitions/forcondition.h"
 #include "Entities/BehaviourDefinitions/header.h"
 #include "Entities/BehaviourDefinitions/inputparameter.h"
 #include "Entities/BehaviourDefinitions/periodicevent.h"
@@ -371,8 +369,6 @@ EntityFactory::EntityFactory()
     MEDEA::ExternalType(this);
 
     Code(this);
-    Condition(this);
-    ForCondition(this);
     Header(this);
     InputParameter(this);
     PeriodicEvent(this);

@@ -10,8 +10,6 @@ class OutEventPortInstance : public EventPortAssembly
 protected:
 	OutEventPortInstance(EntityFactory* factory);
 	OutEventPortInstance();
-public:
-    bool canAdoptChild(Node*);
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

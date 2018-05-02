@@ -10,9 +10,6 @@ class DDS_PresentationQosPolicy: public Node
 protected:
 	DDS_PresentationQosPolicy(EntityFactory* factory);
 	DDS_PresentationQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_PRESENTATIONQOSPOLICY_H
 

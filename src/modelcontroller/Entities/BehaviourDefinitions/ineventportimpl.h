@@ -12,7 +12,6 @@ protected:
 	InEventPortImpl();
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 

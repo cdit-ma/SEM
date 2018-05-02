@@ -14,7 +14,6 @@ namespace MEDEA{
         WhileLoop();
     public:
         bool canAdoptChild(Node *node);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 

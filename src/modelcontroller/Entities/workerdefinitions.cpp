@@ -11,10 +11,7 @@ WorkerDefinitions::WorkerDefinitions(EntityFactory* factory) : Node(factory, NOD
 
 WorkerDefinitions::WorkerDefinitions(): Node(NODE_KIND::WORKER_DEFINITIONS)
 {
-    //setAsRoot(1);
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
-    //updateDefaultData("label", QVariant::String, true, "WORKERS");
+    setAcceptsNodeKind(NODE_KIND::CLASS);
 }
 
 
@@ -22,21 +19,3 @@ VIEW_ASPECT WorkerDefinitions::getViewAspect() const
 {
     return VIEW_ASPECT::WORKERS;
 }
-
-bool WorkerDefinitions::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::CLASS:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool WorkerDefinitions::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}
-
-

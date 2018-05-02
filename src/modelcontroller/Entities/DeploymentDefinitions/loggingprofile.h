@@ -11,7 +11,6 @@ protected:
 	LoggingProfile(EntityFactory* factory);
 	LoggingProfile();
 public:
-    bool canAdoptChild(Node*);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

@@ -10,9 +10,6 @@ class DDS_PartitionQosPolicy: public Node
 protected:
 	DDS_PartitionQosPolicy(EntityFactory* factory);
 	DDS_PartitionQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_PARTITIONQOSPOLICY_H
 

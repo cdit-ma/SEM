@@ -10,8 +10,6 @@ class OutEventPortDelegate: public EventPortAssembly
 protected:
 	OutEventPortDelegate(EntityFactory* factory);
 	OutEventPortDelegate();
-public:
-    bool canAdoptChild(Node* child);
 };
 
 

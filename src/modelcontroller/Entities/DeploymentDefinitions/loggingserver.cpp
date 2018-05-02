@@ -15,9 +15,3 @@ LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
 }
-
-
-bool LoggingServer::canAdoptChild(Node*)
-{
-    return false;
-}

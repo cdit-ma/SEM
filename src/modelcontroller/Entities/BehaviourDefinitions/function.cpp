@@ -16,21 +16,19 @@ MEDEA::Function::Function(): Node(node_kind)
     setChainableDefinition();
     
     addInstanceKind(NODE_KIND::FUNCTION_CALL);
+    
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
 }
 
 bool MEDEA::Function::Function::canAdoptChild(Node* child)
 {
     auto child_kind = child->getNodeKind();
     switch(child_kind){
-        case NODE_KIND::INEVENTPORT_IMPL:
-        case NODE_KIND::OUTEVENTPORT_IMPL:
-        case NODE_KIND::SERVER_REQUEST:
-            return false;
-        // Should be replaced by parameter groups when they're ready
-        case NODE_KIND::INPUT_PARAMETER:
-        case NODE_KIND::RETURN_PARAMETER:
-        case NODE_KIND::VARIABLE_PARAMETER:
-            break;
         case NODE_KIND::INPUT_PARAMETER_GROUP:
         case NODE_KIND::RETURN_PARAMETER_GROUP:{
             if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
@@ -39,16 +37,13 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
             break;
         }
         default:
-            if(!ContainerNode::canAdoptChild(child)){
-                return false;
-            }
             break;
     }
     return Node::canAdoptChild(child);
 }
 
 bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
+{   /*
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
@@ -58,21 +53,17 @@ bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             if(dst->getNodeKind() != NODE_KIND::FUNCTION){
                 return false;
             }
-
             
             if(getParentNode()->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
-
                 if(!dst->getDefinition()){
                     return false;
                 }
             }
-            
-            //return true;
             break;
         }
         default:
             break;
-    }
+    }*/
 
     return Node::canAcceptEdge(edge_kind, dst);
 }
@@ -84,5 +75,15 @@ void MEDEA::Function::parentSet(Node* parent){
     if(src_data && dst_data){
         src_data->linkData(dst_data, true);
     }
+
+    
+
+    auto parent_node_kind = parent->getNodeKind();
+    if(parent_node_kind != NODE_KIND::COMPONENT_IMPL){
+        setAcceptsNodeKind(NODE_KIND::INEVENTPORT_IMPL, false);
+        setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_IMPL, false);
+        setAcceptsNodeKind(NODE_KIND::SERVER_REQUEST, false);
+    }
+
     Node::parentSet(parent);
 }

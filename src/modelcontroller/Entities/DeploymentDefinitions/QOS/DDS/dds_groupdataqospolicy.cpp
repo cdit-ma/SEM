@@ -13,13 +13,3 @@ DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_GroupDataQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_GroupDataQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

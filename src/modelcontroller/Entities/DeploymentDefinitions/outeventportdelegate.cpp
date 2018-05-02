@@ -10,9 +10,5 @@ OutEventPortDelegate::OutEventPortDelegate(EntityFactory* factory) : EventPortAs
 
 OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NODE_KIND::OUTEVENTPORT_DELEGATE)
 {
-}
-
-bool OutEventPortDelegate::canAdoptChild(Node*)
-{
-    return false;
+	
 }

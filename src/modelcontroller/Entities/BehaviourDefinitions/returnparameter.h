@@ -10,9 +10,7 @@ class ReturnParameter : public Parameter
 protected:
 	ReturnParameter(EntityFactory* factory);
 	ReturnParameter();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+
 };
 
 #endif // RETURNPARAMETER_H

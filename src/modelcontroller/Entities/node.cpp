@@ -139,8 +139,6 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 }
             }
 
-
-        if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
             
@@ -157,7 +155,9 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                     return false;
                 }
             }
-            
+
+
+        if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
             /*
             When this is contained within and instance or impl
             we should check that the dst we are connecting to (AKA Using as this's definition)
@@ -362,9 +362,10 @@ bool Node::canAdoptChild(Node *node)
         return false;
     }
 
-    /*if(!canAcceptNodeKind(node)){
+    if(!canAcceptNodeKind(node)){
+        qCritical() << toString() << "CANNOT ACCEPT:" << node->toString();
         return false;
-    }*/
+    }
 
     //Check for Cyclic contains.
     if(node == this){
@@ -1561,7 +1562,7 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
 
     //If i am an instance nothing should be cosntructable
-    if(isInstance() || isReadOnly()){
+    if((isInstance() && getDefinition()) || isReadOnly()){
         node_kinds.clear();
     }
     return node_kinds;

@@ -10,9 +10,6 @@ namespace MEDEA{
     protected:
         Class(EntityFactory* factory);
         Class();
-    public:
-        bool canAdoptChild(Node* child);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 

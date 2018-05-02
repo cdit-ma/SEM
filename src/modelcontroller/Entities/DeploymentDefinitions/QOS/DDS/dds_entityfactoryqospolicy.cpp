@@ -14,13 +14,3 @@ DDS_EntityFactoryQosPolicy::DDS_EntityFactoryQosPolicy():Node(NODE_KIND::QOS_DDS
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_EntityFactoryQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_EntityFactoryQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

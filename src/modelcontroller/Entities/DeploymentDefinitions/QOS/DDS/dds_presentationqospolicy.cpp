@@ -22,13 +22,3 @@ DDS_PresentationQosPolicy::DDS_PresentationQosPolicy():Node(NODE_KIND::QOS_DDS_P
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_PresentationQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_PresentationQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

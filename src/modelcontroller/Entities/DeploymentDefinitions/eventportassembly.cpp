@@ -35,6 +35,12 @@ bool EventPortAssembly::isInPortDelegate() const
 {
     return getNodeKind() == NODE_KIND::INEVENTPORT_DELEGATE;
 }
+bool EventPortAssembly::isServerPortInstance() const{
+    return getNodeKind() == NODE_KIND::SERVER_PORT_INSTANCE;
+}
+bool EventPortAssembly::isClientPortInstance() const{
+    return getNodeKind() == NODE_KIND::CLIENT_PORT_INSTANCE;
+}
 
 bool EventPortAssembly::isOutPortDelegate() const
 {
@@ -72,10 +78,6 @@ bool EventPortAssembly::isOutPortInstance() const
     return getNodeKind() == NODE_KIND::OUTEVENTPORT_INSTANCE;
 }
 
-bool EventPortAssembly::canAdoptChild(Node* child)
-{
-    return EventPort::canAdoptChild(child);
-}
 
 bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 {

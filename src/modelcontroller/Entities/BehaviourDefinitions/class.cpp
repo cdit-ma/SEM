@@ -14,23 +14,10 @@ MEDEA::Class::Class(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     addInstanceKind(NODE_KIND::CLASS_INSTANCE);
-}
 
-bool MEDEA::Class::Class::canAdoptChild(Node* child)
-{
-    switch(child->getNodeKind()){
-        case NODE_KIND::ATTRIBUTE:
-        case NODE_KIND::FUNCTION:
-        case NODE_KIND::EXTERNAL_TYPE:
-        case NODE_KIND::CLASS_INSTANCE:
-            break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
+    setAcceptsNodeKind(NODE_KIND::FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
 
-bool MEDEA::Class::Class::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
 }

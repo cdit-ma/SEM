@@ -10,9 +10,6 @@ class DDS_DurabilityQosPolicy: public Node
 protected:
 	DDS_DurabilityQosPolicy(EntityFactory* factory);
 	DDS_DurabilityQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_DURABILITYQOSPOLICY_H
 

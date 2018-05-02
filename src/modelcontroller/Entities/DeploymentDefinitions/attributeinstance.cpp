@@ -20,20 +20,6 @@ AttributeInstance::AttributeInstance() : DataNode(node_kind)
     setChainableDefinition();
 }
 
-bool AttributeInstance::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool AttributeInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    return DataNode::canAcceptEdge(edge_kind, dst);
-}
-
 void AttributeInstance::parentSet(Node* parent){
     if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
         setDataReceiver(true);

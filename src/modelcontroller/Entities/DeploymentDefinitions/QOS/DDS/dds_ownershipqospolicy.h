@@ -10,9 +10,6 @@ class DDS_OwnershipQosPolicy: public Node
 protected:
 	DDS_OwnershipQosPolicy(EntityFactory* factory);
 	DDS_OwnershipQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_OWNERSHIPQOSPOLICY_H
 

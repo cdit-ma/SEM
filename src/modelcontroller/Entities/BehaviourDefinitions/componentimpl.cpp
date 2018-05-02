@@ -14,51 +14,17 @@ ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::
 };
 
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
-    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-    
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
+
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_IMPL);
+    setAcceptsNodeKind(NODE_KIND::INEVENTPORT_IMPL);
+    setAcceptsNodeKind(NODE_KIND::PERIODICEVENT);
+    setAcceptsNodeKind(NODE_KIND::VARIABLE);
+    setAcceptsNodeKind(NODE_KIND::HEADER);
+    setAcceptsNodeKind(NODE_KIND::FUNCTION);
+    setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::SERVER_PORT_IMPL);
 }
-
-bool ComponentImpl::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-        case NODE_KIND::ATTRIBUTE_IMPL:
-        case NODE_KIND::INEVENTPORT_IMPL:
-        case NODE_KIND::PERIODICEVENT:
-        case NODE_KIND::VARIABLE:
-        case NODE_KIND::HEADER:
-        case NODE_KIND::FUNCTION:
-        case NODE_KIND::CLASS_INSTANCE:
-        case NODE_KIND::SERVER_PORT_IMPL:
-            break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool ComponentImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        if(!dst->getImplementations().isEmpty()){
-            return false;
-        }
-        if(dst->getNodeKind() != NODE_KIND::COMPONENT){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-    return Node::canAcceptEdge(edge_kind, dst);
-}
-
 
 QSet<Node*> ComponentImpl::getDependants() const{
     auto required_nodes = Node::getDependants();

@@ -18,16 +18,5 @@ OpenCLDevice::OpenCLDevice(EntityFactory* factory) : Node(factory, NODE_KIND::OP
 OpenCLDevice::OpenCLDevice():Node(NODE_KIND::OPENCL_DEVICE)
 {
     setNodeType(NODE_TYPE::HARDWARE);
-    
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
-}
-
-bool OpenCLDevice::canAdoptChild(Node* child)
-{
-    return false;
-}
-
-bool OpenCLDevice::canAcceptEdge(EDGE_KIND, Node *)
-{ 
-    return false;
 }

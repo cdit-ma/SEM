@@ -10,9 +10,6 @@ class DDS_DestinationOrderQosPolicy: public Node
 protected:
 	DDS_DestinationOrderQosPolicy(EntityFactory* factory);
 	DDS_DestinationOrderQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_DESTINATIONORDERQOSPOLICY_H
 

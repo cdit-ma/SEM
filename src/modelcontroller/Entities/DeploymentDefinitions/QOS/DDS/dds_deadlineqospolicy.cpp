@@ -13,15 +13,3 @@ DDS_DeadlineQosPolicy::DDS_DeadlineQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_DE
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_DeadlineQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_DeadlineQosPolicy::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    Q_UNUSED(edgeKind);
-    Q_UNUSED(dst);
-    return false;
-}

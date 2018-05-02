@@ -10,9 +10,6 @@ class OpenCLPlatform : public Node
 protected:
 	OpenCLPlatform(EntityFactory* factory);
 	OpenCLPlatform();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // OPENCLPLATFORM_H

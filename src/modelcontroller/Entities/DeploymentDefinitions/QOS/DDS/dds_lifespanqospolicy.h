@@ -10,9 +10,6 @@ class DDS_LifespanQosPolicy: public Node
 protected:
 	DDS_LifespanQosPolicy(EntityFactory* factory);
 	DDS_LifespanQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_HISTORYQOSPOLICY_H
 

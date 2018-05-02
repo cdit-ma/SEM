@@ -10,9 +10,6 @@ class DDS_WriterDataLifecycleQosPolicy: public Node
 protected:
 	DDS_WriterDataLifecycleQosPolicy(EntityFactory* factory);
 	DDS_WriterDataLifecycleQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_WRITERDATALIFECYCLEQOSPOLICY_H
 

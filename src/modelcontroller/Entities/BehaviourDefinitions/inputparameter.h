@@ -10,9 +10,6 @@ class InputParameter : public Parameter
 protected:
 	InputParameter(EntityFactory* factory);
 	InputParameter();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INPUTPARAMETER_H

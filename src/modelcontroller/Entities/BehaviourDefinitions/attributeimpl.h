@@ -10,10 +10,7 @@ class AttributeImpl : public DataNode
 protected:
 	AttributeImpl(EntityFactory* factory);
 	AttributeImpl();
-
-    bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-    QList<Data*> getDefaultData();
 };
 
 #endif // ATTRIBUTEIMPL_H

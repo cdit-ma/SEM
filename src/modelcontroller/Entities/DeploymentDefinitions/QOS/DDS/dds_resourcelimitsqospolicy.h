@@ -10,9 +10,6 @@ class DDS_ResourceLimitsQosPolicy: public Node
 protected:
 	DDS_ResourceLimitsQosPolicy(EntityFactory* factory);
 	DDS_ResourceLimitsQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_RESOURCELIMITSQOSPOLICY_H
 

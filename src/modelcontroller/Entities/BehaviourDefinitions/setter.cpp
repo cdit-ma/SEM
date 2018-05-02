@@ -19,28 +19,23 @@ Setter::Setter(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 
 Setter::Setter() : Node(node_kind)
 {
-
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
 }
 
 bool Setter::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
+    auto node_kind = child->getNodeKind();
+    switch(node_kind){
     case NODE_KIND::INPUT_PARAMETER:
+        if(getChildrenOfKind(node_kind, 0).size() >= 2){
+            return false;
+        }
         break;
     default:
-        return false;
-    }
-
-    if(getChildrenOfKind(NODE_KIND::INPUT_PARAMETER, 0).size() == 2){
-        return false;
+        break;
     }
 
     return Node::canAdoptChild(child);
-}
-
-bool Setter::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return false;
 }
 
 void Setter::childAdded(Node* child){

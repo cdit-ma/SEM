@@ -10,9 +10,6 @@ class OpenCLDevice : public Node
 protected:
 	OpenCLDevice(EntityFactory* factory);
 	OpenCLDevice();
-public:
-    bool canAdoptChild(Node*);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // OPENCLDEVICE_H

@@ -11,10 +11,5 @@ InEventPortDelegate::InEventPortDelegate(EntityFactory* factory) : EventPortAsse
 
 InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NODE_KIND::INEVENTPORT_DELEGATE)
 {
-    
-}
-
-bool InEventPortDelegate::canAdoptChild(Node*)
-{
-    return false;
+	
 }

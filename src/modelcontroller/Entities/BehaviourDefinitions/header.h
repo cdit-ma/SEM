@@ -11,9 +11,6 @@ class Header: public Node
 protected:
 	Header(EntityFactory* factory);
 	Header();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // MODEL_IMPL_HEADER_H

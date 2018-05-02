@@ -22,13 +22,3 @@ DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NODE_KIND::QOS_DDS_POLIC
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_DurabilityQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_DurabilityQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

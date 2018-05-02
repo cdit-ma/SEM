@@ -15,40 +15,15 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactory* factory) : Node(factory,
 AssemblyDefinitions::AssemblyDefinitions():Node(NODE_KIND::ASSEMBLY_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
+
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR);
+    setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect() const
 {
     return VIEW_ASPECT::ASSEMBLIES;
-}
-
-bool AssemblyDefinitions::canAdoptChild(Node *node)
-{
-    switch(node->getNodeKind()){
-    case NODE_KIND::COMPONENT_ASSEMBLY:
-    case NODE_KIND::COMPONENT_INSTANCE:
-    case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-        break;
-    case NODE_KIND::MANAGEMENT_COMPONENT:
-        foreach(Node* child, getChildrenOfKind(NODE_KIND::MANAGEMENT_COMPONENT, 0)){
-            if(node->compareData(child, "type")){
-                //AssemblyDefinition can only adopt ManagementComponents with different types.
-                return false;
-            }
-        }
-        break;
-    default:
-        //Check for QOS profiles.
-        if(!node->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
-            return false;
-        }
-    }
-    return Node::canAdoptChild(node);
-}
-
-bool AssemblyDefinitions::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
 }

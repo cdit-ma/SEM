@@ -14,13 +14,3 @@ DDS_LifespanQosPolicy::DDS_LifespanQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LI
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_LifespanQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_LifespanQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

@@ -13,30 +13,14 @@ HardwareDefinitions::HardwareDefinitions(EntityFactory* factory) : Node(factory,
 HardwareDefinitions::HardwareDefinitions():Node(NODE_KIND::HARDWARE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
-    //setMoveEnabled(false);
-    //setExpandEnabled(false);
+
+    setAcceptsNodeKind(NODE_KIND::HARDWARE_CLUSTER);
+    setAcceptsNodeKind(NODE_KIND::LOGGINGPROFILE);
+    setAcceptsNodeKind(NODE_KIND::LOGGINGSERVER);
+    setAcceptsNodeKind(NODE_KIND::HARDWARE_NODE);
 }
 
 VIEW_ASPECT HardwareDefinitions::getViewAspect() const
 {
     return VIEW_ASPECT::HARDWARE;
-}
-
-bool HardwareDefinitions::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::HARDWARE_CLUSTER:
-    case NODE_KIND::LOGGINGPROFILE:
-    case NODE_KIND::LOGGINGSERVER:
-    case NODE_KIND::HARDWARE_NODE:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool HardwareDefinitions::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
 }

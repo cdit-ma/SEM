@@ -10,9 +10,6 @@ class DDS_LatencyBudgetQosPolicy: public Node
 protected:
 	DDS_LatencyBudgetQosPolicy(EntityFactory* factory);
 	DDS_LatencyBudgetQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_LATENCYBUDGETQOSPOLICY_H
 

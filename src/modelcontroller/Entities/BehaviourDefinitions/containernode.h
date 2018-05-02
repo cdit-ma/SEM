@@ -6,7 +6,7 @@ class EntityFactory;
 class ContainerNode
 {
 protected:
-    bool canAdoptChild(Node* child);
+    QSet<NODE_KIND> getAcceptedNodeKinds() const;
 };
 
 #endif // CONTAINERNODE_H

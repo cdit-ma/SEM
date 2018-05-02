@@ -15,22 +15,14 @@ Model::Model(EntityFactory* factory) : Node(factory, NODE_KIND::MODEL, "Model"){
 Model::Model(): Node(NODE_KIND::MODEL)
 {
     setAsRoot(0);
+    setAcceptsNodeKind(NODE_KIND::INTERFACE_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::WORKER_DEFINITIONS);
 }
 
 bool Model::canAdoptChild(Node *child)
 {
-    switch(child->getNodeKind()){
-    case NODE_KIND::INTERFACE_DEFINITIONS:
-    case NODE_KIND::DEPLOYMENT_DEFINITIONS:
-    case NODE_KIND::BEHAVIOUR_DEFINITIONS:
-    case NODE_KIND::WORKER_DEFINITIONS:
-        break;
-    default:
-        return false;
-    }
-
-
-
     if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
         return false;
     }

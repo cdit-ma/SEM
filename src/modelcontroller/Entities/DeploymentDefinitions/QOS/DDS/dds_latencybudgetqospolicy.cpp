@@ -14,13 +14,3 @@ DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NODE_KIND::QOS_DDS
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_LatencyBudgetQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_LatencyBudgetQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

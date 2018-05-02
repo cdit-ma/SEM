@@ -11,7 +11,6 @@ namespace MEDEA{
         ClientPortInstance(EntityFactory* factory);
         ClientPortInstance();
     public:
-        bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };

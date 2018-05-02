@@ -10,9 +10,6 @@ class DDS_TimeBasedFilterQosPolicy: public Node
 protected:
 	DDS_TimeBasedFilterQosPolicy(EntityFactory* factory);
 	DDS_TimeBasedFilterQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_TIMEBASEDFILTERQOSPOLICY_H
 

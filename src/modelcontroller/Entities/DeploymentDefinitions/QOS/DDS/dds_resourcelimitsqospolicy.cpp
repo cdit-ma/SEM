@@ -15,13 +15,3 @@ DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy():Node(NODE_KIND::QOS_D
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_ResourceLimitsQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_ResourceLimitsQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

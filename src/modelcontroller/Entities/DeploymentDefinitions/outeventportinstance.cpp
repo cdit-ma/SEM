@@ -16,8 +16,3 @@ OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NODE_KIND::OUTEVE
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 }
-
-bool OutEventPortInstance::canAdoptChild(Node*)
-{
-    return false;
-}

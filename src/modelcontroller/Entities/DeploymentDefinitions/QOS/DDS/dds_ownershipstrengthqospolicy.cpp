@@ -13,13 +13,3 @@ DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy():Node(NODE_KIND:
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_OwnershipStrengthQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_OwnershipStrengthQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

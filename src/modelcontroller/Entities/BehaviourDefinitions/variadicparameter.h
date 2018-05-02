@@ -10,9 +10,6 @@ class VariadicParameter : public Parameter
 protected:
 	VariadicParameter(EntityFactory* factory);
 	VariadicParameter();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // VARIADICPARAMETER_H

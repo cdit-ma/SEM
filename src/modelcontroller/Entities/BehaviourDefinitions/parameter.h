@@ -17,8 +17,6 @@ public:
     bool isReturnParameter() const;
     bool isVariableParameter() const;
 
-
-    virtual bool canAdoptChild(Node *node);
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

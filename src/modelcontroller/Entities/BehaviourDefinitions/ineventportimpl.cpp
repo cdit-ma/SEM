@@ -14,6 +14,11 @@ InEventPortImpl::InEventPortImpl(EntityFactory* factory) : Node(factory, node_ki
 InEventPortImpl::InEventPortImpl() : Node(node_kind){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     addImplsDefinitionKind(NODE_KIND::INEVENTPORT);
+
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
 }
 
 
@@ -23,39 +28,13 @@ bool InEventPortImpl::canAdoptChild(Node *child)
     
     switch(child_node_kind){
         case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(getChildrenOfKind(child_node_kind, 0).size() >= 1){
+            if(getChildrenOfKind(child_node_kind, 0).size() > 0){
                 return false;
             }
             break;
         default:
-            if(!ContainerNode::canAdoptChild(child)){
-                return false;
-            }
+            break;
         }
     }
     return Node::canAdoptChild(child);
 }
-
-bool InEventPortImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-    case EDGE_KIND::DEFINITION:{
-        if(!dst->getImplementations().isEmpty()){
-            return false;
-        }
-        if(dst->getNodeKind() != NODE_KIND::INEVENTPORT){
-            return false;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-
-    return Node::canAcceptEdge(edge_kind, dst);
-}
-

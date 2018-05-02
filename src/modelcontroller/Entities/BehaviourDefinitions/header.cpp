@@ -17,15 +17,4 @@ Header::Header(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 };
 
 Header::Header():Node(node_kind){
-
-}
-
-bool Header::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool Header::canAcceptEdge(EDGE_KIND, Node*)
-{
-    return false;
 }

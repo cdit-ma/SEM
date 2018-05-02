@@ -15,6 +15,13 @@ MEDEA::ServerPortImpl::ServerPortImpl(): Node(node_kind)
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
     addImplsDefinitionKind(NODE_KIND::SERVER_PORT);
+
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+    
+    for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
 }
 
 
@@ -31,9 +38,7 @@ bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
             break;
         }
         default:
-            if(!ContainerNode::canAdoptChild(child)){
-                return false;
-            }
+            break;
     }
     return Node::canAdoptChild(child);
 }

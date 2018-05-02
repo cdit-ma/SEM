@@ -16,13 +16,3 @@ DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy():Node(NODE_K
 {
     setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
 }
-
-bool DDS_ReaderDataLifecycleQosPolicy::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool DDS_ReaderDataLifecycleQosPolicy::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}

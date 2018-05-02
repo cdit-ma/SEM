@@ -10,9 +10,6 @@ class DDS_LivelinessQosPolicy: public Node
 protected:
 	DDS_LivelinessQosPolicy(EntityFactory* factory);
 	DDS_LivelinessQosPolicy();
-public:
-    bool canAdoptChild(Node* node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_LIVELINESSQOSPOLICY_H
 

@@ -1,19 +1,17 @@
 #ifndef MEDEA_ELSE_CONDITION_H
 #define MEDEA_ELSE_CONDITION_H
 #include "../containernode.h"
+#include "../../InterfaceDefinitions/datanode.h"
 
 class EntityFactory;
 namespace MEDEA{
-    class ElseCondition: public Node, public ContainerNode
+    class ElseCondition: public DataNode, public ContainerNode
     {
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
         ElseCondition(EntityFactory* factory);
         ElseCondition();
-    public:
-        bool canAdoptChild(Node* child);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 

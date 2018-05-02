@@ -10,8 +10,6 @@ class InEventPortDelegate: public EventPortAssembly
 protected:
 	InEventPortDelegate(EntityFactory* factory);
 	InEventPortDelegate();
-public:
-    bool canAdoptChild(Node* child);
 };
 
 #endif // INEVENTPORTDELEGATE_H

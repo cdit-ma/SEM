@@ -11,12 +11,7 @@ InEventPortInstance::InEventPortInstance(EntityFactory* factory) : EventPortAsse
 InEventPortInstance::InEventPortInstance():EventPortAssembly(NODE_KIND::INEVENTPORT_INSTANCE)
 {
     addInstancesDefinitionKind(NODE_KIND::INEVENTPORT);
-
+    
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
-}
-
-bool InEventPortInstance::canAdoptChild(Node*)
-{
-    return false;
 }
