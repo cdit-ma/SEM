@@ -12,7 +12,7 @@ DataTableModel::DataTableModel(ViewItem *item)
 
     multiline_keys << "processes_to_log" << "code";
     icon_keys << "icon" << "icon_prefix";
-    ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
+    ignoredKeys << "x" << "y" << "width" << "height" << "readOnly";
     //ignoredKeys << "icon" << "icon_prefix";
     setupDataBinding();
 }

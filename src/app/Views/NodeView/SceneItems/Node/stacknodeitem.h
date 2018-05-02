@@ -20,19 +20,21 @@ public:
     QPointF GetGridAlignedTopLeft() const;
 
     void SetRenderCellArea(int row, int col, bool render, bool alt_body_color = false);
-    void SetRenderCellText(int row, int col, bool render, QString label = "");
-    void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "", QSize icon_size = QSize());
 
+    void SetRenderCellText(int row, int col, bool render, QString label = "");
+    
+    void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "");
     void SetRenderCellFirstIcon(int row, int col, QString icon_path, QString icon_name);
     void SetRenderCellLastIcon(int row, int col, QString icon_path, QString icon_name);
-    
     void SetRenderCellHoverIcons(int row, int col, QString icon_path, QString icon_name);
     
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
     void SetCellMargins(int row, int col, QMarginsF margins);
+    void SetCellMinimumSize(int row, int col, qreal width=0, qreal height=0);
 
     void childPosChanged(EntityItem* child);
+    void RecalculateCells();
 
 protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
@@ -50,7 +52,7 @@ private:
     void ChildIndexChanged(EntityItem* item);
     void ChildCountChanged();
     
-    void RecalculateCells();
+    
     
     QMarginsF getCellMargin(const CellIndex& index) const;
     qreal getDefaultCellSpacing() const;
@@ -73,21 +75,36 @@ private:
 
         bool render_rect = false;
         bool render_text = false;
-        bool render_icons = false;
+        bool render_first_icon = false;
+        bool render_last_icon = false;
+        bool render_all_icons = false;
+        
+        
 
         Qt::Orientation orientation;
         
         bool use_alt_color = false;
         StaticTextItem* text_item = 0;
+
         QPair<QString, QString> first_icon;
         QPair<QString, QString> last_icon;
         QPair<QString, QString> icon;
         QPair<QString, QString> hovered_icon;
         QSize icon_size;
 
+        qreal minimum_height = 0;
+        qreal minimum_width = 0;
 
         QMarginsF margin;
         qreal spacing;
+
+        bool render_icons(){
+            return render_all_icons || render_first_icon || render_last_icon;
+        }
+
+        bool render_always(){
+            return minimum_width > 0 || minimum_height > 0 || render_first_icon || render_last_icon;
+        }
     };
 
     struct CellIconRect{
@@ -100,6 +117,8 @@ private:
     struct Cell{
         CellIndex index;
         Qt::Orientation orientation;
+
+        bool allocated = false;
 
         QRectF bounding_rect;
         QRectF child_rect;

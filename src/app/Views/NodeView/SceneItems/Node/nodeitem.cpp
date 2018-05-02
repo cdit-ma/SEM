@@ -467,7 +467,7 @@ void NodeItem::setMinimumHeight(qreal height)
 void NodeItem::setExpandedWidth(qreal width)
 {
     //Limit by the size of all contained children.
-    qreal minWidth = childrenRect().right() - getMargin().left();// - getBodyPadding().left();// getBodyPadding().right();
+    qreal minWidth = childrenRect().right() - getMargin().left();
     //Can't shrink smaller than minimum
     minWidth = qMax(minWidth, modelWidth);
     minWidth = qMax(minWidth, minimumWidth);
@@ -482,8 +482,10 @@ void NodeItem::setExpandedWidth(qreal width)
         }
 
         expandedWidth = width;
+        qCritical() << "SETTING EXPANDED WIDTH TO: " << width;
 
         if(isExpanded()){
+            qCritical() << "UPDATING WIDTH: " << width;
             prepareGeometryChange();
             update();
             emit sizeChanged();
@@ -521,6 +523,7 @@ void NodeItem::setExpandedHeight(qreal height)
         if(height > modelHeight){
             modelHeight = -1;
         }
+        qCritical() << "SETTING EXPANDED HEIGHT TO: " << height;
         expandedHeight = height;
         if(isExpanded()){
             prepareGeometryChange();
@@ -700,10 +703,13 @@ void NodeItem::setExpanded(bool expand)
         EntityItem::setExpanded(expand);
 
         prepareGeometryChange();
-        //Hide/Show Children
-        foreach(EntityItem* child, getChildEntities()){
+
+        auto children = getChildEntities();
+
+        for(auto child : children){
             child->setVisible(isExpanded());
         }
+        
 
         update();
         emit sizeChanged();
@@ -878,7 +884,7 @@ void NodeItem::edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID
         case EDGE_KIND::QOS:
             update();
             break;
-    default:
+default:
         return;
     }
 }
@@ -942,6 +948,7 @@ void NodeItem::resizeToChildren()
 {
     setExpandedWidth(-1);
     setExpandedHeight(-1);
+    update();
 }
 
 int NodeItem::getVertexAngle(NodeItem::RectVertex vert) const

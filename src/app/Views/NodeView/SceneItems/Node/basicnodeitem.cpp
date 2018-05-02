@@ -210,7 +210,7 @@ void BasicNodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphic
             //Paint the Text Background
             if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
                 painter->setBrush(getBodyColor());
-                //painter->drawRect(bottomTextOutlineRect());
+                painter->drawRect(headerContent_Data_Secondary_Text() + QMarginsF(1,0,1,0));
             }
         }
     }

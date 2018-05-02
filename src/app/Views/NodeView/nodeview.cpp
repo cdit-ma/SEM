@@ -937,13 +937,16 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 secondary_icon.second = "pencil";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
-            case NODE_KIND::AGGREGATE:
-                nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
+            case NODE_KIND::AGGREGATE:{
+                auto stack_item  = new StackNodeItem(item, parentNode, Qt::Vertical);
+                nodeItem = stack_item;
                 
                 //Don't show icon
                 secondary_icon.second = "tiles";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                nodeItem->setSecondaryTextKey("namespace");
+                stack_item->setSecondaryIconPath(secondary_icon);
+                stack_item->setSecondaryTextKey("namespace");
+                
+            }
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -956,6 +959,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("class");
                 secondary_icon.second = "spanner";
                 nodeItem->setSecondaryIconPath(secondary_icon);
+
                 break;
             case NODE_KIND::MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -1161,12 +1165,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                         }else{
                             auto margin = stack_item->getDefaultCellMargin();
-                            margin.setRight(margin.right() * 2);
-                            margin.setLeft(margin.left() * 2);
+                            //margin.setRight(margin.right() * 2);
+                            //margin.setLeft(margin.left() * 2);
 
                             auto work_flow_margin = stack_item->getDefaultCellMargin();
-                            work_flow_margin.setRight(20);
-                            work_flow_margin.setLeft(20);
+                            //work_flow_margin.setRight(20);
+                            //work_flow_margin.setLeft(20);
 
                             stack_item->SetRenderCellArea(0, -1, true, true);
                             stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS");
@@ -1179,11 +1183,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetCellOrientation(0, 1, Qt::Vertical);
                             stack_item->SetCellMargins(0, 1, margin);
 
+                            stack_item->SetRenderCellArea(0, 0, true);//, true);
                             stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
+                            stack_item->SetCellMinimumSize(0, 0, 0, 10);
                             stack_item->SetCellMargins(0, 0, work_flow_margin);
 
                             if(small_style){
-                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowRightLong", QSize(8,8));
+                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowRightLong");
                                 stack_item->SetRenderCellFirstIcon(0, 0, "Icons", "arrowDownRightLong");
                                 stack_item->SetRenderCellLastIcon(0, 0, "Icons", "arrowRightLineLong");
                                 stack_item->SetRenderCellHoverIcons(0, 0, "Icons", "plus");
@@ -1209,7 +1215,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         stack_item->SetRenderCellText(1, 2, true, "Workers");
                         stack_item->SetCellSpacing(1, 2, 10);
                     }
+                }else{
+                    if(nodeKind == NODE_KIND::AGGREGATE){
+                        stack_item->SetRenderCellIcons(0, 0, false, "Icons", "plus");
+                        stack_item->SetRenderCellLastIcon(0, 0, "Icons", "plus");
+                        stack_item->SetRenderCellHoverIcons(0, 0, "Icons", "plus");
+                        
+                        stack_item->SetCellMinimumSize(0, 0, 0, 10);
+
+                        //auto margin = stack_item->getDefaultCellMargin();
+                        //margin.setBottom(margin.bottom() * 2);
+                        //stack_item->SetCellMargins(0, 0, margin);
+                    }
                 }
+
+                
 
                 
                 guiItems[ID] = nodeItem;
@@ -1226,6 +1246,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     topLevelGUIItemIDs.append(ID);
                     connect(nodeItem, &NodeItem::positionChanged, this, &NodeView::topLevelItemMoved);
                     connect(nodeItem, &NodeItem::sizeChanged, this, &NodeView::topLevelItemMoved);
+                }
+
+                if(stack_item){
+                    stack_item->RecalculateCells();
                 }
 
             }
