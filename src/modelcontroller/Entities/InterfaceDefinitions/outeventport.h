@@ -10,9 +10,6 @@ class OutEventPort : public EventPort
 protected:
 	OutEventPort(EntityFactory* factory);
 	OutEventPort();
-public:
-    bool canAdoptChild(Node *node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // OUTEVENTPORT_H

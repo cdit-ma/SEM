@@ -12,31 +12,16 @@ InterfaceDefinitions::InterfaceDefinitions(EntityFactory* factory) : Node(factor
 InterfaceDefinitions::InterfaceDefinitions(): Node(NODE_KIND::INTERFACE_DEFINITIONS)
 {
     setNodeType(NODE_TYPE::ASPECT);
+
+    setAcceptsNodeKind(NODE_KIND::ENUM);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE);
+    setAcceptsNodeKind(NODE_KIND::COMPONENT);
+    setAcceptsNodeKind(NODE_KIND::SHARED_DATATYPES);
+    setAcceptsNodeKind(NODE_KIND::NAMESPACE);
+    setAcceptsNodeKind(NODE_KIND::SERVER_INTERFACE);
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect() const
 {
     return VIEW_ASPECT::INTERFACES;
-}
-
-bool InterfaceDefinitions::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::IDL:
-    case NODE_KIND::ENUM:
-    case NODE_KIND::AGGREGATE:
-    case NODE_KIND::COMPONENT:
-    case NODE_KIND::SHARED_DATATYPES:
-    case NODE_KIND::NAMESPACE:
-    case NODE_KIND::SERVER_INTERFACE:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool InterfaceDefinitions::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
 }

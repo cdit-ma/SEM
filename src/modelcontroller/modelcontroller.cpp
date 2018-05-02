@@ -23,8 +23,6 @@
 
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
-#include "Entities/InterfaceDefinitions/datanode.h"
-#include "Entities/DeploymentDefinitions/eventportdelegate.h"
 
 inline QPair<bool, QString> readFile(QString filePath)
 {
@@ -2079,49 +2077,44 @@ bool ModelController::setupDefinitionRelationship2(Node* instance, Node* definit
 
     if(setup && isUserAction()){
         //Get our direct children of definitions
-        for(auto def_child : instance->getAdoptableNodes(definition)){
-            if(def_child->isDefinition()){
-                bool construct_dependant = true;
+        for(auto def_child : instance->getRequiredInstanceDefinitions()){
+            bool construct_dependant = true;
 
 
-                for(auto matching_dependant : get_matching_dependant_of_definition(instance, def_child)){
-                    construct_edge(EDGE_KIND::DEFINITION, matching_dependant, def_child);
+            for(auto matching_dependant : get_matching_dependant_of_definition(instance, def_child)){
+                construct_edge(EDGE_KIND::DEFINITION, matching_dependant, def_child);
 
-                    if(matching_dependant->getDefinition() == def_child){
-                        construct_dependant = false;
-                        break;
-                    }
+                if(matching_dependant->getDefinition() == def_child){
+                    construct_dependant = false;
+                    break;
+                }
+            }
+
+            if(construct_dependant){
+                QList<QSet<NODE_KIND> > dependant_kind_list;
+
+                if(construct_instance){
+                    dependant_kind_list.append(def_child->getInstanceKinds());
+                }else{
+                    dependant_kind_list.append(def_child->getImplKinds());
+                    dependant_kind_list.append(def_child->getInstanceKinds());
                 }
 
-                if(construct_dependant){
-                    QList<QSet<NODE_KIND> > dependant_kind_list;
-    
-                    if(construct_instance){
-                        dependant_kind_list.append(def_child->getInstanceKinds());
-                    }else{
-                        dependant_kind_list.append(def_child->getImplKinds());
-                        dependant_kind_list.append(def_child->getInstanceKinds());
-                    }
-
-                    
-                    for(auto &dependant_kinds : dependant_kind_list){
-                        bool got_node = false;    
-                        //Try Either
-                        for(auto kind : dependant_kinds){
-                            auto dependant_child = construct_connected_node(instance, kind, def_child, EDGE_KIND::DEFINITION);
-                            if(dependant_child){
-                                got_node = true;
-                                break;
-                            }
-                        }
-                        if(got_node){
+                
+                for(auto &dependant_kinds : dependant_kind_list){
+                    bool got_node = false;    
+                    //Try Either
+                    for(auto kind : dependant_kinds){
+                        auto dependant_child = construct_connected_node(instance, kind, def_child, EDGE_KIND::DEFINITION);
+                        if(dependant_child){
+                            got_node = true;
                             break;
                         }
                     }
+                    if(got_node){
+                        break;
+                    }
                 }
-            }else{
-                //Clone the node if its not a definition
-                cloneNode(def_child, instance);
             }
         }
     }
@@ -2385,16 +2378,14 @@ QSet<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
     Node* parent = entity_factory->GetNode(ID);
 
     //Ignore all children for read only kind.
-    if(parent && !parent->isReadOnly()){
-        if(parent->canConstructChildren()){
-            for(auto node_kind: getGUINodeKinds()){
-                auto temp_node = entity_factory->CreateTempNode(node_kind);
-                if(temp_node){
-                    if(parent->canAdoptChild(temp_node)){
-                        kinds << node_kind;
-                    }
-                    entity_factory->DestructEntity(temp_node);
+    if(parent){
+        for(auto node_kind: parent->getUserConstructableNodeKinds()){
+            auto temp_node = entity_factory->CreateTempNode(node_kind);
+            if(temp_node){
+                if(parent->canAdoptChild(temp_node)){
+                    kinds << node_kind;
                 }
+                entity_factory->DestructEntity(temp_node);
             }
         }
     }

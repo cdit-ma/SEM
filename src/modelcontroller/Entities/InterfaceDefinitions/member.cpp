@@ -27,12 +27,6 @@ Member::Member(): DataNode(NODE_KIND::MEMBER)
     addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 }
 
-
-bool Member::canAdoptChild(Node*)
-{
-    return false;
-}
-
 void Member::parentSet(Node* parent){
     AggregateInstance::ParentSet(this);
     DataNode::parentSet(parent);

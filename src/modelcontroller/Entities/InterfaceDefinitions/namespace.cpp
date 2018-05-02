@@ -15,6 +15,7 @@ Namespace::Namespace(EntityFactory* factory) : Node(factory, node_kind, kind_str
 
 Namespace::Namespace(): Node(node_kind)
 {
+
 }
 
 
@@ -75,4 +76,14 @@ void Namespace::childAdded(Node* child){
 void Namespace::childRemoved(Node* child){
     Node::childRemoved(child);
     Namespace::BindNamespace(this, child, false);
+}
+
+void Namespace::parentSet(Node* parent){
+    //Allow my parents types
+    for(auto node_kind : parent->getAcceptedNodeKinds()){
+        setAcceptsNodeKind(node_kind);
+    }
+    
+    setAcceptsNodeKind(NODE_KIND::SHARED_DATATYPES, false);
+    Node::parentSet(this);
 }

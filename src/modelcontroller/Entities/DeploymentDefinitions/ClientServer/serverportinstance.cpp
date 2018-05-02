@@ -14,6 +14,7 @@ MEDEA::ServerPortInstance::ServerPortInstance(): Node(node_kind)
 {
     addInstancesDefinitionKind(NODE_KIND::SERVER_PORT);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
+    
 }
 
 
@@ -43,9 +44,4 @@ bool MEDEA::ServerPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
         break;
     }
     return Node::canAcceptEdge(edge_kind, dst);
-}
-
-
-QList<Node*> MEDEA::ServerPortInstance::getAdoptableNodes(Node* definition){
-    return QList<Node*>();
 }

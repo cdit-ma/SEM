@@ -1,6 +1,6 @@
 #ifndef INEVENTPORTINSTANCE_H
 #define INEVENTPORTINSTANCE_H
-#include "eventportdelegate.h"
+#include "eventportassembly.h"
 
 class EntityFactory;
 class InEventPortInstance : public EventPortAssembly

@@ -16,20 +16,11 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
 {
     addInstancesDefinitionKind(NODE_KIND::AGGREGATE);
     setChainableDefinition();
-}
 
-bool AggregateInstance::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::MEMBER_INSTANCE:
-    case NODE_KIND::VECTOR_INSTANCE:
-        break;
-    default:
-        return false;
-    }
-    return DataNode::canAdoptChild(child);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
 }
 
 bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
@@ -37,6 +28,7 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
+
     switch(edge_kind){
     case EDGE_KIND::DATA:{        //Can only connect to an AggregateInstance.
         if(dst->getNodeKind() == NODE_KIND::AGGREGATE_INSTANCE){
@@ -45,7 +37,6 @@ bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 return false;
             }
         }
-
         break;
     }
     

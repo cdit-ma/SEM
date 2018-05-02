@@ -11,9 +11,6 @@ protected:
 	Member(EntityFactory* factory);
 	Member();
     void parentSet(Node* parent);
-
-public:
-    bool canAdoptChild(Node* child);
 };
 
 #endif // MEMBER_H

@@ -22,24 +22,18 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 
     addInstancesDefinitionKind(NODE_KIND::VECTOR);
     setChainableDefinition();
+
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)
 {
-    //Can only adopt a MemberInstance/AggregateInstance
-    switch(child->getNodeKind()){
-    case NODE_KIND::MEMBER_INSTANCE:
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::AGGREGATE_INSTANCE:{
-        if(hasChildren()){
-            return false;
-        }
-        break;
-    }
-    default:
+   
+    if(hasChildren()){
         return false;
     }
-
     return Node::canAdoptChild(child);
 }
 

@@ -15,19 +15,10 @@ MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(): Node(node_kin
 {
     addInstancesDefinitionKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setChainableDefinition();
-}
 
-
-bool MEDEA::InputParameterGroupInstance::canAdoptChild(Node* child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::MEMBER_INSTANCE:
-    case NODE_KIND::VECTOR_INSTANCE:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 }

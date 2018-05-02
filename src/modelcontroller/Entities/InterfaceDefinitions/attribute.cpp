@@ -14,13 +14,3 @@ Attribute::Attribute() : Node(node_kind)
     addInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 }
-
-bool Attribute::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool Attribute::canAcceptEdge(EDGE_KIND, Node *dst)
-{
-    return false;
-}

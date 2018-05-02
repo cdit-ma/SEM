@@ -12,14 +12,3 @@ OutEventPort::OutEventPort():EventPort(NODE_KIND::OUTEVENTPORT)
 	addImplKind(NODE_KIND::OUTEVENTPORT_IMPL);
 	addInstanceKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
 }
-
-bool OutEventPort::canAdoptChild(Node *child)
-{
-    return EventPort::canAdoptChild(child);
-}
-
-bool OutEventPort::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return EventPort::canAcceptEdge(edgeKind, dst);
-}
-

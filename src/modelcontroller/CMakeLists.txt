@@ -58,7 +58,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarenode.cpp
@@ -227,7 +227,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarenode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportdelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinstance.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.h

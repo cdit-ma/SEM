@@ -1,4 +1,4 @@
-#include "eventportdelegate.h"
+#include "eventportassembly.h"
 
 #include "../../edgekinds.h"
 #include <QDebug>
@@ -28,6 +28,7 @@ EventPortAssembly::EventPortAssembly(NODE_KIND kind): EventPort(kind)
 
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
+    SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
 }
 
 bool EventPortAssembly::isInPortDelegate() const
@@ -169,9 +170,4 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         break;
     }
     return EventPort::canAcceptEdge(edge_kind, dst);
-}
-
-
-QList<Node*> EventPortAssembly::getAdoptableNodes(Node*){
-    return QList<Node*>();
 }

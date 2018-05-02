@@ -14,6 +14,8 @@ MEDEA::ClientPortInstance::ClientPortInstance(): Node(node_kind)
 {
     addInstancesDefinitionKind(NODE_KIND::CLIENT_PORT);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
+
+    SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
 }
 
 
@@ -52,8 +54,4 @@ bool MEDEA::ClientPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
         break;
     }
     return Node::canAcceptEdge(edge_kind, dst);
-}
-
-QList<Node*> MEDEA::ClientPortInstance::getAdoptableNodes(Node* definition){
-    return QList<Node*>();
 }

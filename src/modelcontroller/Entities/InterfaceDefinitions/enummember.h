@@ -9,9 +9,6 @@ class EnumMember : public DataNode
 protected:
 	EnumMember(EntityFactory* factory);
 	EnumMember();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif //ENUMMEMBER_H

@@ -20,11 +20,6 @@ EnumInstance::EnumInstance():DataNode(NODE_KIND::ENUM_INSTANCE)
     setChainableDefinition();
 }
 
-bool EnumInstance::canAdoptChild(Node* child)
-{
-    return false;
-}
-
 bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 {
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){

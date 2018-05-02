@@ -16,28 +16,13 @@ Component::Component():Node(NODE_KIND::COMPONENT)
 {
     addInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
     addImplKind(NODE_KIND::COMPONENT_IMPL);
-}
 
-bool Component::canAdoptChild(Node *child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::ATTRIBUTE:
-    case NODE_KIND::INEVENTPORT:
-    case NODE_KIND::OUTEVENTPORT:
-    case NODE_KIND::SERVER_PORT:
-    case NODE_KIND::CLIENT_PORT:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
+    setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);
+    setAcceptsNodeKind(NODE_KIND::INEVENTPORT);
+    setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT);
+    setAcceptsNodeKind(NODE_KIND::SERVER_PORT);
+    setAcceptsNodeKind(NODE_KIND::CLIENT_PORT);
 }
-
-bool Component::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}
-
 
 void Component::DataAdded(Data* data){
     Node::DataAdded(data);

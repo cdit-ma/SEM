@@ -11,7 +11,6 @@ protected:
 	EnumInstance(EntityFactory* factory);
 	EnumInstance();
 public:
-    bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

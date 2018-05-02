@@ -10,9 +10,6 @@ class Attribute : public Node
 protected:
 	Attribute(EntityFactory* factory);
 	Attribute();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // ATTRIBUTE_H

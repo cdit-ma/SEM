@@ -10,7 +10,6 @@ namespace MEDEA{
     protected:
         ClientPortInstance(EntityFactory* factory);
         ClientPortInstance();
-        QList<Node*> getAdoptableNodes(Node* definition);
     public:
         bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

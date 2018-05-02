@@ -11,7 +11,6 @@ DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : N
 
 DataNode::DataNode(NODE_KIND kind):Node(kind)
 {
-    
     setNodeType(NODE_TYPE::DATA);
 }
 

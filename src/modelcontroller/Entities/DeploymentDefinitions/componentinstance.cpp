@@ -37,22 +37,17 @@ bool ComponentInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-#include <QDebug>
 
-QList<Node*> ComponentInstance::getAdoptableNodes(Node* definition){
-    //Get the base nodes first
-    QList<Node*> adoptable_nodes = Node::getAdoptableNodes(definition);
-
-    //ComponentInstance should adopt from the definitions Implementations
+QSet<Node*> ComponentInstance::getListOfValidAncestorsForChildrenDefinitions(){
+    QSet<Node*> valid_ancestors = Node::getListOfValidAncestorsForChildrenDefinitions();
+    
+    //We can create definition edges back to the Definition, and to things contained within our Implementation.
+    auto definition = getDefinition(true);
     if(definition){
         for(auto impl : definition->getImplementations()){
-            for(auto child : impl->getChildren(0)){
-                if(child->isDefinition()){
-                    adoptable_nodes << child;
-                }
-            }
+            valid_ancestors << impl;
         }
     }
 
-    return adoptable_nodes;
+    return valid_ancestors;
 }

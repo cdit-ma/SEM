@@ -15,13 +15,3 @@ EnumMember::EnumMember():DataNode(NODE_KIND::ENUM_MEMBER)
     setPromiscuousDataLinker(true);
     setDataProducer(true);
 }
-
-bool EnumMember::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool EnumMember::canAcceptEdge(EDGE_KIND kind, Node *dst)
-{
-    return DataNode::canAcceptEdge(kind, dst);
-}

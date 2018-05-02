@@ -24,21 +24,16 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
     setDataReceiver(true);
 
     addInstanceKind(NODE_KIND::VECTOR_INSTANCE);   
+
+    setAcceptsNodeKind(NODE_KIND::MEMBER);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
 }
 
 
 bool Vector::canAdoptChild(Node *child)
 {
-    //Can Only adopt 1x Member/AggregateInstance
-    switch(child->getNodeKind()){
-    case NODE_KIND::MEMBER:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::ENUM_INSTANCE:
-        if(hasChildren()){
-            return false;
-        }
-        break;
-    default:
+    if(hasChildren()){
         return false;
     }
     return Node::canAdoptChild(child);

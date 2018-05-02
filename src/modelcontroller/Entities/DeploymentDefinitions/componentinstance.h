@@ -10,9 +10,9 @@ class ComponentInstance : public Node
 protected:
 	ComponentInstance(EntityFactory* factory);
 	ComponentInstance();
+    QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() override;
 public:
     bool canAdoptChild(Node* child);
-    QList<Node*> getAdoptableNodes(Node* definition);
 };
 
 #endif // COMPONENTINSTANCE_H

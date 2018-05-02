@@ -10,9 +10,6 @@ class VoidType : public Node
 protected:
 	VoidType(EntityFactory* factory);
 	VoidType();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // VOIDTYPE_H

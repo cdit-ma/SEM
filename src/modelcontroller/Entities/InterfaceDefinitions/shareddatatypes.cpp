@@ -12,17 +12,7 @@ SharedDatatypes::SharedDatatypes(EntityFactory* factory) : Node(factory, NODE_KI
 
 SharedDatatypes::SharedDatatypes(): Node(NODE_KIND::SHARED_DATATYPES)
 {
-}
-
-bool SharedDatatypes::canAdoptChild(Node *item)
-{
-    switch(item->getNodeKind()){
-    case NODE_KIND::AGGREGATE:
-    case NODE_KIND::ENUM:
-    case NODE_KIND::NAMESPACE:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(item);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE);
+    setAcceptsNodeKind(NODE_KIND::ENUM);
+    setAcceptsNodeKind(NODE_KIND::NAMESPACE);
 }
