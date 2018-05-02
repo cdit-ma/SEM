@@ -12,9 +12,6 @@ protected:
 	InterfaceDefinitions();
 public:
     VIEW_ASPECT getViewAspect() const;
-
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INTERFACEDEFINITIONC_H

@@ -10,8 +10,6 @@ namespace MEDEA{
     protected:
         InputParameterGroupInstance(EntityFactory* factory);
         InputParameterGroupInstance();
-    public:
-        bool canAdoptChild(Node* child);
     };
 };
 

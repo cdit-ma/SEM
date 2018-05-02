@@ -28,8 +28,6 @@ public:
 
     virtual bool canAdoptChild(Node*);
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-
-    QList<Node*> getAdoptableNodes(Node* definition);
 };
 
 #endif // EVENTPORTDELEGATE_H

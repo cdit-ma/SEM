@@ -14,6 +14,7 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     aggregate = 0;
     setNodeType(NODE_TYPE::EVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 }
 
 bool EventPort::isInPort() const
@@ -62,12 +63,7 @@ bool EventPort::canAdoptChild(Node *child)
     if(hasChildren()){
         return false;
     }
-
-    //Can only adopt AggregateInstances
-    if(child->getNodeKind() != NODE_KIND::AGGREGATE_INSTANCE){
-        return false;
-    }
-
+    
     return Node::canAdoptChild(child);
 }
 

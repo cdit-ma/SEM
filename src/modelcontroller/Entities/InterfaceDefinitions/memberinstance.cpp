@@ -16,12 +16,6 @@ MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
     setChainableDefinition();
 }
 
-
-bool MemberInstance::canAdoptChild(Node*)
-{
-    return false;
-}
-
 void MemberInstance::parentSet(Node* parent){
     AggregateInstance::ParentSet(this);
     DataNode::parentSet(parent);

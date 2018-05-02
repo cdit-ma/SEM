@@ -11,15 +11,5 @@ VoidType::VoidType(EntityFactory* factory) : Node(factory, node_kind, kind_strin
 
 VoidType::VoidType(): Node(node_kind)
 {
-}
-
-
-bool VoidType::canAdoptChild(Node*)
-{
-    return false;
-}
-
-bool VoidType::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
+    setChainableDefinition();
 }

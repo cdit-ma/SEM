@@ -16,22 +16,8 @@ Enum::Enum(EntityFactory* factory) : Node(factory, NODE_KIND::ENUM, "Enum"){
 Enum::Enum():Node(NODE_KIND::ENUM)
 {
     addInstanceKind(NODE_KIND::ENUM_INSTANCE);
-}
 
-bool Enum::canAdoptChild(Node* child)
-{
-    switch(child->getNodeKind()){
-    case NODE_KIND::ENUM_MEMBER:
-        break;
-    default:
-        return false;
-    }
-    return Node::canAdoptChild(child);
-}
-
-bool Enum::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
+    setAcceptsNodeKind(NODE_KIND::ENUM_MEMBER);
 }
 
 void Enum::DataAdded(Data* data){

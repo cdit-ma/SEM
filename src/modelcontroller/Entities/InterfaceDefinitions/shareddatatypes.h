@@ -10,8 +10,6 @@ class SharedDatatypes : public Node
 protected:
 	SharedDatatypes(EntityFactory* factory);
 	SharedDatatypes();
-public:
-    bool canAdoptChild(Node* child);
 };
 
 #endif // IDL_H

@@ -19,7 +19,7 @@ protected:
     void childAdded(Node* child);
     void childRemoved(Node* child);
     static void BindNamespace(Node* parent, Node* child, bool bind);
-    
+    void parentSet(Node* parent);
 };
 
 #endif // NAMESPACE_H

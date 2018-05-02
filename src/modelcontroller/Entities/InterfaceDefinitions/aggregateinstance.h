@@ -12,7 +12,6 @@ protected:
 	AggregateInstance();
     void parentSet(Node* parent);
 public:
-    bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 public:
     static void ParentSet(DataNode* child);

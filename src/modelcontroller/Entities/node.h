@@ -23,7 +23,8 @@ class Node : public Entity
     public:
         enum class EdgeRule{
             MIRROR_PARENT_DEFINITION_HIERARCHY,
-            REQUIRE_NO_DEFINITION
+            REQUIRE_NO_DEFINITION,
+            IGNORE_REQUIRED_INSTANCE_DEFINITIONS
         };
 
     
@@ -76,8 +77,11 @@ class Node : public Entity
         QSet<NODE_KIND> getDefinitionKinds() const;
         QSet<NODE_KIND> getImplKinds() const;
 
-        virtual QList<Node*> getAdoptableNodes(Node* definition);
+        
         virtual QSet<Node*> getDependants() const;
+
+        QList<Node*> getRequiredInstanceDefinitions();
+        virtual QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
 
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);
@@ -244,6 +248,16 @@ private:
 
 
     QSet<NODE_TYPE> types;
+public:
+    QSet<NODE_KIND> getAcceptedNodeKinds() const;
+protected:
+    void setAcceptsNodeKind(NODE_KIND node_kind, bool accept = true);
+    bool canAcceptNodeKind(NODE_KIND node_kind) const;
+    bool canAcceptNodeKind(const Node* node) const;
+public:
+    virtual QSet<NODE_KIND> getUserConstructableNodeKinds() const;
+private:
+    QSet<NODE_KIND> accepted_node_kinds_;
     
     QSet<EDGE_KIND> accepted_edge_kinds_as_source_;
     QSet<EDGE_KIND> accepted_edge_kinds_as_target_;

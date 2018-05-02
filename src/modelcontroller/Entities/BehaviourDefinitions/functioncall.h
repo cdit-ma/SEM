@@ -12,7 +12,8 @@ public:
 
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 	bool canAdoptChild(Node* child);
-	QList<Node*> getAdoptableNodes(Node* definition);
+protected:
+	QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() override;
 };
 
 #endif // FUNCTIONCALL_H

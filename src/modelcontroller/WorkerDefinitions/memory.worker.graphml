@@ -23,7 +23,7 @@
     <graph id="G">
         <node id="memoryworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Memory_Worker</data>
             <data key="label">Memory Worker</data>
             <data key="description">Provides memory (RAM) functionality.</data>
@@ -42,14 +42,20 @@
                     <data key="description">Allocates n bytes of memory.</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="memoryworker::allocate:">
-                        <node id="memoryworker::allocate::kilobytes">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Kilobytes</data>
-                            <data key="type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">memoryCard</data>
-                            <data key="description">The number of bytes to allocate.</data>
+                        <node id="memoryworker::allocate::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="memoryworker::allocate::in:">
+                                <node id="memoryworker::allocate::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of bytes to allocate.</data>
+                                </node>
+                            </graph>
                         </node>
+                        
                     </graph>
                 </node>
                 <node id="memoryworker::deallocate">
@@ -64,13 +70,18 @@
                     <data key="description">Deallocates n kilobytes of memory.</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="memoryworker::deallocate:">
-                        <node id="memoryworker::deallocate::kilobytes">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Kilobytes</data>
-                            <data key="type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">memoryCard</data>
-                            <data key="description">The number of kilobytes to deallocate.</data>
+                        <node id="memoryworker::deallocate::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="memoryworker::deallocate::in:">
+                                <node id="memoryworker::deallocate::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of kilobytes to deallocate.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -86,13 +97,18 @@
                     <data key="description">Returns the number of kilobytes of memory currently allocated..</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="memoryworker::getallocated:">
-                        <node id="memoryworker::getallocated::kilobytes">
-                            <data key="kind">ReturnParameter</data>
-                            <data key="label">Kilobytes</data>
-                            <data key="type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">memoryCard</data>
-                            <data key="description">The number of kilobytes of allocated memory.</data>
+                        <node id="memoryworker::getAllocated::in">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="memoryworker::getAllocated::out:">
+                                <node id="memoryworker::getallocated::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of kilobytes of allocated memory.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>

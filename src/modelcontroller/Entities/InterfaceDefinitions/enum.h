@@ -14,9 +14,6 @@ protected:
 
     void childAdded(Node* child);
     void childRemoved(Node* child);
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif //ENUM_H

@@ -129,6 +129,17 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     switch(edge_kind){
         case EDGE_KIND::DEFINITION:{
 
+            auto parent_node = getParentNode();
+
+
+            if(!parent_node->isInstanceImpl()){
+                //Only allow edges to things which don't have a definition
+                if(dst->getDefinition()){
+                    return false;
+                }
+            }
+
+
         if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
             auto node_kind = getNodeKind();
             auto dst_node_kind = dst->getNodeKind();
@@ -153,28 +164,23 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
             is contained within our parent's Definition/Implementations
             */
             if(parentNode && parentNode->isInstanceImpl()){
-                
-                QList<Node*> valid_ancestors;
-                auto parent_definition = parentNode->getDefinition();
-                if(parent_definition){
-                    valid_ancestors << parent_definition;
-                    valid_ancestors << parent_definition->getImplementations();
-                }
+                auto valid_ancestors = parentNode->getListOfValidAncestorsForChildrenDefinitions();
                 
                 bool is_descendant = false;
                 for(auto ancestor : valid_ancestors){
-                    if(ancestor->isAncestorOf(dst)){
+                    if(dst->getParentNode() == ancestor){
                         is_descendant = true;
                         break;
                     }
                 }
-
+                
                 if(!is_descendant && valid_ancestors.size() > 0){
                     return false;
                 }
             }
         }
 
+       
         /*if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
             /*
             When this isn't contained within and instance or impl
@@ -355,6 +361,10 @@ bool Node::canAdoptChild(Node *node)
     if(!node){
         return false;
     }
+
+    /*if(!canAcceptNodeKind(node)){
+        return false;
+    }*/
 
     //Check for Cyclic contains.
     if(node == this){
@@ -1313,13 +1323,15 @@ void Node::BindDataRelationship(Node* source, Node* destination, bool setup){
     }
 }
 
-QList<Node*> Node::getAdoptableNodes(Node* definition){
+QList<Node*> Node::getRequiredInstanceDefinitions(){
+    //Get the list of definitions, contained within valid ancestors, we should try and make instances of
     QList<Node*> adoptable_nodes;
-
-    if(definition){
-        for(auto child : definition->getChildren(0)){
-            if(child->isDefinition()){
-                adoptable_nodes << child;
+    if(!IsEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS)){
+        for(auto valid_ancestor : getListOfValidAncestorsForChildrenDefinitions()){
+            for(auto child : valid_ancestor->getChildren(0)){
+                if(child->isDefinition()){
+                    adoptable_nodes << child;
+                }
             }
         }
     }
@@ -1512,4 +1524,45 @@ QSet<EDGE_KIND> Node::getAcceptedEdgeKind(EDGE_DIRECTION direction) const{
 
 NODE_KIND Node::getParentNodeKind() const{
     return parent_node_kind;
+}
+
+
+QSet<Node*> Node::getListOfValidAncestorsForChildrenDefinitions(){
+    QSet<Node*> valid_ancestors;
+
+    if(getDefinition()){
+        valid_ancestors << getDefinition();
+    }
+
+    return valid_ancestors;
+}
+
+void Node::setAcceptsNodeKind(NODE_KIND node_kind, bool accept){
+    if(accept){
+        accepted_node_kinds_.insert(node_kind);
+    }else{
+        accepted_node_kinds_.remove(node_kind);
+    }
+}
+
+QSet<NODE_KIND> Node::getAcceptedNodeKinds() const{
+    return accepted_node_kinds_;
+}
+
+bool Node::canAcceptNodeKind(NODE_KIND node_kind) const{
+    return accepted_node_kinds_.contains(node_kind);
+}
+
+bool Node::canAcceptNodeKind(const Node* node) const{
+    return canAcceptNodeKind(node ? node->getNodeKind() : NODE_KIND::NONE);
+}
+
+QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
+    QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
+
+    //If i am an instance nothing should be cosntructable
+    if(isInstance() || isReadOnly()){
+        node_kinds.clear();
+    }
+    return node_kinds;
 }

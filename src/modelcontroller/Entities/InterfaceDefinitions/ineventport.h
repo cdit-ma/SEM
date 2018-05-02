@@ -10,9 +10,6 @@ class InEventPort : public EventPort
 protected:
 	InEventPort(EntityFactory* factory);
 	InEventPort();
-public:
-    bool canAdoptChild(Node *node);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INEVENTPORT_H

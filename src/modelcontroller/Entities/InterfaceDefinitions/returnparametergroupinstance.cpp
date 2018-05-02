@@ -15,20 +15,16 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(): Node(node_k
 {
     addInstancesDefinitionKind(NODE_KIND::RETURN_PARAMETER_GROUP);
     setChainableDefinition();
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 }
 
 
 bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::MEMBER_INSTANCE:
-    case NODE_KIND::VECTOR_INSTANCE:
-        break;
-    default:
-        return false;
-    }
     if(childrenCount() > 0 ){
         return false;
     }

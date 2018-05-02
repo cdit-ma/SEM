@@ -88,19 +88,14 @@ bool FunctionCall::canAdoptChild(Node* child)
     return Node::canAdoptChild(child);
 }
 
-
-QList<Node*> FunctionCall::getAdoptableNodes(Node* definition){
-    //The only things we need to adopt in a FunctionCall is all of the Parameters from the top level definition of the WorkerFunction
-    QList<Node*> adoptable_nodes;
+QSet<Node*> FunctionCall::getListOfValidAncestorsForChildrenDefinitions(){
+    QSet<Node*> valid_ancestors;
+    
+    //We can create definition edges back to the recursive Definition only, because of the fact the instances are sparse
+    auto definition = getDefinition(true);
     if(definition){
-        auto top_definition = definition->getDefinition(true);
-        if(top_definition){
-            for(auto child : top_definition->getChildren(0)){
-                if(child->isDefinition()){
-                    adoptable_nodes << child;
-                }
-            }
-        }
+        valid_ancestors << definition;
     }
-    return adoptable_nodes;
+
+    return valid_ancestors;
 }

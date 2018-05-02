@@ -21,34 +21,12 @@ Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
 {
     addInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
+
+    setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::MEMBER);
+    setAcceptsNodeKind(NODE_KIND::VECTOR);
 }
-
-bool Aggregate::canAdoptChild(Node *child)
-{
-    if(!child){
-        return false;
-    }
-
-    NODE_KIND kind = child->getNodeKind();
-
-    switch(kind){
-    case NODE_KIND::ENUM_INSTANCE:
-    case NODE_KIND::AGGREGATE_INSTANCE:
-    case NODE_KIND::MEMBER:
-    case NODE_KIND::VECTOR:
-        break;
-    default:
-        return false;
-    }
-
-    return Node::canAdoptChild(child);
-}
-
-bool Aggregate::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
-}
-
 
 
 void Aggregate::DataAdded(Data* data){
