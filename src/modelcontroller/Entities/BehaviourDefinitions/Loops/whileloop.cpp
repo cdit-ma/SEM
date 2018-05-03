@@ -1,5 +1,5 @@
 #include "whileloop.h"
-
+#include "../containernode.h"
 const NODE_KIND node_kind = NODE_KIND::WHILE_LOOP;
 const QString kind_string = "WhileLoop";
 
@@ -10,6 +10,7 @@ MEDEA::WhileLoop::WhileLoop(EntityFactory* factory) : Node(factory, node_kind, k
 
 MEDEA::WhileLoop::WhileLoop():Node(NODE_KIND::WHILE_LOOP){
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 
     setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
     

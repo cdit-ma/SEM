@@ -5,7 +5,7 @@
 
 class EntityFactory;
 namespace MEDEA{
-    class IfCondition: public DataNode, public ContainerNode
+    class IfCondition: public DataNode
     {
         friend class ::EntityFactory;
         Q_OBJECT

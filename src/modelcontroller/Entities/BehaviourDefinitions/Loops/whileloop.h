@@ -1,11 +1,11 @@
 #ifndef MEDEA_WHILELOOP_H
 #define MEDEA_WHILELOOP_H
 
-#include "../containernode.h"
+#include "../../node.h"
 
 class EntityFactory;
 namespace MEDEA{
-    class WhileLoop: public Node, public ContainerNode
+    class WhileLoop: public Node
     {
         friend class ::EntityFactory;
         Q_OBJECT

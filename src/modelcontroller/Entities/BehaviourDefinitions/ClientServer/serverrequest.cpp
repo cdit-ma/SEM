@@ -13,9 +13,12 @@ MEDEA::ServerRequest::ServerRequest(EntityFactory* factory) : Node(factory, node
 MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
 {
     addImplsDefinitionKind(NODE_KIND::CLIENT_PORT);
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 
     //Allow links from within things like InEventPortImpls back to the
-    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
+    //SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
+    SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
+    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
@@ -58,4 +61,25 @@ bool MEDEA::ServerRequest::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
         break;
     }
     return Node::canAcceptEdge(edge_kind, dst);
+}
+
+QSet<Node*> MEDEA::ServerRequest::getParentNodesForValidDefinition(){
+    QSet<Node*> parents;
+    //Need to look at The Component's defintion
+    auto component = getTopBehaviourContainer();
+    if(component){
+        auto component_definition = component->getDefinition(true);
+        if(component_definition){
+            parents << component_definition;
+        }
+    }
+    return parents;
+}
+
+Node* MEDEA::ServerRequest::getTopBehaviourContainer(){
+    if(!top_behaviour_calculated){
+        top_behaviour_container = ContainerNode::getTopBehaviourContainer(this);
+        top_behaviour_calculated = true;
+    }
+    return top_behaviour_container;
 }

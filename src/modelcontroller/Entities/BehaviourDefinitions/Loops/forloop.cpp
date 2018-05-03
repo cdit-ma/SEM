@@ -1,5 +1,5 @@
 #include "forloop.h"
-
+#include "../containernode.h"
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
 const QString kind_string = "ForLoop";
 
@@ -10,6 +10,7 @@ MEDEA::ForLoop::ForLoop(EntityFactory* factory) : Node(factory, node_kind, kind_
 };
 
 MEDEA::ForLoop::ForLoop():Node(node_kind){
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
     setAcceptsNodeKind(NODE_KIND::VARIABLE_PARAMETER);

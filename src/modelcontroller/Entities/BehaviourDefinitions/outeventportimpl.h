@@ -10,8 +10,14 @@ class OutEventPortImpl : public Node
 protected:
 	OutEventPortImpl(EntityFactory* factory);
 	OutEventPortImpl();
+
+    QSet<Node*> getParentNodesForValidDefinition() override;
 public:
     bool canAdoptChild(Node* child);
+private:
+    Node* getTopBehaviourContainer();
+    bool top_behaviour_calculated = false;
+    Node* top_behaviour_container = 0;
 };
 
 #endif // OUTEVENTPORTIMPL_H

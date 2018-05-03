@@ -16,7 +16,7 @@ MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
     addInstancesDefinitionKind(NODE_KIND::CLASS);
     setChainableDefinition();
     
-    SetEdgeRuleActive(Node::EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
+    SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);

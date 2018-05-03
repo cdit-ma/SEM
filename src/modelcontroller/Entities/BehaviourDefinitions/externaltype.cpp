@@ -1,5 +1,5 @@
 #include "externaltype.h"
-
+#include "containernode.h"
 #include "../edge.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
@@ -33,7 +33,7 @@ bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 return false;
             }
 
-            auto container = getTopLevelContainer();
+            auto container = getTopBehaviourContainer();
             auto dst_parent = dst->getParentNode();
 
             if(dst_parent->getNodeKind() != NODE_KIND::CLASS){
@@ -65,19 +65,10 @@ bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     return Node::canAcceptEdge(edge_kind, dst);
 }
 
-Node* MEDEA::ExternalType::getTopLevelContainer(){
-    if(!top_level_calculated){
-        Node* container_node = 0;
-
-        for(auto parent_node : getParentNodes(-1)){
-            if(parent_node->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
-                container_node = parent_node;
-            }
-        }
-
-        
-        top_level_container = container_node;
-        top_level_calculated = true;
+Node* MEDEA::ExternalType::getTopBehaviourContainer(){
+    if(!top_behaviour_calculated){
+        top_behaviour_container = ContainerNode::getTopBehaviourContainer(this);
+        top_behaviour_calculated = true;
     }
-    return top_level_container;
+    return top_behaviour_container;
 }

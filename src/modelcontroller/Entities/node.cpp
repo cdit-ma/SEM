@@ -25,8 +25,8 @@ Node::Node(NODE_KIND node_kind):Entity(GRAPHML_KIND::NODE)
     aspect = VIEW_ASPECT::NONE;
 
     
-    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY);
-    SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION);
+    //SetEdgeRuleActive(EdgeRule::ALWAYS_CGHE, true);
+    //SetEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, false);
 }
 
 
@@ -156,38 +156,39 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 }
             }
 
+            //auto should_mirror = IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION);
+            //auto allow_external = IsEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
 
-        if(IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY)){
+            
+
+
+
+        //if(){
             /*
             When this is contained within and instance or impl
             we should check that the dst we are connecting to (AKA Using as this's definition)
-            is contained within our parent's Definition/Implementations
+            is contained with in a valid definition
             */
-            if(parentNode && parentNode->isInstanceImpl()){
-                auto valid_ancestors = parentNode->getListOfValidAncestorsForChildrenDefinitions();
-                
-                bool is_descendant = false;
-                for(auto ancestor : valid_ancestors){
-                    if(dst->getParentNode() == ancestor){
-                        is_descendant = true;
-                        break;
+            auto check_valid_definitions = parentNode && parentNode->getDefinition();
+
+            if(check_valid_definitions || IsEdgeRuleActive(EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS)){
+
+                auto allow_external  = IsEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
+
+                if(!allow_external){
+                    bool is_child = false;
+                    for(auto parent : getParentNodesForValidDefinition()){
+                        if(dst->getParentNode() == parent){
+                            is_child = true;
+                            break;
+                        }
+                    }
+                    
+                    if(!is_child){
+                        return false;
                     }
                 }
-                
-                if(!is_descendant && valid_ancestors.size() > 0){
-                    return false;
-                }
             }
-        }
-
-       
-        /*if(IsEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION)){
-            /*
-            When this isn't contained within and instance or impl
-            we should check that the dst we are connecting to (AKA Using as this's definition)
-            doesn't have a definition set
-            */
-        //}*
 
         if(indirectlyConnectedTo(dst)){
             return false;
@@ -199,7 +200,7 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         break;
     }
     case EDGE_KIND::QOS:{
-        if(!dst->isNodeOfType(NODE_TYPE::QOS_PROFILE)){
+        if(dst->getNodeKind() != NODE_KIND::QOS_DDS_PROFILE){
             return false;
         }
         break;
@@ -1566,4 +1567,14 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
         node_kinds.clear();
     }
     return node_kinds;
+}
+
+QSet<Node*> Node::getParentNodesForValidDefinition(){
+    QSet<Node*> ancestors;
+
+    auto parent_node = getParentNode();
+    if(parent_node){
+        ancestors = parent_node->getListOfValidAncestorsForChildrenDefinitions();
+    }
+    return ancestors;
 }

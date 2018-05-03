@@ -5,8 +5,9 @@
 class EntityFactory;
 class ContainerNode
 {
-protected:
-    QSet<NODE_KIND> getAcceptedNodeKinds() const;
+    public:
+        static QSet<NODE_KIND> getAcceptedNodeKinds();
+        static Node* getTopBehaviourContainer(Node* node);
 };
 
 #endif // CONTAINERNODE_H

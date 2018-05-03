@@ -1,6 +1,7 @@
 #include "functioncall.h"
 #include <QDebug>
 #include "parameter.h"
+#include "containernode.h"
 
 
 const NODE_KIND node_kind = NODE_KIND::FUNCTION_CALL;
@@ -9,10 +10,6 @@ const QString kind_string = "FunctionCall";
 FunctionCall::FunctionCall():Node(node_kind)
 {
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
-
-    //Disable rules which break
-    SetEdgeRuleActive(EdgeRule::REQUIRE_NO_DEFINITION, false);
-    SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
 }
 
 FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, kind_string){
@@ -26,49 +23,12 @@ FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, ki
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+
+    //SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
+
+    addInstancesDefinitionKind(NODE_KIND::FUNCTION);
 }
 
-
-bool FunctionCall::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-        case EDGE_KIND::DEFINITION:{
-            // Definition edge must link to a WorkerFunction
-            if(dst->getNodeKind() != NODE_KIND::FUNCTION){
-                return false;
-            }
-            
-            // The FunctionCall must exist within a ComponentImpl
-            auto parent_node = dst->getParentNode();
-            if(parent_node){
-                auto parent_node_kind = parent_node->getNodeKind();
-
-                QSet<NODE_KIND> valid_parent_kinds = {NODE_KIND::COMPONENT_IMPL, NODE_KIND::CLASS_INSTANCE};
-
-                if(!valid_parent_kinds.contains(parent_node_kind)){
-                    return false;
-                }
-
-                auto comm_anc = getCommonAncestor(parent_node);
-                auto common_ancestor_kind = comm_anc ? comm_anc->getNodeKind() : NODE_KIND::NONE;
-                QSet<NODE_KIND> valid_ancestor_kinds = {NODE_KIND::COMPONENT_IMPL, NODE_KIND::CLASS};
-
-                if(!valid_ancestor_kinds.contains(common_ancestor_kind)){
-                    return false;
-                }
-            }
-            
-            break;
-        }
-        default:
-            break;
-    }
-    return Node::canAcceptEdge(edge_kind, dst);
-}
 
 bool FunctionCall::canAdoptChild(Node* child)
 {
@@ -97,4 +57,25 @@ QSet<Node*> FunctionCall::getListOfValidAncestorsForChildrenDefinitions(){
     }
 
     return valid_ancestors;
+}
+
+QSet<Node*> FunctionCall::getParentNodesForValidDefinition(){
+    QSet<Node*> parents;
+    //Need to look at the CLASS_INSTANCE children contained with in the ComponentImpl/Class
+    auto component = getTopBehaviourContainer();
+    if(component){
+
+        for(auto node : component->getChildrenOfKind(NODE_KIND::CLASS_INSTANCE, 0)){
+            parents << node;
+        }
+    }
+    return parents;
+}
+
+Node* FunctionCall::getTopBehaviourContainer(){
+    if(!top_behaviour_calculated){
+        top_behaviour_container = ContainerNode::getTopBehaviourContainer(this);
+        top_behaviour_calculated = true;
+    }
+    return top_behaviour_container;
 }

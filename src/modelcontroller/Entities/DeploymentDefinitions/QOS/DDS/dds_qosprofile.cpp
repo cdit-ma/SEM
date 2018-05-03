@@ -10,7 +10,6 @@ DDS_QOSProfile::DDS_QOSProfile(EntityFactory* factory) : Node(factory, NODE_KIND
 
 DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
 {
-    setNodeType(NODE_TYPE::QOS_PROFILE);
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 

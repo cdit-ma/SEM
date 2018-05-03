@@ -15,6 +15,7 @@ ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::
 
 ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
+    setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_IMPL);
     setAcceptsNodeKind(NODE_KIND::INEVENTPORT_IMPL);

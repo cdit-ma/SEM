@@ -10,9 +10,14 @@ namespace MEDEA{
     protected:
         ServerRequest(EntityFactory* factory);
         ServerRequest();
+        QSet<Node*> getParentNodesForValidDefinition() override;
     public:
         bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+    private:
+        Node* getTopBehaviourContainer();
+        bool top_behaviour_calculated = false;
+        Node* top_behaviour_container = 0;
     };
 };
 

@@ -20,6 +20,7 @@ Setter::Setter(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 Setter::Setter() : Node(node_kind)
 {
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 }
 
 bool Setter::canAdoptChild(Node* child)

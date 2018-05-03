@@ -11,6 +11,8 @@ protected:
 	ComponentInstance(EntityFactory* factory);
 	ComponentInstance();
     QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() override;
+
+    
 };
 
 #endif // COMPONENTINSTANCE_H

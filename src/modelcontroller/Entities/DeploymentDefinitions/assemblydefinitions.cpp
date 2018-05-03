@@ -19,7 +19,6 @@ AssemblyDefinitions::AssemblyDefinitions():Node(NODE_KIND::ASSEMBLY_DEFINITIONS)
     setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
-    setAcceptsNodeKind(NODE_KIND::VECTOR);
     setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
 }
 

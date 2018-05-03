@@ -9,7 +9,7 @@ MEDEA::IfStatement::IfStatement(EntityFactory* factory) : Node(factory, node_kin
 };
 
 MEDEA::IfStatement::IfStatement() : Node(node_kind){
-
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSE_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSEIF_CONDITION);

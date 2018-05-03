@@ -14,11 +14,11 @@ MEDEA::Function::Function(): Node(node_kind)
 {
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
-    
     addInstanceKind(NODE_KIND::FUNCTION_CALL);
     
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+    
 
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);

@@ -1,12 +1,11 @@
 #ifndef MEDEA_FORLOOP_H
 #define MEDEA_FORLOOP_H
 
-#include "../containernode.h"
+#include "../../node.h"
 
 class EntityFactory;
 namespace MEDEA{
-    class ForLoop: public Node, public ContainerNode
-    {
+    class ForLoop : public Node{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:

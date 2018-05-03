@@ -11,6 +11,9 @@ MEDEA::ServerInterface::ServerInterface(): Node(node_kind)
 {
     addInstanceKind(NODE_KIND::SERVER_PORT);
     addInstanceKind(NODE_KIND::CLIENT_PORT);
+
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
 }
 
 bool MEDEA::ServerInterface::canAdoptChild(Node* child)

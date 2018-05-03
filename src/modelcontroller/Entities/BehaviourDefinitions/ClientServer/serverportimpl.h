@@ -4,7 +4,7 @@
 
 class EntityFactory;
 namespace MEDEA{
-    class ServerPortImpl : public Node, public ContainerNode{
+    class ServerPortImpl : public Node{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:

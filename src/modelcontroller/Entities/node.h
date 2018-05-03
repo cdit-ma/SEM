@@ -22,9 +22,9 @@ class Node : public Entity
 
     public:
         enum class EdgeRule{
-            MIRROR_PARENT_DEFINITION_HIERARCHY,
-            REQUIRE_NO_DEFINITION,
-            IGNORE_REQUIRED_INSTANCE_DEFINITIONS
+            ALLOW_EXTERNAL_DEFINITIONS,
+            IGNORE_REQUIRED_INSTANCE_DEFINITIONS,
+            ALWAYS_CHECK_VALID_DEFINITIONS
         };
 
     
@@ -43,8 +43,6 @@ class Node : public Entity
     signals:
         void acceptedEdgeKindsChanged(Node* node);
     protected:
-
-        void setInstanceOf(NODE_KIND node_kind);
 
 
         //Constuctor
@@ -82,6 +80,7 @@ class Node : public Entity
 
         QList<Node*> getRequiredInstanceDefinitions();
         virtual QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
+        virtual QSet<Node*> getParentNodesForValidDefinition();
 
 
         QString toGraphML(int indentDepth = 0, bool functional_export = false);

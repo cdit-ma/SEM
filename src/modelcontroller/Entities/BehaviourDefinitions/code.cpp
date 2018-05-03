@@ -12,5 +12,5 @@ Code::Code(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 };
 
 Code::Code() : Node(node_kind){
-    
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 }

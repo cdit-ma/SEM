@@ -40,3 +40,4 @@ QSet<Node*> ComponentInstance::getListOfValidAncestorsForChildrenDefinitions(){
 
     return valid_ancestors;
 }
+

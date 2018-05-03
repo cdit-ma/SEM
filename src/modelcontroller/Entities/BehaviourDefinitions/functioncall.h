@@ -10,10 +10,15 @@ public:
 	FunctionCall(EntityFactory* factory);
 	FunctionCall();
 
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
+    //bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 	bool canAdoptChild(Node* child);
 protected:
 	QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() override;
+	QSet<Node*> getParentNodesForValidDefinition() override;
+private:
+    Node* getTopBehaviourContainer();
+    bool top_behaviour_calculated = false;
+    Node* top_behaviour_container = 0;
 };
 
 #endif // FUNCTIONCALL_H

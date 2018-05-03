@@ -12,7 +12,7 @@ MEDEA::Class::Class(EntityFactory* factory) : Node(factory, node_kind, kind_stri
 
 MEDEA::Class::Class(): Node(node_kind)
 {
-    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+    setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
     addInstanceKind(NODE_KIND::CLASS_INSTANCE);
 
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE);

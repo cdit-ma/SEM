@@ -16,21 +16,26 @@ MEDEA::ClientPort::ClientPort(): Node(node_kind)
     addInstancesDefinitionKind(NODE_KIND::SERVER_INTERFACE);
     addInstanceKind(NODE_KIND::CLIENT_PORT_INSTANCE);
     addImplKind(NODE_KIND::SERVER_REQUEST);
+
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
+    setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 }
 
 
 bool MEDEA::ClientPort::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
+    auto child_node_kind = child->getNodeKind();
+
+    switch(child_node_kind){
     case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
     case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
-        if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+        if(!getChildrenOfKind(child_node_kind, 0).isEmpty()){
             return false;
         }
         break;
     }
     default:
-        return false;
+        break;
     };
     return Node::canAdoptChild(child);
 }

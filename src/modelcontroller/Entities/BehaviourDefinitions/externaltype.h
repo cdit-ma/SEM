@@ -16,9 +16,9 @@ namespace MEDEA{
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 
     private:
-        Node* getTopLevelContainer();
-        bool top_level_calculated = false;
-        Node* top_level_container = 0;
+        Node* getTopBehaviourContainer();
+        bool top_behaviour_calculated = false;
+        Node* top_behaviour_container = 0;
     };
 
 }
