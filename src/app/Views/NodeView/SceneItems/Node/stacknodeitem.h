@@ -23,10 +23,10 @@ public:
 
     void SetRenderCellText(int row, int col, bool render, QString label = "");
     
-    void SetRenderCellIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "");
-    void SetRenderCellFirstIcon(int row, int col, QString icon_path, QString icon_name);
-    void SetRenderCellLastIcon(int row, int col, QString icon_path, QString icon_name);
-    void SetRenderCellHoverIcons(int row, int col, QString icon_path, QString icon_name);
+    void SetRenderCellGapIcons(int row, int col, bool render, QString icon_path = "", QString icon_name = "");
+    void SetRenderCellPrefixIcon(int row, int col, bool render, QString icon_path, QString icon_name);
+    void SetRenderCellSuffixIcon(int row, int col, bool render, QString icon_path, QString icon_name);
+    void SetRenderCellHoverIcons(int row, int col, bool render, QString icon_path, QString icon_name);
     
     void SetCellOrientation(int row, int col, Qt::Orientation orientation);
     void SetCellSpacing(int row, int col, int spacing);
@@ -59,6 +59,8 @@ private:
     qreal getCellSpacing(const CellIndex& index) const;
     Qt::Orientation getCellOrientation(const CellIndex& index) const;
 
+    QRectF GetGapIconRect(const Qt::Orientation orientation, const QRectF& prev_rect, const QRectF& current_rect);
+
     int GetHorizontalGap() const;
     int GetVerticalGap() const;
     Qt::Orientation orientation;
@@ -75,9 +77,10 @@ private:
 
         bool render_rect = false;
         bool render_text = false;
-        bool render_first_icon = false;
-        bool render_last_icon = false;
-        bool render_all_icons = false;
+        bool render_prefix_icon = false;
+        bool render_suffix_icon = false;
+        bool render_gap_icons = false;
+        bool render_hover_icon = false;
         
         
 
@@ -86,9 +89,9 @@ private:
         bool use_alt_color = false;
         StaticTextItem* text_item = 0;
 
-        QPair<QString, QString> first_icon;
-        QPair<QString, QString> last_icon;
-        QPair<QString, QString> icon;
+        QPair<QString, QString> prefix_icon;
+        QPair<QString, QString> suffix_icon;
+        QPair<QString, QString> gap_icon;
         QPair<QString, QString> hovered_icon;
         QSize icon_size;
 
@@ -99,11 +102,11 @@ private:
         qreal spacing;
 
         bool render_icons(){
-            return render_all_icons || render_first_icon || render_last_icon;
+            return render_gap_icons || render_prefix_icon || render_suffix_icon;
         }
 
         bool render_always(){
-            return minimum_width > 0 || minimum_height > 0 || render_first_icon || render_last_icon;
+            return minimum_width > 0 || minimum_height > 0 || render_suffix_icon;
         }
     };
 
@@ -126,6 +129,8 @@ private:
         QList<CellIconRect> child_gap_rects;
         QMap<NodeItem*, QPointF> child_offsets;
         QList<NodeItem*> children;
+        int prefix_gap_index = -1;
+        int suffix_gap_index = -1;
     };
 
 

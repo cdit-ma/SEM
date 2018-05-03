@@ -7,11 +7,6 @@
 const NODE_KIND node_kind = NODE_KIND::FUNCTION_CALL;
 const QString kind_string = "FunctionCall";
 
-FunctionCall::FunctionCall():Node(node_kind)
-{
-    addInstancesDefinitionKind(NODE_KIND::FUNCTION);
-}
-
 FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new FunctionCall();});
 
@@ -20,14 +15,20 @@ FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, ki
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
+}
+
+FunctionCall::FunctionCall():Node(node_kind)
+{
+    addInstancesDefinitionKind(NODE_KIND::FUNCTION);
+
+    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
-
-    //SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
-
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
 }
+
+
 
 
 bool FunctionCall::canAdoptChild(Node* child)
@@ -64,7 +65,7 @@ QSet<Node*> FunctionCall::getParentNodesForValidDefinition(){
     //Need to look at the CLASS_INSTANCE children contained with in the ComponentImpl/Class
     auto component = getTopBehaviourContainer();
     if(component){
-
+        parents << component;
         for(auto node : component->getChildrenOfKind(NODE_KIND::CLASS_INSTANCE, 0)){
             parents << node;
         }

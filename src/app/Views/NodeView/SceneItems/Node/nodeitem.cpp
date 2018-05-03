@@ -482,10 +482,8 @@ void NodeItem::setExpandedWidth(qreal width)
         }
 
         expandedWidth = width;
-        qCritical() << "SETTING EXPANDED WIDTH TO: " << width;
 
         if(isExpanded()){
-            qCritical() << "UPDATING WIDTH: " << width;
             prepareGeometryChange();
             update();
             emit sizeChanged();
@@ -523,7 +521,6 @@ void NodeItem::setExpandedHeight(qreal height)
         if(height > modelHeight){
             modelHeight = -1;
         }
-        qCritical() << "SETTING EXPANDED HEIGHT TO: " << height;
         expandedHeight = height;
         if(isExpanded()){
             prepareGeometryChange();

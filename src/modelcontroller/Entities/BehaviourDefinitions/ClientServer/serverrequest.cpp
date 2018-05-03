@@ -1,5 +1,5 @@
 #include "serverrequest.h"
-
+#include "../containernode.h"
 const NODE_KIND node_kind = NODE_KIND::SERVER_REQUEST;
 const QString kind_string = "ServerRequest";
 
@@ -17,7 +17,6 @@ MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
 
     //Allow links from within things like InEventPortImpls back to the
     //SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
-    SetEdgeRuleActive(Node::EdgeRule::ALLOW_EXTERNAL_DEFINITIONS, true);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);

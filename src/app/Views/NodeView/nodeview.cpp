@@ -1156,7 +1156,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 }
 
 
-                if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER)){
+                if(item->isNodeOfType(NODE_TYPE::BEHAVIOUR_CONTAINER) || item->isNodeOfType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER)){
                     if(stack_item){
                         stack_item->setAlignment(Qt::Horizontal);
 
@@ -1164,35 +1164,24 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                             stack_item->SetRenderCellText(0, 0, true, "Functions");
                             stack_item->SetCellOrientation(0, 0, Qt::Vertical);
                         }else{
-                            auto margin = stack_item->getDefaultCellMargin();
-                            //margin.setRight(margin.right() * 2);
-                            //margin.setLeft(margin.left() * 2);
-
-                            auto work_flow_margin = stack_item->getDefaultCellMargin();
-                            //work_flow_margin.setRight(20);
-                            //work_flow_margin.setLeft(20);
 
                             stack_item->SetRenderCellArea(0, -1, true, true);
                             stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS");
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);
-                            stack_item->SetCellMargins(0, -1, margin);
                             
 
                             stack_item->SetRenderCellArea(0, 1, true, true);
                             stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS");
                             stack_item->SetCellOrientation(0, 1, Qt::Vertical);
-                            stack_item->SetCellMargins(0, 1, margin);
 
                             stack_item->SetRenderCellArea(0, 0, true);//, true);
                             stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
-                            stack_item->SetCellMinimumSize(0, 0, 0, 10);
-                            stack_item->SetCellMargins(0, 0, work_flow_margin);
 
                             if(small_style){
-                                stack_item->SetRenderCellIcons(0, 0, true, "Icons", "arrowRightLong");
-                                stack_item->SetRenderCellFirstIcon(0, 0, "Icons", "arrowDownRightLong");
-                                stack_item->SetRenderCellLastIcon(0, 0, "Icons", "arrowRightLineLong");
-                                stack_item->SetRenderCellHoverIcons(0, 0, "Icons", "plus");
+                                stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
+                                stack_item->SetRenderCellPrefixIcon(0, 0, true, "Icons", "arrowDownRightLong");
+                                stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                                stack_item->SetRenderCellHoverIcons(0, 0, true, "Icons", "plus");
                                 
                                 stack_item->SetCellSpacing(0, 0, 20);
                             }
@@ -1217,15 +1206,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                     }
                 }else{
                     if(nodeKind == NODE_KIND::AGGREGATE){
-                        stack_item->SetRenderCellIcons(0, 0, false, "Icons", "plus");
-                        stack_item->SetRenderCellLastIcon(0, 0, "Icons", "plus");
-                        stack_item->SetRenderCellHoverIcons(0, 0, "Icons", "plus");
-                        
-                        stack_item->SetCellMinimumSize(0, 0, 0, 10);
-
-                        //auto margin = stack_item->getDefaultCellMargin();
-                        //margin.setBottom(margin.bottom() * 2);
-                        //stack_item->SetCellMargins(0, 0, margin);
+                        stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     }
                 }
 

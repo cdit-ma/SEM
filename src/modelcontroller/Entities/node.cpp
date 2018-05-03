@@ -156,25 +156,12 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 }
             }
 
-            //auto should_mirror = IsEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION);
-            //auto allow_external = IsEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
-
-            
-
-
-
-        //if(){
-            /*
-            When this is contained within and instance or impl
-            we should check that the dst we are connecting to (AKA Using as this's definition)
-            is contained with in a valid definition
-            */
             auto check_valid_definitions = parentNode && parentNode->getDefinition();
 
             if(check_valid_definitions || IsEdgeRuleActive(EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS)){
-
                 auto allow_external  = IsEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
 
+                //Ignore running these checks if we are allowing external definitions
                 if(!allow_external){
                     bool is_child = false;
                     for(auto parent : getParentNodesForValidDefinition()){
@@ -190,9 +177,11 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
                 }
             }
 
-        if(indirectlyConnectedTo(dst)){
-            return false;
-        }
+
+            //Allow Cyclic Links if we are not a Definition
+            if(isDefinition() && indirectlyConnectedTo(dst)){
+                return false;
+            }
 
         break;
     }
