@@ -666,6 +666,7 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         if(VisualKeyNames().contains(key_name)){
             key->setVisual(true);
         }
+        key->setFactory(this);
 
         key_lookup_[key_name] = key;
         
@@ -691,7 +692,12 @@ void EntityFactory::DestructEntity(GraphML* graphml){
 
 
 GraphML* EntityFactory::getGraphML(int id){
-    return hash_.value(id, 0);
+    if(hash_.contains(id)){
+        return hash_.value(id);
+    }else if(unregistered_hash_.contains(id)){
+        return unregistered_hash_.value(id);
+    }
+    return 0;
 }
 
 Entity* EntityFactory::GetEntity(int id){
@@ -774,29 +780,32 @@ int EntityFactory::RegisterEntity(GraphML* graphml, int id){
     if(graphml && graphml->getFactory() == this){
         auto current_id = graphml->getID();
         if(unregistered_hash_.contains(current_id)){
+            qCritical() << " UNREGISTERING: " << current_id;
             //Remove from the unregistered
             unregistered_hash_.remove(current_id);
+        }
 
-            //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-            if(id == -1 || hash_.contains(id)){
-                if(hash_.contains(id)){
-                    qCritical() << ": Hash Collision @: " << id;
-                }
-                id = ++id_counter_;
+        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+        if(id == -1 || hash_.contains(id)){
+            if(hash_.contains(id)){
+                qCritical() << ": Hash Collision @: " << id;
             }
-            //Update the ID
-            graphml->setID(id);
+            id = ++id_counter_;
+        }
 
-            if(!hash_.contains(id)){
-                hash_.insert(id, graphml);
+        //qCritical() << "Trying to Set: " << graphml->toString() << " TO ID: " << id;
+        //Update the ID
+        graphml->setID(id);
 
-                if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
-                    auto node = (Node*) graphml;
-                    acceptedEdgeKindsChanged(node);
-                }
-            }else{
-                qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
+        if(!hash_.contains(id)){
+            hash_.insert(id, graphml);
+
+            if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
+                auto node = (Node*) graphml;
+                acceptedEdgeKindsChanged(node);
             }
+        }else{
+            qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
         }
     }
     return graphml ? graphml->getID() : -1;
@@ -805,10 +814,11 @@ int EntityFactory::RegisterEntity(GraphML* graphml, int id){
 void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
     if(graphml){
         //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-        auto id = ++unregistered_id_counter_;
+        auto id = --unregistered_id_counter_;
         
         //Get the id, post set
         graphml->setID(id);
+        graphml->setFactory(this);
 
         if(!unregistered_hash_.contains(id)){
             unregistered_hash_.insert(id, graphml);

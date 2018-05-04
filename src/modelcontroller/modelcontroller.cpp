@@ -76,7 +76,7 @@ bool ModelController::SetupController(QString file_path)
 {
     QWriteLocker lock(&lock_);
     setupModel();
-    loadWorkerDefinitions();
+    //loadWorkerDefinitions();
     clearHistory();
 
     auto file = readFile(file_path);
@@ -1397,6 +1397,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
     bool success = false;
     if(item){
         auto id = entity_factory->RegisterEntity(item, desired_id);
+        qCritical() << "REGISTERING: "<< item->toString() << " AS " << desired_id << " GOT " << id;
         if(id >= 0){
             auto id = item->getID();
             
@@ -2034,6 +2035,8 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children)
             qCritical() << action.entity_id;
             //Add Action to the Undo/Redo Stack.
             addActionToStack(action);
+        }else{
+            qCritical() << "CAN'T STORE";
         }
     }
     return success;
@@ -2079,7 +2082,7 @@ void ModelController::setupModel()
     protected_nodes << assemblyDefinitions;
     protected_nodes << hardwareDefinitions;
     protected_nodes << localhostNode;
-
+    qCritical() << "STORING MODEL";
     storeNode(model);
 }
 
@@ -2862,7 +2865,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
         Node* node = 0;
 
         if(entity->gotID()){
-            
             //Get the already existant node.
             node = entity_factory->GetNode(entity->getID());
         }else{
