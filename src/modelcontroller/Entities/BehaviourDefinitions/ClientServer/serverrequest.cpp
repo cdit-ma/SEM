@@ -16,8 +16,8 @@ MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 
     //Allow links from within things like InEventPortImpls back to the
-    //SetEdgeRuleActive(EdgeRule::MIRROR_PARENT_DEFINITION_HIERARCHY, false);
-    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
+    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
+    SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
@@ -31,7 +31,7 @@ bool MEDEA::ServerRequest::canAdoptChild(Node* child)
     switch(child_node_kind){
         case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
-            if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+            if(getChildrenOfKindCount(child_node_kind) > 0){
                 return false;
             }
             break;

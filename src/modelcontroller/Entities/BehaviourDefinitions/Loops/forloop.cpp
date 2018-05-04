@@ -28,13 +28,13 @@ bool MEDEA::ForLoop::canAdoptChild(Node *child)
     
     switch(child_kind){
         case NODE_KIND::VARIABLE_PARAMETER:{
-            if(getChildrenOfKind(child_kind, 0).size() >= 1){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
 
         }
         case NODE_KIND::INPUT_PARAMETER:
-            if(getChildrenOfKind(child_kind, 0).size() >= 2){
+            if(getChildrenOfKindCount(child_kind) >= 2){
                 return false;
             }
             break;

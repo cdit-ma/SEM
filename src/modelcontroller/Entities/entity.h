@@ -16,12 +16,8 @@ protected:
     Entity(GRAPHML_KIND kind);
     ~Entity();
 public:
-    virtual bool isInModel() = 0;
-
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
-
-
 protected:
 
     void _dataChanged(Data* data);
@@ -78,6 +74,9 @@ private:
     bool position_enabled = true;
     bool size_enabled = false;
     bool expand_enabled = true;
+
+public:
+    static bool SortByIndex(const Entity* a, const Entity* b);
 };
 
 #endif // ENTITY_H

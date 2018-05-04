@@ -33,7 +33,7 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
 
 bool Vector::canAdoptChild(Node *child)
 {
-    if(hasChildren()){
+    if(childrenCount() > 0){
         return false;
     }
     return Node::canAdoptChild(child);
@@ -50,7 +50,7 @@ bool Vector::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
         }
-        if(hasChildren()){
+        if(childrenCount() > 0){
             return false;
         }
         break;

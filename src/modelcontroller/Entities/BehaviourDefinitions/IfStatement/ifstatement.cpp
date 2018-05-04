@@ -22,7 +22,7 @@ bool MEDEA::IfStatement::canAdoptChild(Node *child)
     switch(child_kind){
         case NODE_KIND::IF_CONDITION:
         case NODE_KIND::ELSE_CONDITION:
-            if(getChildrenOfKind(child_kind, 0).size()){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
             break;

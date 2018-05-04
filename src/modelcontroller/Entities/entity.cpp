@@ -310,3 +310,8 @@ QString Entity::toString() const
 }
 
 
+bool Entity::SortByIndex(const Entity* a, const Entity* b){
+    auto a_ind = a->getDataValue("index").toInt();
+    auto b_ind = b->getDataValue("index").toInt();
+    return a_ind < b_ind;
+}

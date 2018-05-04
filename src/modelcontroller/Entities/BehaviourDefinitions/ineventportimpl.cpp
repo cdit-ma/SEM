@@ -24,11 +24,11 @@ InEventPortImpl::InEventPortImpl() : Node(node_kind){
 
 bool InEventPortImpl::canAdoptChild(Node *child)
 {
-    auto child_node_kind = child->getNodeKind();
+    auto child_kind = child->getNodeKind();
     
-    switch(child_node_kind){
+    switch(child_kind){
         case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(getChildrenOfKind(child_node_kind, 0).size() > 0){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
             break;

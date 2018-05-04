@@ -32,7 +32,7 @@ bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
     switch(child_node_kind){
         case NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE:
         case NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE:{
-            if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+            if(getChildrenOfKindCount(child_node_kind) > 0){
                 return false;
             }
             break;
