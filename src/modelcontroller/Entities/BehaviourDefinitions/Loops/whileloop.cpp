@@ -25,7 +25,7 @@ bool MEDEA::WhileLoop::canAdoptChild(Node *child)
     
     switch(child_kind){
         case NODE_KIND::IF_CONDITION:{
-            if(getChildrenOfKind(child_kind, 0).size() > 0){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
             break;

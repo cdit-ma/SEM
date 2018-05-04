@@ -29,7 +29,6 @@ public:
     int getSourceID() const;
     int getDestinationID() const;
     bool isConnected(Node* node);
-    bool isInModel();
 
     EDGE_KIND getEdgeKind() const;
 

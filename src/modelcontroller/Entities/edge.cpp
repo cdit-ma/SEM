@@ -105,10 +105,3 @@ QString Edge::toString()
 bool Edge::isConnected(Node* node){
     return source == node || destination == node;
 }
-bool Edge::isInModel(){
-    if(source && destination){
-        return source->isInModel() && destination->isInModel();
-    }else{
-        return false;
-    }
-}

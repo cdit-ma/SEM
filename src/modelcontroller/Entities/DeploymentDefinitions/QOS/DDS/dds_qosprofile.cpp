@@ -40,9 +40,8 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NODE_KIND::QOS_DDS_PROFILE)
 }
 
 bool DDS_QOSProfile::canAdoptChild(Node *node){
-    if(!getChildrenOfKind(node->getNodeKind(), 0).isEmpty()){
+    if(getChildrenOfKindCount(node->getNodeKind()) > 0){
         return false;
     }
-
     return Node::canAdoptChild(node);
 }

@@ -28,7 +28,7 @@ bool PeriodicEvent::canAdoptChild(Node* child)
     switch(child_kind){
         case NODE_KIND::ATTRIBUTE_INSTANCE:{
             //Only allow one AttributeInstance
-            if(getChildrenOfKind(child_kind, 0).size() > 0){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
             break;

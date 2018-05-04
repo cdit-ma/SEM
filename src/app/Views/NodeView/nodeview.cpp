@@ -1193,6 +1193,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
                         stack_item->SetRenderCellArea(1, 1, true, true);
                         stack_item->SetRenderCellText(1, 1, true, "Variables");
+                        stack_item->SetRenderCellSuffixIcon(1, 1, true, "Icons", "plus");
                         stack_item->SetCellSpacing(1, 1, 10);
 
 

@@ -17,11 +17,8 @@ DeploymentDefinitions::DeploymentDefinitions():Node(NODE_KIND::DEPLOYMENT_DEFINI
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)
 {
-
     auto node_kind = node->getNodeKind();
-
-    auto children = getChildrenOfKind(node_kind);
-    if(children.size() > 0){
+    if(getChildrenOfKindCount(node_kind) > 0){
         return false;
     }
     return Node::canAdoptChild(node);

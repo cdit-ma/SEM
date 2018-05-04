@@ -18,16 +18,17 @@ OutEventPortImpl::OutEventPortImpl():Node(node_kind){
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
-    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
+    SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
+    SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
 {
-    auto child_node_kind = child->getNodeKind();
+    auto child_kind = child->getNodeKind();
     
-    switch(child_node_kind){
+    switch(child_kind){
         case NODE_KIND::AGGREGATE_INSTANCE:{
-            if(getChildrenOfKind(child_node_kind, 0).size() > 0){
+            if(getChildrenOfKindCount(child_kind) > 0){
                 return false;
             }
             break;

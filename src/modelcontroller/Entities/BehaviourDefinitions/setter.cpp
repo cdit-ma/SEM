@@ -25,12 +25,12 @@ Setter::Setter() : Node(node_kind)
 
 bool Setter::canAdoptChild(Node* child)
 {
-    auto node_kind = child->getNodeKind();
-    switch(node_kind){
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
     case NODE_KIND::INPUT_PARAMETER:
-        if(getChildrenOfKind(node_kind, 0).size() >= 2){
-            return false;
-        }
+        if(getChildrenOfKindCount(child_kind) >= 2){
+                return false;
+            }
         break;
     default:
         break;

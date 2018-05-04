@@ -34,7 +34,7 @@ Variable::Variable() : DataNode(node_kind)
 
 bool Variable::canAdoptChild(Node* child)
 {
-    if(hasChildren()){
+    if(childrenCount() > 0){
         return false;
     }
 

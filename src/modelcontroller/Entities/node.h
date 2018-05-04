@@ -24,7 +24,8 @@ class Node : public Entity
         enum class EdgeRule{
             ALLOW_EXTERNAL_DEFINITIONS,
             IGNORE_REQUIRED_INSTANCE_DEFINITIONS,
-            ALWAYS_CHECK_VALID_DEFINITIONS
+            ALWAYS_CHECK_VALID_DEFINITIONS,
+            ALLOW_MULTIPLE_IMPLEMENTATIONS
         };
 
     
@@ -43,8 +44,6 @@ class Node : public Entity
     signals:
         void acceptedEdgeKindsChanged(Node* node);
     protected:
-
-
         //Constuctor
         Node(NODE_KIND kind);
         ~Node();
@@ -52,11 +51,6 @@ class Node : public Entity
         //Entity Factory Constructor
         Node(EntityFactory* factory, NODE_KIND kind, QString kind_string);
 
-
-        void addValidValue(QString key_name, QVariant value);
-        void addValidValues(QString key_name, QList<QVariant> values);
-        QStringList getValidValueKeys();
-        QList<QVariant> getValidValues(QString key_name);
 
         void addInstanceKind(NODE_KIND kind);
         void addImplsDefinitionKind(NODE_KIND kind);
@@ -104,21 +98,13 @@ class Node : public Entity
 
     int getDepth() const;
     QList<int> getTreeIndex();
-    QString getTreeIndexAlpha();
 
     
 
     NODE_KIND getNodeKind() const;
     NODE_KIND getParentNodeKind() const;
 
-    bool isAttached() const;
-
-    bool canConstructChildren() const;
-
-
-    int getDepthFromAspect();
     int getDepthFromCommonAncestor(Node* dst);
-
     Node* getCommonAncestor(Node* dst);
 
 
@@ -131,14 +117,12 @@ class Node : public Entity
     //Adds the Node provided to the list of children.
     bool addChild(Node *child);
     bool setAsRoot(int root_index);
-    QString getNodeKindStr();
 
     bool indirectlyConnectedTo(Node* node);
 
     bool containsChild(Node* child);
     QList<Node *> getChildren(int depth =-1);
     QList<int> getChildrenIDs(int depth =-1);
-    QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
     QList<Node *> getChildrenOfKind(NODE_KIND kind, int depth =-1);
     QList<Node *> getChildrenOfKinds(QSet<NODE_KIND> kinds, int depth =-1);
 
@@ -148,13 +132,9 @@ class Node : public Entity
 
     QList<Node *> getSiblings();
 
-    QString toMD5Hash();
-
-    bool isInModel();
 
     int childrenCount();
-    bool hasChildren();
-    bool hasEdges();
+    int getChildrenOfKindCount(NODE_KIND kind);
 
     //Remove a child Node from this Node
     bool removeChild(Node *child);
@@ -215,35 +195,29 @@ private:
 
     QList<Node*> getOrderedChildNodes();
 
-    QList<int> treeIndex;
-    QString treeIndexString;
-    int childCount;
+    QList<int> tree_index_;
+    int persistent_child_count_ = 0;
 
-    Node* parentNode = 0;
-    Node* definition = 0;;
+    Node* parent_node_ = 0;
+    Node* definition_ = 0;
 
-    NODE_KIND nodeKind;
-    NODE_KIND parent_node_kind = NODE_KIND::NONE;
-    NODE_TYPE nodeType;
+    NODE_KIND node_kind_ = NODE_KIND::NONE;
+    NODE_KIND parent_node_kind_ = NODE_KIND::NONE;
+    VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
 
     QList<Node*> instances;
     QList<Node*> implementations;
 
 
 
-
-    //The list of contained children GraphML elements. (Top level only)
-    QList<Node*> children;
-
     //The list of contained Edge elements in this graph. (Top level only)
 
     QMultiMap<EDGE_KIND, Edge*> edges;
 
-    //List of valid values for keys 
-    QMultiMap<QString, QVariant> valid_values_;
+    QMultiMap<NODE_KIND, Node*> children;
 
 
-    VIEW_ASPECT aspect;
+    
 
 
     QSet<NODE_TYPE> types;

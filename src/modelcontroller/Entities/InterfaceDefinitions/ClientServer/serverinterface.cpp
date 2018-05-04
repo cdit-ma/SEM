@@ -18,12 +18,13 @@ MEDEA::ServerInterface::ServerInterface(): Node(node_kind)
 
 bool MEDEA::ServerInterface::canAdoptChild(Node* child)
 {
-    switch(child->getNodeKind()){
+    auto child_kind = child->getNodeKind();
+    switch(child_kind){
     case NODE_KIND::INPUT_PARAMETER_GROUP:
     case NODE_KIND::RETURN_PARAMETER_GROUP:{
-        if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
-            return false;
-        }
+        if(getChildrenOfKindCount(child_kind) > 0){
+        return false;
+    }
         break;
     }
     default:
