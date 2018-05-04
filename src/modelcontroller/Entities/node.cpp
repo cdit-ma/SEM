@@ -323,7 +323,6 @@ bool Node::canAdoptChild(Node *node)
     }
 
     if(!canAcceptNodeKind(node)){
-        qCritical() << toString() << "CANNOT ACCEPT:" << node->toString();
         return false;
     }
 
@@ -343,7 +342,6 @@ bool Node::canAdoptChild(Node *node)
     }
 
     if(node->getDefinition()){
-        qCritical() << "CANNOT ADOPT SOMETHING WITH A DEFINITION";
         return false;
     }
 
