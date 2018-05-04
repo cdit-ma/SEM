@@ -28,12 +28,8 @@ GRAPHML_KIND GraphML::getGraphMLKind() const
     return kind;
 }
 
-int GraphML::setID(int id){
-    //Only allow setting once
-    if(this->id < 0){
-        this->id = id;
-    }
-    return this->id;
+void GraphML::setID(int id){
+    this->id = id;
 }
 
 /**

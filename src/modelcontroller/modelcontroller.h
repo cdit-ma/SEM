@@ -185,10 +185,10 @@ private:
     QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
 
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
-    Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1, int id = -1);
+    Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);
-    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, int id = -1, bool notify_view = true);
+    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
 
@@ -201,7 +201,8 @@ private:
     Node* construct_for_node(Node* parent, int index);
     Node* construct_component_node(Node* parent, int index);
     Node* construct_periodic_eventport(Node* parent, int index);
-    Node* construct_SERVER_INTERFACE_node(Node* parent, int index);
+    Node* construct_server_interface_node(Node* parent, int index);
+    Node* construct_boolean_expression_node(Node* parent, int index);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
@@ -245,9 +246,9 @@ private:
     Node* cloneNode(Node* original, Node* parent);
     
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
-    void storeNode(Node* node);
-    void storeEdge(Edge* edge);
-    void storeEntity(Entity* item);
+    bool storeNode(Node* node, int desired_id = -1, bool store_children = true);
+    bool storeEdge(Edge* edge, int desired_id = -1);
+    bool storeEntity(Entity* item, int desired_id);
     void removeEntity(Entity* item);
 
     bool destructEntity(int ID);

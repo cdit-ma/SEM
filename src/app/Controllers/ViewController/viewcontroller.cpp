@@ -667,6 +667,10 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 default_icon_prefix = "Icons";
                 default_icon_name = "translate";
                 break;
+            case NODE_KIND::BOOLEAN_EXPRESSION:
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Condition";
+                break;
             case NODE_KIND::FUNCTION:
             case NODE_KIND::FUNCTION_CALL:{
                 default_icon_prefix = "EntityIcons";
@@ -1522,18 +1526,17 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
 }
 
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
+    
     //Construct a basic item
     NodeViewItem* item = new NodeViewItem(this, id, kind);
-
 
     for(const auto& key : getEntityKeys(id)){
         item->changeData(key, getEntityDataValue(id, key));
     }
 
-    
-
     //Get our parent
     auto parent = getNodeViewItem(parent_id);
+
     nodeKindLookups.insertMulti(kind, id);
     //Insert into map
     viewItems[id] = item;
@@ -1552,7 +1555,6 @@ void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
     auto view_item = getViewItem(ID);
-    //qCritical() << "DESTRUCT #" << ID << " " <<view_item->getData("kind").toString() << " = " << view_item->getData("label").toString();
     destructViewItem(view_item);
 }
 

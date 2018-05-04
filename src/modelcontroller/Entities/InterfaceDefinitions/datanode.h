@@ -51,7 +51,7 @@ private:
     bool is_producer_ = false;
     bool is_receiver_ = false;
     bool is_multiple_data_receiver_ = false;
-    bool is_multiple_data_producer_ = false;
+    bool is_multiple_data_producer_ = true;
 
 };
 

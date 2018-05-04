@@ -18,7 +18,11 @@ protected:
 public:
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
+    bool isLabelFunctional() const;
 protected:
+    void setLabelFunctional(bool functional = true);
+
+
 
     void _dataChanged(Data* data);
     void _dataRemoved(Data* data);
@@ -67,6 +71,7 @@ signals:
     void terminating();
 private:
     QStringList unprotectedKeys;
+    bool is_label_functional = true;
 
     QHash<Key*, Data*> dataLookup;
     QHash<QString, Key*> keyLookup;

@@ -26,6 +26,11 @@ void Node::RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind
         factory->RegisterNodeKind(kind, kind_string, constructor);
     }
 }
+void Node::RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor){
+    if(factory){
+        factory->RegisterComplexNodeKind(kind, constructor);
+    }
+}
 
 void Node::RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
     if(factory){
@@ -351,6 +356,10 @@ bool Node::canAdoptChild(Node *node)
 void Node::setViewAspect(VIEW_ASPECT view_aspect)
 {
     view_aspect_ = view_aspect;
+    //Update our child
+    for(auto child : getChildren(0)){
+        child->setViewAspect(view_aspect_);
+    }
 }
 
 bool Node::addChild(Node *child)
@@ -439,8 +448,8 @@ QList<Node *> Node::getChildren(int depth)
     return child_list;
 }
 
-QList<Edge*> Node::getAllEdges(){
-    return getEdgesOfKind(EDGE_KIND::NONE, 0);
+QList<Edge*> Node::getEdges(int depth){
+    return getEdgesOfKind(EDGE_KIND::NONE, depth);
 }
 
 int Node::getEdgeOfKindCount(EDGE_KIND edge_kind){
@@ -572,7 +581,7 @@ bool Node::ancestorOf(Edge *edge)
     }
     return false;
 
-    return getAllEdges().contains(edge);
+    return getEdges(-1).contains(edge);
 }
 
 bool Node::isAncestorOf(GraphML *item)
@@ -822,24 +831,27 @@ void Node::removeEdge(Edge *edge)
 
 void Node::setParentNode(Node *parent, int index)
 {
+    auto parent_node_kind = parent ? parent->getNodeKind() : NODE_KIND::NONE;
+    auto parent_view_aspect = parent ? parent->getViewAspect() : VIEW_ASPECT::NONE;
+    auto tree_index = parent ? parent->getTreeIndex() : QList<int>();
+
+    tree_index_ = tree_index << index;
+    parent_node_ = parent;
+    parent_node_kind_ = parent_node_kind;
+    setViewAspect(parent_view_aspect);
+
+    //Update
     if(parent){
-        tree_index_ = parent->getTreeIndex();
-        tree_index_.append(index);
-        parent_node_ = parent;
-
-        parent_node_kind_ = parent->getNodeKind();
-        //Set the view Aspect.
-        setViewAspect(parent->getViewAspect());
-
         for(auto data : getData()){
             data->revalidateData();
         }
-
-        parentSet(parent);
-    }else{
-        setViewAspect(VIEW_ASPECT::NONE);
-        parent_node_kind_ = NODE_KIND::NONE;
     }
+
+    for(auto child : getChildren()){
+        auto index = child->getTreeIndex().last();
+        child->setParentNode(this, index);
+    }
+    parentSet(parent);
 }
 
 QString Node::toGraphML(int indent_depth, bool functional_export)

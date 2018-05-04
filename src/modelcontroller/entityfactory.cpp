@@ -62,6 +62,7 @@
 #include "Entities/BehaviourDefinitions/variadicparameter.h"
 #include "Entities/BehaviourDefinitions/functioncall.h"
 #include "Entities/BehaviourDefinitions/externaltype.h"
+#include "Entities/BehaviourDefinitions/booleanexpression.h"
 
 //Instance Elements
 #include "Entities/DeploymentDefinitions/componentinstance.h"
@@ -167,17 +168,18 @@ EntityFactory* EntityFactory::global_factory = 0;
 
 Node *EntityFactory::CreateTempNode(NODE_KIND nodeKind)
 {
-    return _createNode(nodeKind, true);
+    return _createNode(nodeKind, true, false);
 }
 
-Node *EntityFactory::CreateNode(NODE_KIND nodeKind, int id)
+Node *EntityFactory::CreateNode(NODE_KIND node_kind, bool complex)
 {
-    return _createNode(nodeKind, false, id);
+    return _createNode(node_kind, false, complex);
 }
 
-Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_kind, int id)
+
+Edge *EntityFactory::CreateEdge(Node *source, Node *destination, EDGE_KIND edge_kind)
 {
-    return _createEdge(source, destination, edge_kind, id);
+    return _createEdge(source, destination, edge_kind);
 }
 
 
@@ -250,7 +252,6 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
     auto node = getNodeStruct(kind);
 
     if(node){
-        node->kind = kind;
         node->kind_str = kind_string;
         node->constructor = constructor;
 
@@ -258,7 +259,14 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
         if(!node_kind_lookup.contains(kind_string)){
             node_kind_lookup.insert(kind_string, kind);
         }
-        //qCritical() << "EntityFactory: Registered Node #" << node_kind_lookup.size() << kind_string;
+    }
+}
+void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*)> complex_constructor){
+    //TODO
+    auto node = getNodeStruct(kind);
+
+    if(node){
+        node->complex_constructor = complex_constructor;
     }
 }
 
@@ -458,6 +466,8 @@ EntityFactory::EntityFactory()
 
     MEDEA::ServerPortImpl(this);
     MEDEA::ServerRequest(this);
+    
+    MEDEA::BooleanExpression(this);
 
 
     MEDEA::InputParameterGroup(this);
@@ -560,7 +570,7 @@ QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data_struct
     return data_list;
 }
 
-Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind, int id)
+Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind)
 {
     Edge* edge = 0;
 
@@ -574,42 +584,40 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
         }
     }
 
-    StoreEntity(edge, id);
-
+    CacheEntityAsUnregistered(edge);
     return edge;
 }
 
-void EntityFactory::StoreEntity(GraphML* graphml, int id){
-    if(graphml){
-        graphml->setFactory(this);
-        
 
-        
-        RegisterEntity(graphml, id);
-    }
-}
-
-Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, int id)
+Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_complex)
 {
     Node* node = 0;
     auto node_struct = getNodeStruct(kind);
 
     if(node_struct && node_struct->constructor){
-        node = node_struct->constructor();
-        if(node && !is_temporary){
-            auto data = getDefaultData(node_struct->default_data.values());
-            node->addData(data);
+        bool has_complex_constructor = node_struct->complex_constructor != 0;
+        bool use_complex_constructor = !is_temporary && has_complex_constructor && use_complex;
+        
+        bool store_entity = !is_temporary;
+        if(use_complex_constructor){
+            node = node_struct->complex_constructor(this);
+            store_entity = false;
+        }else{
+            node = node_struct->constructor();
+            store_entity &= true;
+        }
+        
+        
+        if(node){
+            if(store_entity){
+                node->addData(getDefaultData(node_struct->default_data.values()));
+                CacheEntityAsUnregistered(node);
+            }
+        }else{
+            qCritical() << "EntityFactory:: Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
         }
     }
-
-    if(!node){
-        qCritical() << "Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
-    }
-
-    //Only store 
-    if(!is_temporary){
-        StoreEntity(node, id);
-    }
+       
     return node;
 }
 
@@ -661,7 +669,7 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
 
         key_lookup_[key_name] = key;
         
-        StoreEntity(key);
+        RegisterEntity(key);
         return key;
     }
 }
@@ -741,22 +749,44 @@ Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
     if(key){
         //Don't keep ID's for data
         auto data = new Data(key, value, is_protected);
-        //StoreEntity(data);
         return data;
     }
     return 0;
 }
-void EntityFactory::RegisterEntity(GraphML* graphml, int id){
-    if(graphml){
-        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-        if(id == -1 || hash_.contains(id)){
-            id = ++id_counter_;
+Data* EntityFactory::AttachData(Entity* entity, Key* key, QVariant value, bool is_protected){
+    Data* data = 0;
+    if(entity && key){
+        data = entity->getData(key);
+        if(!data){
+            data = CreateData(key, value);
+            if(data){
+                entity->addData(data);
+            }
         }
+        data->setValue(value);
+        data->setProtected(is_protected);
+    }
+    return data;
+}
 
-        //Get the id, post set
-        id = graphml->setID(id);
+int EntityFactory::RegisterEntity(GraphML* graphml, int id){
+    //Get the current ID
+    if(graphml && graphml->getFactory() == this){
+        auto current_id = graphml->getID();
+        if(unregistered_hash_.contains(current_id)){
+            //Remove from the unregistered
+            unregistered_hash_.remove(current_id);
 
-        if(id > -1){
+            //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+            if(id == -1 || hash_.contains(id)){
+                if(hash_.contains(id)){
+                    qCritical() << ": Hash Collision @: " << id;
+                }
+                id = ++id_counter_;
+            }
+            //Update the ID
+            graphml->setID(id);
+
             if(!hash_.contains(id)){
                 hash_.insert(id, graphml);
 
@@ -769,7 +799,23 @@ void EntityFactory::RegisterEntity(GraphML* graphml, int id){
             }
         }
     }
+    return graphml ? graphml->getID() : -1;
 }
+
+void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
+    if(graphml){
+        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+        auto id = ++unregistered_id_counter_;
+        
+        //Get the id, post set
+        graphml->setID(id);
+
+        if(!unregistered_hash_.contains(id)){
+            unregistered_hash_.insert(id, graphml);
+        }
+    }
+}
+
 void EntityFactory::acceptedEdgeKindsChanged(Node* node){
     auto source_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
     auto target_accepted_edge_kinds = node->getAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
@@ -807,8 +853,7 @@ void EntityFactory::DeregisterEntity(GraphML* graphml){
     if(graphml){
         auto id = graphml->getID();
         hash_.remove(id);
-
-        
+        unregistered_hash_.remove(id);
     }
 }
 

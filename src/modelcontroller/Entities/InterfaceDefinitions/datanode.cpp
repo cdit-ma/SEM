@@ -336,7 +336,7 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
             
         }
         auto bind_source = source;
-        auto source_key = "type";
+        auto source_key = "label";
 
         //Data bind to the Variable, instead of the Member
         if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
@@ -344,11 +344,11 @@ void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup)
         }
 
         //BIND LABEL
-        QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE};
+        //QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::BOOLEAN_EXPRESSION};
 
-        if(bind_labels.contains(bind_source->getNodeKind())){
-            source_key = "label";
-        }
+        //if(bind_labels.contains(bind_source->getNodeKind())){
+        //    source_key = "label";
+        //}
 
         LinkData(bind_source, source_key, destination, "value", setup);
         TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);

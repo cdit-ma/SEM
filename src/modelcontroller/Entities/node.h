@@ -5,6 +5,7 @@
 #include "../nodekinds.h"
 #include "../edgekinds.h"
 
+
 #include <QVariant>
 #include <QSet>
 
@@ -28,6 +29,7 @@ class Node : public Entity
     protected:
         //Factory Static Functions
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+        static void RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor);
         static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
         static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
         
@@ -61,6 +63,7 @@ class Node : public Entity
         
         void setViewAspect(VIEW_ASPECT aspect);
         void setParentNode(Node* parent, int index);
+        void updateOrphanedDescendants();
 
         void addEdge(Edge *edge);
         void removeEdge(Edge *edge);
@@ -156,7 +159,7 @@ class Node : public Entity
         bool gotEdgeTo(Node* node, EDGE_KIND edge_kind);
 
 
-        QList<Edge*> getAllEdges();
+        QList<Edge*> getEdges(int depth=-1);
         
         int getEdgeCount();
         int getEdgeOfKindCount(EDGE_KIND kind);

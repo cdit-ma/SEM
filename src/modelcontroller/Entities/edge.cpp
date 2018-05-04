@@ -109,5 +109,5 @@ bool Edge::isConnected(Node* node){
 bool Edge::SortByKind(const Edge* a, const Edge* b){
     auto a_ind = static_cast<uint>(a->getEdgeKind());
     auto b_ind = static_cast<uint>(b->getEdgeKind());
-    return a_ind < b_ind;
+    return a_ind > b_ind;
 }

@@ -20,64 +20,60 @@ QVariant LabelKey::validateDataChange(Data* data, QVariant data_value){
         node = (Node*) entity;
     }
 
-    //Get rid of spaces and tabs
-    new_label.replace(" ", "_");
-    new_label.replace("\t", "_");
-
+    auto functional_label = node ? node->isLabelFunctional() : false;
     
-
-    //If its not attached to a node, the value is valid
-    if(!node){
-        return new_label;
-    }
+    //Replace Tabs
+    new_label.replace("\t", " ");
 
     if(new_label.isEmpty()){
         //Don't allow an empty value
-        return data->getValue();
+        new_label = data->getValue().toString();
     }
 
-    //Check for _XX
-    QRegularExpression regex("^" + new_label + "_([0-9]+)?$");
+    if(functional_label){
+        //Get rid of spaces and tabs
+        new_label.replace(" ", "_");
 
-    //Match counts
-    bool exact_match = false;
-    QList<int> matched_numbers;
+        //Check for _XX
+        QRegularExpression regex("^" + new_label + "_([0-9]+)?$");
 
-    foreach(auto sibling, node->getSiblings()){
-        auto sibling_label = sibling->getDataValue("label").toString();
-        if(sibling_label == new_label){
-            exact_match = true;
-        }else{
-            //Check if the sibling label = new_label_XX
-            auto re_match = regex.match(sibling_label);
-            if(re_match.hasMatch()){
-                QString number_str = re_match.captured(1);
-                //We know the capture group has to be a number
-                int number = number_str.toInt();
-                matched_numbers << number;
-            }
-        }
-    }
+        //Match counts
+        bool exact_match = false;
+        QList<int> matched_numbers;
 
-    if(!exact_match){
-        //If there is no exact match, the label is fine!
-        return new_label;
-    }else{
-        //Sort the matched_numbers so we can see if there is a gap
-        qSort(matched_numbers);
-        //If there is no gaps, the position this label will need will be last (+1)
-        int new_number = matched_numbers.size() + 1;
-        
-        for(int i = 1; i < matched_numbers.size() + 1; i++){
-            //If we find a gap in the numbers
-            if(!matched_numbers.contains(i)){
-                new_number = i;
-                break;
-                
+        foreach(auto sibling, node->getSiblings()){
+            auto sibling_label = sibling->getDataValue("label").toString();
+            if(sibling_label == new_label){
+                exact_match = true;
+            }else{
+                //Check if the sibling label = new_label_XX
+                auto re_match = regex.match(sibling_label);
+                if(re_match.hasMatch()){
+                    QString number_str = re_match.captured(1);
+                    //We know the capture group has to be a number
+                    int number = number_str.toInt();
+                    matched_numbers << number;
+                }
             }
         }
 
-        new_label += "_" + QString::number(new_number);
-        return new_label;
+        if(exact_match){
+            //Sort the matched_numbers so we can see if there is a gap
+            qSort(matched_numbers);
+            //If there is no gaps, the position this label will need will be last (+1)
+            int new_number = matched_numbers.size() + 1;
+            
+            for(int i = 1; i < matched_numbers.size() + 1; i++){
+                //If we find a gap in the numbers
+                if(!matched_numbers.contains(i)){
+                    new_number = i;
+                    break;
+                    
+                }
+            }
+
+            new_label += "_" + QString::number(new_number);
+        }
     }
+    return new_label;
 }
