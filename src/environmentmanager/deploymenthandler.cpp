@@ -5,14 +5,21 @@
 #include "deploymentrules/zmq/zmqrule.h"
 #include "deploymentrules/dds/ddsrule.h"
 
-DeploymentHandler::DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                                    std::promise<std::string>* port_promise, const std::string& experiment_id){
+DeploymentHandler::DeploymentHandler(Environment* env,
+                                    zmq::context_t* context,
+                                    const std::string& ip_addr,
+                                    Environment::DeploymentType deployment_type,
+                                    const std::string& deployment_ip_address,
+                                    std::promise<std::string>* port_promise,
+                                    const std::string& experiment_id){
 
     environment_ = env;
     context_ = context;
     ip_addr_ = ip_addr;
-    experiment_id_ = experiment_id;
+    deployment_type_ = deployment_type;
+    deployment_ip_address_ = deployment_ip_address;
     port_promise_ = port_promise;
+    experiment_id_ = experiment_id;
     handler_thread_ = new std::thread(&DeploymentHandler::Init, this);
 }
 
@@ -21,7 +28,7 @@ void DeploymentHandler::Init(){
 
     time_added_ = environment_->GetClock();
 
-    std::string assigned_port = environment_->AddExperiment(experiment_id_);
+    std::string assigned_port = environment_->AddDeployment(experiment_id_, deployment_ip_address_, deployment_type_);
     try{
         handler_socket_->bind(TCPify(ip_addr_, assigned_port));
 

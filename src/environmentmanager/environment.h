@@ -8,13 +8,22 @@
 #include <vector>
 #include <iostream>
 #include <src/re_common/proto/controlmessage/controlmessage.pb.h>
+#include "uniquequeue.hpp"
 
 class Environment{
 
     public:
+        enum class DeploymentType{
+            EXECUTION_MASTER,
+            EXECTUION_SLAVE,
+            LOGAN_CLIENT,
+            LOGAN_SERVER
+        };
+
         Environment(int portrange_min = 30000, int portrange_max = 50000);
 
-        std::string AddExperiment(const std::string& model_name);
+        std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
+
         void RemoveExperiment(const std::string& model_name, uint64_t time);
         void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
@@ -32,15 +41,12 @@ class Environment{
         std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
-        std::string GetNodeHardwareLoggerPort(const std::string& model_name, const std::string& ip_address);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);
 
         std::vector<std::string> CheckTopic(const std::string& model_name, const std::string& topic);
 
-        std::string GetPort(const std::string& node_ip);
-        void FreePort(const std::string& node_ip, const std::string& port_number);
         void ExperimentLive(const std::string& deployment_id, uint64_t time_called);
         void ExperimentTimeout(const std::string& deployment_id, uint64_t time_called);
 
@@ -50,22 +56,17 @@ class Environment{
         uint64_t SetClock(uint64_t clock);
         uint64_t Tick();
     private:
-        uint64_t clock_;
-        std::mutex clock_mutex_;
 
-        //Port range
-        int PORT_RANGE_MIN;
-        int PORT_RANGE_MAX;
-
-        int MANAGER_PORT_RANGE_MIN;
-        int MANAGER_PORT_RANGE_MAX;
-
-        std::string GetManagerPort();
-        void FreeManagerPort(const std::string& port);
+        struct LoganClient{
+            std::string management_port;
+            std::string ip_address;
+            std::string experiment_name;
+            std::string logging_port;
+        };
 
         class Node{
             public:
-                Node(const std::string& name, std::set<int> port_set){
+                Node(const std::string& name, unique_queue<int> port_set){
                     this->name = name;
                     available_ports = port_set;
                 }
@@ -74,9 +75,8 @@ class Environment{
                     if(available_ports.empty()){
                         return "";
                     }
-                    auto it = available_ports.begin();
-                    auto port = *it;
-                    available_ports.erase(it);
+                    auto port = available_ports.front();
+                    available_ports.pop();
                     auto port_str =  std::to_string(port);
                     return port_str;
                 };
@@ -86,7 +86,7 @@ class Environment{
                     int port_number;
                     try{
                         port_number = std::stoi(port);
-                        available_ports.insert(port_number);
+                        available_ports.push(port_number);
                     }
                     catch(const std::invalid_argument& ex){
                         std::cerr << "Could not free port, port string could not be converted to int." << std::endl;
@@ -102,7 +102,7 @@ class Environment{
                 int component_count = 0;
             private:
                 std::mutex port_mutex;
-                std::set<int> available_ports;
+                unique_queue<int> available_ports;
 
                 //eventport guid -> port number assigned
                 std::map<std::string, std::string> used_ports;
@@ -131,9 +131,17 @@ class Environment{
         };
 
         struct Experiment{
-            Experiment(std::string name){model_name_ = name;};
+            Experiment(std::string name){
+                model_name_ = name;
+            };
 
+            void AddLoganClient(LoganClient* client){
+                logan_clients.push_back(client);
+            };
+            
             std::mutex mutex_;
+
+            Environment* environment_;
 
             NodeManager::ControlMessage deployment_message_;
             std::string model_name_;
@@ -162,14 +170,13 @@ class Environment{
             //node_id -> model_logger_port
             std::unordered_map<std::string, std::string> modellogger_port_map_;
 
-            //node_id -> hardware_logger_port
-            std::unordered_map<std::string, std::string> hardwarelogger_port_map_;
-
             //list of topics used in this experiment
             std::set<std::string> topic_set_;
 
             //map of node id -> deployed component count
             std::unordered_map<std::string, int> deployment_map_;
+
+            std::vector<LoganClient*> logan_clients;
 
             uint64_t time_added;
             ExperimentState state;
@@ -179,9 +186,30 @@ class Environment{
             bool dirty_flag = false;
 
             std::set<std::string> updated_port_ids_;
-
         };
+        uint64_t clock_;
+        std::mutex clock_mutex_;
 
+        //Port range
+        int PORT_RANGE_MIN;
+        int PORT_RANGE_MAX;
+
+        int MANAGER_PORT_RANGE_MIN;
+        int MANAGER_PORT_RANGE_MAX;
+        
+
+        //Returns management port for logan client
+        std::string AddLoganClient(const std::string& model_name, const std::string& ip_address);
+
+        //
+
+        std::string GetPort(const std::string& node_ip);
+        void FreePort(const std::string& node_ip, const std::string& port_number);
+
+        std::string GetManagerPort();
+        void FreeManagerPort(const std::string& port);
+
+        Experiment* AddExperiment(const std::string& model_name);
         //model_name -> experiment data structure
         std::unordered_map<std::string, Experiment*> experiment_map_;
 
@@ -197,11 +225,11 @@ class Environment{
         std::unordered_map<std::string, std::set<std::string> > pending_port_map_;
 
         std::mutex port_mutex_;
-        //initially allocated set of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct
-        std::set<int> available_ports_;
+        //initially allocated unique_queue of port nums from PORT_RANGE_MIN to PORT_RANGE_MAX so we can copy into each node struct
+        unique_queue<int> available_ports_;
 
         //ports available on the environment manager, uses same port range as nodes.
-        std::set<int> available_node_manager_ports_;
+        unique_queue<int> available_node_manager_ports_;
 };
 
 #endif //ENVIRONMENT_MANAGER_ENVIRONMENT

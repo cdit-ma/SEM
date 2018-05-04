@@ -96,7 +96,7 @@ bool ExecutionManager::PopulateDeployment(){
     if(local_mode_){
         Environment* environment = new Environment();
 
-        environment->AddExperiment(deployment_message_->experiment_id());
+        environment->AddDeployment(deployment_message_->experiment_id(), "", Environment::DeploymentType::EXECUTION_MASTER);
 
         DeploymentGenerator generator(*environment);
         //TODO: Add other middlewares.

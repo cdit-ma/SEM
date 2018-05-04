@@ -14,8 +14,15 @@ namespace NodeManager{
 };
 class DeploymentHandler{
     public:
-        DeploymentHandler(Environment* env, zmq::context_t* context, const std::string& ip_addr, 
-                            std::promise<std::string>* port_promise, const std::string& experiment_id);
+        
+        DeploymentHandler(Environment* env,
+                        zmq::context_t* context,
+                        const std::string& ip_addr,
+                        Environment::DeploymentType deployment_type,
+                        const std::string& deployment_ip_address,
+                        std::promise<std::string>* port_promise,
+                        const std::string& experiment_id);
+
 
     private:
         //Heartbeat constants (ms)
@@ -33,7 +40,6 @@ class DeploymentHandler{
         void HandleRequest(std::pair<uint64_t, std::string> request);
         void HandleDirtyExperiment(NodeManager::EnvironmentMessage& message);
 
-        
         //Environment Helpers
         void RemoveExperiment(uint64_t message_time);
 
@@ -50,6 +56,8 @@ class DeploymentHandler{
 
         Environment* environment_;
 
+        Environment::DeploymentType deployment_type_;
+        std::string deployment_ip_address_;
         std::string experiment_id_;
         std::map<std::string, std::string> port_map_;
         long time_added_;

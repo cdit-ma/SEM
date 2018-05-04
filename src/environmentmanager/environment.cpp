@@ -15,33 +15,72 @@ Environment::Environment(int port_range_min, int port_range_max){
     assert(MANAGER_PORT_RANGE_MIN < MANAGER_PORT_RANGE_MAX);
 
     //Populate range sets
-    auto hint_iterator = available_ports_.begin();
     for(int i = PORT_RANGE_MIN; i <= PORT_RANGE_MAX; i++){
-        available_ports_.insert(hint_iterator, i);
-        hint_iterator++;
+        available_ports_.push(i);
     }
 
-    auto hint_iterator_manager = available_node_manager_ports_.begin();
     for(int i = MANAGER_PORT_RANGE_MIN; i < MANAGER_PORT_RANGE_MAX; i++){
-        available_node_manager_ports_.insert(hint_iterator_manager, i);
-        hint_iterator_manager++;
+        available_node_manager_ports_.push(i);
     }
     clock_ = 0;
 }
 
-std::string Environment::AddExperiment(const std::string& model_name){
+std::string Environment::AddDeployment(const std::string& model_name,
+                                        const std::string& ip_address,
+                                        DeploymentType deployment_type){
+
+    //add deployment
+    Experiment* experiment;
     if(experiment_map_.count(model_name)){
-        throw std::invalid_argument("");
+        experiment = experiment_map_[model_name];
     }
-    experiment_map_[model_name] = new Environment::Experiment(model_name);
-    auto experiment = experiment_map_[model_name];
+    else{
+        experiment = AddExperiment(model_name);
+    }
 
-    experiment->manager_port_ = GetManagerPort();
+    if(deployment_type == DeploymentType::EXECUTION_MASTER){
+        return experiment->manager_port_;
+    }
+    if(deployment_type == DeploymentType::LOGAN_CLIENT){
+        return AddLoganClient(model_name, ip_address);
+    }
+}
 
+Environment::Experiment* Environment::AddExperiment(const std::string& model_name){
+    if(!experiment_map_.count(model_name)){
+        experiment_map_[model_name] = new Environment::Experiment(model_name);
+        auto experiment = experiment_map_[model_name];
+        experiment->manager_port_ = GetManagerPort();
+        return experiment;
+    }else{
+        return experiment_map_[model_name];
+    }
     std::cout << "Added experiment: " << model_name << std::endl;
     std::cout << "Registered experiments: " << experiment_map_.size() << std::endl;
 
-    return experiment->manager_port_;
+}
+
+std::string Environment::AddLoganClient(const std::string& model_name, const std::string& ip_address){
+    
+    if(!experiment_map_.count(model_name)){
+        throw std::invalid_argument("No experiment found called " + model_name);
+    }
+
+    auto experiment = experiment_map_.at(model_name);
+
+    std::string port;
+    try{
+        port = GetManagerPort();
+    }catch(const std::exception& ex){
+        port = "";
+    }
+
+    auto client = new LoganClient{port, ip_address, model_name, ""};
+
+    experiment->AddLoganClient(client);
+
+    return port;
+
 }
 
 void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_called){
@@ -203,15 +242,6 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         logger_attribute_info->set_name("modellogger_port");
         logger_attribute->add_s(logger_port);
 
-
-        auto hardwarelogger_port = GetPort(node_name);
-
-        auto hardwarelogger_attribute = node.add_attributes();
-        auto hardwarelogger_attribute_info = hardwarelogger_attribute->mutable_info();
-        hardwarelogger_attribute->set_kind(NodeManager::Attribute::STRING);
-        hardwarelogger_attribute_info->set_name("hardwarelogger_port");
-        hardwarelogger_attribute->add_s(hardwarelogger_port);
-
         //set master/slave port
         auto management_port = GetPort(node_name);
 
@@ -222,7 +252,6 @@ void Environment::ConfigureNode(const std::string& model_name, NodeManager::Node
         management_endpoint_attribute->add_s(management_port);
 
         experiment_map_[model_name]->modellogger_port_map_[node.info().id()] = logger_port;
-        experiment_map_[model_name]->hardwarelogger_port_map_[node.info().id()] = hardwarelogger_port;
         experiment_map_[model_name]->management_port_map_[node.info().id()] = management_port;
     }
 
@@ -324,42 +353,43 @@ std::vector<std::string> Environment::CheckTopic(const std::string& model_name, 
 
 void Environment::AddNodeToEnvironment(const NodeManager::Node& node){
     //Bail out early
-    if(node_map_.count(node.info().name())){
-        return;
-    }
-    auto new_node = new Node(node.info().name(), available_ports_);
+    std::string ip;
     for(int i = 0; i < node.attributes_size(); i++){
         auto attribute = node.attributes(i);
         if(attribute.info().name() == "ip_address"){
-            new_node->ip = attribute.s(0);
+            ip = attribute.s(0);
             break;
         }
     }
-    node_map_[new_node->name] = new_node;
+    if(node_map_.count(ip)){
+        return;
+    }
+    auto new_node = new Node(node.info().name(), available_ports_);
+    node_map_[ip] = new_node;
 }
 
 //Get port from node specified.
-std::string Environment::GetPort(const std::string& node_name){
+std::string Environment::GetPort(const std::string& node_ip){
     //Get first available port, store then erase it
     Node* node;
-    if(node_map_.count(node_name)){
-        node = node_map_[node_name];
+    if(node_map_.count(node_ip)){
+        node = node_map_[node_ip];
     }
     else{
-        throw std::invalid_argument("No node found with name: " + node_name);
+        throw std::invalid_argument("No node found with ip: " + node_ip);
     }
     return node->GetPort();
 }
 
 //Free port specified from node specified
-void Environment::FreePort(const std::string& node_name, const std::string& port_number){
+void Environment::FreePort(const std::string& node_ip, const std::string& port_number){
 
     Node* node;
-    if(node_map_.count(node_name)){
-        node = node_map_[node_name];
+    if(node_map_.count(node_ip)){
+        node = node_map_[node_ip];
     }
     else{
-        throw std::invalid_argument("No node found with name: " + node_name);
+        throw std::invalid_argument("No node found with ip: " + node_ip);
     }
     node->FreePort(port_number);
 }
@@ -370,9 +400,8 @@ std::string Environment::GetManagerPort(){
     if(available_node_manager_ports_.empty()){
         return "";
     }
-    auto it = available_node_manager_ports_.begin();
-    auto port = *it;
-    available_node_manager_ports_.erase(it);
+    auto port = available_node_manager_ports_.front();
+    available_node_manager_ports_.pop();
     auto port_str =  std::to_string(port);
     return port_str;
 }
@@ -380,7 +409,7 @@ std::string Environment::GetManagerPort(){
 void Environment::FreeManagerPort(const std::string& port){
     std::unique_lock<std::mutex> lock(port_mutex_);
     int port_number = std::stoi(port);
-    available_node_manager_ports_.insert(port_number);
+    available_node_manager_ports_.push(port_number);
 }
 
 bool Environment::NodeDeployedTo(const std::string& model_name, const std::string& ip_address) const{
@@ -404,8 +433,7 @@ std::string Environment::GetMasterPublisherPort(const std::string& model_name, c
     if(experiment_map_.count(model_name)){
         auto experiment = experiment_map_.at(model_name);
         experiment->master_ip_address_ = master_ip_address;
-        std::string node_name = experiment->node_map_[experiment->node_id_map_[master_ip_address]]->info().name();
-        experiment->master_port_ = GetPort(node_name);
+        experiment->master_port_ = GetPort(master_ip_address);
         return experiment->master_port_;
     }
     return "";
@@ -424,14 +452,6 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
         auto experiment = experiment_map_.at(model_name);
         std::string node_id = experiment->node_id_map_.at(ip_address);
         return experiment->modellogger_port_map_.at(node_id);
-    }
-    return "";
-}
-std::string Environment::GetNodeHardwareLoggerPort(const std::string& model_name, const std::string& ip_address){
-    if(experiment_map_.count(model_name)){
-        auto experiment = experiment_map_.at(model_name);
-        std::string node_id = experiment->node_id_map_.at(ip_address);
-        return experiment->hardwarelogger_port_map_.at(node_id);
     }
     return "";
 }
@@ -457,6 +477,8 @@ void Environment::GetExperimentUpdate(const std::string& model_name, NodeManager
             auto port_id = *port_it;
             experiment->updated_port_ids_.erase(port_it);
 
+            //Iterate through all ports and check for connections to updated ports.
+            //When we find one, add the new port endpoint to it's list of connecitons.
             //XXX: Jeez, this is pretty terrible...
             for(int i = 0; i < control_message.nodes_size(); i++){
                 auto node = control_message.nodes(i);

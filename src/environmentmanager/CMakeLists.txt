@@ -13,23 +13,24 @@ find_package(Protobuf REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/uniquequeue.hpp
     )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/broadcaster.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentgenerator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/zmq/zmqrule.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentrules/dds/ddsrule.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/environment.h
     )
 
 add_library(${ENVIRONMENT_MANAGER_LIB} STATIC ${SOURCE} ${HEADERS})

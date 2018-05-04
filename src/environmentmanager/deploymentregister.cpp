@@ -45,8 +45,13 @@ void DeploymentRegister::RegistrationLoop() noexcept{
                 RequestHandler(message);
             }
             catch(const std::exception& exception){
-                std::cerr << "Exception when handling request in DeploymentRegister::RegistrationLoop: " << exception.what() << std::endl;
+                //Print error message to cerr and add to error message field of response.
+                //Set response type to ERROR
+                std::string error_string = "Exception when handling request in DeploymentRegister::RegistrationLoop: ";
+                error_string += exception.what();
+                std::cerr << error_string << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
+                message.add_error_messages(error_string);
             }
         }
 
@@ -66,6 +71,16 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
             break;
         }
 
+        case NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT:{
+            HandleAddLoganClient(message);
+            break;
+        }
+
+        case NodeManager::EnvironmentMessage::LOGAN_QUERY:{
+            //HandleLoganQuery(message);
+            break;
+        }
+
         default:{
             throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
             break;
@@ -79,7 +94,7 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
 
-    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, port_promise, message.experiment_id());
+    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, Environment::DeploymentType::EXECUTION_MASTER, "", port_promise, message.experiment_id());
     deployments_.push_back(deployment_handler);
 
     try{
@@ -91,6 +106,29 @@ void DeploymentRegister::HandleAddDeployment(NodeManager::EnvironmentMessage& me
         std::cerr << "Exception: " << e.what() << " (Probably out of ports)" << std::endl;
         std::string error_msg("Exception thrown by deployment register: ");
         error_msg += e.what();
+
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& message){
+    std::string experiment_id = message.experiment_id();
+    std::string node_ip_address = message.logger().publisher_address();
+
+    std::promise<std::string>* port_promise = new std::promise<std::string>();
+    std::future<std::string> port_future = port_promise->get_future();
+    std::string port;
+    auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, Environment::DeploymentType::LOGAN_CLIENT, node_ip_address, port_promise, experiment_id);
+
+    try{
+        port = port_future.get();
+        message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
+        message.set_update_endpoint(TCPify(ip_addr_, port));
+    }
+    catch(const std::exception& ex){
+        std::cerr << "Exception: " << ex.what() << " (Probably out of ports)" << std::endl;
+        std::string error_msg("Exception thrown by deployment register: ");
+        error_msg += ex.what();
 
         throw std::runtime_error(error_msg);
     }
@@ -123,7 +161,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         //Have experiment_id in environment, and ip_addr has component deployed to id
         std::string management_port = environment_->GetNodeManagementPort(experiment_id, ip_address);
         std::string model_logger_port = environment_->GetNodeModelLoggerPort(experiment_id, ip_address);
-        std::string hardware_logger_port = environment_->GetNodeHardwareLoggerPort(experiment_id, ip_address);
 
         auto management_attribute = node->add_attributes();
         auto management_attribute_info = management_attribute->mutable_info();
@@ -136,12 +173,6 @@ void DeploymentRegister::HandleNodeQuery(NodeManager::EnvironmentMessage& messag
         modellogger_attribute_info->set_name("modellogger_port");
         modellogger_attribute->set_kind(NodeManager::Attribute::STRING);
         modellogger_attribute->add_s(model_logger_port);
-
-        auto hardwarelogger_attribute = node->add_attributes();
-        auto hardwarelogger_attribute_info = hardwarelogger_attribute->mutable_info();
-        hardwarelogger_attribute_info->set_name("hardwarelogger_port");
-        hardwarelogger_attribute->set_kind(NodeManager::Attribute::STRING);
-        hardwarelogger_attribute->add_s(hardware_logger_port);
 
         message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
         control_message->set_type(NodeManager::ControlMessage::CONFIGURE);
