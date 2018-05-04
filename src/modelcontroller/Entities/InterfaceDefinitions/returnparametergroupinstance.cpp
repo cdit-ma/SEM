@@ -25,7 +25,7 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(): Node(node_k
 
 bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)
 {
-    if(childrenCount() > 0 ){
+    if(getChildrenCount() > 0 ){
         return false;
     }
     return Node::canAdoptChild(child);

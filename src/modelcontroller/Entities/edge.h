@@ -23,6 +23,8 @@ protected:
     Edge(EntityFactory* factory, EDGE_KIND kind, QString kind_string);
     ~Edge();
 public:
+    static bool SortByKind(const Edge* a, const Edge* b);
+    
     //Get the source graphml object of this Edge
     Node* getSource() const;
     Node* getDestination() const;

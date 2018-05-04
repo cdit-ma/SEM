@@ -20,7 +20,7 @@ MEDEA::InputParameterGroup::InputParameterGroup(): Node(node_kind)
 bool MEDEA::InputParameterGroup::canAdoptChild(Node* child)
 {
     //Server interface Input Parameter Groups can only have a singular child
-    if(getParentNodeKind() == NODE_KIND::SERVER_INTERFACE && childrenCount() > 0 ){
+    if(getParentNodeKind() == NODE_KIND::SERVER_INTERFACE && getChildrenCount() > 0 ){
         return false;
     }
     return Node::canAdoptChild(child);

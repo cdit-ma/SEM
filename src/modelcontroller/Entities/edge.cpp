@@ -105,3 +105,9 @@ QString Edge::toString()
 bool Edge::isConnected(Node* node){
     return source == node || destination == node;
 }
+
+bool Edge::SortByKind(const Edge* a, const Edge* b){
+    auto a_ind = static_cast<uint>(a->getEdgeKind());
+    auto b_ind = static_cast<uint>(b->getEdgeKind());
+    return a_ind < b_ind;
+}

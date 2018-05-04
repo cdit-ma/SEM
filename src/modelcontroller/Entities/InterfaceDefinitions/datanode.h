@@ -9,6 +9,7 @@ protected:
     DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     DataNode(NODE_KIND kind);
 public:
+    static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();
     bool hasOutputData();
 

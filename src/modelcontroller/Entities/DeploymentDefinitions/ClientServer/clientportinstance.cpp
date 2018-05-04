@@ -39,7 +39,7 @@ bool MEDEA::ClientPortInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
             return false;
         }
         
-        if(!getEdges(0, edge_kind).isEmpty()){
+        if(getEdgeOfKindCount(edge_kind)){
             return false;
         }
         break;

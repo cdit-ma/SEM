@@ -10,7 +10,7 @@ namespace MEDEA{
     protected:
         ReturnParameterGroup(EntityFactory* factory);
         ReturnParameterGroup();
-        void parentSet(Node* parent) override;
+        void parentSet(Node* parent);
     public:
         bool canAdoptChild(Node* child);
     };

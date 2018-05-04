@@ -13,8 +13,8 @@ public:
     //bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 	bool canAdoptChild(Node* child);
 protected:
-	QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() override;
-	QSet<Node*> getParentNodesForValidDefinition() override;
+	QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
+	QSet<Node*> getParentNodesForValidDefinition();
 private:
     Node* getTopBehaviourContainer();
     bool top_behaviour_calculated = false;

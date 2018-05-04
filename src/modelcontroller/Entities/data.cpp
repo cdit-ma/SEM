@@ -120,6 +120,13 @@ void Data::clearValue()
     updateChildren();
 }
 
+bool Data::CompareData(const Data* a, const Data* b){
+    if(a && b){
+        return a->getValue() == b->getValue();
+    }
+    return false;
+}
+
 bool Data::compare(const Data *data) const
 {
     if(data){

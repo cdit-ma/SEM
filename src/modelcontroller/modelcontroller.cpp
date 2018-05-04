@@ -23,6 +23,7 @@
 
 #include "Entities/InterfaceDefinitions/eventport.h"
 #include "Entities/InterfaceDefinitions/aggregate.h"
+#include "Entities/InterfaceDefinitions/datanode.h"
 
 inline QPair<bool, QString> readFile(QString filePath)
 {
@@ -648,7 +649,7 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, 
 
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
-        for(auto edge: src->getEdges(0, edge_kind)){
+        for(auto edge: src->getEdgesOfKind(edge_kind, 0)){
             if(edge){
                 auto is_source = edge->getSource() == src;
                 
@@ -1316,16 +1317,6 @@ bool ModelController::isNodeOfType(int ID, NODE_TYPE type){
     return is_type;
 }
 
-QList<int> ModelController::getInstances(int ID)
-{
-    QReadLocker lock(&lock_);
-    QList<int> instances;
-
-    for(auto node : getInstances(entity_factory->GetNode(ID))){
-        instances.push_back(node->getID());
-    }
-    return instances;
-}
 
 int ModelController::getAggregate(int ID)
 {
@@ -1349,7 +1340,7 @@ int ModelController::getDeployedHardwareID(int ID)
     int hw_id = -1;
     Node* node = entity_factory->GetNode(ID);
     if(node){
-        for(auto edge : node->getEdges(0, EDGE_KIND::DEPLOYMENT)){
+        for(auto edge : node->getEdgesOfKind(EDGE_KIND::DEPLOYMENT, 0)){
             hw_id = edge->getDestinationID();
         }
     }
@@ -1515,9 +1506,10 @@ QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_
             }else if(target_child->getDefinition()){
                 
             }else{
-                auto types_match = target_child->compareData(definition, "type");
+                auto target_type_data = target_child->getData("type");
+                auto definition_type_data = definition->getData("type");
 
-                if(types_match){
+                if(Data::CompareData(target_type_data, definition_type_data)){
                     matching_nodes << target_child;
                 }
             }
@@ -2191,7 +2183,7 @@ bool ModelController::linkData_(Node* src, QString src_key, Node* dst, QString d
 
 bool ModelController::setupDataRelationship(Node* src, Node* dst, bool setup)
 {
-    Node::BindDataRelationship(src, dst, setup);
+    DataNode::BindDataRelationship(src, dst, setup);
     return true;
 }
 
@@ -3144,15 +3136,15 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
                 properties.insert(SELECTION_PROPERTIES::GOT_DEFINITION);
             }
 
-            if(getImplementation(node)){
+            if(gotImplementation(node)){
                 properties.insert(SELECTION_PROPERTIES::GOT_IMPLEMENTATION);
             }
 
-            if(getInstances(node).size() > 0){
+            if(gotInstances(node)){
                 properties.insert(SELECTION_PROPERTIES::GOT_INSTANCES);
             }
 
-            if(node->getEdges(0, EDGE_KIND::NONE).size() > 0){
+            if(node->getEdgeCount() > 0){
                 properties.insert(SELECTION_PROPERTIES::GOT_EDGES);
             }
         }
@@ -3309,17 +3301,9 @@ int ModelController::getProjectActionCount()
     return currentActionItemID;
 }
 
-Node* ModelController::getImplementation(Node* node){
-    
-    auto def = getDefinition(node);
-    if(node){
-        //If we have a Definition (And the node isn't an Impl), use it to check for impls, else use the node
-        node = (def && !node->isImpl()) ? def : node;
-        for(auto impl : node->getImplementations()){
-            return impl;
-        }
-    }
-    return 0;
+bool ModelController::gotImplementation(Node* node){
+    auto definition = node ? node->getDefinition(true) : 0;
+    return definition ? definition->getImplementations().count() > 0 : false;
 }
 
 Node* ModelController::getDefinition(Node* node){
@@ -3329,19 +3313,9 @@ Node* ModelController::getDefinition(Node* node){
     return 0;
 }
 
-QList<Node*> ModelController::getInstances(Node* node){
-    QList<Node*> instances;
-    if(node){
-        if(node->isImpl()){
-            //Impls have instances 
-            node = getDefinition(node);
-        }
-        
-        if(node){
-            instances = node->getInstances();
-        }
-    }
-    return instances;
+bool ModelController::gotInstances(Node* node){
+    auto definition = node ? node->getDefinition(true) : 0;
+    return definition ? definition->getInstances().count() > 0 : false;
 }
 
 
@@ -3355,8 +3329,15 @@ int ModelController::getDefinition(int id)
 int ModelController::getImplementation(int id)
 {
     QReadLocker lock(&lock_);
-    auto impl = getImplementation(entity_factory->GetNode(id));
-    return impl ? impl->getID() : -1;
+    auto definition = getDefinition(entity_factory->GetNode(id));
+
+    if(definition){
+        auto impls = definition->getImplementations();
+        if(impls.size()){
+            return (*impls.begin())->getID();
+        }
+    }
+    return -1;
 }
 
 bool ModelController::isUserAction()

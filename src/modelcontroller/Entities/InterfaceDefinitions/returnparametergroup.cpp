@@ -20,7 +20,7 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(): Node(node_kind)
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)
 { 
     //Server interface Input Parameter Groups can only have a singular child
-    if(childrenCount() > 0 ){
+    if(getChildrenCount() > 0 ){
         return false;
     }
     return Node::canAdoptChild(child);

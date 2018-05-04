@@ -11,7 +11,7 @@ protected:
 	OutEventPortImpl(EntityFactory* factory);
 	OutEventPortImpl();
 
-    QSet<Node*> getParentNodesForValidDefinition() override;
+    QSet<Node*> getParentNodesForValidDefinition();
 public:
     bool canAdoptChild(Node* child);
 private:

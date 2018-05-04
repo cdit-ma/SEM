@@ -94,7 +94,6 @@ public:
 
     int getDefinition(int ID);
     int getImplementation(int ID);
-    QList<int> getInstances(int ID);
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
 public slots:
@@ -231,9 +230,10 @@ private:
 
     void setProjectModified(bool modified);
     
-    Node* getImplementation(Node* node);
+    bool gotImplementation(Node* node);
+    bool gotInstances(Node* node);
+
     Node* getDefinition(Node* node);
-    QList<Node*> getInstances(Node* node);
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
