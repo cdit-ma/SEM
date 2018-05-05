@@ -775,29 +775,28 @@ Data* EntityFactory::AttachData(Entity* entity, Key* key, QVariant value, bool i
     return data;
 }
 
+int EntityFactory::getFreeID(int preferred_id){
+
+    int id = preferred_id;
+    //If we haven't been given an id, or our hash contains our id already, we need to set a new one
+    while(id == -1 || hash_.contains(id)){
+        id = ++id_counter_;
+    }
+    return id;
+}
+
 int EntityFactory::RegisterEntity(GraphML* graphml, int id){
     //Get the current ID
     if(graphml && graphml->getFactory() == this){
         auto current_id = graphml->getID();
         if(unregistered_hash_.contains(current_id)){
-            qCritical() << " UNREGISTERING: " << current_id;
             //Remove from the unregistered
             unregistered_hash_.remove(current_id);
         }
-
-        //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-        if(id == -1 || hash_.contains(id)){
-            if(hash_.contains(id)){
-                qCritical() << ": Hash Collision @: " << id;
-            }
-            id = ++id_counter_;
-        }
-
-        //qCritical() << "Trying to Set: " << graphml->toString() << " TO ID: " << id;
-        //Update the ID
-        graphml->setID(id);
+        id = getFreeID(id);
 
         if(!hash_.contains(id)){
+            graphml->setID(id);
             hash_.insert(id, graphml);
 
             if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){

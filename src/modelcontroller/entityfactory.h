@@ -136,6 +136,7 @@ private:
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 private:
+    int getFreeID(int preferred_id);
     //Hashes
     QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
     QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;

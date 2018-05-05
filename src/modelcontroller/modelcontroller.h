@@ -45,6 +45,17 @@ struct HistoryAction{
     } Data;
 };
 
+inline QString getActionTypeString(ACTION_TYPE type){
+    switch(type){
+        case ACTION_TYPE::CONSTRUCTED:
+            return "CONSTRUCTED";
+        case ACTION_TYPE::DESTRUCTED:
+            return "DESTRUCTED";
+        case ACTION_TYPE::MODIFIED:
+            return "MODIFIED";
+    }
+};
+
 class ModelController: public QObject
 {
     Q_OBJECT
@@ -86,6 +97,8 @@ public:
     QStringList getProtectedEntityKeys(int ID);
     QStringList getEntityKeys(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
+
+    QList<QPair<QString, QVariant> > getEntityDataList(int ID);
 
     QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
 
@@ -246,7 +259,7 @@ private:
     Node* cloneNode(Node* original, Node* parent);
     
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
-    bool storeNode(Node* node, int desired_id = -1, bool store_children = true);
+    bool storeNode(Node* node, int desired_id = -1, bool store_children = true, bool add_action = true);
     bool storeEdge(Edge* edge, int desired_id = -1);
     bool storeEntity(Entity* item, int desired_id);
     void removeEntity(Entity* item);

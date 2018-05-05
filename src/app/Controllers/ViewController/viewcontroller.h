@@ -300,6 +300,7 @@ private slots:
     void modelNotification(MODEL_SEVERITY severity, QString title, QString description, int ID);
 
 private:
+    void StoreViewItem(ViewItem* view_item);
     QList<ViewItem*> getSearchableEntities();
 
     void setupEntityKindItems();

@@ -1312,6 +1312,19 @@ QStringList ModelController::getEntityKeys(int ID){
     return keys;
 }
 
+QList<QPair<QString, QVariant> > ModelController::getEntityDataList(int ID){
+    QList<QPair<QString, QVariant> > data_list;
+    QReadLocker lock(&lock_);
+
+    auto entity = entity_factory->GetEntity(ID);
+    if(entity){
+        for(auto data : entity->getData()){
+            data_list += {data->getKeyName(), data->getValue()};
+        }
+    }
+    return data_list;
+}
+
 QStringList ModelController::getProtectedEntityKeys(int ID){
     QReadLocker lock(&lock_);
     QStringList keys;
@@ -1397,7 +1410,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
     bool success = false;
     if(item){
         auto id = entity_factory->RegisterEntity(item, desired_id);
-        qCritical() << "REGISTERING: "<< item->toString() << " AS " << desired_id << " GOT " << id;
+        //qCritical() << "REGISTERING: "<< item->toString() << " AS " << desired_id << " GOT " << id;
         if(id >= 0){
             auto id = item->getID();
             
@@ -1422,6 +1435,8 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
                 break;
             }
             success = true;
+        }else{
+            qCritical() << id;
         }
     }
     return success;
@@ -1622,6 +1637,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
 
     //Get all the edges
     for(auto n : sorted_nodes){
+        
         auto node = (Node*) n;
         for(auto edge : node->getEdges()){
             edges.insert(edge);
@@ -1643,6 +1659,7 @@ bool ModelController::destructEntities(QList<Entity*> entities)
 
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
+        qCritical() << "Exporting: " << node->toString();
         //Create an undo state for each top level item
         auto action = getNewAction(GRAPHML_KIND::NODE);
         action.entity_id = entity->getID();
@@ -1778,12 +1795,15 @@ bool ModelController::undoRedo()
             qCritical() << "FAILED TO UNDO";
 
             qCritical() << entity_factory->GetEntity(action.entity_id);
-            qCritical() << "ENTITY ID: " << action.entity_id;
-            qCritical() << "GRAPHML_KIND:" << ((uint)action.Action.kind);
-            qCritical() << "TYPE:" << ((uint)action.Action.type);
-            qCritical() << "action.Data.key_name:" << action.Data.key_name;
-            qCritical() << "action.Data.old_value:" << action.Data.old_value;
-            qCritical() << "action.Data.new_value:" << action.Data.new_value;
+            qCritical() << "Entity ID: " << action.entity_id;
+            qCritical() << "Kind: " << getGraphMLKindString(action.Action.kind);
+            qCritical() << "Type: " << getActionTypeString(action.Action.type);
+            
+            if(action.Action.kind == GRAPHML_KIND::DATA){
+                qCritical() << "action.Data.key_name:" << action.Data.key_name;
+                qCritical() << "action.Data.old_value:" << action.Data.old_value;
+                qCritical() << "action.Data.new_value:" << action.Data.new_value;   
+            }
         }
     }
 
@@ -2005,7 +2025,7 @@ void ModelController::setCustomNodeData(Node* node){
 }
 
 
-bool ModelController::storeNode(Node* node, int desired_id, bool store_children)
+bool ModelController::storeNode(Node* node, int desired_id, bool store_children, bool add_action)
 {
     bool success = false;
     if(node){
@@ -2027,14 +2047,15 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children)
                 }
             }
 
-            //Construct an ActionItem to reverse Node Construction.
-            auto action = getNewAction(GRAPHML_KIND::NODE);
-            action.Action.type = ACTION_TYPE::CONSTRUCTED;
-            action.entity_id = node->getID();
-            action.parent_id = node->getParentNodeID();
-            qCritical() << action.entity_id;
-            //Add Action to the Undo/Redo Stack.
-            addActionToStack(action);
+            if(add_action){
+                //Construct an ActionItem to reverse Node Construction.
+                auto action = getNewAction(GRAPHML_KIND::NODE);
+                action.Action.type = ACTION_TYPE::CONSTRUCTED;
+                action.entity_id = node->getID();
+                action.parent_id = node->getParentNodeID();
+                //Add Action to the Undo/Redo Stack.
+                addActionToStack(action);
+            }
         }else{
             qCritical() << "CAN'T STORE";
         }
@@ -2874,8 +2895,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 auto id = parent_entity->TakeNextImplicitlyConstructedNodeID(kind);
                 node = entity_factory->GetNode(id);
                 if(node){
-                    qCritical() << "NODE: " << node->toString() << " IMPLICITLY CONSTRUCTED";
-                    qCritical() << "entity" << entity;
                     entity->setImplicitlyConstructed();
                 }
             }else{
@@ -2932,7 +2951,8 @@ bool ModelController::importGraphML(QString document, Node *parent)
                 auto node_id = node->getID();
 
                 if(implicitly_created || need_to_gui){
-                    storeNode(node, entity->getPreviousID(), false);
+                    auto add_action_state = !implicitly_created;
+                    storeNode(node, entity->getPreviousID(), false, add_action_state);
                 }
 
                 for(auto key_name : entity->getKeys()){

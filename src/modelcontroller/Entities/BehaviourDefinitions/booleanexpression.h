@@ -13,10 +13,7 @@ namespace MEDEA{
     protected:
         BooleanExpression(EntityFactory* factory);
         BooleanExpression();
-        
-        void DataAdded(Data* data);
-        void childAdded(Node* child);
-
+    
         void updateLabel();
         void updateOutputType();
     public:

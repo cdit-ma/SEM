@@ -13,7 +13,6 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory* factory) : DataNode(f
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new BooleanExpression();});
     RegisterComplexNodeKind(factory, node_kind, &ConstructBooleanExpression);
 
-
     //Register DefaultData
     RegisterDefaultData(factory, node_kind, "comparator", QVariant::String, false, "==");
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true, "Boolean");
@@ -25,7 +24,7 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory* factory) : DataNode(f
     RegisterValidDataValues(factory, node_kind, "comparator", QVariant::String, comparator_types);
 };
 
-#include <QDebug>
+
 Node* MEDEA::BooleanExpression::ConstructBooleanExpression(EntityFactory* factory){
     //Don't recurse into the complex function
     auto node = factory->CreateNode(NODE_KIND::BOOLEAN_EXPRESSION, false);
@@ -33,25 +32,41 @@ Node* MEDEA::BooleanExpression::ConstructBooleanExpression(EntityFactory* factor
     auto rhs = factory->CreateNode(NODE_KIND::INPUT_PARAMETER);
 
     if(node && rhs && lhs){
-        auto key_icon = factory->GetKey("icon", QVariant::String);
-        auto key_icon_prefix = factory->GetKey("icon_prefix", QVariant::String);
+        auto boolean_expr = (BooleanExpression*)node;
 
-        factory->AttachData(rhs, key_icon, "Variable");
-        factory->AttachData(rhs, key_icon_prefix, "EntityIcons");
+        if(boolean_expr->addChild(lhs) && boolean_expr->addChild(rhs)){
+            auto key_label = factory->GetKey("label", QVariant::String);
+            auto key_icon = factory->GetKey("icon", QVariant::String);
+            auto key_icon_prefix = factory->GetKey("icon_prefix", QVariant::String);
 
-        factory->AttachData(lhs, key_icon, "Variable");
-        factory->AttachData(lhs, key_icon_prefix, "EntityIcons");
+            factory->AttachData(rhs, key_label, "rhs", true);
+            factory->AttachData(rhs, key_icon, "Variable", true);
+            factory->AttachData(rhs, key_icon_prefix, "EntityIcons", true);
 
-        if(node->addChild(rhs) && node->addChild(lhs)){
+            factory->AttachData(lhs, key_label, "lhs", true);
+            factory->AttachData(lhs, key_icon, "Variable", true);
+            factory->AttachData(lhs, key_icon_prefix, "EntityIcons", true);
+
+            auto data_rhs_value = rhs->getData("value");
+            auto data_lhs_value = lhs->getData("value");
+            auto data_comparator = boolean_expr->getData("comparator");
+            auto data_label = boolean_expr->getData("label");
+
+            //Update Label on data Change
+            connect(data_rhs_value, &Data::dataChanged, boolean_expr, &MEDEA::BooleanExpression::updateLabel);
+            connect(data_lhs_value, &Data::dataChanged, boolean_expr, &MEDEA::BooleanExpression::updateLabel);
+            connect(data_comparator, &Data::dataChanged, boolean_expr, &MEDEA::BooleanExpression::updateLabel);
+            connect(data_comparator, &Data::dataChanged, boolean_expr, &MEDEA::BooleanExpression::updateOutputType);
+
+            TypeKey::BindInnerAndOuterTypes(lhs, rhs, true);
+
             return node;
         }
     }
 
-    if(node){
-        factory->DestructEntity(lhs);
-        factory->DestructEntity(rhs);
-        factory->DestructEntity(node);
-    }
+    factory->DestructEntity(lhs);
+    factory->DestructEntity(rhs);
+    factory->DestructEntity(node);
     return 0;
 }
 
@@ -102,37 +117,4 @@ void MEDEA::BooleanExpression::updateOutputType(){
 
     auto is_comparator = comparators.contains(comparator);
     setDataProducer(is_comparator);
-}
-
-void MEDEA::BooleanExpression::childAdded(Node* child){
-    DataNode::childAdded(child);
-    
-    auto node_kind = child->getNodeKind();
-
-    if(node_kind == NODE_KIND::INPUT_PARAMETER){
-        auto value_data = child->getData("value");
-        if(value_data){
-            connect(value_data, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
-            updateLabel();
-        }
-        auto input_params = getChildrenOfKind(NODE_KIND::INPUT_PARAMETER);
-        if(input_params.length() == 2){
-            //Bind types
-            TypeKey::BindInnerAndOuterTypes(this, input_params[0], true);
-            TypeKey::BindInnerAndOuterTypes(input_params[0], input_params[1], true);
-        }
-    }
-}
-
-void MEDEA::BooleanExpression::DataAdded(Data* data){
-    Node::DataAdded(data);
-
-    auto key_name = data->getKeyName();
-
-    if(key_name == "comparator"){
-        connect(data, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
-        connect(data, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateOutputType);
-        updateLabel();
-        updateOutputType();
-    }
 }

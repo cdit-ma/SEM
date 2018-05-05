@@ -1484,27 +1484,36 @@ void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, i
     auto dst = getNodeViewItem(dst_id);
     auto parent = getSharedParent(src, dst);
     if(src && dst && parent){
-        auto edge = new EdgeViewItem(this, id, src, dst, kind);
-        
-        //Fill with Data
-        foreach(QString key, getEntityKeys(id)){
-            edge->changeData(key, getEntityDataValue(id, key));
-        }
-
+        auto edge_item = new EdgeViewItem(this, id, src, dst, kind);
         edgeKindLookups.insertMulti(kind, id);
 
-        SetParentNode(parent, edge);
+        SetParentNode(parent, edge_item);
 
-        src->addEdgeItem(edge);
-        dst->addEdgeItem(edge);
+        src->addEdgeItem(edge_item);
+        dst->addEdgeItem(edge_item);
 
-         //Insert into map
-        viewItems[id] = edge;
-        setDefaultIcon(edge);
+        StoreViewItem(edge_item);
+    }
+}
 
-        connect(edge->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-        //Tell Views
-        emit vc_viewItemConstructed(edge);
+void ViewController::StoreViewItem(ViewItem* view_item){
+    if(view_item){
+        auto id = view_item->getID();
+        if(!viewItems.contains(id)){
+            viewItems[id] = view_item;
+        }else{
+            qCritical() << "DUPLICATE ID: " << id;
+        }
+
+        if(controller){
+            for(const auto& data : controller->getEntityDataList(id)){
+                view_item->changeData(data.first, data.second);
+            }
+        }
+        setDefaultIcon(view_item);
+        connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+
+        emit vc_viewItemConstructed(view_item);
     }
 }
 
@@ -1526,30 +1535,16 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
 }
 
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
+    //qCritical() << "CONSTRUCTING: " << EntityFactory::getNodeKindString(kind) << " INSIDE: " << parent_id << " WITH ID: " << id;
     
-    //Construct a basic item
-    NodeViewItem* item = new NodeViewItem(this, id, kind);
-
-    for(const auto& key : getEntityKeys(id)){
-        item->changeData(key, getEntityDataValue(id, key));
-    }
-
-    //Get our parent
-    auto parent = getNodeViewItem(parent_id);
-
+    auto node_item = new NodeViewItem(this, id, kind);
+    auto parent_item = getNodeViewItem(parent_id);
+    
     nodeKindLookups.insertMulti(kind, id);
-    //Insert into map
-    viewItems[id] = item;
-    setDefaultIcon(item);
-    connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-    
-    
-
-    SetParentNode(parent, item);
+    SetParentNode(parent_item, node_item);
     controller_nodeEdgeChanged(id);
-    //Tell Views
-    emit vc_viewItemConstructed(item);
     
+    StoreViewItem(node_item);
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
