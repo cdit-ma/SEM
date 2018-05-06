@@ -177,6 +177,8 @@ inline QString getViewAspectName(VIEW_ASPECT aspect){
             return "Assemblies";
         case VIEW_ASPECT::HARDWARE:
             return "Hardware";    
+        case VIEW_ASPECT::WORKERS:
+            return "Workers";    
         default:
             return "None";
     }

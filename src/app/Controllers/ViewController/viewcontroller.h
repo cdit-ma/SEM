@@ -177,7 +177,7 @@ signals:
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
-    void vc_fitToScreen();
+    void vc_fitToScreen(bool if_active_view = false);
 
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
@@ -252,8 +252,6 @@ public slots:
     void generateWorkspace();
     void executeModelLocal();
 
-    void fitView();
-    void fitAllViews();
     void centerSelection();
     void alignSelectionVertical();
     void alignSelectionHorizontal();

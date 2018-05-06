@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <algorithm>
 #include <QDateTime>
-#include <QSysInfo>
+
 #include <QDir>
 #include <QStringBuilder>
 #include <QThread>
@@ -76,7 +76,7 @@ bool ModelController::SetupController(QString file_path)
 {
     QWriteLocker lock(&lock_);
     setupModel();
-    //loadWorkerDefinitions();
+    loadWorkerDefinitions();
     clearHistory();
 
     auto file = readFile(file_path);
@@ -116,7 +116,8 @@ void ModelController::loadWorkerDefinitions()
 {
     if(workerDefinitions){
         QList<QDir> worker_directories{QDir(":/WorkerDefinitions")};
-        QStringList extensions{"*.worker"};
+        //QStringList extensions{"*.worker"};
+        QStringList extensions{"*memory*.worker"};
 
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
@@ -399,6 +400,45 @@ Node* ModelController::get_persistent_node(NODE_KIND node_kind){
         }
         default:
             return 0;
+    }
+}
+
+void ModelController::set_persistent_node(Node* node){
+    if(node){
+        auto node_kind = node->getNodeKind();
+        protected_nodes << node;
+        switch(node_kind){
+        case NODE_KIND::MODEL:{
+            model = node;
+            break;
+        }
+        case NODE_KIND::INTERFACE_DEFINITIONS:{
+            interfaceDefinitions = node;
+            break;
+        }
+        case NODE_KIND::BEHAVIOUR_DEFINITIONS:{
+            behaviourDefinitions = node;
+            break;
+        }
+        case NODE_KIND::WORKER_DEFINITIONS:{
+            workerDefinitions = node;
+            break;
+        }
+        case NODE_KIND::ASSEMBLY_DEFINITIONS:{
+            assemblyDefinitions = node;
+            break;
+        }
+        case NODE_KIND::DEPLOYMENT_DEFINITIONS:{
+            deploymentDefinitions = node;
+            break;
+        }
+        case NODE_KIND::HARDWARE_DEFINITIONS:{
+            hardwareDefinitions = node;
+            break;
+        }
+        default:
+            break;
+        }
     }
 }
 
@@ -1413,33 +1453,35 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
     bool success = false;
     if(item){
         auto id = entity_factory->RegisterEntity(item, desired_id);
-        //qCritical() << "REGISTERING: "<< item->toString() << " AS " << desired_id << " GOT " << id;
         if(id >= 0){
             auto id = item->getID();
-            
-            connect(item, &Entity::dataChanged, this, &ModelController::DataChanged, Qt::UniqueConnection);
-            connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
-        
-            switch(item->getGraphMLKind()){
-            case GRAPHML_KIND::NODE:{
-                node_ids_.insert(id);
-                auto node = (Node*) item;
-                connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
-                emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
-                break;
+
+            bool inserted = false;
+            if(item->isNode()){
+                if(!node_ids_.contains(id)){
+                    node_ids_.insert(id);
+                    auto node = (Node*) item;
+                    connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
+                    
+                    emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
+                    inserted = true;
+                }
+            }else if(item->isEdge()){
+                if(!edge_ids_.contains(id)){
+                    edge_ids_.insert(id);
+                    auto edge = (Edge*) item;
+                    emit EdgeConstructed(id, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());
+                    inserted = true;
+                }
             }
-            case GRAPHML_KIND::EDGE:{
-                edge_ids_.insert(id);
-                auto edge = (Edge*) item;
-                emit EdgeConstructed(id, edge->getEdgeKind(), edge->getSourceID(), edge->getDestinationID());
-                break;
+
+            if(inserted){
+                connect(item, &Entity::dataChanged, this, &ModelController::DataChanged, Qt::UniqueConnection);
+                connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
+            }else{
+                qCritical() << "Entity: " << id << " Already Stored";
             }
-            default:
-                break;
-            }
-            success = true;
-        }else{
-            qCritical() << id;
+            success = inserted;
         }
     }
     return success;
@@ -1465,8 +1507,6 @@ bool ModelController::attachChildNode(Node *parent_node, Node *node, bool notify
         if(notify_view){
             storeNode(node);
         }   
-
-        
         return true;
     }
     return false;
@@ -1575,12 +1615,12 @@ QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_
 void ModelController::destructEdge_(Edge *edge){
     if(edge){
         auto id = edge->getID();
+        //Teardown specific edge classes.
+        auto edge_kind = edge->getEdgeKind();
         auto src = edge->getSource();
         auto dst = edge->getDestination();
+        
         if(src && dst){
-            //Teardown specific edge classes.
-            auto edge_kind = edge->getEdgeKind();
-
             switch(edge_kind){
             case EDGE_KIND::DEFINITION:{
                 setupDefinitionRelationship2(src, dst, false);
@@ -1912,12 +1952,6 @@ void ModelController::clearHistory()
     emit UndoRedoUpdated();
 }
 
-void ModelController::ModelNameChanged()
-{
-    if(model){
-        emit ProjectNameChanged(model->getDataValue("label").toString());
-    }
-}
 
 EDGE_KIND ModelController::getValidEdgeClass(Node *src, Node *dst)
 {
@@ -2068,16 +2102,10 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
                 action.entity_id = node->getID();
                 action.parent_id = node->getParentNodeID();
                 action.xml = node->toGraphML();
-
-                /*qCritical() << "ADDING CONSTRUCTED UNDO: ";
-                qCritical() << "ENTITY ID: " << action.entity_id;
-                qCritical() << "PARENT ID: " << action.parent_id;
-                qCritical() << "Graphml: " << action.xml;*/
-                //Add Action to the Undo/Redo Stack.
                 addActionToStack(action);
             }
         }else{
-            qCritical() << "CAN'T STORE";
+            //qCritical() << "Trying to store: " << node->toString() << " @ ID: " << desired_id;
         }
     }
     return success;
@@ -2085,45 +2113,21 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
 
 void ModelController::setupModel()
 {
-    //Construct the top level parents.
-    model = construct_node(0, NODE_KIND::MODEL);
-    
+    set_persistent_node(construct_node(0, NODE_KIND::MODEL));
+    if(model){
+        for(auto child : model->getChildren()){
+            set_persistent_node(child);
+        }
+        
+        auto label_data = model->getData("label");
+        if(label_data){
+            connect(label_data, &Data::dataChanged, [=](QVariant label){
+                emit ProjectNameChanged(label.toString());
+            });
+        }
 
-    Data* labelData = model->getData("label");
-    if(labelData){
-        connect(labelData, &Data::dataChanged, this, &ModelController::ModelNameChanged);
-         //Update the view with the correct Model Label.
-        ModelNameChanged();
+        storeNode(model, -1, true, false);
     }
-
-    //Construct the aspects
-    interfaceDefinitions = construct_child_node(model, NODE_KIND::INTERFACE_DEFINITIONS, -1, false);
-    behaviourDefinitions = construct_child_node(model, NODE_KIND::BEHAVIOUR_DEFINITIONS, -1, false);
-    deploymentDefinitions = construct_child_node(model, NODE_KIND::DEPLOYMENT_DEFINITIONS, -1, false);
-    assemblyDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::ASSEMBLY_DEFINITIONS, -1, false);
-    hardwareDefinitions = construct_child_node(deploymentDefinitions, NODE_KIND::HARDWARE_DEFINITIONS, -1, false);
-    workerDefinitions = construct_child_node(model, NODE_KIND::WORKER_DEFINITIONS, -1, false);
-
-    //Construct the localhost node
-    auto localhostNode = construct_child_node(hardwareDefinitions, NODE_KIND::HARDWARE_NODE, -1, false);
-    localhostNode->setDataValue("label", "localhost");
-    localhostNode->setDataValue("ip_address", "127.0.0.1");
-    localhostNode->setDataValue("os", QSysInfo::productType());
-    localhostNode->setDataValue("os_version", QSysInfo::productVersion());
-    localhostNode->setDataValue("architecture", QSysInfo::currentCpuArchitecture());
-    localhostNode->setDataValue("uuid", "localhost");
-
-    
-    //Protect the nodes
-    protected_nodes << model;
-    //protected_nodes << workerDefinitions;
-    protected_nodes << interfaceDefinitions;
-    protected_nodes << behaviourDefinitions;
-    protected_nodes << deploymentDefinitions;
-    protected_nodes << assemblyDefinitions;
-    protected_nodes << hardwareDefinitions;
-    protected_nodes << localhostNode;
-    storeNode(model);
 }
 
 
@@ -2445,6 +2449,10 @@ QSet<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs
     lock_.unlock();
     return edge_kinds;
 
+}
+
+QSet<int> ModelController::GetIDs(){
+    return node_ids_ + edge_ids_;
 }
 
 QSet<NODE_KIND> ModelController::getGUINodeKinds(){
@@ -2910,7 +2918,6 @@ bool ModelController::importGraphML(QString document, Node *parent)
             node = entity_factory->GetNode(entity->getID());
         }else{
             if(parent_entity->GotImplicitlyConstructedNodeID(kind)){
-                
                 //Get the ID of the next auto constructed ID
                 auto id = parent_entity->TakeNextImplicitlyConstructedNodeID(kind);
                 node = entity_factory->GetNode(id);
@@ -2946,45 +2953,39 @@ bool ModelController::importGraphML(QString document, Node *parent)
 
         if(node){
             bool is_model = kind == NODE_KIND::MODEL;
-            bool got_parent = node->getParentNode();
-            bool implicitly_created = entity->isImpliciltyConstructed();
-            bool requires_parenting = !got_parent && !is_model;
-            bool need_to_gui = false;
 
+            bool got_parent = node->getParentNode();
+            bool requires_parenting = !got_parent && !is_model;
+            bool implicitly_created = entity->isImpliciltyConstructed();
+            bool need_to_store = false;
+            
             if(!got_parent || implicitly_created){
                 //If the node is not attached to a parent, or it was implicilty constructed, set the data ahead of time
                 for(auto key_name : entity->getKeys()){
                     auto value = entity->getDataValue(key_name);
                     setData_(node, key_name, value, false);
                 }
-                //Remove the data as we have already adopted it
+                //Remove the data as we have already attached it
                 entity->clearData();
             }
 
             if(requires_parenting){
                 //If it's not got a parent, set it.
                 got_parent = attachChildNode(parent_node, node, false);
-                need_to_gui = true;
+                need_to_store = true;
             }
 
-            if(got_parent || is_model || implicitly_created){
-                auto node_id = node->getID();
+            if(need_to_store || implicitly_created){
+                auto add_action_state = !implicitly_created;
+                storeNode(node, entity->getPreviousID(), false, add_action_state);
+            }
 
-                if(implicitly_created || need_to_gui){
-                    auto add_action_state = !implicitly_created;
-                    storeNode(node, entity->getPreviousID(), false, add_action_state);
-                }
+            for(auto key_name : entity->getKeys()){
+                auto value = entity->getDataValue(key_name);
+                setData_(node, key_name, value, true);
+            }
 
-                for(auto key_name : entity->getKeys()){
-                    auto value = entity->getDataValue(key_name);
-                    setData_(node, key_name, value, true);
-                }
-
-                if(entity->gotPreviousID()){
-                    //qCritical() << "Storing Node: " << node->toString() << " FROM ID: " << entity->getPreviousID() << " TO " << node->getID();
-                }
-
-                //Point the tempEntity to the newly constructed entity
+            if(got_parent || is_model){
                 entity->setID(node->getID());
             }else{
                 //Destroy!

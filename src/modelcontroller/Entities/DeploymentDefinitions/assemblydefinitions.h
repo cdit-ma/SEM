@@ -11,6 +11,7 @@ class AssemblyDefinitions: public Node
 protected:
 	AssemblyDefinitions(EntityFactory* factory);
 	AssemblyDefinitions();
+	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

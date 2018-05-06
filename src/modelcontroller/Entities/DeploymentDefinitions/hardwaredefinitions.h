@@ -11,6 +11,8 @@ class HardwareDefinitions: public Node
 protected:
 	HardwareDefinitions(EntityFactory* factory);
 	HardwareDefinitions();
+	static Node* ConstructHardwareDefinitions(EntityFactory* factory);
+	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

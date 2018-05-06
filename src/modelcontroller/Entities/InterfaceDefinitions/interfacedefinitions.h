@@ -10,6 +10,7 @@ class InterfaceDefinitions: public Node
 protected:
 	InterfaceDefinitions(EntityFactory* factory);
 	InterfaceDefinitions();
+	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

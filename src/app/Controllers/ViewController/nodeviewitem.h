@@ -21,7 +21,6 @@ public:
     NodeViewItem* getParentNodeViewItem();
     int getParentID();
     bool isNodeOfType(NODE_TYPE type);
-    bool isInModel();
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
 
@@ -46,7 +45,7 @@ private:
     QMultiMap<EDGE_KIND, EDGE_DIRECTION> owned_edge_kinds;
 
     QMultiMap<EDGE_KIND, EdgeViewItem*> edges;
-    NODE_KIND nodeKind;
+    NODE_KIND node_kind;
     int parent_id = -1;
 };
 #endif // VIEWITEM_H

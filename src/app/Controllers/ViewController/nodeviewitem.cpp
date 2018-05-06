@@ -7,23 +7,23 @@
 
 NodeViewItem::NodeViewItem(ViewController *controller, NODE_KIND kind, QString label):ViewItem(controller, GRAPHML_KIND::NODE)
 {
-    nodeKind = kind;
+    node_kind = kind;
     changeData("kind", EntityFactory::getNodeKindString(kind));
     changeData("label", label);
 }
 
 NodeViewItem::NodeViewItem(ViewController *controller, int ID, NODE_KIND kind):ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
-    nodeKind = kind;
-    changeData("x", 0);
-    changeData("y", 0);
+    node_kind = kind;
     changeData("isExpanded", true);
+    //changeData("x", 0);
+    //changeData("y", 0);
 }
 
 
 NODE_KIND NodeViewItem::getNodeKind() const
 {
-    return nodeKind;
+    return node_kind;
 }
 
 NodeViewItem *NodeViewItem::getParentNodeViewItem()
@@ -96,10 +96,6 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
     }
 }
 
-bool NodeViewItem::isInModel(){
-    return /*getViewAspect() != VIEW_ASPECT::WORKERS &&*/ getViewAspect() != VIEW_ASPECT::NONE;
-}
-
 QList<EdgeViewItem *> NodeViewItem::getEdges() const
 {
     return edges.values();
@@ -130,7 +126,6 @@ void NodeViewItem::addVisualEdgeKind(EDGE_KIND kind, EDGE_DIRECTION direction){
     if(!visual_edge_kinds.contains(kind, direction)){
         visual_edge_kinds.insert(kind, direction);
     }
-
 }
 
 void NodeViewItem::clearVisualEdgeKinds(){

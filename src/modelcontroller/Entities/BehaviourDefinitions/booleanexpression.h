@@ -11,13 +11,12 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
+        static Node* ConstructBooleanExpression(EntityFactory* factory);
         BooleanExpression(EntityFactory* factory);
         BooleanExpression();
     
         void updateLabel();
         void updateOutputType();
-    public:
-        static Node* ConstructBooleanExpression(EntityFactory* factory);
     public:
         bool canAdoptChild(Node* child);
     };

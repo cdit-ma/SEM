@@ -267,7 +267,27 @@ int Node::getDepthFromCommonAncestor(Node *dst)
 
 void Node::setTop(int index)
 {
-    tree_index_.append(index);
+    branch_ = index;
+    updateTreeIndex({});
+}
+
+void Node::updateTreeIndex(QList<int> parent_tree_index){
+    tree_index_ = parent_tree_index;
+    tree_index_ << branch_;
+    
+    for(auto child : getChildren(0)){
+        child->updateTreeIndex(getTreeIndex());
+    }
+}
+
+void Node::updateViewAspect(VIEW_ASPECT parent_view_aspect){
+    if(view_aspect_ == VIEW_ASPECT::NONE){
+        view_aspect_ = parent_view_aspect;
+        //Update our child
+        for(auto child : getChildren(0)){
+            child->updateViewAspect(getViewAspect());
+        }
+    }
 }
 
 VIEW_ASPECT Node::getViewAspect() const
@@ -353,21 +373,18 @@ bool Node::canAdoptChild(Node *node)
     return true;
 }
 
-void Node::setViewAspect(VIEW_ASPECT view_aspect)
-{
-    view_aspect_ = view_aspect;
-    //Update our child
-    for(auto child : getChildren(0)){
-        child->setViewAspect(view_aspect_);
-    }
-}
+
 
 bool Node::addChild(Node *child)
 {
     if(child && !containsChild(child) && canAdoptChild(child)){
+        if(child->getParentNode()){
+            qCritical() << toString() << "ADDING A CHILD: " << child->toString();
+        }
         auto node_kind = child->getNodeKind();
         children_.insert(node_kind, child);
-        child->setParentNode(this, persistent_child_count_++);
+        branch_count_ ++;
+        child->setParentNode(this);
 
         if(gotData("uuid")){
             auto data = getData("uuid");
@@ -544,7 +561,8 @@ bool Node::removeChild(Node *child)
 
 bool Node::ancestorOf(Node *node)
 {
-    auto b_tree_index = node->getTreeIndex();
+    const auto& a_tree_index = getTreeIndex();
+    const auto& b_tree_index = node->getTreeIndex();
 
     //Not an ancestor of ourselves
     if(this == node){
@@ -552,17 +570,17 @@ bool Node::ancestorOf(Node *node)
     }
 
     //If either of tree's aren't setup, we can't be an ancestor
-    if(tree_index_.size() == 0 || b_tree_index.size() == 0){
+    if(a_tree_index.size() == 0 || b_tree_index.size() == 0){
         return false;
     }
 
     //If this node is shallower than the comparison, has to be false
-    if(this->tree_index_.size() > b_tree_index.size()){
+    if(a_tree_index.size() > b_tree_index.size()){
         return false;
     }
 
-    for(int i = 0; i < tree_index_.size(); i++){
-        if(tree_index_.at(i) != b_tree_index.at(i)){
+    for(int i = 0; i < a_tree_index.size(); i++){
+        if(a_tree_index.at(i) != b_tree_index.at(i)){
             return false;
         }
     }
@@ -829,29 +847,25 @@ void Node::removeEdge(Edge *edge)
     }
 }
 
-void Node::setParentNode(Node *parent, int index)
+void Node::setParentNode(Node *parent, int branch)
 {
-    auto parent_node_kind = parent ? parent->getNodeKind() : NODE_KIND::NONE;
-    auto parent_view_aspect = parent ? parent->getViewAspect() : VIEW_ASPECT::NONE;
-    auto tree_index = parent ? parent->getTreeIndex() : QList<int>();
-
-    tree_index_ = tree_index << index;
-    parent_node_ = parent;
-    parent_node_kind_ = parent_node_kind;
-    setViewAspect(parent_view_aspect);
-
-    //Update
-    if(parent){
+    if(!parent_node_ && parent){
+        //Set the persistent information once
+        parent_node_ = parent;
+        parent_node_kind_ = parent->getNodeKind();
+        branch_ = branch;
         for(auto data : getData()){
             data->revalidateData();
         }
+        
     }
 
-    for(auto child : getChildren()){
-        auto index = child->getTreeIndex().last();
-        child->setParentNode(this, index);
+    if(parent_node_){
+        //Update the parent tree index
+        updateTreeIndex(parent_node_->getTreeIndex());
+        updateViewAspect(parent_node_->getViewAspect());
+        parentSet(parent_node_);
     }
-    parentSet(parent);
 }
 
 QString Node::toGraphML(int indent_depth, bool functional_export)

@@ -110,7 +110,12 @@ void NodeView::setViewController(ViewController *viewController)
 
 
         connect(viewController, &ViewController::vc_centerItem, this, &NodeView::centerItem);
-        connect(viewController, &ViewController::vc_fitToScreen, this, &NodeView::fitToScreen);
+        connect(viewController, &ViewController::vc_fitToScreen, [=](bool only_if_active){
+            if(is_active || !only_if_active){
+                fitToScreen();
+            }
+        });
+
         connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeView::centerConnections);
 
 
@@ -793,7 +798,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
     if(!containedNodeViewItem && item->getViewAspect() == containedAspect){
         setContainedNodeViewItem(item);
-        //Don't construct an aspect.
         return;
     }
 

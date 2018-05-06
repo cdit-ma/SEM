@@ -11,6 +11,7 @@ class WorkerDefinitions : public Node
 protected:
 	WorkerDefinitions(EntityFactory* factory);
 	WorkerDefinitions();
+    void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

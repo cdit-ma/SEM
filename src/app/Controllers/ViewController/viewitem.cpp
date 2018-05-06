@@ -85,10 +85,6 @@ bool ViewItem::isEdge() const
     return getEntityKind() == GRAPHML_KIND::EDGE;
 }
 
-bool ViewItem::isInModel()
-{
-    return false;
-}
 
 QVariant ViewItem::getData(QString key_name) const
 {
@@ -98,22 +94,12 @@ QVariant ViewItem::getData(QString key_name) const
 QStringList ViewItem::getKeys() const
 {
     QStringList keys;
-    if(controller){
-        keys = controller->getEntityKeys(ID);
-    }
-    return keys;
+    return _data.keys();
 }
 
 bool ViewItem::hasData(QString keyName) const
 {
     bool has_local = _data.contains(keyName);
-
-    if(!has_local){
-        //This crashes on quick undo redo
-        if(getKeys().contains(keyName)){
-            return true;
-        }    
-    }
     return has_local;
 }
 
@@ -122,7 +108,8 @@ bool ViewItem::isDataProtected(QString keyName) const
     if(isReadOnly()){
         return true;
     }else{
-        return getProtectedKeys().contains(keyName);
+        return false;
+        //return getProtectedKeys().contains(keyName);
     }
 }
 

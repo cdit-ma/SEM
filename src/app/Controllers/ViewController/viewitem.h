@@ -31,7 +31,6 @@ public:
     GRAPHML_KIND getEntityKind() const;
     bool isNode() const;
     bool isEdge() const;
-    virtual bool isInModel();
 
     VIEW_ASPECT getViewAspect();
 

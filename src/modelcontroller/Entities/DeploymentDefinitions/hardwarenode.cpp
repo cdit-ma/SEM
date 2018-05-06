@@ -2,9 +2,10 @@
 
 #include "../../edgekinds.h"
 
-HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_NODE, "HardwareNode"){
-	auto node_kind = NODE_KIND::HARDWARE_NODE;
-	QString kind_string = "HardwareNode";
+auto node_kind = NODE_KIND::HARDWARE_NODE;
+QString kind_string = "HardwareNode";
+
+HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareNode();});
 
     RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
@@ -16,9 +17,10 @@ HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, NODE_KIND::HA
     RegisterDefaultData(factory, node_kind, "uuid", QVariant::String, true);
 };
 
-HardwareNode::HardwareNode():Node(NODE_KIND::HARDWARE_NODE)
+HardwareNode::HardwareNode():Node(node_kind)
 {
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::OPENCL_PLATFORM);
+    setLabelFunctional();
 }

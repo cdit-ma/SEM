@@ -20,7 +20,6 @@ public:
     int getSourceID();
     int getDestinationID();
     void disconnectEdge();
-    bool isInModel();
 private:
     NodeViewItem* source;
     NodeViewItem* destination;

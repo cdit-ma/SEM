@@ -11,6 +11,7 @@ class BehaviourDefinitions: public Node
 protected:
 	BehaviourDefinitions(EntityFactory* factory);
 	BehaviourDefinitions();
+	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

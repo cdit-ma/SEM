@@ -83,6 +83,8 @@ public:
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
+    QSet<int> GetIDs();
+
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
     QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
@@ -121,6 +123,8 @@ public slots:
     void undo();
     void redo();
 
+    
+
     bool importProjects(QStringList xmlDataList);
 
     //Model Functionality
@@ -148,8 +152,6 @@ public slots:
     void triggerAction(QString actionName);
 
     void addDependantsToDependants(Node* parent_node, Node* dependant);
-private slots:
-    void ModelNameChanged();
 signals:
     void highlight(QList<int> ids);
     void ActionProcessing(bool running, bool success = false, QString error_string= "");
@@ -305,6 +307,7 @@ private:
     bool isUserAction();
     
     Node* get_persistent_node(NODE_KIND node_kind);
+    void set_persistent_node(Node* node);
     QList<Node*> get_matching_dependant_of_definition(Node* parent_node, Node* definition);
     
     QList<Node*> getNodes(QList<int> IDs);

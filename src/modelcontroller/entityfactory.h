@@ -113,6 +113,7 @@ protected:
     void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
     int RegisterEntity(GraphML* graphml, int desired_id = -1);
+    bool UnregisterTempID(GraphML* graphml);
     void DeregisterEntity(GraphML* graphml);
 
     void EntityUUIDChanged(Entity* entity, QString uuid);

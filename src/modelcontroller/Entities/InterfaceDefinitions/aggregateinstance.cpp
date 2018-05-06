@@ -94,6 +94,7 @@ void AggregateInstance::ParentSet(DataNode* child){
                     default:
                         break;
                 }
+                break;
             }
             
             if(invalid_parents.contains(ancestor_kind)){

@@ -194,10 +194,12 @@ QString EntityFactory::getNodeKindString(NODE_KIND kind)
 }
 
 QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
-    return {VIEW_ASPECT::INTERFACES,
+    return {
+        VIEW_ASPECT::INTERFACES,
         VIEW_ASPECT::BEHAVIOUR,
         VIEW_ASPECT::ASSEMBLIES,
         VIEW_ASPECT::HARDWARE,
+        VIEW_ASPECT::WORKERS
     };
 }
 
@@ -211,6 +213,8 @@ NODE_KIND EntityFactory::getViewAspectKind(VIEW_ASPECT aspect){
             return NODE_KIND::ASSEMBLY_DEFINITIONS;
         case VIEW_ASPECT::HARDWARE:
             return NODE_KIND::HARDWARE_DEFINITIONS;
+        case VIEW_ASPECT::WORKERS:
+            return NODE_KIND::WORKER_DEFINITIONS;
         default:
             return NODE_KIND::NONE;
     }
@@ -660,16 +664,16 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
         }else if(key_name == "namespace"){
             key = new NamespaceKey();
         }else{
-            key = new Key(key_name, type);
+        key = new Key(key_name, type);
         }
         
         if(VisualKeyNames().contains(key_name)){
             key->setVisual(true);
         }
-        key->setFactory(this);
-
         key_lookup_[key_name] = key;
         
+        //Need to Cache as Unregistered
+        CacheEntityAsUnregistered(key);
         RegisterEntity(key);
         return key;
     }
@@ -684,6 +688,23 @@ void EntityFactory::DestructEntity(GraphML* graphml){
         if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
             auto node = (Node*) graphml;
             clearAcceptedEdgeKinds(node);
+
+            auto children = node->getChildren(0);
+            auto edges = node->getEdges(0);
+
+            if(children.size()){
+                qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Children";
+                for(auto child : children){
+                    DestructEntity(child);
+                }
+            }
+
+            if(edges.size()){
+                qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Edges";
+                for(auto edge : edges){
+                    DestructEntity(edge);
+                }
+            }
         }
         //This will deregister
         delete graphml;
@@ -793,21 +814,40 @@ int EntityFactory::getUnregisteredFreeID(){
     }
 }
 
+bool EntityFactory::UnregisterTempID(GraphML* graphml){
+    auto current_id = graphml->getID();
+
+    if(unregistered_hash_.contains(current_id)){
+        //Remove from the unregistered
+        unregistered_hash_.remove(current_id);
+        //Try and reuse the hash
+        resuable_unregistered_ids_.enqueue(current_id);
+        return true;
+    }else{
+        return false;
+    }
+}
+
 int EntityFactory::RegisterEntity(GraphML* graphml, int id){
     //Get the current ID
     if(graphml && graphml->getFactory() == this){
-        auto current_id = graphml->getID();
-        if(unregistered_hash_.contains(current_id)){
-            //Remove from the unregistered
-            unregistered_hash_.remove(current_id);
-            //Try and reuse the hash
-            resuable_unregistered_ids_.enqueue(current_id);
+        auto success = UnregisterTempID(graphml);
+        
+        if(!success){
+            //Check if the ID is already in the normal hash.
+            id = graphml->getID();
+        }else{
+            id = getFreeID(id);
         }
-        id = getFreeID(id);
 
         if(!hash_.contains(id)){
-            //qCritical() << "REGISTERING: " << graphml->toString() << " AS " << id << " FROM :" << current_id;
+            //Dont allow a change from a permanent ID
+            if(graphml->getID() > 0 ){
+                qCritical() << "RIP" << id;
+            }
+            //Set the ID
             graphml->setID(id);
+            //Insert
             hash_.insert(id, graphml);
 
             if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
@@ -815,7 +855,12 @@ int EntityFactory::RegisterEntity(GraphML* graphml, int id){
                 acceptedEdgeKindsChanged(node);
             }
         }else{
-            qCritical() << graphml->toString() << ": HASH COLLISION @ " << id;
+            auto hash_element = hash_.value(id, 0);
+            if(graphml != hash_element){
+                qCritical() << "EntityFactory: Registry hash collision @ ID: " << id;
+                qCritical() << "\tExistent Element: " << hash_element->toString();
+                qCritical() << "\tInserted Element: " << graphml->toString();
+            }
         }
     }
     return graphml ? graphml->getID() : -1;
@@ -877,6 +922,8 @@ void EntityFactory::DeregisterEntity(GraphML* graphml){
         unregistered_hash_.remove(id);
     }
 }
+
+
 
 
 void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){

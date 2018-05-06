@@ -136,6 +136,7 @@ void OptionGroupBox::removeOption(QVariant key)
     if (action) {
         actions_lookup.remove(key);
         checkedKeys.removeAll(key);
+        sorted_keys.removeAll(key);
         delete action;
     }
     updateTitleCount();
@@ -152,8 +153,8 @@ bool OptionGroupBox::gotOption(QVariant key){
 void OptionGroupBox::removeOptions()
 {
     hide();
-    for (auto action : actions_lookup.values()) {
-        delete action;
+    for(auto key : actions_lookup.uniqueKeys()){
+        removeOption(key);
     }
     actions_lookup.clear();
     resetOptions();
@@ -307,14 +308,14 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
 
     if(index_of < sorted_keys.size()){
         auto before_key = sorted_keys.at(index_of);
-        put_below = actions_lookup[before_key];
-        
+        put_below = actions_lookup.value(before_key, 0);
     }
 
     auto option_action = getNewOptionAction(put_below);
     option_action->setText(label);
     Theme::StoreActionIcon(option_action, icon_path, icon_name);
     option_action->setProperty(OPTION_KEY, key);
+
     actions_lookup.insert(key, option_action);
 
     resetOptions();
