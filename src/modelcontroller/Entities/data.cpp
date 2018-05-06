@@ -84,7 +84,7 @@ bool Data::_setValue(QVariant value, bool validate){
     if(key && validate){
         success = key->setData(this, value);
     }else{
-        _setData(value);
+        success = _setData(value);
     }
     return success;
 }

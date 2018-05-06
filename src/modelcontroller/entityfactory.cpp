@@ -784,6 +784,14 @@ int EntityFactory::getFreeID(int preferred_id){
     }
     return id;
 }
+int EntityFactory::getUnregisteredFreeID(){
+
+    if(resuable_unregistered_ids_.size()){
+        return resuable_unregistered_ids_.dequeue();
+    }else{
+        return --unregistered_id_counter_;
+    }
+}
 
 int EntityFactory::RegisterEntity(GraphML* graphml, int id){
     //Get the current ID
@@ -792,10 +800,13 @@ int EntityFactory::RegisterEntity(GraphML* graphml, int id){
         if(unregistered_hash_.contains(current_id)){
             //Remove from the unregistered
             unregistered_hash_.remove(current_id);
+            //Try and reuse the hash
+            resuable_unregistered_ids_.enqueue(current_id);
         }
         id = getFreeID(id);
 
         if(!hash_.contains(id)){
+            //qCritical() << "REGISTERING: " << graphml->toString() << " AS " << id << " FROM :" << current_id;
             graphml->setID(id);
             hash_.insert(id, graphml);
 
@@ -813,13 +824,14 @@ int EntityFactory::RegisterEntity(GraphML* graphml, int id){
 void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
     if(graphml){
         //If we haven't been given an id, or our hash contains our id already, we need to set a new one
-        auto id = --unregistered_id_counter_;
+        auto id = getUnregisteredFreeID();
         
         //Get the id, post set
         graphml->setID(id);
         graphml->setFactory(this);
 
         if(!unregistered_hash_.contains(id)){
+            //qCritical() << "UCACHING: " << graphml->toString() << " AS " << id;
             unregistered_hash_.insert(id, graphml);
         }
     }

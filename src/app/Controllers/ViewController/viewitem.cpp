@@ -109,6 +109,7 @@ bool ViewItem::hasData(QString keyName) const
     bool has_local = _data.contains(keyName);
 
     if(!has_local){
+        //This crashes on quick undo redo
         if(getKeys().contains(keyName)){
             return true;
         }    

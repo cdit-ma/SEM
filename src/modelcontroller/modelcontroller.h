@@ -33,8 +33,8 @@ struct HistoryAction{
         QString name;
     } Action;
 
-    int entity_id;
-    int parent_id;
+    int entity_id = -1;
+    int parent_id = -1;
 
     QString xml;
 

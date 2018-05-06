@@ -4,6 +4,7 @@
 #include <QList>
 #include <QHash>
 #include <QVariant>
+#include <QQueue>
 #include <functional>
 
 #include "nodekinds.h"
@@ -137,6 +138,7 @@ private:
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 private:
     int getFreeID(int preferred_id);
+    int getUnregisteredFreeID();
     //Hashes
     QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
     QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;
@@ -152,7 +154,9 @@ private:
     QHash<int, GraphML*> hash_;
     QHash<int, GraphML*> unregistered_hash_;
     int id_counter_ = 0;
+
     int unregistered_id_counter_ = 0;
+    QQueue<int> resuable_unregistered_ids_;
 
     static EntityFactory* global_factory;
 };

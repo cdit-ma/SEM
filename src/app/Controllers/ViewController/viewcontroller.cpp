@@ -1049,6 +1049,8 @@ bool ViewController::destructViewItem(ViewItem *item)
         }
         int ID = viewItem->getID();
 
+        qCritical() << "DESTRUCTING " << viewItem->getData("kind") << " " << ID;
+
         
         if(viewItem->isNode()){
             //Remove node from nodeKind Map
