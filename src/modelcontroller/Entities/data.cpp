@@ -84,7 +84,7 @@ bool Data::_setValue(QVariant value, bool validate){
     if(key && validate){
         success = key->setData(this, value);
     }else{
-        _setData(value);
+        success = _setData(value);
     }
     return success;
 }
@@ -118,6 +118,13 @@ void Data::clearValue()
 {
     setValue("");
     updateChildren();
+}
+
+bool Data::CompareData(const Data* a, const Data* b){
+    if(a && b){
+        return a->getValue() == b->getValue();
+    }
+    return false;
 }
 
 bool Data::compare(const Data *data) const

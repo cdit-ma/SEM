@@ -42,14 +42,12 @@ void SearchDialog::DisplaySearchResults(QString query, QMap<QString, ViewItem*> 
 
     clearSearchItems();
 
-    // clear previous data filters
     data_filters->removeOptions();
 
     auto has_results = !results.isEmpty();
     
     info_label->setVisible(!has_results);
     if(has_results){
-        
         for(auto key : results.uniqueKeys()){
             auto view_items = results.values(key);
             for(auto item : view_items){
@@ -360,6 +358,7 @@ void SearchDialog::setupFilters()
         auto node_kind = EntityFactory::getViewAspectKind(view_aspect);
         aspect_filters->addOption(QVariant::fromValue(view_aspect), getViewAspectName(view_aspect), "EntityIcons", EntityFactory::getNodeKindString(node_kind));
     }
+    aspect_filters->addOption(QVariant::fromValue(VIEW_ASPECT::NONE), "Edges", "Icons", "connect");
 
     data_filters = new OptionGroupBox("DATA", SortOrder::INSERTION, this);
     filters_layout->addWidget(data_filters);

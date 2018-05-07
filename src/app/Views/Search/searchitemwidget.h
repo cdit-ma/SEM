@@ -3,6 +3,7 @@
 
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../Controllers/ViewController/nodeviewitem.h"
+#include "../../Controllers/ViewController/edgeviewitem.h"
 #include "../../theme.h"
 
 #include <QFrame>
@@ -16,6 +17,8 @@ struct DataItem{
     QLabel* label_icon = 0;
     QLabel* label_value = 0;
     QLabel* label_key = 0;
+
+    bool in_layout = false;
 };
 
 class SearchItemWidget : public QFrame
@@ -27,6 +30,8 @@ public:
 
     void addMatchedKeys(QSet<QString> keys);
     void addMatchedKey(QString key);
+    void addPersistentKey(QString key);
+    void removePersistentKey(QString key);
     void removeMatchedKey(QString key);
     void clearMatchedKeys();
     bool gotMatchedKey(QString key);
@@ -54,6 +59,7 @@ private:
     void setupDataLayout();
 
     void setupDataKey(QString key);
+    void updateDataKey(QString key, QVariant data);
     void removeDataKey(QString key);
     
     
@@ -78,6 +84,7 @@ private:
 
     
     QSet<QString> matched_keys;
+    QSet<QString> persistent_keys;
 
     QHash<QString, DataItem*> data_key_hash;
 

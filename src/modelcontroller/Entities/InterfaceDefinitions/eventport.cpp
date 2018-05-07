@@ -60,7 +60,7 @@ void EventPort::unsetAggregate()
 bool EventPort::canAdoptChild(Node *child)
 {
     //Can Only accept 1 child.
-    if(childrenCount() > 0){
+    if(getChildrenCount() > 0){
         return false;
     }
     

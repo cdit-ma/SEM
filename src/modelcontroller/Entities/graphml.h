@@ -13,7 +13,7 @@ class GraphML: public QObject{
 protected:
     GraphML(GRAPHML_KIND kind);
     virtual ~GraphML();
-    int setID(int id);
+    void setID(int id);
     void setFactory(EntityFactory* factory);
     EntityFactory* getFactory();
 public:

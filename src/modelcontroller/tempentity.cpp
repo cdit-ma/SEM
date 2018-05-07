@@ -198,3 +198,33 @@ void TempEntity::clearData(){
 QList<QString> TempEntity::getKeys(){
     return data.keys();
 }
+
+void TempEntity::AddImplicitlyConstructedNodeID(NODE_KIND kind, int id){
+    implicit_nodes[kind].enqueue(id);
+}
+void TempEntity::AddImplicitlyConstructedEdgeID(EDGE_KIND kind, int id){
+    implicit_edges[kind].enqueue(id);
+}
+
+
+bool TempEntity::GotImplicitlyConstructedNodeID(NODE_KIND kind){
+    return implicit_nodes[kind].count() > 0;
+}
+
+bool TempEntity::GotImplicitlyConstructedEdgeID(EDGE_KIND kind){
+    return implicit_edges[kind].count() > 0;
+}
+
+int TempEntity::TakeNextImplicitlyConstructedNodeID(NODE_KIND kind){
+    return implicit_nodes[kind].dequeue();
+}
+int TempEntity::TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind){
+    return implicit_edges[kind].dequeue();
+}
+
+void TempEntity::setImplicitlyConstructed(){
+    implicitly_constructed = true;
+}
+bool TempEntity::isImpliciltyConstructed(){
+    return implicitly_constructed;
+}

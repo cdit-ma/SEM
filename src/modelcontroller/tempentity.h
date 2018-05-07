@@ -6,6 +6,8 @@
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
+#include <QMap>
+#include <QQueue>
 
 class TempEntity
 {
@@ -31,6 +33,8 @@ public:
     void setID(int ID);
     int getID();
     bool gotID();
+    void setImplicitlyConstructed();
+    bool isImpliciltyConstructed();
 
     QList<TempEntity*> getChildren();
 
@@ -62,6 +66,15 @@ public:
     QList<QString> getKeys();
     void removeData(QString key_name);
     void clearData();
+
+    void AddImplicitlyConstructedNodeID(NODE_KIND kind, int id);
+    void AddImplicitlyConstructedEdgeID(EDGE_KIND kind, int id);
+    
+    bool GotImplicitlyConstructedNodeID(NODE_KIND kind);
+    bool GotImplicitlyConstructedEdgeID(EDGE_KIND kind);
+
+    int TakeNextImplicitlyConstructedNodeID(NODE_KIND kind);
+    int TakeNextImplicitlyConstructedEdgeID(EDGE_KIND kind);
 private:
     void addChild(TempEntity* child);
 
@@ -71,6 +84,9 @@ private:
     QHash<QString, QVariant> data;
     QList<TempEntity*> children;
     QList<EDGE_KIND> edge_kinds;
+
+    QMap<NODE_KIND, QQueue<int> > implicit_nodes;
+    QMap<EDGE_KIND, QQueue<int> > implicit_edges;
     
     int line_number = -1;
     QString id_str;
@@ -85,6 +101,7 @@ private:
     int source_id = -1;
     int target_id = -1;
 
+    bool implicitly_constructed = false;
     GRAPHML_KIND graphml_kind = GRAPHML_KIND::NONE;
 };
 

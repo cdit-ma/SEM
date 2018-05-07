@@ -19,12 +19,6 @@ EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src
     edgeKind = kind;
 }
 
-bool EdgeViewItem::isInModel(){
-    if(source && destination){
-        return source->isInModel() && destination->isInModel();
-    }
-    return false;
-}
 EdgeViewItem::EdgeViewItem(ViewController *controller, EDGE_KIND kind, QString label): ViewItem(controller, GRAPHML_KIND::EDGE)
 {
     edgeKind = kind;

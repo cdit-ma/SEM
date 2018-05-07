@@ -9,6 +9,7 @@ class DeploymentDefinitions: public Node
     Q_OBJECT
 protected:
 	DeploymentDefinitions(EntityFactory* factory);
+	static Node* ConstructDeploymentDefinitions(EntityFactory* factory);
 	DeploymentDefinitions();
 public:
     bool canAdoptChild(Node* child);

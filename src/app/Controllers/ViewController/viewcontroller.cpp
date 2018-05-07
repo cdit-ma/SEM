@@ -120,6 +120,8 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
 
     connect(controller, &ModelController::ActionFinished, this, &ViewController::vc_ActionFinished);
+    //connect(controller, &ModelController::ActionFinished, [=](){qCritical() << " === ";});
+
     connect(controller, &ModelController::Notification, this, &ViewController::modelNotification);
 
     connect(controller, &ModelController::SetClipboardData, this, &ViewController::setClipboardData);
@@ -386,9 +388,7 @@ QList<ViewItem*> ViewController::getSearchableEntities(){
                 continue;
             }
         }
-        if(item->isInModel()){
-            items.append(item);
-        }
+        items.append(item);
     }
     return items;
 }
@@ -655,8 +655,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
             case NODE_KIND::WORKER_DEFINITIONS:{
-                default_icon_prefix = "Icons";
-                default_icon_name = "medeaLogo";
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Workload";
                 break;
             }
             case NODE_KIND::MODEL:
@@ -666,6 +666,10 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case NODE_KIND::EXTERNAL_TYPE:
                 default_icon_prefix = "Icons";
                 default_icon_name = "translate";
+                break;
+            case NODE_KIND::BOOLEAN_EXPRESSION:
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "Condition";
                 break;
             case NODE_KIND::FUNCTION:
             case NODE_KIND::FUNCTION_CALL:{
@@ -1031,6 +1035,7 @@ bool ViewController::destructViewItem(ViewItem *item)
     if(!item){
         return false;
     }
+    //qCritical() << "ViewController: Destruct: " << item->getID() << " " << item->getData("kind").toString() ;
 
     QList<ViewItem*> children;
     children.append(item);
@@ -1047,12 +1052,14 @@ bool ViewController::destructViewItem(ViewItem *item)
 
         
         if(viewItem->isNode()){
+            //qCritical() << "ViewController: Destructing Node: " << ID << " " << viewItem->getData("kind").toString();
             //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
             nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
         }else if(viewItem->isEdge()){
             //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
+            //qCritical() << "ViewController: Destructing Edge: " << ID << " " << viewItem->getData("kind").toString() << " " << edgeItem->getSourceID() << "->" << edgeItem->getDestinationID();
             edgeItem->disconnectEdge();
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
@@ -1195,7 +1202,7 @@ void ViewController::ModelControllerReady(bool ready)
     if(ready){
         emit vc_showWelcomeScreen(false);
         //Call this after everything has loaded
-        QMetaObject::invokeMethod(this, "fitAllViews", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "vc_fitToScreen", Qt::QueuedConnection, Q_ARG(bool, false));
     }
 }
 
@@ -1460,6 +1467,7 @@ ModelController* ViewController::getModelController(){
 QStringList ViewController::getEntityKeys(int ID){
     QStringList keys;
     if(controller){
+        qCritical() << "REQUESTING KEYS FOR: " << ID;
         keys = controller->getEntityKeys(ID);
     }
     return keys;
@@ -1475,32 +1483,41 @@ QVariant ViewController::getEntityDataValue(int ID, QString key_name){
 }
 
 void ViewController::model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
-    
+    //qCritical() << "ViewController: Edge Constructed: " << id << " " << EntityFactory::getEdgeKindString(kind);
     auto src = getNodeViewItem(src_id);
     auto dst = getNodeViewItem(dst_id);
     auto parent = getSharedParent(src, dst);
     if(src && dst && parent){
-        auto edge = new EdgeViewItem(this, id, src, dst, kind);
-        
-        //Fill with Data
-        foreach(QString key, getEntityKeys(id)){
-            edge->changeData(key, getEntityDataValue(id, key));
-        }
-
+        auto edge_item = new EdgeViewItem(this, id, src, dst, kind);
         edgeKindLookups.insertMulti(kind, id);
 
-        SetParentNode(parent, edge);
+        SetParentNode(parent, edge_item);
 
-        src->addEdgeItem(edge);
-        dst->addEdgeItem(edge);
+        src->addEdgeItem(edge_item);
+        dst->addEdgeItem(edge_item);
 
-         //Insert into map
-        viewItems[id] = edge;
-        setDefaultIcon(edge);
+        StoreViewItem(edge_item);
+    }
+}
 
-        connect(edge->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
-        //Tell Views
-        emit vc_viewItemConstructed(edge);
+void ViewController::StoreViewItem(ViewItem* view_item){
+    if(view_item){
+        auto id = view_item->getID();
+        if(!viewItems.contains(id)){
+            viewItems[id] = view_item;
+        }else{
+            qCritical() << "DUPLICATE ID: " << id;
+        }
+
+        if(controller){
+            for(const auto& data : controller->getEntityDataList(id)){
+                view_item->changeData(data.first, data.second);
+            }
+        }
+        setDefaultIcon(view_item);
+        connect(view_item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+
+        emit vc_viewItemConstructed(view_item);
     }
 }
 
@@ -1522,38 +1539,23 @@ void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
 }
 
 void ViewController::model_NodeConstructed(int parent_id, int id, NODE_KIND kind){
-    //Construct a basic item
-    NodeViewItem* item = new NodeViewItem(this, id, kind);
-
-
-    for(const auto& key : getEntityKeys(id)){
-        item->changeData(key, getEntityDataValue(id, key));
-    }
-
+    //qCritical() << "ViewController: Node Constructed: " << id << " " << EntityFactory::getNodeKindString(kind);
+    auto node_item = new NodeViewItem(this, id, kind);
+    auto parent_item = getNodeViewItem(parent_id);
     
-
-    //Get our parent
-    auto parent = getNodeViewItem(parent_id);
     nodeKindLookups.insertMulti(kind, id);
-    //Insert into map
-    viewItems[id] = item;
-    setDefaultIcon(item);
-    connect(item->getTableModel(), &DataTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
+    SetParentNode(parent_item, node_item);
     
-    
-
-    SetParentNode(parent, item);
+    StoreViewItem(node_item);
     controller_nodeEdgeChanged(id);
-    //Tell Views
-    emit vc_viewItemConstructed(item);
-    
 }
 
 void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
 {
-    auto view_item = getViewItem(ID);
-    //qCritical() << "DESTRUCT #" << ID << " " <<view_item->getData("kind").toString() << " = " << view_item->getData("label").toString();
-    destructViewItem(view_item);
+    auto success = destructViewItem(getViewItem(ID));
+    if(!success){
+        qCritical() << "ViewController: Destructing ID: " << ID << " FAILED!";
+    }
 }
 
 void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
@@ -1581,7 +1583,6 @@ void ViewController::controller_nodeEdgeChanged(int ID)
     if(node_item){
         if(controller){
             auto edge_kinds = controller->getAcceptedEdgeKindsForSelection({ID});
-
             node_item->clearVisualEdgeKinds();
             for(auto edge_kind : edge_kinds.first){
                 node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);
@@ -1589,7 +1590,6 @@ void ViewController::controller_nodeEdgeChanged(int ID)
             for(auto edge_kind : edge_kinds.second){
                 node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::TARGET);
             }
-            
             emit node_item->visualEdgeKindsChanged();
         }
     }
@@ -1812,19 +1812,6 @@ void ViewController::_importProjectFiles(QStringList files)
     }
 }
 
-void ViewController::fitView()
-{
-    NodeView* view = getActiveNodeView();
-    if(view){
-        view->fitToScreen();
-    }
-}
-
-void ViewController::fitAllViews()
-{
-
-    emit vc_fitToScreen();
-}
 
 void ViewController::centerSelection()
 {

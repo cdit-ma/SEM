@@ -33,8 +33,8 @@ struct HistoryAction{
         QString name;
     } Action;
 
-    int entity_id;
-    int parent_id;
+    int entity_id = -1;
+    int parent_id = -1;
 
     QString xml;
 
@@ -43,6 +43,17 @@ struct HistoryAction{
         QVariant old_value;
         QVariant new_value;
     } Data;
+};
+
+inline QString getActionTypeString(ACTION_TYPE type){
+    switch(type){
+        case ACTION_TYPE::CONSTRUCTED:
+            return "CONSTRUCTED";
+        case ACTION_TYPE::DESTRUCTED:
+            return "DESTRUCTED";
+        case ACTION_TYPE::MODIFIED:
+            return "MODIFIED";
+    }
 };
 
 class ModelController: public QObject
@@ -72,6 +83,8 @@ public:
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
+    QSet<int> GetIDs();
+
     QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
     QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
     QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
@@ -87,6 +100,8 @@ public:
     QStringList getEntityKeys(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
 
+    QList<QPair<QString, QVariant> > getEntityDataList(int ID);
+
     QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
 
     bool canUndo();
@@ -94,7 +109,6 @@ public:
 
     int getDefinition(int ID);
     int getImplementation(int ID);
-    QList<int> getInstances(int ID);
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
 public slots:
@@ -108,6 +122,8 @@ public slots:
     void remove(QList<int> ids);
     void undo();
     void redo();
+
+    
 
     bool importProjects(QStringList xmlDataList);
 
@@ -136,8 +152,6 @@ public slots:
     void triggerAction(QString actionName);
 
     void addDependantsToDependants(Node* parent_node, Node* dependant);
-private slots:
-    void ModelNameChanged();
 signals:
     void highlight(QList<int> ids);
     void ActionProcessing(bool running, bool success = false, QString error_string= "");
@@ -186,10 +200,10 @@ private:
     QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
 
     Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
-    Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1, int id = -1);
+    Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);
-    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, int id = -1, bool notify_view = true);
+    Edge* construct_edge(EDGE_KIND edge_kind, Node* source, Node* destination, bool notify_view = true);
     int GetEdgeOrderIndex(EDGE_KIND kind);
     QList<EDGE_KIND> GetEdgeOrderIndexes();
 
@@ -202,7 +216,8 @@ private:
     Node* construct_for_node(Node* parent, int index);
     Node* construct_component_node(Node* parent, int index);
     Node* construct_periodic_eventport(Node* parent, int index);
-    Node* construct_SERVER_INTERFACE_node(Node* parent, int index);
+    Node* construct_server_interface_node(Node* parent, int index);
+    Node* construct_boolean_expression_node(Node* parent, int index);
 
     EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
     QList<EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
@@ -231,9 +246,10 @@ private:
 
     void setProjectModified(bool modified);
     
-    Node* getImplementation(Node* node);
+    bool gotImplementation(Node* node);
+    bool gotInstances(Node* node);
+
     Node* getDefinition(Node* node);
-    QList<Node*> getInstances(Node* node);
 
     bool attachChildNode(Node* parentNode, Node* childNode, bool notify_view = true);
 
@@ -245,9 +261,9 @@ private:
     Node* cloneNode(Node* original, Node* parent);
     
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
-    void storeNode(Node* node);
-    void storeEdge(Edge* edge);
-    void storeEntity(Entity* item);
+    bool storeNode(Node* node, int desired_id = -1, bool store_children = true, bool add_action = true);
+    bool storeEdge(Edge* edge, int desired_id = -1);
+    bool storeEntity(Entity* item, int desired_id);
     void removeEntity(Entity* item);
 
     bool destructEntity(int ID);
@@ -291,6 +307,7 @@ private:
     bool isUserAction();
     
     Node* get_persistent_node(NODE_KIND node_kind);
+    void set_persistent_node(Node* node);
     QList<Node*> get_matching_dependant_of_definition(Node* parent_node, Node* definition);
     
     QList<Node*> getNodes(QList<int> IDs);

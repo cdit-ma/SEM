@@ -26,7 +26,7 @@ bool DataNode::hasOutputData()
 
 DataNode *DataNode::getInputData()
 {
-    for(auto edge : getEdges(0, EDGE_KIND::DATA)){
+    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
         if(edge->getDestination() == this){
             return (DataNode*) edge->getSource();
         }
@@ -36,7 +36,7 @@ DataNode *DataNode::getInputData()
 
 DataNode *DataNode::getOutputData()
 {
-    for(auto edge : getEdges(0, EDGE_KIND::DATA)){
+    for(auto edge : getEdgesOfKind(EDGE_KIND::DATA, 0)){
         if(edge->getSource() == this){
             return (DataNode*) edge->getDestination();
         }
@@ -297,4 +297,60 @@ void DataNode::setPromiscuousDataLinker(bool set){
 
 bool DataNode::isPromiscuousDataLinker() const{
     return promiscuous_data_linker_;
+}
+
+
+void DataNode::BindDataRelationship(Node* source, Node* destination, bool setup){
+    if(source && destination && source->isNodeOfType(NODE_TYPE::DATA) && destination->isNodeOfType(NODE_TYPE::DATA)){
+        auto source_parent = source->getParentNode();
+        auto destination_parent = destination->getParentNode();
+
+        if(destination_parent){
+            if(destination_parent->getNodeKind() == NODE_KIND::FUNCTION_CALL){
+                auto worker_name = destination_parent->getDataValue("worker").toString();
+                auto parameter_label = destination->getDataValue("label").toString();
+
+                if(worker_name == "OpenCL_Worker" || worker_name == "Vector_Operations"){
+                    for(auto param : destination_parent->getChildren(0)){
+                        if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                            //Check if we are using generic params
+                            auto is_generic_param = param->getDataValue("is_generic_param").toBool();
+                            if(is_generic_param){
+                                LinkData(source, "inner_type", param, "inner_type", setup);
+                                if(!setup){
+                                    param->setDataValue("inner_type", "");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if(destination_parent->getNodeKind() == NODE_KIND::SETTER){
+                for(auto param : destination_parent->getChildren(0)){
+                    if(param->isNodeOfType(NODE_TYPE::PARAMETER)){
+                        LinkData(source, "inner_type", param, "inner_type", setup);
+                        LinkData(source, "outer_type", param, "outer_type", setup);
+                    }
+                }
+            }
+            
+        }
+        auto bind_source = source;
+        auto source_key = "label";
+
+        //Data bind to the Variable, instead of the Member
+        if(source_parent && source_parent->getNodeKind() == NODE_KIND::VARIABLE){
+            bind_source = source_parent;
+        }
+
+        //BIND LABEL
+        //QSet<NODE_KIND> bind_labels = {NODE_KIND::VARIABLE, NODE_KIND::ATTRIBUTE_IMPL, NODE_KIND::ENUM_MEMBER, NODE_KIND::DEPLOYMENT_ATTRIBUTE, NODE_KIND::BOOLEAN_EXPRESSION};
+
+        //if(bind_labels.contains(bind_source->getNodeKind())){
+        //    source_key = "label";
+        //}
+
+        LinkData(bind_source, source_key, destination, "value", setup);
+        TypeKey::BindInnerAndOuterTypes(bind_source, destination, setup);
+    }
 }

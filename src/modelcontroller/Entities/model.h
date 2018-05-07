@@ -10,9 +10,8 @@ class Model: public Node
 protected:
 	Model(EntityFactory* factory);
     Model();
+    static Node* ConstructModel(EntityFactory* factory);
 public:
-
     bool canAdoptChild(Node*);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 #endif // MODEL_H

@@ -9,6 +9,7 @@ protected:
     DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
     DataNode(NODE_KIND kind);
 public:
+    static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();
     bool hasOutputData();
 
@@ -50,7 +51,7 @@ private:
     bool is_producer_ = false;
     bool is_receiver_ = false;
     bool is_multiple_data_receiver_ = false;
-    bool is_multiple_data_producer_ = false;
+    bool is_multiple_data_producer_ = true;
 
 };
 

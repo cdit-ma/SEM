@@ -33,7 +33,7 @@ Vector::Vector(): DataNode(NODE_KIND::VECTOR)
 
 bool Vector::canAdoptChild(Node *child)
 {
-    if(childrenCount() > 0){
+    if(getChildrenCount() > 0){
         return false;
     }
     return Node::canAdoptChild(child);
@@ -50,7 +50,7 @@ bool Vector::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         if(dst->getNodeKind() != NODE_KIND::AGGREGATE){
             return false;
         }
-        if(childrenCount() > 0){
+        if(getChildrenCount() > 0){
             return false;
         }
         break;
@@ -62,9 +62,8 @@ bool Vector::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
 }
 
 void Vector::updateVectorIcon(Node* node){
-    auto first_child = node->getFirstChild();
-
-    auto child_kind = first_child ? first_child->getNodeKind() : NODE_KIND::NONE;
+    auto children = node->getChildren(0);
+    auto child_kind = children.size() ? children.first()->getNodeKind() : NODE_KIND::NONE;
     
     auto icon = node->getDataValue("kind").toString();
 

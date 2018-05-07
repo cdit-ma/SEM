@@ -315,3 +315,11 @@ bool Entity::SortByIndex(const Entity* a, const Entity* b){
     auto b_ind = b->getDataValue("index").toInt();
     return a_ind < b_ind;
 }
+
+bool Entity::isLabelFunctional() const{
+    return is_label_functional;
+}
+
+void Entity::setLabelFunctional(bool functional){
+    is_label_functional = functional;
+}

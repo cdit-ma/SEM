@@ -4,6 +4,7 @@
 #include <QList>
 #include <QHash>
 #include <QVariant>
+#include <QQueue>
 #include <functional>
 
 #include "nodekinds.h"
@@ -41,6 +42,7 @@ private:
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
         std::function<Node* ()> constructor;
+        std::function<Node* (EntityFactory*)> complex_constructor;
         QHash<QString, DefaultDataStruct*> default_data;
     };
 
@@ -72,16 +74,21 @@ protected:
 
     QSet<Node*> GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind, EDGE_DIRECTION direction);
 
+public:
     //Constructors
-    Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind, int id = -1);
-    Node* CreateNode(NODE_KIND node_kind, int id = -1);
+    Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
+    Node* CreateNode(NODE_KIND node_kind, bool complex = true);
     Node* CreateTempNode(NODE_KIND node_kind);
     
     Data* CreateData(Key* key, QVariant value = QVariant(), bool is_protected = false);
+    Data* AttachData(Entity* entity, Key* key, QVariant value = QVariant(), bool is_protected = false);
+
+    Key* GetKey(QString key_name, QVariant::Type type);
     
+    int CacheEntity(GraphML* graphml, int desired_id = -1);
     //Destructor
     void DestructEntity(GraphML* entity);
-
+protected:
     //Getters
     Entity* GetEntity(int id);
     Node* GetNode(int id);
@@ -91,25 +98,28 @@ protected:
     //Key getters
     Key* GetKey(int id);
     Key* GetKey(QString key_name);
-    Key* GetKey(QString key_name, QVariant::Type type);
+    
     QList<Key*> GetKeys();
 
     Entity* GetEntityByUUID(QString uuid);
 
+
     //Called by secondary constructors of Node/Edge subclasses
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+    void RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor);
     void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
     void RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
     void RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
     void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
-    //Called after a GraphML has an EntityFactory Set    
-    void RegisterEntity(GraphML* graphml, int id = -1);
-    //Called during the destructor of a GraphML entity
+    int RegisterEntity(GraphML* graphml, int desired_id = -1);
+    bool UnregisterTempID(GraphML* graphml);
     void DeregisterEntity(GraphML* graphml);
 
     void EntityUUIDChanged(Entity* entity, QString uuid);
 private:
+    void CacheEntityAsUnregistered(GraphML* graphml);
+
     void acceptedEdgeKindsChanged(Node* node);
     void clearAcceptedEdgeKinds(Node* node);
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
@@ -120,15 +130,16 @@ private:
     QList<Data*> getDefaultData(QList<DefaultDataStruct*> data);
     
     GraphML* getGraphML(int id);
-    void StoreEntity(GraphML* graphml, int id = -1);
 
     
-    Node* _createNode(NODE_KIND kind, bool is_temporary = false, int id = -1);
-    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind, int id = -1);
+    Node* _createNode(NODE_KIND kind, bool is_temporary = false, bool complex = true);
+    Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
 
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 private:
+    int getFreeID(int preferred_id);
+    int getUnregisteredFreeID();
     //Hashes
     QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
     QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;
@@ -142,7 +153,11 @@ private:
     QHash<EDGE_KIND, QSet<Node*> > accepted_target_edge_map;
 
     QHash<int, GraphML*> hash_;
+    QHash<int, GraphML*> unregistered_hash_;
     int id_counter_ = 0;
+
+    int unregistered_id_counter_ = 0;
+    QQueue<int> resuable_unregistered_ids_;
 
     static EntityFactory* global_factory;
 };

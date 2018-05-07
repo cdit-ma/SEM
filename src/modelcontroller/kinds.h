@@ -27,4 +27,19 @@ inline GRAPHML_KIND getGraphMLKindFromString(const QStringRef str){
     }
     return kind;
 };
+
+inline QString getGraphMLKindString(GRAPHML_KIND kind){
+    switch(kind){
+        case GRAPHML_KIND::EDGE:
+            return "edge";
+        case GRAPHML_KIND::NODE:
+            return "node";
+        case GRAPHML_KIND::DATA:
+            return "data";
+        case GRAPHML_KIND::KEY:
+            return "key";
+        default:
+            return "none";
+    }
+};
 #endif

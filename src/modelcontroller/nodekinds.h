@@ -92,6 +92,7 @@ enum class NODE_KIND
         LOGGINGPROFILE,
         DEPLOYMENT_ATTRIBUTE,
         EXTERNAL_TYPE,
+        BOOLEAN_EXPRESSION,
 
         QOS_DDS_PROFILE,
         QOS_DDS_POLICY_DEADLINE,
@@ -176,6 +177,8 @@ inline QString getViewAspectName(VIEW_ASPECT aspect){
             return "Assemblies";
         case VIEW_ASPECT::HARDWARE:
             return "Hardware";    
+        case VIEW_ASPECT::WORKERS:
+            return "Workers";    
         default:
             return "None";
     }

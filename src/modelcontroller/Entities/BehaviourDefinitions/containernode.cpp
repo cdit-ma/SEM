@@ -10,7 +10,8 @@ QSet<NODE_KIND> ContainerNode::getAcceptedNodeKinds(){
         NODE_KIND::WHILE_LOOP,
         NODE_KIND::SETTER,
         NODE_KIND::CODE,
-        NODE_KIND::FUNCTION_CALL
+        NODE_KIND::FUNCTION_CALL,
+        NODE_KIND::BOOLEAN_EXPRESSION
     };
 }
 

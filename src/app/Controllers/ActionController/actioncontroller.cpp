@@ -70,8 +70,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
-        connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
-        connect(view_fitAllViews, &QAction::triggered, viewController, &ViewController::fitAllViews);
+        connect(view_fitView, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(true);});
+        connect(view_fitAllViews, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(false);});
 
         connect(edit_alignHorizontal, &QAction::triggered, viewController, &ViewController::alignSelectionHorizontal);
         connect(edit_alignVertical, &QAction::triggered, viewController, &ViewController::alignSelectionVertical);

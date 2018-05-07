@@ -10,7 +10,7 @@ namespace MEDEA{
     protected:
         ServerRequest(EntityFactory* factory);
         ServerRequest();
-        QSet<Node*> getParentNodesForValidDefinition() override;
+        QSet<Node*> getParentNodesForValidDefinition();
     public:
         bool canAdoptChild(Node* child);
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

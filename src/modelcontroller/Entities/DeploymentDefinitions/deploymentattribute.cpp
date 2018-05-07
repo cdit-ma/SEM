@@ -15,6 +15,7 @@ MEDEA::DeploymentAttribute::DeploymentAttribute() : DataNode(node_kind)
 {
     setDataProducer(true);
     setDataReceiver(true);
+    setMultipleDataProducer(true);
 }
 
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

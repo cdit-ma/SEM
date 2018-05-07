@@ -31,7 +31,7 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
 bool VectorInstance::canAdoptChild(Node *child)
 {
    
-    if(childrenCount() > 0){
+    if(getChildrenCount() > 0){
         return false;
     }
     return Node::canAdoptChild(child);

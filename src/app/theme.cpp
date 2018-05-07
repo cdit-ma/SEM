@@ -1382,6 +1382,7 @@ void Theme::setupToggledIcons()
 }
 
 void Theme::setupAliasIcons(){
+    setIconAlias("EntityIcons", "WorkerDefinitions", "EntityIcons", "Workload");
     setIconAlias("Data", "label", "Icons", "label");
     setIconAlias("Data", "description", "Icons", "speechBubbleFilled");
     setIconAlias("Data", "kind", "Icons", "tiles");
@@ -1389,6 +1390,9 @@ void Theme::setupAliasIcons(){
     setIconAlias("Data", "value", "Icons", "pencil");
     setIconAlias("Data", "type", "Icons", "gearDark");
     setIconAlias("Data", "ID", "Icons", "numberOne");
+
+    setIconAlias("Data", "SRC ID", "Icons", "planeLaunch");
+    setIconAlias("Data", "DST ID", "Icons", "planeLand");
 }   
 
 void Theme::setIconAlias(const QString& prefix, const QString& alias, const QString& icon_prefix, const QString& icon_alias){

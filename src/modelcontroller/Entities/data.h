@@ -14,10 +14,12 @@ class Data : public GraphML
     friend class Node;
     friend class Edge;
 protected:
+    
     Data(Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
     static Data* clone(Data* data);
 public:
+    static bool CompareData(const Data* a, const Data* b);
     static bool SortByKey(const Data* a, const Data* b);
     Entity* getParent();
 
