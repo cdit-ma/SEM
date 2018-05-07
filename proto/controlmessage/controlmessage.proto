@@ -39,6 +39,7 @@ message EnvironmentMessage{
         UPDATE_DEPLOYMENT = 13;
         LOGAN_QUERY = 14;
         LOGAN_RESPONSE = 15;
+        ADD_LOGAN_CLIENT = 16;
     }
 
     Type type = 1;
@@ -47,6 +48,8 @@ message EnvironmentMessage{
     string experiment_id = 3;
     ControlMessage control_message = 4;
     Logger logger = 5;
+
+    repeated string error_messages = 6;
 
 }
 
