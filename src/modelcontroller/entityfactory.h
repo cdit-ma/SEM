@@ -42,7 +42,7 @@ private:
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
         std::function<Node* ()> constructor;
-        std::function<Node* (EntityFactory*)> complex_constructor;
+        std::function<Node* (EntityFactory&, bool)> complex_constructor;
         QHash<QString, DefaultDataStruct*> default_data;
     };
 
@@ -82,12 +82,18 @@ public:
     
     Data* CreateData(Key* key, QVariant value = QVariant(), bool is_protected = false);
     Data* AttachData(Entity* entity, Key* key, QVariant value = QVariant(), bool is_protected = false);
+    Data* AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value = QVariant(), bool is_protected = false);
+
 
     Key* GetKey(QString key_name, QVariant::Type type);
     
     int CacheEntity(GraphML* graphml, int desired_id = -1);
     //Destructor
     void DestructEntity(GraphML* entity);
+    void DeregisterNode(Node* node);
+    void DeregisterEdge(Edge* edge);
+public:
+    Node* ConstructChildNode(Node& parent, NODE_KIND node_kind);
 protected:
     //Getters
     Entity* GetEntity(int id);
@@ -106,7 +112,9 @@ protected:
 
     //Called by secondary constructors of Node/Edge subclasses
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
-    void RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor);
+    void RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);
+
+    void RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor);
     void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
     void RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
     void RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());

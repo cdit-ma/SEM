@@ -186,3 +186,13 @@ QList<QVariant> Key::getValidValues(NODE_KIND kind){
     return valid_values_.values(kind);
 }
 
+QList<QVariant> Key::getValidValues(Node* node){
+    if(node){
+        auto data = node->getData(this);
+        if(data){
+            return data->getValidValues();
+        }
+    }
+    return {};
+}
+

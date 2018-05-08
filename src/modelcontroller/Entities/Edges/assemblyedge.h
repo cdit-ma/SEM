@@ -8,9 +8,7 @@ class AssemblyEdge : public Edge
     Q_OBJECT
     friend class EntityFactory;
 protected:
-    AssemblyEdge(EntityFactory* factory);
-    AssemblyEdge(Node *src, Node *dst);
-private:
-    static AssemblyEdge* ConstructEdge(Node* src, Node* dst);
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    AssemblyEdge(EntityFactory& factory, Node *src, Node *dst);
 };
 #endif // ASSEMBLYEDGE_H

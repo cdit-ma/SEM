@@ -3,17 +3,15 @@
 const NODE_KIND node_kind = NODE_KIND::SERVER_PORT_IMPL;
 const QString kind_string = "ServerPortImpl";
 
-MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ServerPortImpl();});
-};
+void MEDEA::ServerPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){return new MEDEA::ServerPortImpl(factory, is_temp_node);});
+}
 
-MEDEA::ServerPortImpl::ServerPortImpl(): Node(node_kind)
-{
+MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
-
     addImplsDefinitionKind(NODE_KIND::SERVER_PORT);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
@@ -22,8 +20,12 @@ MEDEA::ServerPortImpl::ServerPortImpl(): Node(node_kind)
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
-}
 
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, APP_VERSION(), true);
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
+}
 
 bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
 {

@@ -2,21 +2,23 @@
 
 #include "../../edgekinds.h"
 
+const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_IMPL;
+const QString kind_string = "AttributeImpl";
 
 
-AttributeImpl::AttributeImpl(EntityFactory* factory) : DataNode(factory, NODE_KIND::ATTRIBUTE_IMPL, "AttributeImpl"){
-	auto node_kind = NODE_KIND::ATTRIBUTE_IMPL;
-	QString kind_string = "AttributeImpl";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AttributeImpl();});
+void AttributeImpl::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new AttributeImpl(factory, is_temp_node);
+        });
+}
 
-    //Register Data
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
+AttributeImpl::AttributeImpl(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-AttributeImpl::AttributeImpl():DataNode(NODE_KIND::ATTRIBUTE_IMPL)
-{
+    //Setup State
     addImplsDefinitionKind(NODE_KIND::ATTRIBUTE);
-    
     setDataProducer(true);
     setDataReceiver(false);
 }

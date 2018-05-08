@@ -3,22 +3,28 @@
 #include "../edge.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
+#include "../entityfactory.h"
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::EXTERNAL_TYPE;
 const QString kind_string = "ExternalType";
 
-MEDEA::ExternalType::ExternalType(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ExternalType();});
+void MEDEA::ExternalType::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ExternalType(factory, is_temp_node);
+        });
+}
 
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
-};
+MEDEA::ExternalType::ExternalType(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-MEDEA::ExternalType::ExternalType() : Node(node_kind)
-{
     setChainableDefinition();
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "label", QVariant::String, "", true);
 }
 
 bool MEDEA::ExternalType::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

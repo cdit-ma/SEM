@@ -29,7 +29,10 @@ class Node : public Entity
     protected:
         //Factory Static Functions
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
+        static void RegisterWithEntityFactory(EntityFactory& factory, const NODE_KIND& kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);
+        
         static void RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor);
+        static void RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor);
         static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
         static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
         
@@ -38,8 +41,7 @@ class Node : public Entity
         static void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup);
         
         //Constuctor
-        Node(NODE_KIND kind);
-        Node(EntityFactory* factory, NODE_KIND kind, QString kind_string);
+        Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node);
         ~Node();
 
 
@@ -187,6 +189,7 @@ class Node : public Entity
         QSet<EDGE_KIND> getAcceptedEdgeKind(EDGE_DIRECTION direction) const;
 
         bool canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const;
+
         
     private:
         
@@ -224,6 +227,8 @@ class Node : public Entity
         QSet<NODE_KIND> impl_kinds_;
 
         QSet<EdgeRule> active_edge_rules_;
+
+        
 };
 
 inline uint qHash(Node::EdgeRule key, uint seed){

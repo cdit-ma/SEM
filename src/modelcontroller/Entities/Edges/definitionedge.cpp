@@ -1,25 +1,12 @@
 #include "definitionedge.h"
-#include "../node.h"
 #include "../../edgekinds.h"
-#include <QDebug>
 
-DefinitionEdge::DefinitionEdge(Node *src, Node *dst):Edge(src, dst, EDGE_KIND::DEFINITION)
-{
+const auto edge_kind = EDGE_KIND::DEFINITION;
+const QString kind_string = "Edge_Definition";
+
+DefinitionEdge::RegisterWithEntityFactory(EntityFactory& factory, Node *src, Node *dst) : Edge(factory, src, dst, edge_kind){
+    Edge::RegisterWithEntityFactory(factory, edge_kind, kind_string, [](EntityFactory& factory){return new DefinitionEdge(factory, src, dst);});
 }
 
-DefinitionEdge::DefinitionEdge(EntityFactory* factory):Edge(factory, EDGE_KIND::DEFINITION, "Edge_Definition"){
-    auto kind = EDGE_KIND::DEFINITION;
-	QString kind_string = "Edge_Definition";
-	RegisterEdgeKind(factory, kind, kind_string, &DefinitionEdge::ConstructEdge);
-}
-
-DefinitionEdge *DefinitionEdge::ConstructEdge(Node *src, Node *dst)
-{
-    DefinitionEdge* edge = 0;
-    if(src && dst){
-        if(src->canAcceptEdge(EDGE_KIND::DEFINITION, dst)){
-            edge = new DefinitionEdge(src, dst);
-        }
-    }
-    return edge;
+DefinitionEdge::DefinitionEdge(EntityFactory& factory, Node* src, Node* dst) : Edge(factory, edge_kind){
 }

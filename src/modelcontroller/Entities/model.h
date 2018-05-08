@@ -8,9 +8,8 @@ class Model: public Node
     friend class EntityFactory;
     Q_OBJECT
 protected:
-	Model(EntityFactory* factory);
-    Model();
-    static Node* ConstructModel(EntityFactory* factory);
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    Model(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node*);
 };

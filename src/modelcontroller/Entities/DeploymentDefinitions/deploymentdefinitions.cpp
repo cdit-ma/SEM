@@ -4,17 +4,34 @@
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_DEFINITIONS;
 const QString kind_string = "DeploymentDefinitions";
 
-DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DeploymentDefinitions();});
-    RegisterComplexNodeKind(factory, node_kind, &DeploymentDefinitions::ConstructDeploymentDefinitions);
+void DeploymentDefinitions::RegisterWithEntityFactory(EntityFactory* factory){
+	RegisterNodeKind(factory, node_kind, kind_string, 0);
+    RegisterComplexNodeKind(factory, node_kind, [](EntityFactory* ef, bool is_temp){return new DeploymentDefinitions(ef, is_temp);});
+}
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "DEPLOYMENT");
-};
 
-DeploymentDefinitions::DeploymentDefinitions() : Node(node_kind)
+DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory, bool is_temp) : Node(node_kind)
 {
+    if(is_temp){
+        return;
+    }
     setAcceptsNodeKind(NODE_KIND::ASSEMBLY_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_DEFINITIONS);
+    auto assembly = factory->CreateNode(NODE_KIND::ASSEMBLY_DEFINITIONS);
+    auto hardware = factory->CreateNode(NODE_KIND::HARDWARE_DEFINITIONS);
+
+    if(assembly && hardware){
+        auto adopt_success = addChild(assembly);
+        adopt_success = adopt_success && addChild(hardware);
+
+        if(adopt_success){
+            return;
+        }
+    }
+
+    factory->DestructEntity(assembly);
+    factory->DestructEntity(hardware);
+    throw std::invalid_argument("Model cannot be constructed");
 }
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)
@@ -24,26 +41,4 @@ bool DeploymentDefinitions::canAdoptChild(Node *node)
         return false;
     }
     return Node::canAdoptChild(node);
-}
-#include <QDebug>
-
-Node* DeploymentDefinitions::ConstructDeploymentDefinitions(EntityFactory* factory){
-    //Don't recurse into the complex function
-    auto deployment = factory->CreateNode(NODE_KIND::DEPLOYMENT_DEFINITIONS, false);
-    auto assembly = factory->CreateNode(NODE_KIND::ASSEMBLY_DEFINITIONS);
-    auto hardware = factory->CreateNode(NODE_KIND::HARDWARE_DEFINITIONS);
-
-    if(deployment && assembly && hardware){
-        auto adopt_success = deployment->addChild(assembly);
-        adopt_success = adopt_success && deployment->addChild(hardware);
-
-        if(adopt_success){
-            return deployment;
-        }
-    }
-
-    factory->DestructEntity(deployment);
-    factory->DestructEntity(assembly);
-    factory->DestructEntity(hardware);
-    return 0;
 }

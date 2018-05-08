@@ -8,7 +8,7 @@ const QString kind_string = "HardwareDefinitions";
 
 HardwareDefinitions::HardwareDefinitions(EntityFactory* factory) : Node(factory, node_kind, kind_string){
 	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareDefinitions();});
-    RegisterComplexNodeKind(factory, node_kind, &HardwareDefinitions::ConstructHardwareDefinitions);
+    //RegisterComplexNodeKind(factory, node_kind, &HardwareDefinitions::ConstructHardwareDefinitions);
 
     RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "HARDWARE");
 };

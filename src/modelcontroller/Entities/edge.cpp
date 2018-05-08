@@ -6,18 +6,7 @@
 #include "../entityfactory.h"
 #include "../edgekinds.h"
 
-void Edge::RegisterEdgeKind(EntityFactory* factory, EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
-    if(factory){
-        factory->RegisterEdgeKind(kind, kind_string, constructor);
-    }
-}
-void Edge::RegisterDefaultData(EntityFactory* factory, EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-    if(factory){
-        factory->RegisterDefaultData(kind, key_name, type, is_protected, value);
-    }
-}
-
-Edge::Edge(Node *source, Node *destination, EDGE_KIND kind):Entity(GRAPHML_KIND::EDGE)
+Edge::Edge(EntityFactory& factory, Node *source, Node *destination, EDGE_KIND kind):Entity(factory, GRAPHML_KIND::EDGE)
 {
     //Set the instance Variables
     this->kind = kind;
@@ -26,8 +15,16 @@ Edge::Edge(Node *source, Node *destination, EDGE_KIND kind):Entity(GRAPHML_KIND:
 
     //Attach the Edge to its source/Destination
     if(source && destination){
+        if(!source->canAcceptEdge(kind, EDGE_DIRECTION::SOURCE)){
+            throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Source.");
+        }
+        if(!destination->canAcceptEdge(kind, EDGE_DIRECTION::TARGET)){
+            throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Target.");
+        }
         source->addEdge(this);
         destination->addEdge(this);
+    }else{
+        throw std::invalid_argument("Cannot construct an Edge with NULL source or destination");
     }
 }
 
@@ -35,12 +32,12 @@ EDGE_KIND Edge::getEdgeKind() const{
     return kind;    
 }
 
-Edge::Edge(EntityFactory* factory, EDGE_KIND kind, QString kind_string):Entity(GRAPHML_KIND::EDGE){
-    RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
-}
-
 Edge::~Edge()
 {
+    //Deregister first 
+    getFactory().DeregisterEdge(this);
+    
+    //Remove from the Source/Destination
     if(destination){
         destination->removeEdge(this);
     }

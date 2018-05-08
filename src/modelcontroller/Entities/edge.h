@@ -16,11 +16,7 @@ class Edge: public Entity{
     //The factory can access protected constructors
     friend class EntityFactory;
 protected:
-    static void RegisterEdgeKind(EntityFactory* factory, EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
-    static void RegisterDefaultData(EntityFactory* factory, EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-    
-    Edge(Node* source, Node* destination, EDGE_KIND kind);
-    Edge(EntityFactory* factory, EDGE_KIND kind, QString kind_string);
+    Edge(EntityFactory& factory, Node* source, Node* destination, EDGE_KIND kind);
     ~Edge();
 public:
     static bool SortByKind(const Edge* a, const Edge* b);

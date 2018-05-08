@@ -1,20 +1,22 @@
 #include "header.h"
+#include "../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::HEADER;
 const QString kind_string = "Header";
 
-Header::Header(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Header();});
+void Header::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Header(factory, is_temp_node);
+        });
+}
 
-    //Register Default Data
-    RegisterDefaultData(factory, node_kind, "code", QVariant::String);
-    RegisterDefaultData(factory, node_kind, "header_location", QVariant::String, false, "CPP");
-    
-    QList<QVariant> header_locations = {"Class Declaration", "Header", "CPP"};
+Header::Header(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-    RegisterValidDataValues(factory, node_kind, "header_location", QVariant::String, header_locations);
-
-};
-
-Header::Header():Node(node_kind){
+    //Setup Data
+    factory.AttachData(this, "code", QVariant::String, "", false);
+    auto header_location = factory.AttachData(this, "header_location", QVariant::String, "CPP", false);
+    header_location->setValidValues({"Class Declaration", "Header", "CPP"});
 }

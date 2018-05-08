@@ -11,11 +11,10 @@ class GraphML: public QObject{
     //The factory can access protected constructors
     friend class EntityFactory;
 protected:
-    GraphML(GRAPHML_KIND kind);
+    GraphML(EntityFactory& factory, GRAPHML_KIND kind);
     virtual ~GraphML();
     void setID(int id);
-    void setFactory(EntityFactory* factory);
-    EntityFactory* getFactory();
+    EntityFactory& getFactory();
 public:
     static bool SortByID(const GraphML* a, const GraphML* b);
 
@@ -28,7 +27,7 @@ public:
 private:
     int id = -1;
     GRAPHML_KIND kind = GRAPHML_KIND::NONE;
-    EntityFactory* factory_ = 0;
+    EntityFactory& factory_;
 };
 #endif // GRAPHML_H
 

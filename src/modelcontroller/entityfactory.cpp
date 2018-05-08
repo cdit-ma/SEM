@@ -1,6 +1,7 @@
 #include "entityfactory.h"
 
-
+#include <iostream>
+#include <exception>
 
 #include <QDebug>
 #include <algorithm>
@@ -265,13 +266,24 @@ void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::f
         }
     }
 }
-void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*)> complex_constructor){
+void EntityFactory::RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor){
     //TODO
     auto node = getNodeStruct(kind);
 
     if(node){
-        node->complex_constructor = complex_constructor;
+        qCritical() << this << "REGISTERING NODE[" << (uint)kind << "]: " << kind_string;
+        node->kind_str = kind_string;
+        node->complex_constructor = constructor;
+
+        //Insert into our reverse lookup
+        if(!node_kind_lookup.contains(kind_string)){
+            node_kind_lookup.insert(kind_string, kind);
+        }
     }
+}
+
+
+void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> complex_constructor){
 }
 
 void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
@@ -350,16 +362,18 @@ void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QV
         //Register the values
         key->addValidValues(values, kind);
     }
-}   
+}
+
 EntityFactory::EntityFactory()
 {
-   
-
+    auto& ref = *this;
     //Aspects
-    Model(this);
+    //Model(this);
+    Model::RegisterWithEntityFactory(ref);
+
     BehaviourDefinitions(this);
     AssemblyDefinitions(this);
-    DeploymentDefinitions(this);
+    DeploymentDefinitions::RegisterWithEntityFactory(this);
     HardwareDefinitions(this);
     WorkerDefinitions(this);
     InterfaceDefinitions(this);
@@ -471,7 +485,7 @@ EntityFactory::EntityFactory()
     MEDEA::ServerPortImpl(this);
     MEDEA::ServerRequest(this);
     
-    MEDEA::BooleanExpression(this);
+    MEDEA::BooleanExpression::RegisterWithEntityFactory(ref);
 
 
     MEDEA::InputParameterGroup(this);
@@ -598,21 +612,28 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_com
     Node* node = 0;
     auto node_struct = getNodeStruct(kind);
 
-    if(node_struct && node_struct->constructor){
+    if(node_struct){
+        qCritical() << "Trying to Construct node: " << this << " " << (uint)kind << " " << getNodeKindString(kind);//kind_string;
         bool has_complex_constructor = node_struct->complex_constructor != 0;
-        bool use_complex_constructor = !is_temporary && has_complex_constructor && use_complex;
+        bool use_complex_constructor = has_complex_constructor && use_complex;
         
         bool store_entity = !is_temporary;
-        if(use_complex_constructor){
-            node = node_struct->complex_constructor(this);
-            store_entity = false;
-        }else{
+        if(has_complex_constructor){
+            try{
+                node = node_struct->complex_constructor(*this, is_temporary);
+            }catch(const std::exception& ex){
+                std::cerr << ex.what() << std::endl;
+                node = 0;
+            }
+            //store_entity = false;
+        }else if(node_struct->constructor){
             node = node_struct->constructor();
             store_entity &= true;
         }
         
         
         if(node){
+            qCritical() << node->toString();
             if(store_entity){
                 node->addData(getDefaultData(node_struct->default_data.values()));
                 CacheEntityAsUnregistered(node);
@@ -681,6 +702,13 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
 
 QList<Key*> EntityFactory::GetKeys(){
     return key_lookup_.values();
+}
+
+void EntityFactory::DestructNode(Node* node){
+
+}
+void EntityFactory::DestructEdge(Edge* edge){
+
 }
 
 void EntityFactory::DestructEntity(GraphML* graphml){
@@ -794,6 +822,10 @@ Data* EntityFactory::AttachData(Entity* entity, Key* key, QVariant value, bool i
         data->setProtected(is_protected);
     }
     return data;
+}
+
+Data* EntityFactory::AttachData(Entity* entity, QString key_name, QVariant::Type type, QVariant value, bool is_protected){
+    return AttachData(entity, GetKey(key_name, type), value, is_protected);
 }
 
 int EntityFactory::getFreeID(int preferred_id){
@@ -936,4 +968,19 @@ void EntityFactory::EntityUUIDChanged(Entity* entity, QString uuid){
             uuid_lookup_.insert(uuid, entity->getID());
         }
     }
+}
+
+Node* EntityFactory::ConstructChildNode(Node& parent, NODE_KIND node_kind){
+    auto child = CreateNode(node_kind);
+
+    if(child){
+        if(!parent.addChild(child)){
+            DestructEntity(child);
+            child = 0;
+            throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Adopt Child of Kind:" + getNodeKindString(node_kind).toStdString());
+        }
+    }else{
+        throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Construct Child of Kind:" + getNodeKindString(node_kind).toStdString());
+    }
+    return child;
 }

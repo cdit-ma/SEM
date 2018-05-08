@@ -1,15 +1,13 @@
 #include "graphml.h"
 #include "../entityfactory.h"
 
-GraphML::GraphML(GRAPHML_KIND kind):QObject(0)
+GraphML::GraphML(factory, GRAPHML_KIND kind):QObject(0), factory = factory_;
 {
     this->kind = kind;
 }
 
 GraphML::~GraphML(){
-    if(factory_){
-        factory_->DeregisterEntity(this);
-    }
+    factory_.DeregisterEntity(this);
 }
 
     
@@ -43,9 +41,8 @@ int GraphML::getID() const
 }
 
 void GraphML::setFactory(EntityFactory* factory){
-    factory_ = factory;
 }
 
-EntityFactory* GraphML::getFactory(){
+EntityFactory& GraphML::getFactory(){
     return factory_;
 }

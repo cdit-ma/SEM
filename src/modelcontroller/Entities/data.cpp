@@ -258,3 +258,30 @@ void Data::restore_value(){
     //qCritical() << toString() << ": RESTORING VALUE: " << old_value;
     setValue(old_value);
 }
+
+
+
+void Data::addKeysValidValue(QVariant value){
+    valid_values_.insert(value);
+}
+
+void Data::addKeysValidValues(QList<QVariant> values){
+    auto set = values.toSet();
+    valid_values_ += set;
+}
+
+void Data::removeKeysValidValue(QVariant value){
+    valid_values_.remove(key_name, value);
+}
+
+void Data::clearKeysValidValues(){
+    valid_values_.clear;
+}
+
+bool Data::gotKeysValidValues(){
+    return valid_values_.size();
+}
+
+QList<QVariant> Entity::getKeysValidValues(){
+    return valid_values_.toList();
+}

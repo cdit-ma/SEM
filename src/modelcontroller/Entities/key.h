@@ -2,11 +2,13 @@
 #define KEY_H
 #include "graphml.h"
 
+
 #include <QMultiMap>
 #include <QVariant>
 
 //Forward declare
 class Data;
+class Node;
 enum class NODE_KIND;
 
 class Key : public GraphML
@@ -34,6 +36,7 @@ public:
     QVariant::Type getType() const;
     bool gotValidValues(NODE_KIND kind);
     QList<QVariant> getValidValues(NODE_KIND kind);
+    QList<QVariant> getValidValues(Node* node);
 
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);

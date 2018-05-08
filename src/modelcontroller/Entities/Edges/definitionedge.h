@@ -8,10 +8,8 @@ class DefinitionEdge : public Edge
     Q_OBJECT
     friend class EntityFactory;
 protected:
-    DefinitionEdge(EntityFactory* factory);
-    DefinitionEdge(Node *src, Node *dst);
-private:
-    static DefinitionEdge* ConstructEdge(Node* src, Node* dst);
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DefinitionEdge(EntityFactory& factory, Node *src, Node *dst);
 };
 
 #endif // EDGE_H

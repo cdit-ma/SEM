@@ -920,8 +920,9 @@ void ContextMenu::setupMenus(){
     add_node_menu->addAction(empty_action);
     dock_add_node_menu->addAction(empty_action);
 
-    //LOAD ALL 
-    add_node_action_hash[NODE_KIND::FUNCTION_CALL]->menu()->setProperty("load_all", true);
+    if(add_node_action_hash.contains(NODE_KIND::FUNCTION_CALL)){
+        add_node_action_hash[NODE_KIND::FUNCTION_CALL]->menu()->setProperty("load_all", true);
+    }
 
    
 

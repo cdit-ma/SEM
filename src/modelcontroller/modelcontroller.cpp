@@ -1288,7 +1288,7 @@ QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
     if(key){
         auto node = entity_factory->GetNode(id);
         if(node){
-            valid_values = key->getValidValues(node->getNodeKind());
+            valid_values = key->getValidValues(node);
         }
     }
     return valid_values;

@@ -8,9 +8,8 @@ class DeploymentDefinitions: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DeploymentDefinitions(EntityFactory* factory);
-	static Node* ConstructDeploymentDefinitions(EntityFactory* factory);
-	DeploymentDefinitions();
+	static void RegisterWithEntityFactory(EntityFactory* factory);
+	DeploymentDefinitions(EntityFactory* factory, bool is_temp);
 public:
     bool canAdoptChild(Node* child);
 };

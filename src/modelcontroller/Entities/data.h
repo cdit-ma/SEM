@@ -51,6 +51,14 @@ public:
 
     QString toGraphML(int indentDepth = 0, bool functional_export = false);
     QString toString() const;
+
+    void addValidValue(QVariant value);
+    void addValidValues(QList<QVariant> values);
+
+    void removeValidValue(QVariant value);
+    void clearValidValues();
+    QList<QVariant> getValidValues();
+    bool gotValidValues();
 protected:
 
     void store_value();
@@ -82,6 +90,8 @@ private:
 
     bool is_protected = false;
     bool is_data_linked = false;
+
+    QSet<QVariant> valid_values_;
     
     
     QVariant value;

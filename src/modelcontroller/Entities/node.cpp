@@ -15,42 +15,52 @@
 #include "Keys/indexkey.h"
 #include "Keys/typekey.h"
 
-Node::Node(NODE_KIND node_kind_):Entity(GRAPHML_KIND::NODE)
-{
-    this->node_kind_ = node_kind_;
-}
 
+void Node::RegisterWithEntityFactory(EntityFactory& factory, const NODE_KIND& kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor){
+    factory.RegisterNodeKind2(kind, kind_string, constructor);
+}
 
 void Node::RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
-    if(factory){
-        factory->RegisterNodeKind(kind, kind_string, constructor);
-    }
+ 
 }
+
 void Node::RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor){
-    if(factory){
-        factory->RegisterComplexNodeKind(kind, constructor);
-    }
+
+}
+
+void Node::RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor){
+
 }
 
 void Node::RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-    if(factory){
-        factory->RegisterDefaultData(kind, key_name, type, is_protected, value);
-    }
+
 }
 
 void Node::RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
-    if(factory){
-        factory->RegisterValidDataValues(kind, key_name, type, values);
-    }
+
 }
 
+Node::Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node) : Entity(factory, GRAPHML_KIND::NODE){
+    if(is_temp_node){
+        return;
+    }
+    //Setup State
+    node_kind_ = node_kind;
 
-Node::Node(EntityFactory* factory, NODE_KIND kind, QString kind_string):Entity(GRAPHML_KIND::NODE){
-    //Register kind, label and index as required data
-    RegisterDefaultData(factory, kind, "kind", QVariant::String, true, kind_string);
-    RegisterDefaultData(factory, kind, "label", QVariant::String, false, kind_string);
-    RegisterDefaultData(factory, kind, "index", QVariant::Int, true, -1);
-    
+    //Attach default data
+    factory.AttachData(this, "kind", QVariant::String, factory.getNodeKindString(kind), true);
+    factory.AttachData(this, "label", QVariant::String, factory.getNodeKindString(kind), false);
+    factory.AttachData(this, "index", QVariant::Int, factory.getNodeKindString(kind), true, -1);
+}
+
+Node::~Node()
+{
+    //Deregister first 
+    getFactory().DeregisterEdge(this);
+
+    if(parent_node_){
+        parent_node_->removeChild(this);
+    }
 }
 
 
@@ -70,12 +80,7 @@ NODE_KIND Node::getNodeKind() const
 
 
 
-Node::~Node()
-{
-    if(parent_node_){
-        parent_node_->removeChild(this);
-    }
-}
+
 
 void Node::SetEdgeRuleActive(EdgeRule rule, bool active){
     if(active){
@@ -1345,3 +1350,4 @@ QSet<Node*> Node::getParentNodesForValidDefinition(){
     }
     return ancestors;
 }
+

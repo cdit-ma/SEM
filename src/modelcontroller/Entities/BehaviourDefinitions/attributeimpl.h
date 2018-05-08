@@ -8,8 +8,8 @@ class AttributeImpl : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	AttributeImpl(EntityFactory* factory);
-	AttributeImpl();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    AttributeImpl(EntityFactory& factory, bool is_temp_node);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

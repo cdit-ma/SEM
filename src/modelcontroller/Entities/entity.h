@@ -3,6 +3,7 @@
 #include "graphml.h"
 
 #include <QHash>
+#include <QMultiMap>
 #include <QVariant>
 
 class Data;
@@ -10,10 +11,11 @@ class Key;
 class Entity: public GraphML
 {
     friend class Data;
+    friend class Key;
     friend class EntityFactory;
     Q_OBJECT
 protected:
-    Entity(GRAPHML_KIND kind);
+    Entity(EntityFactory& factory, GRAPHML_KIND kind);
     ~Entity();
 public:
     bool addData(Data* data);
@@ -21,6 +23,8 @@ public:
     bool isLabelFunctional() const;
 protected:
     void setLabelFunctional(bool functional = true);
+public:
+    
 
 
 
@@ -75,6 +79,8 @@ private:
 
     QHash<Key*, Data*> dataLookup;
     QHash<QString, Key*> keyLookup;
+
+    
 
     bool position_enabled = true;
     bool size_enabled = false;
