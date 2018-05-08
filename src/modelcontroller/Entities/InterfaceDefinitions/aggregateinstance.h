@@ -8,8 +8,8 @@ class AggregateInstance : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	AggregateInstance(EntityFactory* factory);
-	AggregateInstance();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    AggregateInstance(EntityFactory& factory, bool is_temp_node);
     void parentSet(Node* parent);
 public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

@@ -1,33 +1,39 @@
 #include "aggregate.h"
 #include "../data.h"
-
+#include "../../entityfactory.h"
 #include "../../edgekinds.h"
 #include "../Keys/typekey.h"
 
+const NODE_KIND node_kind = NODE_KIND::AGGREGATE;
+const QString kind_string = "Aggregate";
 
 
+void Aggregate::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Aggregate(factory, is_temp_node);
+    });
+}
 
-Aggregate::Aggregate(EntityFactory* factory) : Node(factory, NODE_KIND::AGGREGATE, "Aggregate"){
-	auto node_kind = NODE_KIND::AGGREGATE;
-	QString kind_string = "Aggregate";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Aggregate();});
 
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "comment", QVariant::String);
-};
+Aggregate::Aggregate(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if (is_temp) {
+        return;
+    }
 
-Aggregate::Aggregate(): Node(NODE_KIND::AGGREGATE)
-{
+    // Setup State
     addInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
-
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
-}
 
+    // Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "namespace", QVariant::String, "", true);
+    factory.AttachData(this, "comment", QVariant::String, "");
+
+}
 
 void Aggregate::DataAdded(Data* data){
     Node::DataAdded(data);

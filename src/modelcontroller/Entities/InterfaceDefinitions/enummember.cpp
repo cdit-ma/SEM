@@ -1,17 +1,27 @@
 #include "enummember.h"
 #include "enuminstance.h"
 #include <QDebug>
+#include "../../entityfactory.h"
 
-EnumMember::EnumMember(EntityFactory* factory) : DataNode(factory, NODE_KIND::ENUM_MEMBER, "EnumMember"){
-	auto node_kind = NODE_KIND::ENUM_MEMBER;
-    QString kind_string = "EnumMember";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new EnumMember();});
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
+const NODE_KIND node_kind = NODE_KIND::ENUM_MEMBER;
+const QString kind_string = "EnumMember";
 
-EnumMember::EnumMember():DataNode(NODE_KIND::ENUM_MEMBER)
-{
+void EnumMember::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new EnumMember(factory, is_temp_node);
+    });
+}
+
+EnumMember::EnumMember(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     setPromiscuousDataLinker(true);
     setDataProducer(true);
+
+    //Setup Data
+    factory.AttachData(this, "index", QVariant::Int, -1, true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
 }

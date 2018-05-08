@@ -1,23 +1,29 @@
 #include "enuminstance.h"
+#include "../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::ENUM_INSTANCE;
+const QString kind_string = "EnumInstance";
 
-EnumInstance::EnumInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::ENUM_INSTANCE, "EnumInstance"){
-	auto node_kind = NODE_KIND::ENUM_INSTANCE;
-	QString kind_string = "EnumInstance";
-    RegisterNodeKind(factory, node_kind, kind_string, [](){return new EnumInstance();});
-    
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
-};
+void EnumInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new EnumInstance(factory, is_temp_node);
+    });
+}
 
-EnumInstance::EnumInstance():DataNode(NODE_KIND::ENUM_INSTANCE)
-{
+EnumInstance::EnumInstance(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     setDataReceiver(true);
     setDataProducer(true);
-
-
     addInstancesDefinitionKind(NODE_KIND::ENUM);
     setChainableDefinition();
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "value", QVariant::String, "", false);
 }
 
 bool EnumInstance::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)

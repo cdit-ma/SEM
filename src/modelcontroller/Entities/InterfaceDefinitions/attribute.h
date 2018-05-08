@@ -8,8 +8,8 @@ class Attribute : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Attribute(EntityFactory* factory);
-	Attribute();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    Attribute(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // ATTRIBUTE_H

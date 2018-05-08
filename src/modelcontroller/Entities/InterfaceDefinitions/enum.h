@@ -8,8 +8,8 @@ class Enum : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Enum(EntityFactory* factory);
-	Enum();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    Enum(EntityFactory& factory, bool is_temp_node);
     void DataAdded(Data* data);
 
     void childAdded(Node* child);
