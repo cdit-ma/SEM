@@ -8,8 +8,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        ClientPort(EntityFactory* factory);
-        ClientPort();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        ClientPort(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node* child);
     };

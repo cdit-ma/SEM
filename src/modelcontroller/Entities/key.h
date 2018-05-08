@@ -23,7 +23,7 @@ public:
 
     
 protected:
-    Key(QString keyName, QVariant::Type type);
+    Key(EntityFactory& factory, const QString& keyName, QVariant::Type type);
     ~Key();
     void setProtected(bool protect);
     void addValidValue(QVariant value, NODE_KIND kind);

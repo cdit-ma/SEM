@@ -8,8 +8,10 @@ class InEventPortInstance : public EventPortAssembly
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	InEventPortInstance(EntityFactory* factory);
-	InEventPortInstance();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    InEventPortInstance(EntityFactory& factory, bool is_temp_node);
+private:
+	void updateQOSEdge();
 };
 
 #endif // INEVENTPORTINSTANCE_H

@@ -6,7 +6,7 @@ class ColumnKey : public Key
 {
     Q_OBJECT
 public:
-    ColumnKey();
+    ColumnKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
     bool setData(Data* data, QVariant dataValue);
 };

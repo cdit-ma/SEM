@@ -8,8 +8,8 @@ class ComponentInstance : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	ComponentInstance(EntityFactory* factory);
-	ComponentInstance();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    ComponentInstance(EntityFactory& factory, bool is_temp_node);
     QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
 };
 

@@ -6,6 +6,11 @@
 #include "../entityfactory.h"
 #include "../edgekinds.h"
 
+
+void Edge::RegisterWithEntityFactory(EntityFactory& factory, const EDGE_KIND& edge_kind, const QString& kind_string, std::function<Edge* (EntityFactory&, Node*, Node*)> constructor){
+    factory.RegisterEdgeKind2(edge_kind, kind_string, constructor);
+}
+
 Edge::Edge(EntityFactory& factory, Node *source, Node *destination, EDGE_KIND kind):Entity(factory, GRAPHML_KIND::EDGE)
 {
     //Set the instance Variables
@@ -15,10 +20,10 @@ Edge::Edge(EntityFactory& factory, Node *source, Node *destination, EDGE_KIND ki
 
     //Attach the Edge to its source/Destination
     if(source && destination){
-        if(!source->canAcceptEdge(kind, EDGE_DIRECTION::SOURCE)){
+        if(!source->canAcceptEdgeKind(kind, EDGE_DIRECTION::SOURCE)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Source.");
         }
-        if(!destination->canAcceptEdge(kind, EDGE_DIRECTION::TARGET)){
+        if(!destination->canAcceptEdgeKind(kind, EDGE_DIRECTION::TARGET)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Target.");
         }
         source->addEdge(this);

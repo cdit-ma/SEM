@@ -6,7 +6,7 @@ class NamespaceKey : public Key
 {
     Q_OBJECT
 public:
-    NamespaceKey();
+    NamespaceKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
 
     static QString CombineNamespaces(QString namespace_1, QString namespace_2);

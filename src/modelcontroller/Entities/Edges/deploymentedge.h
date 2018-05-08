@@ -9,6 +9,6 @@ class DeploymentEdge : public Edge
     friend class EntityFactory;
 protected:
     static void RegisterWithEntityFactory(EntityFactory& factory);
-    DefinitionEdge(EntityFactory& factory, Node *src, Node *dst);
+    DeploymentEdge(EntityFactory& factory, Node *src, Node *dst);
 };
 #endif // AGGREGATEEDGE_H

@@ -1,4 +1,5 @@
 #include "elseifcondition.h"
+#include "../containernode.h"
 #include "../../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::ELSEIF_CONDITION;

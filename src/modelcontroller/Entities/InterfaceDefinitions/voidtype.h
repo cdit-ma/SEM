@@ -8,8 +8,8 @@ class VoidType : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	VoidType(EntityFactory* factory);
-	VoidType();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    VoidType(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // VOIDTYPE_H

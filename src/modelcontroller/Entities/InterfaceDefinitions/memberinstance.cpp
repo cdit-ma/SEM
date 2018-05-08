@@ -1,20 +1,31 @@
 #include "memberinstance.h"
 #include "aggregateinstance.h"
+#include "../../entityfactory.h"
+#include "../Keys/typekey.h"
 
-MemberInstance::MemberInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::MEMBER_INSTANCE, "MemberInstance"){
-	auto node_kind = NODE_KIND::MEMBER_INSTANCE;
-	QString kind_string = "MemberInstance";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new MemberInstance();});
+const NODE_KIND node_kind = NODE_KIND::MEMBER_INSTANCE;
+const QString kind_string = "MemberInstance";
 
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
-};
+void MemberInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MemberInstance(factory, is_temp_node);
+    });
+}
 
-MemberInstance::MemberInstance():DataNode(NODE_KIND::MEMBER_INSTANCE)
-{
+MemberInstance::MemberInstance(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::MEMBER);
     setChainableDefinition();
+
+    //Setup Data
+    factory.AttachData(this, "index", QVariant::Int, -1, true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
 }
+
 
 void MemberInstance::parentSet(Node* parent){
     AggregateInstance::ParentSet(this);

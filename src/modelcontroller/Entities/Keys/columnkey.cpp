@@ -3,7 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 
-ColumnKey::ColumnKey(): Key("column", QVariant::Int){
+ColumnKey::ColumnKey(EntityFactory& factory): Key(factory, "column", QVariant::Int){
 
 }
 

@@ -1,6 +1,5 @@
 #include "returnparameter.h"
 #include "../../entityfactory.h"
-#include "../../edgekinds.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER;
 const QString kind_string = "ReturnParameter";
@@ -11,7 +10,7 @@ void ReturnParameter::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-ReturnParameter::ReturnParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+ReturnParameter::ReturnParameter(EntityFactory& factory, bool is_temp) : Parameter(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

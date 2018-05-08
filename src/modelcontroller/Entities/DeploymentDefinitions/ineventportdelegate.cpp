@@ -1,15 +1,15 @@
 #include "ineventportdelegate.h"
+#include "../../entityfactory.h"
 
-#include "../../edgekinds.h"
+auto node_kind = NODE_KIND::INEVENTPORT_DELEGATE;
+QString kind_string = "InEventPortDelegate";
 
+void InEventPortDelegate::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new InEventPortDelegate(factory, is_temp_node);
+    });
+}
 
-InEventPortDelegate::InEventPortDelegate(EntityFactory* factory) : EventPortAssembly(factory, NODE_KIND::INEVENTPORT_DELEGATE, "InEventPortDelegate"){
-	auto node_kind = NODE_KIND::INEVENTPORT_DELEGATE;
-	QString kind_string = "InEventPortDelegate";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPortDelegate();});
-};
+InEventPortDelegate::InEventPortDelegate(EntityFactory& factory, bool is_temp) : EventPortAssembly(factory, node_kind, is_temp){
 
-InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NODE_KIND::INEVENTPORT_DELEGATE)
-{
-	
 }

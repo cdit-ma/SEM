@@ -1,5 +1,6 @@
 #include "setter.h"
 #include "../Keys/typekey.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::SETTER;
 const QString kind_string = "Setter";
@@ -10,7 +11,7 @@ void Setter::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-Setter::Setter(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+Setter::Setter(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

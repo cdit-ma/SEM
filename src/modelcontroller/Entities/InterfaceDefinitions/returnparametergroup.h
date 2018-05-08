@@ -8,8 +8,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        ReturnParameterGroup(EntityFactory* factory);
-        ReturnParameterGroup();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        ReturnParameterGroup(EntityFactory& factory, bool is_temp_node);
         void parentSet(Node* parent);
     public:
         bool canAdoptChild(Node* child);

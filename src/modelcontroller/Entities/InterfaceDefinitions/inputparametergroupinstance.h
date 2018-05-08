@@ -8,8 +8,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        InputParameterGroupInstance(EntityFactory* factory);
-        InputParameterGroupInstance();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        InputParameterGroupInstance(EntityFactory& factory, bool is_temp_node);
     };
 };
 

@@ -1,26 +1,23 @@
 #include "vectorinstance.h"
+#include "../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::VECTOR_INSTANCE;
+const QString kind_string = "VectorInstance";
 
-VectorInstance::VectorInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::VECTOR_INSTANCE, "VectorInstance"){
-	auto node_kind = NODE_KIND::VECTOR_INSTANCE;
-	QString kind_string = "VectorInstance";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new VectorInstance();});
+void VectorInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new VectorInstance(factory, is_temp_node);
+    });
+}
 
-    //Register Data
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true, "Vector");
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
-};
+VectorInstance::VectorInstance(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
-{
-    //Can be both an input/output for data.
+    //Setup State
     setDataProducer(true);
     setDataReceiver(true);
-
 
     addInstancesDefinitionKind(NODE_KIND::VECTOR);
     setChainableDefinition();
@@ -28,6 +25,12 @@ VectorInstance::VectorInstance(): DataNode(NODE_KIND::VECTOR_INSTANCE)
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "Vector", true);
+    factory.AttachData(this, "outer_type", QVariant::String, "Vector", true);
+    factory.AttachData(this, "icon", QVariant::String, "", true);
+    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)
@@ -37,25 +40,4 @@ bool VectorInstance::canAdoptChild(Node *child)
         return false;
     }
     return Node::canAdoptChild(child);
-}
-
-bool VectorInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-    switch(edge_kind){
-    case EDGE_KIND::DATA:{
-        if(dst->getNodeKind() == NODE_KIND::VECTOR_INSTANCE){
-            if(getDefinition(true) && dst->getDefinition(true) != getDefinition(true)){
-                return false;
-            }
-        }
-
-        break;
-    }
-    default:
-        break;
-    }
-    return DataNode::canAcceptEdge(edge_kind, dst);
 }

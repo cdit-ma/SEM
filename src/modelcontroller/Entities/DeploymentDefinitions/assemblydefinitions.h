@@ -9,8 +9,8 @@ class AssemblyDefinitions: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	AssemblyDefinitions(EntityFactory* factory);
-	AssemblyDefinitions();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    AssemblyDefinitions(EntityFactory& factory, bool is_temp_node);
 	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;

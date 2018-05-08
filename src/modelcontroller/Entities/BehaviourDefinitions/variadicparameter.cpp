@@ -1,4 +1,5 @@
 #include "variadicparameter.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::VARIADIC_PARAMETER;
 const QString kind_string = "VariadicParameter";
@@ -9,7 +10,7 @@ void VariadicParameter::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-VariadicParameter::VariadicParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+VariadicParameter::VariadicParameter(EntityFactory& factory, bool is_temp) : Parameter(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

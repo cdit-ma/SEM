@@ -1,18 +1,22 @@
 #include "inputparametergroupinstance.h"
-#include <QDebug>
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE;
 const QString kind_string = "InputParameterGroupInstance";
 
-MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InputParameterGroupInstance();});
-};
 
-MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(): Node(node_kind)
-{
+void MEDEA::InputParameterGroupInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::InputParameterGroupInstance(factory, is_temp_node);
+    });
+}
+
+MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setChainableDefinition();
 
@@ -21,4 +25,8 @@ MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(): Node(node_kin
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
 }

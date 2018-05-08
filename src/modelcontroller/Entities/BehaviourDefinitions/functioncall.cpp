@@ -1,6 +1,4 @@
 #include "functioncall.h"
-#include <QDebug>
-#include "parameter.h"
 #include "containernode.h"
 #include "../../entityfactory.h"
 
@@ -13,7 +11,7 @@ void FunctionCall::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-FunctionCall::FunctionCall(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+FunctionCall::FunctionCall(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

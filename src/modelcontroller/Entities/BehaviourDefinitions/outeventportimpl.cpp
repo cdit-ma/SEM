@@ -1,19 +1,18 @@
 #include "outeventportimpl.h"
 
-#include "../../edgekinds.h"
 #include "containernode.h"
 #include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT_IMPL;
 const QString kind_string = "OutEventPortImpl";
 
-void InEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
+void OutEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
         return new OutEventPortImpl(factory, is_temp_node);
         });
 }
 
-OutEventPortImpl::OutEventPortImpl(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+OutEventPortImpl::OutEventPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

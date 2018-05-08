@@ -7,8 +7,8 @@ class HardwareCluster : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	HardwareCluster(EntityFactory* factory);
-	HardwareCluster();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    HardwareCluster(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // HARDWARECLUSTER_H

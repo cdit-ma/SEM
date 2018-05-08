@@ -10,7 +10,7 @@ class VariadicParameter : public Parameter
 	
 	protected:
 		static void RegisterWithEntityFactory(EntityFactory& factory);
-		InputParameter(EntityFactory& factory, bool is_temp_node);
+		VariadicParameter(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // VARIADICPARAMETER_H

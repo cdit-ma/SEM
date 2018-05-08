@@ -6,7 +6,7 @@ class ReplicateCountKey : public Key
 {
     Q_OBJECT
 public:
-    ReplicateCountKey();
+    ReplicateCountKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
 };
 

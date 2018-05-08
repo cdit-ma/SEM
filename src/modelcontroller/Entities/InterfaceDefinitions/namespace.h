@@ -8,12 +8,8 @@ class Namespace : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Namespace(EntityFactory* factory);
-	Namespace();
-public:
-    bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    Namespace(EntityFactory& factory, bool is_temp_node);
 protected:
     void DataAdded(Data* data);
     void childAdded(Node* child);

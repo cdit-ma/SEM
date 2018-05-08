@@ -1,45 +1,28 @@
 #include "namespace.h"
-#include "../data.h"
-#include <QDebug>
+#include "../../entityfactory.h"
+
 
 const NODE_KIND node_kind = NODE_KIND::NAMESPACE;
 const QString kind_string = "Namespace";
 
-Namespace::Namespace(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, true);
-    
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Namespace();});
-};
-
-Namespace::Namespace(): Node(node_kind)
-{
-
+void Namespace::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Namespace(factory, is_temp_node);
+    });
 }
 
-
-bool Namespace::canAdoptChild(Node* child)
-{
-    //Dissallow SHARED_DATATYPES
-    switch(child->getNodeKind()){
-    case NODE_KIND::SHARED_DATATYPES:
-        return false;
-    default:
-        break;
+Namespace::Namespace(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
     }
 
-    auto parent_node = getParentNode();
+    //Setup State
+    addInstancesDefinitionKind(NODE_KIND::MEMBER);
+    setChainableDefinition();
 
-    if(parent_node){
-        return parent_node->canAdoptChild(child);
-    }
-    return false;
-}
-
-bool Namespace::canAcceptEdge(EDGE_KIND, Node *)
-{
-    return false;
+    //Setup Data
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    factory.AttachData(this, "namespace", QVariant::String, "", true);
 }
 
 void Namespace::BindNamespace(Node* parent, Node* child, bool bind){
@@ -64,9 +47,6 @@ void Namespace::DataAdded(Data* data){
         }
     }
 }
-
-
-
 
 void Namespace::childAdded(Node* child){
     Node::childAdded(child);

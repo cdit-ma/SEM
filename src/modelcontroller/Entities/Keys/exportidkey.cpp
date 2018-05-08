@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QList>
 
-ExportIDKey::ExportIDKey(): Key("uuid", QVariant::String){
+ExportIDKey::ExportIDKey(EntityFactory& factory): Key(factory, "uuid", QVariant::String){
     //Shouldn't be user modifyable
     setProtected(true);
 }
@@ -49,12 +49,10 @@ QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
 
     auto uuid_str = GetUUIDOfValue(str_val);
 
-    auto entity_factory = getFactory();
+    auto& entity_factory = getFactory();
 
-    if(entity_factory){
-        if(data->getParent()){
-            entity_factory->EntityUUIDChanged(data->getParent(), uuid_str);
-        }
+    if(data->getParent()){
+        entity_factory.EntityUUIDChanged(data->getParent(), uuid_str);
     }
     return uuid_str;
 }

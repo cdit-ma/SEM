@@ -1,7 +1,8 @@
 #include "data.h"
+#include "../entityfactory.h"
 #include <QDebug>
 
-Data::Data(Key *key, QVariant value, bool protect):GraphML(GRAPHML_KIND::DATA)
+Data::Data(EntityFactory& factory, Key *key, QVariant value, bool protect) : GraphML(factory, GRAPHML_KIND::DATA)
 {
     this->key = key;
     this->key_name = key->getName();
@@ -37,7 +38,8 @@ Data::~Data()
 Data *Data::clone(Data *data)
 {
     if(data){
-        return new Data(data->getKey(), data->getValue(), data->isProtected());
+        auto& factory = data->getFactory();
+        factory.CreateData(data->getKey(), data->getValue(), data->isProtected());
     }
     return 0;
 }
@@ -261,27 +263,30 @@ void Data::restore_value(){
 
 
 
-void Data::addKeysValidValue(QVariant value){
-    valid_values_.insert(value);
+void Data::addValidValue(QVariant value){
+    if(!valid_values_.contains(value)){
+        valid_values_.append(value);
+    }
 }
 
-void Data::addKeysValidValues(QList<QVariant> values){
-    auto set = values.toSet();
-    valid_values_ += set;
+void Data::addValidValues(QList<QVariant> values){
+    for(auto value : values){
+        addValidValue(value);
+    }
 }
 
-void Data::removeKeysValidValue(QVariant value){
-    valid_values_.remove(key_name, value);
+void Data::removeValidValue(QVariant value){
+    valid_values_.removeAll(value);
 }
 
-void Data::clearKeysValidValues(){
-    valid_values_.clear;
+void Data::clearValidValues(){
+    valid_values_.clear();
 }
 
-bool Data::gotKeysValidValues(){
+bool Data::gotValidValues(){
     return valid_values_.size();
 }
 
-QList<QVariant> Entity::getKeysValidValues(){
-    return valid_values_.toList();
+QList<QVariant> Data::getValidValues(){
+    return valid_values_;
 }

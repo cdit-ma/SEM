@@ -6,7 +6,7 @@ class ExportIDKey : public Key
 {
     Q_OBJECT
 public:
-    ExportIDKey();
+    ExportIDKey(EntityFactory& factory);
     //If it's a valid UUID, use it, if its another string MD5 it, else generate a new one.
     static QString GetUUIDOfValue(const QString str_value);
 

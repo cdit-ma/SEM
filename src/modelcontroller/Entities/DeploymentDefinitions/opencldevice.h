@@ -8,8 +8,8 @@ class OpenCLDevice : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	OpenCLDevice(EntityFactory* factory);
-	OpenCLDevice();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    OpenCLDevice(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // OPENCLDEVICE_H

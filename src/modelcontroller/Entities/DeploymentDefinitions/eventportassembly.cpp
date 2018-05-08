@@ -1,35 +1,24 @@
 #include "eventportassembly.h"
+#include "../../entityfactory.h"
 
-#include "../../edgekinds.h"
-#include <QDebug>
-
-EventPortAssembly::EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str) : EventPort(factory, kind, kind_str){
-    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
-
-    if(kind == NODE_KIND::INEVENTPORT_INSTANCE || kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
-        
-        QList<QVariant> values;
-        values << "ZMQ";
-        values << "RTI";
-        values << "OSPL";
-        values << "TAO";
-        //values << "QPID";
-        
-        RegisterValidDataValues(factory, kind, "middleware", QVariant::String, values);
-
-        RegisterDefaultData(factory, kind, "topicName", QVariant::String, false);
-        RegisterDefaultData(factory, kind, "middleware", QVariant::String, false, values.first());
+EventPortAssembly::EventPortAssembly(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : EventPort(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
     }
-};
-
-EventPortAssembly::EventPortAssembly(NODE_KIND kind): EventPort(kind)
-{
+    
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
-
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
-}
+
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    if(node_kind == NODE_KIND::INEVENTPORT_INSTANCE || node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
+        factory.AttachData(this, "topicName", QVariant::String, "", true);
+        
+        auto data_middleware = factory.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
+        data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
+    }
+};
 
 bool EventPortAssembly::isInPortDelegate() const
 {

@@ -11,7 +11,7 @@ void PeriodicEvent::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-PeriodicEvent::PeriodicEvent(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+PeriodicEvent::PeriodicEvent(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

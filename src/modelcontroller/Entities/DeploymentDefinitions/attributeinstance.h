@@ -8,8 +8,8 @@ class AttributeInstance : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	AttributeInstance(EntityFactory* factory);
-	AttributeInstance();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    AttributeInstance(EntityFactory& factory, bool is_temp_node);
     void parentSet(Node* parent);
 };
 

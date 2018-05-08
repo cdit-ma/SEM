@@ -33,28 +33,17 @@ private:
     ~EntityFactory();
     static EntityFactory* globalFactory();
 
-    //Structs used to store lookups
-    struct DefaultDataStruct{
-        QString key_name;
-        QVariant::Type type;
-        bool is_protected;
-        QVariant value;
-    };
-
     struct NodeLookupStruct{
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
         std::function<Node* ()> constructor;
         std::function<Node* (EntityFactory&, bool)> complex_constructor;
-        QHash<QString, DefaultDataStruct*> default_data;
     };
 
     struct EdgeLookupStruct{
         EDGE_KIND kind;
         QString kind_str = "INVALID_EDGE";
-        std::function<Edge* (Node*, Node*)> constructor;
-        QHash<QString, DefaultDataStruct*> default_data;
-        Edge* edge = 0;
+        std::function<Edge* (EntityFactory&, Node*, Node*)> constructor;
     };
 
 
@@ -115,13 +104,11 @@ protected:
 
     //Called by secondary constructors of Node/Edge subclasses
     void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
-    void RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);
-
+    void RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);    
+    void RegisterEdgeKind2(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactory&,Node*, Node*)> constructor);
+    
     void RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor);
     void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
-    void RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-    void RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-    void RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
 
     int RegisterEntity(GraphML* graphml, int desired_id = -1);
     bool UnregisterTempID(GraphML* graphml);
@@ -136,9 +123,6 @@ private:
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
     void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
 
-    QList<Data*> getDefaultNodeData(NODE_KIND kind);
-    QList<Data*> getDefaultEdgeData(EDGE_KIND kind);
-    QList<Data*> getDefaultData(QList<DefaultDataStruct*> data);
     
     GraphML* getGraphML(int id);
 

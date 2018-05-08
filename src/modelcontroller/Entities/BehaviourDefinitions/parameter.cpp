@@ -1,6 +1,5 @@
 #include "parameter.h"
-
-#include "../../edgekinds.h"
+#include "../../entityfactory.h"
 
 Parameter::Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : DataNode(factory, node_kind, is_temp){
     if(is_temp){
@@ -8,6 +7,7 @@ Parameter::Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) 
     }
     //Setup State
     setNodeType(NODE_TYPE::PARAMETER);
+    setLabelFunctional(false);
 
     //Setup Data
     factory.AttachData(this, "icon", QVariant::String, "", true);

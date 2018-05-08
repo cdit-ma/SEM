@@ -6,7 +6,7 @@ const QString kind_string = "IfStatement";
 
 void MEDEA::IfStatement::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ElseIfCondition(factory, is_temp_node);
+        return new MEDEA::IfStatement(factory, is_temp_node);
         });
 }
 

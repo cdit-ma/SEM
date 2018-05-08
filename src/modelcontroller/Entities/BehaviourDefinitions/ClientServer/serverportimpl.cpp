@@ -5,7 +5,9 @@ const NODE_KIND node_kind = NODE_KIND::SERVER_PORT_IMPL;
 const QString kind_string = "ServerPortImpl";
 
 void MEDEA::ServerPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){return new MEDEA::ServerPortImpl(factory, is_temp_node);});
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ServerPortImpl(factory, is_temp_node);
+        });
 }
 
 MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
@@ -22,9 +24,8 @@ MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory& factory, bool is_temp) : No
         setAcceptsNodeKind(node_kind);
     }
 
-
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, APP_VERSION(), true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
     factory.AttachData(this, "index", QVariant::Int, -1, false);
 }
 

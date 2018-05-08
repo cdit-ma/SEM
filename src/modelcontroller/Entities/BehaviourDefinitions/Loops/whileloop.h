@@ -11,7 +11,7 @@ namespace MEDEA{
         Q_OBJECT
     protected:
         static void RegisterWithEntityFactory(EntityFactory& factory);
-        ForLoop(EntityFactory& factory, bool is_temp_node);
+        WhileLoop(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
     };

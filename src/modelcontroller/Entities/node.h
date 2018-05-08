@@ -28,6 +28,7 @@ class Node : public Entity
 
     protected:
         //Factory Static Functions
+        
         static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
         static void RegisterWithEntityFactory(EntityFactory& factory, const NODE_KIND& kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);
         

@@ -281,15 +281,9 @@ void EntityFactory::RegisterNodeKind2(const NODE_KIND kind, const QString& kind_
         }
     }
 }
-
-
-void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> complex_constructor){
-}
-
-void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
+void EntityFactory::RegisterEdgeKind2(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactory&,Node*, Node*)> constructor){
     auto edge = getEdgeStruct(kind);
     if(edge){
-        edge->kind = kind;
         edge->kind_str = kind_string;
         edge->constructor = constructor;
 
@@ -300,27 +294,20 @@ void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::f
     }
 }
 
-void EntityFactory::RegisterDefaultData(EDGE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-    auto edge_struct = getEdgeStruct(kind);
-    if(edge_struct){
-        auto data = edge_struct->default_data.value(key_name, 0);
-        if(!data){
-            //Construct and insert a new default data
-            data = new DefaultDataStruct();
-            data->key_name = key_name;
-            data->type = type;
-            //Insert
-            edge_struct->default_data.insert(key_name, data);
-        }
 
-        //Update the default data map
-        if(data){
-            //Update
-            data->is_protected = is_protected;
+void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> complex_constructor){
+}
 
-            if(value.isValid()){
-                data->value = value;    
-            }
+void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
+    auto edge = getEdgeStruct(kind);
+    if(edge){
+        edge->kind = kind;
+        edge->kind_str = kind_string;
+        //edge->constructor = constructor;
+
+        //Insert into our reverse lookup
+        if(!edge_kind_lookup.contains(kind_string)){
+            edge_kind_lookup.insert(kind_string, kind);
         }
     }
 }
@@ -331,178 +318,144 @@ QSet<Node*> EntityFactory::GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind, EDG
 }
 
 
-void EntityFactory::RegisterDefaultData(NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-    auto node = getNodeStruct(kind);
-
-    if(node){
-        auto data = node->default_data.value(key_name, 0);
-        if(!data){
-            //Construct and insert a new default data
-            data = new DefaultDataStruct();
-            data->key_name = key_name;
-            data->type = type;
-            //Insert
-            node->default_data.insert(key_name, data);
-        }
-
-        //Update the default data map
-        if(data){
-            //Update
-            data->is_protected = is_protected;
-            if(value.isValid()){
-                data->value = value;    
-            }
-        }
-    }
-}
-void EntityFactory::RegisterValidDataValues(NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
-    //Register the valid values to the key
-    auto key = GetKey(key_name, type);
-    if(key){
-        //Register the values
-        key->addValidValues(values, kind);
-    }
-}
-
 EntityFactory::EntityFactory()
 {
     auto& ref = *this;
-    //Aspects
-    //Model(this);
     Model::RegisterWithEntityFactory(ref);
 
-    BehaviourDefinitions(this);
-    AssemblyDefinitions(this);
-    DeploymentDefinitions::RegisterWithEntityFactory(this);
-    HardwareDefinitions(this);
-    WorkerDefinitions(this);
-    InterfaceDefinitions(this);
+    BehaviourDefinitions::RegisterWithEntityFactory(ref);
+    AssemblyDefinitions::RegisterWithEntityFactory(ref);
+    DeploymentDefinitions::RegisterWithEntityFactory(ref);
+    HardwareDefinitions::RegisterWithEntityFactory(ref);
+    WorkerDefinitions::RegisterWithEntityFactory(ref);
+    InterfaceDefinitions::RegisterWithEntityFactory(ref);
 
     //Impl Elements
-    ComponentImpl(this);
-    AttributeImpl(this);
-    InEventPortImpl(this);
-    OutEventPortImpl(this);
+    ComponentImpl::RegisterWithEntityFactory(ref);
+    AttributeImpl::RegisterWithEntityFactory(ref);
+    InEventPortImpl::RegisterWithEntityFactory(ref);
+    OutEventPortImpl::RegisterWithEntityFactory(ref);
 
     //Behaviour Elements
-    MEDEA::IfStatement(this);
-    MEDEA::IfCondition(this);
-    MEDEA::ElseIfCondition(this);
-    MEDEA::ElseCondition(this);
+    MEDEA::IfStatement::RegisterWithEntityFactory(ref);
+    MEDEA::IfCondition::RegisterWithEntityFactory(ref);
+    MEDEA::ElseIfCondition::RegisterWithEntityFactory(ref);
+    MEDEA::ElseCondition::RegisterWithEntityFactory(ref);
 
-    MEDEA::WhileLoop(this);
-    MEDEA::ForLoop(this);
-    MEDEA::ExternalType(this);
+    MEDEA::WhileLoop::RegisterWithEntityFactory(ref);
+    MEDEA::ForLoop::RegisterWithEntityFactory(ref);
+    MEDEA::ExternalType::RegisterWithEntityFactory(ref);
 
-    Code(this);
-    Header(this);
-    InputParameter(this);
-    PeriodicEvent(this);
-    ReturnParameter(this);
-    Setter(this);
-    Variable(this);
-    VariableParameter(this);
-    VariadicParameter(this);
+    Code::RegisterWithEntityFactory(ref);
+    Header::RegisterWithEntityFactory(ref);
+    InputParameter::RegisterWithEntityFactory(ref);
+    PeriodicEvent::RegisterWithEntityFactory(ref);
+    ReturnParameter::RegisterWithEntityFactory(ref);
+    Setter::RegisterWithEntityFactory(ref);
+    Variable::RegisterWithEntityFactory(ref);
+    VariableParameter::RegisterWithEntityFactory(ref);
+    VariadicParameter::RegisterWithEntityFactory(ref);
     
     
-    FunctionCall(this);
+    FunctionCall::RegisterWithEntityFactory(ref);
 
     //Instance Elements
-    ComponentInstance(this);
-    AttributeInstance(this);
-    InEventPortInstance(this);
-    OutEventPortInstance(this);
-    AggregateInstance(this);
-    MemberInstance(this);
-    VectorInstance(this);
+    ComponentInstance::RegisterWithEntityFactory(ref);
+    AttributeInstance::RegisterWithEntityFactory(ref);
+    InEventPortInstance::RegisterWithEntityFactory(ref);
+    OutEventPortInstance::RegisterWithEntityFactory(ref);
+    AggregateInstance::RegisterWithEntityFactory(ref);
+    MemberInstance::RegisterWithEntityFactory(ref);
+    VectorInstance::RegisterWithEntityFactory(ref);
     
     //Deployment Elements
-    ComponentAssembly(this);
-    HardwareNode(this);
-    HardwareCluster(this);
-    InEventPortDelegate(this);
-    OutEventPortDelegate(this);
-    LoggingProfile(this);
-    LoggingServer(this);
+    ComponentAssembly::RegisterWithEntityFactory(ref);
+    HardwareNode::RegisterWithEntityFactory(ref);
+    HardwareCluster::RegisterWithEntityFactory(ref);
+    InEventPortDelegate::RegisterWithEntityFactory(ref);
+    OutEventPortDelegate::RegisterWithEntityFactory(ref);
+    LoggingProfile::RegisterWithEntityFactory(ref);
+    LoggingServer::RegisterWithEntityFactory(ref);
     
-    OpenCLDevice(this);
-    OpenCLPlatform(this);
+    OpenCLDevice::RegisterWithEntityFactory(ref);
+    OpenCLPlatform::RegisterWithEntityFactory(ref);
 
     //Definition Elements
-    Aggregate(this);
-    Attribute(this);
-    Component(this);
-    InEventPort(this);
-    Member(this);
-    OutEventPort(this);
-    Vector(this);
+    Aggregate::RegisterWithEntityFactory(ref);
+    Attribute::RegisterWithEntityFactory(ref);
+    Component::RegisterWithEntityFactory(ref);
+    InEventPort::RegisterWithEntityFactory(ref);
+    Member::RegisterWithEntityFactory(ref);
+    OutEventPort::RegisterWithEntityFactory(ref);
+    Vector::RegisterWithEntityFactory(ref);
 
 
-    Enum(this);
-    EnumMember(this);
-    EnumInstance(this);
-    MEDEA::Class(this);
-    MEDEA::ClassInstance(this);
-    MEDEA::Function(this);
-    MEDEA::DeploymentAttribute(this);
+    Enum::RegisterWithEntityFactory(ref);
+    EnumMember::RegisterWithEntityFactory(ref);
+    EnumInstance::RegisterWithEntityFactory(ref);
+    MEDEA::Class::RegisterWithEntityFactory(ref);
+    MEDEA::ClassInstance::RegisterWithEntityFactory(ref);
+    MEDEA::Function::RegisterWithEntityFactory(ref);
+    MEDEA::DeploymentAttribute::RegisterWithEntityFactory(ref);
 
     //QOS Profiles
-    DDS_QOSProfile(this);
-    DDS_DeadlineQosPolicy(this);
-    DDS_DestinationOrderQosPolicy(this);
-    DDS_DurabilityQosPolicy(this);
-    DDS_DurabilityServiceQosPolicy(this);
-    DDS_EntityFactoryQosPolicy(this);
-    DDS_GroupDataQosPolicy(this);
-    DDS_HistoryQosPolicy(this);
-    DDS_LatencyBudgetQosPolicy(this);
-    DDS_LifespanQosPolicy(this);
-    DDS_LivelinessQosPolicy(this);
-    DDS_OwnershipQosPolicy(this);
-    DDS_OwnershipStrengthQosPolicy(this);
-    DDS_PartitionQosPolicy(this);
-    DDS_PresentationQosPolicy(this);
-    DDS_ReaderDataLifecycleQosPolicy(this);
-    DDS_ReliabilityQosPolicy(this);
-    DDS_ResourceLimitsQosPolicy(this);
-    DDS_TimeBasedFilterQosPolicy(this);
-    DDS_TopicDataQosPolicy(this);
-    DDS_TransportPriorityQosPolicy(this);
-    DDS_UserDataQosPolicy(this);
-    DDS_WriterDataLifecycleQosPolicy(this);
+    /*
+    DDS_QOSProfile::RegisterWithEntityFactory(ref);
+    DDS_DeadlineQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_DestinationOrderQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_DurabilityQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_DurabilityServiceQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_EntityFactoryQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_GroupDataQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_HistoryQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_LatencyBudgetQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_LifespanQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_LivelinessQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_OwnershipQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_OwnershipStrengthQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_PartitionQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_PresentationQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_ReaderDataLifecycleQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_ReliabilityQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_ResourceLimitsQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_TimeBasedFilterQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_TopicDataQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_TransportPriorityQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_UserDataQosPolicy::RegisterWithEntityFactory(ref);
+    DDS_WriterDataLifecycleQosPolicy::RegisterWithEntityFactory(ref);*/
 
     //Elements
-    SharedDatatypes(this);
-    Namespace(this);
+    SharedDatatypes::RegisterWithEntityFactory(ref);
+    Namespace::RegisterWithEntityFactory(ref);
 
-    MEDEA::ServerInterface(this);
-    MEDEA::ServerPort(this);
-    MEDEA::ClientPort(this);
+    MEDEA::ServerInterface::RegisterWithEntityFactory(ref);
+    MEDEA::ServerPort::RegisterWithEntityFactory(ref);
+    MEDEA::ClientPort::RegisterWithEntityFactory(ref);
 
-    MEDEA::ServerPortInstance(this);
-    MEDEA::ClientPortInstance(this);
+    MEDEA::ServerPortInstance::RegisterWithEntityFactory(ref);
+    MEDEA::ClientPortInstance::RegisterWithEntityFactory(ref);
 
-    MEDEA::ServerPortImpl(this);
-    MEDEA::ServerRequest(this);
+    MEDEA::ServerPortImpl::RegisterWithEntityFactory(ref);
+    MEDEA::ServerRequest::RegisterWithEntityFactory(ref);
     
     MEDEA::BooleanExpression::RegisterWithEntityFactory(ref);
 
 
-    MEDEA::InputParameterGroup(this);
-    MEDEA::ReturnParameterGroup(this);
+    MEDEA::InputParameterGroup::RegisterWithEntityFactory(ref);
+    MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(ref);
 
-    MEDEA::InputParameterGroupInstance(this);
-    MEDEA::ReturnParameterGroupInstance(this);
+    MEDEA::InputParameterGroupInstance::RegisterWithEntityFactory(ref);
+    MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(ref);
 
-    VoidType(this);
+    VoidType::RegisterWithEntityFactory(ref);
 
     //Edges
-    DefinitionEdge(this);
-    AggregateEdge(this);
-    AssemblyEdge(this);
-    DataEdge(this);
-    DeploymentEdge(this);
-    QosEdge(this);
+    DefinitionEdge::RegisterWithEntityFactory(ref);
+    AggregateEdge::RegisterWithEntityFactory(ref);
+    AssemblyEdge::RegisterWithEntityFactory(ref);
+    DataEdge::RegisterWithEntityFactory(ref);
+    DeploymentEdge::RegisterWithEntityFactory(ref);
+    QosEdge::RegisterWithEntityFactory(ref);
 }
 
 EntityFactory::~EntityFactory()
@@ -549,45 +502,6 @@ EntityFactory::EdgeLookupStruct* EntityFactory::getEdgeStruct(EDGE_KIND kind){
 
 
 
-QList<Data *> EntityFactory::getDefaultNodeData(NODE_KIND kind)
-{
-    QList<Data*> data_list;
-    auto node = getNodeStruct(kind);
-    if(node){
-        data_list = getDefaultData(node->default_data.values());
-    }
-    return data_list;
-}
-
-QList<Data *> EntityFactory::getDefaultEdgeData(EDGE_KIND kind)
-{
-    QList<Data*> data_list;
-    auto edge = getEdgeStruct(kind);
-    if(edge){
-        data_list = getDefaultData(edge->default_data.values());
-    }
-    return data_list;
-}
-
-QList<Data*> EntityFactory::getDefaultData(QList<DefaultDataStruct*> data_struct_list){
-    QList<Data*> data_list;
-
-    //Sort Data by key name to make ID's deterministic
-    std::sort(data_struct_list.begin(), data_struct_list.end(), [](const DefaultDataStruct* struct2, const DefaultDataStruct* struct1){
-        return struct2->key_name > struct1->key_name;
-    });
-    
-
-    for(auto data_struct : data_struct_list){
-        auto key = GetKey(data_struct->key_name, data_struct->type);
-        auto data = CreateData(key, data_struct->value, data_struct->is_protected);
-        if(data){
-            data_list << data;
-        }
-    }
-    return data_list;
-}
-
 Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind)
 {
     Edge* edge = 0;
@@ -595,10 +509,11 @@ Edge *EntityFactory::_createEdge(Node *source, Node *destination, EDGE_KIND kind
     auto edge_struct = getEdgeStruct(kind);
   
     if(edge_struct && edge_struct->constructor){
-        edge = edge_struct->constructor(source, destination);
-        if(edge){
-            auto data = getDefaultData(edge_struct->default_data.values());
-            edge->addData(data);
+        try{
+            edge = edge_struct->constructor(*this, source, destination);
+        }catch(const std::exception& ex){
+            std::cerr << ex.what() << std::endl;
+            edge = 0;
         }
     }
 
@@ -635,7 +550,6 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_com
         if(node){
             qCritical() << node->toString();
             if(store_entity){
-                node->addData(getDefaultData(node_struct->default_data.values()));
                 CacheEntityAsUnregistered(node);
             }
         }else{
@@ -663,29 +577,29 @@ Key *EntityFactory::GetKey(QString key_name, QVariant::Type type)
     }else{
         Key* key = 0;
         if(key_name == "label"){
-            key = new LabelKey();
+            key = new LabelKey(*this);
         }else if(key_name == "index"){
-            key = new IndexKey();    
+            key = new IndexKey(*this);    
         }else if(key_name == "row"){
-            key = new RowKey();    
+            key = new RowKey(*this);    
         }else if(key_name == "column"){
-            key = new ColumnKey();    
+            key = new ColumnKey(*this);    
         }else if(key_name == "uuid"){
-            key = new ExportIDKey();
+            key = new ExportIDKey(*this);
         }else if(key_name == "replicate_count"){
-            key = new ReplicateCountKey();    
+            key = new ReplicateCountKey(*this);    
         }else if(key_name == "frequency"){
-            key = new FrequencyKey();    
+            key = new FrequencyKey(*this);    
         }else if(key_name == "inner_type"){
-            key = new InnerTypeKey();    
+            key = new InnerTypeKey(*this);    
         }else if(key_name == "outer_type"){
-            key = new OuterTypeKey();    
+            key = new OuterTypeKey(*this);    
         }else if(key_name == "type"){
-            key = new TypeKey();    
+            key = new TypeKey(*this);    
         }else if(key_name == "namespace"){
-            key = new NamespaceKey();
+            key = new NamespaceKey(*this);
         }else{
-        key = new Key(key_name, type);
+        key = new Key(*this, key_name, type);
         }
         
         if(VisualKeyNames().contains(key_name)){
@@ -704,11 +618,10 @@ QList<Key*> EntityFactory::GetKeys(){
     return key_lookup_.values();
 }
 
-void EntityFactory::DestructNode(Node* node){
+void EntityFactory::DeregisterNode(Node* node){
 
 }
-void EntityFactory::DestructEdge(Edge* edge){
-
+void EntityFactory::DeregisterEdge(Edge* edge){
 }
 
 void EntityFactory::DestructEntity(GraphML* graphml){
@@ -803,7 +716,7 @@ Key* EntityFactory::GetKey(int id){
 Data* EntityFactory::CreateData(Key* key, QVariant value, bool is_protected){
     if(key){
         //Don't keep ID's for data
-        auto data = new Data(key, value, is_protected);
+        auto data = new Data(*this, key, value, is_protected);
         return data;
     }
     return 0;
@@ -861,8 +774,9 @@ bool EntityFactory::UnregisterTempID(GraphML* graphml){
 }
 
 int EntityFactory::RegisterEntity(GraphML* graphml, int id){
+    auto graphml_factory = &(graphml->getFactory());
     //Get the current ID
-    if(graphml && graphml->getFactory() == this){
+    if(graphml && graphml_factory == this){
         auto success = UnregisterTempID(graphml);
         
         if(!success){
@@ -905,7 +819,6 @@ void EntityFactory::CacheEntityAsUnregistered(GraphML* graphml){
         
         //Get the id, post set
         graphml->setID(id);
-        graphml->setFactory(this);
 
         if(!unregistered_hash_.contains(id)){
             //qCritical() << "UCACHING: " << graphml->toString() << " AS " << id;

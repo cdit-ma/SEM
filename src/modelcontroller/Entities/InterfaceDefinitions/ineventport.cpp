@@ -1,14 +1,21 @@
 #include "ineventport.h"
+#include "../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::INEVENTPORT;
+const QString kind_string = "InEventPort";
 
-InEventPort::InEventPort(EntityFactory* factory) : EventPort(factory, NODE_KIND::INEVENTPORT, "InEventPort"){
-	auto node_kind = NODE_KIND::INEVENTPORT;
-	QString kind_string = "InEventPort";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InEventPort();});
-};
+void InEventPort::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new InEventPort(factory, is_temp_node);
+    });
+}
 
-InEventPort::InEventPort():EventPort(NODE_KIND::INEVENTPORT)
-{
-	addImplKind(NODE_KIND::INEVENTPORT_IMPL);
+InEventPort::InEventPort(EntityFactory& factory, bool is_temp) : EventPort(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    addImplKind(NODE_KIND::INEVENTPORT_IMPL);
 	addInstanceKind(NODE_KIND::INEVENTPORT_INSTANCE);
 }

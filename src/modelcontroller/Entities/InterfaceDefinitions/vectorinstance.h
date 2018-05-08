@@ -8,11 +8,10 @@ class VectorInstance : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	VectorInstance(EntityFactory* factory);
-	VectorInstance();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    VectorInstance(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 
 

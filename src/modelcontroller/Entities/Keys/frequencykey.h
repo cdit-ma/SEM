@@ -6,7 +6,7 @@ class FrequencyKey : public Key
 {
     Q_OBJECT
 public:
-    FrequencyKey();
+    FrequencyKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
 };
 

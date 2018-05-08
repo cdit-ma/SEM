@@ -1,5 +1,5 @@
 #include "classinstance.h"
-#include "../../../entityfactory.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
 const QString kind_string = "ClassInstance";

@@ -2,20 +2,19 @@
 #include "aggregate.h"
 #include "aggregateinstance.h"
 #include "../Keys/typekey.h"
+#include "../../entityfactory.h"
 
 
-
-EventPort::EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
-    RegisterDefaultData(factory, kind, "type", QVariant::String, true);
-};
-
-EventPort::EventPort(NODE_KIND kind):Node(kind)
-{
-    aggregate = 0;
+EventPort::EventPort(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : Node(factory, node_kind, is_temp){
+    if (is_temp) {
+        return;
+    }
     setNodeType(NODE_TYPE::EVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
-}
+
+    factory.AttachData(this, "type", QVariant::String, "", true);
+};
 
 bool EventPort::isInPort() const
 {

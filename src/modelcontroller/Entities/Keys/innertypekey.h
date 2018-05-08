@@ -6,7 +6,7 @@ class InnerTypeKey : public Key
 {
     Q_OBJECT
 public:
-    InnerTypeKey();
+    InnerTypeKey(EntityFactory& factory);
     bool setData(Data* data, QVariant dataValue);
 };
 

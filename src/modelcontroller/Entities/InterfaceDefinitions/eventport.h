@@ -10,8 +10,7 @@ class EventPort : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-    EventPort(EntityFactory* factory, NODE_KIND kind, QString kind_str);
-    EventPort(NODE_KIND kind);
+    EventPort(EntityFactory& factory, NODE_KIND kind, bool is_temp);
 public:
     bool isInPort() const;
     bool isOutPort() const;
@@ -24,7 +23,7 @@ public:
     virtual bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 
 private:
-    Aggregate* aggregate;
+    Aggregate* aggregate = 0;
 };
 
 #endif // EVENTPORT_H

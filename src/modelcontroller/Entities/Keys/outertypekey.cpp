@@ -3,7 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 
-OuterTypeKey::OuterTypeKey(): Key("outer_type", QVariant::String){
+OuterTypeKey::OuterTypeKey(EntityFactory& factory): Key(factory, "outer_type", QVariant::String){
 
 }
 

@@ -41,8 +41,7 @@ QVariant::Type Key::getTypeFromGraphML(const QString typeString)
     return QVariant::nameToType(typeStringLow.toStdString().c_str());
 }
 
-Key::Key(QString key_name, QVariant::Type type):GraphML(GRAPHML_KIND::KEY)
-{
+Key::Key(EntityFactory& factory, const QString& key_name, QVariant::Type type) : GraphML(factory, GRAPHML_KIND::KEY){
     key_name_ = key_name;
     key_type_ = type;
 }

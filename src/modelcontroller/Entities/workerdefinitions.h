@@ -9,9 +9,9 @@ class WorkerDefinitions : public Node
     Q_OBJECT
 
 protected:
-	WorkerDefinitions(EntityFactory* factory);
-	WorkerDefinitions();
-    void updateViewAspect(VIEW_ASPECT){};
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    WorkerDefinitions(EntityFactory& factory, bool is_temp_node);
+	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;
 };

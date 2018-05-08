@@ -4,7 +4,7 @@
 
 #include <QRegularExpression>
 
-LabelKey::LabelKey(): Key("label", QVariant::String){
+LabelKey::LabelKey(EntityFactory& factory): Key(factory, "label", QVariant::String){
     //QStringList invalidChars;
     //invalidChars << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
     //invalidChars << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";

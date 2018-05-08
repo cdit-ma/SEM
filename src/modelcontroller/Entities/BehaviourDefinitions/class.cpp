@@ -1,5 +1,5 @@
 #include "class.h"
-#include "../../../entityfactory.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS;
 const QString kind_string = "Class";
@@ -10,7 +10,7 @@ void MEDEA::Class::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-Class::Class(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::Class::Class(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

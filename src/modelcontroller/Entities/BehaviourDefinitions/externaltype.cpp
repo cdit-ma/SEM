@@ -1,7 +1,5 @@
 #include "externaltype.h"
 #include "containernode.h"
-#include "../edge.h"
-#include "../data.h"
 #include "../Keys/typekey.h"
 #include "../../entityfactory.h"
 #include <QDebug>

@@ -9,8 +9,8 @@ class OutEventPortImpl : public Node
     Q_OBJECT
 protected:
 	static void RegisterWithEntityFactory(EntityFactory& factory);
-	FunctionCall(EntityFactory& factory, bool is_temp_node);
-    
+	OutEventPortImpl(EntityFactory& factory, bool is_temp_node);
+
     QSet<Node*> getParentNodesForValidDefinition();
 public:
     bool canAdoptChild(Node* child);

@@ -15,7 +15,7 @@ class Data : public GraphML
     friend class Edge;
 protected:
     
-    Data(Key* key, QVariant value = QVariant(), bool protect = false);
+    Data(EntityFactory& factory, Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
     static Data* clone(Data* data);
 public:
@@ -91,7 +91,7 @@ private:
     bool is_protected = false;
     bool is_data_linked = false;
 
-    QSet<QVariant> valid_values_;
+    QList<QVariant> valid_values_;
     
     
     QVariant value;

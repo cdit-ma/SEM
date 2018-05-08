@@ -10,7 +10,6 @@ class Setter : public Node
 protected:
 	static void RegisterWithEntityFactory(EntityFactory& factory);
 	Setter(EntityFactory& factory, bool is_temp_node);
-    void childAdded(Node* child);
 public:
     bool canAdoptChild(Node* child);
 };

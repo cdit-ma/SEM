@@ -1,5 +1,6 @@
 #include "attribute.h"
 #include "../../entityfactory.h"
+#include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE;
 const QString kind_string = "Attribute";
@@ -20,5 +21,6 @@ Attribute::Attribute(EntityFactory& factory, bool is_temp) : Node(factory, node_
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "String", true);
+    auto type_data = factory.AttachData(this, "type", QVariant::String, "String", true);
+    type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
 }

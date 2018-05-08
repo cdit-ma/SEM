@@ -8,8 +8,7 @@ class EventPortAssembly: public EventPort
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	EventPortAssembly(EntityFactory* factory, NODE_KIND kind, QString kind_str);
-    EventPortAssembly(NODE_KIND kind);
+    EventPortAssembly(EntityFactory& factory, NODE_KIND kind, bool is_temp);
 public:
     bool isPortDelegate() const;
 

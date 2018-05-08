@@ -16,6 +16,7 @@ class Edge: public Entity{
     //The factory can access protected constructors
     friend class EntityFactory;
 protected:
+    static void RegisterWithEntityFactory(EntityFactory& factory, const EDGE_KIND& edge_kind, const QString& kind_string, std::function<Edge* (EntityFactory&, Node*, Node*)> constructor);
     Edge(EntityFactory& factory, Node* source, Node* destination, EDGE_KIND kind);
     ~Edge();
 public:

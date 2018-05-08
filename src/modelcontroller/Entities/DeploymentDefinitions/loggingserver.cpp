@@ -1,17 +1,24 @@
 #include "loggingserver.h"
+#include "../../entityfactory.h"
 
+auto node_kind = NODE_KIND::LOGGINGSERVER;
+QString kind_string = "LoggingServer";
 
-LoggingServer::LoggingServer(EntityFactory* factory) : Node(factory, NODE_KIND::LOGGINGSERVER, "LoggingServer"){
-	auto node_kind = NODE_KIND::LOGGINGSERVER;
-	QString kind_string = "LoggingServer";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new LoggingServer();});
+void LoggingServer::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new LoggingServer(factory, is_temp_node);
+    });
+}
 
-    RegisterDefaultData(factory, node_kind, "database", QVariant::String, false, "output.sql");
-};
+LoggingServer::LoggingServer(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-LoggingServer::LoggingServer():Node(NODE_KIND::LOGGINGSERVER)
-{
+    //Setup State
     setNodeType(NODE_TYPE::LOGGING);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
+
+    factory.AttachData(this, "database", QVariant::String, "output.sql", false);
 }

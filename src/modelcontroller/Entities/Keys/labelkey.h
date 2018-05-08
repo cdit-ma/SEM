@@ -6,7 +6,7 @@ class LabelKey : public Key
 {
     Q_OBJECT
 public:
-    LabelKey();
+    LabelKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
 };
 

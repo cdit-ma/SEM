@@ -1,21 +1,27 @@
 #include "returnparametergroup.h"
-#include <QDebug>
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP;
 const QString kind_string = "ReturnParameterGroup";
 
-MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ReturnParameterGroup();});
-};
-
-MEDEA::ReturnParameterGroup::ReturnParameterGroup(): Node(node_kind)
-{
-    addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ReturnParameterGroup(factory, is_temp_node);
+    });
 }
 
+MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
+}
 
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)
 { 

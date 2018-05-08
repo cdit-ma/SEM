@@ -6,7 +6,7 @@ class RowKey : public Key
 {
     Q_OBJECT
 public:
-    RowKey();
+    RowKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
     bool setData(Data* data, QVariant dataValue);
 };

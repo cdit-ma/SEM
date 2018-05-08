@@ -1,14 +1,21 @@
 #include "outeventport.h"
+#include "../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
+const QString kind_string = "OutEventPort";
 
-OutEventPort::OutEventPort(EntityFactory* factory) : EventPort(factory, NODE_KIND::OUTEVENTPORT, "OutEventPort"){
-	auto node_kind = NODE_KIND::OUTEVENTPORT;
-	QString kind_string = "OutEventPort";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new OutEventPort();});
-};
+void OutEventPort::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new OutEventPort(factory, is_temp_node);
+    });
+}
 
-OutEventPort::OutEventPort():EventPort(NODE_KIND::OUTEVENTPORT)
-{
-	addImplKind(NODE_KIND::OUTEVENTPORT_IMPL);
+OutEventPort::OutEventPort(EntityFactory& factory, bool is_temp) : EventPort(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    addImplKind(NODE_KIND::OUTEVENTPORT_IMPL);
 	addInstanceKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
 }

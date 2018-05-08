@@ -1,19 +1,26 @@
 #include "hardwarecluster.h"
+#include "../../entityfactory.h"
 
-#include "../../edgekinds.h"
+const NODE_KIND node_kind = NODE_KIND::HARDWARE_CLUSTER;
+const QString kind_string = "HardwareCluster";
 
-HardwareCluster::HardwareCluster(EntityFactory* factory) : Node(factory, NODE_KIND::HARDWARE_CLUSTER, "HardwareCluster"){
-	auto node_kind = NODE_KIND::HARDWARE_CLUSTER;
-	QString kind_string = "HardwareCluster";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareCluster();});
-    RegisterDefaultData(factory, node_kind, "uuid", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "url", QVariant::String, true);
-};
+void HardwareCluster::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new HardwareCluster(factory, is_temp_node);
+        });
+}
 
-HardwareCluster::HardwareCluster():Node(NODE_KIND::HARDWARE_CLUSTER)
-{
+HardwareCluster::HardwareCluster(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    
+    //Setup State
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_NODE);
 
+    //Setup Data
+    factory.AttachData(this, "uuid", QVariant::String, "", true);
+    factory.AttachData(this, "url", QVariant::String, "", true);
 }

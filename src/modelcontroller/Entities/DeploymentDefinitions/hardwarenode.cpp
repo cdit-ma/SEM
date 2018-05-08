@@ -1,26 +1,30 @@
 #include "hardwarenode.h"
+#include "../../entityfactory.h"
 
-#include "../../edgekinds.h"
+const auto node_kind = NODE_KIND::HARDWARE_NODE;
+const QString kind_string = "HardwareNode";
 
-auto node_kind = NODE_KIND::HARDWARE_NODE;
-QString kind_string = "HardwareNode";
+void HardwareNode::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new HardwareNode(factory, is_temp_node);
+    });
+}
 
-HardwareNode::HardwareNode(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new HardwareNode();});
+HardwareNode::HardwareNode(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "architecture", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "ip_address", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "os", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "os_version", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "url", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "uuid", QVariant::String, true);
-};
-
-HardwareNode::HardwareNode():Node(node_kind)
-{
+    //Setup State
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::OPENCL_PLATFORM);
     setLabelFunctional();
+
+    factory.AttachData(this, "label", QVariant::String, "", true);
+    factory.AttachData(this, "ip_address", QVariant::String, "", true);
+    factory.AttachData(this, "os", QVariant::String, "", true);
+    factory.AttachData(this, "os_version", QVariant::String, "", true);
+    factory.AttachData(this, "architecture", QVariant::String, "", true);
+    factory.AttachData(this, "uuid", QVariant::String, "", true);
 }

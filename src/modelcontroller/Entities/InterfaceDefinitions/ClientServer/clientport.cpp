@@ -1,24 +1,33 @@
 #include "clientport.h"
+#include "../../../entityfactory.h"
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::CLIENT_PORT;
 const QString kind_string = "ClientPort";
 
-MEDEA::ClientPort::ClientPort(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ClientPort();});
+
+void MEDEA::ClientPort::RegisterWithEntityFactory(EntityFactory& factory){
+	Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ClientPort(factory, is_temp_node);
+        });
 };
 
-MEDEA::ClientPort::ClientPort(): Node(node_kind)
-{
+MEDEA::ClientPort::ClientPort(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::SERVER_INTERFACE);
     addInstanceKind(NODE_KIND::CLIENT_PORT_INSTANCE);
     addImplKind(NODE_KIND::SERVER_REQUEST);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "index", QVariant::String, -1, false);
 }
 
 

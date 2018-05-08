@@ -4,34 +4,27 @@
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_DEFINITIONS;
 const QString kind_string = "DeploymentDefinitions";
 
-void DeploymentDefinitions::RegisterWithEntityFactory(EntityFactory* factory){
-	RegisterNodeKind(factory, node_kind, kind_string, 0);
-    RegisterComplexNodeKind(factory, node_kind, [](EntityFactory* ef, bool is_temp){return new DeploymentDefinitions(ef, is_temp);});
+void DeploymentDefinitions::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DeploymentDefinitions(factory, is_temp_node);
+    });
 }
 
-
-DeploymentDefinitions::DeploymentDefinitions(EntityFactory* factory, bool is_temp) : Node(node_kind)
-{
+DeploymentDefinitions::DeploymentDefinitions(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }
+
+    //Setup State
     setAcceptsNodeKind(NODE_KIND::ASSEMBLY_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_DEFINITIONS);
-    auto assembly = factory->CreateNode(NODE_KIND::ASSEMBLY_DEFINITIONS);
-    auto hardware = factory->CreateNode(NODE_KIND::HARDWARE_DEFINITIONS);
 
-    if(assembly && hardware){
-        auto adopt_success = addChild(assembly);
-        adopt_success = adopt_success && addChild(hardware);
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "DEPLOYMENT", true);
 
-        if(adopt_success){
-            return;
-        }
-    }
-
-    factory->DestructEntity(assembly);
-    factory->DestructEntity(hardware);
-    throw std::invalid_argument("Model cannot be constructed");
+    //Attach Children
+    factory.ConstructChildNode(*this, NODE_KIND::ASSEMBLY_DEFINITIONS);
+    factory.ConstructChildNode(*this, NODE_KIND::HARDWARE_DEFINITIONS);
 }
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)

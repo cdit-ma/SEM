@@ -1,6 +1,5 @@
 #include "variableparameter.h"
 #include "../../entityfactory.h"
-#include "../../edgekinds.h"
 
 const NODE_KIND node_kind = NODE_KIND::VARIABLE_PARAMETER;
 const QString kind_string = "VariableParameter";
@@ -11,7 +10,7 @@ void VariableParameter::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-VariableParameter::VariableParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+VariableParameter::VariableParameter(EntityFactory& factory, bool is_temp) : Parameter(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

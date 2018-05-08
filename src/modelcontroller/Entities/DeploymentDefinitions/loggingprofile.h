@@ -8,8 +8,8 @@ class LoggingProfile : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	LoggingProfile(EntityFactory* factory);
-	LoggingProfile();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    LoggingProfile(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

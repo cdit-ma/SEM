@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 
-FrequencyKey::FrequencyKey(): Key("frequency", QVariant::Double){
+FrequencyKey::FrequencyKey(EntityFactory& factory): Key(factory, "frequency", QVariant::Double){
 
 }   
 

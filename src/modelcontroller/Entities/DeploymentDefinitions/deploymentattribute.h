@@ -10,8 +10,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        DeploymentAttribute(EntityFactory* factory);
-        DeploymentAttribute();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        DeploymentAttribute(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };

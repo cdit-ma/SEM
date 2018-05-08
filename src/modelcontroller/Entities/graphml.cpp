@@ -1,7 +1,7 @@
 #include "graphml.h"
 #include "../entityfactory.h"
 
-GraphML::GraphML(factory, GRAPHML_KIND kind):QObject(0), factory = factory_;
+GraphML::GraphML(EntityFactory& factory, GRAPHML_KIND kind):QObject(0), factory_(factory)
 {
     this->kind = kind;
 }
@@ -40,8 +40,6 @@ int GraphML::getID() const
     return id;
 }
 
-void GraphML::setFactory(EntityFactory* factory){
-}
 
 EntityFactory& GraphML::getFactory(){
     return factory_;

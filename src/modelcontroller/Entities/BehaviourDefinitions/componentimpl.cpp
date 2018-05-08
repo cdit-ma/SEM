@@ -1,6 +1,5 @@
 #include "componentimpl.h"
-#include "../../edgekinds.h"
-#include "../../../entityfactory.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::COMPONENT_IMPL;
 const QString kind_string = "ComponentImpl";
@@ -11,7 +10,7 @@ void ComponentImpl::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-ComponentImpl::ComponentImpl(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+ComponentImpl::ComponentImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

@@ -1,20 +1,32 @@
 #include "serverinterface.h"
+#include "../../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_INTERFACE;
 const QString kind_string = "ServerInterface";
 
-MEDEA::ServerInterface::ServerInterface(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ServerInterface();});
+void MEDEA::ServerInterface::RegisterWithEntityFactory(EntityFactory& factory){
+	Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ServerInterface(factory, is_temp_node);
+        });
 };
 
-MEDEA::ServerInterface::ServerInterface(): Node(node_kind)
-{
+
+MEDEA::ServerInterface::ServerInterface(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    
+    //Setup State
     addInstanceKind(NODE_KIND::SERVER_PORT);
     addInstanceKind(NODE_KIND::CLIENT_PORT);
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);
 }
+
 
 bool MEDEA::ServerInterface::canAdoptChild(Node* child)
 {

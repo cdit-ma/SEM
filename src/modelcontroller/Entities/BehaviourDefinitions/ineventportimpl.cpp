@@ -1,10 +1,8 @@
 #include "ineventportimpl.h"
 #include "../../entityfactory.h"
-#include "../../edgekinds.h"
 
 const NODE_KIND node_kind = NODE_KIND::INEVENTPORT_IMPL;
 const QString kind_string = "InEventPortImpl";
-
 
 void InEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
@@ -12,7 +10,7 @@ void InEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-InEventPortImpl::InEventPortImpl(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+InEventPortImpl::InEventPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

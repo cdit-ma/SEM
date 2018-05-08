@@ -6,7 +6,7 @@ class OuterTypeKey : public Key
 {
     Q_OBJECT
 public:
-    OuterTypeKey();
+    OuterTypeKey(EntityFactory& factory);
     bool setData(Data* data, QVariant dataValue);
 };
 

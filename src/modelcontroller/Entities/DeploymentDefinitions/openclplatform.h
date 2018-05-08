@@ -8,8 +8,8 @@ class OpenCLPlatform : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	OpenCLPlatform(EntityFactory* factory);
-	OpenCLPlatform();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    OpenCLPlatform(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // OPENCLPLATFORM_H

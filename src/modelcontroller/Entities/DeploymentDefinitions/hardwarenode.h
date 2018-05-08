@@ -8,8 +8,8 @@ class HardwareNode : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	HardwareNode(EntityFactory* factory);
-	HardwareNode();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    HardwareNode(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // HARDWARENODE_H

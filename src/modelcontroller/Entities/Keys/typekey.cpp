@@ -4,9 +4,13 @@
 #include <QDebug>
 #include "namespacekey.h"
 
-TypeKey::TypeKey(): Key("type", QVariant::String){
+TypeKey::TypeKey(EntityFactory& factory): Key(factory, "type", QVariant::String){
     //Combine Namespace and Type
     combine_namespace_kinds = {NODE_KIND::AGGREGATE, NODE_KIND::COMPONENT, NODE_KIND::ENUM};
+}
+
+QList<QVariant> TypeKey::GetValidPrimitiveTypes(){
+    return {"String",  "Boolean", "Integer", "Double", "Float", "Character"};
 }
 
 QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){

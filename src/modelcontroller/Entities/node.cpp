@@ -48,15 +48,15 @@ Node::Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node) : Ent
     node_kind_ = node_kind;
 
     //Attach default data
-    factory.AttachData(this, "kind", QVariant::String, factory.getNodeKindString(kind), true);
-    factory.AttachData(this, "label", QVariant::String, factory.getNodeKindString(kind), false);
-    factory.AttachData(this, "index", QVariant::Int, factory.getNodeKindString(kind), true, -1);
+    factory.AttachData(this, "kind", QVariant::String, factory.getNodeKindString(node_kind), true);
+    factory.AttachData(this, "label", QVariant::String, factory.getNodeKindString(node_kind), false);
+    factory.AttachData(this, "index", QVariant::Int, -1, true);
 }
 
 Node::~Node()
 {
     //Deregister first 
-    getFactory().DeregisterEdge(this);
+    getFactory().DeregisterNode(this);
 
     if(parent_node_){
         parent_node_->removeChild(this);
@@ -395,8 +395,8 @@ bool Node::addChild(Node *child)
             auto data = getData("uuid");
             auto key = data->getKey();
             if(!child->gotData("uuid")){
-                auto child_data = new Data(key);
-                child->addData(child_data);
+                //Construct a new piece of data
+                getFactory().AttachData(child, key, "", true);
             }
         }
         childAdded(child);
@@ -1078,17 +1078,15 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     if(def_icon && def_icon_prefix){
         auto key_icon_prefix = def_icon_prefix->getKey();
         auto key_icon = def_icon->getKey();
-        auto factory = instance->getFactory();
+        auto& factory = instance->getFactory();
 
         //Construct Icon Prefix if we don't have one already
         if(!instance->gotData(key_icon_prefix)){
-            auto data_icon_prefix = factory->CreateData(key_icon_prefix, def_icon_prefix->getValue());
-            instance->addData(data_icon_prefix);
+            factory.AttachData(instance, key_icon_prefix, def_icon_prefix->getValue(), true);
         }
         //Construct Icon if we don't have one already
         if(!instance->gotData(key_icon)){
-            auto data_icon = factory->CreateData(key_icon, def_icon->getValue());
-            instance->addData(data_icon);
+            factory.AttachData(instance, key_icon, def_icon->getValue(), true);
         }
     }
 
@@ -1129,10 +1127,7 @@ void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, boo
         direction_set.remove(edge_kind);
     }
 
-    auto factory = getFactory();
-    if(factory){
-        factory->acceptedEdgeKindsChanged(this);
-    }
+    getFactory().acceptedEdgeKindsChanged(this);
 }
 
 bool Node::canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const{

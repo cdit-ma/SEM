@@ -28,7 +28,7 @@ MEDEA::ServerRequest::ServerRequest(EntityFactory& factory, bool is_temp) : Node
     
 
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, APP_VERSION(), true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
     factory.AttachData(this, "index", QVariant::Int, -1, false);
 }
 

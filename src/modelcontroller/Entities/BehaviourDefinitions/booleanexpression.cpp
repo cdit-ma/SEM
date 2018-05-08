@@ -1,7 +1,5 @@
 #include "booleanexpression.h"
 #include "../Keys/typekey.h"
-#include "../data.h"
-#include "inputparameter.h"
 #include "../../entityfactory.h"
 #include <exception>
 
@@ -38,27 +36,24 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp
     rhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
     //Setup LHS
-    lhs_->setLabelFunctional(false);
     factory.AttachData(lhs_, "label", QVariant::String, "lhs", true);
     factory.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
     factory.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Setup Comparator
-    comparator_->setLabelFunctional(false);
     auto data_comparator = factory.AttachData(comparator_, "label", QVariant::String, "==", false);
     factory.AttachData(comparator_, "icon", QVariant::String, "BooleanExpression", true);
     factory.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
 
     //Setup RHS
-    rhs_->setLabelFunctional(false);
     factory.AttachData(rhs_, "label", QVariant::String, "rhs", true);
     factory.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
     factory.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Bind Value changing
-    auto data_rhs_value = rhs->getData("value");
-    auto data_lhs_value = lhs->getData("value");
+    auto data_rhs_value = rhs_->getData("value");
+    auto data_lhs_value = lhs_->getData("value");
 
     //Update Label on data Change
     connect(data_rhs_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
@@ -66,7 +61,7 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp
     connect(data_comparator, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
 
     updateLabel();
-    TypeKey::BindInnerAndOuterTypes(lhs, rhs, true);
+    TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
 };
 
 bool MEDEA::BooleanExpression::canAdoptChild(Node* child)

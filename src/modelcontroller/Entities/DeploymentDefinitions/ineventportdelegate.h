@@ -8,8 +8,8 @@ class InEventPortDelegate: public EventPortAssembly
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	InEventPortDelegate(EntityFactory* factory);
-	InEventPortDelegate();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    InEventPortDelegate(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // INEVENTPORTDELEGATE_H

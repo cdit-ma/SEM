@@ -8,8 +8,8 @@ class OutEventPortDelegate: public EventPortAssembly
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	OutEventPortDelegate(EntityFactory* factory);
-	OutEventPortDelegate();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    OutEventPortDelegate(EntityFactory& factory, bool is_temp_node);
 };
 
 

@@ -1,6 +1,5 @@
 #include "inputparameter.h"
 #include "../../entityfactory.h"
-#include "../../edgekinds.h"
 
 const NODE_KIND node_kind = NODE_KIND::INPUT_PARAMETER;
 const QString kind_string = "InputParameter";
@@ -11,7 +10,7 @@ void InputParameter::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-InputParameter::InputParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+InputParameter::InputParameter(EntityFactory& factory, bool is_temp) : Parameter(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

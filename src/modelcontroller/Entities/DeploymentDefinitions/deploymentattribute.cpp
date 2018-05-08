@@ -1,21 +1,31 @@
 #include "deploymentattribute.h"
-#include <QDebug>
+#include "../../entityfactory.h"
+#include "../Keys/typekey.h"
+
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_ATTRIBUTE;
 const QString kind_string = "DeploymentAttribute";
 
-MEDEA::DeploymentAttribute::DeploymentAttribute(EntityFactory* factory) : DataNode(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DeploymentAttribute();});
+void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::DeploymentAttribute(factory, is_temp_node);
+        });
+}
 
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, false, "String");
-    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
-};
 
-MEDEA::DeploymentAttribute::DeploymentAttribute() : DataNode(node_kind)
-{
+MEDEA::DeploymentAttribute::DeploymentAttribute(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    
+    //Setup State
     setDataProducer(true);
     setDataReceiver(true);
     setMultipleDataProducer(true);
+
+    //Setup Data
+    auto type_data = factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "comment", QVariant::String, "", false);
+    type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
 }
 
 bool MEDEA::DeploymentAttribute::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

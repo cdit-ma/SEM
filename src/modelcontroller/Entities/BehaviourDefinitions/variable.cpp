@@ -1,10 +1,7 @@
 #include "variable.h"
 
-#include "../../edgekinds.h"
-#include "../edge.h"
-#include "../data.h"
+#include "../../entityfactory.h"
 #include "../Keys/typekey.h"
-#include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::VARIABLE;
 const QString kind_string = "Variable";
@@ -15,7 +12,7 @@ void Variable::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-Variable::Variable(EntityFactory& factory, bool is_temp) : DataNode(node_kind, is_temp){
+Variable::Variable(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -29,7 +26,7 @@ Variable::Variable(EntityFactory& factory, bool is_temp) : DataNode(node_kind, i
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
 
     //Setup Data
-    factory.AttachData(this, "index", QVariant::Integer, -1, false);
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 bool Variable::canAdoptChild(Node* child)

@@ -8,8 +8,8 @@ class InterfaceDefinitions: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	InterfaceDefinitions(EntityFactory* factory);
-	InterfaceDefinitions();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    InterfaceDefinitions(EntityFactory& factory, bool is_temp_node);
 	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;

@@ -6,6 +6,7 @@
 class EntityFactory;
 class FunctionCall: public Node
 {
+	friend class EntityFactory;
 protected:
 	static void RegisterWithEntityFactory(EntityFactory& factory);
 	FunctionCall(EntityFactory& factory, bool is_temp_node);

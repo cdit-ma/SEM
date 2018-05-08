@@ -8,8 +8,8 @@ class MemberInstance : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	MemberInstance(EntityFactory* factory);
-	MemberInstance();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    MemberInstance(EntityFactory& factory, bool is_temp_node);
     void parentSet(Node* parent);
 };
 

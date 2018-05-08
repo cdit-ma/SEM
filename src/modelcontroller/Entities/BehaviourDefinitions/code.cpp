@@ -1,5 +1,5 @@
 #include "code.h"
-#include "../../../entityfactory.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::CODE;
 const QString kind_string = "Code";
@@ -10,7 +10,7 @@ void Code::RegisterWithEntityFactory(EntityFactory& factory){
         });
 }
 
-Code::Code(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+Code::Code(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
     if(is_temp){
         return;
     }

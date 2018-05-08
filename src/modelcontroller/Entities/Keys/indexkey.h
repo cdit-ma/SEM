@@ -6,7 +6,7 @@ class IndexKey : public Key
 {
     Q_OBJECT
 public:
-    IndexKey();
+    IndexKey(EntityFactory& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
     static void RevalidateChildrenIndex(Node* parent);
 };
