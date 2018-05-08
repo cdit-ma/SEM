@@ -18,6 +18,7 @@ class EnvironmentRequester{
     public:
         enum class DeploymentType{
             RE_MASTER,
+            RE_SLAVE,
             LOGAN_CLIENT,
             LOGAN_SERVER
         };
