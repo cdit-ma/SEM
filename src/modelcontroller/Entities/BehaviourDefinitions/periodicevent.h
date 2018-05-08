@@ -8,8 +8,8 @@ class PeriodicEvent: public Node, public ContainerNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	PeriodicEvent(EntityFactory* factory);
-	PeriodicEvent();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+	PeriodicEvent(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);

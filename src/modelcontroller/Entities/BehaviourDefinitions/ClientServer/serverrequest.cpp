@@ -1,17 +1,21 @@
 #include "serverrequest.h"
 #include "../containernode.h"
+#include "../../../entityfactory.h"
+
 const NODE_KIND node_kind = NODE_KIND::SERVER_REQUEST;
 const QString kind_string = "ServerRequest";
 
-MEDEA::ServerRequest::ServerRequest(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-    //Allow reordering
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ServerRequest();});
-};
+void MEDEA::ServerRequest::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ServerRequest(factory, is_temp_node);
+        });
+}
 
-MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
-{
+MEDEA::ServerRequest::ServerRequest(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
     addImplsDefinitionKind(NODE_KIND::CLIENT_PORT);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 
@@ -21,6 +25,11 @@ MEDEA::ServerRequest::ServerRequest(): Node(node_kind)
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
+    
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, APP_VERSION(), true);
+    factory.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 

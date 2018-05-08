@@ -1,29 +1,40 @@
 #include "function.h"
 #include "../data.h"
+#include "../../entityfactory.h"
+
 const NODE_KIND node_kind = NODE_KIND::FUNCTION;
 const QString kind_string = "Function";
 
-MEDEA::Function::Function(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Function();});
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, false);
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, false);
-    RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
-};
+void MEDEA::Function::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::Function(factory, is_temp_node);
+        });
+}
 
-MEDEA::Function::Function(): Node(node_kind)
-{
+MEDEA::Function::Function(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
     addInstanceKind(NODE_KIND::FUNCTION_CALL);
-    
+
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
-    
 
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
+
+    //Setup Data
+    factory.AttachData(this, "class", QVariant::String, "", true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "icon_prefix", QVariant::String, "", false);
+    factory.AttachData(this, "icon", QVariant::String, "", false);
 }
+
 
 bool MEDEA::Function::Function::canAdoptChild(Node* child)
 {
@@ -40,32 +51,6 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
             break;
     }
     return Node::canAdoptChild(child);
-}
-
-bool MEDEA::Function::Function::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
-{   /*
-    if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
-        return false;
-    }
-
-    switch(edge_kind){
-        case EDGE_KIND::DEFINITION:{
-            if(dst->getNodeKind() != NODE_KIND::FUNCTION){
-                return false;
-            }
-            
-            if(getParentNode()->getNodeKind() == NODE_KIND::COMPONENT_IMPL){
-                if(!dst->getDefinition()){
-                    return false;
-                }
-            }
-            break;
-        }
-        default:
-            break;
-    }*/
-
-    return Node::canAcceptEdge(edge_kind, dst);
 }
 
 void MEDEA::Function::parentSet(Node* parent){

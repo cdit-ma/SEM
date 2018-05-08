@@ -8,8 +8,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        Class(EntityFactory* factory);
-        Class();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        Class(EntityFactory& factory, bool is_temp_node);
     };
 };
 

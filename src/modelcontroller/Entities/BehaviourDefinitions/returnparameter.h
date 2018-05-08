@@ -8,9 +8,8 @@ class ReturnParameter : public Parameter
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	ReturnParameter(EntityFactory* factory);
-	ReturnParameter();
-
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+	ReturnParameter(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // RETURNPARAMETER_H

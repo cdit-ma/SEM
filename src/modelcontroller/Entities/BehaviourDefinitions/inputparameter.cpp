@@ -1,19 +1,25 @@
 #include "inputparameter.h"
-
+#include "../../entityfactory.h"
 #include "../../edgekinds.h"
 
+const NODE_KIND node_kind = NODE_KIND::INPUT_PARAMETER;
+const QString kind_string = "InputParameter";
 
+void InputParameter::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new InputParameter(factory, is_temp_node);
+        });
+}
 
-InputParameter::InputParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::INPUT_PARAMETER, "InputParameter"){
-	auto node_kind = NODE_KIND::INPUT_PARAMETER;
-	QString kind_string = "InputParameter";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new InputParameter();});
+InputParameter::InputParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
-};
-
-InputParameter::InputParameter(): Parameter(NODE_KIND::INPUT_PARAMETER)
-{
+    //Setup State
     setDataReceiver(true);
     setDataProducer(false);
+
+    //Setup Data
+    factory.AttachData(this, "value", QVariant::String, "", false);
 }

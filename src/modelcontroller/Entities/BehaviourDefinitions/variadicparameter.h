@@ -7,9 +7,10 @@ class VariadicParameter : public Parameter
 {
 	friend class EntityFactory;
     Q_OBJECT
-protected:
-	VariadicParameter(EntityFactory* factory);
-	VariadicParameter();
+	
+	protected:
+		static void RegisterWithEntityFactory(EntityFactory& factory);
+		InputParameter(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // VARIADICPARAMETER_H

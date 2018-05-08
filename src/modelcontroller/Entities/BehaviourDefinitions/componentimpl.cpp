@@ -1,19 +1,22 @@
 #include "componentimpl.h"
-
 #include "../../edgekinds.h"
+#include "../../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::COMPONENT_IMPL;
+const QString kind_string = "ComponentImpl";
 
+void ComponentImpl::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new ComponentImpl(factory, is_temp_node);
+        });
+}
 
-ComponentImpl::ComponentImpl(EntityFactory* factory) : Node(factory, NODE_KIND::COMPONENT_IMPL, "ComponentImpl"){
-	auto node_kind = NODE_KIND::COMPONENT_IMPL;
-	QString kind_string = "ComponentImpl";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ComponentImpl();});
-
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
-
-ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
+ComponentImpl::ComponentImpl(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    //Setup State
+    setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
 
@@ -25,8 +28,11 @@ ComponentImpl::ComponentImpl():Node(NODE_KIND::COMPONENT_IMPL){
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT_IMPL);
-}
 
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+
+}
 QSet<Node*> ComponentImpl::getDependants() const{
     auto required_nodes = Node::getDependants();
     auto definition = getDefinition(true);

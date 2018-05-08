@@ -1,18 +1,27 @@
 #include "ifstatement.h"
+#include "../../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::IF_STATEMENT;
 const QString kind_string = "IfStatement";
 
+void MEDEA::IfStatement::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ElseIfCondition(factory, is_temp_node);
+        });
+}
 
-MEDEA::IfStatement::IfStatement(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new IfStatement();});
-};
+MEDEA::IfStatement::IfStatement(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-MEDEA::IfStatement::IfStatement() : Node(node_kind){
+    //SetupState
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSE_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSEIF_CONDITION);
+
+    setLabelFunctional(false);
 }
 
 
@@ -31,9 +40,4 @@ bool MEDEA::IfStatement::canAdoptChild(Node *child)
     }
     
     return Node::canAdoptChild(child);
-}
-
-bool MEDEA::IfStatement::canAcceptEdge(EDGE_KIND edgeKind, Node *dst)
-{
-    return Node::canAcceptEdge(edgeKind, dst);
 }

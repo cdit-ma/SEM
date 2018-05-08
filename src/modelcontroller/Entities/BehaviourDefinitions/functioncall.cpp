@@ -2,34 +2,35 @@
 #include <QDebug>
 #include "parameter.h"
 #include "containernode.h"
-
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::FUNCTION_CALL;
 const QString kind_string = "FunctionCall";
 
-FunctionCall::FunctionCall(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new FunctionCall();});
-
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "class", QVariant::String, true);
+void FunctionCall::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new FunctionCall(factory, is_temp_node);
+        });
 }
 
-FunctionCall::FunctionCall():Node(node_kind)
-{
+FunctionCall::FunctionCall(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
-
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
-
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
+
+    //Setup Data
+    factory.AttachData(this, "class", QVariant::String, "", true);
+    factory.AttachData(this, "label", QVariant::String, "", true);
+    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    factory.AttachData(this, "icon", QVariant::String, "", true);
 }
-
-
-
 
 bool FunctionCall::canAdoptChild(Node* child)
 {

@@ -2,22 +2,20 @@
 
 #include "../../edgekinds.h"
 
-
-
-Parameter::Parameter(EntityFactory* factory, NODE_KIND node_kind, QString kind_str) : DataNode(factory, node_kind, kind_str){
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
-
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true);
-};
-
-Parameter::Parameter(NODE_KIND kind):DataNode(kind)
-{
+Parameter::Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+    //Setup State
     setNodeType(NODE_TYPE::PARAMETER);
-    
+
+    //Setup Data
+    factory.AttachData(this, "icon", QVariant::String, "", true);
+    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    factory.AttachData(this, "label", QVariant::String, "", true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "inner_type", QVariant::String, "", true);
+    factory.AttachData(this, "outer_type", QVariant::String, "", true);
 }
 
 bool Parameter::isInputParameter() const

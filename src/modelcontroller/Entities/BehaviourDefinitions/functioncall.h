@@ -6,13 +6,11 @@
 class EntityFactory;
 class FunctionCall: public Node
 {
-public:
-	FunctionCall(EntityFactory* factory);
-	FunctionCall();
-
-    //bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
-	bool canAdoptChild(Node* child);
 protected:
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+	FunctionCall(EntityFactory& factory, bool is_temp_node);
+
+	bool canAdoptChild(Node* child);
 	QSet<Node*> getListOfValidAncestorsForChildrenDefinitions();
 	QSet<Node*> getParentNodesForValidDefinition();
 private:

@@ -3,13 +3,13 @@
 #include "../node.h"
 
 class EntityFactory;
-class Setter: public Node
+class Setter : public Node
 {
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Setter(EntityFactory* factory);
-	Setter();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+	Setter(EntityFactory& factory, bool is_temp_node);
     void childAdded(Node* child);
 public:
     bool canAdoptChild(Node* child);

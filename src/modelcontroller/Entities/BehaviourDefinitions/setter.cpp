@@ -1,26 +1,25 @@
 #include "setter.h"
 #include "../Keys/typekey.h"
 
-
 const NODE_KIND node_kind = NODE_KIND::SETTER;
 const QString kind_string = "Setter";
 
+void Setter::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Setter(factory, is_temp_node);
+        });
+}
 
-Setter::Setter(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Setter();});
+Setter::Setter(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "operator", QVariant::String, false, "=");
-    QList<QVariant> operator_types = {"=", "+=", "-=", "*=", "/="};
-
-    RegisterValidDataValues(factory, node_kind, "operator", QVariant::String, operator_types);
-};
-
-Setter::Setter() : Node(node_kind)
-{
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+
+    //TODO: Add CUstom Constructors
+    //QList<QVariant> operator_types = {"=", "+=", "-=", "*=", "/="};
 }
 
 bool Setter::canAdoptChild(Node* child)
@@ -37,15 +36,4 @@ bool Setter::canAdoptChild(Node* child)
     }
 
     return Node::canAdoptChild(child);
-}
-
-void Setter::childAdded(Node* child){
-    Node::childAdded(child);
-
-    auto input_params = getChildrenOfKind(NODE_KIND::INPUT_PARAMETER);
-
-    if(input_params.length() == 2){
-        //Bind types
-        TypeKey::BindInnerAndOuterTypes(input_params[0], input_params[1], true);
-    }
 }

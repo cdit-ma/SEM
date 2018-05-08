@@ -5,13 +5,13 @@
 
 class EntityFactory;
 namespace MEDEA{
-    class WhileLoop: public Node
+    class WhileLoop : public Node
     {
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        WhileLoop(EntityFactory* factory);
-        WhileLoop();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        ForLoop(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
     };

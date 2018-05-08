@@ -1,15 +1,22 @@
 #include "forloop.h"
 #include "../containernode.h"
+#include "../../../entityfactory.h"
+
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
 const QString kind_string = "ForLoop";
 
+void MEDEA::ForLoop::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ForLoop(factory, is_temp_node);
+        });
+}
 
-MEDEA::ForLoop::ForLoop(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ForLoop();});
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, false, "for");
-};
+MEDEA::ForLoop::ForLoop(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-MEDEA::ForLoop::ForLoop():Node(node_kind){
+    //SetupState
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
@@ -19,7 +26,9 @@ MEDEA::ForLoop::ForLoop():Node(node_kind){
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
+    setLabelFunctional(false);
 
+    factory.AttachData(this, "label", QVariant::String, "for", true);
 }
 
 bool MEDEA::ForLoop::canAdoptChild(Node *child)

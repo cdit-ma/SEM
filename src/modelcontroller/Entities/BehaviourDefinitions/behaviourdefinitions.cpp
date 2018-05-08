@@ -1,6 +1,5 @@
 #include "behaviourdefinitions.h"
-#include "../entityfactory.h"
-#include "../../edgekinds.h"
+#include "../../entityfactory.h"
 #include "../../edgekinds.h"
 
 const NODE_KIND node_kind = NODE_KIND::BEHAVIOUR_DEFINITIONS;

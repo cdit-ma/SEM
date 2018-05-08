@@ -8,8 +8,8 @@ class ComponentImpl: public Node
 	friend class EntityFactory;
      Q_OBJECT
 protected:
-	ComponentImpl(EntityFactory* factory);
-	ComponentImpl();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+    ComponentImpl(EntityFactory& factory, bool is_temp_node);
     QSet<Node*> getDependants() const;
 };
 

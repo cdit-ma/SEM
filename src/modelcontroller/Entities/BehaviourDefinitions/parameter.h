@@ -8,10 +8,8 @@ class Parameter: public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Parameter(EntityFactory* factory, NODE_KIND kind, QString kind_str);
-    Parameter(NODE_KIND kind);
+    Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node);
 public:
-
     bool isInputParameter() const;
     bool isVariadicParameter() const;
     bool isReturnParameter() const;

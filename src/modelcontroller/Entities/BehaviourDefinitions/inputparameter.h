@@ -7,9 +7,10 @@ class InputParameter : public Parameter
 {
 	friend class EntityFactory;
     Q_OBJECT
-protected:
-	InputParameter(EntityFactory* factory);
-	InputParameter();
+	
+	protected:
+		static void RegisterWithEntityFactory(EntityFactory& factory);
+		InputParameter(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // INPUTPARAMETER_H

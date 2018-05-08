@@ -1,23 +1,36 @@
 #include "whileloop.h"
 #include "../containernode.h"
+#include "../../../entityfactory.h"
+
 const NODE_KIND node_kind = NODE_KIND::WHILE_LOOP;
 const QString kind_string = "WhileLoop";
 
-MEDEA::WhileLoop::WhileLoop(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new WhileLoop();});
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, false, "while");
-};
+void MEDEA::WhileLoop::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::WhileLoop(factory, is_temp_node);
+        });
+}
 
-MEDEA::WhileLoop::WhileLoop():Node(NODE_KIND::WHILE_LOOP){
-    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
+MEDEA::WhileLoop::WhileLoop(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //SetupState
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
+    setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
-    setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
-    
+    setAcceptsNodeKind(NODE_KIND::VARIABLE_PARAMETER);
+    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
+    setLabelFunctional(false);
+
+    factory.AttachData(this, "label", QVariant::String, "while", true);
 }
+
 
 bool MEDEA::WhileLoop::canAdoptChild(Node *child)
 {

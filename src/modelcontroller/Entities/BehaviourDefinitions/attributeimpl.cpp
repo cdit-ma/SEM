@@ -1,6 +1,6 @@
 #include "attributeimpl.h"
-
 #include "../../edgekinds.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_IMPL;
 const QString kind_string = "AttributeImpl";

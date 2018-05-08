@@ -12,13 +12,12 @@ namespace MEDEA{
         Q_OBJECT
     protected:
         static void RegisterWithEntityFactory(EntityFactory& factory);
-        BooleanExpression(EntityFactory& factory);
-        BooleanExpression();
+        BooleanExpression(EntityFactory& factory, bool is_temp_node);
         
-        void updateLabel();
     public:
         bool canAdoptChild(Node* child);
     private:
+        void updateLabel();
         Node* lhs_ = 0;
         Node* comparator_ = 0;
         Node* rhs_ = 0;

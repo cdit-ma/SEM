@@ -9,28 +9,28 @@
 const NODE_KIND node_kind = NODE_KIND::VARIABLE;
 const QString kind_string = "Variable";
 
-Variable::Variable(EntityFactory* factory) : DataNode(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new Variable();});
+void Variable::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Variable(factory, is_temp_node);
+        });
+}
 
-    //Register DefaultData
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, true);
-};
+Variable::Variable(EntityFactory& factory, bool is_temp) : DataNode(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-Variable::Variable() : DataNode(node_kind)
-{
+    //Setup State
     setDataProducer(true);
-
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
+
+    //Setup Data
+    factory.AttachData(this, "index", QVariant::Integer, -1, false);
 }
-
-
 
 bool Variable::canAdoptChild(Node* child)
 {

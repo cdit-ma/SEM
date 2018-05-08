@@ -9,12 +9,12 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        Function(EntityFactory* factory);
-        Function();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        Function(EntityFactory& factory, bool is_temp_node);
+
         void parentSet(Node* parent);
     public:
         bool canAdoptChild(Node* child);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 

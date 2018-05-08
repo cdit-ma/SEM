@@ -1,4 +1,5 @@
 #include "serverportimpl.h"
+#include "../../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_PORT_IMPL;
 const QString kind_string = "ServerPortImpl";

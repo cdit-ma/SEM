@@ -9,9 +9,9 @@ class VariableParameter : public Parameter
 	friend class EntityFactory;
     Q_OBJECT
 
-protected:
-	VariableParameter(EntityFactory* factory);
-	VariableParameter();
+	protected:
+		static void RegisterWithEntityFactory(EntityFactory& factory);
+		VariableParameter(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif // VARIABLE_PARAMETER_H

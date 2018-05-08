@@ -8,8 +8,8 @@ class Variable: public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Variable(EntityFactory* factory);
-	Variable();
+	static void RegisterWithEntityFactory(EntityFactory& factory);
+	Variable(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
 protected:

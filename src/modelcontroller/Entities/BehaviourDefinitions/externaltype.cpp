@@ -3,7 +3,7 @@
 #include "../edge.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
-#include "../entityfactory.h"
+#include "../../entityfactory.h"
 #include <QDebug>
 
 const NODE_KIND node_kind = NODE_KIND::EXTERNAL_TYPE;
@@ -20,6 +20,7 @@ MEDEA::ExternalType::ExternalType(EntityFactory& factory, bool is_temp) : Node(f
         return;
     }
 
+    //SetupState
     setChainableDefinition();
 
     //Setup Data

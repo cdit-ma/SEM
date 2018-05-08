@@ -2,17 +2,23 @@
 
 #include "../../edgekinds.h"
 #include "containernode.h"
+#include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT_IMPL;
 const QString kind_string = "OutEventPortImpl";
 
+void InEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new OutEventPortImpl(factory, is_temp_node);
+        });
+}
 
-OutEventPortImpl::OutEventPortImpl(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new OutEventPortImpl();});
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
+OutEventPortImpl::OutEventPortImpl(EntityFactory& factory, bool is_temp) : Node(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-OutEventPortImpl::OutEventPortImpl():Node(node_kind){
+    //Setup State
     addImplsDefinitionKind(NODE_KIND::OUTEVENTPORT);
 
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
@@ -20,6 +26,9 @@ OutEventPortImpl::OutEventPortImpl():Node(node_kind){
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

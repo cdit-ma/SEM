@@ -1,18 +1,21 @@
 #include "classinstance.h"
+#include "../../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
 const QString kind_string = "ClassInstance";
 
-MEDEA::ClassInstance::ClassInstance(EntityFactory* factory) : Node(factory, node_kind, kind_string){
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new ClassInstance();});
+void MEDEA::ClassInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new MEDEA::ClassInstance(factory, is_temp_node);
+        });
+}
 
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
-};
+MEDEA::ClassInstance::ClassInstance(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
-{
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::CLASS);
     setChainableDefinition();
     
@@ -21,7 +24,12 @@ MEDEA::ClassInstance::ClassInstance(): Node(node_kind)
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
-}
+
+    //Setup Data
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    factory.AttachData(this, "icon", QVariant::String, "", true);
+};
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)
 {

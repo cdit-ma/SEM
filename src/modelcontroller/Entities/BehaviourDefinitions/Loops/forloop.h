@@ -9,8 +9,8 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        ForLoop(EntityFactory* factory);
-        ForLoop();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        ForLoop(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
     };

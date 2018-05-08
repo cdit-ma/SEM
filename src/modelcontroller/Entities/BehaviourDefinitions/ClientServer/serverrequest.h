@@ -8,8 +8,9 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        ServerRequest(EntityFactory* factory);
-        ServerRequest();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        ServerRequest(EntityFactory& factory, bool is_temp_node);
+        
         QSet<Node*> getParentNodesForValidDefinition();
     public:
         bool canAdoptChild(Node* child);

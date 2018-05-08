@@ -9,11 +9,10 @@ namespace MEDEA{
         friend class ::EntityFactory;
         Q_OBJECT
     protected:
-        IfStatement(EntityFactory* factory);
-        IfStatement();
+        static void RegisterWithEntityFactory(EntityFactory& factory);
+        IfStatement(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node* child);
-        bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };
 };
 #endif // MEDEA_IFSTATEMENT_H

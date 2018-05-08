@@ -10,6 +10,9 @@
 #include "nodekinds.h"
 #include "edgekinds.h"
 
+#include "Entities/key.h"
+#include "Entities/data.h"
+
 class Key;
 class Node;
 class Data;

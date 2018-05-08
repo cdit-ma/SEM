@@ -1,17 +1,25 @@
 #include "variableparameter.h"
+#include "../../entityfactory.h"
+#include "../../edgekinds.h"
 
+const NODE_KIND node_kind = NODE_KIND::VARIABLE_PARAMETER;
+const QString kind_string = "VariableParameter";
 
-VariableParameter::VariableParameter(EntityFactory* factory) : Parameter(factory, NODE_KIND::VARIABLE_PARAMETER, "VariableParameter"){
-	auto node_kind = NODE_KIND::VARIABLE_PARAMETER;
-	QString kind_string = "VariableParameter";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new VariableParameter();});
+void VariableParameter::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new VariableParameter(factory, is_temp_node);
+        });
+}
 
-    RegisterDefaultData(factory, node_kind, "value", QVariant::String, false);
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, false);
-};
+VariableParameter::VariableParameter(EntityFactory& factory, bool is_temp) : Parameter(node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-VariableParameter:: VariableParameter(): Parameter(NODE_KIND::VARIABLE_PARAMETER)
-{
-    setDataProducer(true);
+    //Setup State
     setDataReceiver(true);
+    setDataProducer(true);
+
+    //Setup Data
+    factory.AttachData(this, "value", QVariant::String, "", false);
 }
