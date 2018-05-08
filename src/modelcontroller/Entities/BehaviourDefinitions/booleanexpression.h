@@ -16,9 +16,13 @@ namespace MEDEA{
         BooleanExpression();
     
         void updateLabel();
-        void updateOutputType();
+        //void updateOutputType();
     public:
         bool canAdoptChild(Node* child);
+    protected:
+        Node* lhs_ = 0;
+        Node* comparator_ = 0;
+        Node* rhs_ = 0;
     };
 }
 
