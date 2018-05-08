@@ -235,11 +235,6 @@
                                 </node>
                             </graph>
                         </node>
-                        <node id="cpuworker::matrixmult::out">
-                            <data key="kind">InputParameterGroup</data>
-                            <graph id="cpuworker::matrixmult::out:">
-                            </graph>
-                        </node>
                     </graph>
                 </node>
             </graph>

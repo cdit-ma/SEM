@@ -61,7 +61,7 @@
                             <data key="kind">InputParameterGroup</data>
                             <graph id="opencl::createbuffer::in:">
                                 <node id="opencl::createbuffer::in::data">
-                                    <data key="kind">Member</data>
+                                    <data key="kind">Vector</data>
                                     <data key="label">Data</data>
                                     <data key="inner_type" />
                                     <data key="outer_type">Vector</data>
@@ -151,7 +151,7 @@
                                     <data key="is_generic_param">true</data>
                                 </node>
                                 <node id="opencl::writebuffer::in::data">
-                                    <data key="kind">Member</data>
+                                    <data key="kind">Vector</data>
                                     <data key="label">Data</data>
                                     <data key="inner_type" />
                                     <data key="outer_type">Vector</data>
@@ -212,7 +212,7 @@
                             <data key="kind">ReturnParameterGroup</data>
                             <graph id="opencl::readbuffer::out:">
                                 <node id="opencl::readbuffer::out::data">
-                                    <data key="kind">Member</data>
+                                    <data key="kind">Vector</data>
                                     <data key="label">Data</data>
                                     <data key="inner_type" />
                                     <data key="outer_type">Vector</data>

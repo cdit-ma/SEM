@@ -85,7 +85,7 @@
                     <data key="workerID">utility_worker</data>
                     <data key="is_variadic">true</data>
                     <graph id="utilityworker::log:">
-                        <node id="utilityworker::evaluatlogecomplexity::in">
+                        <node id="utilityworker::log::in">
                             <data key="kind">InputParameterGroup</data>
                             <graph id="utilityworker::log::in:">
                                 <node id="utilityworker::log::in::message">
