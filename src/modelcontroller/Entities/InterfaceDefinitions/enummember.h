@@ -7,8 +7,8 @@ class EnumMember : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	EnumMember(EntityFactory* factory);
-	EnumMember();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    EnumMember(EntityFactory& factory, bool is_temp_node);
 };
 
 #endif //ENUMMEMBER_H

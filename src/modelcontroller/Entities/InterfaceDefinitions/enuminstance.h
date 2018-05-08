@@ -8,8 +8,8 @@ class EnumInstance : public DataNode
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	EnumInstance(EntityFactory* factory);
-	EnumInstance();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    EnumInstance(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

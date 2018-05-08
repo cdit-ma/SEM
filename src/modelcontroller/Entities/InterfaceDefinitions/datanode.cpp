@@ -3,16 +3,20 @@
 #include <QDebug>
 #include "../edge.h"
 #include "../Keys/typekey.h"
+#include "../../entityfactory.h"
 
 
-DataNode::DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str) : Node(factory, kind, kind_str){
-
-};
-
-DataNode::DataNode(NODE_KIND kind) : Node(kind)
-{
+DataNode::DataNode(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : Node(factory, node_kind, is_temp){
+    if (is_temp) {
+        return;
+    }
     setNodeType(NODE_TYPE::DATA);
-}
+
+    factory.AttachData(this, "inner_type", QVariant::String, "", true);
+    factory.AttachData(this, "outer_type", QVariant::String, "", true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
+    factory.AttachData(this, "value", QVariant::String, "", false);
+};
 
 bool DataNode::hasInputData()
 {

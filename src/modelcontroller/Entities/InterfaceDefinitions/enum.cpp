@@ -1,23 +1,29 @@
 #include "enum.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
+#include "../../entityfactory.h"
 
+const NODE_KIND node_kind = NODE_KIND::ENUM;
+const QString kind_string = "Enum";
 
+void Enum::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new Enum(factory, is_temp_node);
+    });
+}
 
-Enum::Enum(EntityFactory* factory) : Node(factory, NODE_KIND::ENUM, "Enum"){
-	auto node_kind = NODE_KIND::ENUM;
-	QString kind_string = "Enum";
-    RegisterNodeKind(factory, node_kind, kind_string, [](){return new Enum();});
+Enum::Enum(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
 
-    RegisterDefaultData(factory, node_kind, "namespace", QVariant::String, true);
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
-
-Enum::Enum():Node(NODE_KIND::ENUM)
-{
+    //Setup State
     addInstanceKind(NODE_KIND::ENUM_INSTANCE);
-
     setAcceptsNodeKind(NODE_KIND::ENUM_MEMBER);
+
+    //Setup Data
+    factory.AttachData(this, "namespace", QVariant::String, "", true);
+    factory.AttachData(this, "type", QVariant::String, "", true);
 }
 
 void Enum::DataAdded(Data* data){

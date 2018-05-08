@@ -8,7 +8,7 @@ const QString kind_string = "Model";
 void Model::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
         return new Model(factory, is_temp_node);
-        });
+    });
 }
 
 Model::Model(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){

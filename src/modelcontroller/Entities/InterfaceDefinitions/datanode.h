@@ -6,8 +6,7 @@ class EntityFactory;
 class DataNode : public Node
 {
 protected:
-    DataNode(EntityFactory* factory, NODE_KIND kind, QString kind_str);
-    DataNode(NODE_KIND kind);
+    DataNode(EntityFactory& factory, NODE_KIND kind, bool is_temp);
 public:
     static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();

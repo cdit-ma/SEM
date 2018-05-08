@@ -8,8 +8,8 @@ class Component : public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	Component(EntityFactory* factory);
-	Component();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    Component(EntityFactory& factory, bool is_temp_node);
     void DataAdded(Data* data);
 };
 

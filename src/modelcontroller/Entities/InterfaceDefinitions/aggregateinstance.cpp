@@ -1,19 +1,24 @@
 #include "aggregateinstance.h"
-
+#include "../../entityfactory.h"
 #include "../../edgekinds.h"
 #include <QDebug>
 
-AggregateInstance::AggregateInstance(EntityFactory* factory) : DataNode(factory, NODE_KIND::AGGREGATE_INSTANCE, "AggregateInstance"){
-	auto node_kind = NODE_KIND::AGGREGATE_INSTANCE;
-	QString kind_string = "AggregateInstance";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new AggregateInstance();});
+const NODE_KIND node_kind = NODE_KIND::AGGREGATE_INSTANCE;
+const QString kind_string = "AggregateInstance";
 
-    RegisterDefaultData(factory, node_kind, "index", QVariant::Int, false);
-    RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
-};
 
-AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
-{
+void AggregateInstance::RegisterWithEntityFactory(EntityFactory& factory){
+    DataNode::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new AggregateInstance(factory, is_temp_node);
+    });
+}
+
+AggregateInstance::AggregateInstance(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
     addInstancesDefinitionKind(NODE_KIND::AGGREGATE);
     setChainableDefinition();
 
@@ -21,6 +26,10 @@ AggregateInstance::AggregateInstance():DataNode(NODE_KIND::AGGREGATE_INSTANCE)
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
+
+    //Setup Data
+    factory.AttachData(this, "index", QVariant::Int, -1);
+    factory.AttachData(this, "type", QVariant::String, "", true);
 }
 
 bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
