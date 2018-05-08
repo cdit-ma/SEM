@@ -16,8 +16,15 @@ namespace NodeManager{
 
 class EnvironmentRequester{
     public:
+        enum class DeploymentType{
+            RE_MASTER,
+            LOGAN_CLIENT,
+            LOGAN_SERVER
+        };
         EnvironmentRequester(const std::string& manager_address,
-                                const std::string& deployment_id);
+                                const std::string& deployment_id,
+                                DeploymentType deployment_type
+                                );
         void Init();
         void Init(const std::string& manager_endpoint);
         void Start();
@@ -25,14 +32,16 @@ class EnvironmentRequester{
         NodeManager::ControlMessage AddDeployment(NodeManager::ControlMessage& control_message);
         void RemoveDeployment();
         NodeManager::ControlMessage NodeQuery(const std::string& node_endpoint);
-
-        std::string GetLoganPort(const std::string& experiment_id, const std::string& node_ip_address);
+        std::string GetLoganClientInfo(const std::string& node_ip_address);
 
     private:
         struct Request{
             std::string request_data_;
             std::promise<std::string>* response_;
         };
+
+        DeploymentType deployment_type_;
+
         //Constants
         const int HEARTBEAT_PERIOD = 2000;
 

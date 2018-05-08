@@ -1,9 +1,11 @@
 #include "environmentrequester.h"
 #include <controlmessage.pb.h>
 EnvironmentRequester::EnvironmentRequester(const std::string& manager_address, 
-                                            const std::string& experiment_id){
+                                            const std::string& experiment_id,
+                                            EnvironmentRequester::DeploymentType deployment_type){
     manager_address_ = manager_address;
     experiment_id_ = experiment_id;
+    deployment_type_ = deployment_type_;
 }
 
 void EnvironmentRequester::Init(){
@@ -131,7 +133,25 @@ void EnvironmentRequester::HeartbeatLoop(){
 
     //Register this deployment with the environment manager
     NodeManager::EnvironmentMessage initial_message;
-    initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
+
+    //map our two enums
+    switch(deployment_type_){
+        case DeploymentType::RE_MASTER:{
+            initial_message.set_type(NodeManager::EnvironmentMessage::ADD_DEPLOYMENT);
+            break;
+        }
+
+        case DeploymentType::LOGAN_CLIENT:{
+            initial_message.set_type(NodeManager::EnvironmentMessage::ADD_LOGAN_CLIENT);
+            break;
+        }
+
+        default:{
+            throw std::invalid_argument("Unknown deployment type in EnvironmentRequester::HeartbeatLoop!");
+        }
+    }
+
+
     initial_message.set_experiment_id(experiment_id_);
 
     ZMQSendRequest(initial_request_socket, initial_message.SerializeAsString());
@@ -265,6 +285,39 @@ void EnvironmentRequester::RemoveDeployment(){
     }
 }
 
+std::string EnvironmentRequester::GetLoganClientInfo(const std::string& node_ip_address){
+    if(environment_manager_not_found_){
+        throw std::runtime_error("Could not add deployment as environment manager was not found.");
+    }
+
+    NodeManager::EnvironmentMessage request_message;
+
+    request_message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
+    request_message.set_experiment_id(experiment_id_);
+
+    auto logger = request_message.mutable_logger();
+
+    logger->set_publisher_address(node_ip_address);
+
+    NodeManager::EnvironmentMessage reply_message;
+
+    try{
+        auto response = QueueRequest(request_message.SerializeAsString());
+        auto response_msg = response.get();
+        if(response_msg.empty()){
+            throw std::runtime_error("Got empty response message in EnvironmentRequester::AddDeployment");
+        }
+        reply_message.ParseFromString(response_msg);
+    }
+    catch(std::exception& ex){
+        std::cerr << ex.what() << " in EnvironmentRequester::AddDeployment" << std::endl;
+        throw std::runtime_error("Failed to parse message in EnvironmentRequester::AddDeployment");
+    }
+
+    std::string port_string = reply_message.logger().publisher_port();
+
+    return port_string;
+}
 std::future<std::string> EnvironmentRequester::QueueRequest(const std::string& request){
 
     std::promise<std::string>* request_promise = new std::promise<std::string>();
@@ -356,48 +409,3 @@ void EnvironmentRequester::HandleReply(NodeManager::EnvironmentMessage message){
     return;
 }
 
-std::string EnvironmentRequester::GetLoganPort(const std::string& experiment_id, const std::string& node_ip_address){
-    std::string port_string;
-
-    NodeManager::EnvironmentMessage message;
-
-    message.set_type(NodeManager::EnvironmentMessage::LOGAN_QUERY);
-    message.set_experiment_id(experiment_id);
-
-    auto logger = message.mutable_logger();
-
-    logger->set_publisher_address(node_ip_address);
-
-    //Get update endpoint
-    zmq::socket_t* initial_request_socket;
-
-    if(context_){
-        initial_request_socket = new zmq::socket_t(*context_, ZMQ_REQ);
-    }
-    else{
-        std::cerr << "Context in EnvironmentRequester::GetPort not initialised." << std::endl;
-    }
-    
-    try{
-        initial_request_socket->connect(manager_address_);
-    }
-    catch(std::exception& ex){
-        std::cerr << ex.what() << " in EnvironmentRequester::GetPort" << std::endl;
-    }
-
-    ZMQSendRequest(initial_request_socket, message.SerializeAsString());
-    auto reply = ZMQReceiveReply(initial_request_socket);
-
-    if(reply.empty()){
-        throw std::runtime_error("Environment manager request timed out.");
-    }
-
-    NodeManager::EnvironmentMessage reply_message;
-
-    reply_message.ParseFromString(reply);
-
-    auto reply_logger_message = reply_message.logger();
-
-
-    return reply_logger_message.publisher_port();
-}
