@@ -60,7 +60,7 @@ std::string DeploymentManager::GetSlaveEndpoint(){
 
 std::string DeploymentManager::QueryEnvironmentManager(){
     std::string port;
-    EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_);
+    EnvironmentRequester requester(environment_manager_endpoint_, experiment_id_, EnvironmentRequester::DeploymentType::RE_SLAVE);
     requester.Init(environment_manager_endpoint_);
     NodeManager::ControlMessage response;
     try{

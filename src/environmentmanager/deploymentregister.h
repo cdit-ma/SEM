@@ -49,6 +49,7 @@ class DeploymentRegister{
 
         std::thread* registration_loop_;
         std::vector<DeploymentHandler*> deployments_;
+        std::vector<DeploymentHandler*> logan_clients_;
         std::vector<std::thread*> handler_threads_;
 
 };

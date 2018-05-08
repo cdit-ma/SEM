@@ -69,7 +69,8 @@ ExecutionManager::ExecutionManager(const std::string& endpoint,
     master_ip_address->add_s(master_endpoint_);
 
     if(!environment_manager_endpoint.empty()){
-        requester_ = new EnvironmentRequester(environment_manager_endpoint, experiment_id_);
+        requester_ = new EnvironmentRequester(environment_manager_endpoint, experiment_id_,
+                                                EnvironmentRequester::DeploymentType::RE_MASTER);
     }
 
     parse_succeed_ = PopulateDeployment();

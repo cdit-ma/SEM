@@ -76,11 +76,6 @@ void DeploymentRegister::RequestHandler(NodeManager::EnvironmentMessage& message
             break;
         }
 
-        case NodeManager::EnvironmentMessage::LOGAN_QUERY:{
-            //HandleLoganQuery(message);
-            break;
-        }
-
         default:{
             throw std::runtime_error("Unrecognised message type in DeploymentRegister::RequestHandler.");
             break;
@@ -119,6 +114,7 @@ void DeploymentRegister::HandleAddLoganClient(NodeManager::EnvironmentMessage& m
     std::future<std::string> port_future = port_promise->get_future();
     std::string port;
     auto deployment_handler = new DeploymentHandler(environment_, context_, ip_addr_, Environment::DeploymentType::LOGAN_CLIENT, node_ip_address, port_promise, experiment_id);
+    logan_clients_.push_back(deployment_handler);
 
     try{
         port = port_future.get();
