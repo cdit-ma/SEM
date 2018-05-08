@@ -40,32 +40,41 @@
                     <data key="icon">circleInfo</data>
                     <data key="description">Returns an element from a std::vector at an index.</data>
                     <graph id="vectorworker::get:">
-                        <node id="vectorworker::get::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::get::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::get::in:">
+                                <node id="vectorworker::get::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::get::in::index">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Index</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">listNumbered</data>
+                                    <data key="description">The Index.</data>
+                                </node>
+                            </graph>
                         </node>
-                        <node id="vectorworker::get::index">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Index</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">listNumbered</data>
-                            <data key="description">The Index.</data>
-                        </node>
-                        <node id="vectorworker::get::value">
-                            <data key="kind">ReturnParameter</data>
-                            <data key="label">Value</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">squareEquals</data>
-                            <data key="description">The Value @ Index</data>
-                            <data key="inner_type"/>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::get::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="vectorworker::get::out:">
+                                <node id="vectorworker::get::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The Value @ Index</data>
+                                    <data key="inner_type"/>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -78,31 +87,41 @@
                     <data key="icon">circleMinus</data>
                     <data key="description">Returns and then removes an element from a std::vector at an index.</data>
                     <graph id="vectorworker::remove:">
-                        <node id="vectorworker::remove::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="label">Vector</data>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::remove::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::remove::in:">
+                                <node id="vectorworker::remove::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="label">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::remove::in::index">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Index</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">listNumbered</data>
+                                    <data key="description">The Index.</data>
+                                </node>
+                            </graph>
                         </node>
-                        <node id="vectorworker::remove::index">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Index</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">listNumbered</data>
-                            <data key="description">The Index.</data>
-                        </node>
-                        <node id="vectorworker::remove::value">
-                            <data key="kind">ReturnParameter</data>
-                            <data key="label">Value</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">squareEquals</data>
-                            <data key="is_generic_param">true</data>
-                            <data key="description">The Value @ Index</data>
+                        <node id="vectorworker::remove::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="vectorworker::remove::out:">
+                                <node id="vectorworker::remove::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="is_generic_param">true</data>
+                                    <data key="description">The Value @ Index</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -115,31 +134,36 @@
                     <data key="icon">circlePlus</data>
                     <data key="description">Inserts an element into a std::vector at an index (Will change length)</data>
                     <graph id="vectorworker::insert:">
-                        <node id="vectorworker::insert::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
-                        </node>
-                        <node id="vectorworker::insert::index">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Index</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">listNumbered</data>
-                            <data key="description">The Index.</data>
-                        </node>
-                        <node id="vectorworker::insert::value">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Value</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
-                            <data key="description">The Value to set</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::insert::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::insert::in:">
+                                <node id="vectorworker::insert::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::insert::in::index">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Index</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">listNumbered</data>
+                                    <data key="description">The Index.</data>
+                                </node>
+                                <node id="vectorworker::insert::in::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">pencil</data>
+                                    <data key="description">The Value to set</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -152,31 +176,36 @@
                     <data key="icon">pencil</data>
                     <data key="description">Replaces an element into a std::vector at an index</data>
                     <graph id="vectorworker::set:">
-                        <node id="vectorworker::set::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
-                        </node>
-                        <node id="vectorworker::set::index">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Index</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">listNumbered</data>
-                            <data key="description">The Index.</data>
-                        </node>
-                        <node id="vectorworker::set::value">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Value</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
-                            <data key="description">The Value to set</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::set::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::set::in:">
+                                <node id="vectorworker::set::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::set::in::index">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Index</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">listNumbered</data>
+                                    <data key="description">The Index.</data>
+                                </node>
+                                <node id="vectorworker::set::in::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">pencil</data>
+                                    <data key="description">The Value to set</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -189,23 +218,33 @@
                     <data key="icon">arrowUpDown</data>
                     <data key="description">Gets the length of a std::vector.</data>
                     <graph id="vectorworker::length:">
-                        <node id="vectorworker::length::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::length::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::length::in:">
+                                <node id="vectorworker::length::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
-                        <node id="vectorworker::length::length">
-                            <data key="kind">ReturnParameter</data>
-                            <data key="label">Length</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
-                            <data key="description">The number of elements in the vector.</data>
+                        <node id="vectorworker::length::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="vectorworker::length::out:">
+                                <node id="vectorworker::length::out::length">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Length</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">pencil</data>
+                                    <data key="description">The number of elements in the vector.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -218,15 +257,20 @@
                     <data key="icon">bin</data>
                     <data key="description">Empties the std::vector.</data>
                     <graph id="vectorworker::clear:">
-                        <node id="vectorworker::clear::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::clear::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::clear::in:">
+                                <node id="vectorworker::clear::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -239,32 +283,37 @@
                     <data key="icon">arrowTransfer</data>
                     <data key="description">Resize an element from a std::vector at an index.</data>
                     <graph id="vectorworker::resize:">
-                        <node id="vectorworker::resize::vector">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Vector</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
-                        </node>
-                        <node id="vectorworker::resize::size">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Size</data>
-                            <data key="inner_type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">arrowUpDown</data>
-                            <data key="description">The size to set the vector.</data>
-                        </node>
-                        <node id="vectorworker::resize::defaultvalue">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">DefaultValue</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">pencil</data>
-                            <data key="description">The value to fill the Vector with.</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::resize::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::resize::in:">
+                                <node id="vectorworker::resize::in::vector">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">Vector</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::resize::in::size">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Size</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowUpDown</data>
+                                    <data key="description">The size to set the vector.</data>
+                                </node>
+                                <node id="vectorworker::resize::in::defaultvalue">
+                                    <data key="kind">Member</data>
+                                    <data key="label">DefaultValue</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">pencil</data>
+                                    <data key="description">The value to fill the Vector with.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -277,25 +326,30 @@
                     <data key="icon">refresh</data>
                     <data key="description">Swaps two std::vectors.</data>
                     <graph id="vectorworker::swap:">
-                        <node id="vectorworker::swap::vectora">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">VectorA</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
-                        </node>
-                        <node id="vectorworker::swap::vectorb">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">VectorB</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="inner_type"/>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector</data>
-                            <data key="description">The vector.</data>
-                            <data key="is_generic_param">true</data>
+                        <node id="vectorworker::swap::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="vectorworker::swap::in:">
+                                <node id="vectorworker::swap::in::vectora">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">VectorA</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                                <node id="vectorworker::swap::in::vectorb">
+                                    <data key="kind">Vector</data>
+                                    <data key="label">VectorB</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="inner_type"/>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector</data>
+                                    <data key="description">The vector.</data>
+                                    <data key="is_generic_param">true</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>

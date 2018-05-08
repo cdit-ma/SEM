@@ -4,7 +4,7 @@
 #include "entity.h"
 #include "../nodekinds.h"
 #include "../edgekinds.h"
-
+#include <functional>
 
 #include <QVariant>
 #include <QSet>

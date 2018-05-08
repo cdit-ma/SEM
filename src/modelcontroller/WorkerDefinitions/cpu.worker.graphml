@@ -23,7 +23,7 @@
     <graph id="G">
         <node id="cpuworker">
             <data key="kind">Class</data>
-            <data key="version">1.0.0</data>
+            <data key="version">1.0.1</data>
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>
@@ -41,13 +41,18 @@
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <graph id="cpuworker::intop:">
-                        <node id="cpuworker::intop::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::intop::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::intop::in:">
+                                <node id="cpuworker::intop::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -61,15 +66,20 @@
                     <data key="description">Execute requested number of Floating Point Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
-                    <data key="workerID">cpu_worker</data>
+                    <data key="workerID">cpu_worker</data> 
                     <graph id="cpuworker::floatop:">
-                        <node id="cpuworker::floatop::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::floatop::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::floatop::in:">
+                                <node id="cpuworker::floatop::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -85,13 +95,18 @@
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::whetstone:">
-                        <node id="cpuworker::whetstone::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::whetstone::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::whetstone::in:">
+                                <node id="cpuworker::whetstone::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -107,13 +122,18 @@
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::mwip:">
-                        <node id="cpuworker::mwip::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::mwip::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::mwip::in:">
+                                <node id="cpuworker::mwip::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -129,13 +149,18 @@
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::dhrystone:">
-                        <node id="cpuworker::dhrystone::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::dhrystone::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::dhrystone::in:">
+                                <node id="cpuworker::dhrystone::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -151,13 +176,18 @@
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::dmip:">
-                        <node id="cpuworker::dmip::ops">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Operations</data>
-                            <data key="inner_type">Double</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">clockCycle</data>
-                            <data key="description">The number of operations to execute.</data>
+                        <node id="cpuworker::dmip::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::dmip::in:">
+                                <node id="cpuworker::dmip::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>
@@ -173,32 +203,37 @@
                     <data key="icon">grid3x3</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="cpuworker::matrixmult:">
-                        <node id="cpuworker::matrixmult::matrixa">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Matrix A</data>
-                            <data key="inner_type">Float</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector_Member</data>
-                            <data key="description">The first of the two matrix operands.</data>
-                        </node>
-                        <node id="cpuworker::matrixmult::matrixb">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Matrix B</data>
-                            <data key="inner_type">Float</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">Vector_Member</data>
-                            <data key="description">The second of the two matrix operands.</data>
-                        </node>
-                        <node id="cpuworker::matrixmult::matrixc">
-                            <data key="kind">InputParameter</data>
-                            <data key="label">Matrix C</data>
-                            <data key="inner_type">Float</data>
-                            <data key="outer_type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">arrowRight</data>
-                            <data key="description">The matrix to be filled with the result of the multiplication.</data>
+                        <node id="cpuworker::matrixmult::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::matrixmult::in:">
+                                <node id="cpuworker::matrixmult::matrixa">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix A</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">The first of the two matrix operands.</data>
+                                </node>
+                                <node id="cpuworker::matrixmult::matrixb">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix B</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">The second of the two matrix operands.</data>
+                                </node>
+                                <node id="cpuworker::matrixmult::matrixc">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix C</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowRight</data>
+                                    <data key="description">The matrix to be filled with the result of the multiplication.</data>
+                                </node>
+                            </graph>
                         </node>
                     </graph>
                 </node>

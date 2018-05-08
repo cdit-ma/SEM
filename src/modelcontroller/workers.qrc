@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/WorkerDefinitions">
             <file alias="cpu.worker">WorkerDefinitions/cpu.worker.graphml</file>
-            <file alias="gpu.worker">WorkerDefinitions/gpu.worker.graphml</file>
             <file alias="opencl.worker">WorkerDefinitions/opencl.worker.graphml</file>
             <file alias="memory.worker">WorkerDefinitions/memory.worker.graphml</file>
             <file alias="utility.worker">WorkerDefinitions/utility.worker.graphml</file>

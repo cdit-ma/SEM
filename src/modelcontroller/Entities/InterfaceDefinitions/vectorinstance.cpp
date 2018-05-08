@@ -9,6 +9,8 @@ VectorInstance::VectorInstance(EntityFactory* factory) : DataNode(factory, NODE_
     //Register Data
     RegisterDefaultData(factory, node_kind, "label", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "inner_type", QVariant::String, true);
+    RegisterDefaultData(factory, node_kind, "outer_type", QVariant::String, true, "Vector");
     RegisterDefaultData(factory, node_kind, "icon", QVariant::String, true);
     RegisterDefaultData(factory, node_kind, "icon_prefix", QVariant::String, true);
 };
