@@ -8,8 +8,8 @@ class DDS_ResourceLimitsQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_ResourceLimitsQosPolicy(EntityFactory* factory);
-	DDS_ResourceLimitsQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_ResourceLimitsQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_RESOURCELIMITSQOSPOLICY_H
 

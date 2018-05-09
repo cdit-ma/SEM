@@ -1,24 +1,32 @@
 #include "dds_presentationqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_PresentationQosPolicy::DDS_PresentationQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_PRESENTATION, "DDS_PresentationQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_PRESENTATION;
-	QString kind_string = "DDS_PresentationQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_PresentationQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_PRESENTATION;
+const static QString kind_string = "DDS_PresentationQosPolicy";
 
+void DDS_PresentationQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_PresentationQosPolicy(factory, is_temp_node);
+    });
+}
+
+DDS_PresentationQosPolicy::DDS_PresentationQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
     QList<QVariant> values;
     values << "INSTANCE_PRESENTATION_QOS";
     values << "TOPIC_PRESENTATION_QOS";
     values << "GROUP_PRESENTATION_QOS";
-
-    RegisterValidDataValues(factory, node_kind, "qos_dds_access_scope", QVariant::String, values);
-
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "presentation");
-    RegisterDefaultData(factory, node_kind, "qos_dds_access_scope", QVariant::String, false, values.first());
-    RegisterDefaultData(factory, node_kind, "qos_dds_coherent_access", QVariant::Bool, false, false);
-    RegisterDefaultData(factory, node_kind, "qos_dds_ordered_access", QVariant::Bool, false, false);
-}
-
-DDS_PresentationQosPolicy::DDS_PresentationQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_PRESENTATION)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+    factory.AttachData(this, "label", QVariant::String, "presentation", true);
+    factory.AttachData(this, "qos_dds_coherent_access", QVariant::Bool, false, false);
+    factory.AttachData(this, "qos_dds_ordered_access", QVariant::Bool, false, false);
+    auto dds_scope_data = factory.AttachData(this, "qos_dds_access_scope", QVariant::String, values.first(), false);
+    dds_scope_data->addValidValues(values);
 }

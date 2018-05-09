@@ -1,21 +1,29 @@
 #include "dds_ownershipqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_OWNERSHIP, "DDS_OwnershipQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_OWNERSHIP;
-	QString kind_string = "DDS_OwnershipQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_OwnershipQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_OWNERSHIP;
+const static QString kind_string = "DDS_OwnershipQosPolicy";
 
+void DDS_OwnershipQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_OwnershipQosPolicy(factory, is_temp_node);
+    });
+}
+
+DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
     QList<QVariant> values;
     values << "SHARED_OWNERSHIP_QOS";
     values << "EXCLUSIVE_OWNERSHIP_QOS";
-
-    RegisterValidDataValues(factory, node_kind, "qos_dds_kind", QVariant::String, values);
-
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "ownership");
-    RegisterDefaultData(factory, node_kind, "qos_dds_kind", QVariant::String, false, values.first());
-}
-
-DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_OWNERSHIP)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+    factory.AttachData(this, "label", QVariant::String, "ownership", true);
+    auto dds_kind_data = factory.AttachData(this, "qos_dds_kind", QVariant::String, values.first(), false);
+    dds_kind_data->addValidValues(values);
 }

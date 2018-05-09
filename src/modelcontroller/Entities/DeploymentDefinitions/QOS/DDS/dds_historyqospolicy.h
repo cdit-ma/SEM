@@ -8,8 +8,8 @@ class DDS_HistoryQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_HistoryQosPolicy(EntityFactory* factory);
-	DDS_HistoryQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_HistoryQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_HISTORYQOSPOLICY_H
 

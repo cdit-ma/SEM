@@ -8,8 +8,8 @@ class DDS_TimeBasedFilterQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_TimeBasedFilterQosPolicy(EntityFactory* factory);
-	DDS_TimeBasedFilterQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_TimeBasedFilterQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_TIMEBASEDFILTERQOSPOLICY_H
 

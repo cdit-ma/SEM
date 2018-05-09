@@ -8,8 +8,8 @@ class DDS_WriterDataLifecycleQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_WriterDataLifecycleQosPolicy(EntityFactory* factory);
-	DDS_WriterDataLifecycleQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_WriterDataLifecycleQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_WRITERDATALIFECYCLEQOSPOLICY_H
 

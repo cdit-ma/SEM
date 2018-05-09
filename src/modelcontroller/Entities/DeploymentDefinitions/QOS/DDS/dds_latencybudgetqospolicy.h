@@ -8,8 +8,8 @@ class DDS_LatencyBudgetQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_LatencyBudgetQosPolicy(EntityFactory* factory);
-	DDS_LatencyBudgetQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_LatencyBudgetQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_LATENCYBUDGETQOSPOLICY_H
 

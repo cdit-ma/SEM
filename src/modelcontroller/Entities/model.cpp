@@ -2,8 +2,8 @@
 #include "../nodekinds.h"
 #include "../version.h"
 #include "../entityfactory.h"
-const NODE_KIND node_kind = NODE_KIND::MODEL;
-const QString kind_string = "Model";
+const static NODE_KIND node_kind = NODE_KIND::MODEL;
+const static QString kind_string = "Model";
 
 void Model::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

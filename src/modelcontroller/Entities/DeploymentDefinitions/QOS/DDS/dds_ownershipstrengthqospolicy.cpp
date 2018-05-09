@@ -1,15 +1,25 @@
 #include "dds_ownershipstrengthqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH, "DDS_OwnershipStrengthQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH;
-	QString kind_string = "DDS_OwnershipStrengthQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_OwnershipStrengthQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH;
+const static QString kind_string = "DDS_OwnershipStrengthQosPolicy";
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "ownership_strength");
-    RegisterDefaultData(factory, node_kind, "qos_dds_int_value", QVariant::Int, false, 0);
-};
+void DDS_OwnershipStrengthQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_OwnershipStrengthQosPolicy(factory, is_temp_node);
+    });
+}
 
-DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_OWNERSHIPSTRENGTH)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "ownership_strength", true);
+    factory.AttachData(this, "qos_dds_int_value", QVariant::Int, 0, false);
 }

@@ -8,8 +8,8 @@ class DDS_OwnershipStrengthQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_OwnershipStrengthQosPolicy(EntityFactory* factory);
-	DDS_OwnershipStrengthQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_OwnershipStrengthQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_OWNERSHIPSTRENGTHQOSPOLICY_H
 

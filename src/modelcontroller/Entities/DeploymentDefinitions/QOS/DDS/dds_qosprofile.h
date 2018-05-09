@@ -8,8 +8,8 @@ class DDS_QOSProfile: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_QOSProfile(EntityFactory* factory);
-	DDS_QOSProfile();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_QOSProfile(EntityFactory& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* node);
 };

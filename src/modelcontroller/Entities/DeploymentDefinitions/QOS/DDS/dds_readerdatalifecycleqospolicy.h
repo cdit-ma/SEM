@@ -8,7 +8,7 @@ class DDS_ReaderDataLifecycleQosPolicy: public Node
 	friend class EntityFactory;
     Q_OBJECT
 protected:
-	DDS_ReaderDataLifecycleQosPolicy(EntityFactory* factory);
-	DDS_ReaderDataLifecycleQosPolicy();
+    static void RegisterWithEntityFactory(EntityFactory& factory);
+    DDS_ReaderDataLifecycleQosPolicy(EntityFactory& factory, bool is_temp_node);
 };
 #endif // DDS_READERDATALIFECYCLEQOSPOLICY_H

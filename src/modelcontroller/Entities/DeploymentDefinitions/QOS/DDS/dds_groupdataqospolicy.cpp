@@ -1,15 +1,25 @@
 #include "dds_groupdataqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_GROUPDATA, "DDS_GroupDataQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_GROUPDATA;
-	QString kind_string = "DDS_GroupDataQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_GroupDataQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_GROUPDATA;
+const static QString kind_string = "DDS_GroupDataQosPolicy";
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "group_data");
-    RegisterDefaultData(factory, node_kind, "qos_dds_str_value", QVariant::String, false);
-};
+void DDS_GroupDataQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_GroupDataQosPolicy(factory, is_temp_node);
+    });
+}
 
-DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_GROUPDATA)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+DDS_GroupDataQosPolicy::DDS_GroupDataQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "group_data", true);
+    factory.AttachData(this, "qos_dds_str_value", QVariant::String, "", false);
 }

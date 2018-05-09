@@ -1,15 +1,25 @@
 #include "dds_writerdatalifecycleqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE, "DDS_WriterDataLifecycleQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE;
-	QString kind_string = "DDS_WriterDataLifecycleQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_WriterDataLifecycleQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE;
+const static QString kind_string = "DDS_WriterDataLifecycleQosPolicy";
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "writer_data_lifecycle");
-    RegisterDefaultData(factory, node_kind, "qos_dds_autodispose_unregistered_instances", QVariant::Bool, false, true);
+void DDS_WriterDataLifecycleQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_WriterDataLifecycleQosPolicy(factory, is_temp_node);
+    });
 }
 
-DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_WRITERDATALIFECYCLE)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "writer_data_lifecycle", true);
+    factory.AttachData(this, "qos_dds_autodispose_unregistered_instances", QVariant::Bool, true, false);
 }

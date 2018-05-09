@@ -1,16 +1,26 @@
 #include "dds_latencybudgetqospolicy.h"
+#include "../../../../entityfactory.h"
 
-DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy(EntityFactory* factory) : Node(factory, NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET, "DDS_LatencyBudgetQosPolicy"){
-	auto node_kind = NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET;
-	QString kind_string = "DDS_LatencyBudgetQosPolicy";
-	RegisterNodeKind(factory, node_kind, kind_string, [](){return new DDS_LatencyBudgetQosPolicy();});
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET;
+const static QString kind_string = "DDS_LatencyBudgetQosPolicy";
 
-    RegisterDefaultData(factory, node_kind, "label", QVariant::String, true, "latency_budget");
-    RegisterDefaultData(factory, node_kind, "qos_dds_duration_sec", QVariant::String, false, "0");
-    RegisterDefaultData(factory, node_kind, "qos_dds_duration_nanosec", QVariant::String, false, "0");
+void DDS_LatencyBudgetQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
+    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
+        return new DDS_LatencyBudgetQosPolicy(factory, is_temp_node);
+    });
 }
 
-DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NODE_KIND::QOS_DDS_POLICY_LATENCYBUDGET)
-{
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
+DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+    if(is_temp){
+        return;
+    }
+
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
+    //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "latency_budget", true);
+    factory.AttachData(this, "qos_dds_duration_sec", QVariant::String, "0", false);
+    factory.AttachData(this, "qos_dds_duration_nanosec", QVariant::String, "0", false);
 }
