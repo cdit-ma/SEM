@@ -1,8 +1,8 @@
 #include "ineventportdelegate.h"
 #include "../../entityfactory.h"
 
-auto node_kind = NODE_KIND::INEVENTPORT_DELEGATE;
-QString kind_string = "InEventPortDelegate";
+const static NODE_KIND node_kind = NODE_KIND::INEVENTPORT_DELEGATE;
+const static QString kind_string = "InEventPortDelegate";
 
 void InEventPortDelegate::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

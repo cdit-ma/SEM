@@ -1,8 +1,8 @@
 #include "loggingserver.h"
 #include "../../entityfactory.h"
 
-auto node_kind = NODE_KIND::LOGGINGSERVER;
-QString kind_string = "LoggingServer";
+const static NODE_KIND node_kind = NODE_KIND::LOGGINGSERVER;
+const static QString kind_string = "LoggingServer";
 
 void LoggingServer::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

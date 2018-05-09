@@ -1,8 +1,8 @@
 #include "loggingprofile.h"
 #include "../../entityfactory.h"
 
-auto node_kind = NODE_KIND::LOGGINGPROFILE;
-QString kind_string = "LoggingProfile";
+const static NODE_KIND node_kind = NODE_KIND::LOGGINGPROFILE;
+const static QString kind_string = "LoggingProfile";
 
 void LoggingProfile::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

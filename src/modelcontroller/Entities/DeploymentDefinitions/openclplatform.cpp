@@ -1,8 +1,8 @@
 #include "openclplatform.h"
 #include "../../entityfactory.h"
 
-auto node_kind = NODE_KIND::OPENCL_PLATFORM;
-QString kind_string = "OpenCLPlatform";
+const static NODE_KIND node_kind = NODE_KIND::OPENCL_PLATFORM;
+const static QString kind_string = "OpenCLPlatform";
 
 void OpenCLPlatform::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

@@ -1,8 +1,8 @@
 #include "opencldevice.h"
 #include "../../entityfactory.h"
 
-auto node_kind = NODE_KIND::OPENCL_DEVICE;
-QString kind_string = "OpenCLDevice";
+const static NODE_KIND node_kind = NODE_KIND::OPENCL_DEVICE;
+const static QString kind_string = "OpenCLDevice";
 
 void OpenCLDevice::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

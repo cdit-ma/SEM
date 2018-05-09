@@ -1,8 +1,8 @@
 #include "outeventport.h"
 #include "../../entityfactory.h"
 
-const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
-const QString kind_string = "OutEventPort";
+const static NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
+const static QString kind_string = "OutEventPort";
 
 void OutEventPort::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){

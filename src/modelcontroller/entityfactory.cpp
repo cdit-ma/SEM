@@ -399,7 +399,7 @@ EntityFactory::EntityFactory()
     MEDEA::DeploymentAttribute::RegisterWithEntityFactory(ref);
 
     //QOS Profiles
-    /*
+    
     DDS_QOSProfile::RegisterWithEntityFactory(ref);
     DDS_DeadlineQosPolicy::RegisterWithEntityFactory(ref);
     DDS_DestinationOrderQosPolicy::RegisterWithEntityFactory(ref);
@@ -422,7 +422,7 @@ EntityFactory::EntityFactory()
     DDS_TopicDataQosPolicy::RegisterWithEntityFactory(ref);
     DDS_TransportPriorityQosPolicy::RegisterWithEntityFactory(ref);
     DDS_UserDataQosPolicy::RegisterWithEntityFactory(ref);
-    DDS_WriterDataLifecycleQosPolicy::RegisterWithEntityFactory(ref);*/
+    DDS_WriterDataLifecycleQosPolicy::RegisterWithEntityFactory(ref);
 
     //Elements
     SharedDatatypes::RegisterWithEntityFactory(ref);
@@ -546,7 +546,7 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_com
             store_entity &= true;
         }
         
-        
+
         if(node){
             qCritical() << node->toString();
             if(store_entity){
