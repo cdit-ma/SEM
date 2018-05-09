@@ -1,8 +1,8 @@
 #include "dds_destinationorderqospolicy.h"
 #include "../../../../entityfactory.h"
 
-const static NODE_KIND node_kind = NODE_KIND::MODEL;
-const static QString kind_string = "Model";
+const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_DESTINATIONORDER;
+const static QString kind_string = "DDS_DestinationOrderQosPolicy";
 
 void DDS_DestinationOrderQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
@@ -20,9 +20,7 @@ DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy(EntityFactory& fact
     setNodeType(NODE_TYPE::DDS);
 
     //Setup Data
-    QList<QVariant> values;
-    values << "BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS";
-    values << "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS";
+    QList<QVariant> values({"BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS", "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS"});
     factory.AttachData(this, "label", QVariant::String, "destination_order", true);
     auto dds_kind_data = factory.AttachData(this, "qos_dds_kind", QVariant::String, values.first(), false);
     dds_kind_data->addValidValues(values);

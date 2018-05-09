@@ -16,6 +16,7 @@ OpenCLDevice::OpenCLDevice(EntityFactory& factory, bool is_temp) : Node(factory,
     }
 
     //Setup State
+    setLabelFunctional(false);
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 

@@ -185,7 +185,8 @@ void NotificationDialog::themeChanged()
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     clear_filtered_action->setIcon(theme->getIcon("Icons", "bin"));
     
-    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
+    //sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
+    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "slider"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
     
@@ -195,7 +196,7 @@ void NotificationDialog::themeChanged()
     info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
 
-    top_toolbar->setIconSize(theme->getIconSize());
+    top_toolbar->setIconSize(theme->getLargeIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
 }
 

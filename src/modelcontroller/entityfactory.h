@@ -36,8 +36,7 @@ private:
     struct NodeLookupStruct{
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
-        std::function<Node* ()> constructor;
-        std::function<Node* (EntityFactory&, bool)> complex_constructor;
+        std::function<Node* (EntityFactory&, bool)> constructor;
     };
 
     struct EdgeLookupStruct{
@@ -103,7 +102,6 @@ protected:
 
 
     //Called by secondary constructors of Node/Edge subclasses
-    void RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
     void RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);    
     void RegisterEdgeKind2(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactory&,Node*, Node*)> constructor);
     
@@ -130,6 +128,7 @@ private:
     Node* _createNode(NODE_KIND kind, bool is_temporary = false, bool complex = true);
     Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
 
+    bool doesNodeStructExist(NODE_KIND kind);
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 private:

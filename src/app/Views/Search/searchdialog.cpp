@@ -86,7 +86,7 @@ void SearchDialog::themeChanged()
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
-    refresh_action->setIcon(theme->getIcon("Icons", "refresh"));
+    refresh_action->setIcon(theme->getIcon("Icons", "zoomRefresh"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     
 

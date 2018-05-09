@@ -1,6 +1,7 @@
 #include "forloop.h"
 #include "../containernode.h"
 #include "../../../entityfactory.h"
+#include "../../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
 const QString kind_string = "ForLoop";
@@ -17,18 +18,56 @@ MEDEA::ForLoop::ForLoop(EntityFactory& factory, bool is_temp) : Node(factory, no
     }
 
     //SetupState
+    setLabelFunctional(false);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
     setAcceptsNodeKind(NODE_KIND::VARIABLE_PARAMETER);
-    setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
+    setAcceptsNodeKind(NODE_KIND::BOOLEAN_EXPRESSION);
+    setAcceptsNodeKind(NODE_KIND::SETTER);
 
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
-    setLabelFunctional(false);
 
+    //Attach Data
     factory.AttachData(this, "label", QVariant::String, "for", true);
+
+    //Attach Children
+    
+    variable_ = factory.ConstructChildNode(*this, NODE_KIND::VARIABLE_PARAMETER);
+    auto expression = (DataNode*) factory.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
+    expression_ = expression;
+    iteration_ = factory.ConstructChildNode(*this, NODE_KIND::SETTER);
+
+    //Set that the Expression
+    expression->setDataReceiver(true);
+    expression->setDataProducer(false);
+
+
+    factory.AttachData(variable_, "label", QVariant::String, "i", false);
+    factory.AttachData(variable_, "value", QVariant::Int, 0, false);
+
+    factory.AttachData(iteration_, "icon", QVariant::String, "reload", true);
+    factory.AttachData(iteration_, "icon_prefix", QVariant::String, "Icons", true);
+
+    for(auto child : {variable_, expression_, iteration_}){
+        factory.AttachData(child, "row", QVariant::Int, 0, true);
+        factory.AttachData(child, "column", QVariant::Int, -1, true);
+    }
+
+    //Bind Value changing
+    auto data_variable_label = variable_->getData("label");
+    auto data_variable_value = variable_->getData("value");
+    auto data_expression_label = expression_->getData("label");
+    auto data_iteration_label = iteration_->getData("label");
+
+    //Update Label on data Change
+    connect(data_variable_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
+    connect(data_variable_value, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
+    connect(data_expression_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
+    connect(data_iteration_label, &Data::dataChanged, this, &MEDEA::ForLoop::updateLabel);
+    updateLabel();
 }
 
 bool MEDEA::ForLoop::canAdoptChild(Node *child)
@@ -53,4 +92,23 @@ bool MEDEA::ForLoop::canAdoptChild(Node *child)
     
     //Ignore the can adopt child from condition
     return Node::canAdoptChild(child);
+}
+
+void MEDEA::ForLoop::updateLabel(){
+    QString new_label = "for";
+    if(variable_ && expression_ && iteration_){
+        new_label += "(";
+        auto var_label = variable_->getDataValue("label").toString();
+        auto var_value = variable_->getDataValue("value").toString();
+        
+        auto expression_label = expression_->getDataValue("label").toString();
+        auto itterator_label = iteration_->getDataValue("label").toString();
+
+        new_label += var_label;
+        new_label += "=" + var_value + "; ";
+        new_label += expression_label + "; ";
+        new_label += itterator_label + "";
+        new_label += ")";
+    }
+    setDataValue("label", new_label);
 }

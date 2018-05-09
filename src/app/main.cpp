@@ -6,6 +6,7 @@
 #include "Widgets/Windows/mainwindow.h"
 #include "Controllers/SettingsController/settingscontroller.h"
 
+#include <iostream>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -20,31 +21,39 @@ int launchMEDEA(int argc, char *argv[]){
     }
     #endif
 
-    //Construct a QApplication
-    QApplication a(argc, argv);
+    int result = 0;
+    try{
+        //Construct a QApplication
+        QApplication a(argc, argv);
 
-    //Initialize images
-    Q_INIT_RESOURCE(images);
-    Q_INIT_RESOURCE(workers);
+        
 
-    //Fixes MacOS QIcon resolution.
-    a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+        //Initialize images
+        Q_INIT_RESOURCE(images);
+        Q_INIT_RESOURCE(workers);
 
-    //Construct a SettingsController and ViewController
-    auto settings_controller = SettingsController::settings();
-    
-    auto view_controller = new ViewController();
-    
-    auto window = WindowManager::manager()->constructMainWindow(view_controller);
-    if (argc == 2) {
-        QString projectPath = QString::fromUtf8(argv[1]);
-        if(!projectPath.isEmpty()){
-            view_controller->OpenExistingProject(projectPath);
+        //Fixes MacOS QIcon resolution.
+        a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
+        //Construct a SettingsController and ViewController
+        auto settings_controller = SettingsController::settings();
+        
+        auto view_controller = new ViewController();
+        
+        auto window = WindowManager::manager()->constructMainWindow(view_controller);
+        if (argc == 2) {
+            QString projectPath = QString::fromUtf8(argv[1]);
+            if(!projectPath.isEmpty()){
+                view_controller->OpenExistingProject(projectPath);
+            }
         }
-    }
-    a.setActiveWindow(window);
+        a.setActiveWindow(window);
 
-    auto result = a.exec();
+        result = a.exec();
+    }catch(const std::exception& ex){
+        std::cerr << "MEDEA Exception: " << ex.what() << std::endl;
+        result  = 1;
+    }
 
     //Teardown singletons
     SettingsController::teardownSettings();

@@ -16,11 +16,46 @@ Setter::Setter(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, 
         return;
     }
 
+    //Setup State
+    setLabelFunctional(false);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
 
-    //TODO: Add CUstom Constructors
-    //QList<QVariant> operator_types = {"=", "+=", "-=", "*=", "/="};
+    //setup Data
+    auto label = factory.AttachData(this, "label", QVariant::String, "???", true);
+
+    //Attach Children
+    lhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    comparator_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    rhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+
+    //Setup LHS
+    factory.AttachData(lhs_, "label", QVariant::String, "lhs", true);
+    factory.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
+    factory.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+
+    //Setup Comparator
+    auto data_comparator = factory.AttachData(comparator_, "label", QVariant::String, "=", false);
+    factory.AttachData(comparator_, "icon", QVariant::String, "circlePlusDark", true);
+    factory.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
+    data_comparator->addValidValues({"=", "+=", "-=", "*=", "/="});
+
+    //Setup RHS
+    factory.AttachData(rhs_, "label", QVariant::String, "rhs", true);
+    factory.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
+    factory.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+
+    //Bind Value changing
+    auto data_rhs_value = rhs_->getData("value");
+    auto data_lhs_value = lhs_->getData("value");
+
+    //Update Label on data Change
+    connect(data_rhs_value, &Data::dataChanged, this, &Setter::updateLabel);
+    connect(data_lhs_value, &Data::dataChanged, this, &Setter::updateLabel);
+    connect(data_comparator, &Data::dataChanged, this, &Setter::updateLabel);
+
+    updateLabel();
+    TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
 }
 
 bool Setter::canAdoptChild(Node* child)
@@ -28,7 +63,7 @@ bool Setter::canAdoptChild(Node* child)
     auto child_kind = child->getNodeKind();
     switch(child_kind){
     case NODE_KIND::INPUT_PARAMETER:
-        if(getChildrenOfKindCount(child_kind) >= 2){
+        if(getChildrenOfKindCount(child_kind) >= 3){
                 return false;
             }
         break;
@@ -37,4 +72,18 @@ bool Setter::canAdoptChild(Node* child)
     }
 
     return Node::canAdoptChild(child);
+}
+
+void Setter::updateLabel(){
+    QString new_label = "???";
+    if(lhs_ && comparator_ && rhs_){
+        auto lhs_value = lhs_->getDataValue("value").toString();
+        auto comparator = comparator_->getDataValue("label").toString();
+        auto rhs_value = rhs_->getDataValue("value").toString();
+
+        if(lhs_value.length() && rhs_value.length()){
+            new_label = lhs_value + " " + comparator + " " + rhs_value;
+        }
+    }
+    setDataValue("label", new_label);
 }

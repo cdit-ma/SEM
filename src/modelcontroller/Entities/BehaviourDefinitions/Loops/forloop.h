@@ -3,6 +3,7 @@
 
 #include "../../node.h"
 
+
 class EntityFactory;
 namespace MEDEA{
     class ForLoop : public Node{
@@ -13,6 +14,11 @@ namespace MEDEA{
         ForLoop(EntityFactory& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
+    private:
+        void updateLabel();
+        Node* variable_ = 0;
+        Node* expression_ = 0;
+        Node* iteration_ = 0;
     };
 };
 

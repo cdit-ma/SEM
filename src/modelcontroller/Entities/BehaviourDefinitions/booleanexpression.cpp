@@ -24,12 +24,13 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setLabelFunctional(false);
 
-    setDataReceiver(false);
+    
     setDataProducer(true);
     
     //setup Data
-    auto label = factory.AttachData(lhs_, "label", QVariant::String, "Invalid Expression", true);
-
+    auto label = factory.AttachData(lhs_, "label", QVariant::String, "???", true);
+    factory.AttachData(lhs_, "type", QVariant::String, "Boolean", true);
+    
     //Attach Children
     lhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
     comparator_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
@@ -42,7 +43,7 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp
 
     //Setup Comparator
     auto data_comparator = factory.AttachData(comparator_, "label", QVariant::String, "==", false);
-    factory.AttachData(comparator_, "icon", QVariant::String, "BooleanExpression", true);
+    factory.AttachData(comparator_, "icon", QVariant::String, "circleQuestionDark", true);
     factory.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
 
@@ -81,7 +82,7 @@ bool MEDEA::BooleanExpression::canAdoptChild(Node* child)
 }
 
 void MEDEA::BooleanExpression::updateLabel(){
-    QString new_label = "invalid expression";
+    QString new_label = "???";
     if(lhs_ && comparator_ && rhs_){
         auto lhs_value = lhs_->getDataValue("value").toString();
         auto comparator = comparator_->getDataValue("label").toString();

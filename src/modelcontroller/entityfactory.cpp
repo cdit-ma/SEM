@@ -252,28 +252,17 @@ EDGE_KIND EntityFactory::getEdgeKind(QString kind)
     return globalFactory()->edge_kind_lookup.value(kind, EDGE_KIND::NONE);
 }
 
-void EntityFactory::RegisterNodeKind(NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
-    //TODO
-    auto node = getNodeStruct(kind);
-
-    if(node){
-        node->kind_str = kind_string;
-        node->constructor = constructor;
-
-        //Insert into our reverse lookup
-        if(!node_kind_lookup.contains(kind_string)){
-            node_kind_lookup.insert(kind_string, kind);
-        }
-    }
-}
 void EntityFactory::RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor){
-    //TODO
+    if(doesNodeStructExist(kind)){
+        throw std::invalid_argument("Trying to Register duplicate Node with kind '" + kind_string.toStdString() + "'");
+    }
+
     auto node = getNodeStruct(kind);
 
     if(node){
         qCritical() << this << "REGISTERING NODE[" << (uint)kind << "]: " << kind_string;
         node->kind_str = kind_string;
-        node->complex_constructor = constructor;
+        node->constructor = constructor;
 
         //Insert into our reverse lookup
         if(!node_kind_lookup.contains(kind_string)){
@@ -295,8 +284,6 @@ void EntityFactory::RegisterEdgeKind2(const EDGE_KIND kind, const QString& kind_
 }
 
 
-void EntityFactory::RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> complex_constructor){
-}
 
 void EntityFactory::RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor){
     auto edge = getEdgeStruct(kind);
@@ -479,6 +466,9 @@ EntityFactory *EntityFactory::getNewFactory()
 {
     return new EntityFactory();
 }
+bool EntityFactory::doesNodeStructExist(NODE_KIND kind){
+    return node_struct_lookup.contains(kind);
+}
 
 EntityFactory::NodeLookupStruct* EntityFactory::getNodeStruct(NODE_KIND kind){
     auto node = node_struct_lookup.value(kind, 0);
@@ -529,32 +519,29 @@ Node *EntityFactory::_createNode(NODE_KIND kind, bool is_temporary, bool use_com
 
     if(node_struct){
         qCritical() << "Trying to Construct node: " << this << " " << (uint)kind << " " << getNodeKindString(kind);//kind_string;
-        bool has_complex_constructor = node_struct->complex_constructor != 0;
-        bool use_complex_constructor = has_complex_constructor && use_complex;
         
-        bool store_entity = !is_temporary;
-        if(has_complex_constructor){
+        if(node_struct->constructor){
             try{
-                node = node_struct->complex_constructor(*this, is_temporary);
+                node = node_struct->constructor(*this, is_temporary);
             }catch(const std::exception& ex){
                 std::cerr << ex.what() << std::endl;
                 node = 0;
             }
-            //store_entity = false;
-        }else if(node_struct->constructor){
-            node = node_struct->constructor();
-            store_entity &= true;
         }
-        
 
         if(node){
-            qCritical() << node->toString();
-            if(store_entity){
+            if(!is_temporary){
                 CacheEntityAsUnregistered(node);
             }
         }else{
-            qCritical() << "EntityFactory:: Node Kind: " << getNodeKindString(kind) << " Not Implemented!";
+            auto node_kind_str = getNodeKindString(kind);
+            if(node_kind_str == "INVALID_NODE"){
+                node_kind_str = "NODE_KIND: '" + QString::number((uint)kind) + "'";            
+            }
+            qCritical() << "EntityFactory: Node Kind: " << node_kind_str << " cannot be created!";
         }
+    }else{
+        qCritical() << "EntityFactory: Node Kind: " << QString::number((uint)kind) << " Not Registered";
     }
        
     return node;
@@ -890,10 +877,10 @@ Node* EntityFactory::ConstructChildNode(Node& parent, NODE_KIND node_kind){
         if(!parent.addChild(child)){
             DestructEntity(child);
             child = 0;
-            throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Adopt Child of Kind:" + getNodeKindString(node_kind).toStdString());
+            throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Adopt Child of Kind: " + getNodeKindString(node_kind).toStdString());
         }
     }else{
-        throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Construct Child of Kind:" + getNodeKindString(node_kind).toStdString());
+        throw std::invalid_argument(getNodeKindString(parent.getNodeKind()).toStdString() + " Cannot Construct Child of Kind: " + getNodeKindString(node_kind).toStdString());
     }
     return child;
 }

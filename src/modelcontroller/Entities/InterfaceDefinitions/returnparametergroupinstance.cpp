@@ -17,7 +17,9 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(EntityFactory&
     }
 
     //Setup State
+    setLabelFunctional(false);
     addInstancesDefinitionKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+    
     setChainableDefinition();
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);

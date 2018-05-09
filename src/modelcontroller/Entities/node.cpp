@@ -41,11 +41,12 @@ void Node::RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QStri
 }
 
 Node::Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node) : Entity(factory, GRAPHML_KIND::NODE){
+    //Setup State
+    node_kind_ = node_kind;
+    
     if(is_temp_node){
         return;
     }
-    //Setup State
-    node_kind_ = node_kind;
 
     //Attach default data
     factory.AttachData(this, "kind", QVariant::String, factory.getNodeKindString(node_kind), true);

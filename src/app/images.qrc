@@ -49,6 +49,9 @@
         <file alias="InEventPortDelegate">Resources/EntityIcons/InEventPortDelegate.png</file>
         <file alias="InEventPortImpl">Resources/EntityIcons/InEventPortImpl.png</file>
         <file alias="InEventPortInstance">Resources/EntityIcons/InEventPortInstance.png</file>
+        <file alias="InputParameterGroup">Resources/EntityIcons/InputParameterGroup.png</file>
+        <file alias="ReturnParameterGroup">Resources/EntityIcons/ReturnParameterGroup.png</file>
+        <file alias="VoidType">Resources/EntityIcons/VoidType.png</file>
         <file alias="InterfaceDefinitions">Resources/EntityIcons/InterfaceDefinitions.png</file>
         <file alias="Linux_amd64">Resources/EntityIcons/Linux_amd64.png</file>
         <file alias="Linux_arm">Resources/EntityIcons/Linux_arm.png</file>
@@ -83,6 +86,8 @@
         <file alias="RequestPort">Resources/EntityIcons/RequestPort.png</file>
         <file alias="ReplyPort">Resources/EntityIcons/ReplyPort.png</file>
         <file alias="ServerInterface">Resources/EntityIcons/ServerInterface.png</file>
+        <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
+        <file alias="Enum">Resources/EntityIcons/Enum.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
@@ -109,7 +114,6 @@
         <file alias="arrowRight">Resources/Icons/arrowRight.png</file>
         <file alias="arrowSquiggled">Resources/Icons/arrowSquiggled.png</file>
         <file alias="arrowToLineRight">Resources/Icons/arrowToLineRight.png</file>
-        <file alias="arrowTransfer">Resources/Icons/arrowTransfer.png</file>
         <file alias="arrowUndo">Resources/Icons/arrowUndo.png</file>
         <file alias="arrowUp">Resources/Icons/arrowUp.png</file>
         <file alias="arrowUpDown">Resources/Icons/arrowUpDown.png</file>
@@ -339,5 +343,28 @@
         <file alias="zoomIn">Resources/Icons/zoomIn.png</file>
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
+        <file alias="bell">Resources/Icons/bell.png</file>
+        <file alias="bellExclamation">Resources/Icons/bellExclamation.png</file>
+        <file alias="category">Resources/Icons/category.png</file>
+        <file alias="chart">Resources/Icons/chart.png</file>
+        <file alias="circleBoltDark">Resources/Icons/circleBoltDark.png</file>
+        <file alias="circleCross">Resources/Icons/circleCross.png</file>
+        <file alias="circleQuestionDark">Resources/Icons/circleQuestionDark.png</file>
+        <file alias="circleSegment">Resources/Icons/circleSegment.png</file>
+        <file alias="compass">Resources/Icons/compass.png</file>
+        <file alias="dotsHorizontalLine">Resources/Icons/dotsHorizontalLine.png</file>
+        <file alias="flag">Resources/Icons/flag.png</file>
+        <file alias="listMove">Resources/Icons/listMove.png</file>
+        <file alias="option">Resources/Icons/option.png</file>
+        <file alias="scatterPlot">Resources/Icons/scatterPlot.png</file>
+        <file alias="toggleOff">Resources/Icons/toggleOff.png</file>
+        <file alias="toggleOn">Resources/Icons/toggleOn.png</file>
+        <file alias="toggleTick">Resources/Icons/toggleTick.png</file>
+        <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
+
+        <file alias="arrowsLeftRight">Resources/Icons/arrowsLeftRight.png</file>
+        <file alias="arrowsLeftRightDark">Resources/Icons/arrowsLeftRightDark.png</file>
+        <file alias="arrowsUpDown">Resources/Icons/arrowsUpDown.png</file>
+        <file alias="arrowsUpDownDark">Resources/Icons/arrowsUpDownDark.png</file>
     </qresource>
 </RCC>

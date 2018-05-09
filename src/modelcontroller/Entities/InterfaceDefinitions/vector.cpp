@@ -3,7 +3,7 @@
 #include "../../entityfactory.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR;
-const QString kind_string = "SharedDatatypes";
+const QString kind_string = "Vector";
 
 void Vector::RegisterWithEntityFactory(EntityFactory& factory){
     Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
@@ -29,6 +29,7 @@ Vector::Vector(EntityFactory& factory, bool is_temp) : DataNode(factory, node_ki
     //Setup Data
     factory.AttachData(this, "icon", QVariant::String, "", true);
     factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    factory.AttachData(this, "outer_type", QVariant::String, "Vector", true);
 }
 
 bool Vector::canAdoptChild(Node *child)

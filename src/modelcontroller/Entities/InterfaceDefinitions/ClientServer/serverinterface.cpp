@@ -19,12 +19,15 @@ MEDEA::ServerInterface::ServerInterface(EntityFactory& factory, bool is_temp) : 
     //Setup State
     addInstanceKind(NODE_KIND::SERVER_PORT);
     addInstanceKind(NODE_KIND::CLIENT_PORT);
-
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
 
-    //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);
+    //Setup Children
+    auto input_params = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);
+    auto return_params = factory.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
+
+    factory.AttachData(input_params, "label", QVariant::String, "Request", false);
+    factory.AttachData(return_params, "label", QVariant::String, "Reply", false);
 }
 
 

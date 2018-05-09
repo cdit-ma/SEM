@@ -827,7 +827,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::HARDWARE_NODE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
-                secondary_icon.second = "arrowTransfer";
+                secondary_icon.second = "arrowsUpDownDark";
                 nodeItem->setSecondaryIconPath(secondary_icon);
                 nodeItem->setExpandEnabled(true);
                 break;
@@ -954,9 +954,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::SETTER:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("operator");
-                secondary_icon.second = "gear";
-                nodeItem->setSecondaryIconPath(secondary_icon);
                 break;
             case NODE_KIND::FUNCTION_CALL:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -1073,13 +1070,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case NODE_KIND::SERVER_INTERFACE:{
                 auto stack_item = new StackNodeItem(item, parentNode);
                 nodeItem = stack_item;
-
                 stack_item->setAlignment(Qt::Horizontal);
-                auto parameter_color = stack_item->getHeaderColor().lighter(110);
-                auto text_color = Qt::darkGray;
-
-                stack_item->SetRenderCellText(0, -1, true, "REQUEST");
-                stack_item->SetRenderCellText(0, 1, true, "REPLY");
                 break;
             }
             case NODE_KIND::INEVENTPORT:
@@ -1170,12 +1161,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                         }else{
 
                             stack_item->SetRenderCellArea(0, -1, true, true);
-                            stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS");
+                            //stack_item->SetRenderCellText(0, -1, true, "INPUT PARAMETERS");
                             stack_item->SetCellOrientation(0, -1, Qt::Vertical);
                             
 
                             stack_item->SetRenderCellArea(0, 1, true, true);
-                            stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS");
+                            //stack_item->SetRenderCellText(0, 1, true, "RETURN PARAMETERS");
                             stack_item->SetCellOrientation(0, 1, Qt::Vertical);
 
                             stack_item->SetRenderCellArea(0, 0, true);//, true);

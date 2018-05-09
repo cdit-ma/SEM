@@ -20,5 +20,5 @@ VoidType::VoidType(EntityFactory& factory, bool is_temp) : Node(factory, node_ki
 
     //Setup Data
     setLabelFunctional(false);
-    factory.AttachData(this, "label", QVariant::String, "VOID Type", true);
+    factory.AttachData(this, "label", QVariant::String, "void", true);
 }

@@ -554,18 +554,6 @@ Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int inde
     
     Node* node = 0;
     switch(kind){
-        case NODE_KIND::SETTER:{
-            node = construct_setter_node(parent_node, index);
-            break;
-        }
-        case NODE_KIND::QOS_DDS_PROFILE:{
-            node = construct_dds_profile_node(parent_node, index);
-            break;
-        }
-        case NODE_KIND::FOR_LOOP:{
-            node = construct_for_node(parent_node, index);
-            break;
-        }
         case NODE_KIND::COMPONENT:{
             node = construct_component_node(parent_node, index);
             break;
@@ -574,14 +562,7 @@ Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int inde
             node = construct_periodic_eventport(parent_node, index);
             break;
         }
-        case NODE_KIND::SERVER_INTERFACE:{
-            node = construct_server_interface_node(parent_node, index);
-            break;
-        }
-        /*case NODE_KIND::BOOLEAN_EXPRESSION:{
-            node = construct_boolean_expression_node(parent_node, index);
-            break;
-        }*/
+       
         default:
             node = construct_child_node(parent_node, kind, index);
             break;

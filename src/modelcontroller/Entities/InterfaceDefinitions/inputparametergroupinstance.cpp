@@ -17,6 +17,7 @@ MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(EntityFactory& f
     }
 
     //Setup State
+    setLabelFunctional(false);
     addInstancesDefinitionKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setChainableDefinition();
 

@@ -16,9 +16,11 @@ MEDEA::InputParameterGroup::InputParameterGroup(EntityFactory& factory, bool is_
     }
 
     //Setup State
+    setLabelFunctional(false);
     addInstanceKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
 
     //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "Input", false);
     factory.AttachData(this, "type", QVariant::String, "", true);
     factory.AttachData(this, "index", QVariant::Int, -1, false);
 }

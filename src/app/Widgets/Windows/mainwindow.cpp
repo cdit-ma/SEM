@@ -346,7 +346,7 @@ void MainWindow::setupDockIcons(){
     setDockWidgetIcon(dockwidget_Minimap, "Icons", "map", theme);
     setDockWidgetIcon(dockwidget_Qos, "Icons", "speedGauge", theme);
     setDockWidgetIcon(dockwidget_Search, "Icons", "zoomInPage", theme);
-    setDockWidgetIcon(dockwidget_Notification, "Icons", "exclamationInBubble", theme);
+    setDockWidgetIcon(dockwidget_Notification, "Icons", "bell", theme);
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
 
     theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");

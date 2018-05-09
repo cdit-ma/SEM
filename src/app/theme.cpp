@@ -1370,13 +1370,14 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "arrowVertical", "Icons", "arrowHeadUp", "Icons", "arrowHeadDown");
     setIconToggledImage("ToggleIcons", "groupToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadRight");
     setIconToggledImage("ToggleIcons", "sort", "Icons", "arrowDown", "Icons", "arrowUp");
+    setIconToggledImage("ToggleIcons", "slider", "Icons", "toggleOn", "Icons", "toggleOff");
 
 
     setIconToggledImage("ToggleIcons", "maximize", "Icons", "minimize", "Icons", "maximize");
     setIconToggledImage("ToggleIcons", "lock", "Icons", "lockOpened", "Icons", "lockClosed");
     setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
 
-    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "exclamation", "Icons", "clock", false);
+    setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
 
     
 }

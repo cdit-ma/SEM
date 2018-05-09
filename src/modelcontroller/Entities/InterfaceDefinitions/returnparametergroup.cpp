@@ -16,9 +16,11 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory& factory, bool i
     }
 
     //Setup State
+    setLabelFunctional(false);
     addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
     //Setup Data
+    factory.AttachData(this, "label", QVariant::String, "Return", false);
     factory.AttachData(this, "type", QVariant::String, "", true);
     factory.AttachData(this, "index", QVariant::Int, -1, false);
 }
