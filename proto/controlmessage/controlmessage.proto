@@ -40,6 +40,7 @@ message EnvironmentMessage{
         LOGAN_QUERY = 14;
         LOGAN_RESPONSE = 15;
         ADD_LOGAN_CLIENT = 16;
+        REMOVE_LOGAN_CLIENT = 17;
     }
 
     Type type = 1;
