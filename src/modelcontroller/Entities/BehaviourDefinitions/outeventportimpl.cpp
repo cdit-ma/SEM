@@ -1,18 +1,20 @@
 #include "outeventportimpl.h"
 
 #include "containernode.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT_IMPL;
 const QString kind_string = "OutEventPortImpl";
 
-void OutEventPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new OutEventPortImpl(factory, is_temp_node);
+void OutEventPortImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new OutEventPortImpl(broker, is_temp_node);
         });
 }
 
-OutEventPortImpl::OutEventPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+OutEventPortImpl::OutEventPortImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -26,8 +28,11 @@ OutEventPortImpl::OutEventPortImpl(EntityFactory& factory, bool is_temp) : Node(
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
 
+
+
+    
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
 bool OutEventPortImpl::canAdoptChild(Node *child)

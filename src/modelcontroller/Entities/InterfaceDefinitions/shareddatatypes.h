@@ -2,14 +2,18 @@
 #define SHARED_DATATYPES_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class SharedDatatypes : public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        SharedDatatypes(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        SharedDatatypes(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // SHARED_DATATYPES_H

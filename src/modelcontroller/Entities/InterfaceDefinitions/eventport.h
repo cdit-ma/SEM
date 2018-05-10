@@ -4,13 +4,12 @@
 
 class Aggregate;
 
-class EntityFactory;
 class EventPort : public Node
 {
-	friend class EntityFactory;
     Q_OBJECT
+
 protected:
-    EventPort(EntityFactory& factory, NODE_KIND kind, bool is_temp);
+    EventPort(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
 public:
     bool isInPort() const;
     bool isOutPort() const;

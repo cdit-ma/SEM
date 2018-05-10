@@ -2,16 +2,19 @@
 #define MEDEA_DEPLOYMENT_ATTRIBUTE_H
 #include "../InterfaceDefinitions/datanode.h"
 
-class EntityFactory;
 
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class DeploymentAttribute : public DataNode
     {
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        DeploymentAttribute(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        DeploymentAttribute(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };

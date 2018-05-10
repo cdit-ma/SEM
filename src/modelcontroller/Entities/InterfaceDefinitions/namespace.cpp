@@ -1,17 +1,19 @@
 #include "namespace.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 
 const NODE_KIND node_kind = NODE_KIND::NAMESPACE;
 const QString kind_string = "Namespace";
 
-void Namespace::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Namespace(factory, is_temp_node);
+void Namespace::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Namespace(broker, is_temp_node);
     });
 }
 
-Namespace::Namespace(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Namespace::Namespace(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,9 +22,12 @@ Namespace::Namespace(EntityFactory& factory, bool is_temp) : Node(factory, node_
     addInstancesDefinitionKind(NODE_KIND::MEMBER);
     setChainableDefinition();
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
-    factory.AttachData(this, "namespace", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "namespace", QVariant::String, "", true);
 }
 
 void Namespace::BindNamespace(Node* parent, Node* child, bool bind){

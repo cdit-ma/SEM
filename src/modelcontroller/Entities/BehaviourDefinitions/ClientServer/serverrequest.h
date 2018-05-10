@@ -2,14 +2,18 @@
 #define MEDEA_SERVERREQUEST_H
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ServerRequest : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ServerRequest(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ServerRequest(EntityFactoryBroker& factory, bool is_temp_node);
         
         QSet<Node*> getParentNodesForValidDefinition();
     public:

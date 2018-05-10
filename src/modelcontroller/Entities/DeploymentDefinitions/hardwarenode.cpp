@@ -1,16 +1,18 @@
 #include "hardwarenode.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const auto node_kind = NODE_KIND::HARDWARE_NODE;
 const QString kind_string = "HardwareNode";
 
-void HardwareNode::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new HardwareNode(factory, is_temp_node);
+void HardwareNode::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new HardwareNode(broker, is_temp_node);
     });
 }
 
-HardwareNode::HardwareNode(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+HardwareNode::HardwareNode(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -21,10 +23,13 @@ HardwareNode::HardwareNode(EntityFactory& factory, bool is_temp) : Node(factory,
     setAcceptsNodeKind(NODE_KIND::OPENCL_PLATFORM);
     setLabelFunctional();
 
-    factory.AttachData(this, "label", QVariant::String, "", true);
-    factory.AttachData(this, "ip_address", QVariant::String, "", true);
-    factory.AttachData(this, "os", QVariant::String, "", true);
-    factory.AttachData(this, "os_version", QVariant::String, "", true);
-    factory.AttachData(this, "architecture", QVariant::String, "", true);
-    factory.AttachData(this, "uuid", QVariant::String, "", true);
+
+
+    
+    broker.AttachData(this, "label", QVariant::String, "", true);
+    broker.AttachData(this, "ip_address", QVariant::String, "", true);
+    broker.AttachData(this, "os", QVariant::String, "", true);
+    broker.AttachData(this, "os_version", QVariant::String, "", true);
+    broker.AttachData(this, "architecture", QVariant::String, "", true);
+    broker.AttachData(this, "uuid", QVariant::String, "", true);
 }

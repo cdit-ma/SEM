@@ -1,6 +1,7 @@
 #include "booleanexpression.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include <exception>
 
 
@@ -8,13 +9,13 @@ const NODE_KIND node_kind = NODE_KIND::BOOLEAN_EXPRESSION;
 const QString kind_string = "BooleanExpression";
 
 
-void MEDEA::BooleanExpression::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::BooleanExpression(factory, is_temp_node);
+void MEDEA::BooleanExpression::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::BooleanExpression(broker, is_temp_node);
         });
 }
 
-MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -27,30 +28,31 @@ MEDEA::BooleanExpression::BooleanExpression(EntityFactory& factory, bool is_temp
     
     setDataProducer(true);
     
+
     //setup Data
-    auto label = factory.AttachData(lhs_, "label", QVariant::String, "???", true);
-    factory.AttachData(lhs_, "type", QVariant::String, "Boolean", true);
+    auto label = broker.AttachData(lhs_, "label", QVariant::String, "???", true);
+    broker.AttachData(lhs_, "type", QVariant::String, "Boolean", true);
     
     //Attach Children
-    lhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    comparator_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    rhs_ = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    comparator_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    rhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
     //Setup LHS
-    factory.AttachData(lhs_, "label", QVariant::String, "lhs", true);
-    factory.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
-    factory.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+    broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
+    broker.AttachData(lhs_, "icon", QVariant::String, "Variable", true);
+    broker.AttachData(lhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Setup Comparator
-    auto data_comparator = factory.AttachData(comparator_, "label", QVariant::String, "==", false);
-    factory.AttachData(comparator_, "icon", QVariant::String, "circleQuestionDark", true);
-    factory.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
+    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, "==", false);
+    broker.AttachData(comparator_, "icon", QVariant::String, "circleQuestionDark", true);
+    broker.AttachData(comparator_, "icon_prefix", QVariant::String, "Icons", true);
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
 
     //Setup RHS
-    factory.AttachData(rhs_, "label", QVariant::String, "rhs", true);
-    factory.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
-    factory.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
+    broker.AttachData(rhs_, "label", QVariant::String, "rhs", true);
+    broker.AttachData(rhs_, "icon", QVariant::String, "Variable", true);
+    broker.AttachData(rhs_, "icon_prefix", QVariant::String, "EntityIcons", true);
 
     //Bind Value changing
     auto data_rhs_value = rhs_->getData("value");

@@ -4,7 +4,7 @@
 #include <QDebug>
 
 
-NamespaceKey::NamespaceKey(EntityFactory& factory): Key(factory, "namespace", QVariant::String){
+NamespaceKey::NamespaceKey(EntityFactoryBroker& broker): Key(broker, "namespace", QVariant::String){
 
 }
 

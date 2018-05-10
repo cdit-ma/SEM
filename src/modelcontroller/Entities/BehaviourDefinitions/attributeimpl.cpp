@@ -1,17 +1,18 @@
 #include "attributeimpl.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ATTRIBUTE_IMPL;
 const QString kind_string = "AttributeImpl";
 
 
-void AttributeImpl::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new AttributeImpl(factory, is_temp_node);
+void AttributeImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new AttributeImpl(broker, is_temp_node);
         });
 }
 
-AttributeImpl::AttributeImpl(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+AttributeImpl::AttributeImpl(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }

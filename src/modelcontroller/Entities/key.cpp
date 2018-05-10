@@ -41,7 +41,7 @@ QVariant::Type Key::getTypeFromGraphML(const QString typeString)
     return QVariant::nameToType(typeStringLow.toStdString().c_str());
 }
 
-Key::Key(EntityFactory& factory, const QString& key_name, QVariant::Type type) : GraphML(factory, GRAPHML_KIND::KEY){
+Key::Key(EntityFactoryBroker& broker, const QString& key_name, QVariant::Type type) : GraphML(broker, GRAPHML_KIND::KEY){
     key_name_ = key_name;
     key_type_ = type;
 }
@@ -118,9 +118,8 @@ QVariant Key::validateDataChange(Data *data, QVariant new_value)
         node_kind = ((Node*)entity)->getNodeKind();
     }
 
-    //If we have valid values, has to be one of these
-    if(gotValidValues(node_kind)){
-        auto valid_values = getValidValues(node_kind);
+    auto valid_values = data->getValidValues();
+    if(valid_values.size()){
         if(!valid_values.contains(new_value)){
             emit validation_failed(ID, "Value not in list of valid values.");
             return value;
@@ -162,36 +161,3 @@ QString Key::toString() const
     stream << "[" << getID() << "] Key " << getName() << " Type: " << getGraphMLTypeName(key_type_);
     return str;
 }
-
-
-void Key::addValidValue(QVariant value, NODE_KIND kind){
-    if(!valid_values_.contains(kind, value)){
-        valid_values_.insert(kind, value);
-        //qCritical() << "Key: " << getName() << " Added Valid Value: " << value;
-    }
-}
-
-void Key::addValidValues(QList<QVariant> values, NODE_KIND kind){
-    foreach(auto value, values){
-        addValidValue(value, kind);
-    }
-}
-
-bool Key::gotValidValues(NODE_KIND kind){
-    return valid_values_.contains(kind);
-}
-
-QList<QVariant> Key::getValidValues(NODE_KIND kind){
-    return valid_values_.values(kind);
-}
-
-QList<QVariant> Key::getValidValues(Node* node){
-    if(node){
-        auto data = node->getData(this);
-        if(data){
-            return data->getValidValues();
-        }
-    }
-    return {};
-}
-

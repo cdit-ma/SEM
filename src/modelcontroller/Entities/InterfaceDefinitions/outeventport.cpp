@@ -1,16 +1,17 @@
 #include "outeventport.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const static NODE_KIND node_kind = NODE_KIND::OUTEVENTPORT;
 const static QString kind_string = "OutEventPort";
 
-void OutEventPort::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new OutEventPort(factory, is_temp_node);
+void OutEventPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new OutEventPort(broker, is_temp_node);
     });
 }
 
-OutEventPort::OutEventPort(EntityFactory& factory, bool is_temp) : EventPort(factory, node_kind, is_temp){
+OutEventPort::OutEventPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }

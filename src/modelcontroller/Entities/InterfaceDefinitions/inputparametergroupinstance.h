@@ -2,14 +2,18 @@
 #define MEDEA_INPUTPARAMETERGROUP_INSTANCE_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class InputParameterGroupInstance : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        InputParameterGroupInstance(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        InputParameterGroupInstance(EntityFactoryBroker& factory, bool is_temp_node);
     };
 };
 

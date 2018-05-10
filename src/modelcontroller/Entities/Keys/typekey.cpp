@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "namespacekey.h"
 
-TypeKey::TypeKey(EntityFactory& factory): Key(factory, "type", QVariant::String){
+TypeKey::TypeKey(EntityFactoryBroker& broker): Key(broker, "type", QVariant::String){
     //Combine Namespace and Type
     combine_namespace_kinds = {NODE_KIND::AGGREGATE, NODE_KIND::COMPONENT, NODE_KIND::ENUM};
 }

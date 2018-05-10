@@ -1,18 +1,20 @@
 #include "member.h"
 #include "aggregateinstance.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::MEMBER;
 const QString kind_string = "Member";
 
-void Member::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Member(factory, is_temp_node);
+void Member::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Member(broker, is_temp_node);
     });
 }
 
-Member::Member(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,11 +22,13 @@ Member::Member(EntityFactory& factory, bool is_temp) : DataNode(factory, node_ki
     //Setup State
     addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 
+
+
     //Setup Data
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
-    auto type_data = factory.AttachData(this, "type", QVariant::String, "String", false);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
-    factory.AttachData(this, "key", QVariant::Bool, false, false);
+    broker.AttachData(this, "key", QVariant::Bool, false, false);
 }
 
 

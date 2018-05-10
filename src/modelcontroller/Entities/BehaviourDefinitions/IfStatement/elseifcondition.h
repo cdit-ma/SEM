@@ -4,14 +4,17 @@
 #include "../../InterfaceDefinitions/datanode.h"
 
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ElseIfCondition: public DataNode{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ElseIfCondition(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ElseIfCondition(EntityFactoryBroker& factory, bool is_temp_node);
     };
 };
 

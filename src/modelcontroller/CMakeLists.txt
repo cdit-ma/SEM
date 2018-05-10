@@ -134,6 +134,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactorybroker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactoryregistrybroker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp

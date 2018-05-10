@@ -4,9 +4,8 @@
 #include <QVariant>
 #include <QDebug>
 
-Entity::Entity(EntityFactory& factory, GRAPHML_KIND kind):GraphML(factory, kind)
+Entity::Entity(EntityFactoryBroker& broker, GRAPHML_KIND kind):GraphML(broker, kind)
 {
-
 }
 
 Entity::~Entity()

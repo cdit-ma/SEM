@@ -2,14 +2,18 @@
 #define DDS_QOSPROFILE_H
 #include "../../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DDS_QOSProfile: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    DDS_QOSProfile(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DDS_QOSProfile(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* node);
 };

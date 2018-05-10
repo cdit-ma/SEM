@@ -3,14 +3,17 @@
 
 #include "../node.h"
 
-class EntityFactory;
+class EntityFactoryRegistryBroker;
 class BehaviourDefinitions: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    BehaviourDefinitions(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    BehaviourDefinitions(EntityFactoryBroker& factory, bool is_temp_node);
 	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;

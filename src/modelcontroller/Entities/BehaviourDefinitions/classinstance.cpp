@@ -1,16 +1,17 @@
 #include "classinstance.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLASS_INSTANCE;
 const QString kind_string = "ClassInstance";
 
-void MEDEA::ClassInstance::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ClassInstance(factory, is_temp_node);
+void MEDEA::ClassInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ClassInstance(broker, is_temp_node);
         });
 }
 
-MEDEA::ClassInstance::ClassInstance(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -26,9 +27,11 @@ MEDEA::ClassInstance::ClassInstance(EntityFactory& factory, bool is_temp) : Node
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
 
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    factory.AttachData(this, "icon", QVariant::String, "", true);
+
+    
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    broker.AttachData(this, "icon", QVariant::String, "", true);
 };
 
 bool MEDEA::ClassInstance::ClassInstance::canAcceptEdge(EDGE_KIND edge_kind, Node* dst)

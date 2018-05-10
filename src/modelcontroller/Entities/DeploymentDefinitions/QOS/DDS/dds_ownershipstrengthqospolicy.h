@@ -2,14 +2,18 @@
 #define DDS_OWNERSHIPSTRENGTHQOSPOLICY_H
 #include "../../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DDS_OwnershipStrengthQosPolicy: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    DDS_OwnershipStrengthQosPolicy(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DDS_OwnershipStrengthQosPolicy(EntityFactoryBroker& factory, bool is_temp_node);
 };
 #endif // DDS_OWNERSHIPSTRENGTHQOSPOLICY_H
 

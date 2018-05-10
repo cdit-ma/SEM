@@ -3,19 +3,24 @@
 #include <QDebug>
 #include "../edge.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 
-DataNode::DataNode(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : Node(factory, node_kind, is_temp){
+DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
     if (is_temp) {
         return;
     }
     setNodeType(NODE_TYPE::DATA);
 
-    factory.AttachData(this, "inner_type", QVariant::String, "", true);
-    factory.AttachData(this, "outer_type", QVariant::String, "", true);
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "value", QVariant::String, "", false);
+
+    
+
+    broker.AttachData(this, "inner_type", QVariant::String, "", true);
+    broker.AttachData(this, "outer_type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "value", QVariant::String, "", false);
 };
 
 bool DataNode::hasInputData()

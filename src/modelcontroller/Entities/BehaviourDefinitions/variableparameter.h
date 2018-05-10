@@ -3,15 +3,19 @@
 
 #include "parameter.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class VariableParameter : public Parameter
 {
-	friend class EntityFactory;
+
     Q_OBJECT
 
+
 	protected:
-		static void RegisterWithEntityFactory(EntityFactory& factory);
-		VariableParameter(EntityFactory& factory, bool is_temp_node);
+public:
+		static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+		VariableParameter(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // VARIABLE_PARAMETER_H

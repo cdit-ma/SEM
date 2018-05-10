@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 #include <QDebug>
-IndexKey::IndexKey(EntityFactory& factory): Key(factory, "index", QVariant::Int){
+IndexKey::IndexKey(EntityFactoryBroker& broker): Key(broker, "index", QVariant::Int){
 
 }
 

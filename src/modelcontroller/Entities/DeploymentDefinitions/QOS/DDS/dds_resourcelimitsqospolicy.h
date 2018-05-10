@@ -2,14 +2,18 @@
 #define DDS_RESOURCELIMITSQOSPOLICY_H
 #include "../../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DDS_ResourceLimitsQosPolicy: public Node 
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    DDS_ResourceLimitsQosPolicy(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DDS_ResourceLimitsQosPolicy(EntityFactoryBroker& factory, bool is_temp_node);
 };
 #endif // DDS_RESOURCELIMITSQOSPOLICY_H
 

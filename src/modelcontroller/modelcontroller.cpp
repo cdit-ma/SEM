@@ -13,6 +13,8 @@
 #include "version.h"
 
 #include "entityfactory.h"
+#include "entityfactorybroker.h"
+#include "entityfactoryregistrybroker.h"
 #include "tempentity.h"
 
 #include "Entities/edge.h"
@@ -1265,11 +1267,11 @@ QList<QVariant> ModelController::getValidKeyValues(int id, QString key_name)
     QReadLocker lock(&lock_);
     QList<QVariant> valid_values;
     
-    Key* key = entity_factory->GetKey(key_name);
-    if(key){
-        auto node = entity_factory->GetNode(id);
-        if(node){
-            valid_values = key->getValidValues(node);
+    auto entity = entity_factory->GetEntity(id);
+    if(entity){
+        auto data = entity->getData(key_name);
+        if(data){
+            valid_values = data->getValidValues();
         }
     }
     return valid_values;

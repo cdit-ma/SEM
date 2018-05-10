@@ -8,19 +8,22 @@
 
 class Data;
 class Key;
+
 class Entity: public GraphML
 {
     friend class Data;
     friend class Key;
-    friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    Entity(EntityFactory& factory, GRAPHML_KIND kind);
+    Entity(EntityFactoryBroker& factory, GRAPHML_KIND graphml_kind);
     ~Entity();
 public:
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
     bool isLabelFunctional() const;
+
 protected:
     void setLabelFunctional(bool functional = true);
 public:

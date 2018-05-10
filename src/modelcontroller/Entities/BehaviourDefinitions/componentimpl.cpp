@@ -1,16 +1,17 @@
 #include "componentimpl.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::COMPONENT_IMPL;
 const QString kind_string = "ComponentImpl";
 
-void ComponentImpl::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new ComponentImpl(factory, is_temp_node);
+void ComponentImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new ComponentImpl(broker, is_temp_node);
         });
 }
 
-ComponentImpl::ComponentImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -28,8 +29,11 @@ ComponentImpl::ComponentImpl(EntityFactory& factory, bool is_temp) : Node(factor
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT_IMPL);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
 
 }
 QSet<Node*> ComponentImpl::getDependants() const{

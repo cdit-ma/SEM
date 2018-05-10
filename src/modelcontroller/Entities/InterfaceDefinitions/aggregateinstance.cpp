@@ -1,5 +1,7 @@
 #include "aggregateinstance.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include "../../edgekinds.h"
 #include <QDebug>
 
@@ -7,13 +9,13 @@ const NODE_KIND node_kind = NODE_KIND::AGGREGATE_INSTANCE;
 const QString kind_string = "AggregateInstance";
 
 
-void AggregateInstance::RegisterWithEntityFactory(EntityFactory& factory){
-    DataNode::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new AggregateInstance(factory, is_temp_node);
+void AggregateInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new AggregateInstance(broker, is_temp_node);
     });
 }
 
-AggregateInstance::AggregateInstance(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -27,9 +29,12 @@ AggregateInstance::AggregateInstance(EntityFactory& factory, bool is_temp) : Dat
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "index", QVariant::Int, -1);
-    factory.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1);
+    broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
 bool AggregateInstance::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

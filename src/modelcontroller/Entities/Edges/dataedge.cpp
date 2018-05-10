@@ -1,15 +1,16 @@
 #include "dataedge.h"
 #include "../node.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const static EDGE_KIND edge_kind = EDGE_KIND::DATA;
 const static QString kind_string = "Edge_Data";
 
-void DataEdge::RegisterWithEntityFactory(EntityFactory& factory){
-    Edge::RegisterWithEntityFactory(factory, edge_kind, kind_string, [](EntityFactory& factory, Node* src, Node* dst){
-        return new DataEdge(factory, src, dst);
+void DataEdge::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(edge_kind, kind_string, [](EntityFactoryBroker& broker, Node* src, Node* dst){
+        return new DataEdge(broker, src, dst);
         });
 }
 
-DataEdge::DataEdge(EntityFactory& factory, Node* src, Node* dst) : Edge(factory, src, dst, edge_kind){
+DataEdge::DataEdge(EntityFactoryBroker& broker, Node* src, Node* dst) : Edge(broker, src, dst, edge_kind){
 };

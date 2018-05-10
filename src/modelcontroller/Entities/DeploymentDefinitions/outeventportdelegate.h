@@ -2,14 +2,18 @@
 #define OUTEVENTPORTDELEGATE_H
 #include "eventportassembly.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class OutEventPortDelegate: public EventPortAssembly
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    OutEventPortDelegate(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    OutEventPortDelegate(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 

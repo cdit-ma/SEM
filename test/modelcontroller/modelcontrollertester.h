@@ -3,6 +3,7 @@
 
 #include <QSharedPointer>
 #include "../../src/modelcontroller/modelcontroller.h"
+class EntityFactoryRegistryBroker;
 class ModelControllerTester: public QObject{
     Q_OBJECT
     

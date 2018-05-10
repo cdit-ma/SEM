@@ -1,16 +1,18 @@
 #include "clientportinstance.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::CLIENT_PORT_INSTANCE;
 const QString kind_string = "ClientPortInstance";
 
-void MEDEA::ClientPortInstance::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ClientPortInstance(factory, is_temp_node);
+void MEDEA::ClientPortInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ClientPortInstance(broker, is_temp_node);
         });
 }
 
-MEDEA::ClientPortInstance::ClientPortInstance(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ClientPortInstance::ClientPortInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,9 +22,12 @@ MEDEA::ClientPortInstance::ClientPortInstance(EntityFactory& factory, bool is_te
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
 
+
+
+    
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 

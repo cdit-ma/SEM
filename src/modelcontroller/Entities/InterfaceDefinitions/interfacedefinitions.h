@@ -2,14 +2,18 @@
 #define INTERFACEDEFINITIONC_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class InterfaceDefinitions: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    InterfaceDefinitions(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    InterfaceDefinitions(EntityFactoryBroker& factory, bool is_temp_node);
 	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;

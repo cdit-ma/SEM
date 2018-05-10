@@ -3,15 +3,19 @@
 
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class WhileLoop : public Node
     {
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        WhileLoop(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        WhileLoop(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
     };

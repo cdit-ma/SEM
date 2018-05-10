@@ -1,14 +1,15 @@
 #include "definitionedge.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const auto edge_kind = EDGE_KIND::DEFINITION;
 const QString kind_string = "Edge_Definition";
 
-void DefinitionEdge::RegisterWithEntityFactory(EntityFactory& factory){
-    Edge::RegisterWithEntityFactory(factory, edge_kind, kind_string, [](EntityFactory& factory, Node* src, Node* dst){
-        return new DefinitionEdge(factory, src, dst);
+void DefinitionEdge::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(edge_kind, kind_string, [](EntityFactoryBroker& broker, Node* src, Node* dst){
+        return new DefinitionEdge(broker, src, dst);
         });
 }
 
-DefinitionEdge::DefinitionEdge(EntityFactory& factory, Node* src, Node* dst) : Edge(factory, src, dst, edge_kind){
+DefinitionEdge::DefinitionEdge(EntityFactoryBroker& broker, Node* src, Node* dst) : Edge(broker, src, dst, edge_kind){
 }

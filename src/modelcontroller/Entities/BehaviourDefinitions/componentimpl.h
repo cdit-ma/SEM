@@ -2,14 +2,16 @@
 #define COMPONENTBEHAVIOUR_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class ComponentImpl: public Node
 {
-	friend class EntityFactory;
-     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    ComponentImpl(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    ComponentImpl(EntityFactoryBroker& factory, bool is_temp_node);
     QSet<Node*> getDependants() const;
 };
 

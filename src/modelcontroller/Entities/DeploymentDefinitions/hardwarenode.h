@@ -2,14 +2,18 @@
 #define HARDWARENODE_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class HardwareNode : public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    HardwareNode(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    HardwareNode(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // HARDWARENODE_H

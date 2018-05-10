@@ -808,7 +808,7 @@ void ActionController::setupActions()
     dock_addPart->setShortcutContext(Qt::ApplicationShortcut);
     dock_addPart->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_A));
 
-    dock_deploy = createRootAction("Dock", "Open Deploy Dock", "", "Icons", "screen");
+    dock_deploy = createRootAction("Dock", "Open Deploy Dock", "", "Icons", "screenTwoTone");
     dock_deploy->setToolTip("Open the deploy dock");
     dock_deploy->setShortcutContext(Qt::ApplicationShortcut);
     dock_deploy->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));

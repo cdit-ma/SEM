@@ -2,14 +2,18 @@
 #define MEDEA_RETURNPARAMETERGROUP_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ReturnParameterGroup : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ReturnParameterGroup(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ReturnParameterGroup(EntityFactoryBroker& factory, bool is_temp_node);
         void parentSet(Node* parent);
     public:
         bool canAdoptChild(Node* child);

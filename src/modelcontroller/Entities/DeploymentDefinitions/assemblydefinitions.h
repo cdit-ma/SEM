@@ -3,14 +3,18 @@
 #include "../node.h"
 
 #include "../../edgekinds.h"
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class AssemblyDefinitions: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    AssemblyDefinitions(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    AssemblyDefinitions(EntityFactoryBroker& factory, bool is_temp_node);
 	void updateViewAspect(VIEW_ASPECT){};
 public:
     VIEW_ASPECT getViewAspect() const;

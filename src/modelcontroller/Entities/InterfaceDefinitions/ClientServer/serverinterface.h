@@ -2,14 +2,18 @@
 #define MEDEA_SERVER_INTERFACE_H
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ServerInterface : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ServerInterface(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ServerInterface(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node* child);
     };

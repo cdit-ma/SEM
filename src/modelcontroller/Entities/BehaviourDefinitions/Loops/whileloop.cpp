@@ -1,17 +1,19 @@
 #include "whileloop.h"
 #include "../containernode.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::WHILE_LOOP;
 const QString kind_string = "WhileLoop";
 
-void MEDEA::WhileLoop::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::WhileLoop(factory, is_temp_node);
+void MEDEA::WhileLoop::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::WhileLoop(broker, is_temp_node);
         });
 }
 
-MEDEA::WhileLoop::WhileLoop(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -28,7 +30,10 @@ MEDEA::WhileLoop::WhileLoop(EntityFactory& factory, bool is_temp) : Node(factory
     }
     setLabelFunctional(false);
 
-    factory.AttachData(this, "label", QVariant::String, "while", true);
+
+
+
+    broker.AttachData(this, "label", QVariant::String, "while", true);
 }
 
 

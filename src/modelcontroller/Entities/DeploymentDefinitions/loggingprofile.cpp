@@ -1,16 +1,18 @@
 #include "loggingprofile.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const static NODE_KIND node_kind = NODE_KIND::LOGGINGPROFILE;
 const static QString kind_string = "LoggingProfile";
 
-void LoggingProfile::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new LoggingProfile(factory, is_temp_node);
+void LoggingProfile::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new LoggingProfile(broker, is_temp_node);
     });
 }
 
-LoggingProfile::LoggingProfile(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+LoggingProfile::LoggingProfile(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,9 +22,12 @@ LoggingProfile::LoggingProfile(EntityFactory& factory, bool is_temp) : Node(fact
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
 
-    factory.AttachData(this, "processes_to_log", QVariant::String, "", false);
-    factory.AttachData(this, "frequency", QVariant::Double, 1, false);
-    auto data_mode = factory.AttachData(this, "mode", QVariant::String, "CACHED", false);
+
+
+    
+    broker.AttachData(this, "processes_to_log", QVariant::String, "", false);
+    broker.AttachData(this, "frequency", QVariant::Double, 1, false);
+    auto data_mode = broker.AttachData(this, "mode", QVariant::String, "CACHED", false);
     data_mode->addValidValues({"CACHED", "OFF", "LIVE"});
 }
 

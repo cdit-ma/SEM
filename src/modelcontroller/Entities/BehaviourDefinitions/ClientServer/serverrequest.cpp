@@ -1,17 +1,18 @@
 #include "serverrequest.h"
 #include "../containernode.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_REQUEST;
 const QString kind_string = "ServerRequest";
 
-void MEDEA::ServerRequest::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ServerRequest(factory, is_temp_node);
+void MEDEA::ServerRequest::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ServerRequest(broker, is_temp_node);
         });
 }
 
-MEDEA::ServerRequest::ServerRequest(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ServerRequest::ServerRequest(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -27,9 +28,11 @@ MEDEA::ServerRequest::ServerRequest(EntityFactory& factory, bool is_temp) : Node
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
     
 
+
+
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 

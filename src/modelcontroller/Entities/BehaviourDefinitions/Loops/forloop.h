@@ -4,14 +4,18 @@
 #include "../../node.h"
 
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ForLoop : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ForLoop(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ForLoop(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node *node);
     private:

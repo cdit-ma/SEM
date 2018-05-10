@@ -2,14 +2,18 @@
 #define DEFINITIONEDGE_H
 #include "../edge.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DefinitionEdge : public Edge
 {
     Q_OBJECT
-    friend class EntityFactory;
+
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    DefinitionEdge(EntityFactory& factory, Node *src, Node *dst);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DefinitionEdge(EntityFactoryBroker& factory, Node *src, Node *dst);
 };
 
 #endif // EDGE_H

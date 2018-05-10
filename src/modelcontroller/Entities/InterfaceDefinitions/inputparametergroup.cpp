@@ -1,16 +1,18 @@
 #include "inputparametergroup.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::INPUT_PARAMETER_GROUP;
 const QString kind_string = "InputParameterGroup";
 
-void MEDEA::InputParameterGroup::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::InputParameterGroup(factory, is_temp_node);
+void MEDEA::InputParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::InputParameterGroup(broker, is_temp_node);
     });
 }
 
-MEDEA::InputParameterGroup::InputParameterGroup(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::InputParameterGroup::InputParameterGroup(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -19,10 +21,12 @@ MEDEA::InputParameterGroup::InputParameterGroup(EntityFactory& factory, bool is_
     setLabelFunctional(false);
     addInstanceKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
 
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "Input", false);
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "label", QVariant::String, "Input", false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 bool MEDEA::InputParameterGroup::canAdoptChild(Node* child)

@@ -2,7 +2,8 @@
 #define CONTAINERNODE_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class ContainerNode
 {
     public:

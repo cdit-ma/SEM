@@ -2,13 +2,15 @@
 #define EVENTPORTDELEGATE_H
 #include "../InterfaceDefinitions/eventport.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class EventPortAssembly: public EventPort
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    EventPortAssembly(EntityFactory& factory, NODE_KIND kind, bool is_temp);
+    EventPortAssembly(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
 public:
     bool isPortDelegate() const;
 

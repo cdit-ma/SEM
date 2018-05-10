@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 #include <QDebug>
-RowKey::RowKey(EntityFactory& factory): Key(factory, "row", QVariant::Int){
+RowKey::RowKey(EntityFactoryBroker& broker): Key(broker, "row", QVariant::Int){
 
 }
 

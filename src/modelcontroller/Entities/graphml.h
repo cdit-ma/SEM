@@ -4,6 +4,7 @@
 #include "../kinds.h"
 
 class EntityFactory;
+class EntityFactoryBroker;
 
 class GraphML: public QObject{
     Q_OBJECT
@@ -11,10 +12,10 @@ class GraphML: public QObject{
     //The factory can access protected constructors
     friend class EntityFactory;
 protected:
-    GraphML(EntityFactory& factory, GRAPHML_KIND kind);
+    GraphML(EntityFactoryBroker& broker, GRAPHML_KIND kind);
     virtual ~GraphML();
     void setID(int id);
-    EntityFactory& getFactory();
+    EntityFactoryBroker& getFactoryBroker();
 public:
     static bool SortByID(const GraphML* a, const GraphML* b);
 
@@ -27,7 +28,7 @@ public:
 private:
     int id = -1;
     GRAPHML_KIND kind = GRAPHML_KIND::NONE;
-    EntityFactory& factory_;
+    EntityFactoryBroker& broker_;
 };
 #endif // GRAPHML_H
 

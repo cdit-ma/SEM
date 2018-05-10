@@ -2,14 +2,18 @@
 #define ENUM_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class Enum : public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    Enum(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    Enum(EntityFactoryBroker& factory, bool is_temp_node);
     void DataAdded(Data* data);
 
     void childAdded(Node* child);

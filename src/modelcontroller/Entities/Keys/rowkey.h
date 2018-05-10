@@ -2,11 +2,12 @@
 #define ROW_KEY_H
 #include "../key.h"
 
+class EntityFactoryRegistryBroker;
 class RowKey : public Key
 {
     Q_OBJECT
 public:
-    RowKey(EntityFactory& factory);
+    RowKey(EntityFactoryBroker& factory);
     QVariant validateDataChange(Data* data, QVariant dataValue);
     bool setData(Data* data, QVariant dataValue);
 };

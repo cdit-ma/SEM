@@ -3,15 +3,18 @@
 #define MEDEA_EXTERNALTYPE_H
 
 #include "../node.h"
-class EntityFactory;
+
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ExternalType: public Node
     {
-        friend class ::EntityFactory;
-        Q_OBJECT
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ExternalType(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ExternalType(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 

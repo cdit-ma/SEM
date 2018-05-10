@@ -1,18 +1,20 @@
 #include "component.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::COMPONENT;
 const QString kind_string = "Component";
 
-void Component::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Component(factory, is_temp_node);
+void Component::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Component(broker, is_temp_node);
     });
 }
 
-Component::Component(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -26,10 +28,13 @@ Component::Component(EntityFactory& factory, bool is_temp) : Node(factory, node_
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT);
     setAcceptsNodeKind(NODE_KIND::CLIENT_PORT);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "comment", QVariant::String, "");
-    factory.AttachData(this, "namespace", QVariant::String, "", true);
-    factory.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "comment", QVariant::String, "");
+    broker.AttachData(this, "namespace", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
 void Component::DataAdded(Data* data){

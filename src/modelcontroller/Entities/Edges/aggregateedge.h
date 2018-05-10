@@ -2,13 +2,17 @@
 #define AGGREGATEEDGE_H
 #include "../edge.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class AggregateEdge : public Edge
 {
     Q_OBJECT
-    friend class EntityFactory;
+
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    AggregateEdge(EntityFactory& factory, Node *src, Node *dst);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    AggregateEdge(EntityFactoryBroker& factory, Node *src, Node *dst);
 };
 #endif // AGGREGATEEDGE_H

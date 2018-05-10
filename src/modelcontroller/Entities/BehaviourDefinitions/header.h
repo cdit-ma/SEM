@@ -3,14 +3,18 @@
 
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class Header: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    Header(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    Header(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // MODEL_IMPL_HEADER_H

@@ -1352,7 +1352,7 @@ QString resourceName(QString prefix, QString alias){
 QString Theme::getResourceName(QString prefix, QString alias) const
 {
     //Uncomment for bounding rects
-    //return "Images/Icons/square";
+    //return "Images/Icons/TwoTone";
     auto resource_name = resourceName(prefix, alias);
     while(icon_alias_lookup.contains(resource_name)){
         resource_name = icon_alias_lookup[resource_name];

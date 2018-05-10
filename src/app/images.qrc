@@ -90,6 +90,7 @@
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
     </qresource>
     <qresource prefix="/Images/Icons">
+        <file alias="TwoTone">Resources/Icons/TwoTone.png</file>
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
         <file alias="alignVertical">Resources/Icons/alignVertical.png</file>
         <file alias="amd">Resources/Icons/amd.png</file>
@@ -293,7 +294,7 @@
         <file alias="screenCross">Resources/Icons/screenCross.png</file>
         <file alias="screenMaximize">Resources/Icons/screenMaximize.png</file>
         <file alias="screenResize">Resources/Icons/screenResize.png</file>
-        <file alias="screenWhite">Resources/Icons/screenWhite.png</file>
+        <file alias="screenTwoTone">Resources/Icons/screenTwoTone.png</file>
         <file alias="servers">Resources/Icons/servers.png</file>
         <file alias="shield">Resources/Icons/shield.png</file>
         <file alias="shieldTick">Resources/Icons/shieldTick.png</file>
@@ -366,5 +367,7 @@
         <file alias="arrowsLeftRightDark">Resources/Icons/arrowsLeftRightDark.png</file>
         <file alias="arrowsUpDown">Resources/Icons/arrowsUpDown.png</file>
         <file alias="arrowsUpDownDark">Resources/Icons/arrowsUpDownDark.png</file>
+        <file alias="squarePlus">Resources/Icons/squarePlus.png</file>
+        <file alias="circlePlusTwoTone">Resources/Icons/circlePlusTwoTone.png</file>
     </qresource>
 </RCC>

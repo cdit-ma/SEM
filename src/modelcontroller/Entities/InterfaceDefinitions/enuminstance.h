@@ -2,14 +2,18 @@
 #define ENUM_INSTANCE_H
 #include "datanode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class EnumInstance : public DataNode
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    EnumInstance(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    EnumInstance(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };

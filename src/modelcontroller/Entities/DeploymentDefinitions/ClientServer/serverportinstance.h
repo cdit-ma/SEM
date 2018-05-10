@@ -2,14 +2,16 @@
 #define MEDEA_SERVERPORTINSTANCE_H
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ServerPortInstance : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ServerPortInstance(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ServerPortInstance(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
     };

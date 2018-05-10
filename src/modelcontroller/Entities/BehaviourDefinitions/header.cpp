@@ -1,22 +1,24 @@
 #include "header.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+
 
 const NODE_KIND node_kind = NODE_KIND::HEADER;
 const QString kind_string = "Header";
 
-void Header::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Header(factory, is_temp_node);
+void Header::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Header(broker, is_temp_node);
         });
 }
 
-Header::Header(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Header::Header(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
 
     //Setup Data
-    factory.AttachData(this, "code", QVariant::String, "", false);
-    auto header_location = factory.AttachData(this, "header_location", QVariant::String, "CPP", false);
+    broker.AttachData(this, "code", QVariant::String, "", false);
+    auto header_location = broker.AttachData(this, "header_location", QVariant::String, "CPP", false);
     header_location->addValidValues({"Class Declaration", "Header", "CPP"});
 }

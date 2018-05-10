@@ -2,14 +2,17 @@
 #define MEDEA_ELSE_CONDITION_H
 #include "../../InterfaceDefinitions/datanode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ElseCondition: public DataNode{
-        friend class ::EntityFactory;
-        Q_OBJECT
+    
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ElseCondition(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ElseCondition(EntityFactoryBroker& factory, bool is_temp_node);
     };
 };
 

@@ -4,20 +4,19 @@
 #include "entity.h"
 #include <QSet>
 
-class EntityFactory; 
 class Data : public GraphML
 {
     Q_OBJECT
     friend class Entity;
     friend class EntityFactory;
+
     friend class Key;
     friend class Node;
     friend class Edge;
+
 protected:
-    
-    Data(EntityFactory& factory, Key* key, QVariant value = QVariant(), bool protect = false);
+    Data(EntityFactoryBroker& broker, Key* key, QVariant value = QVariant(), bool protect = false);
     ~Data();
-    static Data* clone(Data* data);
 public:
     static bool CompareData(const Data* a, const Data* b);
     static bool SortByKey(const Data* a, const Data* b);
@@ -59,6 +58,7 @@ public:
     void clearValidValues();
     QList<QVariant> getValidValues();
     bool gotValidValues();
+
 protected:
 
     void store_value();

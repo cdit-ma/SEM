@@ -3,7 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 
-InnerTypeKey::InnerTypeKey(EntityFactory& factory): Key(factory, "inner_type", QVariant::String){
+InnerTypeKey::InnerTypeKey(EntityFactoryBroker& broker): Key(broker, "inner_type", QVariant::String){
 
 }
 

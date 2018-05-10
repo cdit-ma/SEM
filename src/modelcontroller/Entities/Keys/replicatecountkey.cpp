@@ -2,7 +2,7 @@
 #include "../data.h"
 #include "../node.h"
 
-ReplicateCountKey::ReplicateCountKey(EntityFactory& factory): Key(factory, "replicate_count", QVariant::Int){
+ReplicateCountKey::ReplicateCountKey(EntityFactoryBroker& broker): Key(broker, "replicate_count", QVariant::Int){
 }
 
 QVariant ReplicateCountKey::validateDataChange(Data* data, QVariant data_value){    

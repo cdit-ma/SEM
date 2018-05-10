@@ -1,17 +1,18 @@
 #include "elsecondition.h"
 #include "../containernode.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ELSE_CONDITION;
 const QString kind_string = "ElseCondition";
 
-void MEDEA::ElseCondition::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ElseCondition(factory, is_temp_node);
+void MEDEA::ElseCondition::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ElseCondition(broker, is_temp_node);
         });
 }
 
-MEDEA::ElseCondition::ElseCondition(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+MEDEA::ElseCondition::ElseCondition(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -23,6 +24,9 @@ MEDEA::ElseCondition::ElseCondition(EntityFactory& factory, bool is_temp) : Data
         setAcceptsNodeKind(node_kind);
     }
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "else", true);
+    broker.AttachData(this, "label", QVariant::String, "else", true);
 }

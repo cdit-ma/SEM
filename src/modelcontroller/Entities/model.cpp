@@ -1,17 +1,19 @@
 #include "model.h"
 #include "../nodekinds.h"
 #include "../version.h"
-#include "../entityfactory.h"
+#include "../entityfactorybroker.h"
+#include "../entityfactoryregistrybroker.h"
+#include "../entityfactoryregistrybroker.h"
 const static NODE_KIND node_kind = NODE_KIND::MODEL;
 const static QString kind_string = "Model";
 
-void Model::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Model(factory, is_temp_node);
+void Model::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Model(broker, is_temp_node);
     });
 }
 
-Model::Model(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -23,15 +25,18 @@ Model::Model(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is
     setAcceptsNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::WORKER_DEFINITIONS);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "medea_version", QVariant::String, APP_VERSION(), true);
-    factory.AttachData(this, "description", QVariant::String, "", true);
+    broker.AttachData(this, "medea_version", QVariant::String, APP_VERSION(), true);
+    broker.AttachData(this, "description", QVariant::String, "", true);
 
     //Attach Children
-    factory.ConstructChildNode(*this, NODE_KIND::INTERFACE_DEFINITIONS);
-    factory.ConstructChildNode(*this, NODE_KIND::BEHAVIOUR_DEFINITIONS);
-    factory.ConstructChildNode(*this, NODE_KIND::DEPLOYMENT_DEFINITIONS);
-    factory.ConstructChildNode(*this, NODE_KIND::WORKER_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::INTERFACE_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::BEHAVIOUR_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::DEPLOYMENT_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::WORKER_DEFINITIONS);
 }
 
 bool Model::canAdoptChild(Node *child)

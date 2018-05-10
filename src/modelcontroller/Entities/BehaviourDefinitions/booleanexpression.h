@@ -3,16 +3,19 @@
 #include "../node.h"
 #include "../InterfaceDefinitions/datanode.h"
 
-class EntityFactory;
 
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class BooleanExpression: public ::DataNode
     {
-        friend class ::EntityFactory;
-        Q_OBJECT
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        BooleanExpression(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        BooleanExpression(EntityFactoryBroker& factory, bool is_temp_node);
         
     public:
         bool canAdoptChild(Node* child);

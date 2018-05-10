@@ -1,7 +1,9 @@
 #include "parameter.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
-Parameter::Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : DataNode(factory, node_kind, is_temp){
+Parameter::Parameter(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -9,13 +11,16 @@ Parameter::Parameter(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) 
     setNodeType(NODE_TYPE::PARAMETER);
     setLabelFunctional(false);
 
+
+
+    
     //Setup Data
-    factory.AttachData(this, "icon", QVariant::String, "", true);
-    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    factory.AttachData(this, "label", QVariant::String, "", true);
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "inner_type", QVariant::String, "", true);
-    factory.AttachData(this, "outer_type", QVariant::String, "", true);
+    broker.AttachData(this, "icon", QVariant::String, "", true);
+    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    broker.AttachData(this, "label", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "inner_type", QVariant::String, "", true);
+    broker.AttachData(this, "outer_type", QVariant::String, "", true);
 }
 
 bool Parameter::isInputParameter() const

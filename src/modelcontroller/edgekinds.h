@@ -1,5 +1,6 @@
 #ifndef EDGEKINDS_H
 #define EDGEKINDS_H
+#include <QObject>
 
 enum class EDGE_KIND{
     NONE,

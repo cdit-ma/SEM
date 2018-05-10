@@ -2,14 +2,18 @@
 #define DEPLOYMENTDEFINITIONC_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DeploymentDefinitions: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    DeploymentDefinitions(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DeploymentDefinitions(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
 };

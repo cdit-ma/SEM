@@ -1,6 +1,7 @@
 #ifndef NODEKINDS_H
 #define NODEKINDS_H
 
+#include <QObject>
 #include <QHash>
 
 enum class NODE_KIND

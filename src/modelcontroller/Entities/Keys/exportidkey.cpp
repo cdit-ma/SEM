@@ -1,15 +1,17 @@
 #include "exportidkey.h"
 #include "../data.h"
 #include "../node.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include <QUuid>
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QList>
 
-ExportIDKey::ExportIDKey(EntityFactory& factory): Key(factory, "uuid", QVariant::String){
+ExportIDKey::ExportIDKey(EntityFactoryBroker& broker, std::function<void (Entity*, QString, QString)> uuid_notifier): Key(broker, "uuid", QVariant::String){
     //Shouldn't be user modifyable
     setProtected(true);
+    this->uuid_notifier_ = uuid_notifier;
 }
 
 QString ExportIDKey::getMD5UUID(const QString str_val){
@@ -43,16 +45,22 @@ QString ExportIDKey::GetUUIDOfValue(const QString str_val){
     return uuid.toString();
 }
 
-QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
-    Node* node = 0;
-    auto str_val = data_value.toString();
-
-    auto uuid_str = GetUUIDOfValue(str_val);
-
-    auto& entity_factory = getFactory();
-
-    if(data->getParent()){
-        entity_factory.EntityUUIDChanged(data->getParent(), uuid_str);
+bool ExportIDKey::setData(Data* data, QVariant data_value){
+    auto old_value = data->getValue().toString();
+    //Change the data
+    bool data_changed = Key::setData(data, data_value);
+    auto entity = data->getParent();
+    if(data_changed){
+        auto new_value = data->getValue().toString();;
+        if(uuid_notifier_){
+            //Update the Factory
+            uuid_notifier_(entity, old_value, new_value);
+        }
     }
-    return uuid_str;
+    return data_changed;
+}
+
+
+QVariant ExportIDKey::validateDataChange(Data* data, QVariant data_value){
+    return GetUUIDOfValue(data_value.toString());
 }

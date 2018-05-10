@@ -9,11 +9,10 @@
 //Forward declare
 class Data;
 class Node;
-enum class NODE_KIND;
 
+class EntityFactoryRegistryBroker;
 class Key : public GraphML
 {
-    friend class EntityFactory;
     Q_OBJECT
 public:
     
@@ -21,22 +20,17 @@ public:
     static QString getGraphMLTypeName(const QVariant::Type type);
     static QVariant::Type getTypeFromGraphML(const QString typeString);
 
-    
+    friend class EntityFactory;
 protected:
-    Key(EntityFactory& factory, const QString& keyName, QVariant::Type type);
+    Key(EntityFactoryBroker& factory, const QString& keyName, QVariant::Type type);
     ~Key();
     void setProtected(bool protect);
-    void addValidValue(QVariant value, NODE_KIND kind);
-    void addValidValues(QList<QVariant> values, NODE_KIND kind);
     void setVisual(bool visible);
 public:
     bool isVisual() const;
     bool isProtected() const;
     QString getName() const;
     QVariant::Type getType() const;
-    bool gotValidValues(NODE_KIND kind);
-    QList<QVariant> getValidValues(NODE_KIND kind);
-    QList<QVariant> getValidValues(Node* node);
 
 
     virtual QVariant validateDataChange(Data* data, QVariant dataValue);
@@ -49,13 +43,10 @@ signals:
     void validation_failed(int ID, QString error);
     void validateError(QString, QString, int);
 private:
-    
     QString key_name_;
     QVariant::Type key_type_;
     bool is_protected_ = false;
     bool is_visual_ = false;
-
-    QMultiMap<NODE_KIND, QVariant> valid_values_;
 };
 
 #endif // KEY_H

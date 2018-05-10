@@ -1,16 +1,18 @@
 #include "outeventportinstance.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 auto node_kind = NODE_KIND::OUTEVENTPORT_INSTANCE;
 QString kind_string = "OutEventPortInstance";
 
-void OutEventPortInstance::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new OutEventPortInstance(factory, is_temp_node);
+void OutEventPortInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new OutEventPortInstance(broker, is_temp_node);
     });
 }
 
-OutEventPortInstance::OutEventPortInstance(EntityFactory& factory, bool is_temp) : EventPortAssembly(factory, node_kind, is_temp){
+OutEventPortInstance::OutEventPortInstance(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -19,7 +21,10 @@ OutEventPortInstance::OutEventPortInstance(EntityFactory& factory, bool is_temp)
     addInstancesDefinitionKind(NODE_KIND::OUTEVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 
-    auto data_middleware = factory.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
+
+
+
+    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
     connect(data_middleware, &Data::dataChanged, this, &OutEventPortInstance::updateQOSEdge);
     
     updateQOSEdge();

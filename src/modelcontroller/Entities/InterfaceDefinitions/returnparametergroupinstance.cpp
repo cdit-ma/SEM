@@ -1,17 +1,18 @@
 #include "returnparametergroupinstance.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE;
 const QString kind_string = "ReturnParameterGroupInstance";
 
 
-void MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ReturnParameterGroupInstance(factory, is_temp_node);
+void MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ReturnParameterGroupInstance(broker, is_temp_node);
     });
 }
 
-MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -27,9 +28,12 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(EntityFactory&
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 bool MEDEA::ReturnParameterGroupInstance::canAdoptChild(Node* child)

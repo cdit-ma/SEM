@@ -1,6 +1,8 @@
 #include "aggregate.h"
 #include "../data.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include "../../edgekinds.h"
 #include "../Keys/typekey.h"
 
@@ -8,14 +10,14 @@ const NODE_KIND node_kind = NODE_KIND::AGGREGATE;
 const QString kind_string = "Aggregate";
 
 
-void Aggregate::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Aggregate(factory, is_temp_node);
+void Aggregate::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Aggregate(broker, is_temp_node);
     });
 }
 
 
-Aggregate::Aggregate(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if (is_temp) {
         return;
     }
@@ -23,15 +25,19 @@ Aggregate::Aggregate(EntityFactory& factory, bool is_temp) : Node(factory, node_
     // Setup State
     addInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
+    
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
 
+
+
+
     // Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "namespace", QVariant::String, "", true);
-    factory.AttachData(this, "comment", QVariant::String, "");
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "namespace", QVariant::String, "", true);
+    broker.AttachData(this, "comment", QVariant::String, "");
 
 }
 

@@ -2,14 +2,18 @@
 #define DDS_TIMEBASEDFILTERQOSPOLICY_H
 #include "../../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DDS_TimeBasedFilterQosPolicy: public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory);
-    DDS_TimeBasedFilterQosPolicy(EntityFactory& factory, bool is_temp_node);
+public:
+    static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    DDS_TimeBasedFilterQosPolicy(EntityFactoryBroker& factory, bool is_temp_node);
 };
 #endif // DDS_TIMEBASEDFILTERQOSPOLICY_H
 

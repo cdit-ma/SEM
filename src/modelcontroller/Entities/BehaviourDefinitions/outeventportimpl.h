@@ -2,14 +2,18 @@
 #define OUTEVENTPORTIMPL_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class OutEventPortImpl : public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-	OutEventPortImpl(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+	OutEventPortImpl(EntityFactoryBroker& factory, bool is_temp_node);
 
     QSet<Node*> getParentNodesForValidDefinition();
 public:

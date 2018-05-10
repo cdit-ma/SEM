@@ -1,16 +1,18 @@
 #include "shareddatatypes.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SHARED_DATATYPES;
 const QString kind_string = "SharedDatatypes";
 
-void SharedDatatypes::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new SharedDatatypes(factory, is_temp_node);
+void SharedDatatypes::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new SharedDatatypes(broker, is_temp_node);
     });
 }
 
-SharedDatatypes::SharedDatatypes(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+SharedDatatypes::SharedDatatypes(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,7 +22,10 @@ SharedDatatypes::SharedDatatypes(EntityFactory& factory, bool is_temp) : Node(fa
     setAcceptsNodeKind(NODE_KIND::ENUM);
     setAcceptsNodeKind(NODE_KIND::NAMESPACE);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "uuid", QVariant::String, "", true);
-    factory.AttachData(this, "version", QVariant::String, "v1.0", false);
+    broker.AttachData(this, "uuid", QVariant::String, "", true);
+    broker.AttachData(this, "version", QVariant::String, "v1.0", false);
 }

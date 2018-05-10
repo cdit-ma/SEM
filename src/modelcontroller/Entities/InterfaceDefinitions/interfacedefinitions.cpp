@@ -1,16 +1,18 @@
 #include "interfacedefinitions.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::INTERFACE_DEFINITIONS;
 const QString kind_string = "InterfaceDefinitions";
 
-void InterfaceDefinitions::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new InterfaceDefinitions(factory, is_temp_node);
+void InterfaceDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new InterfaceDefinitions(broker, is_temp_node);
         });
 }
 
-InterfaceDefinitions::InterfaceDefinitions(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+InterfaceDefinitions::InterfaceDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -24,8 +26,10 @@ InterfaceDefinitions::InterfaceDefinitions(EntityFactory& factory, bool is_temp)
     setAcceptsNodeKind(NODE_KIND::NAMESPACE);
     setAcceptsNodeKind(NODE_KIND::SERVER_INTERFACE);
 
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "INTERFACES", true);
+    broker.AttachData(this, "label", QVariant::String, "INTERFACES", true);
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect() const

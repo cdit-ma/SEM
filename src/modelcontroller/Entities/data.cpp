@@ -1,8 +1,8 @@
 #include "data.h"
-#include "../entityfactory.h"
+#include "../entityfactorybroker.h"
 #include <QDebug>
 
-Data::Data(EntityFactory& factory, Key *key, QVariant value, bool protect) : GraphML(factory, GRAPHML_KIND::DATA)
+Data::Data(EntityFactoryBroker& broker, Key *key, QVariant value, bool protect) : GraphML(broker, GRAPHML_KIND::DATA)
 {
     this->key = key;
     this->key_name = key->getName();
@@ -33,15 +33,6 @@ Data::~Data()
         auto top = *child_datas.begin();
         unlinkData(top);
     }
-}
-
-Data *Data::clone(Data *data)
-{
-    if(data){
-        auto& factory = data->getFactory();
-        factory.CreateData(data->getKey(), data->getValue(), data->isProtected());
-    }
-    return 0;
 }
 
 void Data::registerParent(Entity* parent){

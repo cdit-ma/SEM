@@ -2,14 +2,18 @@
 #define INEVENTPORTIMPL_H
 #include "containernode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class InEventPortImpl : public Node
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-	InEventPortImpl(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+	InEventPortImpl(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
 };

@@ -6,7 +6,9 @@
 #include <QStringBuilder>
 #include <QByteArray>
 #include <QStack>
-#include "../entityfactory.h"
+#include "../entityfactorybroker.h"
+#include "../entityfactoryregistrybroker.h"
+#include "../entityfactoryregistrybroker.h"
 
 #include "InterfaceDefinitions/datanode.h"
 
@@ -15,49 +17,24 @@
 #include "Keys/indexkey.h"
 #include "Keys/typekey.h"
 
-
-void Node::RegisterWithEntityFactory(EntityFactory& factory, const NODE_KIND& kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor){
-    factory.RegisterNodeKind2(kind, kind_string, constructor);
-}
-
-void Node::RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor){
- 
-}
-
-void Node::RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor){
-
-}
-
-void Node::RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor){
-
-}
-
-void Node::RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected, QVariant value){
-
-}
-
-void Node::RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values){
-
-}
-
-Node::Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node) : Entity(factory, GRAPHML_KIND::NODE){
+Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) : Entity(broker, GRAPHML_KIND::NODE){
     //Setup State
     node_kind_ = node_kind;
-    
+
     if(is_temp_node){
         return;
     }
 
     //Attach default data
-    factory.AttachData(this, "kind", QVariant::String, factory.getNodeKindString(node_kind), true);
-    factory.AttachData(this, "label", QVariant::String, factory.getNodeKindString(node_kind), false);
-    factory.AttachData(this, "index", QVariant::Int, -1, true);
+    broker.AttachData(this, "kind", QVariant::String, broker.GetNodeKindString(node_kind), true);
+    broker.AttachData(this, "label", QVariant::String, broker.GetNodeKindString(node_kind), false);
+    broker.AttachData(this, "index", QVariant::Int, -1, true);
 }
 
 Node::~Node()
 {
     //Deregister first 
-    getFactory().DeregisterNode(this);
+    getFactoryBroker().DeregisterNode(this);
 
     if(parent_node_){
         parent_node_->removeChild(this);
@@ -397,7 +374,7 @@ bool Node::addChild(Node *child)
             auto key = data->getKey();
             if(!child->gotData("uuid")){
                 //Construct a new piece of data
-                getFactory().AttachData(child, key, "", true);
+                getFactoryBroker().AttachData(child, key, "", true);
             }
         }
         childAdded(child);
@@ -1079,15 +1056,15 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
     if(def_icon && def_icon_prefix){
         auto key_icon_prefix = def_icon_prefix->getKey();
         auto key_icon = def_icon->getKey();
-        auto& factory = instance->getFactory();
+        auto& broker = instance->getFactoryBroker();
 
         //Construct Icon Prefix if we don't have one already
         if(!instance->gotData(key_icon_prefix)){
-            factory.AttachData(instance, key_icon_prefix, def_icon_prefix->getValue(), true);
+            broker.AttachData(instance, key_icon_prefix, def_icon_prefix->getValue(), true);
         }
         //Construct Icon if we don't have one already
         if(!instance->gotData(key_icon)){
-            factory.AttachData(instance, key_icon, def_icon->getValue(), true);
+            broker.AttachData(instance, key_icon, def_icon->getValue(), true);
         }
     }
 
@@ -1122,13 +1099,16 @@ QList<Node*> Node::getRequiredInstanceDefinitions(){
 void Node::setAcceptsEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction, bool accept){
     auto& direction_set = direction == EDGE_DIRECTION::SOURCE ? accepted_edge_kinds_as_source_ : accepted_edge_kinds_as_target_;
     
+    auto size = direction_set.size();
     if(accept){
         direction_set.insert(edge_kind);
     }else{
         direction_set.remove(edge_kind);
     }
-
-    getFactory().acceptedEdgeKindsChanged(this);
+    auto post_size = direction_set.size();
+    if(size != post_size){
+        getFactoryBroker().AcceptedEdgeKindsChanged(this);
+    }
 }
 
 bool Node::canAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direction) const{

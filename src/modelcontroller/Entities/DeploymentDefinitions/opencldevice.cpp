@@ -1,16 +1,18 @@
 #include "opencldevice.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const static NODE_KIND node_kind = NODE_KIND::OPENCL_DEVICE;
 const static QString kind_string = "OpenCLDevice";
 
-void OpenCLDevice::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new OpenCLDevice(factory, is_temp_node);
+void OpenCLDevice::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new OpenCLDevice(broker, is_temp_node);
     });
 }
 
-OpenCLDevice::OpenCLDevice(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+OpenCLDevice::OpenCLDevice(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,11 +22,14 @@ OpenCLDevice::OpenCLDevice(EntityFactory& factory, bool is_temp) : Node(factory,
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 
+
+
+    
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "", true);
-    factory.AttachData(this, "is_available", QVariant::Bool, false, true);
-    factory.AttachData(this, "memory_size", QVariant::Int, -1, true);
-    factory.AttachData(this, "clock_freq", QVariant::Int, -1, true);
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "version", QVariant::String, "", true);
+    broker.AttachData(this, "label", QVariant::String, "", true);
+    broker.AttachData(this, "is_available", QVariant::Bool, false, true);
+    broker.AttachData(this, "memory_size", QVariant::Int, -1, true);
+    broker.AttachData(this, "clock_freq", QVariant::Int, -1, true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "version", QVariant::String, "", true);
 }

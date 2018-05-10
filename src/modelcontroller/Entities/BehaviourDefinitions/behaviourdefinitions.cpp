@@ -1,16 +1,17 @@
 #include "behaviourdefinitions.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::BEHAVIOUR_DEFINITIONS;
 const QString kind_string = "BehaviourDefinitions";
 
-void BehaviourDefinitions::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new BehaviourDefinitions(factory, is_temp_node);
+void BehaviourDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new BehaviourDefinitions(broker, is_temp_node);
         });
 }
 
-BehaviourDefinitions::BehaviourDefinitions(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+BehaviourDefinitions::BehaviourDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -20,8 +21,11 @@ BehaviourDefinitions::BehaviourDefinitions(EntityFactory& factory, bool is_temp)
     setAcceptsNodeKind(NODE_KIND::CLASS);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_IMPL);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);
+    broker.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);
 }
 
 VIEW_ASPECT BehaviourDefinitions::getViewAspect() const

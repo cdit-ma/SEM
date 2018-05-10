@@ -2,14 +2,18 @@
 #define MEDEA_CLIENTPORT_H
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class ClientPort : public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        ClientPort(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        ClientPort(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node* child);
     };

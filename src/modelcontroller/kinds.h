@@ -1,5 +1,6 @@
 #ifndef KINDS_H
 #define KINDS_H
+#include <QObject>
 
 enum class GRAPHML_KIND
     {

@@ -118,7 +118,7 @@ void ContextMenu::themeChanged(){
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
     //remove_edge_menu->setIcon(theme->getIcon("Icons", "connectStriked"));
-    deploy_menu->setIcon(theme->getIcon("Icons", "screen"));
+    deploy_menu->setIcon(theme->getIcon("Icons", "screenTwoTone"));
 
     for(auto node_action : add_node_action_hash.values()){
         Theme::UpdateActionIcon(node_action, theme);

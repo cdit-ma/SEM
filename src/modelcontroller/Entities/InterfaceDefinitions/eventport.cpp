@@ -2,10 +2,10 @@
 #include "aggregate.h"
 #include "aggregateinstance.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
 
 
-EventPort::EventPort(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : Node(factory, node_kind, is_temp){
+EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
     if (is_temp) {
         return;
     }
@@ -13,7 +13,9 @@ EventPort::EventPort(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) 
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 
-    factory.AttachData(this, "type", QVariant::String, "", true);
+
+
+    broker.AttachData(this, "type", QVariant::String, "", true);
 };
 
 bool EventPort::isInPort() const

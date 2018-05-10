@@ -54,12 +54,17 @@ void DockTabWidget::themeChanged()
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
 
     QIcon partIcon;
-    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
-    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
+    partIcon.addPixmap(theme->getImage("Icons", "circlePlusDark", QSize(), theme->getMenuIconColor()));
+    partIcon.addPixmap(theme->getImage("Icons", "circlePlusTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
+    partIcon.addPixmap(theme->getImage("Icons", "circlePlusDark", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
+    partIcon.addPixmap(theme->getImage("Icons", "circlePlusTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
+
 
     QIcon hardwareIcon;
     hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
-    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screenTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screenTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
 
     parts_action->setIcon(partIcon);
     deploy_action->setIcon(hardwareIcon);

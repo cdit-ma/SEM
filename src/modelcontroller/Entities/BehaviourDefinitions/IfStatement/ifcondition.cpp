@@ -1,17 +1,18 @@
 #include "ifcondition.h"
 #include "../containernode.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::IF_CONDITION;
 const QString kind_string = "IfCondition";
 
-void MEDEA::IfCondition::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::IfCondition(factory, is_temp_node);
+void MEDEA::IfCondition::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::IfCondition(broker, is_temp_node);
         });
 }
 
-MEDEA::IfCondition::IfCondition(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+MEDEA::IfCondition::IfCondition(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -25,8 +26,11 @@ MEDEA::IfCondition::IfCondition(EntityFactory& factory, bool is_temp) : DataNode
     setLabelFunctional(false);
     setDataReceiver(true);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "if", true);
-    factory.AttachData(this, "type", QVariant::String, "Boolean", true);
-    factory.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "label", QVariant::String, "if", true);
+    broker.AttachData(this, "type", QVariant::String, "Boolean", true);
+    broker.AttachData(this, "value", QVariant::String, "", false);
 }

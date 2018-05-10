@@ -1,18 +1,20 @@
 #include "deploymentattribute.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 #include "../Keys/typekey.h"
 
 const NODE_KIND node_kind = NODE_KIND::DEPLOYMENT_ATTRIBUTE;
 const QString kind_string = "DeploymentAttribute";
 
-void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::DeploymentAttribute(factory, is_temp_node);
+void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::DeploymentAttribute(broker, is_temp_node);
         });
 }
 
 
-MEDEA::DeploymentAttribute::DeploymentAttribute(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -22,9 +24,13 @@ MEDEA::DeploymentAttribute::DeploymentAttribute(EntityFactory& factory, bool is_
     setDataReceiver(true);
     setMultipleDataProducer(true);
 
+
+
+
+        
     //Setup Data
-    auto type_data = factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "comment", QVariant::String, "", false);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "comment", QVariant::String, "", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
 }
 

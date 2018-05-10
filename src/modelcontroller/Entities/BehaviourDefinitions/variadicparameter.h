@@ -2,15 +2,19 @@
 #define VARIADICPARAMETER_H
 #include "parameter.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class VariadicParameter : public Parameter
 {
-	friend class EntityFactory;
+
     Q_OBJECT
 	
+
 	protected:
-		static void RegisterWithEntityFactory(EntityFactory& factory);
-		VariadicParameter(EntityFactory& factory, bool is_temp_node);
+public:
+		static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+		VariadicParameter(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // VARIADICPARAMETER_H

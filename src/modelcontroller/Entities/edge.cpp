@@ -3,27 +3,29 @@
 #include "data.h"
 #include <QDebug>
 
-#include "../entityfactory.h"
+#include "../entityfactorybroker.h"
 #include "../edgekinds.h"
 
-
-void Edge::RegisterWithEntityFactory(EntityFactory& factory, const EDGE_KIND& edge_kind, const QString& kind_string, std::function<Edge* (EntityFactory&, Node*, Node*)> constructor){
-    factory.RegisterEdgeKind2(edge_kind, kind_string, constructor);
-}
-
-Edge::Edge(EntityFactory& factory, Node *source, Node *destination, EDGE_KIND kind):Entity(factory, GRAPHML_KIND::EDGE)
+Edge::Edge(EntityFactoryBroker& broker, Node *source, Node *destination, EDGE_KIND edge_kind) : Entity(broker, GRAPHML_KIND::EDGE)
 {
     //Set the instance Variables
-    this->kind = kind;
+    this->kind = edge_kind;
     this->source = source;
     this->destination = destination;
 
+    //Attach default data
+    broker.AttachData(this, "kind", QVariant::String, broker.GetEdgeKindString(edge_kind), true);
+
     //Attach the Edge to its source/Destination
     if(source && destination){
-        if(!source->canAcceptEdgeKind(kind, EDGE_DIRECTION::SOURCE)){
+        if(source == destination){
+            throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as both Source and Target.");
+        }
+
+        if(!source->canAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Source.");
         }
-        if(!destination->canAcceptEdgeKind(kind, EDGE_DIRECTION::TARGET)){
+        if(!destination->canAcceptEdgeKind(edge_kind, EDGE_DIRECTION::TARGET)){
             throw std::invalid_argument(source->toString().toStdString() + " Cannot add an edge as Target.");
         }
         source->addEdge(this);
@@ -40,7 +42,7 @@ EDGE_KIND Edge::getEdgeKind() const{
 Edge::~Edge()
 {
     //Deregister first 
-    getFactory().DeregisterEdge(this);
+    getFactoryBroker().DeregisterEdge(this);
     
     //Remove from the Source/Destination
     if(destination){

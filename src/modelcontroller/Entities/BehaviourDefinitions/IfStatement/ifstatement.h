@@ -2,15 +2,17 @@
 #define MEDEA_IFSTATEMENT_H
 #include "../../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class IfStatement: public Node
     {
-        friend class ::EntityFactory;
-        Q_OBJECT
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        IfStatement(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        IfStatement(EntityFactoryBroker& factory, bool is_temp_node);
     public:
         bool canAdoptChild(Node* child);
     };

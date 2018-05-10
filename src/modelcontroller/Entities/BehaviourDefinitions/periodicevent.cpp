@@ -1,17 +1,18 @@
 #include "periodicevent.h"
 #include "containernode.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::PERIODICEVENT;
 const QString kind_string = "PeriodicEvent";
 
-void PeriodicEvent::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new PeriodicEvent(factory, is_temp_node);
+void PeriodicEvent::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new PeriodicEvent(broker, is_temp_node);
         });
 }
 
-PeriodicEvent::PeriodicEvent(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }

@@ -1,18 +1,20 @@
 #include "forloop.h"
 #include "../containernode.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 #include "../../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::FOR_LOOP;
 const QString kind_string = "ForLoop";
 
-void MEDEA::ForLoop::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ForLoop(factory, is_temp_node);
+void MEDEA::ForLoop::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ForLoop(broker, is_temp_node);
         });
 }
 
-MEDEA::ForLoop::ForLoop(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -30,30 +32,34 @@ MEDEA::ForLoop::ForLoop(EntityFactory& factory, bool is_temp) : Node(factory, no
         setAcceptsNodeKind(node_kind);
     }
 
+
+
+
+
     //Attach Data
-    factory.AttachData(this, "label", QVariant::String, "for", true);
+    broker.AttachData(this, "label", QVariant::String, "for", true);
 
     //Attach Children
     
-    variable_ = factory.ConstructChildNode(*this, NODE_KIND::VARIABLE_PARAMETER);
-    auto expression = (DataNode*) factory.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
+    variable_ = broker.ConstructChildNode(*this, NODE_KIND::VARIABLE_PARAMETER);
+    auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
-    iteration_ = factory.ConstructChildNode(*this, NODE_KIND::SETTER);
+    iteration_ = broker.ConstructChildNode(*this, NODE_KIND::SETTER);
 
     //Set that the Expression
     expression->setDataReceiver(true);
     expression->setDataProducer(false);
 
 
-    factory.AttachData(variable_, "label", QVariant::String, "i", false);
-    factory.AttachData(variable_, "value", QVariant::Int, 0, false);
+    broker.AttachData(variable_, "label", QVariant::String, "i", false);
+    broker.AttachData(variable_, "value", QVariant::Int, 0, false);
 
-    factory.AttachData(iteration_, "icon", QVariant::String, "reload", true);
-    factory.AttachData(iteration_, "icon_prefix", QVariant::String, "Icons", true);
+    broker.AttachData(iteration_, "icon", QVariant::String, "reload", true);
+    broker.AttachData(iteration_, "icon_prefix", QVariant::String, "Icons", true);
 
     for(auto child : {variable_, expression_, iteration_}){
-        factory.AttachData(child, "row", QVariant::Int, 0, true);
-        factory.AttachData(child, "column", QVariant::Int, -1, true);
+        broker.AttachData(child, "row", QVariant::Int, 0, true);
+        broker.AttachData(child, "column", QVariant::Int, -1, true);
     }
 
     //Bind Value changing

@@ -3,14 +3,18 @@
 #include "../node.h"
 #include "containernode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 namespace MEDEA{
     class Function :  public Node{
-        friend class ::EntityFactory;
-        Q_OBJECT
+
+   
+    friend class ::EntityFactory;
     protected:
-        static void RegisterWithEntityFactory(EntityFactory& factory);
-        Function(EntityFactory& factory, bool is_temp_node);
+public:
+        static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+        Function(EntityFactoryBroker& factory, bool is_temp_node);
 
         void parentSet(Node* parent);
     public:

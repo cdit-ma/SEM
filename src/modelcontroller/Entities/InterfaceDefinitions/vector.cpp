@@ -1,17 +1,19 @@
 #include "vector.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::VECTOR;
 const QString kind_string = "Vector";
 
-void Vector::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Vector(factory, is_temp_node);
+void Vector::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Vector(broker, is_temp_node);
     });
 }
 
-Vector::Vector(EntityFactory& factory, bool is_temp) : DataNode(factory, node_kind, is_temp){
+Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -26,10 +28,13 @@ Vector::Vector(EntityFactory& factory, bool is_temp) : DataNode(factory, node_ki
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "icon", QVariant::String, "", true);
-    factory.AttachData(this, "icon_prefix", QVariant::String, "", true);
-    factory.AttachData(this, "outer_type", QVariant::String, "Vector", true);
+    broker.AttachData(this, "icon", QVariant::String, "", true);
+    broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
+    broker.AttachData(this, "outer_type", QVariant::String, "Vector", true);
 }
 
 bool Vector::canAdoptChild(Node *child)

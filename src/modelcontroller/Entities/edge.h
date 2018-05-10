@@ -7,17 +7,14 @@
 #include "../nodekinds.h"
 #include "../edgekinds.h"
 
-class EntityFactory;
-class Node;
 
+class Node;
 class Edge: public Entity{
     Q_OBJECT
 
-    //The factory can access protected constructors
-    friend class EntityFactory;
+
 protected:
-    static void RegisterWithEntityFactory(EntityFactory& factory, const EDGE_KIND& edge_kind, const QString& kind_string, std::function<Edge* (EntityFactory&, Node*, Node*)> constructor);
-    Edge(EntityFactory& factory, Node* source, Node* destination, EDGE_KIND kind);
+    Edge(EntityFactoryBroker& broker, Node* source, Node* destination, EDGE_KIND kind);
     ~Edge();
 public:
     static bool SortByKind(const Edge* a, const Edge* b);

@@ -1,16 +1,18 @@
 #include "dds_partitionqospolicy.h"
-#include "../../../../entityfactory.h"
+#include "../../../../entityfactorybroker.h"
+#include "../../../../entityfactoryregistrybroker.h"
+#include "../../../../entityfactoryregistrybroker.h"
 
 const static NODE_KIND node_kind = NODE_KIND::QOS_DDS_POLICY_PARTITION;
 const static QString kind_string = "DDS_PartitionQosPolicy";
 
-void DDS_PartitionQosPolicy::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new DDS_PartitionQosPolicy(factory, is_temp_node);
+void DDS_PartitionQosPolicy::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new DDS_PartitionQosPolicy(broker, is_temp_node);
     });
 }
 
-DDS_PartitionQosPolicy::DDS_PartitionQosPolicy(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+DDS_PartitionQosPolicy::DDS_PartitionQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -19,7 +21,11 @@ DDS_PartitionQosPolicy::DDS_PartitionQosPolicy(EntityFactory& factory, bool is_t
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
+
+
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "partition", true);
-    factory.AttachData(this, "qos_dds_name", QVariant::String, "", false);
+    broker.AttachData(this, "label", QVariant::String, "partition", true);
+    broker.AttachData(this, "qos_dds_name", QVariant::String, "", false);
 }

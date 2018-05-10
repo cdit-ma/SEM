@@ -2,16 +2,21 @@
 #define VARIABLE_H
 #include "../InterfaceDefinitions/datanode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class Variable: public DataNode
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-	Variable(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+	Variable(EntityFactoryBroker& factory, bool is_temp_node);
 public:
     bool canAdoptChild(Node* child);
+
 protected:
     void childAdded(Node* child);
     void childRemoved(Node* child);

@@ -1,16 +1,18 @@
 #include "returnparametergroup.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::RETURN_PARAMETER_GROUP;
 const QString kind_string = "ReturnParameterGroup";
 
-void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ReturnParameterGroup(factory, is_temp_node);
+void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ReturnParameterGroup(broker, is_temp_node);
     });
 }
 
-MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -19,10 +21,13 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(EntityFactory& factory, bool i
     setLabelFunctional(false);
     addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "label", QVariant::String, "Return", false);
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "label", QVariant::String, "Return", false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)

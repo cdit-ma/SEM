@@ -10,14 +10,14 @@
 #include <QSet>
 
 class Edge;
-class EntityFactory;
+class EntityFactoryBroker;
+class EntityFactoryRegistryBroker;
 
 class Node : public Entity
 {
     Q_OBJECT
     friend class Edge;
-    friend class EntityFactory;
-
+    
     public:
         enum class EdgeRule{
             ALLOW_EXTERNAL_DEFINITIONS,
@@ -27,22 +27,12 @@ class Node : public Entity
         };
 
     protected:
-        //Factory Static Functions
-        
-        static void RegisterNodeKind(EntityFactory* factory, NODE_KIND kind, QString kind_string, std::function<Node* ()> constructor);
-        static void RegisterWithEntityFactory(EntityFactory& factory, const NODE_KIND& kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);
-        
-        static void RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*)> constructor);
-        static void RegisterComplexNodeKind(EntityFactory* factory, NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor);
-        static void RegisterDefaultData(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, bool is_protected = false, QVariant value = QVariant());
-        static void RegisterValidDataValues(EntityFactory* factory, NODE_KIND kind, QString key_name, QVariant::Type type, QList<QVariant> values);
-        
         //Static Helper Functions
         static void BindDefinitionToInstance(Node* definition, Node* instance, bool setup);
         static void LinkData(Node* source, const QString &source_key, Node* destination, const QString &destination_key, bool setup);
         
         //Constuctor
-        Node(EntityFactory& factory, NODE_KIND node_kind, bool is_temp_node);
+        Node(EntityFactoryBroker& factory, NODE_KIND node_kind, bool is_temp_node);
         ~Node();
 
 

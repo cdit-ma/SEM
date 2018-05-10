@@ -1,18 +1,20 @@
 #include "enum.h"
 #include "../data.h"
 #include "../Keys/typekey.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ENUM;
 const QString kind_string = "Enum";
 
-void Enum::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new Enum(factory, is_temp_node);
+void Enum::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new Enum(broker, is_temp_node);
     });
 }
 
-Enum::Enum(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+Enum::Enum(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -21,9 +23,11 @@ Enum::Enum(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_t
     addInstanceKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::ENUM_MEMBER);
 
+
+
     //Setup Data
-    factory.AttachData(this, "namespace", QVariant::String, "", true);
-    factory.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "namespace", QVariant::String, "", true);
+    broker.AttachData(this, "type", QVariant::String, "", true);
 }
 
 void Enum::DataAdded(Data* data){

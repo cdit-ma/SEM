@@ -2,14 +2,17 @@
 #define ATTRIBUTEIMPL_H
 #include "../InterfaceDefinitions/datanode.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class AttributeImpl : public DataNode
 {
-	friend class EntityFactory;
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    AttributeImpl(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    AttributeImpl(EntityFactoryBroker& factory, bool is_temp_node);
     bool canAcceptEdge(EDGE_KIND edgeKind, Node *dst);
 };
 

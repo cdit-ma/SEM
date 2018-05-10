@@ -2,14 +2,18 @@
 #define INEVENTPORTINSTANCE_H
 #include "eventportassembly.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class InEventPortInstance : public EventPortAssembly
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    InEventPortInstance(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    InEventPortInstance(EntityFactoryBroker& factory, bool is_temp_node);
 private:
 	void updateQOSEdge();
 };

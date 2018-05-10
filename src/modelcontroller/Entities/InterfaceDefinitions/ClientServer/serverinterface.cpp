@@ -1,17 +1,18 @@
 #include "serverinterface.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_INTERFACE;
 const QString kind_string = "ServerInterface";
 
-void MEDEA::ServerInterface::RegisterWithEntityFactory(EntityFactory& factory){
-	Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ServerInterface(factory, is_temp_node);
+void MEDEA::ServerInterface::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+	broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ServerInterface(broker, is_temp_node);
         });
 };
 
 
-MEDEA::ServerInterface::ServerInterface(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -23,11 +24,11 @@ MEDEA::ServerInterface::ServerInterface(EntityFactory& factory, bool is_temp) : 
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
 
     //Setup Children
-    auto input_params = factory.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);
-    auto return_params = factory.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
+    auto input_params = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);
+    auto return_params = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
 
-    factory.AttachData(input_params, "label", QVariant::String, "Request", false);
-    factory.AttachData(return_params, "label", QVariant::String, "Reply", false);
+    broker.AttachData(input_params, "label", QVariant::String, "Request", false);
+    broker.AttachData(return_params, "label", QVariant::String, "Reply", false);
 }
 
 

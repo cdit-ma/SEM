@@ -2,14 +2,18 @@
 #define INEVENTPORTDELEGATE_H
 #include "eventportassembly.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class InEventPortDelegate: public EventPortAssembly
 {
-	friend class EntityFactory;
+
     Q_OBJECT
+
 protected:
-	static void RegisterWithEntityFactory(EntityFactory& factory);
-    InEventPortDelegate(EntityFactory& factory, bool is_temp_node);
+public:
+	static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
+protected:
+    InEventPortDelegate(EntityFactoryBroker& factory, bool is_temp_node);
 };
 
 #endif // INEVENTPORTDELEGATE_H

@@ -2,11 +2,13 @@
 #define DATANODE_H
 #include "../node.h"
 
-class EntityFactory;
+
+class EntityFactoryRegistryBroker;
 class DataNode : public Node
 {
+
 protected:
-    DataNode(EntityFactory& factory, NODE_KIND kind, bool is_temp);
+    DataNode(EntityFactoryBroker& factory, NODE_KIND kind, bool is_temp);
 public:
     static void BindDataRelationship(Node* source, Node* destination, bool setup);
     bool hasInputData();

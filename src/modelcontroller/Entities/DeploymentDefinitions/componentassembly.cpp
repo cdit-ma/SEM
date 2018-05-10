@@ -1,16 +1,18 @@
 #include "componentassembly.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::COMPONENT_ASSEMBLY;
 const QString kind_string = "ComponentAssembly";
 
-void ComponentAssembly::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new ComponentAssembly(factory, is_temp_node);
+void ComponentAssembly::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
+        return new ComponentAssembly(broker, is_temp_node);
         });
 }
 
-ComponentAssembly::ComponentAssembly(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -25,7 +27,10 @@ ComponentAssembly::ComponentAssembly(EntityFactory& factory, bool is_temp) : Nod
     setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_DELEGATE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
 
+
+
+    
     //Setup Data
-    factory.AttachData(this, "replicate_count", QVariant::Int, 1, false);
-    factory.AttachData(this, "comment", QVariant::String, "", false);
+    broker.AttachData(this, "replicate_count", QVariant::Int, 1, false);
+    broker.AttachData(this, "comment", QVariant::String, "", false);
 }

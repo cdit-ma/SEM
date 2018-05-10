@@ -1,7 +1,9 @@
 #include "eventportassembly.h"
-#include "../../entityfactory.h"
+#include "../../entityfactorybroker.h"
+#include "../../entityfactoryregistrybroker.h"
+#include "../../entityfactoryregistrybroker.h"
 
-EventPortAssembly::EventPortAssembly(EntityFactory& factory, NODE_KIND node_kind, bool is_temp) : EventPort(factory, node_kind, is_temp){
+EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : EventPort(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -10,12 +12,15 @@ EventPortAssembly::EventPortAssembly(EntityFactory& factory, NODE_KIND node_kind
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
+    
 
-    factory.AttachData(this, "type", QVariant::String, "", true);
+
+
+    broker.AttachData(this, "type", QVariant::String, "", true);
     if(node_kind == NODE_KIND::INEVENTPORT_INSTANCE || node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE){
-        factory.AttachData(this, "topicName", QVariant::String, "", true);
+        broker.AttachData(this, "topicName", QVariant::String, "", true);
         
-        auto data_middleware = factory.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
+        auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
         data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "TAO"});
     }
 };

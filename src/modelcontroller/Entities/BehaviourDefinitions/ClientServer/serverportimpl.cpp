@@ -1,16 +1,17 @@
 #include "serverportimpl.h"
-#include "../../../entityfactory.h"
+#include "../../../entityfactorybroker.h"
+#include "../../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::SERVER_PORT_IMPL;
 const QString kind_string = "ServerPortImpl";
 
-void MEDEA::ServerPortImpl::RegisterWithEntityFactory(EntityFactory& factory){
-    Node::RegisterWithEntityFactory(factory, node_kind, kind_string, [](EntityFactory& factory, bool is_temp_node){
-        return new MEDEA::ServerPortImpl(factory, is_temp_node);
+void MEDEA::ServerPortImpl::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& broker){
+    broker.RegisterWithEntityFactory(node_kind, kind_string, [](::EntityFactoryBroker& broker, bool is_temp_node){
+        return new MEDEA::ServerPortImpl(broker, is_temp_node);
         });
 }
 
-MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory& factory, bool is_temp) : Node(factory, node_kind, is_temp){
+MEDEA::ServerPortImpl::ServerPortImpl(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
         return;
     }
@@ -24,9 +25,12 @@ MEDEA::ServerPortImpl::ServerPortImpl(EntityFactory& factory, bool is_temp) : No
         setAcceptsNodeKind(node_kind);
     }
 
+
+
+
     //Setup Data
-    factory.AttachData(this, "type", QVariant::String, "", true);
-    factory.AttachData(this, "index", QVariant::Int, -1, false);
+    broker.AttachData(this, "type", QVariant::String, "", true);
+    broker.AttachData(this, "index", QVariant::Int, -1, false);
 }
 
 bool MEDEA::ServerPortImpl::canAdoptChild(Node* child)
