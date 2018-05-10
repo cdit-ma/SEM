@@ -16,10 +16,6 @@ void AggregateInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 }
 
 AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::AGGREGATE);
     setChainableDefinition();
@@ -29,9 +25,11 @@ AggregateInstance::AggregateInstance(EntityFactoryBroker& broker, bool is_temp) 
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
 
-
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+    
     //Setup Data
     broker.AttachData(this, "index", QVariant::Int, -1);
     broker.AttachData(this, "type", QVariant::String, "", true);

@@ -13,16 +13,14 @@ void DDS_TransportPriorityQosPolicy::RegisterWithEntityFactory(EntityFactoryRegi
 }
 
 DDS_TransportPriorityQosPolicy::DDS_TransportPriorityQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "transport_priority", true);

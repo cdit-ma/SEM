@@ -15,10 +15,6 @@ void Component::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstanceKind(NODE_KIND::COMPONENT_INSTANCE);
     addImplKind(NODE_KIND::COMPONENT_IMPL);
@@ -28,9 +24,11 @@ Component::Component(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT);
     setAcceptsNodeKind(NODE_KIND::CLIENT_PORT);
 
-
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+    
     //Setup Data
     broker.AttachData(this, "comment", QVariant::String, "");
     broker.AttachData(this, "namespace", QVariant::String, "", true);

@@ -72,6 +72,8 @@ ModelController::ModelController():QObject(0)
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<MODEL_SEVERITY>("MODEL_SEVERITY");
     qRegisterMetaType<QSet<EDGE_DIRECTION> >("QSet<EDGE_DIRECTION>");
+    qRegisterMetaType<DataUpdate>("DataUpdate");
+    
 }
 
 bool ModelController::SetupController(QString file_path)
@@ -1195,7 +1197,6 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDG
     }
     
     if(!src_nodes.empty() && srcs_require_edge){
-
         for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
             bool all_valid = true;
 
@@ -1338,14 +1339,15 @@ QStringList ModelController::getEntityKeys(int ID){
     return keys;
 }
 
-QList<QPair<QString, QVariant> > ModelController::getEntityDataList(int ID){
-    QList<QPair<QString, QVariant> > data_list;
+QList<DataUpdate> ModelController::getEntityDataList(int ID){
+    QList<DataUpdate> data_list;
     QReadLocker lock(&lock_);
 
     auto entity = entity_factory->GetEntity(ID);
     if(entity){
         for(auto data : entity->getData()){
-            data_list += {data->getKeyName(), data->getValue()};
+
+            data_list += DataUpdate({data->getKeyName(), data->getValue(), data->isProtected()});
         }
     }
     return data_list;
@@ -1459,7 +1461,15 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
             }
 
             if(inserted){
-                connect(item, &Entity::dataChanged, this, &ModelController::DataChanged, Qt::UniqueConnection);
+                connect(item, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
+                    DataUpdate data;
+                    data.key_name = key_name;
+                    data.value = value;
+                    data.is_protected = is_protected;
+
+                    emit DataChanged(ID, data);
+                });
+                
                 connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
             }else{
                 qCritical() << "Entity: " << id << " Already Stored";

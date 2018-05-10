@@ -13,13 +13,14 @@ void WorkerDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 }
 
 WorkerDefinitions::WorkerDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::CLASS);
+
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "WORKERS", true);

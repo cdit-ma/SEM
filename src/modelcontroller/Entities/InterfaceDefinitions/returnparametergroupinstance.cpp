@@ -13,10 +13,6 @@ void MEDEA::ReturnParameterGroupInstance::RegisterWithEntityFactory(::EntityFact
 }
 
 MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     addInstancesDefinitionKind(NODE_KIND::RETURN_PARAMETER_GROUP);
@@ -28,8 +24,10 @@ MEDEA::ReturnParameterGroupInstance::ReturnParameterGroupInstance(::EntityFactor
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

@@ -14,17 +14,15 @@ void Attribute::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     auto type_data = broker.AttachData(this, "type", QVariant::String, "String", true);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());

@@ -12,15 +12,14 @@ void Code::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Code::Code(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
 
-
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+    
     //Setup Data
     broker.AttachData(this, "code", QVariant::String);
 }

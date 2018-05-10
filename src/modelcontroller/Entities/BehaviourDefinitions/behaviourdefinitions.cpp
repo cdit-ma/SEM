@@ -12,17 +12,15 @@ void BehaviourDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker
 }
 
 BehaviourDefinitions::BehaviourDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::CLASS);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_IMPL);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "BEHAVIOUR", true);

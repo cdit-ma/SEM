@@ -14,11 +14,7 @@ void MEDEA::WhileLoop::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& 
 }
 
 MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
-    //SetupState
+    //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
 
@@ -30,8 +26,10 @@ MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(
     }
     setLabelFunctional(false);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     broker.AttachData(this, "label", QVariant::String, "while", true);
 }

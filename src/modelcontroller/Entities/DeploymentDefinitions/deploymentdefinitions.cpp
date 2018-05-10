@@ -13,16 +13,14 @@ void DeploymentDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroke
 }
 
 DeploymentDefinitions::DeploymentDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setAcceptsNodeKind(NODE_KIND::ASSEMBLY_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_DEFINITIONS);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "DEPLOYMENT", true);

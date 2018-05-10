@@ -13,16 +13,15 @@ void DDS_DeadlineQosPolicy::RegisterWithEntityFactory(EntityFactoryRegistryBroke
 }
 
 DDS_DeadlineQosPolicy::DDS_DeadlineQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+    //Setup State
+    setNodeType(NODE_TYPE::QOS);
+    setNodeType(NODE_TYPE::DDS);
+
     if(is_temp){
+        //Break out early for temporary entities
         return;
     }
 
-    //Setup State
-    setNodeType(NODE_TYPE::QOS); setNodeType(NODE_TYPE::DDS);
-
-
-
-    
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "deadline", true);
     broker.AttachData(this, "qos_dds_period_sec", QVariant::String, "DURATION_INFINITE_SEC", false);

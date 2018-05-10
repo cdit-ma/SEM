@@ -15,11 +15,7 @@ void MEDEA::ForLoop::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& br
 }
 
 MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
-    //SetupState
+    //Setup State
     setLabelFunctional(false);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
@@ -32,9 +28,10 @@ MEDEA::ForLoop::ForLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(brok
         setAcceptsNodeKind(node_kind);
     }
 
-
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Attach Data
     broker.AttachData(this, "label", QVariant::String, "for", true);

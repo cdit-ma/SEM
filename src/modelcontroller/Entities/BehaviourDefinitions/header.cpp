@@ -14,9 +14,10 @@ void Header::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 Header::Header(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     if(is_temp){
+        //Break out early for temporary entities
         return;
     }
-
+    
     //Setup Data
     broker.AttachData(this, "code", QVariant::String, "", false);
     auto header_location = broker.AttachData(this, "header_location", QVariant::String, "CPP", false);

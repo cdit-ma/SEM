@@ -571,8 +571,6 @@ void ActionController::updateIcon(RootAction *action, Theme *theme)
         auto icon = theme->getIcon(pair);
         if(!icon.isNull()){
             action->setIcon(icon);
-        }else{
-            //qCritical() << pair;
         }
     }
 }

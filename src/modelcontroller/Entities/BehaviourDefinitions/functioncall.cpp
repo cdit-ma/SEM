@@ -13,10 +13,6 @@ void FunctionCall::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker
 }
 
 FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS, true);
@@ -24,8 +20,10 @@ FunctionCall::FunctionCall(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
     addInstancesDefinitionKind(NODE_KIND::FUNCTION);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, "", true);

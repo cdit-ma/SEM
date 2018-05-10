@@ -6,14 +6,15 @@
 
 
 EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
-    if (is_temp) {
-        return;
-    }
+    //Setup State
     setNodeType(NODE_TYPE::EVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::SOURCE);
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     broker.AttachData(this, "type", QVariant::String, "", true);
 };

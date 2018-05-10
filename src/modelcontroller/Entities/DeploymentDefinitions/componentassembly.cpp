@@ -13,10 +13,6 @@ void ComponentAssembly::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 }
 
 ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE);
@@ -27,9 +23,11 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
     setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_DELEGATE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     broker.AttachData(this, "replicate_count", QVariant::Int, 1, false);
     broker.AttachData(this, "comment", QVariant::String, "", false);

@@ -12,10 +12,6 @@ void InEventPort::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker)
 }
 
 InEventPort::InEventPort(EntityFactoryBroker& broker, bool is_temp) : EventPort(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addImplKind(NODE_KIND::INEVENTPORT_IMPL);
 	addInstanceKind(NODE_KIND::INEVENTPORT_INSTANCE);

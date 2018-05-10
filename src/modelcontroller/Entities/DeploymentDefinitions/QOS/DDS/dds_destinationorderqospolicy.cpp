@@ -13,16 +13,14 @@ void DDS_DestinationOrderQosPolicy::RegisterWithEntityFactory(EntityFactoryRegis
 }
 
 DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     QList<QVariant> values({"BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS", "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS"});

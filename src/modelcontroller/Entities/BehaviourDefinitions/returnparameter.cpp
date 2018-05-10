@@ -12,10 +12,6 @@ void ReturnParameter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& bro
 }
 
 ReturnParameter::ReturnParameter(EntityFactoryBroker& broker, bool is_temp) : Parameter(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataReceiver(false);
     setDataProducer(true);

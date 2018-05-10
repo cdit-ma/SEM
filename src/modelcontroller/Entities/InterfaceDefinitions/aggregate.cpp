@@ -18,10 +18,6 @@ void Aggregate::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 
 
 Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if (is_temp) {
-        return;
-    }
-
     // Setup State
     addInstanceKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsEdgeKind(EDGE_KIND::AGGREGATE, EDGE_DIRECTION::TARGET);
@@ -31,14 +27,15 @@ Aggregate::Aggregate(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     setAcceptsNodeKind(NODE_KIND::MEMBER);
     setAcceptsNodeKind(NODE_KIND::VECTOR);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     // Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "namespace", QVariant::String, "", true);
     broker.AttachData(this, "comment", QVariant::String, "");
-
 }
 
 void Aggregate::DataAdded(Data* data){

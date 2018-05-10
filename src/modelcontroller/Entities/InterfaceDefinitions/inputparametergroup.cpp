@@ -13,15 +13,14 @@ void MEDEA::InputParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegist
 }
 
 MEDEA::InputParameterGroup::InputParameterGroup(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     addInstanceKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "Input", false);

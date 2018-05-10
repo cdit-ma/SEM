@@ -120,8 +120,7 @@ void ViewController::connectModelController(ModelController* c){
     connect(controller, &ModelController::ProjectFileChanged, this, &ViewController::vc_projectPathChanged);
 
     connect(controller, &ModelController::ActionFinished, this, &ViewController::vc_ActionFinished);
-    //connect(controller, &ModelController::ActionFinished, [=](){qCritical() << " === ";});
-
+    
     connect(controller, &ModelController::Notification, this, &ViewController::modelNotification);
 
     connect(controller, &ModelController::SetClipboardData, this, &ViewController::setClipboardData);
@@ -1506,7 +1505,7 @@ void ViewController::StoreViewItem(ViewItem* view_item){
 
         if(controller){
             for(const auto& data : controller->getEntityDataList(id)){
-                view_item->changeData(data.first, data.second);
+                view_item->changeData(data.key_name, data.value, data.is_protected);
             }
         }
         setDefaultIcon(view_item);
@@ -1553,13 +1552,13 @@ void ViewController::controller_entityDestructed(int ID, GRAPHML_KIND)
     }
 }
 
-void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
+void ViewController::controller_dataChanged(int ID, DataUpdate data)
 {
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        //qCritical() << "== REPLY: " << ID << " KEY: " << key << " = " << data;
-        viewItem->changeData(key, data);
+        qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " HE PROTEC " : "");
+        viewItem->changeData(data.key_name, data.value, data.is_protected);
     }
 }
 

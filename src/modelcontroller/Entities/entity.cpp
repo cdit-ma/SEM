@@ -87,7 +87,7 @@ void Entity::_dataChanged(Data *data)
     if(data){
         auto value = data->getValue();
         if(value.isValid()){
-            emit dataChanged(getID(), data->getKeyName(), value);
+            emit dataChanged(getID(), data->getKeyName(), value, data->isProtected());
         }
     }
 }
@@ -244,7 +244,8 @@ bool Entity::setDataValue(Key *key, QVariant value)
 QStringList Entity::getProtectedKeys()
 {
     QStringList protectedKeys;
-    foreach(Data* data, getData()){
+
+    for(auto data : getData()){
         if(data->isProtected()){
             protectedKeys.append(data->getKeyName());
         }

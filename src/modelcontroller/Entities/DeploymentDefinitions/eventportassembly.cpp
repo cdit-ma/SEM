@@ -4,17 +4,15 @@
 #include "../../entityfactoryregistrybroker.h"
 
 EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : EventPort(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     setNodeType(NODE_TYPE::EVENTPORT_ASSEMBLY);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
-    
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     broker.AttachData(this, "type", QVariant::String, "", true);
     if(node_kind == NODE_KIND::INEVENTPORT_INSTANCE || node_kind == NODE_KIND::OUTEVENTPORT_INSTANCE){

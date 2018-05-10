@@ -333,8 +333,7 @@ void MainWindow::setDockWidgetIcon(BaseDockWidget* dock_widget, QString icon_pat
         }
         auto title = dock_widget->getTitle();
         theme->setWindowIcon(title, icon_path, icon_alias);
-        //dock_widget->setIcon("WindowIcon", title);
-        dock_widget->setIcon("Icons", "TwoTone");
+        dock_widget->setIcon("WindowIcon", title);
     }
 }
 

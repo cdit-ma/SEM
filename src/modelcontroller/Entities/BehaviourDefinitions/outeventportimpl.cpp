@@ -15,21 +15,18 @@ void OutEventPortImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& br
 }
 
 OutEventPortImpl::OutEventPortImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addImplsDefinitionKind(NODE_KIND::OUTEVENTPORT);
-
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
 
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     SetEdgeRuleActive(Node::EdgeRule::ALWAYS_CHECK_VALID_DEFINITIONS);
     SetEdgeRuleActive(Node::EdgeRule::ALLOW_MULTIPLE_IMPLEMENTATIONS);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

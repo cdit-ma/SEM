@@ -282,7 +282,9 @@ void DataTableModel::setupDataBinding()
 {
     if(entity){
         //Attach each data.
-        foreach(QString key, entity->getKeys()){
+        auto key_list = entity->getKeys();
+        std::sort(key_list.begin(), key_list.end());
+        for(auto key : key_list){
             addData(key);
         }
         connect(entity, &ViewItem::dataAdded, this, &DataTableModel::addData);

@@ -12,9 +12,6 @@ void MEDEA::ServerPortImpl::RegisterWithEntityFactory(::EntityFactoryRegistryBro
 }
 
 MEDEA::ServerPortImpl::ServerPortImpl(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     addImplsDefinitionKind(NODE_KIND::SERVER_PORT);
 
@@ -25,8 +22,10 @@ MEDEA::ServerPortImpl::ServerPortImpl(::EntityFactoryBroker& broker, bool is_tem
         setAcceptsNodeKind(node_kind);
     }
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

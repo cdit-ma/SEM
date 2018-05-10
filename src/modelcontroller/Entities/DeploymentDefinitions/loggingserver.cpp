@@ -13,17 +13,15 @@ void LoggingServer::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
 }
 
 LoggingServer::LoggingServer(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::LOGGING);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     broker.AttachData(this, "database", QVariant::String, "output.sql", false);
 }

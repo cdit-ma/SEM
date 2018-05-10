@@ -10,6 +10,7 @@
 #include <QSet>
 
 class Edge;
+
 class EntityFactoryBroker;
 class EntityFactoryRegistryBroker;
 

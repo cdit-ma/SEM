@@ -15,19 +15,16 @@ void MEDEA::DeploymentAttribute::RegisterWithEntityFactory(::EntityFactoryRegist
 
 
 MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setDataProducer(true);
     setDataReceiver(true);
     setMultipleDataProducer(true);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-
-        
     //Setup Data
     auto type_data = broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "comment", QVariant::String, "", false);

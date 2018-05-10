@@ -13,17 +13,15 @@ void HardwareCluster::RegisterWithEntityFactory(EntityFactoryRegistryBroker& bro
 }
 
 HardwareCluster::HardwareCluster(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_NODE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "uuid", QVariant::String, "", true);

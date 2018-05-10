@@ -14,16 +14,14 @@ void Namespace::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Namespace::Namespace(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::MEMBER);
     setChainableDefinition();
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "index", QVariant::Int, -1, false);

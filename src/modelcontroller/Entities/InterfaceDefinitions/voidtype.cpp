@@ -13,17 +13,15 @@ void VoidType::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 VoidType::VoidType(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+    //Setup State
+    setChainableDefinition();
+    setLabelFunctional(false);
+
     if(is_temp){
+        //Break out early for temporary entities
         return;
     }
 
-    //Setup State
-    setChainableDefinition();
-
-
-
-
     //Setup Data
-    setLabelFunctional(false);
     broker.AttachData(this, "label", QVariant::String, "void", true);
 }

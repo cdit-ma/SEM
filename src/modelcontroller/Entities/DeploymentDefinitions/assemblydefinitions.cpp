@@ -13,19 +13,17 @@ void AssemblyDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker&
 }
 
 AssemblyDefinitions::AssemblyDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_ASSEMBLY);
     setAcceptsNodeKind(NODE_KIND::COMPONENT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_ATTRIBUTE);
     setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
-    
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "ASSEMBLIES", true);

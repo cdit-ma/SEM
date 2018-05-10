@@ -13,17 +13,15 @@ void DDS_HistoryQosPolicy::RegisterWithEntityFactory(EntityFactoryRegistryBroker
 }
 
 DDS_HistoryQosPolicy::DDS_HistoryQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     QList<QVariant> values;
     values << "KEEP_LAST_HISTORY_QOS";

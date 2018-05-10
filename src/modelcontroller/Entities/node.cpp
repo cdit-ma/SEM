@@ -1122,7 +1122,6 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
     //qCritical() << "canCurrentlyAcceptEdgeKind(): " << this->toString() << (direction == EDGE_DIRECTION::SOURCE ? " SOURCE: " : " TARGET: ") << EntityFactory::getEdgeKindString(edge_kind);
 
     if(canAcceptEdgeKind(edge_kind, direction) == false){
-        //qCritical() << "1";
         return false;
     }
 
@@ -1132,13 +1131,11 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::DEFINITION:{
             //If we are not an instance or impl, we can never have a definition edge
             if(isInstanceImpl() == false){
-                //qCritical() << "2";
                 return false;
             }
 
             //Can have another definition if we already have one
             if(getDefinition()){
-                //qCritical() << "3";
                 return false;
             }
             break;
@@ -1150,7 +1147,7 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
 
                 // A Non producer cannot have an Edge out of it
                 if(!data_node->isDataProducer()){
-                    //qCritical() << "4";
+                    ///Critical() << "4";
                     return false;
                 }
                 auto got_data_edge = false;

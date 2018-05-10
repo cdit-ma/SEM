@@ -12,5 +12,4 @@ void InEventPortDelegate::RegisterWithEntityFactory(EntityFactoryRegistryBroker&
 }
 
 InEventPortDelegate::InEventPortDelegate(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
-
 }

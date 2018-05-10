@@ -63,7 +63,12 @@ Entity *Data::getParent()
 
 void Data::setProtected(bool protect)
 {
-    is_protected = protect;
+    if(is_protected != protect){
+        is_protected = protect;
+        if(parent){
+            parent->_dataChanged(this);
+        }
+    }
 }
 
 

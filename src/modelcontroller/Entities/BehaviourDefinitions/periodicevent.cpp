@@ -13,19 +13,20 @@ void PeriodicEvent::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
 }
 
 PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
-
     setAcceptsNodeKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
     }
+    
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+
     //TODO: Do Special Adoption mate
 }
 

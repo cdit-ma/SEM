@@ -13,17 +13,16 @@ void EnumInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker
 }
 
 EnumInstance::EnumInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataReceiver(true);
     setDataProducer(true);
     addInstancesDefinitionKind(NODE_KIND::ENUM);
     setChainableDefinition();
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

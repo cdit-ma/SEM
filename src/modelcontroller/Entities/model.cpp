@@ -14,10 +14,6 @@ void Model::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setAsRoot(0);
     setAcceptsNodeKind(NODE_KIND::INTERFACE_DEFINITIONS);
@@ -25,9 +21,10 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     setAcceptsNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::WORKER_DEFINITIONS);
 
-
-
-
+    if(is_temp){
+        return;
+    }
+ 
     //Setup Data
     broker.AttachData(this, "medea_version", QVariant::String, APP_VERSION(), true);
     broker.AttachData(this, "description", QVariant::String, "", true);

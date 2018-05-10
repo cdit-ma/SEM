@@ -15,10 +15,6 @@ void Variable::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataProducer(true);
     setAcceptsNodeKind(NODE_KIND::MEMBER);
@@ -27,8 +23,10 @@ Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker,
     setAcceptsNodeKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "index", QVariant::Int, -1, false);

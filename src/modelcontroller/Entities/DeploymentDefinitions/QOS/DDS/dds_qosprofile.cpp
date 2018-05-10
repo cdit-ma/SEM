@@ -13,16 +13,11 @@ void DDS_QOSProfile::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
 }
 
 DDS_QOSProfile::DDS_QOSProfile(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::TARGET);
-
 
     QList<NODE_KIND> adoptable_kinds({
         NODE_KIND::QOS_DDS_POLICY_DEADLINE,
@@ -52,6 +47,11 @@ DDS_QOSProfile::DDS_QOSProfile(EntityFactoryBroker& broker, bool is_temp) : Node
     //Register Valid Node Kinds
     for(auto adoptable_kind : adoptable_kinds){
         setAcceptsNodeKind(adoptable_kind);
+    }
+
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
     }
 
     //Add Children

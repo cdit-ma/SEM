@@ -13,16 +13,14 @@ void InEventPortInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker&
 }
 
 InEventPortInstance::InEventPortInstance(EntityFactoryBroker& broker, bool is_temp) : EventPortAssembly(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::INEVENTPORT);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, "ZMQ", true);
     connect(data_middleware, &Data::dataChanged, this, &InEventPortInstance::updateQOSEdge);

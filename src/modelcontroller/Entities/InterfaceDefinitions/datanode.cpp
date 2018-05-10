@@ -9,13 +9,12 @@
 
 
 DataNode::DataNode(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : Node(broker, node_kind, is_temp){
-    if (is_temp) {
-        return;
-    }
     setNodeType(NODE_TYPE::DATA);
 
-
-    
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     broker.AttachData(this, "inner_type", QVariant::String, "", true);
     broker.AttachData(this, "outer_type", QVariant::String, "", true);

@@ -12,10 +12,6 @@ void MEDEA::Class::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& brok
 }
 
 MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::TOP_BEHAVIOUR_CONTAINER);
     addInstanceKind(NODE_KIND::CLASS_INSTANCE);
@@ -25,7 +21,10 @@ MEDEA::Class::Class(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, 
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_TYPE);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "icon_prefix", QVariant::String, "", false);

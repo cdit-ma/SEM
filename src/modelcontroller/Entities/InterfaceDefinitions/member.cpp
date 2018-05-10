@@ -15,14 +15,13 @@ void Member::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstanceKind(NODE_KIND::MEMBER_INSTANCE);
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "index", QVariant::Int, -1, false);

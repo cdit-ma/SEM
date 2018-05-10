@@ -15,6 +15,7 @@
 #include "../../../modelcontroller/kinds.h"
 #include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/edgekinds.h"
+#include "../../../modelcontroller/dataupdate.h"
 #include "../JenkinsManager/jenkinsmanager.h"
 #include <QTimer>
 
@@ -226,7 +227,7 @@ public slots:
     void model_NodeConstructed(int parent_id, int id, NODE_KIND kind);
     void model_EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id);
     void controller_entityDestructed(int ID, GRAPHML_KIND kind);
-    void controller_dataChanged(int ID, QString key, QVariant data);
+    void controller_dataChanged(int ID, DataUpdate data);
     void controller_dataRemoved(int ID, QString key);
     void controller_nodeEdgeChanged(int ID);
 

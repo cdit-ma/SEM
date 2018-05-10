@@ -15,10 +15,6 @@ void HardwareDefinitions::RegisterWithEntityFactory(EntityFactoryRegistryBroker&
 }
 
 HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_CLUSTER);
@@ -26,8 +22,10 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
     setAcceptsNodeKind(NODE_KIND::LOGGINGSERVER);
     setAcceptsNodeKind(NODE_KIND::HARDWARE_NODE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "HARDWARE", true);

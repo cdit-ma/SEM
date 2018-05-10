@@ -13,16 +13,14 @@ void MEDEA::ReturnParameterGroup::RegisterWithEntityFactory(::EntityFactoryRegis
 }
 
 MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     addInstanceKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "Return", false);

@@ -13,10 +13,6 @@ void MEDEA::Function::RegisterWithEntityFactory(::EntityFactoryRegistryBroker& b
 }
 
 MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     setChainableDefinition();
@@ -29,8 +25,10 @@ MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(br
         setAcceptsNodeKind(node_kind);
     }
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "class", QVariant::String, "", true);

@@ -4,16 +4,15 @@
 #include "../../entityfactoryregistrybroker.h"
 
 Parameter::Parameter(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
     //Setup State
     setNodeType(NODE_TYPE::PARAMETER);
     setLabelFunctional(false);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     broker.AttachData(this, "icon", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", true);

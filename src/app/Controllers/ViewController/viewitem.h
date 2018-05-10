@@ -43,6 +43,9 @@ public:
 
     bool isReadOnly() const;
 
+    void updateProtectedKeys(QList<QString> protected_keys);
+    void updateProtectedKey(QString key_name, bool is_protected);
+
     void setDefaultIcon(QString iconPrefix, QString iconName);
     void setIcon(QString iconPrefix, QString iconName);
     void resetIcon();
@@ -73,8 +76,7 @@ signals:
 
     void destructing(int ID);
 protected:
-    QStringList getProtectedKeys() const;
-    void changeData(QString keyName, QVariant data);
+    void changeData(QString keyName, QVariant data, bool is_protected = false);
     void removeData(QString keyName);
 
     ViewController* getController();
@@ -88,6 +90,9 @@ private:
     ViewController* controller;
 
     QHash<QString, QVariant> _data;
+    QSet<QString> protected_keys;
+    QSet<QString> permanent_protected_keys;
+
 
     int ID;
     QString kind;

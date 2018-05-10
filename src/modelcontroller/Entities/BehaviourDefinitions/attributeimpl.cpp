@@ -13,10 +13,6 @@ void AttributeImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
 }
 
 AttributeImpl::AttributeImpl(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addImplsDefinitionKind(NODE_KIND::ATTRIBUTE);
     setDataProducer(true);

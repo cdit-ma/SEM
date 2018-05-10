@@ -13,15 +13,16 @@ void MEDEA::ServerInterface::RegisterWithEntityFactory(::EntityFactoryRegistryBr
 
 
 MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     addInstanceKind(NODE_KIND::SERVER_PORT);
     addInstanceKind(NODE_KIND::CLIENT_PORT);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP);
+    
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Children
     auto input_params = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);

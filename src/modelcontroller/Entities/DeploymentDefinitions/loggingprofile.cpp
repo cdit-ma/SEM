@@ -13,18 +13,16 @@ void LoggingProfile::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
 }
 
 LoggingProfile::LoggingProfile(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::LOGGING);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     broker.AttachData(this, "processes_to_log", QVariant::String, "", false);
     broker.AttachData(this, "frequency", QVariant::Double, 1, false);
     auto data_mode = broker.AttachData(this, "mode", QVariant::String, "CACHED", false);

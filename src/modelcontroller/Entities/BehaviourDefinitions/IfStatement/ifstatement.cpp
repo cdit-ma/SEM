@@ -12,16 +12,11 @@ void MEDEA::IfStatement::RegisterWithEntityFactory(::EntityFactoryRegistryBroker
 }
 
 MEDEA::IfStatement::IfStatement(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //SetupState
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::IF_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSE_CONDITION);
     setAcceptsNodeKind(NODE_KIND::ELSEIF_CONDITION);
-
     setLabelFunctional(false);
 }
 

@@ -3,7 +3,6 @@
 #include "../Keys/typekey.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::ENUM;
 const QString kind_string = "Enum";
@@ -15,13 +14,15 @@ void Enum::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Enum::Enum(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
+    
     //Setup State
     addInstanceKind(NODE_KIND::ENUM_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::ENUM_MEMBER);
+
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
 
 

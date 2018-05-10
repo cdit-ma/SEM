@@ -13,17 +13,15 @@ void MEDEA::ClientPortInstance::RegisterWithEntityFactory(::EntityFactoryRegistr
 }
 
 MEDEA::ClientPortInstance::ClientPortInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::CLIENT_PORT);
     setAcceptsEdgeKind(EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

@@ -72,7 +72,7 @@ public:
     QString toString() const;
     
 signals:
-    void dataChanged(int ID, QString keyName, QVariant data);
+    void dataChanged(int ID, QString keyName, QVariant data, bool is_protected);
     void dataRemoved(int ID, QString keyName);
 
     void terminating();

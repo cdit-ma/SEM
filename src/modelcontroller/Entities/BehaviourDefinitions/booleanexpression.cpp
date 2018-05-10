@@ -16,19 +16,16 @@ void MEDEA::BooleanExpression::RegisterWithEntityFactory(::EntityFactoryRegistry
 }
 
 MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setLabelFunctional(false);
-
-    
     setDataProducer(true);
-    
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     //setup Data
     auto label = broker.AttachData(lhs_, "label", QVariant::String, "???", true);
     broker.AttachData(lhs_, "type", QVariant::String, "Boolean", true);

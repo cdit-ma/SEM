@@ -15,10 +15,6 @@ void MEDEA::ClientPort::RegisterWithEntityFactory(::EntityFactoryRegistryBroker&
 };
 
 MEDEA::ClientPort::ClientPort(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-    
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::SERVER_INTERFACE);
     addInstanceKind(NODE_KIND::CLIENT_PORT_INSTANCE);
@@ -26,10 +22,12 @@ MEDEA::ClientPort::ClientPort(::EntityFactoryBroker& broker, bool is_temp) : Nod
 
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER_GROUP_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::RETURN_PARAMETER_GROUP_INSTANCE);
-
-
-
     
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
+
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "index", QVariant::String, -1, false);

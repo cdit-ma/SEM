@@ -12,6 +12,7 @@
 #include "kinds.h"
 #include "nodekinds.h"
 #include "edgekinds.h"
+#include "dataupdate.h"
 
 class Entity;
 class Node;
@@ -101,7 +102,9 @@ public:
     QStringList getEntityKeys(int ID);
     QVariant getEntityDataValue(int ID, QString key_name);
 
-    QList<QPair<QString, QVariant> > getEntityDataList(int ID);
+
+
+    QList<DataUpdate> getEntityDataList(int ID);
 
     QSet<SELECTION_PROPERTIES> getSelectionProperties(int active_id, QList<int> ids);
 
@@ -164,7 +167,7 @@ signals:
     void InitiateTeardown();
     void ProjectModified(bool modified);
 
-    void DataChanged(int ID, QString keyName, QVariant data);
+    void DataChanged(int ID, DataUpdate data);
     void DataRemoved(int ID, QString keyName);
     void NodeEdgeKindsChanged(int ID);
     

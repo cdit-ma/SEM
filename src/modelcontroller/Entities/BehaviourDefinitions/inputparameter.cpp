@@ -12,16 +12,14 @@ void InputParameter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
 }
 
 InputParameter::InputParameter(EntityFactoryBroker& broker, bool is_temp) : Parameter(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataReceiver(true);
     setDataProducer(false);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "value", QVariant::String, "", false);

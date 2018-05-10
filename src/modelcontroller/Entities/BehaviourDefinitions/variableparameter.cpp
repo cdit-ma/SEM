@@ -13,17 +13,15 @@ void VariableParameter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& b
 }
 
 VariableParameter::VariableParameter(EntityFactoryBroker& broker, bool is_temp) : Parameter(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataReceiver(true);
     setDataProducer(true);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-    
-    
     //Setup Data
     broker.AttachData(this, "value", QVariant::String, "", false);
 }

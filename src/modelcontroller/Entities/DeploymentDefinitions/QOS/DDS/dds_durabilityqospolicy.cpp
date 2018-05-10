@@ -13,17 +13,15 @@ void DDS_DurabilityQosPolicy::RegisterWithEntityFactory(EntityFactoryRegistryBro
 }
 
 DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::QOS);
     setNodeType(NODE_TYPE::DDS);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     QList<QVariant> values;
     values << "VOLATILE_DURABILITY_QOS";

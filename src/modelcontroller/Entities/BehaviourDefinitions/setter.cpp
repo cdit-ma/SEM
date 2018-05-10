@@ -14,17 +14,15 @@ void Setter::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
 }
 
 Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     setAcceptsNodeKind(NODE_KIND::INPUT_PARAMETER);
-    
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //setup Data
     auto label = broker.AttachData(this, "label", QVariant::String, "???", true);

@@ -13,18 +13,16 @@ void HardwareNode::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker
 }
 
 HardwareNode::HardwareNode(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::OPENCL_PLATFORM);
     setLabelFunctional();
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
     
     broker.AttachData(this, "label", QVariant::String, "", true);
     broker.AttachData(this, "ip_address", QVariant::String, "", true);

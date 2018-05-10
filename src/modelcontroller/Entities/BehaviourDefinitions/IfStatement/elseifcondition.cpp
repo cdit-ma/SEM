@@ -13,11 +13,7 @@ void MEDEA::ElseIfCondition::RegisterWithEntityFactory(::EntityFactoryRegistryBr
 }
 
 MEDEA::ElseIfCondition::ElseIfCondition(::EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
-    //SetupState
+    //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_CONTAINER);
     for(auto node_kind : ContainerNode::getAcceptedNodeKinds()){
         setAcceptsNodeKind(node_kind);
@@ -26,8 +22,10 @@ MEDEA::ElseIfCondition::ElseIfCondition(::EntityFactoryBroker& broker, bool is_t
     setLabelFunctional(false);
     setDataReceiver(true);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "else if", true);

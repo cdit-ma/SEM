@@ -39,6 +39,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->entityKind = entity_kind;
     //Add X/Y
 
+    permanent_protected_keys.insert("ID");
     changeData("ID", ID);
     
 
@@ -103,13 +104,12 @@ bool ViewItem::hasData(QString keyName) const
     return has_local;
 }
 
-bool ViewItem::isDataProtected(QString keyName) const
+bool ViewItem::isDataProtected(QString key_name) const
 {
     if(isReadOnly()){
         return true;
     }else{
-        return false;
-        //return getProtectedKeys().contains(keyName);
+        return permanent_protected_keys.contains(key_name) || protected_keys.contains(key_name);
     }
 }
 
@@ -231,15 +231,6 @@ void ViewItem::setParentViewItem(ViewItem *item)
     _parent = item;
 }
 
-QStringList ViewItem::getProtectedKeys() const
-{
-    QStringList keys;
-    if(controller){
-        keys = controller->getModelController()->getProtectedEntityKeys(ID);
-    }
-    return keys;
-}
-
 ViewController* ViewItem::getController(){
     return controller;
 }
@@ -254,10 +245,17 @@ QList<QVariant> ViewItem::getValidValuesForKey(QString keyName) const
     return valid_values;
 }
 
-void ViewItem::changeData(QString keyName, QVariant data)
+void ViewItem::changeData(QString keyName, QVariant data, bool is_protected)
 {
     bool addedData = !_data.contains(keyName);
     _data[keyName] = data;
+    
+    if(is_protected){
+        protected_keys.insert(keyName);
+    }else{
+        protected_keys.remove(keyName);
+    }
+
 
     if(addedData){
         emit dataAdded(keyName, data);
@@ -284,3 +282,15 @@ void ViewItem::removeData(QString keyName)
 }
 
 
+void ViewItem::updateProtectedKeys(QList<QString> protected_keys){
+    this->protected_keys = protected_keys.toSet();
+}
+
+
+void ViewItem::updateProtectedKey(QString key_name, bool is_protected){
+    if(is_protected){
+        protected_keys.insert(key_name);
+    }else{
+        protected_keys.remove(key_name);
+    }
+}

@@ -14,10 +14,6 @@ void MEDEA::InputParameterGroupInstance::RegisterWithEntityFactory(::EntityFacto
 }
 
 MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     addInstancesDefinitionKind(NODE_KIND::INPUT_PARAMETER_GROUP);
@@ -29,7 +25,10 @@ MEDEA::InputParameterGroupInstance::InputParameterGroupInstance(::EntityFactoryB
     setAcceptsNodeKind(NODE_KIND::VECTOR_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::VOID_TYPE);
 
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

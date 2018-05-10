@@ -13,10 +13,6 @@ void VectorInstance::RegisterWithEntityFactory(EntityFactoryRegistryBroker& brok
 }
 
 VectorInstance::VectorInstance(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setDataProducer(true);
     setDataReceiver(true);
@@ -28,8 +24,10 @@ VectorInstance::VectorInstance(EntityFactoryBroker& broker, bool is_temp) : Data
     setAcceptsNodeKind(NODE_KIND::AGGREGATE_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::MEMBER_INSTANCE);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "Vector", true);

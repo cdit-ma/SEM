@@ -12,9 +12,6 @@ void ComponentImpl::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broke
 }
 
 ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
     //Setup State
     setNodeType(NODE_TYPE::BEHAVIOUR_ELEMENT);
     addImplsDefinitionKind(NODE_KIND::COMPONENT);
@@ -29,8 +26,10 @@ ComponentImpl::ComponentImpl(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT_IMPL);
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);

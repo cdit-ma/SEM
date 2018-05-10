@@ -12,10 +12,6 @@ void MEDEA::ClassInstance::RegisterWithEntityFactory(::EntityFactoryRegistryBrok
 }
 
 MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     addInstancesDefinitionKind(NODE_KIND::CLASS);
     setChainableDefinition();
@@ -26,9 +22,12 @@ MEDEA::ClassInstance::ClassInstance(::EntityFactoryBroker& broker, bool is_temp)
     setAcceptsNodeKind(NODE_KIND::FUNCTION);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
 
-    //Setup Data
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-    
+    //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
     broker.AttachData(this, "icon_prefix", QVariant::String, "", true);
     broker.AttachData(this, "icon", QVariant::String, "", true);

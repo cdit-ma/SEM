@@ -13,18 +13,16 @@ void OpenCLDevice::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker
 }
 
 OpenCLDevice::OpenCLDevice(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //Setup State
     setLabelFunctional(false);
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
 
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
-
-    
     //Setup Data
     broker.AttachData(this, "label", QVariant::String, "", true);
     broker.AttachData(this, "is_available", QVariant::Bool, false, true);

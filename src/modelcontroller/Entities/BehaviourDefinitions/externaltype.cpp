@@ -15,15 +15,13 @@ void MEDEA::ExternalType::RegisterWithEntityFactory(::EntityFactoryRegistryBroke
 }
 
 MEDEA::ExternalType::ExternalType(::EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
-    if(is_temp){
-        return;
-    }
-
     //SetupState
     setChainableDefinition();
 
-
-
+    if(is_temp){
+        //Break out early for temporary entities
+        return;
+    }
 
     //Setup Data
     broker.AttachData(this, "type", QVariant::String, "", true);
