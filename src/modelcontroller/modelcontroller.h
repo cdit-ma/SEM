@@ -76,20 +76,20 @@ public:
 
     QString getProjectAsGraphML(bool functional_export = false);
 
-    QList<EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
-    QSet<EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
-    QSet<NODE_KIND> getAdoptableNodeKinds(int ID);
 
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKindsForSelection(QList<int> IDs);
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getCurrentlyAcceptedEdgeKindsForSelection(QList<int> IDs);
+    QSet<EDGE_KIND> getCurrentEdgeKinds(QList<int> IDs);
+    
+    QSet<NODE_KIND> getValidNodeKinds(int ID);
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> IDs);
+    
+    QList<int> getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind);
+    QMap<EDGE_DIRECTION, int> getConnectableNodes(QList<int> src, EDGE_KIND edge_kind);
+
     
     QList<QVariant> getValidKeyValues(int ID, QString keyName);
 
     QSet<int> GetIDs();
 
-    QList<int> getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind);
-    QList<int> getConstructableConnectableNodes(int parentID, NODE_KIND nodeKind, EDGE_KIND edgeClass);
-    QMap<EDGE_DIRECTION, int> getConnectableNodeIds2(QList<int> src, EDGE_KIND kind);
     
 
     bool isNodeOfType(int ID, NODE_TYPE type);
@@ -200,10 +200,8 @@ private:
     QList<Entity *> getOrderedEntities(QList<Entity *> entities);
     QList<Entity*> getUnorderedEntities(QList<int> IDs);
 
-    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, EDGE_KIND edgeKind);
-    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes2(QList<Node*> sourceNodes, EDGE_KIND kind);
+    QMap<EDGE_DIRECTION, Node*> _getConnectableNodes(QList<Node*> nodes, EDGE_KIND kind);
 
-    Node* construct_temp_node(Node* parent_node, NODE_KIND kind);
     Node* construct_node(Node* parent_node, NODE_KIND kind, int index = -1);
     Node* construct_child_node(Node* parent_node, NODE_KIND kind, int index = -1, bool notify_view = true);
     Node* construct_connected_node(Node* parent_node, NODE_KIND node_kind, Node* dst, EDGE_KIND edge_kind, int index = -1);

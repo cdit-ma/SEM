@@ -362,22 +362,7 @@ bool ModelController::destructData_(Entity* entity, QString key_name)
 }
 
 
-Node* ModelController::construct_temp_node(Node* parent_node, NODE_KIND node_kind){
-    Node* node = 0;
-    if(parent_node){
-        //Construct node with default data
-        node = entity_factory->CreateTempNode(node_kind);
-        
-        if(node){
-            if(!parent_node->addChild(node)){
-                //Free memory
-                entity_factory->DestructEntity(node);
-                node = 0;
-            }
-        }
-    }
-    return node;
-}
+
 
 Node* ModelController::get_persistent_node(NODE_KIND node_kind){
     switch(node_kind){
@@ -617,13 +602,13 @@ void ModelController::constructEdge(QList<int> src_ids, int dst_id, EDGE_KIND ed
 {
     QWriteLocker lock(&lock_);
 
-    auto valid_dsts = _getConnectableNodes(getNodes(src_ids), edge_kind);
+    auto sources = getNodes(src_ids);
+    auto valid_dsts = _getConnectableNodes(sources, edge_kind).values(EDGE_DIRECTION::TARGET);
     auto dst = entity_factory->GetNode(dst_id);
     bool success = true;
     if(dst && valid_dsts.contains(dst)){
         triggerAction("Constructing child edge");
-        for(auto src_id : src_ids){
-            auto src = entity_factory->GetNode(src_id);
+        for(auto src : sources){
             auto edge = construct_edge(edge_kind, src, dst);
             
             if(!edge){
@@ -1093,44 +1078,22 @@ bool ModelController::_replicate(QList<Entity *> items)
 }
 
 
-QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, EDGE_KIND edgeKind)
-{
-    QReadLocker lock(&lock_);
-    auto nodes = _getConnectableNodes(getNodes(srcs), edgeKind);
-    
-    return getIDs(nodes);
-}
 
-QList<int> ModelController::getConstructableConnectableNodes(int parentID, NODE_KIND kind, EDGE_KIND edge_kind)
-{
-    QWriteLocker lock(&lock_);
-    
-    QList<Node*> nodes;
-
-    auto parent_node = entity_factory->GetNode(parentID);
-    auto temp_node = construct_temp_node(parent_node, kind);
-    if(temp_node){
-        nodes = _getConnectableNodes({temp_node}, edge_kind);
-        entity_factory->DestructEntity(temp_node);
-    }
-    return getIDs(nodes);
-}
-
-QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodeIds2(QList<int> src_ids, EDGE_KIND edge_kind){
-    QWriteLocker lock(&lock_);
-    
+QMap<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_ids, EDGE_KIND edge_kind){
     QMap<EDGE_DIRECTION, int> id_map;
-    auto node_map = _getConnectableNodes2(getNodes(src_ids), edge_kind);
 
-    for(auto key : node_map.uniqueKeys()){
-        for(auto value : node_map.values(key)){
+    QReadLocker lock(&lock_);
+    
+    auto node_map = _getConnectableNodes(getNodes(src_ids), edge_kind);
+    for(const auto& key : node_map.uniqueKeys()){
+        for(const auto& value : node_map.values(key)){
             id_map.insertMulti(key, value->getID());
         }
     }
     return id_map;
 }
 
-QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> src_nodes, EDGE_KIND edge_kind){
+QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> src_nodes, EDGE_KIND edge_kind){
     QMap<EDGE_DIRECTION, Node*> node_map;
     
     bool srcs_accept_source_edge = true;
@@ -1179,43 +1142,6 @@ QMap<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes2(QList<Node*> 
         }
     }
     return node_map;
-}
-
-QList<Node *> ModelController::_getConnectableNodes(QList<Node *> src_nodes, EDGE_KIND edge_kind){
-    QList<Node*> valid_nodes;
-
-    bool srcs_require_edge = true;
-    bool try_backwards = edge_kind == EDGE_KIND::ASSEMBLY;
-
-    //Check if they can all accept edges of the kind we care about.
-    for(auto src : src_nodes){
-        //Check to see if the src Node requires an edge of edge_kind
-        if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
-            srcs_require_edge = false;
-            break;
-        }
-    }
-    
-    if(!src_nodes.empty() && srcs_require_edge){
-        for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
-            bool all_valid = true;
-
-            for(auto src : src_nodes){
-                auto src2dst = src->canAcceptEdge(edge_kind, dst);
-                auto dst2src = try_backwards && dst->canAcceptEdge(edge_kind, src);
-                auto valid = src2dst || dst2src;
-                if(!valid){
-                    all_valid = false;
-                    break;
-                }
-            }
-            if(all_valid){
-                valid_nodes.append(dst);
-            }
-        }
-    }
-
-    return valid_nodes;
 }
 
 QList<Entity*> ModelController::getOrderedEntities(QList<int> ids){
@@ -1285,7 +1211,11 @@ int ModelController::getSharedParent(int id, int id2){
     auto node_2 = entity_factory->GetNode(id2);
     if(node_1 && node_2){
         auto parent = node_1->getCommonAncestor(node_2);
+
+        qCritical() << " 1 : " <<node_1->toString();
+        qCritical() << " 2 : " <<node_2->toString();
         if(parent){
+            qCritical() << " P : " <<parent->toString();
             return parent->getID();
         }
     }
@@ -1946,17 +1876,6 @@ void ModelController::clearHistory()
 }
 
 
-EDGE_KIND ModelController::getValidEdgeClass(Node *src, Node *dst)
-{
-
-    for(auto edge_kind : entity_factory->getEdgeKinds()){
-        if(src->canAcceptEdge(edge_kind, dst)){
-            return edge_kind;
-        }
-    }
-    return EDGE_KIND::NONE;
-}
-
 QList<EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node *dst)
 {
     QList<EDGE_KIND> edge_kinds;
@@ -2337,42 +2256,52 @@ QString ModelController::getProjectAsGraphML(bool functional_export)
     lock_.unlock();
     return data;
 }
-QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getCurrentlyAcceptedEdgeKindsForSelection(QList<int> IDs){
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > valid_pairs;
 
-    lock_.lockForRead();
 
-    auto entities = getOrderedEntities(IDs);
 
-    if(!entities.isEmpty()){
-        valid_pairs.first = entity_factory->getEdgeKinds().toSet();
-        valid_pairs.second = entity_factory->getEdgeKinds().toSet();
-    }
+QSet<EDGE_KIND> ModelController::getCurrentEdgeKinds(QList<int> ids)
+{
+    QReadLocker lock(&lock_);
+    QSet<EDGE_KIND> edge_kinds;
 
-    for(auto entity : entities){
+    for(auto entity : getUnorderedEntities(ids)){
         if(entity->isNode()){
             auto node = (Node*) entity;
-            valid_pairs.first &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
-            valid_pairs.second &= node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::TARGET);
-        }else{
-            valid_pairs.first.clear();
-            valid_pairs.second.clear();
-        }
-        if(valid_pairs.first.isEmpty() && valid_pairs.second.isEmpty()){
-            break;
+            for(auto edge : node->getEdges(0)){
+                edge_kinds.insert(edge->getEdgeKind());
+            }
         }
     }
-
-    lock_.unlock();
-    return valid_pairs;
+    return edge_kinds;
 }
 
-QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsForSelection(QList<int> IDs){
+
+QSet<NODE_KIND> ModelController::getValidNodeKinds(int ID)
+{
+    QWriteLocker lock(&lock_);
+    QSet<NODE_KIND> node_kinds;
+
+    auto parent_node = entity_factory->GetNode(ID);
+
+    if(parent_node){
+        for(auto node_kind : parent_node->getUserConstructableNodeKinds()){
+            auto temp_node = entity_factory->CreateTempNode(node_kind);
+            if(temp_node){
+                if(parent_node->canAdoptChild(temp_node)){
+                    node_kinds << node_kind;
+                }
+                entity_factory->DestructEntity(temp_node);
+            }
+        }
+    }
+    return node_kinds;
+}
+
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getValidEdgeKinds(QList<int> ids){
+    QReadLocker lock(&lock_);
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > valid_pairs;
 
-    lock_.lockForRead();
-
-    auto entities = getOrderedEntities(IDs);
+    auto entities = getUnorderedEntities(ids);
 
     if(!entities.isEmpty()){
         valid_pairs.first = entity_factory->getEdgeKinds().toSet();
@@ -2392,56 +2321,27 @@ QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getAcceptedEdgeKindsFo
             break;
         }
     }
-
-    lock_.unlock();
     return valid_pairs;
 }
 
 
-QList<EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int> IDs)
-{
-    lock_.lockForRead();
+QList<int> ModelController::getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind){
+    QWriteLocker lock(&lock_);
+    
+    QList<Node*> nodes;
 
-    QList<Entity*> entities = getOrderedEntities(IDs);
-    QSet<EDGE_KIND> edge_kinds;
-
-    if(!entities.isEmpty()){
-        edge_kinds = entity_factory->getEdgeKinds().toSet();
-    }
-
-    for(auto entity : entities){
-        QSet<EDGE_KIND> required_edge_kinds;
-        
-        if(entity->isNode()){
-            auto node = (Node*) entity;
-            required_edge_kinds = node->getCurrentAcceptedEdgeKind(EDGE_DIRECTION::SOURCE);
-        }
-
-        edge_kinds &= required_edge_kinds;
-        if(edge_kinds.isEmpty()){
-            break;
-        }
-    }
-    lock_.unlock();
-    return edge_kinds.toList();
-}
-
-QSet<EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<int> IDs)
-{
-    lock_.lockForRead();
-
-    QSet<EDGE_KIND> edge_kinds;
-
-    for(auto entity : getOrderedEntities(IDs)){
-        if(entity->isNode()){
-            for(auto edge : ((Node*)entity)->getEdges(-1)){
-                edge_kinds.insert(edge->getEdgeKind());
+    auto parent_node = entity_factory->GetNode(constructable_parent_id);
+    if(parent_node){
+        auto child_node = entity_factory->CreateTempNode(constructable_node_kind);
+        if(child_node){
+            if(parent_node->addChild(child_node)){
+                nodes = _getConnectableNodes({child_node}, connection_edge_kind).values(EDGE_DIRECTION::TARGET);
             }
+            entity_factory->DestructEntity(child_node);
         }
     }
-    lock_.unlock();
-    return edge_kinds;
-
+    
+    return getIDs(nodes);
 }
 
 QSet<int> ModelController::GetIDs(){
@@ -2455,28 +2355,6 @@ QSet<NODE_KIND> ModelController::getGUINodeKinds(){
     return node_set;
 }
 
-QSet<NODE_KIND> ModelController::getAdoptableNodeKinds(int ID)
-{
-    QReadLocker lock(&lock_);
-    QSet<NODE_KIND> kinds;
-
-    Node* parent = entity_factory->GetNode(ID);
-
-    //Ignore all children for read only kind.
-    if(parent){
-        for(auto node_kind: parent->getUserConstructableNodeKinds()){
-            auto temp_node = entity_factory->CreateTempNode(node_kind);
-            if(temp_node){
-                if(parent->canAdoptChild(temp_node)){
-                    kinds << node_kind;
-                }
-                entity_factory->DestructEntity(temp_node);
-            }
-        }
-    }
-
-    return kinds;
-}
 
 QStringList ModelController::getVisualKeys()
 {

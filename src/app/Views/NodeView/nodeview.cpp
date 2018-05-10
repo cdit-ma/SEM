@@ -1257,13 +1257,14 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
     NodeItem* destination = getParentNodeItem(item->getDestination());
 
     if(source && destination){
-        EdgeItem* edgeItem = new EdgeItem(item, parent,source,destination);
+        qCritical() << parent;
+        qCritical() << source;
+        qCritical() << destination;
 
-       
-
+        EdgeItem* edgeItem = new EdgeItem(item, parent, source, destination);
 
         if(edgeItem){
-             auto theme = Theme::theme();
+            auto theme = Theme::theme();
             edgeItem->setBaseBodyColor(theme->getAltBackgroundColor());
             edgeItem->setHeaderColor(theme->getBackgroundColor());
             edgeItem->setTextColor(theme->getTextColor());
@@ -1278,9 +1279,6 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
             if(!scene()->items().contains(edgeItem)){
                 scene()->addItem(edgeItem);
             }
-
-            //emit viewController->vc_setData(ID, "x", 0.0);
-            //emit viewController->vc_setData(ID, "y", 0.0);
         }
     }
 }

@@ -312,18 +312,7 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node
     QList<ViewItem*> items;
     if(controller  && selectionController && selectionController->getSelectionCount() == 1){
         int parentID = selectionController->getFirstSelectedItem()->getID();
-        QList<int> IDs = controller->getConstructableConnectableNodes(parentID, node_kind, edge_kind);
-        items = getViewItems(IDs);
-    }
-    return items;
-}
-
-QList<ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
-{
-    QList<ViewItem*> items;
-    if(selectionController && controller){
-        QList<int> selectedIDs = selectionController->getSelectionIDs();
-        QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
+        QList<int> IDs = controller->getConstructablesConnectableNodes(parentID, node_kind, edge_kind);
         items = getViewItems(IDs);
     }
     return items;
@@ -333,10 +322,10 @@ QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges2(EDGE_KIND kind){
     QHash<EDGE_DIRECTION, ViewItem*>  items;
     if(selectionController && controller){
         auto selection = selectionController->getSelectionIDs();
-        auto id_map = controller->getConnectableNodeIds2(selection, kind);
+        auto id_map = controller->getConnectableNodes(selection, kind);
         
-        for(auto direction : id_map.uniqueKeys()){
-            for(auto id : id_map.values(direction)){
+        for(const auto& direction : id_map.uniqueKeys()){
+            for(const auto& id : id_map.values(direction)){
                 auto view_item = getViewItem(id);
                 if(view_item){
                     items.insertMulti(direction, view_item);
@@ -478,11 +467,11 @@ NodeViewItem* ViewController::getNodeItem(NODE_KIND kind){
     return nodeKindItems.value(kind, 0);
 }
 
-QSet<NODE_KIND> ViewController::getAdoptableNodeKinds()
+QSet<NODE_KIND> ViewController::getValidNodeKinds()
 {
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
-        return controller->getAdoptableNodeKinds(ID);
+        return controller->getValidNodeKinds(ID);
     }
     return {NODE_KIND::NONE};
 }
@@ -512,28 +501,19 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
     }
 }
 
-QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ViewController::getAcceptedEdgeKinds(QList<int> ids){
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ViewController::getValidEdgeKinds(QList<int> ids){
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > edge_kinds;
-    if(selectionController && controller){
-        edge_kinds = controller->getAcceptedEdgeKindsForSelection(ids);
+    if(controller){
+        edge_kinds = controller->getValidEdgeKinds(ids);
     }
     return edge_kinds;
 }
 
-QList<EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
-{
-    QList<EDGE_KIND> edge_kinds;
-    if(selectionController && controller){
-        edge_kinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
-    }
-    return edge_kinds;
-}
-
-QSet<EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+QSet<EDGE_KIND> ViewController::getCurrentEdgeKinds()
 {
     QSet<EDGE_KIND> edgeKinds;
     if(selectionController && controller){
-        edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
+        edgeKinds = controller->getCurrentEdgeKinds(selectionController->getSelectionIDs());
     }
     return edgeKinds;
 }
@@ -1557,7 +1537,7 @@ void ViewController::controller_dataChanged(int ID, DataUpdate data)
     ViewItem* viewItem = getViewItem(ID);
 
     if(viewItem){
-        qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " HE PROTEC " : "");
+        qCritical() << "== REPLY: " << ID << " KEY: " << data.key_name << " = " << data.value << (data.is_protected ? " Protected " : "");
         viewItem->changeData(data.key_name, data.value, data.is_protected);
     }
 }
@@ -1576,7 +1556,7 @@ void ViewController::controller_nodeEdgeChanged(int ID)
     auto node_item = getNodeViewItem(ID);
     if(node_item){
         if(controller){
-            auto edge_kinds = controller->getAcceptedEdgeKindsForSelection({ID});
+            auto edge_kinds = getValidEdgeKinds({ID});
             node_item->clearVisualEdgeKinds();
             for(auto edge_kind : edge_kinds.first){
                 node_item->addVisualEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE);

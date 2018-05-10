@@ -216,6 +216,8 @@ void Node::removeNodeType(NODE_TYPE type)
 
 Node *Node::getCommonAncestor(Node *dst)
 {
+    qCritical() << getTreeIndex();
+    qCritical() << dst->getTreeIndex();
     int height = getDepthFromCommonAncestor(dst);
 
     if(height != -1){
@@ -366,8 +368,8 @@ bool Node::addChild(Node *child)
         }
         auto node_kind = child->getNodeKind();
         children_.insert(node_kind, child);
-        branch_count_ ++;
-        child->setParentNode(this);
+
+        child->setParentNode(this, branch_count_++);
 
         if(gotData("uuid")){
             auto data = getData("uuid");

@@ -579,7 +579,7 @@ QAction* ContextMenu::get_no_valid_items_action(QMenu* menu, QString label){
 void ContextMenu::update_add_edge_menu(){
     if(menu_requires_update(add_edge_menu)){
         auto selected_ids = view_controller->getSelectionController()->getSelectionIDs();
-        auto v_e = view_controller->getAcceptedEdgeKinds(selected_ids);
+        auto v_e = view_controller->getValidEdgeKinds(selected_ids);
         
         auto visible_edge_kinds = v_e.first + v_e.second;
         
@@ -595,11 +595,11 @@ void ContextMenu::update_add_edge_menu(){
 
 void ContextMenu::update_main_menu(){
     if(menu_requires_update(main_menu)){
-        bool can_add_node = view_controller->getAdoptableNodeKinds().size();
+        bool can_add_node = view_controller->getValidNodeKinds().size();
 
         auto selected_ids = view_controller->getSelectionController()->getSelectionIDs();
-        auto valid_edge_kinds = view_controller->getAcceptedEdgeKinds(selected_ids);
-        auto existant_edge_kinds = view_controller->getExistingEdgeKindsForSelection();
+        auto valid_edge_kinds = view_controller->getValidEdgeKinds(selected_ids);
+        auto existant_edge_kinds = view_controller->getCurrentEdgeKinds();
         
         auto edge_kinds = valid_edge_kinds.first + valid_edge_kinds.second + existant_edge_kinds;
 
@@ -658,7 +658,7 @@ void ContextMenu::update_add_node_menu(){
             ClearMenu(menu);
 
             auto filter_str = menu->property("filter").toString();
-            auto adoptable_node_kinds = view_controller->getAdoptableNodeKinds();
+            auto adoptable_node_kinds = view_controller->getValidNodeKinds();
             auto node_kinds = add_node_action_hash.uniqueKeys().toSet();
             //Get rid of the kind we don't have a menu item for
             adoptable_node_kinds.intersect(node_kinds);

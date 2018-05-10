@@ -53,7 +53,6 @@ public:
     ActionController* getActionController();
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
-    QList<ViewItem*> getValidEdges(EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -70,7 +69,8 @@ public:
     QMultiMap<EDGE_DIRECTION, ViewItem*> getExistingEndPointsOfSelection(EDGE_KIND kind);
 
     ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
-    QSet<NODE_KIND> getAdoptableNodeKinds();
+    
+
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
     NodeViewItem* getNodeItem(NODE_KIND kind);
@@ -80,12 +80,11 @@ public:
 
     ModelController* getModelController();
 
-    QList<EDGE_KIND> getValidEdgeKindsForSelection();
-
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getAcceptedEdgeKinds(QList<int> ids);
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> ids);
     
+    QSet<NODE_KIND> getValidNodeKinds();
+    QSet<EDGE_KIND> getCurrentEdgeKinds();
 
-    QSet<EDGE_KIND> getExistingEdgeKindsForSelection();
     QList<ViewItem*> getExistingEdgeEndPointsForSelection(EDGE_KIND kind);
 
     QList<QVariant> getValidValuesForKey(int ID, QString keyName);
