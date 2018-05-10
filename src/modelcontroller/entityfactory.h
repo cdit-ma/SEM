@@ -13,6 +13,8 @@
 #include "Entities/key.h"
 #include "Entities/data.h"
 
+#include "entityfactorybroker.h"
+
 class Key;
 class Node;
 class Data;
@@ -20,9 +22,14 @@ class Edge;
 class GraphML;
 class Entity;
 class ModelController;
+class EntityFactoryBroker;
+class EntityFactoryRegistryBroker;
 
 class EntityFactory
 {
+    friend class EntityFactoryRegistryBroker;
+    friend class EntityFactoryBroker;
+
     friend class ModelController;
     friend class Node;
     friend class Edge;
@@ -36,13 +43,13 @@ private:
     struct NodeLookupStruct{
         NODE_KIND kind;
         QString kind_str = "INVALID_NODE";
-        std::function<Node* (EntityFactory&, bool)> constructor;
+        std::function<Node* (EntityFactoryBroker&, bool)> constructor;
     };
 
     struct EdgeLookupStruct{
         EDGE_KIND kind;
         QString kind_str = "INVALID_EDGE";
-        std::function<Edge* (EntityFactory&, Node*, Node*)> constructor;
+        std::function<Edge* (EntityFactoryBroker&, Node*, Node*)> constructor;
     };
 
 
@@ -81,8 +88,10 @@ public:
     int CacheEntity(GraphML* graphml, int desired_id = -1);
     //Destructor
     void DestructEntity(GraphML* entity);
+    
     void DeregisterNode(Node* node);
     void DeregisterEdge(Edge* edge);
+    void DeregisterGraphML(GraphML* graphml);
 public:
     Node* ConstructChildNode(Node& parent, NODE_KIND node_kind);
 protected:
@@ -100,23 +109,20 @@ protected:
 
     Entity* GetEntityByUUID(QString uuid);
 
-
     //Called by secondary constructors of Node/Edge subclasses
-    void RegisterNodeKind2(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactory&, bool)> constructor);    
-    void RegisterEdgeKind2(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactory&,Node*, Node*)> constructor);
-    
-    void RegisterComplexNodeKind(NODE_KIND kind, std::function<Node* (EntityFactory*, bool)> constructor);
-    void RegisterEdgeKind(EDGE_KIND kind, QString kind_string, std::function<Edge* (Node*, Node*)> constructor);
+    void RegisterNodeKind(const NODE_KIND kind, const QString& kind_string, std::function<Node* (EntityFactoryBroker&, bool)> constructor);    
+    void RegisterEdgeKind(const EDGE_KIND kind, const QString& kind_string, std::function<Edge* (EntityFactoryBroker&, Node*, Node*)> constructor);
 
     int RegisterEntity(GraphML* graphml, int desired_id = -1);
-    bool UnregisterTempID(GraphML* graphml);
+    
     void DeregisterEntity(GraphML* graphml);
+    bool UnregisterTempID(GraphML* graphml);
 
-    void EntityUUIDChanged(Entity* entity, QString uuid);
+    void EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid);
 private:
     void CacheEntityAsUnregistered(GraphML* graphml);
 
-    void acceptedEdgeKindsChanged(Node* node);
+    void AcceptedEdgeKindsChanged(Node* node);
     void clearAcceptedEdgeKinds(Node* node);
     void addNodeKind(NODE_KIND kind, QString kind_str, std::function<Node* ()> constructor);
     void addEdgeKind(EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
@@ -129,6 +135,7 @@ private:
     Edge* _createEdge(Node* source, Node* destination, EDGE_KIND edge_kind);
 
     bool doesNodeStructExist(NODE_KIND kind);
+    bool doesEdgeStructExist(EDGE_KIND kind);
     NodeLookupStruct* getNodeStruct(NODE_KIND kind);
     EdgeLookupStruct* getEdgeStruct(EDGE_KIND kind);
 private:
@@ -152,6 +159,8 @@ private:
 
     int unregistered_id_counter_ = 0;
     QQueue<int> resuable_unregistered_ids_;
+
+    EntityFactoryBroker factory_broker_;
 
     static EntityFactory* global_factory;
 };
