@@ -25,6 +25,7 @@ class Environment{
         std::string AddDeployment(const std::string& model_name, const std::string& ip_address, DeploymentType deployment_type);
 
         void RemoveExperiment(const std::string& model_name, uint64_t time);
+        void RemoveLoganClient(const std::string& model_name, const std::string& ip_address);
         void StoreControlMessage(const NodeManager::ControlMessage& control_message);
         
         void DeclusterExperiment(NodeManager::ControlMessage& message);
@@ -41,6 +42,8 @@ class Environment{
         std::string GetMasterPublisherPort(const std::string& model_name, const std::string& master_ip_address);
         std::string GetNodeManagementPort(const std::string& model_name, const std::string& ip_address);
         std::string GetNodeModelLoggerPort(const std::string& model_name, const std::string& ip_address);
+
+        std::string GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address);
 
         std::vector<std::string> GetPublisherAddress(const std::string& model_name, const NodeManager::EventPort& port);
         std::string GetTopic(const std::string& model_name, const std::string& port_id);

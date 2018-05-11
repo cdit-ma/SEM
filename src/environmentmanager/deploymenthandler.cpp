@@ -59,7 +59,7 @@ void DeploymentHandler::HeartbeatLoop(){
     //Break out early if we never get our first heartbeat
     else{
         delete handler_socket_;
-        RemoveExperiment(time_added_);
+        RemoveDeployment(time_added_);
         return;
     }
 
@@ -93,7 +93,7 @@ void DeploymentHandler::HeartbeatLoop(){
                 interval *= 2;
             }
             else{
-                RemoveExperiment(time_added_);
+                RemoveDeployment(time_added_);
                 break;
             }
             liveness = HEARTBEAT_LIVENESS;
@@ -103,8 +103,14 @@ void DeploymentHandler::HeartbeatLoop(){
     delete handler_socket_;
 }
 
-void DeploymentHandler::RemoveExperiment(uint64_t call_time){
-    environment_->RemoveExperiment(experiment_id_, call_time);
+void DeploymentHandler::RemoveDeployment(uint64_t call_time){
+
+    if(deployment_type_ == Environment::DeploymentType::EXECUTION_MASTER){
+        environment_->RemoveExperiment(experiment_id_, call_time);
+    }
+    if(deployment_type_ == Environment::DeploymentType::LOGAN_CLIENT){
+        environment_->RemoveLoganClient(experiment_id_, deployment_ip_address_);
+    }
     removed_flag_ = true;
 }
 
@@ -169,9 +175,13 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
             }
 
             case NodeManager::EnvironmentMessage::REMOVE_DEPLOYMENT:{
-                RemoveExperiment(message_time);
+                RemoveDeployment(message_time);
                 message.set_type(NodeManager::EnvironmentMessage::SUCCESS);
                 break;
+            }
+
+            case NodeManager::EnvironmentMessage::REMOVE_LOGAN_CLIENT:{
+                
             }
 
             case NodeManager::EnvironmentMessage::HEARTBEAT:{
@@ -183,7 +193,13 @@ void DeploymentHandler::HandleRequest(std::pair<uint64_t, std::string> request){
                 break;
             }
 
+            case NodeManager::EnvironmentMessage::LOGAN_QUERY:{
+                HandleLoganQuery(message);
+                break;
+            }
+
             default:{
+                std::cout << message.DebugString() << std::endl;
                 message.set_type(NodeManager::EnvironmentMessage::ERROR_RESPONSE);
                 break;
             }
@@ -205,4 +221,13 @@ void DeploymentHandler::HandleDirtyExperiment(NodeManager::EnvironmentMessage& m
 
     environment_->GetExperimentUpdate(experiment_id_, *update_message);
 
+}
+
+void DeploymentHandler::HandleLoganQuery(NodeManager::EnvironmentMessage& message){
+    auto logger_message = message.mutable_logger();
+    auto ip_address = logger_message->publisher_address();
+    auto logger_port = environment_->GetLoganPublisherPort(experiment_id_, ip_address);
+    logger_message->set_publisher_port(logger_port);
+
+    message.set_type(NodeManager::EnvironmentMessage::LOGAN_RESPONSE);
 }

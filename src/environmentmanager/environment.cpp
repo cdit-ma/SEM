@@ -75,7 +75,7 @@ std::string Environment::AddLoganClient(const std::string& model_name, const std
         port = "";
     }
 
-    auto client = new LoganClient{port, ip_address, model_name, ""};
+    auto client = new LoganClient{port, ip_address, model_name, "22335"};
 
     experiment->AddLoganClient(client);
 
@@ -119,6 +119,10 @@ void Environment::RemoveExperiment(const std::string& model_name, uint64_t time_
     }
 
     std::cout << "Registered experiments: " << experiment_map_.size() << std::endl;
+}
+
+void Environment::RemoveLoganClient(const std::string& model_name, const std::string& ip_address){
+    //TODO: complete this.
 }
 
 void Environment::StoreControlMessage(const NodeManager::ControlMessage& control_message){
@@ -452,6 +456,13 @@ std::string Environment::GetNodeModelLoggerPort(const std::string& model_name, c
         auto experiment = experiment_map_.at(model_name);
         std::string node_id = experiment->node_id_map_.at(ip_address);
         return experiment->modellogger_port_map_.at(node_id);
+    }
+    return "";
+}
+
+std::string Environment::GetLoganPublisherPort(const std::string& model_name, const std::string& ip_address){
+    if(experiment_map_.count(model_name)){
+        return "22777";
     }
     return "";
 }

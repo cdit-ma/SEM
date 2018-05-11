@@ -39,9 +39,10 @@ class DeploymentHandler{
         //Reply Helpers
         void HandleRequest(std::pair<uint64_t, std::string> request);
         void HandleDirtyExperiment(NodeManager::EnvironmentMessage& message);
+        void HandleLoganQuery(NodeManager::EnvironmentMessage& message);
 
         //Environment Helpers
-        void RemoveExperiment(uint64_t message_time);
+        void RemoveDeployment(uint64_t message_time);
 
         std::string TCPify(const std::string& ip, const std::string& port) const;
         std::string TCPify(const std::string& ip, int port) const;
