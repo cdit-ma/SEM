@@ -89,21 +89,30 @@ int main(int ac, char** av){
     bool valid_args = !address.empty() && ((!environment_manager_address.empty() && !experiment_id.empty()) || !port.empty());
 
     //On invalid args or help arg, print options and exit.
-    if(valid_args || vm.count("help")){
+    if(!valid_args || vm.count("help")){
         std::cout << desc << std::endl;
+        std::cout << "If no fully qualified endpoint is specified (-a & -p), a fully qualified environment manager endpoint and experiment-id must be (-a & -e & -n)." << std::endl;
         return valid_args;
     }
 
+    EnvironmentRequester requester(environment_manager_address, experiment_id, EnvironmentRequester::DeploymentType::LOGAN_CLIENT);
+    bool registered = false;
     std::string logger_endpoint;
     //If we have a port, use it. Otherwise connect to environment manager and receive assigned port.
     if(port.empty()){
         std::string assigned_port;
 
-        EnvironmentRequester requester(environment_manager_address, experiment_id);
         requester.Init(environment_manager_address);
+        requester.Start();
 
-        assigned_port = requester.GetLoganPort(experiment_id, address);
-
+        try{
+            assigned_port = requester.GetLoganClientInfo(address);
+            registered = true;
+        }
+        catch(const std::exception& ex){
+            std::cerr << "Failed to get logging port from environment manager." << std::endl;
+            return 1;
+        }
 
         logger_endpoint = "tcp://" + address + ":" + assigned_port;
     }
@@ -134,10 +143,16 @@ int main(int ac, char** av){
             std::unique_lock<std::mutex> lock(mutex_);
             //Wait for the signal_handler to notify for exit
             lock_condition_.wait(lock);
-            std::cout << "* Stopping logging." << std::endl;
+        }
+
+
+        if(registered){
+            requester.RemoveDeployment();
+            requester.End();
         }
 
         if(!log_controller.Stop()){
+            
             return 1;
         }
     }
