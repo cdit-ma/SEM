@@ -662,6 +662,11 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 default_icon_name = "EnumMember";
                 break;
             }
+            case NODE_KIND::PERIODICEVENT_INSTANCE:{
+                default_icon_prefix = "EntityIcons";
+                default_icon_name = "PeriodicEvent";
+                break;
+            }
             default:
                 break;
             }

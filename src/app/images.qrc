@@ -367,5 +367,6 @@
         <file alias="arrowsUpDownDark">Resources/Icons/arrowsUpDownDark.png</file>
         <file alias="squarePlus">Resources/Icons/squarePlus.png</file>
         <file alias="circlePlusTwoTone">Resources/Icons/circlePlusTwoTone.png</file>
+        <file alias="timeElapsed">Resources/Icons/timeElapsed.png</file>
     </qresource>
 </RCC>

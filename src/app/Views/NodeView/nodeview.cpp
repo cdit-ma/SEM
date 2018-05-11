@@ -854,9 +854,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case NODE_KIND::COMPONENT:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Vertical);
-                secondary_icon.second = "bracketsAngled";
-                nodeItem->setSecondaryIconPath(secondary_icon);
-                nodeItem->setSecondaryTextKey("type");
                 break;
             case NODE_KIND::COMPONENT_IMPL:
                 nodeItem = new StackNodeItem(item, parentNode, Qt::Horizontal);

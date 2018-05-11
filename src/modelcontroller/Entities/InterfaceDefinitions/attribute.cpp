@@ -13,7 +13,7 @@ void Attribute::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     });
 }
 
-Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
+Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, node_kind, is_temp){
     //Setup State
     addInstanceKind(NODE_KIND::ATTRIBUTE_INSTANCE);
     addImplKind(NODE_KIND::ATTRIBUTE_IMPL);
@@ -26,4 +26,11 @@ Attribute::Attribute(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     //Setup Data
     auto type_data = broker.AttachData(this, "type", QVariant::String, "String", true);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
+}
+
+void Attribute::parentSet(Node* parent){
+    if(getViewAspect() != VIEW_ASPECT::INTERFACES){
+        setDataProducer(true);
+    }
+    DataNode::parentSet(parent);
 }

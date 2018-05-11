@@ -23,7 +23,7 @@ ComponentInstance::ComponentInstance(EntityFactoryBroker& broker, bool is_temp) 
     setAcceptsNodeKind(NODE_KIND::INEVENTPORT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::OUTEVENTPORT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::CLASS_INSTANCE);
-    setAcceptsNodeKind(NODE_KIND::PERIODICEVENT);
+    setAcceptsNodeKind(NODE_KIND::PERIODICEVENT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::SERVER_PORT_INSTANCE);
     setAcceptsNodeKind(NODE_KIND::CLIENT_PORT_INSTANCE);
 

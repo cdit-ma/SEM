@@ -1,19 +1,17 @@
 #ifndef ATTRIBUTE_H
 #define ATTRIBUTE_H
-#include "../node.h"
+#include "datanode.h"
 
 
 class EntityFactoryRegistryBroker;
-class Attribute : public Node
+class Attribute : public DataNode
 {
-
     Q_OBJECT
-
-protected:
 public:
     static void RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker);
 protected:
     Attribute(EntityFactoryBroker& factory, bool is_temp_node);
+    void parentSet(Node* parent);
 };
 
 #endif // ATTRIBUTE_H

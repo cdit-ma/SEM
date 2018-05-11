@@ -26,14 +26,21 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
         //Break out early for temporary entities
         return;
     }
+
     //setup Data
-    auto label = broker.AttachData(lhs_, "label", QVariant::String, "???", true);
-    broker.AttachData(lhs_, "type", QVariant::String, "Boolean", true);
+    auto label = broker.AttachData(this, "label", QVariant::String, "???", true);
+    auto data_value = broker.AttachData(this, "value", QVariant::String, "", false);
+    broker.AttachData(this, "type", QVariant::String, "Boolean", true);
     
     //Attach Children
     lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    comparator_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    auto datanode_comparator = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    datanode_comparator->setDataReceiver(false);
+    datanode_comparator->setDataProducer(false);
     rhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+
+    comparator_ = datanode_comparator;
+    
 
     //Setup LHS
     broker.AttachData(lhs_, "label", QVariant::String, "lhs", true);
@@ -59,6 +66,8 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     connect(data_rhs_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
     connect(data_lhs_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
     connect(data_comparator, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
+    connect(data_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
+    
 
     updateLabel();
     TypeKey::BindInnerAndOuterTypes(lhs_, rhs_, true);
@@ -82,14 +91,21 @@ bool MEDEA::BooleanExpression::canAdoptChild(Node* child)
 
 void MEDEA::BooleanExpression::updateLabel(){
     QString new_label = "???";
-    if(lhs_ && comparator_ && rhs_){
-        auto lhs_value = lhs_->getDataValue("value").toString();
-        auto comparator = comparator_->getDataValue("label").toString();
-        auto rhs_value = rhs_->getDataValue("value").toString();
+    
+    auto value = getDataValue("value").toString();
+    if(value.length()){
+        new_label = value;
+    }else{
+        if(lhs_ && comparator_ && rhs_){
+            auto lhs_value = lhs_->getDataValue("value").toString();
+            auto comparator = comparator_->getDataValue("label").toString();
+            auto rhs_value = rhs_->getDataValue("value").toString();
 
-        if(lhs_value.length() && rhs_value.length()){
-            new_label = lhs_value + " " + comparator + " " + rhs_value;
+            if(lhs_value.length() && rhs_value.length()){
+                new_label = lhs_value + " " + comparator + " " + rhs_value;
+            }
         }
     }
+
     setDataValue("label", new_label);
 }

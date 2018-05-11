@@ -26,7 +26,7 @@ MEDEA::DeploymentAttribute::DeploymentAttribute(::EntityFactoryBroker& broker, b
     }
 
     //Setup Data
-    auto type_data = broker.AttachData(this, "type", QVariant::String, "", true);
+    auto type_data = broker.AttachData(this, "type", QVariant::String, "String", false);
     broker.AttachData(this, "comment", QVariant::String, "", false);
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
 }

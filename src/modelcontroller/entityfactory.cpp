@@ -72,6 +72,7 @@
 #include "Entities/DeploymentDefinitions/attributeinstance.h"
 #include "Entities/DeploymentDefinitions/ineventportinstance.h"
 #include "Entities/DeploymentDefinitions/outeventportinstance.h"
+#include "Entities/DeploymentDefinitions/periodiceventinstance.h"
 
 #include "Entities/DeploymentDefinitions/deploymentattribute.h"
 
@@ -330,6 +331,7 @@ EntityFactory::EntityFactory() : factory_broker_(*this){
     Header::RegisterWithEntityFactory(registry_broker);
     InputParameter::RegisterWithEntityFactory(registry_broker);
     PeriodicEvent::RegisterWithEntityFactory(registry_broker);
+    PeriodicEventInstance::RegisterWithEntityFactory(registry_broker);
     ReturnParameter::RegisterWithEntityFactory(registry_broker);
     Setter::RegisterWithEntityFactory(registry_broker);
     Variable::RegisterWithEntityFactory(registry_broker);
@@ -600,40 +602,43 @@ QList<Key*> EntityFactory::GetKeys(){
 }
 
 void EntityFactory::DeregisterNode(Node* node){
+    if(!node){
+        return;
+    }
+    clearAcceptedEdgeKinds(node);
+    
+    auto children = node->getChildren(0);
+    auto edges = node->getEdges(0);
 
+    if(children.size()){
+        qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Children";
+        for(auto child : children){
+            DestructEntity(child);
+        }
+    }
+
+    if(edges.size()){
+        qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Edges";
+        for(auto edge : edges){
+            DestructEntity(edge);
+        }
+    }
 }
 
 void EntityFactory::DeregisterEdge(Edge* edge){
 
 }
 
-void EntityFactory::DeregisterGraphML(GraphML* edge){
-
+void EntityFactory::DeregisterGraphML(GraphML* graphml){
+    if(graphml){
+        auto id = graphml->getID();
+        hash_.remove(id);
+        unregistered_hash_.remove(id);
+    }
 }
 
 void EntityFactory::DestructEntity(GraphML* graphml){
     if(graphml){
-        if(graphml->getGraphMLKind() == GRAPHML_KIND::NODE){
-            auto node = (Node*) graphml;
-            clearAcceptedEdgeKinds(node);
-
-            auto children = node->getChildren(0);
-            auto edges = node->getEdges(0);
-
-            if(children.size()){
-                qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Children";
-                for(auto child : children){
-                    DestructEntity(child);
-                }
-            }
-
-            if(edges.size()){
-                qCritical() << "EntityFactory::DestructEntity:" << node->toString() << " Still has Edges";
-                for(auto edge : edges){
-                    DestructEntity(edge);
-                }
-            }
-        }
         //This will deregister
         delete graphml;
     }
@@ -845,16 +850,6 @@ void EntityFactory::clearAcceptedEdgeKinds(Node* node){
         target_edge_map.remove(node);
     }
 }
-
-
-void EntityFactory::DeregisterEntity(GraphML* graphml){
-    if(graphml){
-        auto id = graphml->getID();
-        hash_.remove(id);
-        unregistered_hash_.remove(id);
-    }
-}
-
 
 
 void EntityFactory::EntitiesUUIDChanged(Entity* entity, QString old_uuid, QString new_uuid){

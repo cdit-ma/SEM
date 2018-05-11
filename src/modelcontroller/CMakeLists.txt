@@ -156,6 +156,7 @@ set(SOURCE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/clientportinstance.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/ClientServer/serverportinstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodiceventinstance.cpp
 )
 
 set(HEADERS
@@ -240,6 +241,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicevent.h
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/outeventportimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/inputparameter.h
@@ -261,6 +263,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodiceventinstance.h
 )
 
 

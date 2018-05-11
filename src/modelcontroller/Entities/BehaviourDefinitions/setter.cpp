@@ -3,6 +3,7 @@
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 #include "../../entityfactoryregistrybroker.h"
+#include "../InterfaceDefinitions/datanode.h"
 
 const NODE_KIND node_kind = NODE_KIND::SETTER;
 const QString kind_string = "Setter";
@@ -29,7 +30,11 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
 
     //Attach Children
     lhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    comparator_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    auto datanode_comparator = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
+    datanode_comparator->setDataReceiver(false);
+    datanode_comparator->setDataProducer(false);
+    comparator_ = datanode_comparator;
+
     rhs_ = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
     //Setup LHS

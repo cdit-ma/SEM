@@ -69,9 +69,7 @@ public:
 
 protected:
     static EntityFactory* getNewFactory();
-
     QSet<Node*> GetNodesWhichAcceptEdgeKinds(EDGE_KIND edge_kind, EDGE_DIRECTION direction);
-
 public:
     //Constructors
     Edge* CreateEdge(Node* source, Node* destination, EDGE_KIND edgeKind);
@@ -86,15 +84,15 @@ public:
     Key* GetKey(QString key_name, QVariant::Type type);
     
     int CacheEntity(GraphML* graphml, int desired_id = -1);
-    //Destructor
+    
     void DestructEntity(GraphML* entity);
     
-    void DeregisterNode(Node* node);
-    void DeregisterEdge(Edge* edge);
-    void DeregisterGraphML(GraphML* graphml);
 public:
     Node* ConstructChildNode(Node& parent, NODE_KIND node_kind);
 protected:
+    void DeregisterNode(Node* node);
+    void DeregisterEdge(Edge* edge);
+    void DeregisterGraphML(GraphML* graphml);
     //Getters
     Entity* GetEntity(int id);
     Node* GetNode(int id);
@@ -144,12 +142,16 @@ private:
     //Hashes
     QHash<NODE_KIND, NodeLookupStruct*> node_struct_lookup;
     QHash<EDGE_KIND, EdgeLookupStruct*> edge_struct_lookup;
+
+    //Hashes
     QHash<QString, EDGE_KIND> edge_kind_lookup;
     QHash<QString, NODE_KIND> node_kind_lookup;
+
 
     QHash<QString, int> uuid_lookup_;
     QHash<QString, Key*> key_lookup_;
 
+    //Edge Map
     QHash<EDGE_KIND, QSet<Node*> > accepted_source_edge_map;
     QHash<EDGE_KIND, QSet<Node*> > accepted_target_edge_map;
 

@@ -22,9 +22,9 @@ AttributeInstance::AttributeInstance(EntityFactoryBroker& broker, bool is_temp) 
         //Break out early for temporary entities
         return;
     }
-
+    
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, "ASSEMBLIES", true);
+    broker.AttachData(this, "label", QVariant::String, "", true);
     broker.AttachData(this, "value", QVariant::String, "", false);
 }
 
